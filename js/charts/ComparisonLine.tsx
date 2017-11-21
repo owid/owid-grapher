@@ -38,10 +38,14 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
         return line(controlData)
     }
 
+    renderUid: number
+    componentWillMount() {
+        this.renderUid = guid()
+    }
+
     render() {
         const { innerBounds } = this.props.axisBox
-        const { lineData } = this
-        const renderUid = guid()
+        const { lineData, renderUid } = this
 
         return <g className="ComparisonLine">
             <defs>

@@ -61,53 +61,52 @@ def short_unit_extract(unit: str):
 
 
 source_description = {
-    'dataPublishedBy': "World Bank – World Development Indicators",
-    'link': "http://data.worldbank.org/data-catalog/world-development-indicators",
+    'dataPublishedBy': "World Bank Data on Statistical Capacity",
+    'link': "https://data.worldbank.org/data-catalog/data-on-statistical-capacity",
     'retrievedDate': timezone.now().strftime("%d-%B-%y")
 }
 
-
-wdi_zip_file_url = 'http://databank.worldbank.org/data/download/WDI_excel.zip'
-wdi_downloads_save_location = settings.BASE_DIR + '/data/wdi_downloads/'
+bbsc_zip_file_url = 'http://databank.worldbank.org/data/download/BBSC_Excel.zip'
+bbsc_downloads_save_location = settings.BASE_DIR + '/data/bbsc_downloads/'
 
 # create a directory for holding the downloads
 # if the directory exists, delete it and recreate it
 
-if not os.path.exists(wdi_downloads_save_location):
-    os.makedirs(wdi_downloads_save_location)
+if not os.path.exists(bbsc_downloads_save_location):
+    os.makedirs(bbsc_downloads_save_location)
 #else:
-#    shutil.rmtree(wdi_downloads_save_location)
-#    os.makedirs(wdi_downloads_save_location)
+#    shutil.rmtree(bbsc_downloads_save_location)
+#    os.makedirs(bbsc_downloads_save_location)
 
 logger = logging.getLogger('importer')
 start_time = time.time()
 
 logger.info("Getting the zip file")
 request_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-r = requests.get(wdi_zip_file_url, stream=True, headers=request_header)
+r = requests.get(bbsc_zip_file_url, stream=True, headers=request_header)
 if r.ok:
-    with open(wdi_downloads_save_location + 'wdi.zip', 'wb') as out_file:
+    with open(bbsc_downloads_save_location + 'bbsc.zip', 'wb') as out_file:
         shutil.copyfileobj(r.raw, out_file)
     logger.info("Saved the zip file to disk.")
-    z = zipfile.ZipFile(wdi_downloads_save_location + 'wdi.zip')
-    excel_filename = wdi_downloads_save_location + z.namelist()[0]  # there should be only one file inside the zipfile, so we will load that one
-    z.extractall(wdi_downloads_save_location)
+    z = zipfile.ZipFile(bbsc_downloads_save_location + 'bbsc.zip')
+    excel_filename = bbsc_downloads_save_location + z.namelist()[0]  # there should be only one file inside the zipfile, so we will load that one
+    z.extractall(bbsc_downloads_save_location)
     r = None  # we do not need the request anymore
     logger.info("Successfully extracted the zip file")
 else:
     logger.error("The file could not be downloaded. Stopping the script...")
     sys.exit("Could not download file.")
 
-wdi_category_name_in_db = 'World Development Indicators'  # set the name of the root category of all data that will be imported by this script
+bbsc_category_name_in_db = 'World Bank Data on Statistical Capacity'  # set the name of the root category of all data that will be imported by this script
 
-import_history = ImportHistory.objects.filter(import_type='wdi')
+import_history = ImportHistory.objects.filter(import_type='bbsc')
 
-#excel_filename = wdi_downloads_save_location + "WDIEXCEL.xlsx"
+#excel_filename = bbsc_downloads_save_location + "BBSCEXCEL.xlsx"
 
 with transaction.atomic():
-    # if wdi imports were never performed
+    # if bbsc imports were never performed
     if not import_history:
-        logger.info("This is the very first WDI data import.")
+        logger.info("This is the very first BBSC data import.")
 
         wb = load_workbook(excel_filename, read_only=True)
 
@@ -133,7 +132,7 @@ with transaction.atomic():
                         global_cat[cell.value.upper().strip()] = {}
                         indicatordict = global_cat[cell.value.upper().strip()]
                     if column_number == 2:
-                        indicatordict['category'] = cell.value.split(':')[0]
+                        indicatordict['category'] = cell.value
                     if column_number == 3:
                         indicatordict['name'] = cell.value
                     if column_number == 5:
@@ -146,8 +145,8 @@ with transaction.atomic():
                                 indicatordict['unitofmeasure'] = ''
                             else:
                                 indicatordict['unitofmeasure'] = indicatordict['name'][
-                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
-                                                                     'name'].rfind(')')]
+                                                                indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                    'name'].rfind(')')]
                     if column_number == 11:
                         if cell.value:
                             indicatordict['limitations'] = cell.value
@@ -196,21 +195,21 @@ with transaction.atomic():
         existing_categories = DatasetCategory.objects.values('name')
         existing_categories_list = {item['name'] for item in existing_categories}
 
-        if wdi_category_name_in_db not in existing_categories_list:
-            the_category = DatasetCategory(name=wdi_category_name_in_db, fetcher_autocreated=True)
+        if bbsc_category_name_in_db not in existing_categories_list:
+            the_category = DatasetCategory(name=bbsc_category_name_in_db, fetcher_autocreated=True)
             the_category.save()
-            logger.info("Inserting a category %s." % wdi_category_name_in_db.encode('utf8'))
+            logger.info("Inserting a category %s." % bbsc_category_name_in_db.encode('utf8'))
 
         else:
-            the_category = DatasetCategory.objects.get(name=wdi_category_name_in_db)
+            the_category = DatasetCategory.objects.get(name=bbsc_category_name_in_db)
 
         existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-        wdi_categories_list = []
+        bbsc_categories_list = []
 
         for key, value in category_vars.items():
-            wdi_categories_list.append(key)
+            bbsc_categories_list.append(key)
             if key not in existing_subcategories_list:
                 the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
                 the_subcategory.save()
@@ -258,6 +257,7 @@ with transaction.atomic():
                         entity_info.country_latest_census = country_latest_census
                         entity_info.country_latest_survey = country_latest_survey
                         entity_info.country_recent_income_source = country_recent_income_source
+                        entity_info.dataset = 'bbsc'
                         entity_info.save()
                         if country_tool_names_dict.get(unidecode.unidecode(country_name.lower()), 0):
                             newentity = Entity.objects.get(name=country_tool_names_dict[unidecode.unidecode(country_name.lower())].owid_name)
@@ -274,23 +274,27 @@ with transaction.atomic():
         insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
         datasets_list = []
-        for category in wdi_categories_list:
-            newdataset = Dataset(name='World Development Indicators - ' + category,
+        for category in bbsc_categories_list:
+            newdataset = Dataset(name='World Bank Data on Statistical Capacity - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='wdi', fk_dst_cat_id=the_category,
+                                 namespace='bbsc', fk_dst_cat_id=the_category,
                                  fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, fk_dst_cat_id=the_category))
             newdataset.save()
             datasets_list.append(newdataset)
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             row_number = 0
+            columns_to_years = {}
             for row in data_ws.rows:
                 row_number += 1
                 data_values = []
                 for cell in row:
                     if row_number == 1:
+                        column_number += 1
                         if cell.value:
                             try:
                                 last_available_year = int(cell.value)
+                                columns_to_years[column_number] = last_available_year
+                                last_available_column = column_number
                             except:
                                 pass
                     if row_number > 1:
@@ -303,29 +307,29 @@ with transaction.atomic():
                             indicator_name = cell.value
                         if column_number == 4:
                             indicator_code = cell.value.upper().strip()
-                        if column_number > 4 and column_number <= last_available_year - 1960 + 5:
+                        if column_number > 4 and column_number <= last_available_column:
                             if cell.value or cell.value == 0:
-                                data_values.append({'value': cell.value, 'year': 1960 - 5 + column_number})
-                        if column_number > 4 and column_number == last_available_year - 1960 + 5:
+                                data_values.append({'value': cell.value, 'year': columns_to_years[column_number]})
+                        if column_number > 4 and column_number == last_available_column:
                             if len(data_values):
                                 if indicator_code in category_vars[category]:
                                     if not global_cat[indicator_code]['saved']:
-                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servewdicountryinfo") + "\n"
+                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servebbsccountryinfo") + "\n"
                                         source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
                                         source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
                                         source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
-                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] if global_cat[indicator_code]['concept'] else ''
+                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
                                         source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                         source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
-                                        newsource = Source(name='World Bank – WDI: ' + global_cat[indicator_code]['name'],
+                                        newsource = Source(name='World Bank Data on Statistical Capacity: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
                                         newsource.save()
                                         logger.info("Inserting a source %s." % newsource.name.encode('utf8'))
                                         s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
                                         newvariable = Variable(name=global_cat[indicator_code]['name'], unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else '', short_unit=s_unit, description=global_cat[indicator_code]['description'],
-                                                               code=indicator_code, timespan='1960-' + str(last_available_year), fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4), sourceId=newsource)
+                                                               code=indicator_code, timespan='', fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4), sourceId=newsource)
                                         newvariable.save()
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
                                         global_cat[indicator_code]['variable_object'] = newvariable
@@ -349,24 +353,24 @@ with transaction.atomic():
                 c.executemany(insert_string, data_values_tuple_list)
             logger.info("Dumping data values...")
 
-        newimport = ImportHistory(import_type='wdi', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                  import_notes='Initial import of WDI',
-                                  import_state=json.dumps({'file_hash': file_checksum(wdi_downloads_save_location + 'wdi.zip')}))
+        newimport = ImportHistory(import_type='bbsc', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                  import_notes='Initial import of BBSC datasets',
+                                  import_state=json.dumps({'file_hash': file_checksum(bbsc_downloads_save_location + 'bbsc.zip')}))
         newimport.save()
         for dataset in datasets_list:
-            write_dataset_csv(dataset.pk, dataset.name, None, 'wdi_fetcher', '')
+            write_dataset_csv(dataset.pk, dataset.name, None, 'bbsc_fetcher', '')
         logger.info("Import complete.")
 
     else:
         last_import = import_history.last()
         deleted_indicators = {}  # This is used to keep track which variables' data values were already deleted before writing new values
 
-        if json.loads(last_import.import_state)['file_hash'] == file_checksum(wdi_downloads_save_location + 'wdi.zip'):
+        if json.loads(last_import.import_state)['file_hash'] == file_checksum(bbsc_downloads_save_location + 'bbsc.zip'):
             logger.info('No updates available.')
             sys.exit('No updates available.')
 
         logger.info('New data is available.')
-        available_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='wdi'))
+        available_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='bbsc'))
         available_variables_list = []
 
         for each in available_variables.values('code'):
@@ -407,7 +411,7 @@ with transaction.atomic():
                         global_cat[cell.value.upper().strip()] = {}
                         indicatordict = global_cat[cell.value.upper().strip()]
                     if column_number == 2:
-                        indicatordict['category'] = cell.value.split(':')[0]
+                        indicatordict['category'] = cell.value
                     if column_number == 3:
                         indicatordict['name'] = cell.value
                     if column_number == 5:
@@ -420,8 +424,8 @@ with transaction.atomic():
                                 indicatordict['unitofmeasure'] = ''
                             else:
                                 indicatordict['unitofmeasure'] = indicatordict['name'][
-                                                                 indicatordict['name'].rfind('(') + 1:indicatordict[
-                                                                     'name'].rfind(')')]
+                                                                indicatordict['name'].rfind('(') + 1:indicatordict[
+                                                                    'name'].rfind(')')]
                     if column_number == 11:
                         if cell.value:
                             indicatordict['limitations'] = cell.value
@@ -474,8 +478,8 @@ with transaction.atomic():
                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                         c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, existing_variables_code_id[each]))
-                source_object = Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='wdi')).sourceId
-                Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='wdi')).delete()
+                source_object = Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='bbsc')).sourceId
+                Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='bbsc')).delete()
                 logger.info("Deleting the variable: %s" % each.encode('utf8'))
                 logger.info("Deleting the source: %s" % source_object.name.encode('utf8'))
                 source_object.delete()
@@ -492,27 +496,27 @@ with transaction.atomic():
         existing_categories = DatasetCategory.objects.values('name')
         existing_categories_list = {item['name'] for item in existing_categories}
 
-        if wdi_category_name_in_db not in existing_categories_list:
-            the_category = DatasetCategory(name=wdi_category_name_in_db, fetcher_autocreated=True)
+        if bbsc_category_name_in_db not in existing_categories_list:
+            the_category = DatasetCategory(name=bbsc_category_name_in_db, fetcher_autocreated=True)
             the_category.save()
-            logger.info("Inserting a category %s." % wdi_category_name_in_db.encode('utf8'))
+            logger.info("Inserting a category %s." % bbsc_category_name_in_db.encode('utf8'))
 
         else:
-            the_category = DatasetCategory.objects.get(name=wdi_category_name_in_db)
+            the_category = DatasetCategory.objects.get(name=bbsc_category_name_in_db)
 
         existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-        wdi_categories_list = []
+        bbsc_categories_list = []
 
         for key, value in category_vars.items():
-            wdi_categories_list.append(key)
+            bbsc_categories_list.append(key)
             if key not in existing_subcategories_list:
                 the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
-        cats_to_add = list(set(wdi_categories_list).difference(list(existing_subcategories_list)))
+        cats_to_add = list(set(bbsc_categories_list).difference(list(existing_subcategories_list)))
 
         existing_entities = Entity.objects.values('name')
         existing_entities_list = {item['name'] for item in existing_entities}
@@ -524,7 +528,7 @@ with transaction.atomic():
 
         country_name_entity_ref = {}  # this dict will hold the country names from excel and the appropriate entity object (this is used when saving the variables and their values)
 
-        AdditionalCountryInfo.objects.filter(dataset='wdi').delete()  # We will load new additional country data now
+        AdditionalCountryInfo.objects.filter(dataset='bbsc').delete()  # We will load new additional country data now
 
         row_number = 0
         for row in country_ws.rows:
@@ -558,6 +562,7 @@ with transaction.atomic():
                         entity_info.country_latest_census = country_latest_census
                         entity_info.country_latest_survey = country_latest_survey
                         entity_info.country_recent_income_source = country_recent_income_source
+                        entity_info.dataset = 'bbsc'
                         entity_info.save()
                         if country_tool_names_dict.get(unidecode.unidecode(country_name.lower()), 0):
                             newentity = Entity.objects.get(name=country_tool_names_dict[unidecode.unidecode(country_name.lower())].owid_name)
@@ -577,29 +582,33 @@ with transaction.atomic():
         total_values_tracker = 0
         dataset_id_oldname_list = []
 
-        for category in wdi_categories_list:
+        for category in bbsc_categories_list:
             if category in cats_to_add:
-                newdataset = Dataset(name='World Development Indicators - ' + category,
+                newdataset = Dataset(name='World Bank Data on Statistical Capacity - ' + category,
                                      description='This is a dataset imported by the automated fetcher',
-                                     namespace='wdi', fk_dst_cat_id=the_category,
+                                     namespace='bbsc', fk_dst_cat_id=the_category,
                                      fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
                                                                                      fk_dst_cat_id=the_category))
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(name='World Development Indicators - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
-                                                                                         name=wdi_category_name_in_db))
+                newdataset = Dataset.objects.get(name='World Bank Data on Statistical Capacity - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
+                                                                                         name=bbsc_category_name_in_db))
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             row_number = 0
+            columns_to_years = {}
             for row in data_ws.rows:
                 row_number += 1
                 data_values = []
                 for cell in row:
                     if row_number == 1:
+                        column_number += 1
                         if cell.value:
                             try:
                                 last_available_year = int(cell.value)
+                                columns_to_years[column_number] = last_available_year
+                                last_available_column = column_number
                             except:
                                 pass
                     if row_number > 1:
@@ -612,23 +621,23 @@ with transaction.atomic():
                             indicator_name = cell.value
                         if column_number == 4:
                             indicator_code = cell.value.upper().strip()
-                        if column_number > 4 and column_number <= last_available_year - 1960 + 5:
+                        if column_number > 4 and column_number <= last_available_column:
                             if cell.value or cell.value == 0:
-                                data_values.append({'value': cell.value, 'year': 1960 - 5 + column_number})
-                        if column_number > 4 and column_number == last_available_year - 1960 + 5:
+                                data_values.append({'value': cell.value, 'year': columns_to_years[column_number]})
+                        if column_number > 4 and column_number == last_available_column:
                             if len(data_values):
                                 if indicator_code in category_vars[category]:
                                     total_values_tracker += len(data_values)
                                     if indicator_code in vars_to_add:
-                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servewdicountryinfo") + "\n"
+                                        source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servebbsccountryinfo") + "\n"
                                         source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
                                         source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
                                         source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
-                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] if global_cat[indicator_code]['concept'] else ''
+                                        source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
                                         source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                         source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
-                                        newsource = Source(name='World Bank – WDI: ' + global_cat[indicator_code]['name'],
+                                        newsource = Source(name='World Bank Data on Statistical Capacity: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
                                         newsource.save()
@@ -641,7 +650,7 @@ with transaction.atomic():
                                                                short_unit=s_unit,
                                                                description=global_cat[indicator_code]['description'],
                                                                code=indicator_code,
-                                                               timespan='1960-' + str(last_available_year),
+                                                               timespan='',
                                                                fk_dst_id=newdataset,
                                                                fk_var_type_id=VariableType.objects.get(pk=4),
                                                                sourceId=newsource)
@@ -652,13 +661,13 @@ with transaction.atomic():
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
                                     else:
                                         if not global_cat[indicator_code]['saved']:
-                                            newsource = Source.objects.get(name='World Bank – WDI: ' + Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='wdi')).name)
-                                            newsource.name = 'World Bank – WDI: ' + global_cat[indicator_code]['name']
-                                            source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servewdicountryinfo") + "\n"
+                                            newsource = Source.objects.get(name='World Bank Data on Statistical Capacity: ' + Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='bbsc')).name)
+                                            newsource.name = 'World Bank Data on Statistical Capacity: ' + global_cat[indicator_code]['name']
+                                            source_description['additionalInfo'] = "Definitions and characteristics of countries and other territories: " + "https://ourworldindata.org" + reverse("servebbsccountryinfo") + "\n"
                                             source_description['additionalInfo'] += "Limitations and exceptions:\n" + global_cat[indicator_code]['limitations'] + "\n" if global_cat[indicator_code]['limitations'] else ''
                                             source_description['additionalInfo'] += "Notes from original source:\n" + global_cat[indicator_code]['sourcenotes'] + "\n" if global_cat[indicator_code]['sourcenotes'] else ''
                                             source_description['additionalInfo'] += "General comments:\n" + global_cat[indicator_code]['comments'] + "\n" if global_cat[indicator_code]['comments'] else ''
-                                            source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] if global_cat[indicator_code]['concept'] else ''
+                                            source_description['additionalInfo'] += "Statistical concept and methodology:\n" + global_cat[indicator_code]['concept'] + "\n" if global_cat[indicator_code]['concept'] else ''
                                             source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                             source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                             source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
@@ -667,12 +676,12 @@ with transaction.atomic():
                                             newsource.save()
                                             logger.info("Updating the source %s." % newsource.name.encode('utf8'))
                                             s_unit = short_unit_extract(global_cat[indicator_code]['unitofmeasure'])
-                                            newvariable = Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='wdi'))
+                                            newvariable = Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='bbsc'))
                                             newvariable.name = global_cat[indicator_code]['name']
                                             newvariable.unit=global_cat[indicator_code]['unitofmeasure'] if global_cat[indicator_code]['unitofmeasure'] else ''
                                             newvariable.short_unit = s_unit
                                             newvariable.description=global_cat[indicator_code]['description']
-                                            newvariable.timespan='1960-' + str(last_available_year)
+                                            newvariable.timespan=''
                                             newvariable.fk_dst_id=newdataset
                                             newvariable.sourceId=newsource
                                             newvariable.save()
@@ -711,27 +720,27 @@ with transaction.atomic():
 
         # now deleting subcategories and datasets that are empty (that don't contain any variables), if any
 
-        all_wdi_datasets = Dataset.objects.filter(namespace='wdi')
-        all_wdi_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_wdi_datasets).values(
+        all_bbsc_datasets = Dataset.objects.filter(namespace='bbsc')
+        all_bbsc_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_bbsc_datasets).values(
             'fk_dst_id').distinct()
-        all_wdi_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_wdi_datasets_with_vars}
+        all_bbsc_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_bbsc_datasets_with_vars}
 
-        for each in all_wdi_datasets:
-            if each.pk not in all_wdi_datasets_with_vars_dict:
+        for each in all_bbsc_datasets:
+            if each.pk not in all_bbsc_datasets_with_vars_dict:
                 cat_to_delete = each.fk_dst_subcat_id
                 logger.info("Deleting empty dataset %s." % each.name)
                 logger.info("Deleting empty category %s." % cat_to_delete.name)
                 each.delete()
                 cat_to_delete.delete()
 
-        newimport = ImportHistory(import_type='wdi', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+        newimport = ImportHistory(import_type='bbsc', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='Imported a total of %s data values.' % total_values_tracker,
                                   import_state=json.dumps(
-                                      {'file_hash': file_checksum(wdi_downloads_save_location + 'wdi.zip')}))
+                                      {'file_hash': file_checksum(bbsc_downloads_save_location + 'bbsc.zip')}))
         newimport.save()
 
         # now exporting csvs to the repo
         for dataset in dataset_id_oldname_list:
-            write_dataset_csv(dataset['id'], dataset['newname'], dataset['oldname'], 'wdi_fetcher', '')
+            write_dataset_csv(dataset['id'], dataset['newname'], dataset['oldname'], 'bbsc_fetcher', '')
 
 print("--- %s seconds ---" % (time.time() - start_time))

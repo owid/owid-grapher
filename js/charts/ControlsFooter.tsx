@@ -34,7 +34,7 @@ interface ShareMenuProps {
 @observer
 class ShareMenu extends React.Component<ShareMenuProps> {
     @computed get title(): string {
-        return document.title.replace(" - Our World In Data", "")
+        return this.props.chart.data.currentTitle
     }
 
     @computed get editUrl(): string | undefined {

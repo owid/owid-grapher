@@ -151,9 +151,7 @@ export default class MapTab extends React.Component<MapTabProps> {
         const that = this
         return new Header({
             get chart() { return that.props.chart },
-            get maxWidth() { return that.props.bounds.width },
-            get minYear() { return that.map.data.targetYear },
-            get maxYear() { return that.map.data.targetYear }
+            get maxWidth() { return that.props.bounds.width }
         })
     }
 
