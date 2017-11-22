@@ -1,0 +1,89 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Roboto, sans-serif;
+}
+
+.draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    user-select: none;
+}
+
+.draggable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.AdminApp {
+    height: 100%;
+}
+
+.ChartEditorPage {
+    height: calc(100% - 60px);
+    display: flex;
+
+    .tabular.menu .active.item {
+        background: #fafafa;
+    }
+
+    > form {
+        width: 500px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .innerForm {
+        overflow-y: scroll;
+        flex-grow: 1;
+        background-color: #fafafa;
+    }
+
+    .FieldsRow {
+        display: flex;
+        align-items: center;
+        margin: 0 0 1em;
+    }
+
+    .FieldsRow > * {
+        padding-right: 1rem;
+    }
+
+    .SaveButtons {
+        padding: 24px;
+    }
+
+    > figure {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.ColorSchemeEditor {
+    padding-left: 0;
+
+    > .segment {
+        display: flex;
+    }
+}
+
+.ColorBox {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.DataKeyItem {
+    @extend .draggable;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}

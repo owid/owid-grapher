@@ -2,9 +2,6 @@
 
 import './charts.entry'
 
-import '../css/editor.css'
-import 'material-components-web/dist/material-components-web.css'
-import autoInit from '@material/auto-init'
+import '../css/editor.scss'
 
 window.Admin = require('./admin/Admin').default
-autoInit()

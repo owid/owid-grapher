@@ -11,6 +11,8 @@ import { NumericBin, CategoricalBin } from '../charts/MapData'
 import Color from '../charts/Color'
 import Colorpicker from './Colorpicker'
 
+import { Segment } from 'semantic-ui-react'
+
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onVariableId(variableId: number) {
@@ -49,7 +51,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         return <section>
             <h2>Timeline</h2>
             <Toggle label="Hide timeline" value={!!mapConfig.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
-            <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} min={0} helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."/>
+            <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."/>
         </section>
     }
 }
@@ -66,9 +68,9 @@ class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) =
         const { color } = this.props
         const { isChoosingColor } = this
 
-        return <span className="map-color-scheme-icon" style={{ backgroundColor: color }} onClick={this.onClick}>
+        return <div className="ColorBox" style={{ backgroundColor: color }} onClick={this.onClick}>
             {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
-        </span>
+        </div>
     }
 }
 
@@ -105,15 +107,16 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
     }
 
     render() {
-        const { mapConfig, bin, index } = this.props
+        const { mapConfig, bin } = this.props
 
-        const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
+        //const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
 
-        return <li className="numeric clearfix">
+        return <Segment className="numeric">
+            <div><i className="fa fa-arrows-v"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
-            <NumberField placeholder="Maximum value" min={bin.min} value={bin.max} max={max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
+            <NumberField placeholder="Maximum value" value={bin.max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
-        </li>
+        </Segment>
     }
 }
 
@@ -154,12 +157,12 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
     render() {
         const { bin } = this.props
 
-        return <li className="categorical clearfix">
+        return <Segment className="categorical">
             <ColorBox color={bin.color} onColor={this.onColor} />
             <TextField value={bin.value} disabled={true} onValue={noop} />
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             <Toggle label="Hide" value={bin.isHidden} onValue={this.onToggleHidden} />
-        </li>
+        </Segment>
     }
 }
 
@@ -174,19 +177,19 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
         const { dimension } = mapConfig.data
         if (!dimension) return null
 
-        return <ul className="map-color-scheme-preview clearfix automatic-values">
-            {dimension.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
+        return <Segment.Group className="ColorSchemeEditor">
+            {dimension.variable.hasNumericValues && false && <li>
                 <NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue} />
             </li>}
 
-            {map(mapConfig.data.legendData, (bin, index) => {
+            {mapConfig.data.legendData.map((bin, index) => {
                 if (bin instanceof NumericBin) {
                     return <NumericBinView mapConfig={mapConfig} bin={bin} index={index} />
                 } else {
                     return <CategoricalBinView mapConfig={mapConfig} bin={bin} />
                 }
             })}
-        </ul>
+        </Segment.Group>
     }
 }
 
@@ -227,7 +230,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             <h2>Colors</h2>
             <SelectField label="Color scheme:" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
             {" "}<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
-            <NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />
+            {/*<NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />*/}
             <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
             <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
             <ColorSchemeEditor map={mapConfig} />
@@ -244,10 +247,7 @@ class MapProjectionSection extends React.Component<{ mapConfig: MapConfig }> {
     render() {
         const { mapConfig } = this.props
         const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
-        return <section>
-            <h2>Displayed region</h2>
-            <SelectField label="Which region map should be focused on:" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
-        </section>
+        return <SelectField label="Which region map should be focused on:" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
     }
 }
 
@@ -259,10 +259,7 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
 
     render() {
         const { mapConfig } = this.props
-        return <section className="map-legend-section">
-            <h2>Legend</h2>
-            <TextField label="Legend description:" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
-        </section>
+        return <TextField label="Legend description:" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
     }
 }
 

@@ -5,12 +5,11 @@ import { observer } from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
 import Color from '../charts/Color'
-import { NumberField } from './Forms'
-import Colorpicker from './Colorpicker'
+import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox } from './Forms'
 import ChartEditor from './ChartEditor'
 import { Form, Radio } from 'semantic-ui-react'
 
-interface DataKeyItemProps extends React.HTMLAttributes<HTMLLIElement> {
+interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
     datakey: DataKey
 }
@@ -25,23 +24,20 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
         this.props.chart.data.setKeyColor(this.props.datakey, color)
     }
 
-    @action.bound onRemove(ev: React.MouseEvent<HTMLSpanElement>) {
+    @action.bound onRemove() {
         this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(e => e !== this.props.datakey)
-        ev.stopPropagation()
     }
 
     render() {
-        const { props, color, isChoosingColor } = this
+        const { props, color } = this
         const { chart, datakey, ...rest } = props
         const meta = chart.data.keyData.get(datakey)
 
-        return <li className="country-label clickable" style={{ backgroundColor: color || "white", width: "100%" }}{...rest}>
-            <i className="fa fa-remove" onClick={this.onRemove} />
-            <i className="fa fa-paint-brush" onClick={_ => this.isChoosingColor = true} style={{ position: 'relative' }}>
-                {isChoosingColor && <Colorpicker color={color} onColor={this.onColor} onClose={() => this.isChoosingColor = false} />}
-            </i>
+        return <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
+            <div><i className="fa fa-arrows-v"/></div>
+            <ColorBox color={color||"white"} onColor={this.onColor}/>
             {meta ? meta.fullLabel : datakey}
-        </li>
+        </EditableListItem>
     }
 }
 
@@ -89,11 +85,11 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
                     <option value={key}>{chart.data.lookupKey(key).fullLabel}</option>
                 )}
             </select>
-            <ul className="selected-countries-box no-bullets">
+            <EditableList>
                 {map(selectedKeys, datakey =>
                     <DataKeyItem chart={chart} datakey={datakey} onMouseDown={_ => this.onStartDrag(datakey)} onMouseEnter={_ => this.onMouseEnter(datakey)} />
                 )}
-            </ul>
+            </EditableList>
         </section>
     }
 }

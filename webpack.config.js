@@ -45,6 +45,10 @@ module.exports = {
                 loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
             },
             {
+                test: /\.scss$/,
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'sass-loader'] })
+            },
+            {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
                 loader: 'url-loader?limit=10000'
             }

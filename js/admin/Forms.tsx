@@ -7,11 +7,10 @@
 import * as React from 'react'
 import { extend, toString, numberOnly, pick, guid } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, Select, TextArea } from 'semantic-ui-react'
-
-const MDButton = require('preact-material-components/Button').default
-
-const MDCTextfield = require('@material/textfield').MDCTextfield
+import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps } from 'semantic-ui-react'
+import {observable, action} from 'mobx'
+import {observer} from 'mobx-react'
+import Colorpicker from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -53,56 +52,53 @@ export class TextField extends React.Component<TextFieldProps> {
             <input type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
-
-        //return <MDTextField label={props.label} value={props.value} onInput={this.onInput} placeholder={props.placeholder} {...passthroughProps} />
-        /*if (props.label) {
-            return <label className="TextField" style={props.style}>
-                {props.label}
-                <input className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
-            </label>
-        } else {
-            return <input style={props.style} className="TextField form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
-        }*/
     }
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
     @bind onInput(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
-        if (value === "") {
-            this.props.onValue(undefined)
-        } else {
-            this.props.onValue(value)
-        }
+        this.props.onValue(value)
     }
 
     render() {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
 
-
         return <Form.Field>
             {props.label && <label>{props.label}</label>}
             <TextArea value={props.value} onInput={this.onInput} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
-        //return <MDTextField fullwidth={true} value={props.value} onInput={this.onInput} {...passthroughProps}/>
-        /*if (props.label) {
-            return <label style={props.style} className="TextAreaField">
-                {props.label}
-                <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps} />
-            </label>
-        } else {
-            return <textarea className="TextAreaField form-control" style={props.style} value={props.value} onInput={this.onInput} {...passthroughProps} />
-        }*/
     }
 }
 
+export interface NumberFieldProps {
+    label?: string,
+    value: number | undefined,
+    onValue: (value: number|undefined) => void,
+    onEnter?: () => void,
+    onEscape?: () => void,
+    placeholder?: string,
+    title?: string,
+    disabled?: boolean,
+    helpText?: string,
+    fullWidth?: boolean
+}
 
-export class NumberField extends React.Component<TextFieldProps> {
+export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const { props } = this
-        return <TextField {...props}/>
+
+        const textFieldProps = extend({}, props, {
+            value: props.value !== undefined ? props.value.toString() : undefined,
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            }
+        })
+
+        return <TextField {...textFieldProps}/>
     }
 }
 
@@ -111,7 +107,8 @@ export interface SelectFieldProps {
     value: string | undefined,
     onValue: (value: string | undefined) => void,
     options: string[],
-    optionLabels?: string[]
+    optionLabels?: string[],
+    helpText?: string
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
@@ -128,7 +125,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
         return <Form.Field>
             {props.label && <label>{props.label}</label>}
-            <Select label={props.label} value={props.value} options={options} onChange={(_, select) => props.onValue(select.value)}/>
+            <Select label={props.label} value={props.value} options={options} onChange={(_, select) => props.onValue(select.value as string|undefined)}/>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
 
@@ -196,13 +193,48 @@ export class Toggle extends React.Component<ToggleProps> {
 }
 
 export interface ButtonProps {
-    onClick: () => void,
-    label: string
+    onClick: () => void
+    label?: string
 }
 
 export class Button extends React.Component<ButtonProps> {
     render() {
         const { props } = this
-        return <SButton onClick={props.onClick}>{props.label}</SButton>
+        return <SButton onClick={props.onClick}>{props.label}{props.children}</SButton>
+    }
+}
+
+export class EditableList extends React.Component<{}> {
+    render() {
+        const {props} = this
+        return <Segment.Group className="EditableList">
+            {props.children}
+        </Segment.Group>
+    }
+}
+
+export type EditableListItemProps = SegmentProps
+
+export class EditableListItem extends React.Component<EditableListItemProps> {
+    render() {
+        return <Segment {...this.props}/>
+    }
+}
+
+@observer
+export class ColorBox extends React.Component<{ color: string, onColor: (color: string) => void }> {
+    @observable.ref isChoosingColor = false
+
+    @action.bound onClick() {
+        this.isChoosingColor = !this.isChoosingColor
+    }
+
+    render() {
+        const { color } = this.props
+        const { isChoosingColor } = this
+
+        return <div className="ColorBox" style={{ backgroundColor: color }} onClick={this.onClick}>
+            {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
+        </div>
     }
 }

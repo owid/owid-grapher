@@ -83,7 +83,9 @@
     "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
     "node-cleanup": "^2.1.2",
+    "node-sass": "^4.7.2",
     "preact-material-components": "^1.2.4",
+    "sass-loader": "^6.0.6",
     "semantic-ui-react": "^0.76.0"
   }
 }
