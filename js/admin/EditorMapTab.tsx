@@ -1,17 +1,14 @@
 import * as React from 'react'
 import { clone, isEmpty, noop, extend, map } from '../charts/Util'
-import { computed, action, observable } from 'mobx'
+import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { NumericSelectField, NumberField, SelectField, TextField, Toggle } from './Forms'
+import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox } from './Forms'
 import MapConfig from '../charts/MapConfig'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
 import { NumericBin, CategoricalBin } from '../charts/MapData'
 import Color from '../charts/Color'
-import Colorpicker from './Colorpicker'
-
-import { Segment } from 'semantic-ui-react'
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
@@ -57,24 +54,6 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) => void }> {
-    @observable.ref isChoosingColor = false
-
-    @action.bound onClick() {
-        this.isChoosingColor = !this.isChoosingColor
-    }
-
-    render() {
-        const { color } = this.props
-        const { isChoosingColor } = this
-
-        return <div className="ColorBox" style={{ backgroundColor: color }} onClick={this.onClick}>
-            {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
-        </div>
-    }
-}
-
-@observer
 class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin, index: number }> {
     @action.bound onColor(color: Color) {
         const { mapConfig, index } = this.props
@@ -111,12 +90,12 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
 
         //const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
 
-        return <Segment className="numeric">
+        return <EditableListItem className="numeric">
             <div><i className="fa fa-arrows-v"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
             <NumberField placeholder="Maximum value" value={bin.max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
-        </Segment>
+        </EditableListItem>
     }
 }
 
@@ -157,12 +136,12 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
     render() {
         const { bin } = this.props
 
-        return <Segment className="categorical">
+        return <EditableListItem className="categorical">
             <ColorBox color={bin.color} onColor={this.onColor} />
             <TextField value={bin.value} disabled={true} onValue={noop} />
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             <Toggle label="Hide" value={bin.isHidden} onValue={this.onToggleHidden} />
-        </Segment>
+        </EditableListItem>
     }
 }
 
@@ -177,7 +156,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
         const { dimension } = mapConfig.data
         if (!dimension) return null
 
-        return <Segment.Group className="ColorSchemeEditor">
+        return <EditableList className="ColorSchemeEditor">
             {dimension.variable.hasNumericValues && false && <li>
                 <NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue} />
             </li>}
@@ -189,7 +168,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
                     return <CategoricalBinView mapConfig={mapConfig} bin={bin} />
                 }
             })}
-        </Segment.Group>
+        </EditableList>
     }
 }
 

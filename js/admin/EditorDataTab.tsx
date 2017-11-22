@@ -4,7 +4,6 @@ import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
-import Color from '../charts/Color'
 import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox } from './Forms'
 import ChartEditor from './ChartEditor'
 import { Form, Radio } from 'semantic-ui-react'
@@ -20,7 +19,7 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
     @computed get color() { return this.props.chart.data.keyColors[this.props.datakey] }
 
-    @action.bound onColor(color: Color | undefined) {
+    @action.bound onColor(color: string | undefined) {
         this.props.chart.data.setKeyColor(this.props.datakey, color)
     }
 
@@ -35,7 +34,7 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
         return <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
             <div><i className="fa fa-arrows-v"/></div>
-            <ColorBox color={color||"white"} onColor={this.onColor}/>
+            <ColorBox color={color} onColor={this.onColor}/>
             {meta ? meta.fullLabel : datakey}
         </EditableListItem>
     }
@@ -87,7 +86,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
             </select>
             <EditableList>
                 {map(selectedKeys, datakey =>
-                    <DataKeyItem chart={chart} datakey={datakey} onMouseDown={_ => this.onStartDrag(datakey)} onMouseEnter={_ => this.onMouseEnter(datakey)} />
+                    <DataKeyItem chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />
                 )}
             </EditableList>
         </section>

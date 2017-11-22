@@ -18,6 +18,34 @@ html, body {
     cursor: -webkit-grabbing;
 }
 
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.modalContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;            
+    }
+}
+
 .AdminApp {
     height: 100%;
 }
@@ -44,16 +72,6 @@ html, body {
         background-color: #fafafa;
     }
 
-    .FieldsRow {
-        display: flex;
-        align-items: center;
-        margin: 0 0 1em;
-    }
-
-    .FieldsRow > * {
-        padding-right: 1rem;
-    }
-
     .SaveButtons {
         padding: 24px;
     }
@@ -63,6 +81,30 @@ html, body {
         flex-grow: 1;
         align-items: center;
         justify-content: center;
+    }
+}
+
+.Colorpicker {
+    cursor: default;
+    position: absolute;
+    top: 0px;
+    left: 150%;
+    width: 105px;
+    padding: 10px;
+    background-color: #666;
+    z-index: 100;
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+
+        li {
+            @extend .clickable;
+            list-style-type: none;
+            width: 16px;
+            height: 16px;
+        }
     }
 }
 
@@ -78,12 +120,98 @@ html, body {
     width: 32px;
     height: 32px;
     cursor: pointer;
+    position: relative;
 }
 
 .DataKeyItem {
     @extend .draggable;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    cursor: pointer;
+
+    i {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    > * {
+        margin-right: 12px;
+    }
+}
+
+.EditorMapTab .ColorSchemeEditor {
+    .segment {
+        @extend .draggable;
+        display: flex;
+        align-items: center;
+        
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+    
+        > * {
+            margin-right: 12px;
+        }
+
+        .field {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.VariableSelector { 
+    form {
+        display: flex !important;
+        justify-content: space-between;
+    }
+
+    .selectedData {
+        min-width: 25%;
+        padding-left: 1em;
+        max-height: 550px;
+        overflow-y: auto;
+    }
+
+    .searchResults {
+        width: 100%;
+    }
+
+    .searchResults h5 {
+      color: #666;
+      font-size: 1rem;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .searchResults ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .searchResults b {
+      color: orange;
+    }
+
+    ul {
+        padding: 0;
+    }
+    
+    li {
+        list-style-type: none;
+        flex: 1 0 15em;
+        min-height: 32px;
+    }
+
+    li > label {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    input[type=search] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
 }

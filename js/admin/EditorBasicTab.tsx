@@ -4,7 +4,7 @@ import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeType } from '../charts/ChartType'
-import { Toggle, SelectField } from './Forms'
+import { Toggle, SelectField, EditableList } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
 import VariableSelector from './VariableSelector'
@@ -66,9 +66,11 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
         return <div>
             <h5>{slot.name}</h5>
-            {slot.dimensionsWithData.map(dim => {
-                return dim.property === slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
-            })}
+            <EditableList>
+                {slot.dimensionsWithData.map(dim => {
+                    return dim.property === slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
+                })}
+            </EditableList>
             {canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
             {isSelectingVariables && <VariableSelector editor={editor} slot={slot} onDismiss={action(() => this.isSelectingVariables = false)} onComplete={this.onVariables} />}
         </div>
@@ -100,7 +102,7 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
         const { editor } = this.props
         const { chart } = editor
 
-        return <div className={"tab-pane active " + styles.EditorBasicTab}>
+        return <div className={`tab-pane active ${styles.EditorBasicTab}`}>
             <section className="chart-type-section">
                 <h2>What type of chart</h2>
 

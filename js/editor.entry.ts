@@ -4,4 +4,5 @@ import './charts.entry'
 
 import '../css/editor.scss'
 
+declare var window: any
 window.Admin = require('./admin/Admin').default

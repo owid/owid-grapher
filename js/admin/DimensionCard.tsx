@@ -3,7 +3,7 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor from './ChartEditor'
-import { TextField, NumberField, Toggle } from './Forms'
+import { TextField, NumberField, Toggle, EditableListItem } from './Forms'
 import { toString } from '../charts/Util'
 
 @observer
@@ -26,7 +26,6 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
         this.props.dimension.props.displayName = value || undefined
     }
 
-    
     @action.bound onUnit(value: string) {
         this.props.dimension.props.unit = value || undefined
     }
@@ -51,7 +50,7 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
         const { dimension, editor } = this.props
         const { chart } = editor
 
-        return <div className="DimensionCard">
+        return <EditableListItem className="DimensionCard">
             <header>
                 <div>
                     {this.props.onEdit && <span className="clickable" onClick={this.props.onEdit} style={{ 'margin-right': '10px' }}><i className="fa fa-exchange" /></span>}
@@ -72,6 +71,6 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
                 <hr />
                 <Toggle label="Use these settings as defaults for future charts" value={!!dimension.props.saveToVariable} onValue={this.onSaveToVariable} />
             </div>}
-        </div>
+        </EditableListItem>
     }
 }

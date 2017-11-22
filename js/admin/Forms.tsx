@@ -5,9 +5,9 @@
  */
 
 import * as React from 'react'
-import { extend, toString, numberOnly, pick, guid } from '../charts/Util'
+import { extend, pick } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps } from 'semantic-ui-react'
+import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
@@ -31,7 +31,8 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     title?: string,
     disabled?: boolean,
     helpText?: string,
-    fullWidth?: boolean
+    fullWidth?: boolean,
+    autofocus?: boolean
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -43,13 +44,23 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
+    base: HTMLDivElement
+    componentDidMount() {
+        if (this.props.autofocus) {
+            const input = this.base.querySelector("input") as HTMLInputElement
+            input.focus()
+        }
+    }
+
     render() {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
         return <Form.Field>
             {props.label && <label>{props.label}</label>}
-            <input type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
+            <div className="ui input">
+                <input type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
+            </div>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
     }
@@ -128,15 +139,6 @@ export class SelectField extends React.Component<SelectFieldProps> {
             <Select label={props.label} value={props.value} options={options} onChange={(_, select) => props.onValue(select.value as string|undefined)}/>
             {props.helpText && <small>{props.helpText}</small>}
         </Form.Field>
-
-
-        /*return <div>
-            <label>{props.label}</label> <Select selectedIndex={props.value ? props.options.indexOf(props.value) : undefined} >
-                {props.options.map((value, i) =>
-                    <Select.Item>{props.optionLabels ? props.optionLabels[i] : value}</Select.Item>
-                )}
-            </Select>
-        </div>*/
     }
 }
 
@@ -167,7 +169,7 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
 }
 
 export interface ToggleProps {
-    label: string,
+    label: string|JSX.Element,
     value: boolean,
     onValue: (value: boolean) => void
 }
@@ -204,12 +206,9 @@ export class Button extends React.Component<ButtonProps> {
     }
 }
 
-export class EditableList extends React.Component<{}> {
+export class EditableList extends React.Component<SegmentGroupProps> {
     render() {
-        const {props} = this
-        return <Segment.Group className="EditableList">
-            {props.children}
-        </Segment.Group>
+        return <Segment.Group {...this.props}/>
     }
 }
 
@@ -222,7 +221,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 }
 
 @observer
-export class ColorBox extends React.Component<{ color: string, onColor: (color: string) => void }> {
+export class ColorBox extends React.Component<{ color: string|undefined, onColor: (color: string) => void }> {
     @observable.ref isChoosingColor = false
 
     @action.bound onClick() {

@@ -142,8 +142,8 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                 <SaveButtons editor={editor} />
             </Form>,
             <figure data-grapher-src>
-                {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>*/}
-                <ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>
+                {<ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>}
+                {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
             </figure>
         ]
 
