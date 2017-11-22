@@ -68,6 +68,36 @@ def listclioinfradatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listgbdcausedatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='gbd_cause')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.gbdcause.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
+def listgbdriskdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='gbd_risk')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.gbdrisk.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def listwbdatasets(request: HttpRequest, dataset: str):
     if dataset == 'wdidatasets':
         dataset_name = 'wdi'

@@ -85,6 +85,8 @@ urlpatterns = [
     url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
     url(r'^grapher/admin/clioinfradatasets/$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
     url(r'^grapher/admin/wb/(?P<dataset>[\w]+)/?$', importer_views.listwbdatasets, name="listwbdatasets"),
+    url(r'^grapher/admin/gbdcausedatasets/?$', importer_views.listgbdcausedatasets, name="listgbdcausedatasets"),
+    url(r'^grapher/admin/gbdriskdatasets/?$', importer_views.listgbdriskdatasets, name="listgbdriskdatasets"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.listcharts, name="listchartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
