@@ -114,7 +114,7 @@ export class NumberField extends React.Component<NumberFieldProps> {
 }
 
 export interface SelectFieldProps {
-    label: string,
+    label?: string,
     value: string | undefined,
     onValue: (value: string | undefined) => void,
     options: string[],

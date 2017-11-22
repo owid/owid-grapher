@@ -4,7 +4,7 @@ import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
-import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox } from './Forms'
+import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField } from './Forms'
 import ChartEditor from './ChartEditor'
 import { Form, Radio } from 'semantic-ui-react'
 
@@ -33,9 +33,12 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
         const meta = chart.data.keyData.get(datakey)
 
         return <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
-            <div><i className="fa fa-arrows-v"/></div>
-            <ColorBox color={color} onColor={this.onColor}/>
-            {meta ? meta.fullLabel : datakey}
+            <div>
+                <div><i className="fa fa-arrows-v"/></div>
+                <ColorBox color={color} onColor={this.onColor}/>
+                {meta ? meta.fullLabel : datakey}
+            </div>
+            <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>
         </EditableListItem>
     }
 }
@@ -44,8 +47,8 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
     @observable.ref dragKey?: DataKey
 
-    @action.bound onAddKey(ev: React.ChangeEvent<HTMLSelectElement>) {
-        this.props.chart.data.selectKey(ev.target.value)
+    @action.bound onAddKey(key: string) {
+        this.props.chart.data.selectKey(key)
     }
 
     @action.bound onStartDrag(key: DataKey) {
@@ -75,15 +78,11 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
         const { chart } = this.props
         const { selectedKeys, remainingKeys } = chart.data
 
+        const keyLabels = remainingKeys.map(key => chart.data.lookupKey(key).fullLabel)
+
         return <section className="entities-section">
             <h2>Choose data to show</h2>
-
-            <select className="form-control countries-select" onChange={this.onAddKey} value="Select data">
-                <option value="Select data" selected={true} disabled={true}>Select data</option>
-                {map(remainingKeys, key =>
-                    <option value={key}>{chart.data.lookupKey(key).fullLabel}</option>
-                )}
-            </select>
+            <SelectField onValue={this.onAddKey} value="Select data" options={["Select data"].concat(remainingKeys)} optionLabels={["Select data"].concat(keyLabels)}/>
             <EditableList>
                 {map(selectedKeys, datakey =>
                     <DataKeyItem chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />

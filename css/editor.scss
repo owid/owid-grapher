@@ -126,14 +126,20 @@ html, body {
 .DataKeyItem {
     @extend .draggable;
     display: flex;
+    justify-content: space-between;
     align-items: center;
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
 
     i {
         font-size: 1.2rem;
         color: #666;
     }
 
-    > * {
+    > div > * {
         margin-right: 12px;
     }
 }
