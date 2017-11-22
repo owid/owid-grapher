@@ -42,7 +42,8 @@ html, body {
     margin: 0 0 1em;
 
     > * {
-        padding-right: 1rem;            
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
     }
 }
 
@@ -139,7 +140,7 @@ html, body {
         color: #666;
     }
 
-    > div > * {
+    > div:first-child > * {
         margin-right: 12px;
     }
 }
@@ -162,6 +163,18 @@ html, body {
         .field {
             margin-bottom: 0;
         }
+    }
+}
+
+.DimensionCard {
+    header {
+        font-size: 1.1em;
+        color: #666;
+        text-align: center;
+    }
+
+    > div {
+        margin: 1em 0;
     }
 }
 

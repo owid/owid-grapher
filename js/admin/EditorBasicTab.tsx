@@ -4,7 +4,7 @@ import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeType } from '../charts/ChartType'
-import { Toggle, SelectField, EditableList } from './Forms'
+import { Toggle, SelectField, EditableList, FieldsRow } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
 import VariableSelector from './VariableSelector'
@@ -107,8 +107,10 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
                 <h2>What type of chart</h2>
 
                 <SelectField label="Chart type" value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
-                <Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value} />
-                {" "}<Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value} />
+                <FieldsRow>
+                    <Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value} />
+                    <Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value} />
+                </FieldsRow>
             </section>
             <VariablesSection editor={editor} />
         </div>

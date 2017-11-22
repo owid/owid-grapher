@@ -53,12 +53,12 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
         return <EditableListItem className="DimensionCard">
             <header>
                 <div>
-                    {this.props.onEdit && <span className="clickable" onClick={this.props.onEdit} style={{ 'margin-right': '10px' }}><i className="fa fa-exchange" /></span>}
-                    {this.props.onRemove && <span className="clickable" onClick={this.props.onRemove} style={{ 'margin-right': '10px' }}><i className="fa fa-times" /></span>}
+                    {this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')} /></span>}
                 </div>
                 <div>{dimension.variable.name}</div>
                 <div>
-                    {this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')} /></span>}
+                    {this.props.onEdit && <div className="clickable" onClick={this.props.onEdit}><i className="fa fa-exchange" /></div>}
+                    {this.props.onRemove && <div className="clickable" onClick={this.props.onRemove}><i className="fa fa-times" /></div>}
                 </div>
             </header>
             {this.isExpanded && <div>
