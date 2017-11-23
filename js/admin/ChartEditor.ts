@@ -5,7 +5,7 @@
  *
  */
 
-import { observable, computed, reaction } from 'mobx'
+import { observable, computed, reaction, action } from 'mobx'
 import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
@@ -41,6 +41,7 @@ export class EditorDatabase {
 }
 
 export interface ChartEditorProps {
+    admin: Admin
     chart: ChartConfig
     database: EditorDatabase
 }
@@ -51,6 +52,7 @@ export default class ChartEditor {
     @observable.ref isSaved: boolean = true
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = 'basic'
+    @observable.ref errorMessage?: { title: string, content: string }
 
     constructor(props: ChartEditorProps) {
         this.props = props
@@ -99,21 +101,20 @@ export default class ChartEditor {
 
         const targetUrl = isNewChart ? "/admin/charts" : `/admin/charts/${chart.props.id}`
 
-        const handleError = (err: string) => {
-            const $modal = modal({ title: "Error saving chart", content: toString(err) })
-            $modal.addClass("error")
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error saving chart", content: toString(err) }
             if (onError) onError()
-        }
+        })
 
         try {
-            const response = await this.load(Admin.request(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT'))
+            const response = await this.load(this.props.admin.request(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT'))
             if (!response.ok)
                 return handleError(await response.text())
 
             const json = await response.json()
 
             if (isNewChart) {
-                window.location.assign(Admin.url(`/admin/charts/${json.data.id}/edit`))
+                window.location.assign(this.props.admin.url(`/admin/charts/${json.data.id}/edit`))
             } else {
                 this.isSaved = true
             }
@@ -125,27 +126,25 @@ export default class ChartEditor {
     async saveAsNewChart() {
         const { chart } = this
 
-        const chartJson = chart.json
+        const chartJson = extend({}, chart.json)
         delete chartJson.id
         delete chartJson.published
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank")
 
-        const handleError = (err: string) => {
-            w.close()
-            const $modal = modal({ title: "Error saving chart", content: toString(err) })
-            $modal.addClass("error")
-        }
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error saving as new chart", content: toString(err) }
+        })
 
         try {
-            const response = await this.load(Admin.request("/admin/charts", chartJson, 'POST'))
+            const response = await this.load(this.props.admin.request("/admin/charts", chartJson, 'POST'))
             if (!response.ok)
                 return handleError(await response.text())
 
             const json = await response.json()
 
-            w.location.assign(Admin.url(`/admin/charts/${json.data.id}/edit`))
+            w.location.assign(this.props.admin.url(`/admin/charts/${json.data.id}/edit`))
         } catch (err) {
             handleError(err)
         }
@@ -154,24 +153,10 @@ export default class ChartEditor {
     publishChart() {
         const url = Global.rootUrl + "/" + this.chart.data.slug
 
-        const $modal = modal()
-        $modal.find(".modal-title").html("Publish chart")
-        $modal.find(".modal-body").html(
-            '<p>This chart will be available at:</p>' +
-            '<p><a href="' + url + '" target="_blank">' + url + '</a></p>' +
-            '<p>Proceed?</p>'
-        )
-        $modal.find(".modal-footer").html(
-            '<button class="btn btn-danger">Publish chart</button>' +
-            '<button class="btn btn-cancel" data-dismiss="modal">Cancel</button>'
-        )
-
-        $modal.find(".btn-danger").on("click", () => {
-            $modal.modal('hide')
-
+        if (window.confirm(`Publish chart at ${url}?`)) {
             this.chart.props.isPublished = true
             this.saveChart({ onError: () => this.chart.props.isPublished = undefined })
-        })
+        }
     }
 
     unpublishChart() {
@@ -180,34 +165,4 @@ export default class ChartEditor {
             this.saveChart({ onError: () => this.chart.props.isPublished = true })
         }
     }
-}
-
-// XXX this is old stuff
-function modal(options?: any) {
-    options = extend({}, options)
-    $(".owidModal").remove()
-
-    const html = '<div class="modal owidModal fade" role="dialog">' +
-        '<div class="modal-dialog modal-lg">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span>' +
-        '</button>' +
-        '<h4 class="modal-title"></h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-
-    $("body").prepend(html)
-    const $modal = $(".owidModal") as any
-    $modal.find(".modal-title").html(options.title)
-    $modal.find(".modal-body").html(options.content)
-    $modal.modal("show")
-    return $modal
 }

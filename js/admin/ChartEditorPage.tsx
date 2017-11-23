@@ -16,7 +16,7 @@ import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
 
-import { Menu, Form, Dimmer, Loader, Grid } from 'semantic-ui-react'
+import { Menu, Form, Dimmer, Loader, Grid, Modal } from 'semantic-ui-react'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -50,6 +50,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
+    @observable.ref errorMessage?: { title: string, content: string }
 
     reportError(err: string) {
         const $modal = modal({ title: "Error fetching editor json", content: toString(err) })
@@ -59,16 +60,20 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     async fetchChart() {
         const {chartId, admin} = this.props
 
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error fetching chart json", content: err }
+        })
+
         try {
             const response = await admin.get(`/admin/charts/${chartId}.config.json`)
             if (!response.ok) {
-                return this.reportError(await response.text())
+                return handleError(await response.text())
             }
 
             const json = await response.json()
             runInAction(() => this.chart = new ChartConfig(json))
         } catch (err) {
-            this.reportError(err)
+            handleError(err)
             throw err
         }
     }
@@ -76,16 +81,20 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     async fetchData() {
         const {admin} = this.props
 
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error fetching editorData json", content: err }
+        })
+
         try {
             const response = await admin.get(`/admin/editorData.${admin.cacheTag}.json`)
             if (!response.ok) {
-                return this.reportError(await response.text())
+                return handleError(await response.text())
             }
 
             const json = await response.json()
             runInAction(() => this.database = new EditorDatabase(json))
         } catch (err) {
-            this.reportError(err)
+            handleError(err)
             throw err
         }
     }
@@ -96,6 +105,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         } else {
             const that = this
             return new ChartEditor({
+                get admin() { return that.props.admin },
                 get chart() { return that.chart as ChartConfig },
                 get database() { return that.database as EditorDatabase }
             })
@@ -108,8 +118,18 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     }
 
     render() {
+        const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
+
         return <div className="ChartEditorPage">
-            {this.editor === undefined && <Dimmer active>
+            {errorMessage && <Modal open={true} onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
+                <Modal.Header>
+                    {errorMessage.title}
+                </Modal.Header>
+                <Modal.Content>
+                    {errorMessage.content}
+                </Modal.Content>
+            </Modal>}
+            {(this.editor === undefined || this.editor.currentRequest) && <Dimmer active>
                 <Loader/>
             </Dimmer>}
             {this.editor !== undefined && this.renderReady(this.editor)}
