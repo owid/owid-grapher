@@ -157,9 +157,9 @@ export default class ChartConfig {
     data: ChartData
     url: URLBinder
 
-    constructor(props: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
+    constructor(props?: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed
-        this.update(props)
+        this.update(props || new ChartConfigProps())
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)

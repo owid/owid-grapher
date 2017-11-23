@@ -9,7 +9,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
         const {admin} = this.props
 
         const m = admin.currentPath.match(/\/charts\/(\d+)\/edit/)
-        const chartId = m && parseInt(m[1])
+        const chartId = m ? parseInt(m[1]) : undefined
 
         const adminRootUrl = "/grapher/admin"
 
@@ -25,7 +25,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     </a>
                 </Menu.Item>
             </Menu>
-            {chartId !== null && <ChartEditorPage admin={admin} chartId={chartId}/>}
+            <ChartEditorPage admin={admin} chartId={chartId}/>
         </div>
     }
 }

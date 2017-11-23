@@ -60,12 +60,13 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     async fetchChart() {
         const {chartId, admin} = this.props
 
+
         const handleError = action((err: string) => {
             this.errorMessage = { title: "Error fetching chart json", content: err }
         })
 
         try {
-            const response = await admin.get(`/admin/charts/${chartId}.config.json`)
+            const response = await admin.get(`/admin/charts/${chartId === undefined ? "newChart" : chartId}.config.json`)
             if (!response.ok) {
                 return handleError(await response.text())
             }

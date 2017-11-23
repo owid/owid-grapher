@@ -16,7 +16,6 @@ export default class FuzzySearch<T> {
 
     highlight(input: string, target: string): string {
         const result = fuzzysort.single(input, target)
-        console.log(input, target, result)
         return result ? result.highlighted : target
     }
 }
