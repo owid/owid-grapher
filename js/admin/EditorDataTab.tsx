@@ -4,7 +4,7 @@ import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
-import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section, FieldsRow } from './Forms'
+import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
 import ChartEditor from './ChartEditor'
 import { Form, Radio } from 'semantic-ui-react'
 

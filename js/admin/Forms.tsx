@@ -7,7 +7,7 @@
 import * as React from 'react'
 import { extend, pick } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps, Header, HeaderProps } from 'semantic-ui-react'
+import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps, Header } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
@@ -144,27 +144,24 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
 export interface NumericSelectFieldProps {
     label?: string,
-    value?: number,
+    value: number,
     onValue: (value: number) => void,
     options: number[],
-    optionLabels: string[]
+    optionLabels?: string[],
+    helpText?: string
 }
 
 export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
-    onChange(ev: React.FormEvent<HTMLSelectElement>) {
-        this.props.onValue(parseFloat(ev.currentTarget.value))
-    }
-
     render() {
-        const { props } = this
-        return <label>
-            {props.label}
-            <select className="form-control" value={props.value}>
-                {props.options.map((value, i) =>
-                    <option value={value}>{props.optionLabels[i]}</option>
-                )}
-            </select>
-        </label>
+        const props = extend({}, this.props, {
+            value: this.props.value.toString(),
+            options: this.props.options.map(opt => opt.toString()),
+            onValue: (value: string|undefined) => {
+                const asNumber = parseFloat(value as string)
+                this.props.onValue(asNumber)
+            }
+        })
+        return <SelectField {...props}/>
     }
 }
 

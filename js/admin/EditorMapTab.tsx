@@ -3,7 +3,7 @@ import { clone, isEmpty, noop, extend, map } from '../charts/Util'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox } from './Forms'
+import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow } from './Forms'
 import MapConfig from '../charts/MapConfig'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
@@ -16,6 +16,10 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.variableId = variableId
     }
 
+    @action.bound onProjection(projection: string) {
+        this.props.mapConfig.props.projection = (projection as MapProjection)
+    }
+
     render() {
         const {mapConfig} = this.props
         const { filledDimensions } = mapConfig.chart.data
@@ -25,10 +29,12 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
                 <h2>Add some variables on data tab first</h2>
             </section>
 
-        return <section>
-            <h2>Which variable on map</h2>
-            <NumericSelectField value={mapConfig.variableId} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />
-        </section>
+        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
+
+        return <Section name="Map">
+            <NumericSelectField label="Variable" value={mapConfig.variableId as number} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />
+            <SelectField label="Region" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
+        </Section>
 
     }
 }
@@ -45,11 +51,10 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
 
     render() {
         const {mapConfig} = this.props
-        return <section>
-            <h2>Timeline</h2>
+        return <Section name="Timeline">
             <Toggle label="Hide timeline" value={!!mapConfig.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
             <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."/>
-        </section>
+        </Section>
     }
 }
 
@@ -196,49 +201,39 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.isManualBuckets = isAutomatic ? undefined : true
     }
 
-    @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
-    }
-
     render() {
         const {mapConfig} = this.props
         const availableColorSchemes = map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name)
         const currentColorScheme = mapConfig.isCustomColors ? 'custom' : mapConfig.baseColorScheme
 
-        return <section>
-            <h2>Colors</h2>
-            <SelectField label="Color scheme:" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
-            {" "}<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
-            {/*<NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />*/}
+        return <Section name="Colors">
+            <FieldsRow>
+                <SelectField label="Color scheme" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
+                <Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
+            </FieldsRow>
             <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
-            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
+            {/*<NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />*/}
             <ColorSchemeEditor map={mapConfig} />
-        </section>
-    }
-}
-
-@observer
-class MapProjectionSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onProjection(projection: string) {
-        this.props.mapConfig.props.projection = (projection as MapProjection)
-    }
-
-    render() {
-        const { mapConfig } = this.props
-        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
-        return <SelectField label="Which region map should be focused on:" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
+        </Section>
     }
 }
 
 @observer
 class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
+    @action.bound onEqualSizeBins(isEqual: boolean) {
+        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
+    }
+
     @action.bound onDescription(description: string | undefined) {
         this.props.mapConfig.props.legendDescription = description
     }
 
     render() {
         const { mapConfig } = this.props
-        return <TextField label="Legend description:" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
+        return <Section name="Legend">
+            <TextField label="Label" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
+            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
+        </Section>
     }
 }
 
@@ -255,7 +250,6 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
             {mapConfig.data.isReady &&
                 [<TimelineSection mapConfig={mapConfig} />,
                 <ColorsSection mapConfig={mapConfig} />,
-                <MapProjectionSection mapConfig={mapConfig} />,
                 <MapLegendSection mapConfig={mapConfig} />]
             }
         </div>

@@ -16,6 +16,16 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     componentDidMount() {
         const textField = this.base.querySelector("input") as HTMLInputElement
         textField.focus()
+
+        setTimeout(() => window.addEventListener('click', this.onClickOutside), 10)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('click', this.onClickOutside)
+    }
+
+    @action.bound onClickOutside() {
+        this.props.onClose()
     }
 
     @action.bound onColor(color: string) {
