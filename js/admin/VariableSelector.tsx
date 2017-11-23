@@ -193,7 +193,6 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     @action.bound onSearchEnter() {
         if (this.searchResults.length > 0) {
             this.selectVariable(this.searchResults[0])
-            e.preventDefault()
         }
     }
 

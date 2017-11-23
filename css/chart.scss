@@ -1,0 +1,658 @@
+figure[data-grapher-src]:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+figure[data-grapher-src]:empty:after {
+    content: "";
+    border: 5px solid #333;
+    border-radius: 30px;
+    height: 30px;
+    width: 30px;
+    opacity: 0;
+ 
+    animation: pulsate 1s ease-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        transform: scale(.1);
+        opacity: 0.0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+.chart {
+    display: inline-block;
+    border-bottom: none;
+    border-radius: 2px;
+
+    background: white;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #333;
+
+    position: relative;
+
+    /* Hidden overflow x so that tooltips don't cause scrollbars */
+    overflow: hidden;
+
+    border: 1px solid #f0f0f0;
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px;
+    z-index: 1;
+    
+    * {
+        box-sizing: border-box;
+    }
+
+    button {
+        background: none;
+        border: none;
+    }
+    
+    .btn {
+        font-size: 0.8em;
+        white-space: normal;
+    }
+    
+    .flash {
+        margin: 10px;
+    }
+    .clickable, button {
+        cursor: pointer;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    .noselect {
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    input[type=checkbox] {
+        cursor: pointer;
+    }
+    
+    /* Make World line slightly thicker */
+    svg .key-World_0 polyline {
+        stroke-width: 2 !important;
+    }
+    
+    .projection .nv-line {
+        stroke-dasharray: 3, 3;
+    }
+    
+    .projection .nv-point {
+        fill: #fff;
+        stroke-width: 1;
+        opacity: 0.5;
+    }
+    
+    .projection .nv-point.hover {
+        stroke-width: 4;
+    }
+    
+    /* Chart General
+    --------------------------------------------- */
+        
+    a {
+        cursor: pointer;
+        color: #0645ad;
+        fill: #0645ad;
+        border-bottom: none;
+    }
+    
+    .logos {
+        float: right;
+        padding-left: 0.6em;
+    }
+    .tab-content {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    .tab-content > .clearfix {
+        position: relative;
+        z-index: 2;
+        background-color: #fff;
+    }
+    .tab-pane {
+        position: relative;
+        overflow: auto;
+        width: 100%;
+        height: 100%;
+    }
+    svg {
+        z-index: 1;
+        top: 0;
+        left: 0;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    
+    /* Controls Footer
+    --------------------------------------------- */
+    
+    .ControlsFooter {
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        border-top: 1px solid #e1e1e1;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row-reverse;
+        color: #777;
+    }
+
+    .extraControls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding-top: 0.4em;
+        padding-bottom: 0.4em;
+    }
+    
+    .extraControls label {
+        margin: 0;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+    }
+    
+    .extraControls button {
+        margin: 0;
+        font-size: 1em;
+        color: #666;
+    }
+
+    nav.tabs ul {
+        margin: 0;
+        padding: 0;
+        display: flex;
+    }
+    
+    nav.tabs li {
+        list-style-type: none;
+        border-left: 1px solid #e1e1e1;
+        border-bottom: 0.2em solid rgba(0,0,0,0);
+    }
+    
+    nav.tabs li > a {
+        display: block;
+        padding: 0.5em 0;
+        text-transform: uppercase;
+        color: #777;
+        font-size: 0.8em;
+    }
+    
+    nav.tabs li.icon > a {
+        padding: 0.5em 0.4em;
+    }
+    
+    nav.tabs li > a:hover {
+        text-decoration: none;
+    }
+    
+    nav.tabs li.active {
+        border-bottom-color: rgba(0,33,71,.9);
+    }
+        
+    /* The little loading icon */
+    
+    .loadingIcon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        font-size: 1.3em;
+    }
+    .chart-error {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 50;
+        text-align: center;
+        height: 100%;
+        width: 100%;
+        pointer-events: none;
+        font-weight: bold;
+    }
+    .chart-error:before {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+    }
+    .chart-error > div,
+    .chart-error > pre {
+        display: inline-block;
+        text-align: left;
+        vertical-align: middle;
+        white-space: pre-wrap;
+        max-width: 95%;
+        font-weight: bold;
+    }
+    .chart-error.critical > pre {
+        color: red;
+        font-size: 0.9em;
+        font-weight: normal;
+    }
+    
+    /* Header
+    --------------------------------------------- */
+    
+    .title {
+        fill: #4d4d4d;
+    }
+    .title {
+        text-decoration: none !important;
+    }
+    .subtitle {
+        font-size: 0.8em;
+        fill: #4F4B49;
+    }
+    .header path {
+        stroke: #FFFFFF;
+        stroke-width: 1px;
+    }
+    
+    /* Axis and Gridlines
+    --------------------------------------------- */
+    
+    .axis path.domain {
+        stroke: #7f7f7f;
+        stroke-width: 1px;
+        stroke-opacity: 0;
+    }
+    
+    .axis line:first-child {
+        display: none;
+    }
+    
+    .gridline {
+        stroke: #ededed;
+        stroke-dasharray: 3,2;
+    }
+    
+    .axis {
+        font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+    }
+    
+    .axis .tick {
+        font-size: 0.7em;
+    }
+    
+    .axis .axis-label {
+        font-size: 0.75em;
+    }
+    
+    
+    /* Axis Scale Selectors
+    --------------------------------------------- */
+    
+    .scaleSelector {
+        position: absolute;
+        font-size: 0.7em;
+        color: black;
+        text-transform: uppercase;
+    }
+    
+    /* Chart Tab
+    --------------------------------------------- */
+    
+    .nvd3-svg {
+        /* Tweak some nvd3 styling */
+        /* Allow user to select text */
+        -webkit-user-select: initial;
+        -ms-user-select: initial;
+        -moz-user-select: initial;
+        -webkit-user-select: initial;
+        user-select: initial;        
+    }
+    .nvd3-svg .nvd3 .nv-axis line {
+        fill: none;
+        stroke: #a5a5a5;
+        stroke-dasharray: 2, 2;
+        shape-rendering: crispEdges;
+    }
+    .nvd3-svg .nvd3 text {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 14px;
+    }
+    .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
+        font-weight: normal;
+    }
+    .nvd3-svg .nvd3 .nv-axis line {
+        opacity: .6;
+    }
+    /* Data Tab
+    --------------------------------------------- */
+    
+    .dataTab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        background: rgba(255,255,255,0.95);
+        padding: 1em;
+        text-align: center;
+    }
+    
+    .dataTab .btn {
+        color: #fff;
+        background-color: #0275d8;
+        border-color: #0275d8;
+        display: inline-block;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        border: 1px solid transparent;
+        padding: .375rem 1rem;
+        font-size: 1em;
+        line-height: 1.5;
+        border-radius: .25rem;
+        text-decoration: none;
+    }
+    
+    .dataTab .btn:hover {
+        color: #fff;
+        background-color: #025aa5;
+        border-color: #01549b;    
+    }
+    
+    h2 {
+        font-size: 2em;
+        margin-top: 0;
+        margin-bottom: 0.8em;
+        font-weight: 500;
+        line-height: 1.1;
+    }
+    
+    /* Sources Tab
+    --------------------------------------------- */
+    
+    
+    
+    .sourcesTab,
+    .downloadTab {
+        padding: 1em;
+        text-align: left;
+        background: rgba(255,255,255,0.95);
+    }
+    
+    .sourcesTab > div {
+        height: 100%;
+        overflow-y: auto;
+    }
+    
+    .datasource-wrapper {
+        font-size: 0.8em;
+        max-width: 1024px;
+    }
+
+    .datasource-wrapper h2 {
+        width: 70%;
+        padding-bottom: 0.3em;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        font-family: inherit;
+        border-bottom: 1px solid #35322F;
+        margin-bottom: 0;
+    }
+    .datasource-wrapper h2,
+    .datasource-wrapper h3,
+    .datasource-wrapper h4 {
+        margin-left: 0px;
+        font-family: inherit;
+    }
+    .datasource-wrapper h3,
+    .datasource-wrapper h4 {
+        margin-top: 2px;
+        margin-bottom: 1px;
+        font-size: 0.9em;
+        font-weight: bold;
+    }
+    
+    .datasource-wrapper td {
+        padding: 8px;
+        line-height: 1.42857143;
+        vertical-align: top;
+        border-top: 1px solid #ddd;
+    }
+    
+    .datasource-property {
+        display: inline-block;
+        width: 150px;
+    }
+    .datasource-additional p {
+        margin-top: 0.3em;
+    }
+    
+    /* Share Menu
+    --------------------------------------------- */
+    
+    .shareMenu {
+        position: absolute;
+        right: 1em;
+        bottom: 1em;
+        text-align: left;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+        padding-bottom: 0.5em;
+        width: 15em;
+        z-index: 2;
+    }
+    
+    .shareMenu h2 {
+        padding: 0.8em 1em;
+        margin: 0;
+        font-size: 1em;
+    }
+    
+    .shareMenu .btn {
+        display: block;
+        padding: 1em 1.5em;
+        padding-right: 3em;
+        text-align: left;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .shareMenu .btn > i {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        font-size: 1em;
+        width: 1.8em;
+        height: 1.8em;
+        line-height: 1.8em;
+        margin-right: 2px;
+        border-radius: 2px;
+        position: relative;
+    }
+    
+    .shareMenu .btn:hover {
+        text-decoration: none;
+        background-color: #eee;
+    }
+    
+    .shareMenu section.share a {
+        display: block;
+        text-align: left;
+    }
+    
+    
+    .shareMenu textarea {
+        width: 30em;
+        height: 20em;
+        font-size: 0.8em;
+    }
+        
+    .embedMenu {
+        position: absolute;
+        left: 5%;
+        top: 5%;
+        width: 90%;
+        height: 90%;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+        background: rgba(255,255,255,0.95);
+        padding: 1em;
+        text-align: left;
+        z-index: 12;
+    }
+    
+    .embedMenu p {
+        margin-bottom: 0;
+        margin-bottom: 0.5em;
+    }
+    
+    .embedMenu textarea {
+        width: 100%;
+        height: 80%;
+    }
+    
+    
+    /* Miscellaneous
+    --------------------------------------------- */
+    
+    .error-label {
+        color: red;
+    }
+    .owidModal.error .modal-content {
+        color: #dd4b39;
+    }
+    .owidModal .modal-body {
+        overflow: auto;
+        font-size: 16px;
+        max-height: 800px;
+    }
+    .unstroked {
+        display: none;
+    }
+    
+    /* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
+    .modal-backdrop {
+        z-index: -1;
+    }
+    
+    .downloadTab,
+    .dataTab,
+    .sourcesTab {
+        z-index: 1;
+    }
+    
+    .downloadTab {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    
+        > a {
+            color: #333;
+            text-decoration: none;
+        }
+    
+        > a:hover > div {
+            text-decoration: underline;
+        }
+    
+        aside {
+            margin: 1em;
+        }
+    }
+}
+
+.chart.landscape .downloadTab {
+    font-size: 0.8em;
+    padding: 3em;
+
+    > a > div {
+        display: flex;
+    }
+}
+
+.chart.landscape .extraControls {
+    padding-left: 1em;
+    font-size: 0.8em;
+}
+
+.chart.landscape .extraControls button {
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    padding-left: 0.5em;
+}
+
+.chart.portrait .downloadTab {
+    font-size: 0.7em;
+    padding: 1em;
+
+    .imgLoader {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    h2 {
+        margin-bottom: 0.2em;
+    }
+}
+
+.chart.portrait .ControlsFooter {
+    flex-direction: column-reverse;
+}
+
+.chart.portrait .ControlsFooter > *:not(.shareMenu) {
+    width: 100%;
+}
+
+.chart.portrait .extraControls {
+    font-size: 0.8em;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.chart.narrow .datasource-wrapper {
+    padding: 0;
+}
+
+.chart.landscape nav.tabs li > a {
+    padding: 0.5em 1em;
+}
+
+.chart.portrait nav.tabs ul {
+    display: table;
+    width: 100%;
+    text-align: center;
+}
+
+.chart.portrait nav.tabs li {
+    display: table-cell;
+}
+
+.chart.mobile .shareMenu .btn-embed {
+    display: none;
+}
+
+.chart.export {
+    padding: 0 !important;
+}

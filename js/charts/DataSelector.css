@@ -104,7 +104,7 @@
     }
 }
 
-#chart.portrait .DataSelectorMulti {
+.chart.portrait .DataSelectorMulti {
     & .selectedData {
         min-width: 50%;
     }

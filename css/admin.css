@@ -195,10 +195,6 @@ button[type="submit"]:not(".delete-btn") {
 .axis-scale-selector-wrapper {
   margin-top: 12px; }
 
-/* collapsed panel */
-.form-panel-collapsed #chart {
-  width: 99%; }
-
 .form-panel-collapsed #form-view {
   width: 1%; }
 
