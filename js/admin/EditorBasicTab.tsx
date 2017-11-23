@@ -9,7 +9,6 @@ import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
 import VariableSelector from './VariableSelector'
 import DimensionCard from './DimensionCard'
-const styles = require("./EditorBasicTab.css")
 
 @observer
 class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
@@ -101,7 +100,7 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
         const { editor } = this.props
         const { chart } = editor
 
-        return <div className={styles.EditorBasicTab}>
+        return <div className="EditorBasicTab">
             <Section name="Type of chart">
                 <SelectField value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
                 <FieldsRow>

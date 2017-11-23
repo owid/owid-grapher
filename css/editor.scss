@@ -62,6 +62,8 @@ html, body {
 
     .DimensionCard {
         header {
+            display: flex;
+            justify-content: space-between;
             font-size: 1.1em;
             color: #666;
             text-align: center;
@@ -71,6 +73,16 @@ html, body {
             margin: 1em 0;
         }
     }    
+
+    .dimensionSlot {
+        cursor: pointer;
+        min-height: 50px;
+        border: 1px dashed #bbb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    }
 }
 
 .VariableSelector { 
