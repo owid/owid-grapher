@@ -1,50 +1,9 @@
+/* Chart editor styling */
+
 html, body {
     height: 100%;
     margin: 0;
     font-family: Roboto, sans-serif;
-}
-
-.draggable {
-    cursor: move;
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-    user-select: none;
-}
-
-.draggable:active {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
-
-.clickable {
-    cursor: pointer;
-    user-select: none;
-}
-
-.modalContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.3);
-    z-index: 1040;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.FieldsRow {
-    display: flex;
-    align-items: center;
-    margin: 0 0 1em;
-
-    > * {
-        padding-right: 1rem;
-        margin-bottom: 0 !important;
-    }
 }
 
 .AdminApp {
@@ -55,8 +14,8 @@ html, body {
     height: calc(100% - 60px);
     display: flex;
 
-    .tabular.menu .active.item {
-        background: #fafafa;
+    .tabular.menu :not(.active).item {
+        background: #f9f9f9;
     }
 
     > form {
@@ -70,7 +29,6 @@ html, body {
     .innerForm {
         overflow-y: scroll;
         flex-grow: 1;
-        background-color: #fafafa;
     }
 
     .SaveButtons {
@@ -83,99 +41,36 @@ html, body {
         align-items: center;
         justify-content: center;
     }
-}
 
-.Colorpicker {
-    cursor: default;
-    position: absolute;
-    top: 0px;
-    left: 150%;
-    width: 105px;
-    padding: 10px;
-    background-color: #666;
-    z-index: 100;
-
-    ul {
-        display: flex;
-        flex-wrap: wrap;
-        padding: 0;
-
-        li {
-            @extend .clickable;
-            list-style-type: none;
-            width: 16px;
-            height: 16px;
-        }
+    section {
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin-bottom: 1.2em;
+        background-color: #f9f9f9;
     }
 }
 
-.ColorSchemeEditor {
-    padding-left: 0;
-
-    > .segment {
-        display: flex;
-    }
-}
-
-.ColorBox {
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    position: relative;
-}
-
-.DataKeyItem {
-    @extend .draggable;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    > div {
-        display: flex;
-        align-items: center;
+.EditorBasicTab {
+    h5 {
+        margin-top: 1em;
+        margin-bottom: 0.2em;
     }
 
-    i {
-        font-size: 1.2rem;
-        color: #666;
+    .segments {
+        margin-top: 0;
     }
 
-    > div:first-child > * {
-        margin-right: 12px;
-    }
-}
-
-.EditorMapTab .ColorSchemeEditor {
-    .segment {
-        @extend .draggable;
-        display: flex;
-        align-items: center;
-        
-        i {
-            font-size: 1.2rem;
+    .DimensionCard {
+        header {
+            font-size: 1.1em;
             color: #666;
+            text-align: center;
         }
     
-        > * {
-            margin-right: 12px;
+        > div {
+            margin: 1em 0;
         }
-
-        .field {
-            margin-bottom: 0;
-        }
-    }
-}
-
-.DimensionCard {
-    header {
-        font-size: 1.1em;
-        color: #666;
-        text-align: center;
-    }
-
-    > div {
-        margin: 1em 0;
-    }
+    }    
 }
 
 .VariableSelector { 
@@ -232,5 +127,151 @@ html, body {
         padding: 0.4em;
         margin-bottom: 0.4em;
         border: 1px solid #ccc;
+    }
+}
+
+.EditorDataTab {
+    .DataKeyItem {
+        @extend .draggable;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    
+        > div {
+            display: flex;
+            align-items: center;
+        }
+    
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+    
+        > div:first-child > * {
+            margin-right: 12px;
+        }
+    }
+}
+
+.EditorMapTab {
+    .ColorSchemeEditor {
+        padding-left: 0;
+        .segment {
+            @extend .draggable;
+            display: flex;
+            align-items: center;
+            
+            i {
+                font-size: 1.2rem;
+                color: #666;
+            }
+        
+            > * {
+                margin-right: 12px;
+            }
+
+            .field {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.EditorScatterTab {
+    ul.excludedEntities {
+        padding: 0;
+
+        li {
+            list-style-type: none;
+            display: inline-flex;
+            align-items: center;
+            padding: 1em;
+            background: white;
+            border-radius: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .clickable {
+            margin-right: .2em;
+        }
+    }
+}
+
+/* Reusable utility classes */
+
+.draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    user-select: none;
+}
+
+.draggable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.modalContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
+    }
+}
+
+.ColorBox {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.Colorpicker {
+    cursor: default;
+    position: absolute;
+    top: 0px;
+    left: 150%;
+    width: 105px;
+    padding: 10px;
+    background-color: #666;
+    z-index: 100;
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+
+        li {
+            @extend .clickable;
+            list-style-type: none;
+            width: 16px;
+            height: 16px;
+        }
     }
 }

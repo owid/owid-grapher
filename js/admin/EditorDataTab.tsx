@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { clone, map, debounce } from '../charts/Util'
+import { clone, map } from '../charts/Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
-import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField } from './Forms'
+import { NumberField, EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section, FieldsRow } from './Forms'
 import ChartEditor from './ChartEditor'
 import { Form, Radio } from 'semantic-ui-react'
 
@@ -80,61 +80,14 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
         const keyLabels = remainingKeys.map(key => chart.data.lookupKey(key).fullLabel)
 
-        return <section className="entities-section">
-            <h2>Choose data to show</h2>
+        return <Section name="Data to show">
             <SelectField onValue={this.onAddKey} value="Select data" options={["Select data"].concat(remainingKeys)} optionLabels={["Select data"].concat(keyLabels)}/>
             <EditableList>
                 {map(selectedKeys, datakey =>
                     <DataKeyItem chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />
                 )}
             </EditableList>
-        </section>
-    }
-}
-
-@observer
-class TimeSection extends React.Component<{ editor: ChartEditor }> {
-    base: HTMLDivElement
-
-    @computed get chart() { return this.props.editor.chart }
-
-    @computed get isDynamicTime() {
-        return this.chart.timeDomain[0] === undefined && this.chart.timeDomain[1] === undefined
-    }
-
-    @computed get minTime() { return this.chart.props.minTime }
-    @computed get maxTime() { return this.chart.props.maxTime }
-    @computed get minPossibleTime() {
-        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.minYear : 1900
-    }
-    @computed get maxPossibleTime() {
-        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.maxYear : 2015
-    }
-
-    @action.bound onToggleDynamicTime() {
-        if (this.isDynamicTime) {
-            this.chart.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
-        } else {
-            this.chart.timeDomain = [undefined, undefined]
-        }
-    }
-
-    @action.bound onMinTime(value: number | undefined) {
-        this.chart.props.minTime = value
-    }
-
-    @action.bound onMaxTime(value: number | undefined) {
-        this.chart.props.maxTime = value
-    }
-
-    render() {
-        const { features } = this.props.editor
-        const { chart } = this
-
-        return <section className="time-section">
-            {features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)} />}
-            <NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)} />
-        </section>
+        </Section>
     }
 }
 
@@ -144,9 +97,8 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
         const { editor } = this.props
         const { chart } = editor
 
-        return <div className={"tab-pane"}>
-            <section className="add-country-control-wrapper">
-                <h4>Can user add/change data?</h4>
+        return <div className="EditorDataTab">
+            <Section name="Can user add/change data?">
                 <Form.Field>
                     <Radio label="User can add and remove data" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
                 </Form.Field>
@@ -156,8 +108,7 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
                 <Form.Field>
                     <Radio label="User cannot change/add data" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"} />
                 </Form.Field>
-            </section>
-            {!editor.chart.isScatter && <TimeSection editor={editor} />}
+            </Section>
             <KeysSection chart={editor.chart} />
         </div>
     }

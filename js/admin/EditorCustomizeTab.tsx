@@ -4,10 +4,9 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { TextField, NumberField, SelectField, Toggle, FieldsRow } from './Forms'
+import { TextField, NumberField, SelectField, Toggle, FieldsRow, Section } from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
-
-import { Grid } from 'semantic-ui-react'
+import { debounce } from '../charts/Util'
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -33,15 +32,63 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
+class TimeSection extends React.Component<{ editor: ChartEditor }> {
+    base: HTMLDivElement
+
+    @computed get chart() { return this.props.editor.chart }
+
+    @computed get isDynamicTime() {
+        return this.chart.timeDomain[0] === undefined && this.chart.timeDomain[1] === undefined
+    }
+
+    @computed get minTime() { return this.chart.props.minTime }
+    @computed get maxTime() { return this.chart.props.maxTime }
+    @computed get minPossibleTime() {
+        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.minYear : 1900
+    }
+    @computed get maxPossibleTime() {
+        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.maxYear : 2015
+    }
+
+    @action.bound onToggleDynamicTime() {
+        if (this.isDynamicTime) {
+            this.chart.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
+        } else {
+            this.chart.timeDomain = [undefined, undefined]
+        }
+    }
+
+    @action.bound onMinTime(value: number | undefined) {
+        this.chart.props.minTime = value
+    }
+
+    @action.bound onMaxTime(value: number | undefined) {
+        this.chart.props.maxTime = value
+    }
+
+    render() {
+        const { features } = this.props.editor
+        const { chart } = this
+
+        return <Section name="Time range">
+            <FieldsRow>
+                {features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)} />}
+                <NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)} />
+            </FieldsRow>
+        </Section>
+    }
+}
+
+@observer
 export default class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
     @computed get xAxis() { return this.props.editor.chart.xAxis.props }
     @computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
-    renderForAxis(axisName: string, axis: AxisConfigProps) {
+    renderForAxis(_: string, axis: AxisConfigProps) {
         return <div>
             <FieldsRow>
-                <Grid.Column><NumberField label={`${axisName}-Axis Min`} value={axis.min} onValue={(value) => axis.min = value} /></Grid.Column>
-                <Grid.Column><NumberField label={`${axisName}-Axis Max`} value={axis.max} onValue={(value) => axis.max = value} /></Grid.Column>
+                <NumberField label={`Min`} value={axis.min} onValue={(value) => axis.min = value} />
+                <NumberField label={`Max`} value={axis.max} onValue={(value) => axis.max = value} />
             </FieldsRow>
             <Toggle label={`Enable log/linear selector`} value={axis.canChangeScaleType || false} onValue={(value) => axis.canChangeScaleType = value || undefined} />
         </div>
@@ -53,17 +100,23 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
         const { chart } = this.props.editor
 
         return <div>
-            <ColorSchemeSelector chart={chart} />
-            {(features.customYAxis || features.customYAxis) && <section>
-                {features.customYAxis && this.renderForAxis('Y', yAxis)}
-                {features.customXAxis && this.renderForAxis('X', xAxis)}
-            </section>}
-            {(features.hideLegend || features.relativeModeToggle) && <section className="legend-section">
-                <h2>Legend</h2>
-                {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}
-                {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
+            {features.customYAxis && <Section name="Y Axis">
+                {this.renderForAxis('Y', yAxis)}
+            </Section>}
+            {features.customXAxis && <Section name="X Axis">
+                {this.renderForAxis('X', xAxis)}
+            </Section>}
+            {!chart.isScatter && <TimeSection editor={this.props.editor} />}
+            <Section name="Colors">
+                <ColorSchemeSelector chart={chart} />
+            </Section>
+            {(features.hideLegend || features.relativeModeToggle) && <Section name="Legend">
+                <FieldsRow>
+                    {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}
+                    {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
+                </FieldsRow>
                 {features.entityType && <TextField label={`Entity name`} placeholder="country" value={chart.props.entityType} onValue={value => chart.props.entityType = value || undefined} />}
-            </section>}
+            </Section>}
         </div>
     }
 }

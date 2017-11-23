@@ -404,7 +404,6 @@ figure[data-grapher-src]:empty:after {
     display: inline-block;
     font-weight: 400;
     text-align: center;
-    white-space: nowrap;
     vertical-align: middle;
     cursor: pointer;
     -webkit-user-select: none;

@@ -7,7 +7,7 @@
 import * as React from 'react'
 import { extend, pick } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps } from 'semantic-ui-react'
+import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps, Header, HeaderProps } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
@@ -208,7 +208,7 @@ export class Button extends React.Component<ButtonProps> {
 
 export class EditableList extends React.Component<SegmentGroupProps> {
     render() {
-        return <Segment.Group {...this.props}/>
+        return this.props.children ? <Segment.Group {...this.props}/> : null
     }
 }
 
@@ -232,8 +232,20 @@ export class ColorBox extends React.Component<{ color: string|undefined, onColor
         const { color } = this.props
         const { isChoosingColor } = this
 
-        return <div className="ColorBox" style={{ backgroundColor: color }} onClick={this.onClick}>
+        const style = color !== undefined ? { backgroundColor: color } : undefined
+
+        return <div className="ColorBox" style={style} onClick={this.onClick}>
+            {color === undefined && <i className="fa fa-paint-brush"/>}
             {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
         </div>
+    }
+}
+
+export class Section extends React.Component<{ name: string }> {
+    render() {
+        return <section>
+            <Header as='h3' dividing>{this.props.name}</Header>
+            {this.props.children}
+        </section>
     }
 }

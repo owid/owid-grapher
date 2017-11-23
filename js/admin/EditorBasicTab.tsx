@@ -4,7 +4,7 @@ import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeType } from '../charts/ChartType'
-import { Toggle, SelectField, EditableList, FieldsRow } from './Forms'
+import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
 import VariableSelector from './VariableSelector'
@@ -87,10 +87,9 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
         const { props } = this
         const { dimensionSlots } = props.editor.chart
 
-        return <section className="add-data-section">
-            <h2>Add variables</h2>
+        return <Section name="Add variables">
             {dimensionSlots.map(slot => <DimensionSlotView slot={slot} editor={props.editor} />)}
-        </section>
+        </Section>
     }
 }
 
@@ -102,16 +101,14 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
         const { editor } = this.props
         const { chart } = editor
 
-        return <div className={`tab-pane active ${styles.EditorBasicTab}`}>
-            <section className="chart-type-section">
-                <h2>What type of chart</h2>
-
-                <SelectField label="Chart type" value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
+        return <div className={styles.EditorBasicTab}>
+            <Section name="Type of chart">
+                <SelectField value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
                 <FieldsRow>
                     <Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value} />
                     <Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value} />
                 </FieldsRow>
-            </section>
+            </Section>
             <VariablesSection editor={editor} />
         </div>
     }
