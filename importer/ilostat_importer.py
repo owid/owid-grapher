@@ -3,7 +3,6 @@ import os
 import hashlib
 import io
 import json
-import logging
 import requests
 import unidecode
 import shutil
@@ -15,7 +14,7 @@ import gzip
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import owid_grapher.wsgi
 from openpyxl import load_workbook
-from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
+from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
 from importer.models import ImportHistory
 from country_name_tool.models import CountryName
 from django.conf import settings
@@ -24,6 +23,11 @@ from django.utils import timezone
 from django.urls import reverse
 from grapher_admin.views import write_dataset_csv
 import lxml.html
+
+# IMPORTANT: The files in the ILOSTAT dataset contain many values for the same variable, country and year but from
+# different sources. There is no easy way to split these datasets by sources, and this makes importing the values
+# difficult. The way this script will import the data is it will detect the most used source for each variable,
+# and will import the values coming from that source only.
 
 
 # we will use the file checksum to check if the downloaded file has changed since we last saw it
@@ -56,6 +60,10 @@ def short_unit_extract(unit: str):
                 if y in unit:
                     short_unit = y
                     break
+        elif 'percentage' in unit:
+            short_unit = '%'
+        elif 'percent' in unit.lower():
+            short_unit = '%'
         elif len(unit) < 9:  # this length is sort of arbitrary at this point, taken from the unit 'hectares'
             short_unit = unit
     return short_unit
@@ -110,7 +118,6 @@ ilostat_downloads_dic = ilostat_downloads_save_location + 'dic'
 ilostat_table_of_contents = ilostat_downloads_save_location + 'table_of_contents_en.csv'  # this file needs to be downloaded from the ILOSTAT bulk download folder
 
 # create a directory for holding the downloads
-# if the directory exists, delete it and recreate it
 
 if not os.path.exists(ilostat_downloads_save_location):
     os.makedirs(ilostat_downloads_save_location)
@@ -157,6 +164,8 @@ if not os.path.exists(ilostat_downloads_dic):
 # else:
 #     sys.exit('Could not open the Dictionaries page. Exiting...')
 
+# this will load all metadata info into metadata dict
+# text values for all the codes from data files can be retrieved from this dict
 metadata = {}
 for file in glob.glob(ilostat_downloads_dic + "/*.csv"):
     one_file = os.path.basename(file)
@@ -182,7 +191,7 @@ with open(ilostat_table_of_contents, 'r', encoding='utf8') as tcontents:
             file_name_to_category[row['indicator']] = row['subject.label']
 
 row_number = 0
-
+# we will be counting up the number of each source for each variable in the files
 for file in glob.glob(ilostat_downloads_indicator + "/*.gz"):
     one_file = os.path.basename(file)
     if one_file.replace('.csv.gz', '') not in list_of_files_to_import:
@@ -221,7 +230,7 @@ for file in glob.glob(ilostat_downloads_indicator + "/*.gz"):
                     0.001)  # this is done in order to not keep the CPU busy all the time, the delay after each 100th row is 1 millisecond
 
 preffered_sources = {}
-
+# selecting the most used source for each variable
 for eachvar, vardata in data.items():
     preffered_sources[eachvar] = {}
     for eachcountry, sourcedata in vardata.items():
@@ -321,7 +330,7 @@ with transaction.atomic():
             with open(file.replace('.gz', ''), 'r', encoding='utf8') as f:
                 reader = csv.DictReader(f)
                 print('Processing %s' % one_file)
-                for row in reader:
+                for row in reader:  # this for loop scans the file and creates categories, datasets, variables and sources
                     row_number += 1
                     if '_NOC_' in one_file:
                         var_code = row['indicator']
@@ -367,7 +376,7 @@ with transaction.atomic():
                         variable_name = the_indicator_label
                         if 'classif1' in reader.fieldnames:
                             if row['classif1'] != 'NOC_VALUE':
-                                if row['classif1'] == 'ECO_EQISIC4ISIC3_10_151-154':
+                                if row['classif1'] == 'ECO_EQISIC4ISIC3_10_151-154':  # this is done to avoid very long variable names
                                     variable_name += ' - ' + 'ISIC-Rev.3: Production, processing and preservation of meat, fish, fruit, vegetables, oils and fats'
                                 elif row['classif1'] == 'OCU_EQISCO08ISCO88_71_712-714':
                                     variable_name += ' - ' + 'ISCO-88: Building frame and related trades workers'
@@ -463,7 +472,7 @@ with transaction.atomic():
                 data_values_tuple_list = []
                 with open(file.replace('.gz', ''), 'r', encoding='utf8') as f:
                     reader = csv.DictReader(f)
-                    for row in reader:
+                    for row in reader:  # actually importing the values
                         row_number += 1
                         if '_NOC_' in one_file:
                             var_code = row['indicator']
@@ -490,9 +499,9 @@ with transaction.atomic():
                                 the_tuple = (str(float(row['obs_value'])), int(row['time']),
                                                                country_code_entity_object_ref[row['ref_area']].pk, varcode_to_object[varcode].pk)
                                 if row['ref_area'] != 'DE1' and row['ref_area'] != 'DE2' and row['ref_area'] != 'YU1':
+                                    # these country names cause duplicate errors
                                     data_values_tuple_list.append(the_tuple)
                             except ValueError:
-                                #print("Can't insert the following row: %s" % row)
                                 pass
                             if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
                                 with connection.cursor() as c:
@@ -751,7 +760,6 @@ with transaction.atomic():
                                         'ref_area'] != 'YU1':
                                         data_values_tuple_list.append(the_tuple)
                                 except ValueError:
-                                    # print("Can't insert the following row: %s" % row)
                                     pass
                                 if len(
                                     data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
