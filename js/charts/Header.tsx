@@ -1,9 +1,7 @@
-import { isFinite } from './Util'
 import * as React from 'react'
 import TextWrap from './TextWrap'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { formatYear } from './Util'
 import ChartConfig from './ChartConfig'
 
 interface LogoProps {
@@ -45,8 +43,6 @@ class Logo {
 
 interface HeaderProps {
     maxWidth: number,
-    minYear: number | null,
-    maxYear: number | null,
     chart: ChartConfig
 }
 
@@ -57,34 +53,8 @@ export default class Header {
         this.props = props
     }
 
-    fillTemplate(text: string) {
-        const { chart } = this.props
-
-        if (!chart.props.hideTitleAnnotation) {
-            const { minYear, maxYear } = this.props
-
-            if (chart.props.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
-                const { selectedEntities } = chart.data
-                const entityStr = selectedEntities.join(', ')
-                if (entityStr.length > 0) {
-                    text = text + ", " + entityStr
-                }
-            }
-
-            if (isFinite(minYear)) {
-                const timeFrom = formatYear(minYear as number)
-                const timeTo = formatYear(isFinite(maxYear) ? maxYear as number : minYear as number)
-                const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
-
-                text = text + ", " + time
-            }
-        }
-
-        return text.trim()
-    }
-
     @computed get titleText() {
-        return this.fillTemplate(this.props.chart.data.title)
+        return this.props.chart.data.currentTitle
     }
 
     @computed get subtitleText() {
@@ -101,7 +71,7 @@ export default class Header {
 
         const maxWidth = props.maxWidth - logo.width - 15
         // HACK (Mispy): Stop the title jumping around during timeline transitions
-        if (props.minYear === props.maxYear && props.chart.data.isShowingTimeline) {
+        if (props.chart.data.minYear === props.chart.data.maxYear && props.chart.data.isShowingTimeline) {
             titleText = titleText + " in 2000"
         }
 

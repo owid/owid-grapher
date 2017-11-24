@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {sortBy, reverse, clone, last, guid} from './Util'
+import {sortBy, reverse, clone, last, guid, pointsToPath} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -27,17 +27,6 @@ export interface StackedAreaSeries {
     values: StackedAreaValue[],
     classed?: string,
     isProjection?: boolean,
-}
-
-function pathify(points: Array<[number, number]>) {
-    let path = ""
-    for (let i = 0; i < points.length; i++) {
-        if (i === 0)
-            path += `M${points[i][0]} ${points[i][1]}`
-        else
-            path += `L${points[i][0]} ${points[i][1]}`
-    }
-    return path
 }
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
@@ -85,7 +74,7 @@ export class Areas extends React.Component<AreasProps> {
                 className={makeSafeForCSS(series.key)+'-area'}
                 key={series.key+'-area'}
                 strokeLinecap="round"
-                d={pathify(points)}
+                d={pointsToPath(points)}
                 fill={series.color}
                 fillOpacity={0.7}
                 clipPath={this.props.clipPath}
@@ -105,7 +94,7 @@ export class Areas extends React.Component<AreasProps> {
                 className={makeSafeForCSS(series.key)+'-border'}
                 key={series.key+'-border'}
                 strokeLinecap="round"
-                d={pathify(points)}
+                d={pointsToPath(points)}
                 stroke={rgb(series.color).darker(0.5).toString()}
                 strokeOpacity={0.7}
                 strokeWidth={0.5}

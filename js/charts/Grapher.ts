@@ -35,8 +35,8 @@ export class MultiEmbedder {
         const preloadDistance = window.innerHeight/2
         this.figuresToLoad.forEach(figure => {
             if (!figure.isActive && figure.jsonConfig) {
-                const windowTop = window.scrollY
-                const windowBottom = window.scrollY + window.innerHeight
+                const windowTop = window.pageYOffset
+                const windowBottom = window.pageYOffset + window.innerHeight
                 const figureRect = figure.element.getBoundingClientRect()
                 const bodyRect = document.body.getBoundingClientRect()
                 const figureTop = figureRect.top-bodyRect.top
@@ -45,7 +45,7 @@ export class MultiEmbedder {
                     figure.isActive = true
 
                     if (window.location.pathname.match(/.export$/))
-                        ExportView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: document.body })
+                        ExportView.bootstrap({ jsonConfig: figure.jsonConfig })
                     else
                         ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
                 }

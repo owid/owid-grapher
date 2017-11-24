@@ -5,7 +5,7 @@ import { observer } from 'mobx-react'
 import { LineChartSeries, LineChartValue } from './LineChart'
 import AxisScale from './AxisScale'
 import Vector2 from './Vector2'
-import { getRelativeMouse, makeSafeForCSS } from './Util'
+import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
 import Bounds from './Bounds'
 import DataKey from './DataKey'
 
@@ -108,6 +108,7 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     // Don't display point markers if there are very many of them for performance reasons
+    // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
     @computed get hasMarkers(): boolean {
         return sum(this.renderData.map(g => g.values.length)) < 500
     }
@@ -115,40 +116,33 @@ export default class Lines extends React.Component<LinesProps> {
     renderFocusGroups() {
         return map(this.focusGroups, series =>
             <g className={series.displayKey}>
-                <defs key={`${series.displayKey}-defs`}>
-                    <marker id={`${series.displayKey}-circle-${this.renderUid}`} viewBox="0 0 16 16"
-                        refX={8} refY={8} orient="auto" fill={series.isProjection ? "#fff" : series.color} stroke={series.color}>
-                        <circle cx={8} cy={8} r={8} />
-                    </marker>
-                </defs>
-                <polyline
-                    key={`${series.key}-line`}
-                    strokeLinecap="round"
+                <path
                     stroke={series.color}
-                    points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
+                    strokeLinecap="round"
+                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
                     fill="none"
                     strokeWidth={1.5}
-                    opacity={1}
-                    markerStart={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
-                    markerMid={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
-                    markerEnd={this.hasMarkers ? `url(#${series.displayKey}-circle-${this.renderUid})` : undefined}
                     stroke-dasharray={series.isProjection && "1,4"}
                 />
+                {this.hasMarkers && !series.isProjection && <g fill={series.color}>
+                    {series.values.map(v => <circle cx={v.x} cy={v.y} r={2}/>)}
+                </g>}
             </g>
         )
     }
 
     renderBackgroundGroups() {
         return map(this.backgroundGroups, series =>
-            <polyline
-                key={series.key + '-line'}
-                strokeLinecap="round"
-                stroke="#ccc"
-                points={map(series.values, v => `${v.x},${v.y}`).join(' ')}
-                fill="none"
-                strokeWidth={1}
-                opacity={1}
-            />,
+            <g className={series.displayKey}>
+                <path
+                    key={series.key + '-line'}
+                    strokeLinecap="round"
+                    stroke="#ccc"
+                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
+                    fill="none"
+                    strokeWidth={1}
+                />
+            </g>
         )
     }
 

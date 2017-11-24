@@ -129,7 +129,8 @@ export default class LineChartTransform implements IChartTransform {
             tickFormat: formatYear,
             domain: xDomain,
             scaleType: 'linear',
-            scaleTypeOptions: ['linear']
+            scaleTypeOptions: ['linear'],
+            hideFractionalTicks: true
         }
     }
 
