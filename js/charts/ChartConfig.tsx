@@ -195,7 +195,7 @@ export default class ChartConfig {
     @computed get hideLegend() { return this.props.hideLegend }
     @computed get baseColorScheme() { return this.props.baseColorScheme }
 
-    @computed get entityType() { return this.props.entityType || "country" }
+    @computed get entityType() { return defaultTo(this.props.entityType, "country") }
 
     @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
 

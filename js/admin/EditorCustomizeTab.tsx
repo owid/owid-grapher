@@ -4,7 +4,7 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { TextField, NumberField, SelectField, Toggle, FieldsRow, Section } from './Forms'
+import { TextField, NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString } from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
 import { debounce } from '../charts/Util'
 
@@ -115,7 +115,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
                     {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}
                     {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
                 </FieldsRow>
-                {features.entityType && <TextField label={`Entity name`} placeholder="country" value={chart.props.entityType} onValue={value => chart.props.entityType = value || undefined} />}
+                {features.entityType && <BindAutoString label="Entity name" field="entityType" store={chart.props} auto="country"/>}
             </Section>}
         </div>
     }

@@ -72,7 +72,7 @@ html, body {
         > div {
             margin: 1em 0;
         }
-    }    
+    }
 
     .dimensionSlot {
         cursor: pointer;
@@ -251,6 +251,12 @@ html, body {
     > * {
         padding-right: 1rem;
         margin-bottom: 0 !important;
+    }
+}
+
+.AutoTextField {
+    .ui.label {
+        cursor: pointer;
     }
 }
 

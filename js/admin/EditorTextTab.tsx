@@ -2,50 +2,26 @@ import * as React from 'react'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { Toggle, TextField, TextAreaField, Section } from './Forms'
+import { Toggle, Section, BindString, BindAutoString } from './Forms'
 
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
-    get chart() {
-        return this.props.editor.chart
-    }
-
-    lastTitle: string
-
-    @action.bound onTitle(title: string|undefined) { this.chart.props.title = title||"" }
-    @action.bound onToggleAutoTitle(value: boolean) { this.chart.props.title = value ? undefined : this.chart.data.defaultTitle }
-
-    @action.bound onSlug(slug: string) { this.chart.props.slug = slug || undefined }
-    @action.bound onToggleAutoSlug(value: boolean) { this.chart.props.slug = value ? undefined : this.chart.data.defaultSlug }
-
-    @action.bound onToggleTitleAnnotation(value: boolean) { this.chart.props.hideTitleAnnotation = value || undefined }
-    @action.bound onSubtitle(value: string) { this.chart.props.subtitle = value || undefined }
-
-    @action.bound onSource(sourceDesc: string|undefined) { this.chart.props.sourceDesc = sourceDesc||"" }
-    @action.bound onToggleAutoSource(value: boolean) { this.chart.props.sourceDesc = value ? undefined : this.chart.data.defaultSourcesLine }
-
-    @action.bound onNote(value: string|undefined) { this.chart.props.note = value || undefined }
-    @action.bound onInternalNotes(value: string) { this.chart.props.internalNotes = value || undefined }
-
     render() {
-        const { chart } = this
+        const {chart} = this.props.editor
 
         return <div>
             <Section name="Header">
-                <TextField label="Title" value={chart.data.title} onValue={this.onTitle}/>
-                <Toggle label="Automatic title" value={chart.props.title === undefined} onValue={this.onToggleAutoTitle}/>
-                <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
-                <TextField label="/grapher/" value={chart.data.slug} onValue={this.onSlug} title="Human-friendly URL slug for this chart" />
-                <Toggle label="Automatic slug" value={chart.props.slug === undefined} onValue={this.onToggleAutoSlug}/>
-                <TextAreaField label="Subtitle" value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
+                <BindAutoString field="title" store={chart.props} auto={chart.data.title}/>
+                <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={action((value: boolean) => chart.props.hideTitleAnnotation = value||undefined)}/>
+                <BindAutoString label="/grapher/" field="slug" store={chart.props} auto={chart.data.slug} helpText="Human-friendly URL for this chart"/>
+                <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data" textarea/>
             </Section>
             <Section name="Footer">
-                <TextField label="Source" style={{ width: "90%" }} value={chart.data.sourcesLine} onValue={this.onSource}/>
-                <Toggle label="Automatic source" value={chart.props.sourceDesc === undefined} onValue={this.onToggleAutoSource}/>
-                <TextField label="Footer note" value={chart.props.note} onValue={this.onNote} helpText="Any important clarification needed to avoid miscommunication" />
+                <BindAutoString label="Source" field="sourceDesc" store={chart.props} auto={chart.data.sourcesLine}/>
+                <BindString label="Footer note" field="note" store={chart.props} helpText="Any important clarification needed to avoid miscommunication" />
             </Section>
             <Section name="Misc">
-                <TextAreaField label="Internal author notes" value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
+                <BindString label="Internal author notes" field="internalNotes" store={chart.props} placeholder="e.g. WIP, needs review, etc" textarea/>
             </Section>
         </div>
     }

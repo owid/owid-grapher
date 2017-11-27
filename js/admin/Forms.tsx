@@ -5,7 +5,7 @@
  */
 
 import * as React from 'react'
-import { extend, pick } from '../charts/Util'
+import { extend, pick, capitalize } from '../charts/Util'
 import { bind } from 'decko'
 import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps, Header } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
@@ -31,7 +31,6 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     title?: string,
     disabled?: boolean,
     helpText?: string,
-    fullWidth?: boolean,
     autofocus?: boolean
 }
 
@@ -94,7 +93,6 @@ export interface NumberFieldProps {
     title?: string,
     disabled?: boolean,
     helpText?: string,
-    fullWidth?: boolean
 }
 
 export class NumberField extends React.Component<NumberFieldProps> {
@@ -244,5 +242,115 @@ export class Section extends React.Component<{ name: string }> {
             <Header as='h3' dividing>{this.props.name}</Header>
             {this.props.children}
         </section>
+    }
+}
+
+export interface AutoTextFieldProps {
+    label?: string
+    value: string | undefined
+    placeholder?: string
+    isAuto: boolean
+    helpText?: string
+    onValue: (value: string) => void
+    onToggleAuto: (value: boolean) => void
+}
+
+@observer
+export class AutoTextField extends React.Component<AutoTextFieldProps> {
+    render() {
+        const {props} = this
+
+        return <div className="ui field AutoTextField">
+            {props.label && <label>{props.label}</label>}
+            <div className="ui right labeled input">
+                <input type="text" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
+                <div className="ui basic label" onClick={_ => props.onToggleAuto(!props.isAuto)} data-tooltip={props.isAuto ? "Automatic default" : "Manual input"} data-position="top right">
+                    {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
+                </div>
+            </div>
+            {props.helpText && <small>{props.helpText}</small>}
+        </div>
+    }
+}
+
+@observer
+export class BindString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean }> {
+    @action.bound onValue(value: string) {
+        this.props.store[this.props.field] = value||undefined
+    }
+
+    render() {
+        const {props} = this
+
+        const {field, store, label, textarea, ...rest} = props
+        const value = props.store[props.field] as string|undefined
+        if (textarea)
+            return <TextAreaField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+        else
+            return <TextField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+        }
+}
+
+@observer
+export class BindAutoString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string }> {
+    @action.bound onValue(value: string) {
+        this.props.store[this.props.field] = value
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.store[this.props.field] = value ? undefined : this.props.auto
+    }
+
+    render() {
+        const {field, store, label, auto, ...rest} = this.props
+
+        const value = store[field] as string|undefined
+
+        return <AutoTextField label={label||capitalize(field)} value={value === undefined ? auto : value} isAuto={value === undefined} onValue={this.onValue} onToggleAuto={this.onToggleAuto} {...rest}/>
+    }
+}
+
+export interface AutoFloatFieldProps {
+    label?: string
+    value: number
+    isAuto: boolean
+    helpText?: string
+    onValue: (value: number|undefined) => void
+    onToggleAuto: (value: boolean) => void
+}
+
+export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
+    render() {
+        const { props } = this
+
+        const textFieldProps = extend({}, props, {
+            value: props.isAuto ? undefined : props.value.toString(),
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            },
+            placeholder: props.isAuto ? props.value.toString() : undefined
+        })
+
+        return <AutoTextField {...textFieldProps}/>
+    }
+}
+
+@observer
+export class BindAutoFloat<T extends {[field: string]: number|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
+    @action.bound onValue(value: number|undefined) {
+        this.props.store[this.props.field] = value
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.store[this.props.field] = value ? undefined : this.props.auto
+    }
+
+    render() {
+        const {field, store, label, auto, ...rest} = this.props
+
+        const value = store[field] as number|undefined
+
+        return <AutoFloatField label={label||capitalize(field)} value={value === undefined ? auto : value} isAuto={value === undefined} onValue={this.onValue} onToggleAuto={this.onToggleAuto} {...rest}/>
     }
 }

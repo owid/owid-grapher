@@ -3,8 +3,7 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor from './ChartEditor'
-import { TextField, NumberField, Toggle, EditableListItem } from './Forms'
-import { toString } from '../charts/Util'
+import { Toggle, EditableListItem, BindAutoString, BindAutoFloat } from './Forms'
 
 @observer
 export default class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
@@ -20,26 +19,6 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
 
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.props.isProjection = value || undefined
-    }
-
-    @action.bound onDisplayName(value: string) {
-        this.props.dimension.props.displayName = value || undefined
-    }
-
-    @action.bound onUnit(value: string) {
-        this.props.dimension.props.unit = value || undefined
-    }
-
-    @action.bound onShortUnit(value: string) {
-        this.props.dimension.props.shortUnit = value || undefined
-    }
-
-    @action.bound onTolerance(value: number | undefined) {
-        this.props.dimension.props.tolerance = value
-    }
-
-    @action.bound onConversionFactor(value: number | undefined) {
-        this.props.dimension.props.conversionFactor = value
     }
 
     @action.bound onSaveToVariable(value: boolean) {
@@ -62,13 +41,13 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
                 </div>
             </header>
             {this.isExpanded && <div>
-                <TextField label="Display name" value={dimension.props.displayName} onValue={this.onDisplayName} placeholder={dimension.displayName} />
-                <TextField label="Unit of measurement" value={dimension.props.unit} onValue={this.onUnit} placeholder={dimension.unit} helpText={`Original database unit: ${dimension.variable.unit}`}/>
-                <TextField label="Short (axis) unit" value={dimension.props.shortUnit} onValue={this.onShortUnit} placeholder={dimension.shortUnit} />
-                <NumberField label="Unit conversion factor" value={dimension.props.conversionFactor} onValue={this.onConversionFactor} placeholder={toString(dimension.unitConversionFactor)} />
-                {(chart.isScatter || chart.isDiscreteBar) && <NumberField label="Tolerance" value={dimension.props.tolerance} onValue={this.onTolerance} placeholder={toString(dimension.tolerance)} />}
+                <BindAutoString label="Display name" field="displayName" store={dimension.props} auto={dimension.displayName}/>
+                <BindAutoString label="Unit of measurement" field="unit" store={dimension.props} auto={dimension.unit} helpText={`Original database unit: ${dimension.variable.unit}`}/>
+                <BindAutoString label="Short (axis) unit" field="shortUnit" store={dimension.props} auto={dimension.shortUnit}/>
+                <BindAutoFloat label="Unit conversion factor" field="conversionFactor" store={dimension.props} auto={dimension.unitConversionFactor}/>
+                {(chart.isScatter || chart.isDiscreteBar) && <BindAutoFloat field="tolerance" store={dimension.props} auto={dimension.tolerance}/>}
                 {chart.isLineChart && <Toggle label="Is projection" value={dimension.isProjection} onValue={this.onIsProjection} />}
-                <hr />
+                <hr className="ui divider"/>
                 <Toggle label="Use these settings as defaults for future charts" value={!!dimension.props.saveToVariable} onValue={this.onSaveToVariable} />
             </div>}
         </EditableListItem>

@@ -45,13 +45,13 @@ export default class DimensionWithData {
         return defaultTo(defaultTo(this.props.tolerance, this.variable.displayTolerance), 0)
     }
 
-    @computed get shortUnit(): string | undefined {
+    @computed get shortUnit(): string {
         const { unit } = this
-        const shortUnit = defaultTo(defaultTo(this.props.shortUnit, this.variable.displayShortUnit), this.variable.shortUnit)
+        const shortUnit = defaultTo(defaultTo(this.props.shortUnit, this.variable.displayShortUnit), this.variable.shortUnit||undefined)
 
-        if (shortUnit) return shortUnit
+        if (shortUnit !== undefined) return shortUnit
 
-        if (!unit) return undefined
+        if (!unit) return ""
 
         if (unit.length < 3)
             return unit
@@ -60,7 +60,7 @@ export default class DimensionWithData {
             if (some(commonShortUnits, u => unit[0] === u))
                 return unit[0]
             else
-                return undefined
+                return ""
         }
     }
 
