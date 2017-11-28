@@ -3,7 +3,7 @@ import { clone, isEmpty, noop, extend, map } from '../charts/Util'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow } from './Forms'
+import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow, BindAutoString } from './Forms'
 import MapConfig from '../charts/MapConfig'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
@@ -225,14 +225,10 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
     }
 
-    @action.bound onDescription(description: string | undefined) {
-        this.props.mapConfig.props.legendDescription = description
-    }
-
     render() {
         const { mapConfig } = this.props
         return <Section name="Legend">
-            <TextField label="Label" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
+            <BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>
             <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
         </Section>
     }
