@@ -1,4 +1,4 @@
-import { extend, some, isString, isNumber, uniq, sortedUniq, min, max, keyBy, keys, values, each, sortBy } from './Util'
+import { extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, each, sortBy } from './Util'
 import ChartConfig from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 

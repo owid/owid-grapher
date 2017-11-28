@@ -5,7 +5,7 @@ import DataKey from './DataKey'
 import { LineChartSeries, LineChartValue } from './LineChart'
 import AxisSpec from './AxisSpec'
 import { defaultTo, formatYear, findClosest } from './Util'
-import ColorSchemes from './ColorSchemes'
+import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 import DimensionWithData from './DimensionWithData'
 
@@ -29,6 +29,11 @@ export default class LineChartTransform implements IChartTransform {
             return "No matching data"
         else
             return undefined
+    }
+
+    @computed get colorScheme(): ColorScheme {
+        const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
+        return colorScheme !== undefined ? colorScheme : ColorSchemes["owid-distinct"] as ColorScheme
     }
 
     @computed get initialData(): LineChartSeries[] {
@@ -73,9 +78,7 @@ export default class LineChartTransform implements IChartTransform {
         // Color from lowest to highest
         chartData = sortBy(chartData, series => series.values[series.values.length - 1].y)
 
-        const schemeName = defaultTo(this.chart.props.baseColorScheme, "owid-distinct")
-        const colorScheme = ColorSchemes[schemeName]
-        const colors = colorScheme.getColors(chartData.length)
+        const colors = this.colorScheme.getColors(chartData.length)
         if (this.chart.props.invertColorScheme)
             colors.reverse()
         chartData.forEach((series, i) => {

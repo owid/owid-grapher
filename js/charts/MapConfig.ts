@@ -1,4 +1,4 @@
-import { observable, computed, toJS } from 'mobx'
+import { observable, computed } from 'mobx'
 import MapProjection from './MapProjection'
 import Chart from './ChartConfig'
 import MapData from './MapData'
@@ -14,11 +14,9 @@ export class MapConfigProps {
     @observable.ref hideTimeline?: true
     // Key for a colorbrewer scheme, may then be further customized
     @observable.ref baseColorScheme?: string
-    // Number of numeric intervals used to color data
-    @observable.ref colorSchemeInterval?: number = 10
     // Minimum value shown on map legend
     @observable.ref colorSchemeMinValue?: number = 0
-    @observable.struct colorSchemeValues: (number | undefined)[] = []
+    @observable.struct colorSchemeValues: number[] = []
     @observable.struct colorSchemeLabels: (string | undefined)[] = []
     @observable.ref isManualBuckets?: true = undefined
     @observable.ref equalSizeBins?: true = undefined
@@ -37,7 +35,7 @@ export class MapConfigProps {
     @observable.ref defaultProjection: MapProjection = 'World'
 
     @observable.ref legendDescription?: string = undefined
-    @observable.ref legendStepSize: number = 20
+    @observable.ref binStepSize?: number = undefined
 
     constructor(json?: any) {
         if (json !== undefined) {
@@ -59,8 +57,6 @@ export default class MapConfig {
 
     @computed get variableId() { return this.props.variableId }
     @computed get tolerance() { return defaultTo(this.props.timeTolerance, 0) }
-    @computed get numBuckets() { return defaultTo(this.props.colorSchemeInterval, 10) }
-    @computed get isAutoBuckets() { return !this.props.isManualBuckets }
     @computed get minBucketValue() { return +defaultTo(this.props.colorSchemeMinValue, 0) }
     @computed get colorSchemeValues() { return defaultTo(this.props.colorSchemeValues, []) }
     @computed get isCustomColors() { return defaultTo(this.props.customColorsActive, false) }
@@ -69,12 +65,6 @@ export default class MapConfig {
     @computed get customHiddenCategories(): { [key: string]: true } { return defaultTo(this.props.customHiddenCategories, {}) }
     @computed get isColorSchemeInverted() { return defaultTo(this.props.colorSchemeInvert, false) }
     @computed get customCategoryLabels(): { [key: string]: string } { return defaultTo(this.props.customCategoryLabels, {}) }
-    @computed get customBucketLabels() {
-        const labels = toJS(this.props.colorSchemeLabels) || []
-        while (labels.length < this.numBuckets)
-            labels.push(undefined)
-        return labels
-    }
     @computed get projection() { return defaultTo(this.props.projection, "World") }
 
     @computed get baseColorScheme() { return defaultTo(this.props.baseColorScheme, "BuGn") }

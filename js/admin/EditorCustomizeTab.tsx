@@ -5,8 +5,8 @@ import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import { AxisConfigProps } from '../charts/AxisConfig'
 import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString } from './Forms'
-import ColorSchemes from '../charts/ColorSchemes'
-import { debounce } from '../charts/Util'
+import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
+import { debounce, keysOf } from '../charts/Util'
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -21,8 +21,8 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
     render() {
         const { chart } = this.props
 
-        const availableColorSchemes = Object.keys(ColorSchemes)
-        const colorSchemeLabels = availableColorSchemes.map(scheme => ColorSchemes[scheme].name)
+        const availableColorSchemes = keysOf(ColorSchemes)
+        const colorSchemeLabels = availableColorSchemes.map(scheme => (ColorSchemes[scheme] as ColorScheme).name)
 
         return <FieldsRow>
             <SelectField label="Color scheme" value={chart.baseColorScheme || "default"} onValue={this.onValue} options={["default"].concat(availableColorSchemes)} optionLabels={["Default"].concat(colorSchemeLabels)} /><br />

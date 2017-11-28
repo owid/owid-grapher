@@ -1,8 +1,8 @@
-import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy, sortBy } from './Util'
+import { round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { defaultTo } from './Util'
-import ColorSchemes from './ColorSchemes'
+import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import Color from './Color'
 import { ChoroplethData } from './ChoroplethMap'
 import { entityNameForMap } from './Util'
@@ -76,7 +76,7 @@ export class CategoricalBin {
     get text() { return this.label || this.value }
 
     contains(d: MapDataValue | null): boolean {
-        return (d == null && this.value === 'No data') || (d != null && d.value === this.value)
+        return (d === null && this.value === 'No data') || (d !== null && d.value === this.value)
     }
 }
 
@@ -98,16 +98,14 @@ export default class MapData {
 
         // When automatic classification is turned off, assign defaults
         reaction(
-            () => this.map.isAutoBuckets,
+            () => this.map.props.isManualBuckets,
             () => {
-                if (!this.map.isAutoBuckets) {
-                    const { autoBucketMaximums } = this
+                if (this.map.props.isManualBuckets) {
+                    const { autoBinMaximums } = this
                     const colorSchemeValues = toJS(this.map.props.colorSchemeValues) || []
-                    for (let i = 0; i < autoBucketMaximums.length; i++) {
+                    for (let i = 0; i < autoBinMaximums.length; i++) {
                         if (i >= colorSchemeValues.length)
-                            colorSchemeValues.push(autoBucketMaximums[i])
-                        else if (colorSchemeValues[i] === undefined)
-                            colorSchemeValues[i] = autoBucketMaximums[i]
+                            colorSchemeValues.push(autoBinMaximums[i])
                     }
                     this.map.props.colorSchemeValues = colorSchemeValues
                 }
@@ -147,61 +145,94 @@ export default class MapData {
     }
 
     @computed get targetYear(): number {
-        return defaultTo(this.map.props.targetYear, this.timelineYears[0])
+        return this.map.props.targetYear !== undefined ? this.map.props.targetYear : this.timelineYears[0]
     }
 
     @computed get legendTitle(): string {
-        return defaultTo(this.map.props.legendDescription, this.dimension ? this.dimension.displayName : "")
+        const {legendDescription} = this.map.props
+        return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
+    }
+
+    @computed get numBins(): number {
+        return this.map.props.isManualBuckets ? this.map.props.colorSchemeValues.length : 6
+    }
+
+    @computed get customBucketLabels() {
+        const labels = toJS(this.map.props.colorSchemeLabels) || []
+        while (labels.length < this.numBins)
+            labels.push(undefined)
+        return labels
+    }
+
+    @computed get minBinValue(): number {
+        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : 0
+    }
+
+    @computed get binStepSizeDefault(): number {
+        const {dimension} = this
+        if (!dimension) return 10
+
+        const {numBins, minBinValue} = this
+
+        const median95 = dimension.numericValues[Math.floor(dimension.numericValues.length*0.95)]
+        const stepSizeInitial = (median95-minBinValue)/numBins
+        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
+        const stepSize = round(stepSizeInitial, -stepMagnitude)
+
+        return stepSize
+    }
+
+    @computed get binStepSize(): number {
+        return this.map.props.binStepSize !== undefined ? this.map.props.binStepSize : this.binStepSizeDefault
+    }
+
+    @computed get manualBinMaximums(): number[] {
+        if (!this.dimension || !this.dimension.hasNumericValues || this.numBins <= 0)
+            return []
+
+        const { numBins } = this
+        const { colorSchemeValues } = this.map
+
+        let values = toArray(colorSchemeValues)
+        while (values.length < numBins)
+            values.push(0)
+        while (values.length > numBins)
+            values = values.slice(0, numBins)
+        return values as number[]
     }
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-    @computed get autoBucketMaximums(): number[] {
-        const { map, dimension } = this
-        if (!dimension) return []
+    @computed get autoBinMaximums(): number[] {
+        if (!this.dimension || !this.dimension.hasNumericValues || this.numBins <= 0)
+            return []
 
-        const { numBuckets, minBucketValue } = map
-        const { variable } = dimension
-
-        if (!variable.hasNumericValues || numBuckets <= 0) return []
-
-        const median95 = dimension.numericValues[Math.floor(dimension.numericValues.length*0.95)]
-        const stepSizeInitial = (median95-minBucketValue)/numBuckets
-        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
-        const stepSize = round(stepSizeInitial, -stepMagnitude)
+        const { binStepSize, numBins, minBinValue } = this
 
         const bucketMaximums = []
-        let nextMaximum = minBucketValue+stepSize
-        for (let i = 1; i <= numBuckets; i++) {
+        let nextMaximum = minBinValue+binStepSize
+        for (let i = 0; i < numBins; i++) {
             bucketMaximums.push(nextMaximum)
-            nextMaximum += stepSize
-//            const value = minValue + (i / numBuckets) * (maxValue - minValue)
-//            bucketMaximums.push(round(value, -(rangeMagnitude - 1)))
+            nextMaximum += binStepSize
         }
 
         return bucketMaximums
     }
 
-    @computed get bucketMaximums() {
-        if (this.map.isAutoBuckets) return this.autoBucketMaximums
-
-        const { map, dimension } = this
-        const { numBuckets, colorSchemeValues } = map
-
-        if (!dimension || !dimension.variable.hasNumericValues || numBuckets <= 0)
-            return []
-
-        let values = toArray(colorSchemeValues)
-        while (values.length < numBuckets)
-            values.push(0)
-        while (values.length > numBuckets)
-            values = values.slice(0, numBuckets)
-        return values
+    @computed get bucketMaximums(): number[] {
+        if (this.map.props.isManualBuckets)
+            return this.manualBinMaximums
+        else
+            return this.autoBinMaximums
     }
 
-    @computed get colorScheme() {
-        const { baseColorScheme } = this.map
-        return defaultTo(ColorSchemes[baseColorScheme], ColorSchemes[keys(ColorSchemes)[0]])
+    @computed get defaultColorScheme(): ColorScheme {
+        return ColorSchemes[keys(ColorSchemes)[0]] as ColorScheme
+    }
+
+    @computed get colorScheme(): ColorScheme {
+        const colorScheme = ColorSchemes[this.map.baseColorScheme]
+        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
     }
 
     @computed get baseColors() {
@@ -241,15 +272,15 @@ export default class MapData {
         if (!dimension) return []
 
         const legendData = []
-        const { map, bucketMaximums, baseColors, categoricalValues, customCategoryColors } = this
-        const { customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue } = map
+        const { map, bucketMaximums, baseColors, categoricalValues, customCategoryColors, customBucketLabels, minBinValue } = this
+        const { customNumericColors, customCategoryLabels, customHiddenCategories } = map
 
         /*var unitsString = chart.model.get("units"),
             units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
             yUnit = find(units, { property: 'y' });*/
 
         // Numeric 'buckets' of color
-        let minValue = minBucketValue
+        let minValue = minBinValue
         for (let i = 0; i < bucketMaximums.length; i++) {
             const baseColor = baseColors[i]
             const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)

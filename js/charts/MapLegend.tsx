@@ -401,7 +401,6 @@ export default class MapLegend {
         const { focusBracket, focusEntity } = this.props
         const { numericLegendData } = this
 
-        console.log(focusEntity)
         if (focusBracket)
             return focusBracket
         else if (focusEntity)

@@ -3,7 +3,7 @@ import { clone, isEmpty, noop, extend, map } from '../charts/Util'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow, BindAutoString } from './Forms'
+import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow, BindAutoString, BindAutoFloat } from './Forms'
 import MapConfig from '../charts/MapConfig'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
@@ -70,7 +70,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
             mapConfig.props.customColorsActive = true
         }
 
-        while (mapConfig.props.customNumericColors.length < mapConfig.numBuckets)
+        while (mapConfig.props.customNumericColors.length < mapConfig.data.numBins)
             mapConfig.props.customNumericColors.push(undefined)
 
         mapConfig.props.customNumericColors[index] = color
@@ -78,29 +78,43 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
 
     @action.bound onMaximumValue(value: number) {
         const { mapConfig, index } = this.props
-        while (mapConfig.props.colorSchemeValues.length < mapConfig.numBuckets)
-            mapConfig.props.colorSchemeValues.push(undefined)
         mapConfig.props.colorSchemeValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
         const { mapConfig, index } = this.props
-        while (mapConfig.props.colorSchemeLabels.length < mapConfig.numBuckets)
+        while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
             mapConfig.props.colorSchemeLabels.push(undefined)
         mapConfig.props.colorSchemeLabels[index] = value
     }
 
-    render() {
-        const { mapConfig, bin } = this.props
+    @action.bound onRemove() {
+        const { mapConfig, index } = this.props
+        mapConfig.props.colorSchemeValues.splice(index, 1)
+    }
 
-        //const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
+    @action.bound onAddAfter() {
+        const { mapConfig, index } = this.props
+        const { colorSchemeValues } = mapConfig.props
+        const currentValue = colorSchemeValues[index]
+
+        if (index === colorSchemeValues.length-1)
+            colorSchemeValues.push(currentValue+mapConfig.data.binStepSizeDefault)
+        else {
+            const newValue = (currentValue+colorSchemeValues[index+1])/2
+            colorSchemeValues.splice(index+1, 0, newValue)
+        }
+    }
+
+    render() {
+        const { bin } = this.props
 
         return <EditableListItem className="numeric">
-            <div><i className="fa fa-plus"/></div>
+            <div className="clickable" onClick={this.onAddAfter}><i className="fa fa-plus"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
-            <NumberField value={bin.max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
+            <NumberField value={bin.max} onValue={this.onMaximumValue}/>
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
-            <div><i className="fa fa-remove"/></div>
+            <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>
         </EditableListItem>
     }
 }
@@ -163,10 +177,6 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
         if (!dimension) return null
 
         return <EditableList className="ColorSchemeEditor">
-            {dimension.variable.hasNumericValues && false && <li>
-                <NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue} />
-            </li>}
-
             {mapConfig.data.legendData.map((bin, index) => {
                 if (bin instanceof NumericBin) {
                     return <NumericBinView mapConfig={mapConfig} bin={bin} index={index} />
@@ -190,10 +200,6 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         }
     }
 
-    @action.bound onNumIntervals(numIntervals: number) {
-        this.props.mapConfig.props.colorSchemeInterval = numIntervals
-    }
-
     @action.bound onInvert(invert: boolean) {
         this.props.mapConfig.props.colorSchemeInvert = invert || undefined
     }
@@ -212,9 +218,11 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                 <SelectField label="Color scheme" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
                 <Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
             </FieldsRow>
-            <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
-            {/*<NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />*/}
-            <ColorSchemeEditor map={mapConfig} />
+            <FieldsRow>
+                <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
+            </FieldsRow>
+            {mapConfig.props.isManualBuckets && <ColorSchemeEditor map={mapConfig} />}
+            {!mapConfig.props.isManualBuckets && <BindAutoFloat label="Step size" field="binStepSize" store={mapConfig.props} auto={mapConfig.data.binStepSizeDefault}/>}
         </Section>
     }
 }

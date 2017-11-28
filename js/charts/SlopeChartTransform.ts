@@ -2,7 +2,7 @@ import { scaleOrdinal } from 'd3-scale'
 import { some, union, min, max, find, isEmpty } from './Util'
 import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
-import { defaultTo, findClosest } from './Util'
+import { defaultTo, defaultWith, findClosest } from './Util'
 import DimensionWithData from './DimensionWithData'
 import Observations from './Observations'
 import { SlopeChartSeries } from './LabelledSlopes'
@@ -46,13 +46,13 @@ export default class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get startYear(): number {
-        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+        const minYear = defaultWith(this.chart.timeDomain[0], () => this.minTimelineYear)
+        return defaultWith(findClosest(this.timelineYears, minYear), () => this.minTimelineYear)
     }
 
     @computed get endYear(): number {
-        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+        const maxYear = defaultWith(this.chart.timeDomain[1], () => this.maxTimelineYear)
+        return defaultWith(findClosest(this.timelineYears, maxYear), () => this.maxTimelineYear)
     }
 
     @computed.struct get xDomain(): [number, number] {

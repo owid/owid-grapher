@@ -2,12 +2,12 @@ import { scaleOrdinal } from 'd3-scale'
 import ChartConfig from './ChartConfig'
 import { some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, groupBy, sortBy, map, includes } from './Util'
 import { computed, observable } from 'mobx'
-import { defaultTo, first, last } from './Util'
+import { defaultTo, defaultWith, first, last } from './Util'
 import DimensionWithData from './DimensionWithData'
 import { ScatterSeries, ScatterValue } from './PointsWithLabels'
 import AxisSpec from './AxisSpec'
 import { formatValue, domainExtent, findClosest } from './Util'
-import ColorSchemes from './ColorSchemes'
+import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import IChartTransform from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
@@ -135,7 +135,7 @@ export default class ScatterTransform implements IChartTransform {
         const minYear = this.chart.timeDomain[0]
 
         if (minYear !== undefined)
-            return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+            return defaultWith(findClosest(this.timelineYears, minYear), () => this.minTimelineYear)
         else
             return this.maxTimelineYear
     }
@@ -144,7 +144,7 @@ export default class ScatterTransform implements IChartTransform {
         const maxYear = this.chart.timeDomain[1]
 
         if (maxYear !== undefined)
-            return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+            return defaultWith(findClosest(this.timelineYears, maxYear), () => this.maxTimelineYear)
         else
             return this.maxTimelineYear
     }
@@ -171,7 +171,7 @@ export default class ScatterTransform implements IChartTransform {
 
     @computed get colorSet(): string[] {
         const { colorSchemeName, colorDimension } = this
-        const colorScheme = ColorSchemes[colorSchemeName]
+        const colorScheme = ColorSchemes[colorSchemeName] as ColorScheme
         const numColors = colorDimension ? colorDimension.variable.categoricalValues.length : 4
         const colors = colorScheme.getColors(numColors)
 

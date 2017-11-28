@@ -26,7 +26,7 @@ export default class AxisConfig {
         if (this.scaleType === 'log' && (this.props.min||0) <= 0) {
             return undefined
         } else {
-            return defaultTo(this.props.min, undefined)
+            return this.props.min
         }
     }
 
@@ -34,7 +34,7 @@ export default class AxisConfig {
         if (this.scaleType === 'log' && (this.props.max||0) <= 0)
             return undefined
         else
-            return defaultTo(this.props.max, undefined)
+            return this.props.max
     }
 
     @computed get scaleType(): ScaleType { return this.props.scaleType }

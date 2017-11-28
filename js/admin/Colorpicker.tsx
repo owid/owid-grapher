@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { last } from '../charts/Util'
 import { TextField } from './Forms'
-import ColorSchemes from '../charts/ColorSchemes'
+import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
 import {action} from 'mobx'
 
 export interface ColorpickerProps {
@@ -37,7 +37,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     }
 
     render() {
-        const availableColors: string[] = last(ColorSchemes['owid-distinct'].colorSets)
+        const availableColors: string[] = last((ColorSchemes['owid-distinct'] as ColorScheme).colorSets)
 
         return <div className="Colorpicker" tabIndex={0} onClick={e => e.stopPropagation()}>
             <ul>

@@ -96,6 +96,10 @@ export default class DimensionWithData {
         return sortBy(this.values.filter(v => isNumber(v))) as number[]
     }
 
+    @computed get hasNumericValues(): boolean {
+        return this.numericValues.length > 0
+    }
+
     @computed get minValue(): number {
         return this.variable.minValue * this.unitConversionFactor
     }
