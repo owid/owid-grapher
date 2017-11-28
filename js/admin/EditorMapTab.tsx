@@ -91,11 +91,12 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
     @action.bound onRemove() {
         const { mapConfig, index } = this.props
         mapConfig.props.colorSchemeValues.splice(index, 1)
+        mapConfig.props.customNumericColors.splice(index, 1)
     }
 
     @action.bound onAddAfter() {
         const { mapConfig, index } = this.props
-        const { colorSchemeValues } = mapConfig.props
+        const { colorSchemeValues, customNumericColors } = mapConfig.props
         const currentValue = colorSchemeValues[index]
 
         if (index === colorSchemeValues.length-1)
@@ -103,6 +104,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
         else {
             const newValue = (currentValue+colorSchemeValues[index+1])/2
             colorSchemeValues.splice(index+1, 0, newValue)
+            customNumericColors.splice(index+1, 0, undefined)
         }
     }
 
