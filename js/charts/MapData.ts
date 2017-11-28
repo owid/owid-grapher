@@ -15,30 +15,46 @@ export interface MapDataValue {
     year: number
 }
 
-export class NumericBin {
-    index: number
+export interface NumericBinProps {
+    isFirst: boolean
+    isLast: boolean
     min: number
     max: number
-    color: Color
     label?: string
-    isHidden: boolean = false
+    color: string
     format: (v: number) => string
+}
 
-    constructor({ index, min, max, label, color, format }: { index: number, min: number, max: number, label?: string, color: Color, format: (v: number) => string }) {
-        this.index = index
-        this.min = min
-        this.max = max
-        this.color = color
-        this.label = label
-        this.format = format
+export class NumericBin {
+    props: NumericBinProps
+    constructor(props: NumericBinProps) {
+        this.props = props
     }
 
-    get minText() { return this.format(this.min) }
-    get maxText() { return this.format(this.max) }
-    get text() { return this.label || "" }
+    @computed get min() { return this.props.min }
+    @computed get max() { return this.props.max }
+    @computed get color() { return this.props.color }
+    @computed get minText() { return this.props.format(this.props.min) }
+    @computed get maxText() { 
+        const str = this.props.format(this.props.max)
+        if (this.props.isLast)
+            return `>${str}`
+        else
+            return str
+    }
+    @computed get label() { return this.props.label }
+    @computed get text() { return this.props.label || "" }
+    @computed get isHidden() { return false }
 
     contains(d: MapDataValue | null): boolean {
-        return !!(d && (this.index === 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max)
+        if (!d)
+            return false
+        else if (this.props.isFirst)
+            return d.value >= this.min && d.value <= this.max
+        else if (this.props.isLast)
+            return d.value > this.min
+        else
+            return d.value > this.min && d.value <= this.max
     }
 }
 
@@ -112,18 +128,22 @@ export default class MapData {
         return this.chart.data.filledDimensions.find(d => d.variableId === this.map.variableId)
     }
 
-    @computed get knownMapEntityIds(): { [id: string]: boolean|undefined } {
-        return keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
+    // Figure out which entities in the variable can be shown on the map
+    // (we can't render data for things that aren't countries)
+    @computed get knownMapEntities(): { [entity: string]: string } {
+        if (!this.dimension) return {}
+
+        const idLookup = keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
+        const entities = this.dimension.variable.entitiesUniq.filter(e => !!idLookup[entityNameForMap(e)])
+        return keyBy(entities)
     }
 
     // All available years with data for the map
-    // Note that we're only interested in any data that is actually renderable
     @computed get timelineYears(): number[] {
         const {dimension} = this
         if (!dimension) return [1900, 2000]
 
-        const {knownMapEntityIds} = this
-        return sortedUniq(dimension.years.filter((_, i) => !!knownMapEntityIds[entityNameForMap(dimension.entities[i])]))
+        return sortedUniq(dimension.years.filter((_, i) => !!this.knownMapEntities[dimension.entities[i]]))
     }
 
     @computed get targetYear(): number {
@@ -145,23 +165,26 @@ export default class MapData {
 
         if (!variable.hasNumericValues || numBuckets <= 0) return []
 
-        const rangeValue = dimension.maxValue - dimension.minValue
-        const rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10))
-
-        const minValue = floor(dimension.minValue, -(rangeMagnitude - 1))
-        const maxValue = ceil(dimension.maxValue, -(rangeMagnitude - 1))
+        // Need to figure out an appropriate size for buckets based on the range of values
+        // e.g. for data that goes 0.0124 to 1.332 with five buckets, we might want a step of 0.2
+        const rangeMagnitude = Math.floor(Math.log(dimension.maxValue) / Math.log(10))
+        const maxValue = ceil(dimension.maxValue, -rangeMagnitude)
+        const stepSize = maxValue/numBuckets/8
 
         const bucketMaximums = []
+        let nextMaximum = stepSize
         for (let i = 1; i <= numBuckets; i++) {
-            const value = minValue + (i / numBuckets) * (maxValue - minValue)
-            bucketMaximums.push(round(value, -(rangeMagnitude - 1)))
+            bucketMaximums.push(nextMaximum)
+            nextMaximum += stepSize
+//            const value = minValue + (i / numBuckets) * (maxValue - minValue)
+//            bucketMaximums.push(round(value, -(rangeMagnitude - 1)))
         }
 
         return bucketMaximums
     }
 
     @computed get bucketMaximums() {
-        if (this.map.isAutoBuckets) return this.autoBucketMaximums
+        if (true || this.map.isAutoBuckets) return this.autoBucketMaximums
 
         const { map, dimension } = this
         const { numBuckets, colorSchemeValues } = map
@@ -231,7 +254,7 @@ export default class MapData {
             const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
+            legendData.push(new NumericBin({ isFirst: i === 0, isLast: i === bucketMaximums.length-1, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
             minValue = maxValue
         }
 
