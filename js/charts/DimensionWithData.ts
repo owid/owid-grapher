@@ -1,6 +1,6 @@
 import { Variable } from './VariableData'
 import { observable, computed } from 'mobx'
-import { defaultTo, formatValue, some, isString } from './Util'
+import { defaultTo, formatValue, some, isString, sortBy, isNumber } from './Util'
 import ChartDimension from './ChartDimension'
 
 export default class DimensionWithData {
@@ -90,6 +90,10 @@ export default class DimensionWithData {
             return this.variable.values.map(v => (v as number) * unitConversionFactor)
         else
             return this.variable.values
+    }
+
+    @computed get numericValues(): number[] {
+        return sortBy(this.values.filter(v => isNumber(v))) as number[]
     }
 
     @computed get minValue(): number {

@@ -4,7 +4,7 @@ import Bounds from './Bounds'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRelativeMouse } from './Util'
-import { MapLegendBin, NumericBin, CategoricalBin } from './MapData'
+import { MapLegendBin, NumericBin, CategoricalBin, MapDataValue } from './MapData'
 import TextWrap from './TextWrap'
 
 interface NumericMapLegendProps {
@@ -369,7 +369,7 @@ export interface MapLegendProps {
     title: string,
     bounds: Bounds,
     focusBracket: MapLegendBin,
-    focusEntity: any,
+    focusEntity: { datum: MapDataValue },
     equalSizeBins?: true
 }
 
@@ -400,17 +400,12 @@ export default class MapLegend {
     @computed get numericFocusBracket(): MapLegendBin | undefined {
         const { focusBracket, focusEntity } = this.props
         const { numericLegendData } = this
+
+        console.log(focusEntity)
         if (focusBracket)
             return focusBracket
         else if (focusEntity)
-            return find(numericLegendData, bin => {
-                if (bin instanceof CategoricalBin)
-                    return focusEntity.datum.value === bin.value
-                else if (bin instanceof NumericBin)
-                    return focusEntity.datum.value >= bin.min && focusEntity.datum.value <= bin.max
-                else
-                    return false
-            })
+            return find(numericLegendData, bin => bin.contains(focusEntity.datum))
         else
             return undefined
     }
@@ -421,7 +416,7 @@ export default class MapLegend {
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
         else if (focusEntity)
-            return find(categoricalLegendData, bin => focusEntity.datum.value === bin.value)
+            return find(categoricalLegendData, bin => bin.contains(focusEntity.datum))
         else
             return undefined
     }

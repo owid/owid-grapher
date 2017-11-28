@@ -1,4 +1,4 @@
-import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
+import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy, sortBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { defaultTo } from './Util'
@@ -17,7 +17,7 @@ export interface MapDataValue {
 
 export interface NumericBinProps {
     isFirst: boolean
-    isLast: boolean
+    isOpenEnded: boolean
     min: number
     max: number
     label?: string
@@ -35,9 +35,9 @@ export class NumericBin {
     @computed get max() { return this.props.max }
     @computed get color() { return this.props.color }
     @computed get minText() { return this.props.format(this.props.min) }
-    @computed get maxText() { 
+    @computed get maxText() {
         const str = this.props.format(this.props.max)
-        if (this.props.isLast)
+        if (this.props.isOpenEnded)
             return `>${str}`
         else
             return str
@@ -49,10 +49,10 @@ export class NumericBin {
     contains(d: MapDataValue | null): boolean {
         if (!d)
             return false
+        else if (this.props.isOpenEnded)
+            return d.value > this.min
         else if (this.props.isFirst)
             return d.value >= this.min && d.value <= this.max
-        else if (this.props.isLast)
-            return d.value > this.min
         else
             return d.value > this.min && d.value <= this.max
     }
@@ -89,7 +89,7 @@ export default class MapData {
 
         // Validate the map variable id selection to something on the chart
         autorun(() => {
-            const hasVariable = chart.map.variableId != null && chart.vardata.variablesById[chart.map.variableId]
+            const hasVariable = chart.map.variableId && chart.vardata.variablesById[chart.map.variableId]
             if (!hasVariable && chart.data.primaryVariable) {
                 const variableId = chart.data.primaryVariable.id
                 runInAction(() => chart.map.props.variableId = variableId)
@@ -160,19 +160,18 @@ export default class MapData {
         const { map, dimension } = this
         if (!dimension) return []
 
-        const { numBuckets } = map
+        const { numBuckets, minBucketValue } = map
         const { variable } = dimension
 
         if (!variable.hasNumericValues || numBuckets <= 0) return []
 
-        // Need to figure out an appropriate size for buckets based on the range of values
-        // e.g. for data that goes 0.0124 to 1.332 with five buckets, we might want a step of 0.2
-        const rangeMagnitude = Math.floor(Math.log(dimension.maxValue) / Math.log(10))
-        const maxValue = ceil(dimension.maxValue, -rangeMagnitude)
-        const stepSize = maxValue/numBuckets/8
+        const median95 = dimension.numericValues[Math.floor(dimension.numericValues.length*0.95)]
+        const stepSizeInitial = (median95-minBucketValue)/numBuckets
+        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
+        const stepSize = round(stepSizeInitial, -stepMagnitude)
 
         const bucketMaximums = []
-        let nextMaximum = stepSize
+        let nextMaximum = minBucketValue+stepSize
         for (let i = 1; i <= numBuckets; i++) {
             bucketMaximums.push(nextMaximum)
             nextMaximum += stepSize
@@ -184,7 +183,7 @@ export default class MapData {
     }
 
     @computed get bucketMaximums() {
-        if (true || this.map.isAutoBuckets) return this.autoBucketMaximums
+        if (this.map.isAutoBuckets) return this.autoBucketMaximums
 
         const { map, dimension } = this
         const { numBuckets, colorSchemeValues } = map
@@ -233,14 +232,16 @@ export default class MapData {
         return extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor })
     }
 
-    @computed get legendData() {
+    @computed get legendData(): (NumericBin|CategoricalBin)[] {
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const legendData = []
+        const { dimension } = this
+        if (!dimension) return []
 
-        const { map, dimension, bucketMaximums, baseColors, categoricalValues, customCategoryColors } = this
+        const legendData = []
+        const { map, bucketMaximums, baseColors, categoricalValues, customCategoryColors } = this
         const { customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue } = map
 
         /*var unitsString = chart.model.get("units"),
@@ -254,7 +255,7 @@ export default class MapData {
             const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ isFirst: i === 0, isLast: i === bucketMaximums.length-1, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
+            legendData.push(new NumericBin({ isFirst: i === 0, isOpenEnded: i === bucketMaximums.length-1 && maxValue < dimension.maxValue, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
             minValue = maxValue
         }
 

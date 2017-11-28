@@ -43,7 +43,7 @@ export class Variable {
     }
 
     @computed get numericValues(): number[] {
-        return sortedUniq(sortBy(this.values.filter(v => isNumber(v)))) as number[]
+        return sortBy(this.values.filter(v => isNumber(v))) as number[]
     }
 
     @computed get categoricalValues(): string[] {
