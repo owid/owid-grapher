@@ -52,11 +52,6 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     @observable.ref database?: EditorDatabase
     @observable.ref errorMessage?: { title: string, content: string }
 
-    reportError(err: string) {
-        const $modal = modal({ title: "Error fetching editor json", content: toString(err) })
-        $modal.addClass("error")
-    }
-
     async fetchChart() {
         const {chartId, admin} = this.props
 
@@ -137,7 +132,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     }
 
     renderReady(editor: ChartEditor) {
-        const {chart, availableTabs} = editor
+        const {chart, availableTabs, previewMode} = editor
 
         return [
             <TabBinder editor={editor}/>,
@@ -161,41 +156,17 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                 </Grid>
                 <SaveButtons editor={editor} />
             </Form>,
-            <figure data-grapher-src>
-                {<ChartView chart={chart} bounds={new Bounds(0, 0, 400, 850)}/>}
-                {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
-            </figure>
+            <div>
+                <figure data-grapher-src>
+                    {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 400, 600) : new Bounds(0, 0, 800, 600)}/>}
+                    {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
+                </figure>
+                <div className="ui menu">
+                    <a className={"item" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview" onClick={action(_ => editor.previewMode = 'mobile')}><i className="fa fa-mobile"/></a>
+                    <a className={"item" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview" onClick={action(_ => editor.previewMode = 'desktop')}><i className="fa fa-desktop"/></a>
+                </div>
+            </div>
         ]
 
     }
-}
-
-// XXX this is old stuff
-function modal(options?: any) {
-    options = extend({}, options)
-    $(".owidModal").remove()
-
-    const html = '<div class="modal owidModal fade" role="dialog">' +
-        '<div class="modal-dialog modal-lg">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span>' +
-        '</button>' +
-        '<h4 class="modal-title"></h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-
-    $("body").prepend(html)
-    const $modal = $(".owidModal") as any
-    $modal.find(".modal-title").html(options.title)
-    $modal.find(".modal-body").html(options.content)
-    $modal.modal("show")
-    return $modal
 }

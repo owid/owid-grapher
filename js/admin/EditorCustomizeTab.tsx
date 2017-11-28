@@ -4,7 +4,7 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { TextField, NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString } from './Forms'
+import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString } from './Forms'
 import ColorSchemes from '../charts/ColorSchemes'
 import { debounce } from '../charts/Util'
 

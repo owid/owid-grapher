@@ -96,10 +96,11 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
         //const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
 
         return <EditableListItem className="numeric">
-            <div><i className="fa fa-arrows-v"/></div>
+            <div><i className="fa fa-plus"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
-            <NumberField placeholder="Maximum value" value={bin.max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
+            <NumberField value={bin.max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
+            <div><i className="fa fa-remove"/></div>
         </EditableListItem>
     }
 }

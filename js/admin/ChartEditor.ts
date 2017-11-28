@@ -53,6 +53,7 @@ export default class ChartEditor {
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = 'basic'
     @observable.ref errorMessage?: { title: string, content: string }
+    @observable.ref previewMode: 'mobile'|'desktop' = 'mobile'
 
     constructor(props: ChartEditorProps) {
         this.props = props

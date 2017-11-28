@@ -35,8 +35,9 @@ html, body {
         padding: 24px;
     }
 
-    > figure {
+    > div {
         display: flex;
+        flex-direction: column;
         flex-grow: 1;
         align-items: center;
         justify-content: center;
@@ -183,6 +184,7 @@ html, body {
             }
 
             .field {
+                width: 100px;
                 margin-bottom: 0;
             }
         }
