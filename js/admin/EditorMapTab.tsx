@@ -109,14 +109,14 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
     }
 
     render() {
-        const { bin } = this.props
+        const { mapConfig, bin } = this.props
 
         return <EditableListItem className="numeric">
             <div className="clickable" onClick={this.onAddAfter}><i className="fa fa-plus"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
             <NumberField value={bin.max} onValue={this.onMaximumValue}/>
             <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
-            <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>
+            {mapConfig.props.colorSchemeValues.length > 2 && <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>}
         </EditableListItem>
     }
 }

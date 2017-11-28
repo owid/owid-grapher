@@ -153,8 +153,12 @@ export default class MapData {
         return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
     }
 
+    @computed get numAutoBins(): number {
+        return 6
+    }
+
     @computed get numBins(): number {
-        return this.map.props.isManualBuckets ? this.map.props.colorSchemeValues.length : 6
+        return this.map.props.isManualBuckets ? this.map.props.colorSchemeValues.length : this.numAutoBins
     }
 
     @computed get customBucketLabels() {
@@ -172,10 +176,10 @@ export default class MapData {
         const {dimension} = this
         if (!dimension) return 10
 
-        const {numBins, minBinValue} = this
+        const {numAutoBins, minBinValue} = this
 
         const median95 = dimension.numericValues[Math.floor(dimension.numericValues.length*0.95)]
-        const stepSizeInitial = (median95-minBinValue)/numBins
+        const stepSizeInitial = (median95-minBinValue)/numAutoBins
         const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
         const stepSize = round(stepSizeInitial, -stepMagnitude)
 
