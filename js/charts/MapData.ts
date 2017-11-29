@@ -154,7 +154,7 @@ export default class MapData {
     }
 
     @computed get numAutoBins(): number {
-        return 6
+        return 5
     }
 
     @computed get numBins(): number {

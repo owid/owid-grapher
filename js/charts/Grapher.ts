@@ -32,7 +32,7 @@ export class MultiEmbedder {
 
     // Check for figures which are available to load and load them
     update() {
-        const preloadDistance = window.innerHeight/2
+        const preloadDistance = window.innerHeight*2
         this.figuresToLoad.forEach(figure => {
             if (!figure.isActive && figure.jsonConfig) {
                 const windowTop = window.pageYOffset
