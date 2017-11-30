@@ -142,7 +142,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
 export interface NumericSelectFieldProps {
     label?: string,
-    value: number,
+    value: number|undefined,
     onValue: (value: number) => void,
     options: number[],
     optionLabels?: string[],
@@ -152,7 +152,7 @@ export interface NumericSelectFieldProps {
 export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
     render() {
         const props = extend({}, this.props, {
-            value: this.props.value.toString(),
+            value: this.props.value !== undefined ? this.props.value.toString() : "",
             options: this.props.options.map(opt => opt.toString()),
             onValue: (value: string|undefined) => {
                 const asNumber = parseFloat(value as string)

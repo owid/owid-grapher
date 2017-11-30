@@ -208,14 +208,14 @@ export default class MapData {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
-        if (!this.dimension || !this.dimension.hasNumericValues || this.numBins <= 0)
+        if (!this.dimension || !this.dimension.hasNumericValues || this.numAutoBins <= 0)
             return []
 
-        const { binStepSize, numBins, minBinValue } = this
+        const { binStepSize, numAutoBins, minBinValue } = this
 
         const bucketMaximums = []
         let nextMaximum = minBinValue+binStepSize
-        for (let i = 0; i < numBins; i++) {
+        for (let i = 0; i < numAutoBins; i++) {
             bucketMaximums.push(nextMaximum)
             nextMaximum += binStepSize
         }
