@@ -103,7 +103,8 @@ source_description = {
     'dataPublishedBy': "ILOSTAT",
     'link': "http://www.ilo.org/ilostat/",
     'retrievedDate': timezone.now().strftime("%d-%B-%y"),
-    'dataPublisherSource': 'ILOSTAT relies on multiple sources. The list of sources for each indicator, country by country, can be found in the ILOSTAT documentation'
+    'dataPublisherSource': 'ILOSTAT relies on multiple sources. The list of sources for each indicator, country by country, can be found in the ILOSTAT documentation under the bulk download facility, available at http://www.ilo.org/ilostat/faces/oracle/webcenter/portalapp/pagehierarchy/Page30.jspx',
+    'additionalInfo': None
 }
 
 ilostat_indicator_page = 'http://www.ilo.org/ilostat-files/WEB_bulk_download/html/bulk_indicator.html'
@@ -440,7 +441,7 @@ with transaction.atomic():
 
                     varcode_for_reference = varcode
 
-                    source_description['additionalInfo'] = '\n'.join(list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
+                    # source_description['additionalInfo'] = '\n'.join(list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
 
                     if not source_description['additionalInfo']:
                         source_description['additionalInfo'] = None
@@ -676,8 +677,8 @@ with transaction.atomic():
 
                         varcode_for_reference = varcode
 
-                        source_description['additionalInfo'] = '\n'.join(
-                            list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
+                        # source_description['additionalInfo'] = '\n'.join(
+                        #    list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
 
                         if not source_description['additionalInfo']:
                             source_description['additionalInfo'] = None
