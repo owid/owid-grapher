@@ -96,15 +96,14 @@ def process_entities(country_names_dictionary):
 
 
 # only the files listed here will be imported
-list_of_files_to_import = [
-'EAP_2EAP_SEX_AGE_NB_A','EAP_2WAF_NOC_RT_A','EAP_2WAM_NOC_RT_A','EAP_2WAP_NOC_RT_A','EAP_2WAP_SEX_AGE_RT_A','EAP_DWAF_NOC_RT_A','EAP_DWAM_NOC_RT_A','EAP_DWAP_NOC_RT_A','EAP_DYAF_NOC_RT_A','EAP_DYAM_NOC_RT_A','EAP_DYAP_NOC_RT_A','EAR_4HPM_NOC_NB_A','EAR_4HPT_NOC_NB_A','EAR_4HPW_NOC_NB_A','EAR_4HRL_SEX_OCU_CUR_NB_A','EAR_4MMN_CUR_NB_A','EAR_4MNP_NOC_NB_A','EAR_4MPM_NOC_NB_A','EAR_4MPT_NOC_NB_A','EAR_4MPW_NOC_NB_A','EAR_FEAR_NOC_NB_A','EAR_GGAP_NOC_RT_A','EAR_GGAP_OCU_RT_A','EAR_INEE_NOC_NB_A','EAR_MEAR_NOC_NB_A','EAR_MREE_NOC_GR_A','EAR_TEAR_NOC_NB_A','EAR_XFLS_NOC_RT_A','EAR_XMFG_NOC_NB_A','EAR_XTLP_SEX_RT_A','EES_3048_NOC_RT_A','EES_FG48_NOC_RT_A','EES_FNAG_NOC_RT_A','EES_LT30_NOC_RT_A','EES_MG48_NOC_RT_A','EES_MNAG_NOC_RT_A','EES_TG48_NOC_RT_A','EES_TNAG_NOC_RT_A','EES_TNAG_SEX_RT_A','EES_XTMP_SEX_RT_A','EIP_2EIP_SEX_AGE_NB_A','EIP_FNEE_NOC_RT_A','EIP_MNEE_NOC_RT_A','EIP_NEET_SEX_NB_A','EIP_NEET_SEX_RT_A','EIP_TNEE_NOC_RT_A','EMP_2AGR_NOC_RT_A','EMP_2CFW_NOC_RT_A','EMP_2EER_NOC_RT_A','EMP_2EES_NOC_RT_A','EMP_2IND_NOC_RT_A','EMP_2MEP_NOC_RT_A','EMP_2OAW_NOC_RT_A','EMP_2SRV_NOC_RT_A','EMP_2WAP_NOC_RT_A','EMP_2WEP_NOC_RT_A','EMP_2YEP_NOC_RT_A','EMP_DWAF_NOC_RT_A','EMP_DWAM_NOC_RT_A','EMP_DWAP_NOC_RT_A','EMP_FAGR_NOC_RT_A','EMP_FCFW_NOC_RT_A','EMP_FEER_NOC_RT_A','EMP_FIND_NOC_RT_A','EMP_FOAW_NOC_RT_A','EMP_FSRV_NOC_RT_A','EMP_MCFW_NOC_RT_A','EMP_MEER_NOC_RT_A','EMP_MOAW_NOC_RT_A','EMP_PTER_SEX_RT_A','EMP_TAGR_NOC_RT_A','EMP_TCFW_NOC_RT_A','EMP_TEER_NOC_RT_A','EMP_TEMP_SEX_ECO_DT_A','EMP_TIND_NOC_RT_A','EMP_TOAW_NOC_RT_A','EMP_TSRV_NOC_RT_A','EMP_XFMG_NOC_RT_A','GDP_205U_NOC_NB_A','GDP_211P_NOC_NB_A','HOW_TEMP_NOC_NB_A','IFL_IECN_ECO_NB_A','IFL_IECN_SEX_ECO_NB_A','ILR_CBCT_NOC_RT_A','ILR_TUMT_NOC_RT_A','INJ_FATL_ECO_NB_A','INJ_NFTL_ECO_NB_A','INJ_TLPI_NOC_NB_A','LAC_TLAC_NOC_NB_A','LAC_XMFG_NOC_NB_A','LAI_INDE_NOC_RT_A','LAI_INSP_SEX_NB_A','LAI_VDIN_NOC_RT_A','LAI_VIST_NOC_NB_A','LAI_WOPL_NOC_NB_A','LAP_DGVA_NOC_RT_A','MFL_TEMP_ECO_NB_A','MFL_TEMP_OCU_NB_A','MNA_OEMP_ECO_NB_A','MST_TPOP_COU_NB_A','MST_TPOP_SEX_MIG_NB_A','POP_2FLF_NOC_RT_A','POP_2LDR_NOC_RT_A','POP_2MLF_NOC_RT_A','POP_2POP_GEO_NB_A','POP_2TLF_NOC_RT_A','POP_AEDA_NOC_RT_A','POV_DEMF_NOC_RT_A','POV_DEMM_NOC_RT_A','POV_DEMP_NOC_RT_A','POV_GT13_NOC_RT_A','POV_P2T3_NOC_RT_A','POV_P3T5_NOC_RT_A','POV_PLT1_NOC_RT_A','PSE_TPSE_GOV_NB_A','SDG_0111_SEX_AGE_RT_A','SDG_0131_SEX_SOC_RT_A','SDG_0552_OCU_RT_A','SDG_0821_NOC_RT_A','SDG_0851_SEX_OCU_NB_A','SDG_0852_SEX_AGE_RT_A','SDG_0861_SEX_RT_A','SDG_0871_SEX_AGE_NB_A','SDG_0871_SEX_AGE_RT_A','SDG_0922_NOC_RT_A','SDG_1041_NOC_RT_A','SDG_A831_SEX_RT_A','SDG_B831_SEX_RT_A','SDG_F881_SEX_MIG_RT_A','SDG_N881_SEX_MIG_RT_A','SOC_PEXN_NOC_RT_A','SOC_PPNT_NOC_RT_A','SOC_SOCT_NOC_RT_A','STR_DAYS_ECO_NB_A','STR_TSTR_ECO_NB_A','STR_WORK_ECO_NB_A','TRU_DEMF_NOC_RT_A','TRU_DEMM_NOC_RT_A','TRU_DEMP_NOC_RT_A','UNE_2EAP_NOC_RT_A','UNE_2URM_NOC_RT_A','UNE_2URW_NOC_RT_A','UNE_2YAP_NOC_RT_A','UNE_DEAF_NOC_RT_A','UNE_DEAM_NOC_RT_A','UNE_DEAP_NOC_RT_A','UNE_DYAF_NOC_RT_A','UNE_DYAM_NOC_RT_A','UNE_DYAP_NOC_RT_A','UNE_EDAD_NOC_RT_A','UNE_EDBS_NOC_RT_A','UNE_EDIN_NOC_RT_A','UNE_LGTD_NOC_RT_A'
-]
+list_of_files_to_import = ['EAP_2EAP_SEX_AGE_NB_A','EAP_2WAF_NOC_RT_A','EAP_2WAM_NOC_RT_A','EAP_2WAP_NOC_RT_A','EAP_2WAP_SEX_AGE_RT_A','EAP_DWAF_NOC_RT_A','EAP_DWAM_NOC_RT_A','EAP_DWAP_NOC_RT_A','EAP_DYAF_NOC_RT_A','EAP_DYAM_NOC_RT_A','EAP_DYAP_NOC_RT_A','EAR_4HPM_NOC_NB_A','EAR_4HPT_NOC_NB_A','EAR_4HPW_NOC_NB_A','EAR_4MMN_CUR_NB_A','EAR_4MNP_NOC_NB_A','EAR_4MPM_NOC_NB_A','EAR_4MPT_NOC_NB_A','EAR_4MPW_NOC_NB_A','EAR_FEAR_NOC_NB_A','EAR_GGAP_NOC_RT_A','EAR_INEE_NOC_NB_A','EAR_MEAR_NOC_NB_A','EAR_MREE_NOC_GR_A','EAR_TEAR_NOC_NB_A','EAR_XFLS_NOC_RT_A','EAR_XMFG_NOC_NB_A','EES_3048_NOC_RT_A','EES_FG48_NOC_RT_A','EES_FNAG_NOC_RT_A','EES_LT30_NOC_RT_A','EES_MG48_NOC_RT_A','EES_MNAG_NOC_RT_A','EES_TG48_NOC_RT_A','EES_TNAG_NOC_RT_A','EES_TNAG_SEX_RT_A','EES_XTMP_SEX_RT_A','EIP_2EIP_SEX_AGE_NB_A','EIP_FNEE_NOC_RT_A','EIP_MNEE_NOC_RT_A','EIP_NEET_SEX_NB_A','EIP_NEET_SEX_RT_A','EIP_TNEE_NOC_RT_A','EMP_2AGR_NOC_RT_A','EMP_2CFW_NOC_RT_A','EMP_2EER_NOC_RT_A','EMP_2EES_NOC_RT_A','EMP_2IND_NOC_RT_A','EMP_2MEP_NOC_RT_A','EMP_2OAW_NOC_RT_A','EMP_2SRV_NOC_RT_A','EMP_2WAP_NOC_RT_A','EMP_2WEP_NOC_RT_A','EMP_2YEP_NOC_RT_A','EMP_DWAF_NOC_RT_A','EMP_DWAM_NOC_RT_A','EMP_DWAP_NOC_RT_A','EMP_FAGR_NOC_RT_A','EMP_FCFW_NOC_RT_A','EMP_FEER_NOC_RT_A','EMP_FIND_NOC_RT_A','EMP_FOAW_NOC_RT_A','EMP_FSRV_NOC_RT_A','EMP_MCFW_NOC_RT_A','EMP_MEER_NOC_RT_A','EMP_MOAW_NOC_RT_A','EMP_PTER_SEX_RT_A','EMP_TAGR_NOC_RT_A','EMP_TCFW_NOC_RT_A','EMP_TEER_NOC_RT_A','EMP_TIND_NOC_RT_A','EMP_TOAW_NOC_RT_A','EMP_TSRV_NOC_RT_A','EMP_XFMG_NOC_RT_A','GDP_205U_NOC_NB_A','GDP_211P_NOC_NB_A','HOW_TEMP_NOC_NB_A','IFL_IECN_SEX_ECO_NB_A','ILR_CBCT_NOC_RT_A','ILR_TUMT_NOC_RT_A','INJ_TLPI_NOC_NB_A','LAC_TLAC_NOC_NB_A','LAC_XMFG_NOC_NB_A','LAI_INDE_NOC_RT_A','LAP_DGVA_NOC_RT_A','MFL_TEMP_OCU_NB_A','MST_TPOP_COU_NB_A','MST_TPOP_SEX_MIG_NB_A','POP_2FLF_NOC_RT_A','POP_2LDR_NOC_RT_A','POP_2MLF_NOC_RT_A','POP_2POP_GEO_NB_A','POP_2TLF_NOC_RT_A','POP_AEDA_NOC_RT_A','POV_DEMF_NOC_RT_A','POV_DEMM_NOC_RT_A','POV_DEMP_NOC_RT_A','POV_GT13_NOC_RT_A','POV_P2T3_NOC_RT_A','POV_P3T5_NOC_RT_A','POV_PLT1_NOC_RT_A','SDG_0111_SEX_AGE_RT_A','SDG_0131_SEX_SOC_RT_A','SDG_0552_OCU_RT_A','SDG_0821_NOC_RT_A','SDG_0851_SEX_OCU_NB_A','SDG_0852_SEX_AGE_RT_A','SDG_0861_SEX_RT_A','SDG_0871_SEX_AGE_NB_A','SDG_0871_SEX_AGE_RT_A','SDG_0922_NOC_RT_A','SDG_1041_NOC_RT_A','SDG_A831_SEX_RT_A','SDG_B831_SEX_RT_A','SDG_F881_SEX_MIG_RT_A','SDG_N881_SEX_MIG_RT_A','SOC_PEXN_NOC_RT_A','SOC_PPNT_NOC_RT_A','SOC_SOCT_NOC_RT_A','UNE_2EAP_NOC_RT_A','UNE_2URM_NOC_RT_A','UNE_2URW_NOC_RT_A','UNE_2YAP_NOC_RT_A','UNE_DEAF_NOC_RT_A','UNE_DEAM_NOC_RT_A','UNE_DEAP_NOC_RT_A','UNE_DYAF_NOC_RT_A','UNE_DYAM_NOC_RT_A','UNE_DYAP_NOC_RT_A','UNE_EDAD_NOC_RT_A','UNE_EDBS_NOC_RT_A','UNE_EDIN_NOC_RT_A','UNE_LGTD_NOC_RT_A']
 
 
 source_description = {
     'dataPublishedBy': "ILOSTAT",
-    'link': "http://www.ilo.org/ilostat/faces/oracle/webcenter/portalapp/pagehierarchy/Page30.jspx",
+    'link': "http://www.ilo.org/ilostat/",
     'retrievedDate': timezone.now().strftime("%d-%B-%y"),
+    'dataPublisherSource': 'ILOSTAT relies on multiple sources. The list of sources for each indicator, country by country, can be found in the ILOSTAT documentation under the bulk download facility, available at http://www.ilo.org/ilostat/faces/oracle/webcenter/portalapp/pagehierarchy/Page30.jspx',
     'additionalInfo': None
 }
 
@@ -405,6 +404,7 @@ with transaction.atomic():
                             variable_name += ' - ' + metadata['sex'][row['sex']]['sex.label']
                         if variable_name not in variables:
                             variables[variable_name] = {
+                                'category': file_name_to_category[row['indicator']],
                                 'note_source': set(),
                                 'note_indicator': set(),
                                 'source': set(),
@@ -430,7 +430,7 @@ with transaction.atomic():
                 for varname, sourcedata in variables.items():
 
                     variable_name = varname
-
+                    varunit = None
                     varcode = the_indicator_code
                     if sourcedata['classif1_code']:
                         varcode += ' ' + sourcedata['classif1_code']
@@ -441,12 +441,12 @@ with transaction.atomic():
 
                     varcode_for_reference = varcode
 
-                    source_description['dataPublisherSource'] = ', '.join(list(sourcedata['source']))
+                    # source_description['additionalInfo'] = '\n'.join(list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
 
                     if not source_description['additionalInfo']:
                         source_description['additionalInfo'] = None
 
-                    newsource = Source(name=variable_name,
+                    newsource = Source(name='%s %s: %s' % ('ILOSTAT', sourcedata['category'], variable_name),
                                        description=json.dumps(source_description),
                                        datasetId=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat').pk)
 
@@ -457,7 +457,7 @@ with transaction.atomic():
                     newvariable = Variable(name=variable_name,
                                            unit=varunit if
                                            varunit else '', short_unit=short_unit_extract(varunit),
-                                           description='',
+                                           description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                            code=varcode_for_reference,
                                            timespan='',
                                            fk_dst_id=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat'), fk_var_type_id=VariableType.objects.get(pk=4),
@@ -633,6 +633,7 @@ with transaction.atomic():
                                 variable_name += ' - ' + metadata['sex'][row['sex']]['sex.label']
                             if variable_name not in variables:
                                 variables[variable_name] = {
+                                    'category': file_name_to_category[row['indicator']],
                                     'note_source': set(),
                                     'note_indicator': set(),
                                     'source': set(),
@@ -665,7 +666,7 @@ with transaction.atomic():
                     for varname, sourcedata in variables.items():
 
                         variable_name = varname
-
+                        varunit = None
                         varcode = the_indicator_code
                         if sourcedata['classif1_code']:
                             varcode += ' ' + sourcedata['classif1_code']
@@ -676,18 +677,19 @@ with transaction.atomic():
 
                         varcode_for_reference = varcode
 
-                        source_description['dataPublisherSource'] = ', '.join(list(sourcedata['source']))
+                        # source_description['additionalInfo'] = '\n'.join(
+                        #    list(sourcedata['note_indicator'])) + '\n'.join(list(sourcedata['note_source']))
 
                         if not source_description['additionalInfo']:
                             source_description['additionalInfo'] = None
 
-                        if variable_name not in existing_sources_list:
-                            newsource = Source(name=variable_name,
+                        if '%s %s: %s' % ('ILOSTAT', sourcedata['category'], variable_name) not in existing_sources_list:
+                            newsource = Source(name='%s %s: %s' % ('ILOSTAT', sourcedata['category'], variable_name),
                                            description=json.dumps(source_description),
                                            datasetId=Dataset.objects.get(name=file_name_to_category[row['indicator']],
                                                                          namespace='ilostat').pk)
                         else:
-                            newsource = Source.objects.get(name=variable_name, datasetId__in=[onedataset.pk for onedataset in Dataset.objects.filter(namespace='ilostat')])
+                            newsource = Source.objects.get(name='%s %s: %s' % ('ILOSTAT', sourcedata['category'], variable_name), datasetId__in=[onedataset.pk for onedataset in Dataset.objects.filter(namespace='ilostat')])
                             newsource.description = json.dumps(source_description)
 
                         newsource.save()
@@ -701,7 +703,7 @@ with transaction.atomic():
                             newvariable = Variable(name=variable_name,
                                                unit=varunit if
                                                varunit else '', short_unit=short_unit_extract(varunit),
-                                               description='',
+                                               description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                                code=varcode_for_reference,
                                                timespan='',
                                                fk_dst_id=Dataset.objects.get(
@@ -710,6 +712,7 @@ with transaction.atomic():
                                                sourceId=newsource)
                         else:
                             newvariable = Variable.objects.get(code=varcode_for_reference, fk_dst_id__namespace__exact='ilostat')
+                            newvariable.description = 'See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata'
                             newvariable.name = variable_name
                             newvariable.unit = varunit if varunit else ''
                             newvariable.short_unit = short_unit_extract(varunit)
