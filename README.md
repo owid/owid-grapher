@@ -4,6 +4,8 @@
 
 This is the project we use internally at the University of Oxford to create embeddable visualizations for [Our World in Data](https://ourworldindata.org). Note that it is not yet a mature OSS project and may be difficult to apply elsewhere as a full package. That said, you are very welcome to read and reuse any of our code!
 
+Currently the server-side and client-side code are all rolled into this repo. Eventually, it would be good to break out the chart rendering code as a separate library.
+
 An example of what this can make (click for interactive):
 
 [![Life Expectancy](https://ourworldindata.org/grapher/life-expectancy.png?tab=map)](https://ourworldindata.org/grapher/life-expectancy?tab=map)
