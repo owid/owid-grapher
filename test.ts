@@ -1,9 +1,9 @@
 require('isomorphic-fetch')
 
-declare var GLOBAL: any
-GLOBAL.Global = { rootUrl: "http://l:8080/grapher" }
-GLOBAL.window = { location: { search: "" }}
-GLOBAL.App = { isEditor: false }
+declare var global: any
+global.Global = { rootUrl: "http://l:8080/grapher" }
+global.window = { location: { search: "" }}
+global.App = { isEditor: false }
 
 require('module-alias').addAliases({
     'react'  : 'preact-compat',

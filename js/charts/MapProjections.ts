@@ -1,6 +1,6 @@
-import geoRobinson from 'd3-geo-projection/src/robinson'
 import { geoPath, GeoPath, geoConicConformal } from 'd3-geo'
 import { computed } from 'mobx'
+const { geoRobinson } = require('d3-geo-projection')
 
 class MapProjections {
     [key: string]: GeoPath<any, any>
