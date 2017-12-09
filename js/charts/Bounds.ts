@@ -1,5 +1,6 @@
 import { extend } from './Util'
 import Vector2 from './Vector2'
+const isNode: boolean = require('detect-node')
 
 export default class Bounds {
     static textBoundsCache: { [key: string]: Bounds }
@@ -41,26 +42,35 @@ export default class Bounds {
             return Bounds.empty()
 
         this.textBoundsCache = this.textBoundsCache || {}
-        this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 
-        if (!this.baseFontFamily) {
-            const svg = document.querySelector("svg") as SVGSVGElement
-            this.baseFontFamily = svg.style.fontFamily as string
-        }
-
+        let bounds
         const key = `${str}-${fontSize}`
-        const fontFace = fontFamily || this.baseFontFamily
+        if (isNode) {
+            const width = fontSize*str.length
+            const height = fontSize
+            bounds = new Bounds(x, y - height, width, height)
+        } else {
+            this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
 
-        let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds.extend({ x, y: y - bounds.height })
+            if (!this.baseFontFamily) {
+                const svg = document.querySelector("svg") as SVGSVGElement
+                this.baseFontFamily = svg.style.fontFamily as string
+            }
 
-        this.ctx.font = `${fontSize}px ${fontFace}`
-        const m = this.ctx.measureText(str)
+            const fontFace = fontFamily || this.baseFontFamily
 
-        const width = m.width
-        const height = fontSize
+            bounds = this.textBoundsCache[key]
+            if (bounds) return bounds.extend({ x, y: y - bounds.height })
 
-        bounds = new Bounds(x, y - height, width, height)
+            this.ctx.font = `${fontSize}px ${fontFace}`
+            const m = this.ctx.measureText(str)
+
+            const width = m.width
+            const height = fontSize
+
+            bounds = new Bounds(x, y - height, width, height)
+
+        }
 
         this.textBoundsCache[key] = bounds
         return bounds

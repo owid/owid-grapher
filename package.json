@@ -77,11 +77,13 @@
     "webpack-parallel-uglify-plugin": "^0.4.1"
   },
   "dependencies": {
+    "@types/url-parse": "^1.1.0",
     "chrome-launcher": "^0.2.1",
     "chrome-remote-interface": "^0.22.0",
     "lockfile": "^1.0.3",
     "minimist": "^1.2.0",
     "module-alias": "^2.0.3",
-    "node-cleanup": "^2.1.2"
+    "node-cleanup": "^2.1.2",
+    "url-parse": "^1.2.0"
   }
 }
