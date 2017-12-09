@@ -31,6 +31,6 @@ fetch(configUrl + ".config.json").then(data => data.json()).then(jsonConfig => {
             const svgPath = outputPath.replace('.png', '.svg')
             fs.writeFileSync(svgPath, chart.staticSVG)
             sharp(svgPath, { density: 144 }).png().resize(1020, 720).flatten().background('#ffffff').toFile(outputPath)
-        }, 100)
+        }, 0)
     })
 })
