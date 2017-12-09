@@ -105,8 +105,9 @@ class Chart(models.Model):
     max_exports_per_worker = 2
     exports_in_progress = 0
     def export_image(self, query: str, format: str, is_async: bool = False):
-        screenshot = settings.BASE_DIR + "/js/screenshot.js"
-        target = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
+        ts_node = settings.BASE_DIR + "/node_modules/.bin/ts-node"
+        screenshot = settings.BASE_DIR + "/js/exportChart.ts"
+        targetSrc = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
         m = hashlib.md5()
         m.update(query.encode(encoding='utf-8'))
         query_hash = m.hexdigest()
@@ -123,8 +124,8 @@ class Chart(models.Model):
 
         try:
             if not os.path.isfile(return_file):
-                command = "LIGHTHOUSE_CHROMIUM_PATH=/usr/bin/chromium-browser nice node %s --url=%s --output=%s" % \
-                        (screenshot, shlex.quote(target), shlex.quote(png_file))
+                command = "%s %s --baseUrl=%s --targetSrc=%s --output=%s" % \
+                        (ts_node, screenshot, shlex.quote(settings.BASE_URL), shlex.quote(targetSrc), shlex.quote(png_file))
                 print(command)
 
                 if is_async:

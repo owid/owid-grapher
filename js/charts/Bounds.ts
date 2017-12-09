@@ -1,6 +1,6 @@
 import { extend } from './Util'
 import Vector2 from './Vector2'
-const isNode: boolean = require('detect-node')
+const pixelWidth = require('string-pixel-width')
 
 export default class Bounds {
     static textBoundsCache: { [key: string]: Bounds }
@@ -37,43 +37,13 @@ export default class Bounds {
         return new Bounds(0, 0, 0, 0)
     }
 
-    static forText(str: string, { x = 0, y = 0, fontSize = 16, fontFamily = null }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
+    static forText(str: string, { x = 0, y = 0, fontSize = 16 }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
         if (str === "")
             return Bounds.empty()
 
-        this.textBoundsCache = this.textBoundsCache || {}
-
-        let bounds
-        const key = `${str}-${fontSize}`
-        if (isNode) {
-            const width = fontSize*str.length
-            const height = fontSize
-            bounds = new Bounds(x, y - height, width, height)
-        } else {
-            this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-
-            if (!this.baseFontFamily) {
-                const svg = document.querySelector("svg") as SVGSVGElement
-                this.baseFontFamily = svg.style.fontFamily as string
-            }
-
-            const fontFace = fontFamily || this.baseFontFamily
-
-            bounds = this.textBoundsCache[key]
-            if (bounds) return bounds.extend({ x, y: y - bounds.height })
-
-            this.ctx.font = `${fontSize}px ${fontFace}`
-            const m = this.ctx.measureText(str)
-
-            const width = m.width
-            const height = fontSize
-
-            bounds = new Bounds(x, y - height, width, height)
-
-        }
-
-        this.textBoundsCache[key] = bounds
-        return bounds
+        const width = pixelWidth(str, { font: "Arial", size: fontSize })
+        const height = pixelWidth("m", { font: "Arial", size: fontSize })
+        return new Bounds(x, y - height, width, height)
     }
 
     /*static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
