@@ -4976,9 +4976,9 @@ typed-function@0.10.5:
   version "0.10.5"
   resolved "https://registry.yarnpkg.com/typed-function/-/typed-function-0.10.5.tgz#2e0f18abd065219fab694a446a65c6d1981832c0"
 
-typescript@^2.6.2:
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz#3c5b6fd7f6de0914269027f03c0946758f7673a4"
+typescript@2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.5.2.tgz#038a95f7d9bbb420b1bf35ba31d4c5c1dd3ffe34"
 
 ua-parser-js@^0.7.9:
   version "0.7.14"

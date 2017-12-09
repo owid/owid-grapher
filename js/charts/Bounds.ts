@@ -42,7 +42,7 @@ export default class Bounds {
             return Bounds.empty()
 
         const width = pixelWidth(str, { font: "Arial", size: fontSize })
-        const height = pixelWidth("m", { font: "Arial", size: fontSize })
+        const height = fontSize
         return new Bounds(x, y - height, width, height)
     }
 
