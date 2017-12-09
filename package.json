@@ -5,7 +5,7 @@
     "lint": "tslint --project . -t verbose",
     "build": "webpack -p --progress"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/colorbrewer": "^1.0.29",
     "@types/csv-parse": "^1.1.9",
     "@types/d3": "^4.8.0",
@@ -74,8 +74,6 @@
     "webpack-dev-server": "^2.7.1",
     "webpack-manifest-plugin": "^1.1.0",
     "webpack-parallel-uglify-plugin": "^0.4.1"
-  },
-  "dependencies": {
     "@types/imagemagick": "^0.0.30",
     "@types/minimist": "^1.2.0",
     "@types/sharp": "^0.17.6",
