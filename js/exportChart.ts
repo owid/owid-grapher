@@ -1,6 +1,6 @@
 import * as parseArgs from 'minimist'
 import * as fs from 'fs'
-import * as im from 'imagemagick'
+import * as sharp from 'sharp'
 const argv = parseArgs(process.argv.slice(2))
 
 const baseUrl: string = argv.baseUrl
@@ -29,6 +29,6 @@ fetch(configUrl + ".config.json").then(data => data.json()).then(jsonConfig => {
     when(() => chart.data.isReady, () => {
         const svgPath = outputPath.replace('.png', '.svg')
         fs.writeFileSync(svgPath, chart.staticSVG)
-        im.convert([svgPath, '-density', '200', '-resize', '50%', svgPath, outputPath], () => null)
+        sharp(svgPath, { density: 144 }).png().resize(1020, 720).flatten().background('#ffffff').toFile(outputPath)
     })
 })

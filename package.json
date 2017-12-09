@@ -79,6 +79,7 @@
   "dependencies": {
     "@types/imagemagick": "^0.0.30",
     "@types/minimist": "^1.2.0",
+    "@types/sharp": "^0.17.6",
     "@types/url-parse": "^1.1.0",
     "chrome-launcher": "^0.2.1",
     "chrome-remote-interface": "^0.22.0",
@@ -87,6 +88,7 @@
     "minimist": "^1.2.0",
     "module-alias": "^2.0.3",
     "node-cleanup": "^2.1.2",
+    "sharp": "^0.18.4",
     "string-pixel-width": "^1.4.0",
     "ts-node": "^3.3.0",
     "url-parse": "^1.2.0"

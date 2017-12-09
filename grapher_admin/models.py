@@ -107,7 +107,7 @@ class Chart(models.Model):
     def export_image(self, query: str, format: str, is_async: bool = False):
         ts_node = settings.BASE_DIR + "/node_modules/.bin/ts-node"
         screenshot = settings.BASE_DIR + "/js/exportChart.ts"
-        targetSrc = settings.BASE_URL + "/" + self.slug + ".export" + "?" + query
+        targetSrc = settings.BASE_URL + "/" + self.slug + "?" + query
         m = hashlib.md5()
         m.update(query.encode(encoding='utf-8'))
         query_hash = m.hexdigest()
