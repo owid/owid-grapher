@@ -3,7 +3,7 @@ import Vector2 from './Vector2'
 const pixelWidth = require('string-pixel-width')
 
 export default class Bounds {
-    static textBoundsCache: { [key: string]: Bounds }
+    static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
     static baseFontFamily: string
 
@@ -38,12 +38,20 @@ export default class Bounds {
     }
 
     static forText(str: string, { x = 0, y = 0, fontSize = 16 }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
-        if (str === "")
-            return Bounds.empty()
+        const key = `${str}-${fontSize}`
+        let bounds = this.textBoundsCache[key]
+        if (bounds) return bounds
 
-        const width = pixelWidth(str, { font: "Arial", size: fontSize })
-        const height = fontSize
-        return new Bounds(x, y - height, width, height)
+        if (str === "")
+            bounds = Bounds.empty()
+        else {
+            const width = pixelWidth(str, { font: "Arial", size: fontSize })
+            const height = fontSize
+            bounds = new Bounds(x, y - height, width, height)
+        }
+
+        this.textBoundsCache[key] = bounds
+        return bounds
     }
 
     /*static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
