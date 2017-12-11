@@ -40,7 +40,12 @@ export default class Bounds {
     static forText(str: string, { x = 0, y = 0, fontSize = 16 }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
         const key = `${str}-${fontSize}`
         let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds
+        if (bounds) {
+            if (bounds.x === x && bounds.y === y-bounds.height)
+                return bounds
+            else
+                return bounds.extend({ x: x, y: y-bounds.height})
+        }
 
         if (str === "")
             bounds = Bounds.empty()
