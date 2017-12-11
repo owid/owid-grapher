@@ -20,7 +20,7 @@
         "whitespace": false,
         "object-literal-key-quotes": false,
         "comment-format": false,
-        "no-console": [true, "log"],
+        "no-console": [false, "log"],
         "object-literal-shorthand": false,
         "forin": false,
         "one-variable-per-declaration": false,
