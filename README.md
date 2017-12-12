@@ -4,6 +4,8 @@
 
 This is the project we use internally at the University of Oxford to create embeddable visualizations for [Our World in Data](https://ourworldindata.org). Note that it is not yet a mature OSS project and may be difficult to apply elsewhere as a full package. That said, you are very welcome to read and reuse any of our code!
 
+Currently the server-side and client-side code are all rolled into this repo. Eventually, it would be good to break out the chart rendering code as a separate library.
+
 An example of what this can make (click for interactive):
 
 [![Life Expectancy](https://ourworldindata.org/grapher/life-expectancy.png?tab=map)](https://ourworldindata.org/grapher/life-expectancy?tab=map)
@@ -20,17 +22,17 @@ For static image exports, you will also need a recent version of [node](https://
 
 ## Database setup
 
-An initial test database can be imported from `owid_grapher/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
+Copy `owid_grapher/secret_settings.py.template` to `owid_grapher/secret_settings.py` and fill in your database details. Then run `python manage.py migrate`.
 
-`mysql -u root -p -D grapher < owid_grapher/fixtures/owid_data.sql`	
+Some initial test data and charts can then be imported from `owid_grapher/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
 
-Now copy `owid_grapher/secret_settings.py.template` to `owid_grapher/secret_settings.py` and fill in your database details.
+`mysql -D grapher < owid_grapher/fixtures/owid_data.sql`	
 
 Run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
 ## Architecture notes
 
-owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written using [PEP 484 type hints](https://www.python.org/dev/peps/pep-0484/) and [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/) when possible. [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
 
 ## About
 

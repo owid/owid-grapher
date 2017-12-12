@@ -4,7 +4,6 @@ import { observer } from 'mobx-react'
 import { computed, action, observable } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
-const styles = require("./DataSelector.css")
 import ChartView from './ChartView'
 import FuzzySearch from './FuzzySearch'
 
@@ -62,7 +61,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         const { chart } = this.props
         const { selectedData, searchResults, searchInput } = this
 
-        return <div className={styles.DataSelectorMulti} onClick={e => e.stopPropagation()}>
+        return <div className="DataSelectorMulti" onClick={e => e.stopPropagation()}>
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times" /></button></h2>
             <div>
                 <div className="searchResults">
@@ -149,7 +148,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     render() {
         const { searchResults, searchInput } = this
 
-        return <div className={styles.DataSelectorSingle} onClick={e => e.stopPropagation()}>
+        return <div className="DataSelectorSingle" onClick={e => e.stopPropagation()}>
             <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
             <ul>
                 {searchResults.map(d => {

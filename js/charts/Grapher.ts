@@ -1,5 +1,4 @@
 import ChartView from './ChartView'
-import ExportView from './ExportView'
 import {throttle} from './Util'
 
 interface LoadableFigure {
@@ -43,11 +42,7 @@ export class MultiEmbedder {
                 const figureBottom = figureRect.bottom-bodyRect.top
                 if (windowBottom+preloadDistance >= figureTop && windowTop-preloadDistance <= figureBottom) {
                     figure.isActive = true
-
-                    if (window.location.pathname.match(/.export$/))
-                        ExportView.bootstrap({ jsonConfig: figure.jsonConfig })
-                    else
-                        ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
+                    ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
                 }
             }
         })

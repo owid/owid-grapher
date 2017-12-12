@@ -429,7 +429,7 @@ def importdata(request: HttpRequest):
         each['updated_at'] = str(each['updated_at'])
         each['uploaded_at'] = str(each['uploaded_at'])
         vartypeslist.append(each)
-
+    # we probably don't need SourceTemplate anymore
     source_template = dict(Setting.objects.filter(meta_name='sourceTemplate').values().first())
     source_template['created_at'] = str(source_template['created_at'])
     source_template['updated_at'] = str(source_template['updated_at'])
@@ -567,6 +567,8 @@ def store_import_data(request: HttpRequest):
                         with connection.cursor() as c:
                             c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, varid))
+                            # the LIMIT is here so that the database doesn't try to delete a large number of values at
+                            # once and becomes unresponsive
 
                     insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'
                     data_values_tuple_list = []

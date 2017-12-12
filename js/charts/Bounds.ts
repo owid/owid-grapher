@@ -1,8 +1,9 @@
 import { extend } from './Util'
 import Vector2 from './Vector2'
+const pixelWidth = require('string-pixel-width')
 
 export default class Bounds {
-    static textBoundsCache: { [key: string]: Bounds }
+    static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
     static baseFontFamily: string = "Helvetica, Arial"
     
@@ -37,26 +38,23 @@ export default class Bounds {
         return new Bounds(0, 0, 0, 0)
     }
 
-    static forText(str: string, { x = 0, y = 0, fontSize = 16, fontFamily = null }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
-        if (str === "")
-            return Bounds.empty()
-
-        this.textBoundsCache = this.textBoundsCache || {}
-        this.ctx = this.ctx || document.createElement('canvas').getContext('2d')
-
+    static forText(str: string, { x = 0, y = 0, fontSize = 16 }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
         const key = `${str}-${fontSize}`
-        const fontFace = fontFamily || this.baseFontFamily
-
         let bounds = this.textBoundsCache[key]
-        if (bounds) return bounds.extend({ x, y: y - bounds.height })
+        if (bounds) {
+            if (bounds.x === x && bounds.y === y-bounds.height)
+                return bounds
+            else
+                return bounds.extend({ x: x, y: y-bounds.height})
+        }
 
-        this.ctx.font = `${fontSize}px ${fontFace}`
-        const m = this.ctx.measureText(str)
-
-        const width = m.width
-        const height = fontSize
-
-        bounds = new Bounds(x, y - height, width, height)
+        if (str === "")
+            bounds = Bounds.empty()
+        else {
+            const width = pixelWidth(str, { font: "Arial", size: fontSize })
+            const height = fontSize
+            bounds = new Bounds(x, y - height, width, height)
+        }
 
         this.textBoundsCache[key] = bounds
         return bounds

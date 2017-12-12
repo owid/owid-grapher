@@ -19,21 +19,15 @@ class Logo {
         return 40
     }
 
-    @computed get bbox() {
-        const div = document.createElement('div')
-        div.innerHTML = this.props.svg
-        document.body.appendChild(div)
-        const bbox = (div.childNodes[0] as SVGSVGElement).getBBox()
-        document.body.removeChild(div)
-        return bbox
-    }
+    @computed get origWidth() { return 211 }
+    @computed get origHeight() { return 130 }
 
     @computed get scale(): number {
-        return this.bbox.height === 0 ? 1 : this.targetHeight / this.bbox.height
+        return this.origHeight === 0 ? 1 : this.targetHeight / this.origHeight
     }
 
-    @computed get width() { return this.bbox.width * this.scale }
-    @computed get height() { return this.bbox.height * this.scale }
+    @computed get width() { return this.origWidth * this.scale }
+    @computed get height() { return this.origHeight * this.scale }
 
     render(targetX: number, targetY: number) {
         const { props, scale } = this

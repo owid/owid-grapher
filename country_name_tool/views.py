@@ -23,6 +23,8 @@ def process_countries(country_list, input_type, output_type):
     result_list = []
 
     if input_type == 'country_name' and output_type == 'owid_name':
+        # this is the most important case for country tool - input is a list of countries and output is
+        # standardized country names
         all_country_names = CountryName.objects.all()
         all_country_dict = {}
         for each in all_country_names:
@@ -33,8 +35,12 @@ def process_countries(country_list, input_type, output_type):
         unique_country_names = {}
         for each in country_list:
             if "----custom_name----" not in each:
+                # custom name is a country name which is entered manually on the matching page
+                # we don't need to save it in the database, so we just mark it as matched and go on
                 if contains_alphabetic(each):
+                    # countries that don't contain letters will not be processed, but will be shown on matching page as invalid country names
                     if each not in unique_country_names:
+                        # we will process only unique occurences of country names
                         if all_country_dict.get(each.lower(), 0) and each.lower().strip() != 'micronesia':
                             result_list.append(
                                 {'matched': True, 'country': all_country_dict[each.lower()].owid_name})
@@ -46,7 +52,9 @@ def process_countries(country_list, input_type, output_type):
                             scores_for_variations = {}
                             for one in all_owid_country_names:
                                 scores_for_owid_names[one['id']] = {'score': fuzz.partial_ratio(each.lower(), one['owid_name'].lower())}
-
+                            # calculate similarity scores of the given country with all country names in the db
+                            # and with all country name variations for each country in the db
+                            # calculate the averages over scores for variations, and order them from largest to smallest
                             for countryname, countryobject in all_country_dict.items():
                                 if countryobject.pk in scores_for_variations:
                                     scores_for_variations[countryobject.pk]['score'] = (scores_for_variations[countryobject.pk][
@@ -227,6 +235,8 @@ def country_tool_page(request):
                                   context={'current_user': request.user.name, 'form': form})
                 for each_header in csv_headers:
                     if each_header != 'Country':
+                        # other data will contain all data that is not under Country column
+                        # the country tool should always other data intact
                         other_data[each_header] = []
                 for row in country_dict:
                     for each_header in csv_headers:
@@ -238,6 +248,7 @@ def country_tool_page(request):
                 result_list = process_countries(country_list, input_type, output_type)
 
                 if result_list['all_matched']:
+                    # if all countries were standardized without any issues, we will give the resulting file
                     result_list = result_list['result']
                     data = []
                     data.append(['Country', output_type])
@@ -260,6 +271,10 @@ def country_tool_page(request):
                     return response
 
                 else:
+                    # if there were non-matching countries in the uploaded csv file, we will show the matching page
+                    # this page will contain all the original data, but in json
+                    # the post request from this page will be received by this function, so the original "other data"
+                    # and countries list are not lost
                     owid_countries_dict = result_list['all_owid_country_names']
                     result_list = result_list['result']
                     results = []

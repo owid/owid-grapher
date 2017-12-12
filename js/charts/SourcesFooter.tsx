@@ -2,6 +2,7 @@ import * as React from 'react'
 import { computed, action } from 'mobx'
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
+import * as parseUrl from 'url-parse'
 
 interface SourcesFooterProps {
     chart: ChartConfig,
@@ -31,13 +32,12 @@ export default class SourcesFooter {
         const { originUrl } = this.props.chart
         let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
 
+
         // Make sure the link back to OWID is consistent
         if (originUrl && originUrl.indexOf("ourworldindata.org") !== -1) {
-            const a = document.createElement('a')
-            a.href = originUrl
-            const path = a.pathname[0] === "/" ? a.pathname : "/" + a.pathname // MISPY: cross-browser compat (Internet Explorer doesn't have a slash)
-            const finalUrl = `https://ourworldindata.org${path}${a.search}`
-            licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + path + a.search + "</a>")
+            const url = parseUrl(originUrl)
+            const finalUrl = `https://ourworldindata.org${url.pathname}`
+            licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
         } else {
             licenseSvg = licenseSvg.replace(/\*data-entry\*/,
                 "<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a>")
