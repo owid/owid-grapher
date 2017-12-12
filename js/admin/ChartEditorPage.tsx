@@ -135,34 +135,38 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
 
         return [
             <TabBinder editor={editor}/>,
-            <Form onSubmit={e => e.preventDefault()}>
-                <div>
-                    <Menu tabular>
-                        {availableTabs.map(tab =>
-                            <Menu.Item name={tab} active={tab === editor.tab} onClick={() => editor.tab = tab}/>
-                        )}
-                    </Menu>
+            <form onSubmit={e => e.preventDefault()}>
+                <ul className="nav nav-tabs">
+                    {availableTabs.map(tab =>
+                        <li className="nav-item">
+                            <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{tab}</a>
+                        </li>
+                    )}
+                </ul>
+                <div className="innerForm">
+                    {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
+                    {editor.tab === 'text' && <EditorTextTab editor={editor} />}
+                    {editor.tab === 'data' && <EditorDataTab editor={editor} />}
+                    {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
+                    {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
+                    {editor.tab === 'map' && <EditorMapTab editor={editor} />}
                 </div>
-                <Grid padded={true} columns={1} className="innerForm">
-                    <Grid.Column>
-                        {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
-                        {editor.tab === 'text' && <EditorTextTab editor={editor} />}
-                        {editor.tab === 'data' && <EditorDataTab editor={editor} />}
-                        {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
-                        {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
-                        {editor.tab === 'map' && <EditorMapTab editor={editor} />}
-                    </Grid.Column>
-                </Grid>
                 <SaveButtons editor={editor} />
-            </Form>,
+            </form>,
             <div>
                 <figure data-grapher-src>
                     {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 400, 600) : new Bounds(0, 0, 800, 600)}/>}
                     {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
                 </figure>
-                <div className="ui menu">
-                    <a className={"item" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview" onClick={action(_ => editor.previewMode = 'mobile')}><i className="fa fa-mobile"/></a>
-                    <a className={"item" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview" onClick={action(_ => editor.previewMode = 'desktop')}><i className="fa fa-desktop"/></a>
+                <div className="btn-group" data-toggle="buttons">
+                    <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview" onClick={action(_ => editor.previewMode = 'mobile')}>
+                        <input type="radio" name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
+                        <i className="fa fa-mobile"/>
+                    </label>
+                    <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview" onClick={action(_ => editor.previewMode = 'desktop')}>
+                        <input type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
+                        <i className="fa fa-desktop"/>
+                    </label>
                 </div>
             </div>
         ]

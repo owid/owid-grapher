@@ -7,7 +7,7 @@
 import * as React from 'react'
 import { extend, pick, capitalize } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, Select, TextArea, Segment, SegmentProps, SegmentGroupProps, Header } from 'semantic-ui-react'
+import { Button as SButton, Form, Checkbox, TextArea, Segment, SegmentProps, SegmentGroupProps, Header } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
@@ -55,13 +55,11 @@ export class TextField extends React.Component<TextFieldProps> {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
-        return <Form.Field>
+        return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <div className="ui input">
-                <input type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
-            </div>
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
-        </Form.Field>
+        </div>
     }
 }
 
@@ -75,11 +73,11 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
 
-        return <Form.Field>
+        return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <TextArea value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
-        </Form.Field>
+        </div>
     }
 }
 
@@ -132,11 +130,15 @@ export class SelectField extends React.Component<SelectFieldProps> {
             }
         })
 
-        return <Form.Field>
+        return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <Select label={props.label} value={props.value} options={options} onChange={(_, select) => props.onValue(select.value as string|undefined)}/>
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string|undefined)}>
+                {options.map(opt =>
+                    <option value={opt.value}>{opt.text}</option>
+                )}
+            </select>
             {props.helpText && <small>{props.helpText}</small>}
-        </Form.Field>
+        </div>
     }
 }
 
@@ -176,9 +178,12 @@ export class Toggle extends React.Component<ToggleProps> {
 
         </div>*/
 
-        return <Form.Field>
-            <Checkbox label={props.label} checked={props.value} onChange={(_, box) => props.onValue(!!box.checked)}/>
-        </Form.Field>
+        return <div className="form-group">
+            <label className="form-check-label">
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)}/>
+                {props.label}
+            </label>
+        </div>
         /* return <FormField>
            <Checkbox checked={props.value} onChange={/> <label>{props.label}</label>
        </FormField>
@@ -260,11 +265,11 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
     render() {
         const {props} = this
 
-        return <div className="ui field AutoTextField">
+        return <div className="form-group AutoTextField">
             {props.label && <label>{props.label}</label>}
-            <div className="ui right labeled input">
-                <input type="text" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
-                <div className="ui basic label" onClick={_ => props.onToggleAuto(!props.isAuto)} data-tooltip={props.isAuto ? "Automatic default" : "Manual input"} data-position="top right">
+            <div className="input-group mb-2 mb-sm-0">
+                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
+                <div className="input-group-addon" onClick={_ => props.onToggleAuto(!props.isAuto)} data-tooltip={props.isAuto ? "Automatic default" : "Manual input"}>
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
             </div>
