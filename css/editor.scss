@@ -29,8 +29,8 @@ html, body {
         font-weight: bold;
     }
 
-    p {
-        margin-bottom: 20px;
+    h6:not(:first-child) {
+        margin-top: 20px;        
     }
 }
 
