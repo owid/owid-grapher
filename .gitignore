@@ -15,3 +15,4 @@ env
 .mypy_cache
 .awcache
 data
+dist

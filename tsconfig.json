@@ -3,7 +3,7 @@
         "strict": true,
         "noImplicitReturns": true,
         "allowJs": false,
-        "outDir": "./tmp/dist/",
+        "outDir": "./dist/",
         "sourceMap": true,
         "module": "commonjs",
         "moduleResolution": "node",
