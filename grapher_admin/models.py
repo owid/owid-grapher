@@ -124,7 +124,7 @@ class Chart(models.Model):
 
         try:
             if not os.path.isfile(return_file):
-                command = "%s %s --baseUrl=%s --targetSrc=%s --output=%s" % \
+                command = "nice %s %s --baseUrl=%s --targetSrc=%s --output=%s" % \
                         (ts_node, screenshot, shlex.quote(settings.BASE_URL), shlex.quote(targetSrc), shlex.quote(png_file))
                 print(command)
 
