@@ -139,7 +139,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                             {chosenVariables.map(d => {
                                 return <li>
                                     <Toggle value={true} onValue={() => this.unselectVariable(d)} label={d.name}/>
-                                </li>
+                            </li>
                             })}
                         </ul>
                     </div>
@@ -162,7 +162,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(namespace: string) {
+    @action.bound onNamespace(namespace: string|undefined) {
         this.chosenNamespace = namespace
     }
 

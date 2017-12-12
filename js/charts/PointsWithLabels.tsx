@@ -183,7 +183,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 allLabels: [],
                 offsetVector: Vector2.zero
             }
-        }), d => d.size)
+        }), d => d.size) as any
     }
 
     labelPriority(l: ScatterLabel) {

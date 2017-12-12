@@ -67,7 +67,7 @@ export class Areas extends React.Component<AreasProps> {
         let prevPoints = [xBottomLeft, xBottomRight]
         return data.map(series => {
             const mainPoints = series.values.map(v => [xScale.place(v.x), yScale.place(v.y)] as [number, number])
-            const points = mainPoints.concat(reverse(clone(prevPoints)))
+            const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
 
             return <path
@@ -171,7 +171,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     }
 
     @observable hoverIndex?: number
-    @action.bound onHover(hoverIndex: number) {
+    @action.bound onHover(hoverIndex: number|undefined) {
         this.hoverIndex = hoverIndex
     }
 

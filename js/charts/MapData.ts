@@ -1,7 +1,7 @@
 import { round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
-import { defaultTo } from './Util'
+import { defaultTo, isString } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import Color from './Color'
 import { ChoroplethData } from './ChoroplethMap'
@@ -356,6 +356,13 @@ export default class MapData {
     }
 
     @computed get formatTooltipValue(): (d: number | string) => string {
-        return this.dimension ? this.dimension.formatValueLong : () => ""
+        const formatValueLong = this.dimension && this.dimension.formatValueLong
+        return formatValueLong ?
+            (d: number|string) => {
+                if (isString(d))
+                    return d
+                else
+                    return formatValueLong(d)
+            } : () => ""
     }
 }

@@ -182,7 +182,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         return this.props.legend
     }
 
-    @action.bound onMouseMove(ev: MouseEvent) {
+    @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
         const { legend, props, base } = this
         const { focusBracket } = legend
         const mouse = getRelativeMouse(base, ev)

@@ -28,7 +28,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         this.props.chart.props.hideLinesOutsideTolerance = value||undefined
     }
 
-    @action.bound onXOverrideYear(value: number) {
+    @action.bound onXOverrideYear(value: number|undefined) {
         this.props.chart.scatter.xOverrideYear = value
     }
 

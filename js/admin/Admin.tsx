@@ -48,7 +48,7 @@ export default class Admin {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRFToken': this.csrfToken
+                'X-CSRFToken': this.csrfToken as string
             },
             body: method !== 'GET' ? JSON.stringify(data) : undefined
         })

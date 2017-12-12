@@ -16,7 +16,7 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.variableId = variableId
     }
 
-    @action.bound onProjection(projection: string) {
+    @action.bound onProjection(projection: string|undefined) {
         this.props.mapConfig.props.projection = (projection as MapProjection)
     }
 
@@ -45,7 +45,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.hideTimeline = value||undefined
     }
 
-    @action.bound onTolerance(tolerance: number) {
+    @action.bound onTolerance(tolerance: number|undefined) {
         this.props.mapConfig.props.timeTolerance = tolerance
     }
 
@@ -60,7 +60,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
 
 @observer
 class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin, index: number }> {
-    @action.bound onColor(color: Color) {
+    @action.bound onColor(color: Color|undefined) {
         const { mapConfig, index } = this.props
 
         if (!mapConfig.isCustomColors) {
@@ -76,9 +76,10 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
         mapConfig.props.customNumericColors[index] = color
     }
 
-    @action.bound onMaximumValue(value: number) {
+    @action.bound onMaximumValue(value: number|undefined) {
         const { mapConfig, index } = this.props
-        mapConfig.props.colorSchemeValues[index] = value
+        if (value !== undefined)
+            mapConfig.props.colorSchemeValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
@@ -123,7 +124,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
 
 @observer
 class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: CategoricalBin }> {
-    @action.bound onColor(color: Color) {
+    @action.bound onColor(color: Color|undefined) {
         const { mapConfig, bin } = this.props
         if (!mapConfig.isCustomColors) {
             // Creating a new custom color scheme
@@ -133,7 +134,10 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
         }
 
         const customCategoryColors = clone(mapConfig.props.customCategoryColors)
-        customCategoryColors[bin.value] = color
+        if (color === undefined)
+            delete customCategoryColors[bin.value]
+        else
+            customCategoryColors[bin.value] = color
         mapConfig.props.customCategoryColors = customCategoryColors
     }
 
@@ -192,7 +196,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 
 @observer
 class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onColorScheme(schemeKey: string) {
+    @action.bound onColorScheme(schemeKey: string|undefined) {
         const { mapConfig } = this.props
         if (schemeKey === 'custom') {
             mapConfig.props.customColorsActive = true

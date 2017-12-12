@@ -252,7 +252,7 @@ const EditCategory = ({ categories, dataset }: any) => {
         <select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>
             {map(categoriesByParent, (subcats, parent) =>
                 <optgroup label={parent}>
-                    {map(subcats, category =>
+                    {map(subcats, (category: any) =>
                         <option value={category.id}>{category.name}</option>
                     )}
                 </optgroup>
@@ -337,7 +337,7 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
     @observable source: any = null
 
     constructor(props: { variable: Variable }) {
-        super()
+        super(props as any)
         this.source = props.variable.source || new Source()
     }
 

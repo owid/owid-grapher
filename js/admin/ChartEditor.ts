@@ -132,7 +132,7 @@ export default class ChartEditor {
         delete chartJson.published
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
-        const w = window.open("/", "_blank")
+        const w = window.open("/", "_blank") as Window
 
         const handleError = action((err: string) => {
             this.errorMessage = { title: "Error saving as new chart", content: toString(err) }

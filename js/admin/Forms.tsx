@@ -111,7 +111,7 @@ export class NumberField extends React.Component<NumberFieldProps> {
 export interface SelectFieldProps {
     label?: string,
     value: string | undefined,
-    onValue: (value: string | undefined) => void,
+    onValue: (value: string) => void,
     options: string[],
     optionLabels?: string[],
     helpText?: string
@@ -131,7 +131,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string|undefined)}>
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)}>
                 {options.map(opt =>
                     <option value={opt.value} selected={opt.value === props.value}>{opt.text}</option>
                 )}
@@ -215,7 +215,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 }
 
 @observer
-export class ColorBox extends React.Component<{ color: string|undefined, onColor: (color: string) => void }> {
+export class ColorBox extends React.Component<{ color: string|undefined, onColor: (color: string|undefined) => void }> {
     @observable.ref isChoosingColor = false
 
     @action.bound onClick() {
