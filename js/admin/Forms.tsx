@@ -200,7 +200,7 @@ export interface ButtonProps {
 
 export class EditableList extends React.Component<{ className?: string }> {
     render() {
-        return this.props.children ? <ul {...this.props} className={"list-group-item" + (this.props.className ? ` ${this.props.className}` : "")}/> : null
+        return this.props.children ? <ul {...this.props} className={"list-group" + (this.props.className ? ` ${this.props.className}` : "")}/> : null
     }
 }
 
@@ -378,6 +378,15 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
                     {this.props.children}
                 </div>
             </div>
+        </div>
+    }
+}
+
+@observer
+export class LoadingBlocker extends React.Component<{}> {
+    render() {
+        return <div className="LoadingBlocker">
+            <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
         </div>
     }
 }

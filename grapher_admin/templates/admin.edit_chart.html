@@ -18,7 +18,7 @@
 			window.App = {}
 			App.isEditor = true
 			App.isDebug = {% isdebug %}
-            window.admin = new Admin("{% rootrequest %}", "{{ cachetag }}")
+            window.admin = new Admin("{% rootrequest %}", "{{ cachetag }}", "{{ current_user }}")
             admin.start(document.body)
         </script>
     </body>

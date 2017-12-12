@@ -8,10 +8,12 @@ import {observable} from 'mobx'
 export default class Admin {
     rootUrl: string
     cacheTag: string
+    username: string
     @observable.ref currentPath: string
-    constructor(rootUrl: string, cacheTag: string) {
+    constructor(rootUrl: string, cacheTag: string, username: string) {
         this.rootUrl = rootUrl
         this.cacheTag = cacheTag
+        this.username = username
     }
 
     start(containerNode: HTMLElement) {

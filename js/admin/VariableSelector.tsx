@@ -33,7 +33,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     scrollElement: HTMLDivElement
 
     @observable rowOffset: number = 0
-    @observable numVisibleRows: number = 15
+    @observable numVisibleRows: number = 18
     @observable rowHeight: number = 32
 
     @computed get database() {

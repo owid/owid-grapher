@@ -14,7 +14,7 @@ import EditorMapTab from './EditorMapTab'
 import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
-import { Modal } from './Forms'
+import { Modal, LoadingBlocker } from './Forms'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -122,9 +122,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
                     {errorMessage.content}
                 </div>
             </Modal>}
-            {/*(this.editor === undefined || this.editor.currentRequest) && <Dimmer active>
-                <Loader/>
-            </Dimmer>*/}
+            {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
             {this.editor !== undefined && this.renderReady(this.editor)}
         </div>
     }
