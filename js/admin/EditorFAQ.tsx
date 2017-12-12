@@ -5,7 +5,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
     render() {
         return <Modal onClose={this.props.onClose} className="EditorFAQ">
             <div className="modal-header">
-                <h3 className="modal-title">owid-grapher FAQ</h3>
+                <h3 className="modal-title">Frequently Asked Questions</h3>
             </div>
             <div className="modal-body">
                 <h6>How do I make a chart?</h6>

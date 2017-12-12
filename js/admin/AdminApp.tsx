@@ -33,7 +33,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" onClick={this.onToggleFAQ}>
-                            Help
+                            FAQ
                         </a>
                     </li>
                 </ul>
