@@ -12,7 +12,7 @@ html, body {
     height: 100%;
 
     button, a, .btn, .form-group > label, .form-check > label {
-        cursor: pointer;
+        @extend .clickable;
     }
 }
 
@@ -33,6 +33,7 @@ html, body {
     }
 
     > form {
+        min-width: 500px;
         width: 500px;
         height: 100%;
         display: flex;
@@ -62,6 +63,11 @@ html, body {
         border-radius: 0.4em;
         margin-bottom: 1.2em;
         background-color: #f9f9f9;
+
+        > h5 {
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ccc;
+        }
     }
 }
 
@@ -71,15 +77,15 @@ html, body {
         margin-bottom: 0.2em;
     }
 
-    .segments {
+    .list-group {
         margin-top: 0;
+        margin-bottom: 0.5em;
     }
 
     .DimensionCard {
         header {
             display: flex;
             justify-content: space-between;
-            font-size: 1.1em;
             color: #666;
             text-align: center;
         }
@@ -188,8 +194,7 @@ html, body {
 .EditorMapTab {
     .ColorSchemeEditor {
         padding-left: 0;
-        .segment {
-            @extend .draggable;
+        li {
             display: flex;
             align-items: center;
             
@@ -202,7 +207,7 @@ html, body {
                 margin-right: 12px;
             }
 
-            .field {
+            .form-group {
                 width: 100px;
                 margin-bottom: 0;
             }

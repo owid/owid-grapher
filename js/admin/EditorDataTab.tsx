@@ -6,7 +6,6 @@ import ChartConfig from '../charts/ChartConfig'
 import DataKey from '../charts/DataKey'
 import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
 import ChartEditor from './ChartEditor'
-import { Form, Radio } from 'semantic-ui-react'
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig

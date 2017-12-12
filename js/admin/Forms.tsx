@@ -7,11 +7,9 @@
 import * as React from 'react'
 import { extend, pick, capitalize } from '../charts/Util'
 import { bind } from 'decko'
-import { Button as SButton, Form, Checkbox, TextArea, Segment, SegmentProps, SegmentGroupProps, Header } from 'semantic-ui-react'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
-import * as $ from 'jquery'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -200,20 +198,15 @@ export interface ButtonProps {
     label?: string
 }
 
-export class Button extends React.Component<ButtonProps> {
+export class EditableList extends React.Component<{ className?: string }> {
     render() {
-        const { props } = this
-        return <SButton onClick={props.onClick}>{props.label}{props.children}</SButton>
+        return this.props.children ? <ul {...this.props} className={"list-group-item" + (this.props.className ? ` ${this.props.className}` : "")}/> : null
     }
 }
 
-export class EditableList extends React.Component<SegmentGroupProps> {
-    render() {
-        return this.props.children ? <ul className="list-group" {...this.props}/> : null
-    }
+export interface EditableListItemProps extends React.HTMLAttributes<HTMLLIElement> {
+    className?: string
 }
-
-export type EditableListItemProps = SegmentProps
 
 export class EditableListItem extends React.Component<EditableListItemProps> {
     render() {
@@ -245,7 +238,7 @@ export class ColorBox extends React.Component<{ color: string|undefined, onColor
 export class Section extends React.Component<{ name: string }> {
     render() {
         return <section>
-            <h4>{this.props.name}</h4>
+            <h5>{this.props.name}</h5>
             {this.props.children}
         </section>
     }
