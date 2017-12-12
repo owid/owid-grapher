@@ -208,7 +208,7 @@ export class Button extends React.Component<ButtonProps> {
 
 export class EditableList extends React.Component<SegmentGroupProps> {
     render() {
-        return this.props.children ? <Segment.Group {...this.props}/> : null
+        return this.props.children ? <ul className="list-group" {...this.props}/> : null
     }
 }
 
@@ -216,7 +216,7 @@ export type EditableListItemProps = SegmentProps
 
 export class EditableListItem extends React.Component<EditableListItemProps> {
     render() {
-        return <Segment {...this.props}/>
+        return <li {...this.props} className={"list-group-item" + (this.props.className ? ` ${this.props.className}` : "")} />
     }
 }
 
@@ -244,7 +244,7 @@ export class ColorBox extends React.Component<{ color: string|undefined, onColor
 export class Section extends React.Component<{ name: string }> {
     render() {
         return <section>
-            <Header as='h3' dividing>{this.props.name}</Header>
+            <h4>{this.props.name}</h4>
             {this.props.children}
         </section>
     }
