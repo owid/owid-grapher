@@ -10,13 +10,25 @@ html, body {
 
 .AdminApp {
     height: 100%;
+
+    button, a, .btn, .form-group > label, .form-check > label {
+        cursor: pointer;
+    }
 }
 
 .ChartEditorPage {
     height: calc(100% - 60px);
     display: flex;
 
-    .tabular.menu :not(.active).item {
+    .btn-group .btn {
+        width: 50px;
+    }
+
+    .form-group > label {
+        margin-bottom: 0;
+    }
+
+    .nav-tabs :not(.active).nav-link {
         background: #f9f9f9;
     }
 
@@ -89,6 +101,11 @@ html, body {
 }
 
 .VariableSelector { 
+    .modal-dialog {
+        min-width: 800px;
+        max-width: 90vw;
+    }
+
     form {
         display: flex !important;
         justify-content: space-between;
@@ -131,9 +148,9 @@ html, body {
         min-height: 32px;
     }
 
-    li > label {
+    li > .form-check {
         width: 100%;
-        margin-bottom: 12px;
+        margin-bottom: 0;
     }
 
     input[type=search] {
@@ -259,7 +276,7 @@ html, body {
 }
 
 .AutoTextField {
-    .ui.label {
+    .input-group-addon {
         cursor: pointer;
     }
 }

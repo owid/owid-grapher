@@ -11,6 +11,7 @@ import { Button as SButton, Form, Checkbox, TextArea, Segment, SegmentProps, Seg
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
+import * as $ from 'jquery'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -58,7 +59,7 @@ export class TextField extends React.Component<TextFieldProps> {
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
             <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
-            {props.helpText && <small>{props.helpText}</small>}
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
         </div>
     }
 }
@@ -134,10 +135,10 @@ export class SelectField extends React.Component<SelectFieldProps> {
             {props.label && <label>{props.label}</label>}
             <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string|undefined)}>
                 {options.map(opt =>
-                    <option value={opt.value}>{opt.text}</option>
+                    <option value={opt.value} selected={opt.value === props.value}>{opt.text}</option>
                 )}
             </select>
-            {props.helpText && <small>{props.helpText}</small>}
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
         </div>
     }
 }
@@ -178,7 +179,7 @@ export class Toggle extends React.Component<ToggleProps> {
 
         </div>*/
 
-        return <div className="form-group">
+        return <div className="form-check">
             <label className="form-check-label">
                 <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)}/>
                 {props.label}
@@ -273,7 +274,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
             </div>
-            {props.helpText && <small>{props.helpText}</small>}
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
         </div>
     }
 }
@@ -357,5 +358,33 @@ export class BindAutoFloat<T extends {[field: string]: number|undefined}, K exte
         const value = store[field] as number|undefined
 
         return <AutoFloatField label={label||capitalize(field)} value={value === undefined ? auto : value} isAuto={value === undefined} onValue={this.onValue} onToggleAuto={this.onToggleAuto} {...rest}/>
+    }
+}
+
+@observer
+export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
+    base: HTMLDivElement
+
+    @action.bound onClickOutside() {
+        this.props.onClose()
+    }
+
+    componentDidMount() {
+        setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
+    }
+
+    componentWillUnmount() {
+        document.body.removeEventListener("click", this.onClickOutside)
+    }
+
+    render() {
+        const {props} = this
+        return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}}>
+            <div className="modal-dialog" role="document" onClick={e => e.stopPropagation()}>
+                <div className="modal-content">
+                    {this.props.children}
+                </div>
+            </div>
+        </div>
     }
 }

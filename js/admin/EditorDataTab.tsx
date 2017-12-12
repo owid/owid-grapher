@@ -99,15 +99,24 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
 
         return <div className="EditorDataTab">
             <Section name="Can user add/change data?">
-                <Form.Field>
-                    <Radio label="User can add and remove data" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
-                </Form.Field>
-                <Form.Field>
-                    <Radio label="User can change entity" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"} />
-                </Form.Field>
-                <Form.Field>
-                    <Radio label="User cannot change/add data" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"} />
-                </Form.Field>
+                <div className="form-check">
+                    <label className="form-check-label">
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
+                        User can add and remove data
+                    </label>
+                </div>
+                <div className="form-check">
+                    <label className="form-check-label">
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"}/>
+                        User can change entity
+                    </label>
+                </div>
+                <div className="form-check">
+                    <label className="form-check-label">
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"}/>
+                        User cannot change/add data
+                    </label>
+                </div>
             </Section>
             <KeysSection chart={editor.chart} />
         </div>

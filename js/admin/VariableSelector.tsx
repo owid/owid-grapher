@@ -6,8 +6,7 @@ import ChartEditor from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
 import FuzzySearch from '../charts/FuzzySearch'
-import { SelectField, TextField, FieldsRow, Toggle } from './Forms'
-import { Form, Modal, Button } from 'semantic-ui-react'
+import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -106,12 +105,12 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         const { currentNamespace, searchInput, chosenVariables } = this
         const { rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows } = this
 
-        return <Modal size="large" open={true} onClose={this.onDismiss} className="VariableSelector">
-            <Modal.Header>
-                Set variable{slot.allowMultiple && 's'} for {slot.name}
-            </Modal.Header>
-            <Modal.Content>
-                <Form>
+        return <Modal onClose={this.onDismiss} className="VariableSelector">
+            <div className="modal-header">
+                <h5 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h5>
+            </div>
+            <div className="modal-body">
+                <form>
                     <div className="searchResults">
                         <FieldsRow>
                             <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
@@ -127,10 +126,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                                             </li>
                                         } else {
                                             return d.map(v => <li key={v.id} style={{ 'min-width': '50%' }}>
-                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={<label dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }}>{v.name}</label>}/>
-                                                {/*<label className="clickable">
-                                                    <input type="checkbox" checked={false} onChange={() => this.selectVariable(v)} /> <span dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }}>{v.name}</span>
-                                        </label>*/}
+                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={<span dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }}>{v.name}</span>}/>
                                             </li>)
                                         }
                                     })}
@@ -143,19 +139,16 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                             {chosenVariables.map(d => {
                                 return <li>
                                     <Toggle value={true} onValue={() => this.unselectVariable(d)} label={d.name}/>
-                                    {/*<label className="clickable">
-                                        <input type="checkbox" checked={true} onChange={() => this.unselectVariable(d)} /> {d.name}
-                            </label>*/}
                                 </li>
                             })}
                         </ul>
                     </div>
-                </Form>
-            </Modal.Content>
-            <Modal.Actions>
-                <Button onClick={this.onDismiss}>Close</Button>
-                <Button primary onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</Button>
-            </Modal.Actions>
+                </form>
+            </div>
+            <div className="modal-footer">
+                <button className="btn" onClick={this.onDismiss}>Close</button>
+                <button className="btn btn-success" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
+            </div>
         </Modal>
     }
 

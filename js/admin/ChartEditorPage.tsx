@@ -1,7 +1,7 @@
 import ChartEditor, {EditorDatabase} from './ChartEditor'
 import Admin from './Admin'
 import * as React from 'react'
-import {includes} from '../charts/Util'
+import {includes, capitalize} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import {observer} from 'mobx-react'
 import {observable, computed, runInAction, autorun, action, IReactionDisposer} from 'mobx'
@@ -14,8 +14,7 @@ import EditorMapTab from './EditorMapTab'
 import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
-
-import { Menu, Form, Dimmer, Loader, Grid, Modal } from 'semantic-ui-react'
+import { Modal } from './Forms'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -115,17 +114,17 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
 
         return <div className="ChartEditorPage">
-            {errorMessage && <Modal open={true} onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
-                <Modal.Header>
-                    {errorMessage.title}
-                </Modal.Header>
-                <Modal.Content>
+            {errorMessage && <Modal onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
+                <div className="modal-header">
+                    <h5 className="modal-title">{errorMessage.title}</h5>
+                </div>
+                <div className="modal-body">
                     {errorMessage.content}
-                </Modal.Content>
+                </div>
             </Modal>}
-            {(this.editor === undefined || this.editor.currentRequest) && <Dimmer active>
+            {/*(this.editor === undefined || this.editor.currentRequest) && <Dimmer active>
                 <Loader/>
-            </Dimmer>}
+            </Dimmer>*/}
             {this.editor !== undefined && this.renderReady(this.editor)}
         </div>
     }
@@ -136,14 +135,16 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         return [
             <TabBinder editor={editor}/>,
             <form onSubmit={e => e.preventDefault()}>
-                <ul className="nav nav-tabs">
-                    {availableTabs.map(tab =>
-                        <li className="nav-item">
-                            <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{tab}</a>
-                        </li>
-                    )}
-                </ul>
-                <div className="innerForm">
+                <div className="p-2">
+                    <ul className="nav nav-tabs">
+                        {availableTabs.map(tab =>
+                            <li className="nav-item">
+                                <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
+                            </li>
+                        )}
+                    </ul>
+                </div>
+                <div className="innerForm container">
                     {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
                     {editor.tab === 'text' && <EditorTextTab editor={editor} />}
                     {editor.tab === 'data' && <EditorDataTab editor={editor} />}

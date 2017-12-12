@@ -2,6 +2,12 @@
 # yarn lockfile v1
 
 
+"@types/bootstrap@^3.3.36":
+  version "3.3.36"
+  resolved "https://registry.yarnpkg.com/@types/bootstrap/-/bootstrap-3.3.36.tgz#5ca0b81655427398fe7c8728bccdc395069093d0"
+  dependencies:
+    "@types/jquery" "*"
+
 "@types/colorbrewer@^1.0.29":
   version "1.0.29"
   resolved "https://registry.yarnpkg.com/@types/colorbrewer/-/colorbrewer-1.0.29.tgz#6723535f698b490d4546d86b95b5bb5ce3b220e0"
@@ -211,6 +217,10 @@
   resolved "https://registry.yarnpkg.com/@types/imagemagick/-/imagemagick-0.0.30.tgz#657846bdaa293c906f045bdf4c9f62d822d41811"
   dependencies:
     "@types/node" "*"
+
+"@types/jquery@*":
+  version "3.2.16"
+  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.2.16.tgz#04419c404a3194350e7d3f339a90e72c88db3111"
 
 "@types/jquery@^2.0.40":
   version "2.0.48"
