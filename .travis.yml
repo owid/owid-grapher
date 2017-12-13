@@ -1,10 +1,10 @@
 dist: trusty
 sudo: required
 language: python
-services: mysql-5.7
 python:
   - 3.6
 before_script:
+  - bash .travis.install-mysql-5.7.sh
   - cp owid_grapher/secret_settings.py.travis owid_grapher/secret_settings.py
   - mysql -e 'CREATE DATABASE test_grapher;'
   - mkdir tmp
