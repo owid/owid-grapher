@@ -7,4 +7,4 @@ echo mysql-apt-config mysql-apt-config/enable-repo select mysql-5.7 sudo debconf
 wget http://dev.mysql.com/get/mysql-apt-config_0.2.1-1ubuntu12.04_all.deb
 sudo DEBIAN_FRONTEND=noninteractive dpkg --install mysql-apt-config_0.2.1-1ubuntu12.04_all.deb
 sudo apt-get update -q
-sudo apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" mysql-server
+sudo apt-get install --allow-unauthenticated -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" mysql-server
