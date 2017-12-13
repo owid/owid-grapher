@@ -86,7 +86,6 @@ app.get('/grapher/admin/charts/:chartId.config.json', (req, res) => {
         config['chart-type'] = row.type
         config.internalNotes = row.notes
         config['data-entry-url'] = row.origin_url
-        config.published = row.published
 
         res.json(config)
         //        config['logosSVG'] = [LOGO]

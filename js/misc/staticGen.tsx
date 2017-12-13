@@ -208,12 +208,6 @@ function exportChart(conn: mysql.Connection, chart: ChartRow, callback: () => vo
         writeVariables(conn, variableIds, cacheTag => {
             const config = JSON.parse(chart.config)
             config.id = chart.id
-            config.title = chart.name
-            config.slug = chart.slug
-            config['chart-type'] = chart.type
-            config.internalNotes = chart.notes
-            config['data-entry-url'] = chart.origin_url
-            config.published = chart.published
             config['logosSVG'] = [LOGO]
             config.variableCacheTag = cacheTag
 

@@ -47,16 +47,12 @@ def custom_login(request: HttpRequest):
 
 def listcharts(request: HttpRequest):
     charts = list(Chart.objects.all().order_by('-last_edited_at'))
-    chart_vars = ChartDimension.objects.all().values('chartId', 'variableId').iterator()
+
     vars_used_in_charts = set()
     vars_per_chart = {}
-    for each in chart_vars:
-        vars_used_in_charts.add(each['variableId'])
-        if each['chartId'] not in vars_per_chart:
-            vars_per_chart[each['chartId']] = []
-            vars_per_chart[each['chartId']].append(each['variableId'])
-        else:
-            vars_per_chart[each['chartId']].append(each['variableId'])
+    for chart in charts:
+        for dim in chart.config['dimensions']:
+            vars_used_in_charts.add(dim['variableId'])
     allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
     vardict = {}
     for var in allvariables:
@@ -64,24 +60,18 @@ def listcharts(request: HttpRequest):
     chartlist = []
     for chart in charts:
         each = {}
+        each['config'] = chart.config
         each['id'] = chart.pk
-        each['published'] = chart.published
         each['starred'] = chart.starred
-        each['name'] = chart.name
         each['type'] = chart.show_type()
-        each['slug'] = chart.slug
-        each['notes'] = chart.notes
-        each['origin_url'] = chart.origin_url
+        each['config'] = chart.config
         each['last_edited_at'] = chart.last_edited_at
         if chart.last_edited_by:
             each['last_edited_by'] = chart.last_edited_by.name
         else:
             each['last_edited_by'] = None
-        each['variables'] = []
-        if vars_per_chart.get(chart.pk):
-            for chartvar in vars_per_chart[chart.pk]:
-                if vardict.get(int(chartvar), 0):
-                    each['variables'].append(vardict[int(chartvar)])
+        variableIds = [dim['variableId'] for dim in chart.config['dimensions']]
+        each['variables'] = [vardict.get(varId) for varId in variableIds]
         chartlist.append(each)
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
@@ -206,9 +196,9 @@ def savechart(chart: Chart, data: Dict, user: User):
     if data.get('published'):
         if ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
             return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
-        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(Q(slug=data['slug'], published=True)):
+        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
             return HttpResponse("This chart slug is currently in use by another chart: %s" % data["slug"], status=402)
-        elif chart.published and chart.slug and chart.slug != data['slug']:
+        elif chart.config.isPublished and chart.config.slug and chart.config.slug != data['slug']:
             # Changing the slug of an already published chart-- create a redirect
             try:
                 old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.slug)
@@ -219,21 +209,6 @@ def savechart(chart: Chart, data: Dict, user: User):
                 new_chart_redirect.chart_id = chart.pk
                 new_chart_redirect.slug = chart.slug
                 new_chart_redirect.save()
-
-    chart.name = data.get("title", "")
-    data.pop("title", None)
-
-    chart.type = data["chart-type"]
-    data.pop("chart-type", None)
-
-    chart.notes = data.get("internalNotes", "")
-    data.pop("internalNotes", None)
-
-    chart.slug = data.get("slug", "")
-    data.pop("slug", None)
-
-    chart.published = data.get("published", None)
-    data.pop("published", None)
 
     data.pop("logosSVG", None)
 
@@ -261,7 +236,6 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.isProjection = dim.get('isProjection', None)
         newdim.targetYear = dim.get('targetYear', None)
 
-        dims.append(newdim)
 
         if dim.get('saveToVariable'):
             if newdim.displayName:
@@ -276,12 +250,6 @@ def savechart(chart: Chart, data: Dict, user: User):
                 variable.displayTolerance = newdim.tolerance
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
-
-
-    for each in ChartDimension.objects.filter(chartId=chart.pk):
-        each.delete()
-    for each in dims:
-        each.save()
 
     # Remove any old image exports as they will no longer represent the new chart state
     if isExisting:

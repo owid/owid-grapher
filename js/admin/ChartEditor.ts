@@ -129,7 +129,7 @@ export default class ChartEditor {
 
         const chartJson = extend({}, chart.json)
         delete chartJson.id
-        delete chartJson.published
+        delete chartJson.isPublished
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window

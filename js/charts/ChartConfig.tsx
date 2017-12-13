@@ -280,12 +280,7 @@ export default class ChartConfig {
         if (json.isAutoSlug && App.isEditor)
             this.props.slug = undefined
 
-        this.props.type = json["chart-type"] || ChartType.LineChart
-        this.props.originUrl = json["data-entry-url"]
-        this.props.isPublished = json["published"]
         this.props.map = new MapConfigProps(json.map)
-        this.props.hasChartTab = json["tabs"] ? includes(json["tabs"], "chart") : true
-        this.props.hasMapTab = json["tabs"] ? includes(json["tabs"], "map") : false
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
 
@@ -309,11 +304,6 @@ export default class ChartConfig {
             json.slug = this.data.slug
             json.isAutoSlug = true
         }
-
-        // XXX backwards compatibility
-        json["chart-type"] = props.type
-        json["published"] = props.isPublished
-        json["tabs"] = this.availableTabs
 
         return json
     }
