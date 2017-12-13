@@ -5,6 +5,7 @@
         "allowJs": false,
         "outDir": "./dist/",
         "sourceMap": true,
+        "watch": true,
         "module": "commonjs",
         "moduleResolution": "node",
         "jsx": "react",

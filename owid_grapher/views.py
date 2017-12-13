@@ -424,10 +424,7 @@ def latest(request):
     :return: Redirects to the Chart page with the latest published chart
     """
     chart = Chart.objects.filter(config__isPublished=True).order_by("-starred", "-created_at").first()
-    slug = chart.config.slug
-    query = get_query_string(request)
-    if query:
-        slug += '?' + query
+    slug = chart.config.get('slug')
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
 
 

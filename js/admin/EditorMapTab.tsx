@@ -30,10 +30,11 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
             </section>
 
         const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
+        const labels = ['World', 'Africa', 'North America', 'South America', 'Asia', 'Europe', 'Australia']
 
         return <Section name="Map">
             <NumericSelectField label="Variable" value={mapConfig.variableId as number} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />
-            <SelectField label="Region" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
+            <SelectField label="Region" value={mapConfig.props.projection} options={projections} optionLabels={labels} onValue={this.onProjection} />
         </Section>
 
     }
@@ -116,7 +117,6 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
             <div className="clickable" onClick={this.onAddAfter}><i className="fa fa-plus"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
             <NumberField value={bin.max} onValue={this.onMaximumValue}/>
-            <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             {mapConfig.props.colorSchemeValues.length > 2 && <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>}
         </EditableListItem>
     }
@@ -165,7 +165,6 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
         return <EditableListItem className="categorical">
             <ColorBox color={bin.color} onColor={this.onColor} />
             <TextField value={bin.value} disabled={true} onValue={noop} />
-            <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             <Toggle label="Hide" value={bin.isHidden} onValue={this.onToggleHidden} />
         </EditableListItem>
     }
@@ -234,9 +233,34 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
+class BinLabelView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin|CategoricalBin, index: number }> {
+    @action.bound onLabel(value: string) {
+        const { mapConfig, index } = this.props
+        while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
+            mapConfig.props.colorSchemeLabels.push(undefined)
+        mapConfig.props.colorSchemeLabels[index] = value
+    }
+
+    render() {
+        const { mapConfig, bin } = this.props
+
+        return <EditableListItem className="BinLabelView">
+            <FieldsRow>
+                {bin instanceof NumericBin ? <NumberField value={bin.max} disabled/> : <TextField value={bin.text} disabled/>}
+                <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
+            </FieldsRow>
+        </EditableListItem>
+    }
+}
+
+@observer
 class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
         this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
+    }
+
+    @action.bound onLabel(value: string) {
+        console.log(value)
     }
 
     render() {
@@ -244,6 +268,11 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         return <Section name="Legend">
             <BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>
             <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
+            <EditableList>
+                {mapConfig.data.legendData.map((bin, index) =>
+                    <BinLabelView mapConfig={mapConfig} bin={bin} index={index}/>
+                )}
+            </EditableList>
         </Section>
     }
 }

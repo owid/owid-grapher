@@ -198,7 +198,7 @@ def savechart(chart: Chart, data: Dict, user: User):
             return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
         elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
             return HttpResponse("This chart slug is currently in use by another chart: %s" % data["slug"], status=402)
-        elif chart.config.isPublished and chart.config.slug and chart.config.slug != data['slug']:
+        elif chart.config.get('isPublished') and chart.config.get('slug') and chart.config.get('slug') != data['slug']:
             # Changing the slug of an already published chart-- create a redirect
             try:
                 old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.slug)

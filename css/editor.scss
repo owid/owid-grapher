@@ -25,6 +25,11 @@ html, body {
         max-width: 800px;
     }
 
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+
     h6 {
         font-weight: bold;
     }
@@ -221,10 +226,14 @@ html, body {
             }
 
             .form-group {
-                width: 100px;
+                flex-grow: 1;
                 margin-bottom: 0;
             }
         }
+    }
+
+    .BinLabelView .FieldsRow {
+        margin-bottom: 0;
     }
 }
 

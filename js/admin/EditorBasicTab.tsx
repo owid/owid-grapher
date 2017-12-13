@@ -3,7 +3,7 @@ import { includes, sample, sampleSize } from '../charts/Util'
 import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { DimensionSlot } from '../charts/ChartConfig'
-import { ChartTypeType } from '../charts/ChartType'
+import { ChartTypeDefs, ChartTypeType } from '../charts/ChartType'
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
 import ChartEditor, { Variable } from './ChartEditor'
@@ -102,7 +102,7 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
 
         return <div className="EditorBasicTab">
             <Section name="Type of chart">
-                <SelectField value={chart.props.type} onValue={this.onChartType} options={["LineChart", "SlopeChart", "ScatterPlot", "StackedArea", "DiscreteBar"]}/>
+                <SelectField value={chart.props.type} onValue={this.onChartType} options={ChartTypeDefs.map(def => def.key)} optionLabels={ChartTypeDefs.map(def => def.label)}/>
                 <FieldsRow>
                     <Toggle label="Chart tab" value={chart.props.hasChartTab} onValue={value => chart.props.hasChartTab = value} />
                     <Toggle label="Map tab" value={chart.props.hasMapTab} onValue={value => chart.props.hasMapTab = value} />
