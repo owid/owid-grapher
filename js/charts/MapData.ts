@@ -1,8 +1,8 @@
-import { floor, ceil, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
+import { round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
-import { defaultTo } from './Util'
-import ColorSchemes from './ColorSchemes'
+import { defaultTo, isString } from './Util'
+import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import Color from './Color'
 import { ChoroplethData } from './ChoroplethMap'
 import { entityNameForMap } from './Util'
@@ -15,30 +15,46 @@ export interface MapDataValue {
     year: number
 }
 
-export class NumericBin {
-    index: number
+export interface NumericBinProps {
+    isFirst: boolean
+    isOpenEnded: boolean
     min: number
     max: number
-    color: Color
     label?: string
-    isHidden: boolean = false
+    color: string
     format: (v: number) => string
+}
 
-    constructor({ index, min, max, label, color, format }: { index: number, min: number, max: number, label?: string, color: Color, format: (v: number) => string }) {
-        this.index = index
-        this.min = min
-        this.max = max
-        this.color = color
-        this.label = label
-        this.format = format
+export class NumericBin {
+    props: NumericBinProps
+    constructor(props: NumericBinProps) {
+        this.props = props
     }
 
-    get minText() { return this.format(this.min) }
-    get maxText() { return this.format(this.max) }
-    get text() { return this.label || "" }
+    @computed get min() { return this.props.min }
+    @computed get max() { return this.props.max }
+    @computed get color() { return this.props.color }
+    @computed get minText() { return this.props.format(this.props.min) }
+    @computed get maxText() {
+        const str = this.props.format(this.props.max)
+        if (this.props.isOpenEnded)
+            return `>${str}`
+        else
+            return str
+    }
+    @computed get label() { return this.props.label }
+    @computed get text() { return this.props.label || "" }
+    @computed get isHidden() { return false }
 
     contains(d: MapDataValue | null): boolean {
-        return !!(d && (this.index === 0 ? d.value >= this.min : d.value > this.min) && d.value <= this.max)
+        if (!d)
+            return false
+        else if (this.props.isOpenEnded)
+            return d.value > this.min
+        else if (this.props.isFirst)
+            return d.value >= this.min && d.value <= this.max
+        else
+            return d.value > this.min && d.value <= this.max
     }
 }
 
@@ -60,7 +76,7 @@ export class CategoricalBin {
     get text() { return this.label || this.value }
 
     contains(d: MapDataValue | null): boolean {
-        return (d == null && this.value === 'No data') || (d != null && d.value === this.value)
+        return (d === null && this.value === 'No data') || (d !== null && d.value === this.value)
     }
 }
 
@@ -73,7 +89,7 @@ export default class MapData {
 
         // Validate the map variable id selection to something on the chart
         autorun(() => {
-            const hasVariable = chart.map.variableId != null && chart.vardata.variablesById[chart.map.variableId]
+            const hasVariable = chart.map.variableId && chart.vardata.variablesById[chart.map.variableId]
             if (!hasVariable && chart.data.primaryVariable) {
                 const variableId = chart.data.primaryVariable.id
                 runInAction(() => chart.map.props.variableId = variableId)
@@ -82,16 +98,14 @@ export default class MapData {
 
         // When automatic classification is turned off, assign defaults
         reaction(
-            () => this.map.isAutoBuckets,
+            () => this.map.props.isManualBuckets,
             () => {
-                if (!this.map.isAutoBuckets) {
-                    const { autoBucketMaximums } = this
+                if (this.map.props.isManualBuckets) {
+                    const { autoBinMaximums } = this
                     const colorSchemeValues = toJS(this.map.props.colorSchemeValues) || []
-                    for (let i = 0; i < autoBucketMaximums.length; i++) {
+                    for (let i = 0; i < autoBinMaximums.length; i++) {
                         if (i >= colorSchemeValues.length)
-                            colorSchemeValues.push(autoBucketMaximums[i])
-                        else if (colorSchemeValues[i] === undefined)
-                            colorSchemeValues[i] = autoBucketMaximums[i]
+                            colorSchemeValues.push(autoBinMaximums[i])
                     }
                     this.map.props.colorSchemeValues = colorSchemeValues
                 }
@@ -112,74 +126,117 @@ export default class MapData {
         return this.chart.data.filledDimensions.find(d => d.variableId === this.map.variableId)
     }
 
-    @computed get knownMapEntityIds(): { [id: string]: boolean|undefined } {
-        return keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
+    // Figure out which entities in the variable can be shown on the map
+    // (we can't render data for things that aren't countries)
+    @computed get knownMapEntities(): { [entity: string]: string } {
+        if (!this.dimension) return {}
+
+        const idLookup = keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
+        const entities = this.dimension.variable.entitiesUniq.filter(e => !!idLookup[entityNameForMap(e)])
+        return keyBy(entities)
     }
 
     // All available years with data for the map
-    // Note that we're only interested in any data that is actually renderable
     @computed get timelineYears(): number[] {
         const {dimension} = this
         if (!dimension) return [1900, 2000]
 
-        const {knownMapEntityIds} = this
-        return sortedUniq(dimension.years.filter((_, i) => !!knownMapEntityIds[entityNameForMap(dimension.entities[i])]))
+        return sortedUniq(dimension.years.filter((_, i) => !!this.knownMapEntities[dimension.entities[i]]))
     }
 
     @computed get targetYear(): number {
-        return defaultTo(this.map.props.targetYear, this.timelineYears[0])
+        return this.map.props.targetYear !== undefined ? this.map.props.targetYear : this.timelineYears[0]
     }
 
     @computed get legendTitle(): string {
-        return defaultTo(this.map.props.legendDescription, this.dimension ? this.dimension.displayName : "")
+        const {legendDescription} = this.map.props
+        return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
+    }
+
+    @computed get numAutoBins(): number {
+        return 5
+    }
+
+    @computed get numBins(): number {
+        return this.map.props.isManualBuckets ? this.map.props.colorSchemeValues.length : this.numAutoBins
+    }
+
+    @computed get customBucketLabels() {
+        const labels = toJS(this.map.props.colorSchemeLabels) || []
+        while (labels.length < this.numBins)
+            labels.push(undefined)
+        return labels
+    }
+
+    @computed get minBinValue(): number {
+        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : 0
+    }
+
+    @computed get binStepSizeDefault(): number {
+        const {dimension} = this
+        if (!dimension) return 10
+
+        const {numAutoBins, minBinValue} = this
+
+        const median95 = dimension.numericValues[Math.floor(dimension.numericValues.length*0.95)]
+        const stepSizeInitial = (median95-minBinValue)/numAutoBins
+        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
+        const stepSize = round(stepSizeInitial, -stepMagnitude)
+
+        return stepSize
+    }
+
+    @computed get binStepSize(): number {
+        return this.map.props.binStepSize !== undefined ? this.map.props.binStepSize : this.binStepSizeDefault
+    }
+
+    @computed get manualBinMaximums(): number[] {
+        if (!this.dimension || !this.dimension.hasNumericValues || this.numBins <= 0)
+            return []
+
+        const { numBins } = this
+        const { colorSchemeValues } = this.map
+
+        let values = toArray(colorSchemeValues)
+        while (values.length < numBins)
+            values.push(0)
+        while (values.length > numBins)
+            values = values.slice(0, numBins)
+        return values as number[]
     }
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-    @computed get autoBucketMaximums(): number[] {
-        const { map, dimension } = this
-        if (!dimension) return []
+    @computed get autoBinMaximums(): number[] {
+        if (!this.dimension || !this.dimension.hasNumericValues || this.numAutoBins <= 0)
+            return []
 
-        const { numBuckets } = map
-        const { variable } = dimension
-
-        if (!variable.hasNumericValues || numBuckets <= 0) return []
-
-        const rangeValue = dimension.maxValue - dimension.minValue
-        const rangeMagnitude = Math.floor(Math.log(rangeValue) / Math.log(10))
-
-        const minValue = floor(dimension.minValue, -(rangeMagnitude - 1))
-        const maxValue = ceil(dimension.maxValue, -(rangeMagnitude - 1))
+        const { binStepSize, numAutoBins, minBinValue } = this
 
         const bucketMaximums = []
-        for (let i = 1; i <= numBuckets; i++) {
-            const value = minValue + (i / numBuckets) * (maxValue - minValue)
-            bucketMaximums.push(round(value, -(rangeMagnitude - 1)))
+        let nextMaximum = minBinValue+binStepSize
+        for (let i = 0; i < numAutoBins; i++) {
+            bucketMaximums.push(nextMaximum)
+            nextMaximum += binStepSize
         }
 
         return bucketMaximums
     }
 
-    @computed get bucketMaximums() {
-        if (this.map.isAutoBuckets) return this.autoBucketMaximums
-
-        const { map, dimension } = this
-        const { numBuckets, colorSchemeValues } = map
-
-        if (!dimension || !dimension.variable.hasNumericValues || numBuckets <= 0)
-            return []
-
-        let values = toArray(colorSchemeValues)
-        while (values.length < numBuckets)
-            values.push(0)
-        while (values.length > numBuckets)
-            values = values.slice(0, numBuckets)
-        return values
+    @computed get bucketMaximums(): number[] {
+        if (this.map.props.isManualBuckets)
+            return this.manualBinMaximums
+        else
+            return this.autoBinMaximums
     }
 
-    @computed get colorScheme() {
-        const { baseColorScheme } = this.map
-        return defaultTo(ColorSchemes[baseColorScheme], ColorSchemes[keys(ColorSchemes)[0]])
+    @computed get defaultColorScheme(): ColorScheme {
+        return ColorSchemes[keys(ColorSchemes)[0]] as ColorScheme
+    }
+
+    @computed get colorScheme(): ColorScheme {
+        const colorScheme = ColorSchemes[this.map.baseColorScheme]
+        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
     }
 
     @computed get baseColors() {
@@ -210,28 +267,30 @@ export default class MapData {
         return extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor })
     }
 
-    @computed get legendData() {
+    @computed get legendData(): (NumericBin|CategoricalBin)[] {
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const legendData = []
+        const { dimension } = this
+        if (!dimension) return []
 
-        const { map, dimension, bucketMaximums, baseColors, categoricalValues, customCategoryColors } = this
-        const { customBucketLabels, customNumericColors, customCategoryLabels, customHiddenCategories, minBucketValue } = map
+        const legendData = []
+        const { map, bucketMaximums, baseColors, categoricalValues, customCategoryColors, customBucketLabels, minBinValue } = this
+        const { customNumericColors, customCategoryLabels, customHiddenCategories } = map
 
         /*var unitsString = chart.model.get("units"),
             units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
             yUnit = find(units, { property: 'y' });*/
 
         // Numeric 'buckets' of color
-        let minValue = minBucketValue
+        let minValue = minBinValue
         for (let i = 0; i < bucketMaximums.length; i++) {
             const baseColor = baseColors[i]
             const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ index: i, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
+            legendData.push(new NumericBin({ isFirst: i === 0, isOpenEnded: i === bucketMaximums.length-1 && maxValue < dimension.maxValue, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
             minValue = maxValue
         }
 
@@ -297,6 +356,13 @@ export default class MapData {
     }
 
     @computed get formatTooltipValue(): (d: number | string) => string {
-        return this.dimension ? this.dimension.formatValueLong : () => ""
+        const formatValueLong = this.dimension && this.dimension.formatValueLong
+        return formatValueLong ?
+            (d: number|string) => {
+                if (isString(d))
+                    return d
+                else
+                    return formatValueLong(d)
+            } : () => ""
     }
 }

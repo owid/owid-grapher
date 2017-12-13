@@ -1,13 +1,12 @@
 import * as React from 'react'
-import { groupBy, each, isString } from '../charts/Util'
+import { groupBy, each, isString, sortBy } from '../charts/Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
-import { SelectField } from './Forms'
 import ChartEditor from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
 import FuzzySearch from '../charts/FuzzySearch'
-import EditorModal from './EditorModal'
+import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -46,13 +45,20 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     }
 
     @computed get datasets() {
-        return this.database.datasets.filter(d => d.namespace === this.currentNamespace)
+        const datasets = this.database.datasets.filter(d => d.namespace === this.currentNamespace)
+        if (this.currentNamespace !== 'owid') {
+            // The default temporal ordering has no real use for bulk imports
+            return sortBy(datasets, d => d.name)
+        } else {
+            return datasets
+        }
     }
 
     @computed get availableVariables(): Variable[] {
         const variables: Variable[] = []
         this.datasets.forEach(dataset => {
-            dataset.variables.forEach(variable => {
+            const sorted = sortBy(dataset.variables, v => v.name)
+            sorted.forEach(variable => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
@@ -106,56 +112,51 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         const { currentNamespace, searchInput, chosenVariables } = this
         const { rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows } = this
 
-        return <EditorModal>
-            <div className="modal-dialog VariableSelector">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <button type="button" className="close" onClick={this.onDismiss}><span aria-hidden="true">×</span></button>
-                        <h4 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h4>
-                    </div>
-                    <div className="modal-body">
-                        <div className="searchResults">
-                            <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace} /> <input type="search" placeholder="Search..." value={searchInput} onInput={this.onSearchInput} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
-                            <div style={{ height: numVisibleRows * rowHeight, 'overflow-y': 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
-                                <div style={{ height: numTotalRows * rowHeight, 'padding-top': rowHeight * rowOffset }}>
-                                    <ul>
-                                        {searchResultRows.slice(rowOffset, rowOffset + numVisibleRows).map(d => {
-                                            if (isString(d)) {
-                                                return <li key={d} style={{ 'min-width': '100%' }}>
-                                                    <h5 dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", d) }} />
-                                                </li>
-                                            } else {
-                                                return d.map(v => <li key={v.id} style={{ 'min-width': '50%' }}>
-                                                    <label className="clickable">
-                                                        <input type="checkbox" checked={false} onChange={() => this.selectVariable(v)} /> <span dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }} />
-                                                    </label>
-                                                </li>)
-                                            }
-                                        })}
-                                    </ul>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div className="selectedData">
-                            <ul>
-                                {chosenVariables.map(d => {
-                                    return <li>
-                                        <label className="clickable">
-                                            <input type="checkbox" checked={true} onChange={() => this.unselectVariable(d)} /> {d.name}
-                                        </label>
-                                    </li>
-                                })}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-default pull-left" onClick={this.onDismiss}>Close</button>
-                        <button type="button" className="btn btn-primary" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
-                    </div>
-                </div>
+        return <Modal onClose={this.onDismiss} className="VariableSelector">
+            <div className="modal-header">
+                <h5 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h5>
             </div>
-        </EditorModal>
+            <div className="modal-body">
+                <form>
+                    <div className="searchResults">
+                        <FieldsRow>
+                            <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
+                            <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} autofocus/>
+                        </FieldsRow>
+                        <div style={{ height: numVisibleRows * rowHeight, 'overflow-y': 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
+                            <div style={{ height: numTotalRows * rowHeight, 'padding-top': rowHeight * rowOffset }}>
+                                <ul>
+                                    {searchResultRows.slice(rowOffset, rowOffset + numVisibleRows).map(d => {
+                                        if (isString(d)) {
+                                            return <li key={d} style={{ 'min-width': '100%' }}>
+                                                <h5 dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", d) }}>{d}</h5>
+                                            </li>
+                                        } else {
+                                            return d.map(v => <li key={v.id} style={{ 'min-width': '50%' }}>
+                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={<span dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }}>{v.name}</span>}/>
+                                            </li>)
+                                        }
+                                    })}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="selectedData">
+                        <ul>
+                            {chosenVariables.map(d => {
+                                return <li>
+                                    <Toggle value={true} onValue={() => this.unselectVariable(d)} label={d.name}/>
+                            </li>
+                            })}
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div className="modal-footer">
+                <button className="btn" onClick={this.onDismiss}>Close</button>
+                <button className="btn btn-success" onClick={this.onComplete}>Set variable{slot.allowMultiple && 's'}</button>
+            </div>
+        </Modal>
     }
 
     @action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
@@ -168,12 +169,12 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(namespace: string) {
+    @action.bound onNamespace(namespace: string|undefined) {
         this.chosenNamespace = namespace
     }
 
-    @action.bound onSearchInput(e: React.KeyboardEvent<HTMLInputElement>) {
-        this.searchInput = e.currentTarget.value
+    @action.bound onSearchInput(input: string) {
+        this.searchInput = input
         this.rowOffset = 0
         this.scrollElement.scrollTop = 0
     }
@@ -189,10 +190,9 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.chosenVariables = this.chosenVariables.filter(v => v.id !== variable.id)
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key === "Enter" && this.searchResults.length > 0) {
+    @action.bound onSearchEnter() {
+        if (this.searchResults.length > 0) {
             this.selectVariable(this.searchResults[0])
-            e.preventDefault()
         }
     }
 
@@ -200,6 +200,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.props.onDismiss()
     }
 
+    base: HTMLDivElement
     componentDidMount() {
         this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
             name: d.displayName,
@@ -207,8 +208,6 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
             datasetName: "",
             searchKey: ""
         }))
-
-        this.searchField.focus()
     }
 
     @action.bound onComplete() {

@@ -5,6 +5,7 @@ import os.path
 import shlex
 import gevent
 from django.db import models
+from django_mysql.models import JSONField, Model
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -67,7 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class PasswordReset(models.Model):
+class PasswordReset(Model):
     class Meta:
         db_table = "password_resets"
 
@@ -76,14 +77,14 @@ class PasswordReset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Chart(models.Model):
+class Chart(Model):
     class Meta:
         db_table = "charts"
         unique_together = (('slug', 'published'),)
 
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    config = models.TextField()
+    config = JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_edited_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True,
@@ -107,12 +108,12 @@ class Chart(models.Model):
     def export_image(self, query: str, format: str, is_async: bool = False):
         ts_node = settings.BASE_DIR + "/node_modules/.bin/ts-node"
         screenshot = settings.BASE_DIR + "/js/exportChart.ts"
-        targetSrc = settings.BASE_URL + "/" + self.slug + "?" + query
+        targetSrc = settings.BASE_URL + "/" + self.config['slug'] + "?" + query
         m = hashlib.md5()
         m.update(query.encode(encoding='utf-8'))
         query_hash = m.hexdigest()
-        png_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + ".png"
-        return_file = settings.BASE_DIR + "/public/exports/" + self.slug + "-" + query_hash + "." + format
+        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + ".png"
+        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + "." + format
 
         if Chart.exports_in_progress >= Chart.max_exports_per_worker:
             if is_async: return return_file
@@ -173,57 +174,46 @@ class Chart(models.Model):
         """
         :return: A Chart's config dictionary
         """
-        config = json.loads(self.config)
-        config['id'] = self.pk
-        config['title'] = self.name
-        config['chart-type'] = self.type
-        config['internalNotes'] = self.notes
-        config['slug'] = self.slug
-        config['data-entry-url'] = self.origin_url
-        config['published'] = self.published
+        config = dict(self.config)
         logos = []
+        config['id'] = self.id
         for each in list(Logo.objects.filter(name__in=['owd'])):
             logos.append(each.svg)
         config['logosSVG'] = logos
-        config['dimensions'] = list(self.chartdimension_set.values())
-        # XXX
-        for dim in config['dimensions']:
-            dim['chartId'] = dim.pop('chartId_id')
-            dim['variableId'] = dim.pop('variableId_id')
         return config
 
     def show_type(self):
-        config = json.loads(self.config)
         type = "Unknown"
+        config = self.config
 
-        if self.type == "LineChart":
+        if config['type'] == "LineChart":
             type = "Line Chart"
-        elif self.type == "ScatterPlot":
+        elif config['type'] == "ScatterPlot":
             type = "Scatter Plot"
-        elif self.type == "StackedArea":
+        elif config['type'] == "StackedArea":
             type = "Stacked Area"
-        elif self.type == "MultiBar":
+        elif config['type'] == "MultiBar":
             type = "Multi Bar"
-        elif self.type == "HorizontalMultiBar":
+        elif config['type'] == "HorizontalMultiBar":
             type = "Horizontal Multi Bar"
-        elif self.type == "DiscreteBar":
+        elif config['type'] == "DiscreteBar":
             type = "Discrete Bar"
-        elif self.type == "SlopeChart":
+        elif config['type'] == "SlopeChart":
             type = "Slope Chart"
 
-        if config.get("default-tab", 0) and config.get("default-tab", 0) == "map":
-            if "chart" in config.get("tabs", ""):
+        if config.get("tab") == "map":
+            if config.get("hasChartTab"):
                 return "Map + " + type
             else:
                 return "Map"
         else:
-            if "map" in config.get("tabs", ""):
+            if config.get("hasMapTab"):
                 return type + " + Map"
             else:
                 return type
 
 
-class DatasetCategory(models.Model):
+class DatasetCategory(Model):
     class Meta:
         db_table = "dataset_categories"
 
@@ -233,7 +223,7 @@ class DatasetCategory(models.Model):
     fetcher_autocreated = models.BooleanField(default=False)
 
 
-class DatasetSubcategory(models.Model):
+class DatasetSubcategory(Model):
     class Meta:
         db_table = "dataset_subcategories"
         unique_together = (('name', 'fk_dst_cat_id'),)
@@ -245,7 +235,7 @@ class DatasetSubcategory(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Dataset(models.Model):
+class Dataset(Model):
     class Meta:
         db_table = "datasets"
         unique_together = (('name', 'namespace'),)
@@ -261,7 +251,7 @@ class Dataset(models.Model):
     namespace = models.CharField(max_length=255, default='owid')
 
 
-class Source(models.Model):
+class Source(Model):
     class Meta:
         db_table = 'sources'
         unique_together = (('name', 'datasetId'),)
@@ -273,7 +263,7 @@ class Source(models.Model):
     datasetId = models.IntegerField(db_column='datasetId', blank=True, null=True)
 
 
-class VariableType(models.Model):
+class VariableType(Model):
     class Meta:
         db_table = 'variable_types'
 
@@ -281,7 +271,7 @@ class VariableType(models.Model):
     isSortable = models.BooleanField(db_column='isSortable', default=False)
 
 
-class Variable(models.Model):
+class Variable(Model):
     class Meta:
         db_table = 'variables'
         unique_together = (('code', 'fk_dst_id'), ('name', 'fk_dst_id'),)
@@ -313,7 +303,7 @@ class Variable(models.Model):
     timespan = models.CharField(max_length=255)
 
 
-class ChartDimension(models.Model):
+class ChartDimension(Model):
     class Meta:
         db_table = "chart_dimensions"
 
@@ -333,7 +323,7 @@ class ChartDimension(models.Model):
     # XXX todo move this elsewhere
     targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
 
-class ChartSlugRedirect(models.Model):
+class ChartSlugRedirect(Model):
     class Meta:
         db_table = 'chart_slug_redirects'
 
@@ -341,7 +331,7 @@ class ChartSlugRedirect(models.Model):
     chart_id = models.IntegerField()
 
 
-class Entity(models.Model):
+class Entity(Model):
     class Meta:
         db_table = "entities"
 
@@ -353,7 +343,7 @@ class Entity(models.Model):
     displayName = models.CharField(db_column='displayName', max_length=255)
 
 
-class DataValue(models.Model):
+class DataValue(Model):
     class Meta:
         db_table = "data_values"
         unique_together = (('fk_ent_id', 'fk_var_id', 'year'),)
@@ -364,7 +354,7 @@ class DataValue(models.Model):
     year = models.IntegerField()
 
 
-class InputFile(models.Model):
+class InputFile(Model):
     class Meta:
         db_table = 'input_files'
 
@@ -374,7 +364,7 @@ class InputFile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class License(models.Model):
+class License(Model):
     class Meta:
         db_table = 'licenses'
 
@@ -384,7 +374,7 @@ class License(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Logo(models.Model):
+class Logo(Model):
     class Meta:
         db_table = 'logos'
 
@@ -394,7 +384,7 @@ class Logo(models.Model):
     svg = models.TextField()
 
 
-class Setting(models.Model):
+class Setting(Model):
     class Meta:
         db_table = 'settings'
 
@@ -404,7 +394,7 @@ class Setting(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class UserInvitation(models.Model):
+class UserInvitation(Model):
     class Meta:
         db_table = 'user_invitations'
 
@@ -418,5 +408,5 @@ class UserInvitation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class CloudflarePurgeQueue(models.Model):
+class CloudflarePurgeQueue(Model):
     url = models.CharField(max_length=255, unique=True)

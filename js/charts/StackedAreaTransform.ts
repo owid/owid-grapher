@@ -5,7 +5,7 @@ import ChartConfig from './ChartConfig'
 import DataKey from './DataKey'
 import { StackedAreaSeries, StackedAreaValue } from './StackedArea'
 import AxisSpec from './AxisSpec'
-import ColorSchemes from './ColorSchemes'
+import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import { formatValue, formatYear, defaultTo, findClosest } from './Util'
 import IChartTransform from './IChartTransform'
 
@@ -114,8 +114,8 @@ export default class StackedAreaTransform implements IChartTransform {
 
     @computed get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        const schemeName = defaultTo(this.chart.props.baseColorScheme, "stackedAreaDefault")
-        return ColorSchemes[schemeName]
+        const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
+        return colorScheme !== undefined ? colorScheme : ColorSchemes["stackedAreaDefault"] as ColorScheme
     }
 
     @computed get baseColors() {

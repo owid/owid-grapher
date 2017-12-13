@@ -1,0 +1,174 @@
+import ChartEditor, {EditorDatabase} from './ChartEditor'
+import Admin from './Admin'
+import * as React from 'react'
+import {includes, capitalize} from '../charts/Util'
+import ChartConfig from '../charts/ChartConfig'
+import {observer} from 'mobx-react'
+import {observable, computed, runInAction, autorun, action, IReactionDisposer} from 'mobx'
+import EditorBasicTab from './EditorBasicTab'
+import EditorDataTab from './EditorDataTab'
+import EditorTextTab from './EditorTextTab'
+import EditorCustomizeTab from './EditorCustomizeTab'
+import EditorScatterTab from './EditorScatterTab'
+import EditorMapTab from './EditorMapTab'
+import ChartView from '../charts/ChartView'
+import Bounds from '../charts/Bounds'
+import SaveButtons from './SaveButtons'
+import { Modal, LoadingBlocker } from './Forms'
+
+@observer
+class TabBinder extends React.Component<{ editor: ChartEditor }> {
+    dispose: IReactionDisposer
+    componentDidMount() {
+        window.addEventListener("hashchange", this.onHashChange)
+        this.onHashChange()
+
+        this.dispose = autorun(() => {
+            const tab = this.props.editor.tab
+            setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
+        })
+    }
+
+    componentDidUnmount() {
+        window.removeEventListener("hashchange", this.onHashChange)
+        this.dispose()
+    }
+
+    @action.bound onHashChange() {
+        const match = window.location.hash.match(/#(.+?)-tab/)
+        if (match) {
+            const tab = match[1]
+            if (this.props.editor.chart && includes(this.props.editor.availableTabs, tab))
+                this.props.editor.tab = tab
+        }
+    }
+}
+
+@observer
+export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number|undefined }> {
+    @observable.ref chart?: ChartConfig
+    @observable.ref database?: EditorDatabase
+    @observable.ref errorMessage?: { title: string, content: string }
+
+    async fetchChart() {
+        const {chartId, admin} = this.props
+
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error fetching chart json", content: err }
+        })
+
+        try {
+            const response = await admin.get(`/admin/charts/${chartId === undefined ? "newChart" : chartId}.config.json`)
+            if (!response.ok) {
+                return handleError(await response.text())
+            }
+
+            const json = await response.json()
+            runInAction(() => this.chart = new ChartConfig(json))
+        } catch (err) {
+            handleError(err)
+            throw err
+        }
+    }
+
+    async fetchData() {
+        const {admin} = this.props
+
+        const handleError = action((err: string) => {
+            this.errorMessage = { title: "Error fetching editorData json", content: err }
+        })
+
+        try {
+            const response = await admin.get(`/admin/editorData.${admin.cacheTag}.json`)
+            if (!response.ok) {
+                return handleError(await response.text())
+            }
+
+            const json = await response.json()
+            runInAction(() => this.database = new EditorDatabase(json))
+        } catch (err) {
+            handleError(err)
+            throw err
+        }
+    }
+
+    @computed get editor(): ChartEditor|undefined {
+        if (this.chart === undefined || this.database === undefined) {
+            return undefined
+        } else {
+            const that = this
+            return new ChartEditor({
+                get admin() { return that.props.admin },
+                get chart() { return that.chart as ChartConfig },
+                get database() { return that.database as EditorDatabase }
+            })
+        }
+    }
+
+    componentDidMount() {
+        this.fetchChart()
+        this.fetchData()
+    }
+
+    render() {
+        const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
+
+        return <div className="ChartEditorPage">
+            {errorMessage && <Modal onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
+                <div className="modal-header">
+                    <h5 className="modal-title">{errorMessage.title}</h5>
+                </div>
+                <div className="modal-body">
+                    {errorMessage.content}
+                </div>
+            </Modal>}
+            {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
+            {this.editor !== undefined && this.renderReady(this.editor)}
+        </div>
+    }
+
+    renderReady(editor: ChartEditor) {
+        const {chart, availableTabs, previewMode} = editor
+
+        return [
+            <TabBinder editor={editor}/>,
+            <form onSubmit={e => e.preventDefault()}>
+                <div className="p-2">
+                    <ul className="nav nav-tabs">
+                        {availableTabs.map(tab =>
+                            <li className="nav-item">
+                                <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
+                            </li>
+                        )}
+                    </ul>
+                </div>
+                <div className="innerForm container">
+                    {editor.tab === 'basic' && <EditorBasicTab editor={editor} />}
+                    {editor.tab === 'text' && <EditorTextTab editor={editor} />}
+                    {editor.tab === 'data' && <EditorDataTab editor={editor} />}
+                    {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
+                    {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
+                    {editor.tab === 'map' && <EditorMapTab editor={editor} />}
+                </div>
+                <SaveButtons editor={editor} />
+            </form>,
+            <div>
+                <figure data-grapher-src>
+                    {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 400, 600) : new Bounds(0, 0, 800, 600)}/>}
+                    {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
+                </figure>
+                <div className="btn-group" data-toggle="buttons">
+                    <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview" onClick={action(_ => editor.previewMode = 'mobile')}>
+                        <input type="radio" name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
+                        <i className="fa fa-mobile"/>
+                    </label>
+                    <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview" onClick={action(_ => editor.previewMode = 'desktop')}>
+                        <input type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
+                        <i className="fa fa-desktop"/>
+                    </label>
+                </div>
+            </div>
+        ]
+
+    }
+}

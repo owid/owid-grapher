@@ -47,16 +47,12 @@ def custom_login(request: HttpRequest):
 
 def listcharts(request: HttpRequest):
     charts = list(Chart.objects.all().order_by('-last_edited_at'))
-    chart_vars = ChartDimension.objects.all().values('chartId', 'variableId').iterator()
+
     vars_used_in_charts = set()
     vars_per_chart = {}
-    for each in chart_vars:
-        vars_used_in_charts.add(each['variableId'])
-        if each['chartId'] not in vars_per_chart:
-            vars_per_chart[each['chartId']] = []
-            vars_per_chart[each['chartId']].append(each['variableId'])
-        else:
-            vars_per_chart[each['chartId']].append(each['variableId'])
+    for chart in charts:
+        for dim in chart.config['dimensions']:
+            vars_used_in_charts.add(dim['variableId'])
     allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
     vardict = {}
     for var in allvariables:
@@ -64,24 +60,17 @@ def listcharts(request: HttpRequest):
     chartlist = []
     for chart in charts:
         each = {}
+        each['config'] = chart.config
         each['id'] = chart.pk
-        each['published'] = chart.published
         each['starred'] = chart.starred
-        each['name'] = chart.name
         each['type'] = chart.show_type()
-        each['slug'] = chart.slug
-        each['notes'] = chart.notes
-        each['origin_url'] = chart.origin_url
         each['last_edited_at'] = chart.last_edited_at
         if chart.last_edited_by:
             each['last_edited_by'] = chart.last_edited_by.name
         else:
             each['last_edited_by'] = None
-        each['variables'] = []
-        if vars_per_chart.get(chart.pk):
-            for chartvar in vars_per_chart[chart.pk]:
-                if vardict.get(int(chartvar), 0):
-                    each['variables'].append(vardict[int(chartvar)])
+        variableIds = [dim['variableId'] for dim in chart.config['dimensions']]
+        each['variables'] = [vardict.get(varId) for varId in variableIds]
         chartlist.append(each)
     if '.json' in urlparse(request.get_full_path()).path:
         return JsonResponse(chartlist, safe=False)
@@ -143,6 +132,33 @@ def editchart(request: HttpRequest, chartid: Union[str, int]):
 
     return chart_editor(request, chart.get_config())
 
+def config_json_by_id(request, chartid):
+    """
+    :param request: Request object
+    :param id: Chart id
+    :return: config json
+    """
+
+    if chartid == "newChart":
+        configdict = {}
+        logos = []
+        for each in list(Logo.objects.filter(name__in=['owd'])):
+            logos.append(each.svg)
+        configdict['logosSVG'] = logos    
+    else:
+        try:
+            chart = Chart.objects.get(pk=int(chartid))
+        except Chart.DoesNotExist:
+            return HttpResponseNotFound('Invalid chart id!')
+
+        configdict = chart.get_config()
+        configdict['variableCacheTag'] = chart.make_cache_tag()
+
+    response = JsonResponse(configdict)
+    #response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+
+    return response
+
 def editordata(request: HttpRequest, cachetag: Optional[str]):
     datasets = []
 
@@ -176,43 +192,28 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
 def savechart(chart: Chart, data: Dict, user: User):
     isExisting = chart.id != None
 
-    if data.get('published'):
+    if data.get('isPublished'):
         if ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
             return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
-        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(Q(slug=data['slug'], published=True)):
+        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
             return HttpResponse("This chart slug is currently in use by another chart: %s" % data["slug"], status=402)
-        elif chart.published and chart.slug and chart.slug != data['slug']:
+        elif chart.config.get('isPublished') and chart.config.get('slug') and chart.config.get('slug') != data['slug']:
             # Changing the slug of an already published chart-- create a redirect
             try:
-                old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.slug)
+                old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.config['slug'])
                 old_chart_redirect.chart_id = chart.pk
                 old_chart_redirect.save()
             except ChartSlugRedirect.DoesNotExist:
                 new_chart_redirect = ChartSlugRedirect()
                 new_chart_redirect.chart_id = chart.pk
-                new_chart_redirect.slug = chart.slug
+                new_chart_redirect.slug = chart.config['slug']
                 new_chart_redirect.save()
-
-    chart.name = data.get("title", "")
-    data.pop("title", None)
-
-    chart.type = data["chart-type"]
-    data.pop("chart-type", None)
-
-    chart.notes = data.get("internalNotes", "")
-    data.pop("internalNotes", None)
-
-    chart.slug = data.get("slug", "")
-    data.pop("slug", None)
-
-    chart.published = data.get("published", None)
-    data.pop("published", None)
 
     data.pop("logosSVG", None)
 
     dims = []
 
-    chart.config = json.dumps(data)
+    chart.config = data
     chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
@@ -234,7 +235,6 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.isProjection = dim.get('isProjection', None)
         newdim.targetYear = dim.get('targetYear', None)
 
-        dims.append(newdim)
 
         if dim.get('saveToVariable'):
             if newdim.displayName:
@@ -250,15 +250,9 @@ def savechart(chart: Chart, data: Dict, user: User):
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
 
-
-    for each in ChartDimension.objects.filter(chartId=chart.pk):
-        each.delete()
-    for each in dims:
-        each.save()
-
     # Remove any old image exports as they will no longer represent the new chart state
     if isExisting:
-        for path in glob.glob(os.path.join(settings.BASE_DIR, "public/exports/", chart.slug, "*")):
+        for path in glob.glob(os.path.join(settings.BASE_DIR, "public/exports/", chart.config['slug'], "*")):
             os.remove(path)
 
     # Purge the Cloudflare cache for the chart config url
@@ -266,7 +260,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     # TODO: a job queue / coverage of more urls with query strings
     if settings.CLOUDFLARE_KEY:
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
-        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.slug}"
+        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.config['slug']}"
         urls_to_purge = [config_url, chart_url, chart_url + ".config.json", chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
         existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
         for each_url in urls_to_purge:
@@ -296,53 +290,6 @@ def managechart(request: HttpRequest, chartid: str):
         return HttpResponseRedirect(reverse('listcharts'))
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
-
-
-def showchart(request: HttpRequest, chartid: str):
-    try:
-        chart = Chart.objects.get(pk=int(chartid))
-    except Chart.DoesNotExist:
-        return HttpResponseNotFound('No such chart!')
-    except ValueError:
-        return HttpResponseNotFound('No such chart!')
-    if request.method != 'GET':
-        return JsonResponse(chart.get_config(), safe=False)
-    else:
-        # this part was lifted directly from the public facing side
-        # so if anything changes there, be sure to make the same changes here
-        configfile = chart.get_config()
-        canonicalurl = request.build_absolute_uri('/') + chart.slug
-        baseurl = request.build_absolute_uri('/') + chart.slug
-
-        chartmeta = {}
-
-        title = configfile['title']
-        title = re.sub("/, \*time\*/", " over time", title)
-        title = re.sub("/\*time\*/", "over time", title)
-        chartmeta['title'] = title
-        if configfile.get('subtitle', ''):
-            chartmeta['description'] = configfile['subtitle']
-        else:
-            chartmeta['description'] = 'An interactive visualization from Our World In Data.'
-        query_string = get_query_string(request)
-        if query_string:
-            canonicalurl += '?' + query_string
-        chartmeta['canonicalUrl'] = canonicalurl
-        if query_string:
-            imagequery = query_string + '&' + "size=1200x800&v=" + chart.make_cache_tag()
-        else:
-            imagequery = "size=1200x800&v=" + chart.make_cache_tag()
-
-        chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
-
-        configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
-
-        response = TemplateResponse(request, 'show_chart.html',
-                                    context={'chartmeta': chartmeta, 'configpath': configpath,
-                                             'query': query_string
-                                             })
-        return response
-
 
 @transaction.atomic
 def starchart(request: HttpRequest, chartid: str):
@@ -824,7 +771,7 @@ def dataset_json(request: HttpRequest, datasetid: str):
             chart = Chart.objects.get(pk=onechart)
             chartdata.append({
                 'id': chart.pk,
-                'name': chart.name
+                'name': chart.config['title']
             })
 
         vardata = {

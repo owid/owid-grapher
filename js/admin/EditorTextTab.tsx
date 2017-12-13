@@ -2,53 +2,27 @@ import * as React from 'react'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { Toggle, TextField, TextAreaField } from './Forms'
+import { Toggle, Section, BindString, BindAutoString } from './Forms'
 
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
-    get chart() {
-        return this.props.editor.chart
-    }
-
-    lastTitle: string
-
-    @action.bound onTitle(title: string) { this.chart.props.title = title || undefined }
-    @action.bound onSlug(slug: string) { this.chart.props.slug = slug || undefined }
-    @action.bound onToggleTitleAnnotation(value: boolean) { this.chart.props.hideTitleAnnotation = value || undefined }
-    @action.bound onSubtitle(value: string) { this.chart.props.subtitle = value || undefined }
-    @action.bound onSource(sourceDesc: string) { this.chart.props.sourceDesc = sourceDesc || undefined }
-    @action.bound onNote(value: string) { this.chart.props.note = value || undefined }
-    @action.bound onInternalNotes(value: string) { this.chart.props.internalNotes = value || undefined }
-
     render() {
-        const { chart } = this
+        const {chart} = this.props.editor
 
-        return <div className="tab-pane active">
-            <section>
-                <h2>Title of the visualization</h2>
-                <TextField value={chart.props.title} onValue={this.onTitle} style={{ width: "100%" }} placeholder={chart.data.title} />
-                <div className="input-group">
-                    <span className="input-group-addon">/grapher/</span>
-                    <TextField value={chart.props.slug} onValue={this.onSlug} placeholder={chart.data.slug} title="Human-friendly URL slug for this chart" />
-                </div>
-                <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={this.onToggleTitleAnnotation} />
-            </section>
-            <section>
-                <h2>Subtitle of the visualization</h2>
-                <TextAreaField value={chart.props.subtitle} onValue={this.onSubtitle} placeholder="Briefly describe the context of the data" />
-            </section>
-            <section>
-                <h2>Sources</h2>
-                <TextAreaField value={chart.props.sourceDesc} onValue={this.onSource} placeholder={chart.data.sourcesLine} />
-            </section>
-            <section>
-                <h2>Footer note</h2>
-                <TextAreaField value={chart.props.note} onValue={this.onNote} placeholder="Any further relevant information e.g. adjustments or limitations" />
-            </section>
-            <section>
-                <h2>Internal author notes</h2>
-                <TextAreaField value={chart.props.internalNotes} onValue={this.onInternalNotes} placeholder="e.g. WIP, needs review, etc" />
-            </section>
+        return <div>
+            <Section name="Header">
+                <BindAutoString field="title" store={chart.props} auto={chart.data.title}/>
+                <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={action((value: boolean) => chart.props.hideTitleAnnotation = value||undefined)}/>
+                <BindAutoString label="/grapher/" field="slug" store={chart.props} auto={chart.data.slug} helpText="Human-friendly URL for this chart"/>
+                <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data" textarea/>
+            </Section>
+            <Section name="Footer">
+                <BindAutoString label="Source" field="sourceDesc" store={chart.props} auto={chart.data.sourcesLine}/>
+                <BindString label="Footer note" field="note" store={chart.props} helpText="Any important clarification needed to avoid miscommunication" />
+            </Section>
+            <Section name="Misc">
+                <BindString label="Internal author notes" field="internalNotes" store={chart.props} placeholder="e.g. WIP, needs review, etc" textarea/>
+            </Section>
         </div>
     }
 }

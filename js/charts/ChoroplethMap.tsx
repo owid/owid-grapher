@@ -115,7 +115,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         else if (!focusBracket)
             return false
 
-        const datum = geo.id ? choroplethData[geo.id] : null
+        const datum = choroplethData[geo.id as string] || null
         if (focusBracket.contains(datum))
             return true
         else

@@ -93,7 +93,7 @@ def test_all(request):
 
     charts_per_page = 5
 
-    query = Chart.objects.filter(published=True).exclude(origin_url='').order_by('-created_at')
+    query = Chart.objects.filter(config__isPublished=True).exclude(origin_url='').order_by('-created_at')
 
     if test_type and test_type != 'map':
         query = query.filter(type=test_type)
@@ -102,11 +102,10 @@ def test_all(request):
     count = 0
 
     for each in query:
-        configfile = json.loads(each.config)
-        tabs = configfile['tabs']
-        if test_type == 'map' and 'map' not in tabs:
+        configfile = each.config
+        if test_type == 'map' and not configfile.get('hasMapTab'):
             continue
-        elif test_type and 'chart' not in tabs:
+        elif test_type and not configfile.get('hasChartTab'):
             continue
 
         count += 1
@@ -159,10 +158,10 @@ def testsome(request):
 
     urls = []
     for chart in charts:
-        configfile = json.loads(chart.config)
+        configfile = chart.config
 
-        local_url = request.build_absolute_uri('/grapher/') + chart.slug
-        live_url = "https://ourworldindata.org/grapher/" + chart.slug
+        local_url = request.build_absolute_uri('/grapher/') + chart.config['slug']
+        live_url = "https://ourworldindata.org/grapher/" + chart.config['slug']
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
 
@@ -206,19 +205,17 @@ def showchart(request, chart):
             'grapher' not in referer_s and 'about' not in referer_s and 'roser/' not in referer_s
             and 'slides' not in referer_s and 'blog' not in referer_s):
             origin_url = 'https://' + root.netloc + referer.path
-            if chart.origin_url != origin_url:
-                chart.origin_url = origin_url
+            if chart.config.get('originUrl') != origin_url:
+                chart.config['originUrl'] = origin_url
                 chart.save()
 
     configfile = chart.get_config()
-    canonicalurl = request.build_absolute_uri('/grapher/') + chart.slug
-    baseurl = request.build_absolute_uri('/grapher/') + chart.slug
+    canonicalurl = request.build_absolute_uri('/grapher/') + configfile['slug']
+    baseurl = request.build_absolute_uri('/grapher/') + configfile['slug']
 
     chartmeta = {}
 
     title = configfile['title']
-    title = re.sub("/, \*time\*/", "", title)
-    title = re.sub("/\*time\*/", "", title)
     chartmeta['title'] = title
     if configfile.get('subtitle', ''):
         chartmeta['description'] = configfile['subtitle']
@@ -263,13 +260,15 @@ def find_with_redirects(slug):
 
     try:
         intslug = int(slug)
+        chart = Chart.objects.filter(id=intslug, config__isPublished=True).first()
     except ValueError:
         intslug = None
-    chart = Chart.objects.filter((Q(slug=slug) | Q(pk=intslug)), published__isnull=False).first()
+
+    chart = Chart.objects.filter(config__slug=slug, config__isPublished=True).first()
     if not chart:
         redirect_chart = ChartSlugRedirect.objects.filter(slug=slug).first()
         if redirect_chart:
-            chart = Chart.objects.filter(pk=redirect_chart.chart_id, published__isnull=False).first()
+            chart = Chart.objects.filter(id=redirect_chart.chart_id, config__isPublished=True).first()
 
     return chart
 
@@ -421,11 +420,8 @@ def latest(request):
     :param request: Request object
     :return: Redirects to the Chart page with the latest published chart
     """
-    chart = Chart.objects.filter(published=True).order_by("-starred", "-created_at").first()
-    slug = chart.slug
-    query = get_query_string(request)
-    if query:
-        slug += '?' + query
+    chart = Chart.objects.filter(config__isPublished=True).order_by("-starred", "-created_at").first()
+    slug = chart.config.get('slug')
     return HttpResponseRedirect(reverse('showchart', args=[slug]))
 
 
@@ -436,7 +432,7 @@ def exportfile(request, slug, fileformat):
     :param fileformat: Requested format of the file: [png, svg, csv]
     :return: Returns the file for download
     """
-    if fileformat not in ['csv', 'png', 'svg']:
+    if fileformat not in ['png', 'svg']:
         return HttpResponseNotFound('Unknown chart export format.')
 
     if fileformat in ['png', 'svg']:
@@ -466,80 +462,3 @@ def exportfile(request, slug, fileformat):
             if 'view' not in request.GET:
                 response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(slug + "." + fileformat)
             return response
-
-    if fileformat == 'csv':
-        chart = find_with_redirects(slug)
-        if chart:
-            configfile = json.loads(chart.config)
-            allvariables = Variable.objects.all()
-            allvardict = {}
-            chartvarlist = []
-
-            for var in allvariables:
-                allvardict[var.pk] = {'id': var.pk, 'name': var.name}
-
-            for chartvar in configfile['dimensions']:
-                if allvardict.get(int(chartvar['variableId']), 0):
-                    chartvarlist.append(allvardict[int(chartvar['variableId'])])
-
-            chartvarlist = sorted(chartvarlist, key=lambda k: k['id'])
-
-            id_tuple = ''
-            varlist = []
-            headerlist = ['Entity', 'Year', 'Country code']
-
-            for each in chartvarlist:
-                id_tuple += str(each['id']) + ','
-                headerlist.append(each['name'])
-                varlist.append(each['id'])
-
-            id_tuple = id_tuple[:-1]
-
-            sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, entities.id as entity_id, ' \
-                        'entities.name as entity_name, entities.code as entity_code from data_values ' \
-                        'join entities on data_values.`fk_ent_id` = entities.`id` WHERE ' \
-                        'data_values.`fk_var_id` in (%s) ORDER BY entity_name, year, fk_var_id;' % id_tuple
-
-            with connection.cursor() as cursor:
-                cursor.execute(sql_query)
-                rows = cursor.fetchall()
-
-            def stream():
-
-                buffer_ = StringIO()
-                writer = csv.writer(buffer_)
-                writer.writerow(headerlist)
-                current_row = None
-
-                for row in rows:
-                    if not current_row or current_row[0] != row[4] or current_row[1] != row[1]:
-                        if current_row:
-                            writer.writerow(current_row)
-                            buffer_.seek(0)
-                            data = buffer_.read()
-                            buffer_.seek(0)
-                            buffer_.truncate()
-                            yield data
-
-                        current_row = [row[4], row[1], row[5]];
-                        for i in range(0, len(varlist)):
-                            current_row.append("")
-
-                    theindex = 3 + varlist.index(row[2])
-                    current_row[theindex] = row[0]
-                writer.writerow(current_row)
-                buffer_.seek(0)
-                data = buffer_.read()
-                buffer_.seek(0)
-                buffer_.truncate()
-                yield data
-
-            response = StreamingHttpResponse(
-                stream(), content_type='text/csv'
-            )
-            disposition = "attachment; filename=%s.csv" % slug
-            response['Content-Disposition'] = disposition
-            response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
-            return response
-        else:
-            HttpResponseNotFound('No such chart!')

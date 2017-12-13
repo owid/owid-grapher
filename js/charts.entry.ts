@@ -1,7 +1,7 @@
 // CSS
 
 import 'font-awesome.css'
-import '../css/chart.css'
+import '../css/chart.scss'
 
 // Enable mobx-formatters
 const Mobx = require('mobx')

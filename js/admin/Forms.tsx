@@ -5,30 +5,35 @@
  */
 
 import * as React from 'react'
-import { toString, numberOnly, pick } from '../charts/Util'
+import { extend, pick, capitalize } from '../charts/Util'
 import { bind } from 'decko'
+import {observable, action} from 'mobx'
+import {observer} from 'mobx-react'
+import Colorpicker from './Colorpicker'
+
+export class FieldsRow extends React.Component<{}> {
+    render() {
+        const {props} = this
+        return <div className="FieldsRow">
+            {props.children}
+        </div>
+    }
+}
 
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     label?: string,
     value: string | undefined,
-    onValue: (value: string | undefined) => void,
+    onValue: (value: string) => void,
     onEnter?: () => void,
     onEscape?: () => void,
     placeholder?: string,
     title?: string,
-    disabled?: boolean
+    disabled?: boolean,
+    helpText?: string,
+    autofocus?: boolean
 }
 
 export class TextField extends React.Component<TextFieldProps> {
-    @bind onInput(ev: React.FormEvent<HTMLInputElement>) {
-        const value = ev.currentTarget.value
-        if (value === "") {
-            this.props.onValue(undefined)
-        } else {
-            this.props.onValue(value)
-        }
-    }
-
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key === "Enter" && this.props.onEnter) {
             this.props.onEnter()
@@ -37,120 +42,130 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
+    base: HTMLDivElement
+    componentDidMount() {
+        if (this.props.autofocus) {
+            const input = this.base.querySelector("input") as HTMLInputElement
+            input.focus()
+        }
+    }
+
     render() {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
 
-        if (props.label) {
-            return <label className="TextField" style={props.style}>
-                {props.label}
-                <input className="form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
-            </label>
-        } else {
-            return <input style={props.style} className="TextField form-control" type="text" value={props.value} onInput={this.onInput} onKeyDown={this.onKeyDown} {...passthroughProps} />
-        }
+        return <div className="form-group">
+            {props.label && <label>{props.label}</label>}
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+        </div>
     }
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
     @bind onInput(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
-        if (value === "") {
-            this.props.onValue(undefined)
-        } else {
-            this.props.onValue(value)
-        }
+        this.props.onValue(value)
     }
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
 
-        if (props.label) {
-            return <label style={props.style} className="TextAreaField">
-                {props.label}
-                <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps} />
-            </label>
-        } else {
-            return <textarea className="TextAreaField form-control" style={props.style} value={props.value} onInput={this.onInput} {...passthroughProps} />
-        }
+        return <div className="form-group">
+            {props.label && <label>{props.label}</label>}
+            <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            {props.helpText && <small>{props.helpText}</small>}
+        </div>
     }
 }
 
 export interface NumberFieldProps {
     label?: string,
     value: number | undefined,
-    onValue: (value: number | undefined) => void,
-    min?: number,
-    max?: number,
-    placeholder?: string
-    disabled?: boolean
+    onValue: (value: number|undefined) => void,
+    onEnter?: () => void,
+    onEscape?: () => void,
+    placeholder?: string,
+    title?: string,
+    disabled?: boolean,
+    helpText?: string,
 }
 
 export class NumberField extends React.Component<NumberFieldProps> {
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['min', 'max', 'placeholder', 'disabled'])
-        if (props.label) {
-            return <label className="NumberField">
-                {props.label} <input type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps} />
-            </label>
-        } else {
-            return <input className="NumberField" type="text" value={toString(props.value)} onChange={(ev) => props.onValue(numberOnly(ev.currentTarget.value))} {...passthroughProps} />
-        }
+
+        const textFieldProps = extend({}, props, {
+            value: props.value !== undefined ? props.value.toString() : undefined,
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            }
+        })
+
+        return <TextField {...textFieldProps}/>
     }
 }
 
 export interface SelectFieldProps {
-    label: string,
+    label?: string,
     value: string | undefined,
-    onValue: (value: string | undefined) => void,
+    onValue: (value: string) => void,
     options: string[],
-    optionLabels?: string[]
+    optionLabels?: string[],
+    helpText?: string
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
     render() {
         const { props } = this
-        return <label>
-            {props.label}
-            <select className="form-control" value={toString(props.value)} onChange={(ev: React.FormEvent<HTMLSelectElement>) => props.onValue(ev.currentTarget.value.length === 0 ? undefined : ev.currentTarget.value)}>
-                {props.options.map((value, i) =>
-                    <option value={value}>{props.optionLabels ? props.optionLabels[i] : value}</option>
+
+        const options = props.options.map((opt, i) => {
+            return {
+                key: opt,
+                value: opt,
+                text: (props.optionLabels && props.optionLabels[i]) || opt
+            }
+        })
+
+        return <div className="form-group">
+            {props.label && <label>{props.label}</label>}
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)}>
+                {options.map(opt =>
+                    <option value={opt.value} selected={opt.value === props.value}>{opt.text}</option>
                 )}
             </select>
-        </label>
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+        </div>
     }
 }
 
 export interface NumericSelectFieldProps {
     label?: string,
-    value?: number,
+    value: number|undefined,
     onValue: (value: number) => void,
     options: number[],
-    optionLabels: string[]
+    optionLabels?: string[],
+    helpText?: string
 }
 
 export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
-    onChange(ev: React.FormEvent<HTMLSelectElement>) {
-        this.props.onValue(parseFloat(ev.currentTarget.value))
-    }
-
     render() {
-        const { props } = this
-        return <label>
-            {props.label}
-            <select className="form-control" value={props.value}>
-                {props.options.map((value, i) =>
-                    <option value={value}>{props.optionLabels[i]}</option>
-                )}
-            </select>
-        </label>
+        const props = extend({}, this.props, {
+            value: this.props.value !== undefined ? this.props.value.toString() : "",
+            options: this.props.options.map(opt => opt.toString()),
+            onValue: (value: string|undefined) => {
+                const asNumber = parseFloat(value as string)
+                this.props.onValue(asNumber)
+            }
+        })
+        return <SelectField {...props}/>
     }
 }
 
 export interface ToggleProps {
-    label: string,
+    label: string|JSX.Element,
     value: boolean,
     onValue: (value: boolean) => void
 }
@@ -158,9 +173,220 @@ export interface ToggleProps {
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const { props } = this
-        return <label className="Toggle clickable">
-            <input type="checkbox" checked={props.value} onChange={(ev) => props.onValue(ev.target.checked)} />
-            {" " + props.label}
-        </label>
+        /*return <div className="mdc-form-field">
+
+        </div>*/
+
+        return <div className="form-check">
+            <label className="form-check-label">
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)}/>
+                {props.label}
+            </label>
+        </div>
+        /* return <FormField>
+           <Checkbox checked={props.value} onChange={/> <label>{props.label}</label>
+       </FormField>
+       return <label className="Toggle clickable">
+           <input type="checkbox" checked={props.value}  />
+           {" " + props.label}
+       </label>*/
+    }
+}
+
+export interface ButtonProps {
+    onClick: () => void
+    label?: string
+}
+
+export class EditableList extends React.Component<{ className?: string }> {
+    render() {
+        return this.props.children ? <ul {...this.props} className={"list-group" + (this.props.className ? ` ${this.props.className}` : "")}/> : null
+    }
+}
+
+export interface EditableListItemProps extends React.HTMLAttributes<HTMLLIElement> {
+    className?: string
+}
+
+export class EditableListItem extends React.Component<EditableListItemProps> {
+    render() {
+        return <li {...this.props} className={"list-group-item" + (this.props.className ? ` ${this.props.className}` : "")} />
+    }
+}
+
+@observer
+export class ColorBox extends React.Component<{ color: string|undefined, onColor: (color: string|undefined) => void }> {
+    @observable.ref isChoosingColor = false
+
+    @action.bound onClick() {
+        this.isChoosingColor = !this.isChoosingColor
+    }
+
+    render() {
+        const { color } = this.props
+        const { isChoosingColor } = this
+
+        const style = color !== undefined ? { backgroundColor: color } : undefined
+
+        return <div className="ColorBox" style={style} onClick={this.onClick}>
+            {color === undefined && <i className="fa fa-paint-brush"/>}
+            {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
+        </div>
+    }
+}
+
+export class Section extends React.Component<{ name: string }> {
+    render() {
+        return <section>
+            <h5>{this.props.name}</h5>
+            {this.props.children}
+        </section>
+    }
+}
+
+export interface AutoTextFieldProps {
+    label?: string
+    value: string | undefined
+    placeholder?: string
+    isAuto: boolean
+    helpText?: string
+    onValue: (value: string) => void
+    onToggleAuto: (value: boolean) => void
+}
+
+@observer
+export class AutoTextField extends React.Component<AutoTextFieldProps> {
+    render() {
+        const {props} = this
+
+        return <div className="form-group AutoTextField">
+            {props.label && <label>{props.label}</label>}
+            <div className="input-group mb-2 mb-sm-0">
+                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
+                <div className="input-group-addon" onClick={_ => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
+                    {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
+                </div>
+            </div>
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+        </div>
+    }
+}
+
+@observer
+export class BindString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean }> {
+    @action.bound onValue(value: string) {
+        this.props.store[this.props.field] = value||undefined
+    }
+
+    render() {
+        const {props} = this
+
+        const {field, store, label, textarea, ...rest} = props
+        const value = props.store[props.field] as string|undefined
+        if (textarea)
+            return <TextAreaField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+        else
+            return <TextField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+        }
+}
+
+@observer
+export class BindAutoString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string }> {
+    @action.bound onValue(value: string) {
+        this.props.store[this.props.field] = value
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.store[this.props.field] = value ? undefined : this.props.auto
+    }
+
+    render() {
+        const {field, store, label, auto, ...rest} = this.props
+
+        const value = store[field] as string|undefined
+
+        return <AutoTextField label={label||capitalize(field)} value={value === undefined ? auto : value} isAuto={value === undefined} onValue={this.onValue} onToggleAuto={this.onToggleAuto} {...rest}/>
+    }
+}
+
+export interface AutoFloatFieldProps {
+    label?: string
+    value: number
+    isAuto: boolean
+    helpText?: string
+    onValue: (value: number|undefined) => void
+    onToggleAuto: (value: boolean) => void
+}
+
+export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
+    render() {
+        const { props } = this
+
+        const textFieldProps = extend({}, props, {
+            value: props.isAuto ? undefined : props.value.toString(),
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            },
+            placeholder: props.isAuto ? props.value.toString() : undefined
+        })
+
+        return <AutoTextField {...textFieldProps}/>
+    }
+}
+
+@observer
+export class BindAutoFloat<T extends {[field: string]: number|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
+    @action.bound onValue(value: number|undefined) {
+        this.props.store[this.props.field] = value
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.store[this.props.field] = value ? undefined : this.props.auto
+    }
+
+    render() {
+        const {field, store, label, auto, ...rest} = this.props
+
+        const value = store[field] as number|undefined
+
+        return <AutoFloatField label={label||capitalize(field)} value={value === undefined ? auto : value} isAuto={value === undefined} onValue={this.onValue} onToggleAuto={this.onToggleAuto} {...rest}/>
+    }
+}
+
+@observer
+export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
+    base: HTMLDivElement
+
+    @action.bound onClickOutside() {
+        this.props.onClose()
+    }
+
+    componentDidMount() {
+        setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
+    }
+
+    componentWillUnmount() {
+        document.body.removeEventListener("click", this.onClickOutside)
+    }
+
+    render() {
+        const {props} = this
+        return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}}>
+            <div className="modal-dialog" role="document" onClick={e => e.stopPropagation()}>
+                <div className="modal-content">
+                    {this.props.children}
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@observer
+export class LoadingBlocker extends React.Component<{}> {
+    render() {
+        return <div className="LoadingBlocker">
+            <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
+        </div>
     }
 }

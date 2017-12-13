@@ -157,9 +157,9 @@ export default class ChartConfig {
     data: ChartData
     url: URLBinder
 
-    constructor(props: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
+    constructor(props?: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed
-        this.update(props)
+        this.update(props || new ChartConfigProps())
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)
@@ -195,7 +195,7 @@ export default class ChartConfig {
     @computed get hideLegend() { return this.props.hideLegend }
     @computed get baseColorScheme() { return this.props.baseColorScheme }
 
-    @computed get entityType() { return this.props.entityType || "country" }
+    @computed get entityType() { return defaultTo(this.props.entityType, "country") }
 
     @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
 
@@ -280,12 +280,7 @@ export default class ChartConfig {
         if (json.isAutoSlug && App.isEditor)
             this.props.slug = undefined
 
-        this.props.type = json["chart-type"] || ChartType.LineChart
-        this.props.originUrl = json["data-entry-url"]
-        this.props.isPublished = json["published"]
         this.props.map = new MapConfigProps(json.map)
-        this.props.hasChartTab = json["tabs"] ? includes(json["tabs"], "chart") : true
-        this.props.hasMapTab = json["tabs"] ? includes(json["tabs"], "map") : false
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
 
@@ -309,11 +304,6 @@ export default class ChartConfig {
             json.slug = this.data.slug
             json.isAutoSlug = true
         }
-
-        // XXX backwards compatibility
-        json["chart-type"] = props.type
-        json["published"] = props.isPublished
-        json["tabs"] = this.availableTabs
 
         return json
     }

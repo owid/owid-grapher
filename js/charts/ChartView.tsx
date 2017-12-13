@@ -114,6 +114,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     @computed get classNames(): string {
         const classNames = [
+            "chart",
             this.isExport && "export",
             this.isEditor && "editor",
             this.isEmbed && "embed",
@@ -200,7 +201,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
             const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
-            return this.chart.data.isReady && <div id="chart" className={this.classNames} style={style}>
+            return this.chart.data.isReady && <div className={this.classNames} style={style}>
                 {this.renderReady()}
             </div>
         }
@@ -213,7 +214,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
-            select(this.base).selectAll("#chart > *").style('opacity', 0).transition().style('opacity', null)
+            select(this.base).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         }
     }

@@ -1,0 +1,362 @@
+/* Chart editor styling */
+
+@import "node_modules/bootstrap/scss/bootstrap";
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Roboto, sans-serif;
+}
+
+.AdminApp {
+    height: 100%;
+
+    button, a, .btn, .form-group > label, .form-check > label {
+        @extend .clickable;
+    }
+
+    a.logout:hover:after {
+        content: " (logout)";
+    }
+}
+
+.EditorFAQ {
+    .modal-dialog {
+        max-width: 800px;
+    }
+
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+
+    h6 {
+        font-weight: bold;
+    }
+
+    h6:not(:first-child) {
+        margin-top: 20px;        
+    }
+}
+
+.ChartEditorPage {
+    height: calc(100% - 60px);
+    display: flex;
+
+    .btn-group .btn {
+        width: 50px;
+    }
+
+    .form-group > label {
+        margin-bottom: 0;
+    }
+
+    .nav-tabs :not(.active).nav-link {
+        background: #f9f9f9;
+    }
+
+    > form {
+        min-width: 500px;
+        width: 500px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .innerForm {
+        overflow-y: scroll;
+        flex-grow: 1;
+    }
+
+    .SaveButtons {
+        padding: 24px;
+    }
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+    }
+
+    section {
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin-bottom: 1.2em;
+        background-color: #f9f9f9;
+
+        > h5 {
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ccc;
+        }
+    }
+}
+
+.EditorBasicTab {
+    .list-group {
+        margin-top: 0;
+        margin-bottom: 0.5em;
+    }
+
+    .DimensionCard {
+        header {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            text-align: center;
+        }
+    
+        > div {
+            margin: 1em 0;
+        }
+    }
+
+    .dimensionSlot {
+        cursor: pointer;
+        min-height: 50px;
+        border: 1px dashed #bbb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    }
+}
+
+.VariableSelector { 
+    .modal-dialog {
+        min-width: 800px;
+        max-width: 90vw;
+    }
+
+    form {
+        display: flex !important;
+        justify-content: space-between;
+    }
+
+    .selectedData {
+        min-width: 25%;
+        padding-left: 1em;
+        max-height: 550px;
+        overflow-y: auto;
+    }
+
+    .searchResults {
+        width: 100%;
+    }
+
+    .searchResults h5 {
+      color: #666;
+      font-size: 1rem;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .searchResults ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .searchResults b {
+      color: orange;
+    }
+
+    ul {
+        padding: 0;
+    }
+    
+    li {
+        list-style-type: none;
+        flex: 1 0 15em;
+        min-height: 32px;
+    }
+
+    li > .form-check {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    input[type=search] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
+}
+
+.EditorDataTab {
+    .DataKeyItem {
+        @extend .draggable;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    
+        > div {
+            display: flex;
+            align-items: center;
+        }
+    
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+    
+        > div:first-child > * {
+            margin-right: 12px;
+        }
+    }
+}
+
+.EditorMapTab {
+    .ColorSchemeEditor {
+        padding-left: 0;
+        li {
+            display: flex;
+            align-items: center;
+            
+            i {
+                font-size: 1.2rem;
+                color: #666;
+            }
+        
+            > * {
+                margin-right: 12px;
+            }
+
+            .form-group {
+                flex-grow: 1;
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .BinLabelView .FieldsRow {
+        margin-bottom: 0;
+    }
+}
+
+.EditorScatterTab {
+    ul.excludedEntities {
+        padding: 0;
+
+        li {
+            list-style-type: none;
+            display: inline-flex;
+            align-items: center;
+            padding: 1em;
+            background: white;
+            border-radius: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .clickable {
+            margin-right: .2em;
+        }
+    }
+}
+
+/* Reusable utility classes */
+
+.draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    user-select: none;
+}
+
+.draggable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.modalContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
+    }
+}
+
+.AutoTextField {
+    .input-group-addon {
+        cursor: pointer;
+    }
+}
+
+.ColorBox {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.Colorpicker {
+    cursor: default;
+    position: absolute;
+    top: 0px;
+    left: 150%;
+    width: 105px;
+    padding: 10px;
+    background-color: #666;
+    z-index: 100;
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+
+        li {
+            @extend .clickable;
+            list-style-type: none;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+.LoadingBlocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    color: white;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    background-color: rgba(0,0,0,0.5);
+    overflow-y: auto;
+}

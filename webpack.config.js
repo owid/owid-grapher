@@ -12,7 +12,8 @@ module.exports = {
     context: __dirname,
     entry: {
         charts: "./js/charts.entry.ts",
-        admin: "./js/admin.entry.ts"
+        admin: "./js/admin.entry.ts",
+        editor: "./js/editor.entry.ts"
     },
     output: {
         path: path.join(__dirname, "public/build"),
@@ -42,6 +43,10 @@ module.exports = {
             {
                 test: /\.css$/,
                 loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
+            },
+            {
+                test: /\.scss$/,
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'sass-loader'] })
             },
             {
                 test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,

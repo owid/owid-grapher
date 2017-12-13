@@ -150,7 +150,7 @@ export class ColorScheme {
 }
 
 export default (() => {
-    const colorSchemes: { [key: string]: ColorScheme } = {}
+    const colorSchemes: { [key: string]: ColorScheme|undefined } = {}
 
     // Create a ColorScheme for each colorbrewer scheme
     for (const schemeKey in colorbrewer) {

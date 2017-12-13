@@ -1,20 +1,23 @@
 import * as React from 'react'
 import { clone, isEmpty, noop, extend, map } from '../charts/Util'
-import { computed, action, observable } from 'mobx'
+import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { NumericSelectField, NumberField, SelectField, TextField, Toggle } from './Forms'
+import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow, BindAutoString, BindAutoFloat } from './Forms'
 import MapConfig from '../charts/MapConfig'
 import MapProjection from '../charts/MapProjection'
 import ColorSchemes from '../charts/ColorSchemes'
 import { NumericBin, CategoricalBin } from '../charts/MapData'
 import Color from '../charts/Color'
-import Colorpicker from './Colorpicker'
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onVariableId(variableId: number) {
         this.props.mapConfig.props.variableId = variableId
+    }
+
+    @action.bound onProjection(projection: string|undefined) {
+        this.props.mapConfig.props.projection = (projection as MapProjection)
     }
 
     render() {
@@ -26,10 +29,13 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
                 <h2>Add some variables on data tab first</h2>
             </section>
 
-        return <section>
-            <h2>Which variable on map</h2>
-            <NumericSelectField value={mapConfig.variableId} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />
-        </section>
+        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
+        const labels = ['World', 'Africa', 'North America', 'South America', 'Asia', 'Europe', 'Australia']
+
+        return <Section name="Map">
+            <NumericSelectField label="Variable" value={mapConfig.variableId as number} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />
+            <SelectField label="Region" value={mapConfig.props.projection} options={projections} optionLabels={labels} onValue={this.onProjection} />
+        </Section>
 
     }
 }
@@ -40,44 +46,22 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.hideTimeline = value||undefined
     }
 
-    @action.bound onTolerance(tolerance: number) {
+    @action.bound onTolerance(tolerance: number|undefined) {
         this.props.mapConfig.props.timeTolerance = tolerance
     }
 
     render() {
         const {mapConfig} = this.props
-        return <section>
-            <h2>Timeline</h2>
+        return <Section name="Timeline">
             <Toggle label="Hide timeline" value={!!mapConfig.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
-            <label>
-                <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} min={0} />
-                <p className="form-section-desc">Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990.</p>
-            </label>
-        </section>
-    }
-}
-
-@observer
-class ColorBox extends React.Component<{ color: Color, onColor: (color: Color) => void }> {
-    @observable.ref isChoosingColor = false
-
-    @action.bound onClick() {
-        this.isChoosingColor = !this.isChoosingColor
-    }
-
-    render() {
-        const { color } = this.props
-        const { isChoosingColor } = this
-
-        return <span className="map-color-scheme-icon" style={{ backgroundColor: color }} onClick={this.onClick}>
-            {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
-        </span>
+            <NumberField label="Tolerance of data" value={mapConfig.props.timeTolerance} onValue={this.onTolerance} helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."/>
+        </Section>
     }
 }
 
 @observer
 class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin, index: number }> {
-    @action.bound onColor(color: Color) {
+    @action.bound onColor(color: Color|undefined) {
         const { mapConfig, index } = this.props
 
         if (!mapConfig.isCustomColors) {
@@ -87,42 +71,60 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
             mapConfig.props.customColorsActive = true
         }
 
-        while (mapConfig.props.customNumericColors.length < mapConfig.numBuckets)
+        while (mapConfig.props.customNumericColors.length < mapConfig.data.numBins)
             mapConfig.props.customNumericColors.push(undefined)
 
         mapConfig.props.customNumericColors[index] = color
     }
 
-    @action.bound onMaximumValue(value: number) {
+    @action.bound onMaximumValue(value: number|undefined) {
         const { mapConfig, index } = this.props
-        while (mapConfig.props.colorSchemeValues.length < mapConfig.numBuckets)
-            mapConfig.props.colorSchemeValues.push(undefined)
-        mapConfig.props.colorSchemeValues[index] = value
+        if (value !== undefined)
+            mapConfig.props.colorSchemeValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
         const { mapConfig, index } = this.props
-        while (mapConfig.props.colorSchemeLabels.length < mapConfig.numBuckets)
+        while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
             mapConfig.props.colorSchemeLabels.push(undefined)
         mapConfig.props.colorSchemeLabels[index] = value
     }
 
+    @action.bound onRemove() {
+        const { mapConfig, index } = this.props
+        mapConfig.props.colorSchemeValues.splice(index, 1)
+        mapConfig.props.customNumericColors.splice(index, 1)
+    }
+
+    @action.bound onAddAfter() {
+        const { mapConfig, index } = this.props
+        const { colorSchemeValues, customNumericColors } = mapConfig.props
+        const currentValue = colorSchemeValues[index]
+
+        if (index === colorSchemeValues.length-1)
+            colorSchemeValues.push(currentValue+mapConfig.data.binStepSizeDefault)
+        else {
+            const newValue = (currentValue+colorSchemeValues[index+1])/2
+            colorSchemeValues.splice(index+1, 0, newValue)
+            customNumericColors.splice(index+1, 0, undefined)
+        }
+    }
+
     render() {
-        const { mapConfig, bin, index } = this.props
+        const { mapConfig, bin } = this.props
 
-        const max = index + 1 < mapConfig.colorSchemeValues.length ? mapConfig.colorSchemeValues[index + 1] : undefined
-
-        return <li className="numeric clearfix">
+        return <EditableListItem className="numeric">
+            <div className="clickable" onClick={this.onAddAfter}><i className="fa fa-plus"/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
-            <NumberField placeholder="Maximum value" min={bin.min} value={bin.max} max={max} onValue={this.onMaximumValue} disabled={mapConfig.isAutoBuckets} />
-            <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
-        </li>
+            <NumberField value={bin.max} onValue={this.onMaximumValue}/>
+            {mapConfig.props.colorSchemeValues.length > 2 && <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>}
+        </EditableListItem>
     }
 }
 
 @observer
 class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: CategoricalBin }> {
-    @action.bound onColor(color: Color) {
+    @action.bound onColor(color: Color|undefined) {
         const { mapConfig, bin } = this.props
         if (!mapConfig.isCustomColors) {
             // Creating a new custom color scheme
@@ -132,7 +134,10 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
         }
 
         const customCategoryColors = clone(mapConfig.props.customCategoryColors)
-        customCategoryColors[bin.value] = color
+        if (color === undefined)
+            delete customCategoryColors[bin.value]
+        else
+            customCategoryColors[bin.value] = color
         mapConfig.props.customCategoryColors = customCategoryColors
     }
 
@@ -157,12 +162,11 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
     render() {
         const { bin } = this.props
 
-        return <li className="categorical clearfix">
+        return <EditableListItem className="categorical">
             <ColorBox color={bin.color} onColor={this.onColor} />
             <TextField value={bin.value} disabled={true} onValue={noop} />
-            <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             <Toggle label="Hide" value={bin.isHidden} onValue={this.onToggleHidden} />
-        </li>
+        </EditableListItem>
     }
 }
 
@@ -177,25 +181,21 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
         const { dimension } = mapConfig.data
         if (!dimension) return null
 
-        return <ul className="map-color-scheme-preview clearfix automatic-values">
-            {dimension.variable.hasNumericValues && <li className='clearfix min-color-wrapper'>
-                <NumberField label="Minimal value:" value={mapConfig.props.colorSchemeMinValue} onValue={this.onMinimalValue} />
-            </li>}
-
-            {map(mapConfig.data.legendData, (bin, index) => {
+        return <EditableList className="ColorSchemeEditor">
+            {mapConfig.data.legendData.map((bin, index) => {
                 if (bin instanceof NumericBin) {
                     return <NumericBinView mapConfig={mapConfig} bin={bin} index={index} />
                 } else {
                     return <CategoricalBinView mapConfig={mapConfig} bin={bin} />
                 }
             })}
-        </ul>
+        </EditableList>
     }
 }
 
 @observer
 class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onColorScheme(schemeKey: string) {
+    @action.bound onColorScheme(schemeKey: string|undefined) {
         const { mapConfig } = this.props
         if (schemeKey === 'custom') {
             mapConfig.props.customColorsActive = true
@@ -203,10 +203,6 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             mapConfig.props.baseColorScheme = schemeKey
             mapConfig.props.customColorsActive = undefined
         }
-    }
-
-    @action.bound onNumIntervals(numIntervals: number) {
-        this.props.mapConfig.props.colorSchemeInterval = numIntervals
     }
 
     @action.bound onInvert(invert: boolean) {
@@ -217,55 +213,74 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.isManualBuckets = isAutomatic ? undefined : true
     }
 
-    @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
-    }
-
     render() {
         const {mapConfig} = this.props
         const availableColorSchemes = map(ColorSchemes, (v: any, k: any) => extend({}, v, { key: k })).filter((v: any) => !!v.name)
         const currentColorScheme = mapConfig.isCustomColors ? 'custom' : mapConfig.baseColorScheme
 
-        return <section>
-            <h2>Colors</h2>
-            <SelectField label="Color scheme:" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
-            {" "}<Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
-            <NumberField label="Number of intervals:" value={mapConfig.props.colorSchemeInterval} min={1} max={99} onValue={this.onNumIntervals} />
-            <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
-            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
-            <ColorSchemeEditor map={mapConfig} />
-        </section>
+        return <Section name="Colors">
+            <FieldsRow>
+                <SelectField label="Color scheme" value={currentColorScheme} options={availableColorSchemes.map(d => d.key).concat(['custom'])} optionLabels={availableColorSchemes.map(d => d.name).concat(['custom'])} onValue={this.onColorScheme} />
+                <Toggle label="Invert colors" value={mapConfig.props.colorSchemeInvert || false} onValue={this.onInvert} />
+            </FieldsRow>
+            <FieldsRow>
+                <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
+            </FieldsRow>
+            {mapConfig.props.isManualBuckets && <ColorSchemeEditor map={mapConfig} />}
+            {!mapConfig.props.isManualBuckets && <BindAutoFloat label="Step size" field="binStepSize" store={mapConfig.props} auto={mapConfig.data.binStepSizeDefault}/>}
+        </Section>
     }
 }
 
 @observer
-class MapProjectionSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onProjection(projection: string) {
-        this.props.mapConfig.props.projection = (projection as MapProjection)
+class BinLabelView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin|CategoricalBin, index: number }> {
+    @action.bound onLabel(value: string) {
+        if (this.props.bin instanceof NumericBin) {
+            const { mapConfig, index } = this.props
+            while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
+                mapConfig.props.colorSchemeLabels.push(undefined)
+            mapConfig.props.colorSchemeLabels[index] = value
+        } else {
+            const { mapConfig, bin } = this.props
+            const customCategoryLabels = clone(mapConfig.props.customCategoryLabels)
+            customCategoryLabels[bin.value] = value
+            mapConfig.props.customCategoryLabels = customCategoryLabels
+        }
     }
 
     render() {
-        const { mapConfig } = this.props
-        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
-        return <section>
-            <h2>Displayed region</h2>
-            <SelectField label="Which region map should be focused on:" value={mapConfig.props.projection} options={projections} onValue={this.onProjection} />
-        </section>
+        const { mapConfig, bin } = this.props
+
+        return <EditableListItem className="BinLabelView">
+            <FieldsRow>
+                {bin instanceof NumericBin ? <NumberField value={bin.max} onValue={() => null} disabled/> : <TextField value={bin.value} onValue={() => null} disabled/>}
+                <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
+            </FieldsRow>
+        </EditableListItem>
     }
 }
 
 @observer
 class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onDescription(description: string | undefined) {
-        this.props.mapConfig.props.legendDescription = description
+    @action.bound onEqualSizeBins(isEqual: boolean) {
+        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
+    }
+
+    @action.bound onLabel(value: string) {
+        console.log(value)
     }
 
     render() {
         const { mapConfig } = this.props
-        return <section className="map-legend-section">
-            <h2>Legend</h2>
-            <TextField label="Legend description:" value={mapConfig.props.legendDescription} onValue={this.onDescription} />
-        </section>
+        return <Section name="Legend">
+            <BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>
+            <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
+            {mapConfig.props.isManualBuckets && <EditableList>
+                {mapConfig.data.legendData.map((bin, index) =>
+                    <BinLabelView mapConfig={mapConfig} bin={bin} index={index}/>
+                )}
+            </EditableList>}
+        </Section>
     }
 }
 
@@ -282,7 +297,6 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
             {mapConfig.data.isReady &&
                 [<TimelineSection mapConfig={mapConfig} />,
                 <ColorsSection mapConfig={mapConfig} />,
-                <MapProjectionSection mapConfig={mapConfig} />,
                 <MapLegendSection mapConfig={mapConfig} />]
             }
         </div>

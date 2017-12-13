@@ -44,7 +44,7 @@ export default class ChartData {
     // ChartData is ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         const { chart, vardata } = this
-        return every(chart.dimensions, dim => vardata.variablesById[dim.variableId] !== undefined)
+        return every(chart.dimensions, dim => !!vardata.variablesById[dim.variableId])
     }
 
     @computed.struct get filledDimensions(): DimensionWithData[] {
@@ -76,7 +76,7 @@ export default class ChartData {
     }
 
     @computed get title(): string {
-        return defaultTo(this.chart.props.title, this.defaultTitle)
+        return this.chart.props.title !== undefined ? this.chart.props.title : this.defaultTitle
     }
 
     // XXX refactor into the transforms
@@ -148,7 +148,7 @@ export default class ChartData {
     }
 
     @computed get sourcesLine(): string {
-        return defaultTo(this.chart.props.sourceDesc, this.defaultSourcesLine)
+        return this.chart.props.sourceDesc !== undefined ? this.chart.props.sourceDesc : this.defaultSourcesLine
     }
 
     @computed get isSingleEntity(): boolean {

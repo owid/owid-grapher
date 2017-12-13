@@ -218,3 +218,11 @@ export function pointsToPath(points: Array<[number, number]>) {
     }
     return path
 }
+
+export function defaultWith<T>(value: T|undefined, defaultFunc: () => T): T {
+    return value !== undefined ? value : defaultFunc()
+}
+
+export function keysOf<T, K extends keyof T>(obj: T): K[] {
+    return Object.keys(obj) as K[]
+}

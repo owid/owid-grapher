@@ -4,7 +4,7 @@ import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig, {HighlightToggleConfig} from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
-import {Toggle, NumberField, SelectField} from './Forms'
+import {Toggle, NumberField, SelectField, TextField, Section} from './Forms'
 
 @observer
 export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
@@ -28,19 +28,19 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         this.props.chart.props.hideLinesOutsideTolerance = value||undefined
     }
 
-    @action.bound onXOverrideYear(value: number) {
+    @action.bound onXOverrideYear(value: number|undefined) {
         this.props.chart.scatter.xOverrideYear = value
     }
 
-    @action.bound onToggleComparisonLine(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.checked)
+    @action.bound onToggleComparisonLine(value: boolean) {
+        if (value)
             this.props.chart.props.comparisonLine = this.comparisonLine
         else
             this.props.chart.props.comparisonLine = undefined
     }
 
-    @action.bound onToggleHighlightToggle(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.checked)
+    @action.bound onToggleHighlightToggle(value: boolean) {
+        if (value)
             this.props.chart.props.highlightToggle = this.highlightToggle
         else
             this.props.chart.props.highlightToggle = undefined
@@ -81,38 +81,38 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         const {hasComparisonLine, hasHighlightToggle, comparisonLine, highlightToggle, excludedEntityChoices} = this
         const {chart} = this.props
 
-        return <div className="tab-pane">
-            <section>
-                <h2>Timeline</h2>
+        return <div className="EditorScatterTab">
+            <Section name="Timeline">
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
                 <Toggle label="Hide entities without data for full time span (within tolerance)" value={!!chart.props.hideLinesOutsideTolerance} onValue={this.onToggleHideLinesOutsideTolerance}/>
                 <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
+            </Section>
 
-                <h2>Filtering</h2>
+            <Section name="Filtering">
                 <Toggle label="Exclude observations for entities that are not countries" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
-                <SelectField label="Exclude individual entities" value={""} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/><br/>
-                {chart.scatter.excludedEntities && <div>
-                    {chart.scatter.excludedEntities.map(entity => <div className="country-label clickable">
-                        <i className="fa fa-remove" onClick={() => this.onUnexcludeEntity(entity)}/>
+                <SelectField label="Exclude individual entities" value={""} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/>
+                {chart.scatter.excludedEntities && <ul className="excludedEntities">
+                    {chart.scatter.excludedEntities.map(entity => <li>
+                        <div className="clickable" onClick={() => this.onUnexcludeEntity(entity)}><i className="fa fa-remove"/></div>
                         {entity}
-                    </div>)}
-                </div>}
+                    </li>)}
+                </ul>}
+            </Section>
 
-                <h2>Comparison line</h2>
-                <p className="form-section-desc">Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
-                <label className="clickable"><input type="checkbox" checked={!!hasComparisonLine} onChange={this.onToggleComparisonLine}/> Enable comparison line</label>
-                {hasComparisonLine && <div>
-                    <label>y= <input type="text" value={comparisonLine.yEquals} placeholder="x" onChange={e => { this.comparisonLine.yEquals = e.target.value; this.save() }}/></label>
-                </div>}
+            <Section name="Comparison line">
+                <p>Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
+                <Toggle label="Enable comparison line" value={!!hasComparisonLine} onValue={this.onToggleComparisonLine}/>
+                {hasComparisonLine && <TextField label="y=" placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { this.comparisonLine.yEquals = value||undefined; this.save() })}/>}
+            </Section>
 
-                <h2>Highlight toggle</h2>
-                <p className="form-section-desc">Allow users to toggle a particular chart selection state to highlight certain entities.</p>
-                <label className="clickable"><input type="checkbox" checked={!!hasHighlightToggle} onChange={this.onToggleHighlightToggle}/> Enable highlight toggle</label>
+            <Section name="Highlight toggle">
+                <p>Allow users to toggle a particular chart selection state to highlight certain entities.</p>
+                <Toggle label="Enable highlight toggle" value={!!hasHighlightToggle} onValue={this.onToggleHighlightToggle}/>
                 {hasHighlightToggle && <div>
-                    <label>Description <input type="text" value={highlightToggle.description} onInput={e => { this.highlightToggle.description = e.currentTarget.value; this.save() }}/></label>
-                    <label>URL Params <input type="text" value={highlightToggle.paramStr} onInput={e => { this.highlightToggle.paramStr = e.currentTarget.value; this.save() }} placeholder="e.g. ?country=AFG"/></label>
+                    <TextField label="Description" value={highlightToggle.description} onValue={action((value: string) => { this.highlightToggle.description = value; this.save() })}/>
+                    <TextField label="URL Params" placeholder="e.g. ?country=AFG" value={highlightToggle.paramStr} onValue={action((value: string) => { this.highlightToggle.paramStr = value; this.save() })}/>
                 </div>}
-            </section>
+            </Section>
         </div>
     }
 }

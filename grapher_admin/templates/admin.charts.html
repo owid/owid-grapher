@@ -27,7 +27,7 @@
 						{% for chart in charts %}
 							<tr>
 								<td>
-									{% if chart.published %}
+									{% if chart.config.isPublished %}
 										<a class="star-toggle" data-chart-id="{{ chart.id }}" title="Show this chart on the front page of the website.">
 											{% if chart.starred %}
 												<i class="fa fa-star"></i>
@@ -38,10 +38,10 @@
 									{% endif %}
 								</td>
 								<td>
-									{% if not chart.published %}
-										<span style="color: red;">Draft: </span> {{ chart.name }}
+									{% if not chart.config.isPublished %}
+										<span style="color: red;">Draft: </span> {{ chart.config.title }}
 									{% else %}
-										<a href="{% rootrequest %}/{{ chart.slug }}">{{ chart.name }}</a>
+										<a href="{% rootrequest %}/{{ chart.config.slug }}">{{ chart.config.title }}</a>
 									{% endif %}
 								</td>
 								<td>{{ chart.type }}</td>
@@ -50,7 +50,7 @@
 										<a href="{% url 'showvariable' variable.id %}">{{ variable.name }}</a><br>
 									{% endfor %}
 								</td>
-								<td>{{ chart.notes }}</td>
+								<td>{{ chart.config.internalNotes }}</td>
 								<td>
 									<time class="timeago" datetime="{{ chart.last_edited_at|date:'c' }}">{{ chart.last_edited_at }}</time>
 									{% if chart.last_edited_by %}

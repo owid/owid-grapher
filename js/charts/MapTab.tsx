@@ -68,11 +68,13 @@ class TimelineMap extends React.Component<TimelineMapProps> {
     @action.bound onClick(d: GeoFeature) {
         const { chartView, chart } = this.context
 
-        if (chartView.isMobile || !chart.hasChartTab || !d.id) return
-        const entity = this.props.choroplethData[d.id].entity
+        if (chartView.isMobile || !chart.hasChartTab) return
+        const datum = this.props.choroplethData[d.id as string]
 
-        chart.tab = 'chart'
-        chart.data.selectedKeys = chart.data.availableKeysByEntity.get(entity) || []
+        if (datum) {
+            chart.tab = 'chart'
+            chart.data.selectedKeys = chart.data.availableKeysByEntity.get(datum.entity) || []
+        }
     }
 
     componentWillUnmount() {

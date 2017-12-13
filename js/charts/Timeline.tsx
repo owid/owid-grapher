@@ -276,7 +276,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         this.endYearInput = inputYear
     }
 
-    @action.bound onMouseMove(ev: MouseEvent) {
+    @action.bound onMouseMove(ev: any) {
         const { dragTarget, mouseFrameQueued } = this
         if (!dragTarget || mouseFrameQueued) return
 
