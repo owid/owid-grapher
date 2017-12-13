@@ -1,7 +1,7 @@
 import { round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
 import ChartConfig from './ChartConfig'
-import { defaultTo, isString } from './Util'
+import { defaultTo, isString, last, findClosest } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import Color from './Color'
 import { ChoroplethData } from './ChoroplethMap'
@@ -145,7 +145,8 @@ export default class MapData {
     }
 
     @computed get targetYear(): number {
-        return this.map.props.targetYear !== undefined ? this.map.props.targetYear : this.timelineYears[0]
+        const targetYear = defaultTo(this.map.props.targetYear, last(this.timelineYears))
+        return defaultTo(findClosest(this.timelineYears, targetYear), last(this.timelineYears))
     }
 
     @computed get legendTitle(): string {
