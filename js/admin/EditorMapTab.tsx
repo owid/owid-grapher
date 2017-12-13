@@ -235,10 +235,17 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
 @observer
 class BinLabelView extends React.Component<{ mapConfig: MapConfig, bin: NumericBin|CategoricalBin, index: number }> {
     @action.bound onLabel(value: string) {
-        const { mapConfig, index } = this.props
-        while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
-            mapConfig.props.colorSchemeLabels.push(undefined)
-        mapConfig.props.colorSchemeLabels[index] = value
+        if (this.props.bin instanceof NumericBin) {
+            const { mapConfig, index } = this.props
+            while (mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins)
+                mapConfig.props.colorSchemeLabels.push(undefined)
+            mapConfig.props.colorSchemeLabels[index] = value
+        } else {
+            const { mapConfig, bin } = this.props
+            const customCategoryLabels = clone(mapConfig.props.customCategoryLabels)
+            customCategoryLabels[bin.value] = value
+            mapConfig.props.customCategoryLabels = customCategoryLabels
+        }
     }
 
     render() {
@@ -246,7 +253,7 @@ class BinLabelView extends React.Component<{ mapConfig: MapConfig, bin: NumericB
 
         return <EditableListItem className="BinLabelView">
             <FieldsRow>
-                {bin instanceof NumericBin ? <NumberField value={bin.max} disabled/> : <TextField value={bin.text} disabled/>}
+                {bin instanceof NumericBin ? <NumberField value={bin.max} onValue={() => null} disabled/> : <TextField value={bin.value} onValue={() => null} disabled/>}
                 <TextField placeholder="Custom label" value={bin.label} onValue={this.onLabel} />
             </FieldsRow>
         </EditableListItem>
@@ -268,11 +275,11 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         return <Section name="Legend">
             <BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>
             <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
-            <EditableList>
+            {mapConfig.props.isManualBuckets && <EditableList>
                 {mapConfig.data.legendData.map((bin, index) =>
                     <BinLabelView mapConfig={mapConfig} bin={bin} index={index}/>
                 )}
-            </EditableList>
+            </EditableList>}
         </Section>
     }
 }

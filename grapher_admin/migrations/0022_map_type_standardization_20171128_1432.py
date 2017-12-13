@@ -28,6 +28,11 @@ def execute(apps, schema_editor):
                         del config['map']['colorSchemeValues']
                     else:
                         config['map']['colorSchemeValues'] = [float(v) for v in config['map']['colorSchemeValues'] if canFloat(v)]
+                        numBuckets = int(config['map']['colorSchemeInterval'])
+                        if len(config['map']['colorSchemeValues']) > numBuckets:
+                            config['map']['colorSchemeValues'] = config['map']['colorSchemeValues'][:numBuckets]
+                if 'colorSchemeInterval' in config['map']:
+                    del config['map']['colorSchemeInterval']
 
             config['id'] = chart.id
             config['title'] = chart.name

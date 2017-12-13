@@ -70,7 +70,7 @@
     "mkdirp": "^0.5.1",
     "mobx": "^3.2.2",
     "mobx-formatters": "^1.0.2",
-    "mobx-react": "^4.1.0",
+    "mobx-react": "^4.2.2",
     "module-alias": "^2.0.3",
     "mysql": "^2.15.0",
     "node-cleanup": "^2.1.2",

@@ -234,8 +234,8 @@
     "@types/webpack" "*"
 
 "@types/fs-extra@^4.0.6":
-  version "4.0.6"
-  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-4.0.6.tgz#f85ea84eaad555d7c58641ef2a50e9bb12d2cbb6"
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-4.0.7.tgz#02533262386b5a6b9a49797dc82feffdf269140a"
   dependencies:
     "@types/node" "*"
 
@@ -634,7 +634,7 @@ babel-code-frame@^6.11.0, babel-code-frame@^6.22.0:
     esutils "^2.0.2"
     js-tokens "^3.0.2"
 
-babel-polyfill@^6.13.0, babel-polyfill@^6.23.0:
+babel-polyfill@^6.23.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.26.0.tgz#379937abc67d7895970adc621f284cd966cf2153"
   dependencies:
@@ -900,8 +900,8 @@ caniuse-api@^1.5.2:
     lodash.uniq "^4.5.0"
 
 caniuse-db@^1.0.30000529, caniuse-db@^1.0.30000634, caniuse-db@^1.0.30000639:
-  version "1.0.30000782"
-  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000782.tgz#d8815bce1578c350aced1132507301205e0fab53"
+  version "1.0.30000783"
+  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000783.tgz#16b30d47266a4f515cc69ae0316b670c9603cdbe"
 
 capture-stack-trace@^1.0.0:
   version "1.0.0"
@@ -1618,13 +1618,12 @@ dashdash@^1.12.0:
     assert-plus "^1.0.0"
 
 dataframe-js@^1.2.2:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/dataframe-js/-/dataframe-js-1.2.4.tgz#119a7cd879b8d0552e86ddb69f546119326bbf3d"
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/dataframe-js/-/dataframe-js-1.2.5.tgz#d717341d37dcccb956353ef7a9104486eff85c51"
   dependencies:
     babel-polyfill "^6.23.0"
     d3-dsv "^1.0.3"
     d3-request "^1.0.2"
-    es7-checktypes-decorator "^0.2.1"
 
 date-fns@^1.23.0:
   version "1.29.0"
@@ -1900,12 +1899,6 @@ es6-weak-map@^2.0.1:
     es5-ext "^0.10.14"
     es6-iterator "^2.0.1"
     es6-symbol "^3.1.1"
-
-es7-checktypes-decorator@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/es7-checktypes-decorator/-/es7-checktypes-decorator-0.2.1.tgz#eb9535b0fbbb4196f1f39822265956d038e17532"
-  dependencies:
-    babel-polyfill "^6.13.0"
 
 escape-html@~1.0.3:
   version "1.0.3"
@@ -3569,7 +3562,7 @@ mobx-formatters@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/mobx-formatters/-/mobx-formatters-1.0.2.tgz#7eac3957adab1eeaca1c4a9c25da058b5765ee2a"
 
-mobx-react@^4.1.0:
+mobx-react@^4.2.2:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-4.3.5.tgz#76853f2f2ef4a6f960c374bcd9f01e875929c04c"
   dependencies:
@@ -4516,8 +4509,8 @@ preact-transition-group@^1.1.0:
   resolved "https://registry.yarnpkg.com/preact-transition-group/-/preact-transition-group-1.1.1.tgz#f0a49327ea515ece34ea2be864c4a7d29e5d6e10"
 
 preact@^8.1.0:
-  version "8.2.6"
-  resolved "https://registry.yarnpkg.com/preact/-/preact-8.2.6.tgz#0028b426ef98fcca741a3c617ff5b813b9a947c7"
+  version "8.2.7"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-8.2.7.tgz#316249fb678cd5e93e7cee63cea7bfb62dbd6814"
 
 precss@^1.4.0:
   version "1.4.0"

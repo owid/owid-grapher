@@ -103,10 +103,9 @@ def test_all(request):
 
     for each in query:
         configfile = each.config
-        tabs = configfile['tabs']
-        if test_type == 'map' and 'map' not in tabs:
+        if test_type == 'map' and not configfile.get('hasMapTab'):
             continue
-        elif test_type and 'chart' not in tabs:
+        elif test_type and not configfile.get('hasChartTab'):
             continue
 
         count += 1
@@ -161,8 +160,8 @@ def testsome(request):
     for chart in charts:
         configfile = chart.config
 
-        local_url = request.build_absolute_uri('/grapher/') + chart.slug
-        live_url = "https://ourworldindata.org/grapher/" + chart.slug
+        local_url = request.build_absolute_uri('/grapher/') + chart.config['slug']
+        live_url = "https://ourworldindata.org/grapher/" + chart.config['slug']
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
 
@@ -206,19 +205,17 @@ def showchart(request, chart):
             'grapher' not in referer_s and 'about' not in referer_s and 'roser/' not in referer_s
             and 'slides' not in referer_s and 'blog' not in referer_s):
             origin_url = 'https://' + root.netloc + referer.path
-            if chart.origin_url != origin_url:
-                chart.origin_url = origin_url
+            if chart.config.get('originUrl') != origin_url:
+                chart.config['originUrl'] = origin_url
                 chart.save()
 
     configfile = chart.get_config()
-    canonicalurl = request.build_absolute_uri('/grapher/') + chart.slug
-    baseurl = request.build_absolute_uri('/grapher/') + chart.slug
+    canonicalurl = request.build_absolute_uri('/grapher/') + configfile['slug']
+    baseurl = request.build_absolute_uri('/grapher/') + configfile['slug']
 
     chartmeta = {}
 
     title = configfile['title']
-    title = re.sub("/, \*time\*/", "", title)
-    title = re.sub("/\*time\*/", "", title)
     chartmeta['title'] = title
     if configfile.get('subtitle', ''):
         chartmeta['description'] = configfile['subtitle']

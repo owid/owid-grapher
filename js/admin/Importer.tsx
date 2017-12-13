@@ -5,7 +5,7 @@ import { observable, computed, action, autorun, reaction } from 'mobx'
 import { observer } from 'mobx-react'
 
 import * as parse from 'csv-parse'
-import EditorModal from './EditorModal'
+import { Modal } from '../admin/Forms'
 
 const styles = require('./Importer.css')
 
@@ -431,17 +431,21 @@ class ImportProgressModal extends React.Component<{ dataset: Dataset }> {
 
     render() {
         const { dataset } = this.props
-        return <div className={styles.importProgress}>
-            <h4>Import progress</h4>
-            <div className="progressInner">
-                <p className="success"><i className="fa fa-check" /> Preparing import for {dataset.years.length} values...</p>
-                {dataset.importError && <p className="error"><i className="fa fa-times" /> Error: {dataset.importError}</p>}
-                {dataset.importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
-                {!dataset.importSuccess && !dataset.importError && <div style={{ 'text-align': 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
+        return <Modal onClose={this.onDismiss}>
+            <div className="modal-header">
+                <h4 className="modal-title">Import progress</h4>
             </div>
-            {dataset.importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
-            {dataset.importError && <a className="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}
-        </div>
+            <div className={styles.importProgress + " modal-body"}>
+                <div className="progressInner">
+                    <p className="success"><i className="fa fa-check" /> Preparing import for {dataset.years.length} values...</p>
+                    {dataset.importError && <p className="error"><i className="fa fa-times" /> Error: {dataset.importError}</p>}
+                    {dataset.importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
+                    {!dataset.importSuccess && !dataset.importError && <div style={{ 'text-align': 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
+                </div>
+                {dataset.importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
+                {dataset.importError && <a className="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}
+            </div>
+        </Modal>
     }
 }
 
@@ -728,9 +732,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
                 {!dataset.isLoading && [
                     <EditVariables dataset={dataset} />,
                     <input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"} />,
-                    dataset.importRequest && <EditorModal>
-                        <ImportProgressModal dataset={dataset} />
-                    </EditorModal>
+                    dataset.importRequest && <ImportProgressModal dataset={dataset} />
                 ]}
             </section>}
         </form>
