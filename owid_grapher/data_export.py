@@ -7,6 +7,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import owid_grapher.wsgi
 from grapher_admin.models import User, Chart, ChartDimension, VariableType, DataValue, Setting, Entity
 from MySQLdb import escape_string
+import json
 
 def dictfetchall(cursor):
     "Return all rows from a cursor as a dict"
@@ -63,6 +64,10 @@ if var_types:
 
 chart_ids = [284, 561, 222, 112, 341, 414]
 
+['law-mandate-nondiscrimination-hiring', 'law-mandate-equal-pay', 'does-legislation-explicitly-criminalise-marital-rape', 'gender-rights-to-property', 
+'women-required-to-obey-husband', 'does-law-mandate-paid-or-unpaid-maternity-leave', 'nondiscrimination-clause-gender']
+
+
 for one_type in chart_ids:
 
     charts = Chart.objects.get(pk=one_type, published=True)
@@ -71,7 +76,7 @@ for one_type in chart_ids:
         charts.last_edited_by = admin_user
         out += format_sql(
             'INSERT INTO charts (`id`, `name`, `config`, `slug`, `published`, `starred`, `type`, `last_edited_by`, `created_at`, `updated_at`, `last_edited_at`, `origin_url`, `notes`) VALUES ' \
-               "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", charts.pk, charts.name, charts.config, charts.slug,
+               "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", charts.pk, charts.name, json.dumps(charts.config), charts.slug,
                                                                                  charts.published, charts.starred, charts.type, charts.last_edited_by.name,
                                                                                  current_time, current_time, current_time, '', '')
 
