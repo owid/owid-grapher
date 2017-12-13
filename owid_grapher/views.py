@@ -260,7 +260,7 @@ def find_with_redirects(slug):
 
     try:
         intslug = int(slug)
-        chart = Chart.objects.filter(config__id=intslug, config__isPublished=True).first()
+        chart = Chart.objects.filter(id=intslug, config__isPublished=True).first()
     except ValueError:
         intslug = None
 
@@ -268,7 +268,7 @@ def find_with_redirects(slug):
     if not chart:
         redirect_chart = ChartSlugRedirect.objects.filter(slug=slug).first()
         if redirect_chart:
-            chart = Chart.objects.filter(config__id=redirect_chart.chart_id, config__isPublished=True).first()
+            chart = Chart.objects.filter(id=redirect_chart.chart_id, config__isPublished=True).first()
 
     return chart
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { groupBy, each, isString } from '../charts/Util'
+import { groupBy, each, isString, sortBy } from '../charts/Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
@@ -33,7 +33,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     scrollElement: HTMLDivElement
 
     @observable rowOffset: number = 0
-    @observable numVisibleRows: number = 18
+    @observable numVisibleRows: number = 15
     @observable rowHeight: number = 32
 
     @computed get database() {
@@ -45,13 +45,20 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     }
 
     @computed get datasets() {
-        return this.database.datasets.filter(d => d.namespace === this.currentNamespace)
+        const datasets = this.database.datasets.filter(d => d.namespace === this.currentNamespace)
+        if (this.currentNamespace !== 'owid') {
+            // The default temporal ordering has no real use for bulk imports
+            return sortBy(datasets, d => d.name)
+        } else {
+            return datasets
+        }
     }
 
     @computed get availableVariables(): Variable[] {
         const variables: Variable[] = []
         this.datasets.forEach(dataset => {
-            dataset.variables.forEach(variable => {
+            const sorted = sortBy(dataset.variables, v => v.name)
+            sorted.forEach(variable => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
