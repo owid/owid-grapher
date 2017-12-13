@@ -172,24 +172,23 @@ class CategoricalBinView extends React.Component<{ mapConfig: MapConfig, bin: Ca
 
 @observer
 class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
-    @action.bound onMinimalValue(value: number) {
-        this.props.map.props.colorSchemeMinValue = value
-    }
-
     render() {
         const mapConfig = this.props.map
         const { dimension } = mapConfig.data
         if (!dimension) return null
 
-        return <EditableList className="ColorSchemeEditor">
-            {mapConfig.data.legendData.map((bin, index) => {
-                if (bin instanceof NumericBin) {
-                    return <NumericBinView mapConfig={mapConfig} bin={bin} index={index} />
-                } else {
-                    return <CategoricalBinView mapConfig={mapConfig} bin={bin} />
-                }
-            })}
-        </EditableList>
+        return <div>
+            <BindAutoFloat field="colorSchemeMinValue" store={mapConfig.props} auto={0} label="Minimum value"/>
+            <EditableList className="ColorSchemeEditor">
+                {mapConfig.data.legendData.map((bin, index) => {
+                    if (bin instanceof NumericBin) {
+                        return <NumericBinView mapConfig={mapConfig} bin={bin} index={index} />
+                    } else {
+                        return <CategoricalBinView mapConfig={mapConfig} bin={bin} />
+                    }
+                })}
+            </EditableList>
+        </div>
     }
 }
 
