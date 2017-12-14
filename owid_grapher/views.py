@@ -222,13 +222,13 @@ def showchart(request, chart):
     else:
         chartmeta['description'] = 'An interactive visualization from Our World in Data.'
     query_string = get_query_string(request)
-    if query_string:
-        canonicalurl += '?' + query_string
+#    if query_string:
+#        canonicalurl += '?' + query_string
     chartmeta['canonicalUrl'] = canonicalurl
-    if query_string:
-        imagequery = query_string + '&' + "v=" + chart.make_cache_tag()
-    else:
-        imagequery = "v=" + chart.make_cache_tag()
+#    if query_string:
+#        imagequery = query_string + '&' + "v=" + chart.make_cache_tag()
+#    else:
+    imagequery = "v=" + chart.make_cache_tag()
 
     chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
 

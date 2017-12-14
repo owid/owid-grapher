@@ -108,12 +108,16 @@ class Chart(Model):
     def export_image(self, query: str, format: str, is_async: bool = False):
         ts_node = settings.BASE_DIR + "/node_modules/.bin/ts-node"
         screenshot = settings.BASE_DIR + "/js/exportChart.ts"
-        targetSrc = settings.BASE_URL + "/" + self.config['slug'] + "?" + query
-        m = hashlib.md5()
-        m.update(query.encode(encoding='utf-8'))
-        query_hash = m.hexdigest()
-        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + ".png"
-        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + "." + format
+#        targetSrc = settings.BASE_URL + "/" + self.config['slug'] + "?" + query
+#        m = hashlib.md5()
+#        m.update(query.encode(encoding='utf-8'))
+#        query_hash = m.hexdigest()
+#        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + ".png"
+#        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + "." + format
+        targetSrc = settings.BASE_URL + "/" + self.config['slug']
+        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + ".png"
+        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "." + format
+
 
         if Chart.exports_in_progress >= Chart.max_exports_per_worker:
             if is_async: return return_file
