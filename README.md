@@ -14,7 +14,7 @@ One of the neat things owid-grapher can do is automatically export an interactiv
 
 ## Initial development setup
 
-The grapher is a Python + JavaScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), and [Yarn](https://yarnpkg.com/en/).
+The grapher is a Python + JavaScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL 5.7+](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), and [Yarn](https://yarnpkg.com/en/).
 
 Running `pip install -r requirements.txt` and `yarn install` in the repo root will grab the remaining dependencies.
 
