@@ -258,12 +258,11 @@ export interface AutoTextFieldProps {
     softCharacterLimit?: number
 }
 
-
 @observer
 class SoftCharacterLimit extends React.Component<{ text: string, limit: number }> {
     render() {
         const {text, limit} = this.props
-        return <div style={text.length > limit ? { color: 'red' } : undefined}>
+        return <div style={text.length > limit ? { color: 'red' } : { color: 'rgba(0,0,0,0.3)' }}>
             {text.length} / {limit}
             {text.length > limit && <p>
                 This text is long and may cause rendering issues in smaller viewports.

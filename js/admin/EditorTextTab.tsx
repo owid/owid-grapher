@@ -4,7 +4,6 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import { Toggle, Section, BindString, BindAutoString } from './Forms'
 
-
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     render() {
