@@ -21,16 +21,17 @@ export class FieldsRow extends React.Component<{}> {
 }
 
 export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
-    label?: string,
-    value: string | undefined,
-    onValue: (value: string) => void,
-    onEnter?: () => void,
-    onEscape?: () => void,
-    placeholder?: string,
-    title?: string,
-    disabled?: boolean,
-    helpText?: string,
+    label?: string
+    value: string | undefined
+    onValue: (value: string) => void
+    onEnter?: () => void
+    onEscape?: () => void
+    placeholder?: string
+    title?: string
+    disabled?: boolean
+    helpText?: string
     autofocus?: boolean
+    softCharacterLimit?: number
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -58,6 +59,7 @@ export class TextField extends React.Component<TextFieldProps> {
             {props.label && <label>{props.label}</label>}
             <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+            {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
     }
 }
@@ -76,6 +78,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
             {props.label && <label>{props.label}</label>}
             <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
+            {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
     }
 }
@@ -252,6 +255,21 @@ export interface AutoTextFieldProps {
     helpText?: string
     onValue: (value: string) => void
     onToggleAuto: (value: boolean) => void
+    softCharacterLimit?: number
+}
+
+
+@observer
+class SoftCharacterLimit extends React.Component<{ text: string, limit: number }> {
+    render() {
+        const {text, limit} = this.props
+        return <div style={text.length > limit ? { color: 'red' } : undefined}>
+            {text.length} / {limit}
+            {text.length > limit && <p>
+                This text is long and may cause rendering issues in smaller viewports.
+            </p>}
+        </div>
+    }
 }
 
 @observer
@@ -268,12 +286,13 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                 </div>
             </div>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+            {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
     }
 }
 
 @observer
-export class BindString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean }> {
+export class BindString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }
@@ -291,7 +310,7 @@ export class BindString<T extends {[field: string]: string|undefined}, K extends
 }
 
 @observer
-export class BindAutoString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string }> {
+export class BindAutoString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string, softCharacterLimit?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value
     }

@@ -4,6 +4,7 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import { Toggle, Section, BindString, BindAutoString } from './Forms'
 
+
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     render() {
@@ -11,10 +12,10 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
 
         return <div>
             <Section name="Header">
-                <BindAutoString field="title" store={chart.props} auto={chart.data.title}/>
+                <BindAutoString field="title" store={chart.props} auto={chart.data.title} softCharacterLimit={100}/>
                 <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={action((value: boolean) => chart.props.hideTitleAnnotation = value||undefined)}/>
                 <BindAutoString label="/grapher/" field="slug" store={chart.props} auto={chart.data.slug} helpText="Human-friendly URL for this chart"/>
-                <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data" textarea/>
+                <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data" textarea softCharacterLimit={280}/>
             </Section>
             <Section name="Footer">
                 <BindAutoString label="Source" field="sourceDesc" store={chart.props} auto={chart.data.sourcesLine}/>
