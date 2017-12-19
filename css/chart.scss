@@ -401,7 +401,8 @@ figure[data-grapher-src]:empty:after {
         background: rgba(255,255,255,0.95);
     }
     
-    .sourcesTab > div {
+    .sourcesTab > div,
+    .downloadTab > div {
         height: 100%;
         overflow-y: auto;
     }
@@ -569,7 +570,7 @@ figure[data-grapher-src]:empty:after {
         flex-direction: column;
         justify-content: center;
     
-        > a {
+        a {
             color: #333;
             text-decoration: none;
         }

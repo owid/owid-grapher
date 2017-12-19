@@ -154,7 +154,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
             </form>,
             <div>
                 <figure data-grapher-src>
-                    {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 400, 600) : new Bounds(0, 0, 800, 600)}/>}
+                    {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 360, 500) : new Bounds(0, 0, 800, 600)}/>}
                     {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
                 </figure>
                 <div className="btn-group" data-toggle="buttons">
