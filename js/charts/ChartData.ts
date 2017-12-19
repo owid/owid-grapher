@@ -144,7 +144,15 @@ export default class ChartData {
     }
 
     @computed get defaultSourcesLine(): string {
-        return uniq(this.sources.map(source => source.name)).join(", ")
+        const sourceNames = this.sources.map(source => source.name)
+
+        // Shorten source names for certain major sources
+        for (const majorSource of ["World Bank – WDI", "World Bank", "ILOSTAT"]) {
+            if (sourceNames.every(name => name.startsWith(majorSource)))
+                return majorSource
+        }
+
+        return uniq(sourceNames).join(", ")
     }
 
     @computed get sourcesLine(): string {
