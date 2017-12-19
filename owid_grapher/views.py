@@ -194,21 +194,6 @@ def showchart(request, chart):
     :return: Rendered Chart page
     """
 
-    # saving chart's referer URL
-    referer_s = request.META.get('HTTP_REFERER')
-    if referer_s:
-        root = urlparse(request.build_absolute_uri('/'))
-        referer = urlparse(referer_s)
-        if (root.netloc == referer.netloc and len(referer.path) > 1 and
-            '.html' not in referer_s and 'wp-admin' not in referer_s and
-            'preview=true' not in referer_s and 'how-to' not in referer_s and
-            'grapher' not in referer_s and 'about' not in referer_s and 'roser/' not in referer_s
-            and 'slides' not in referer_s and 'blog' not in referer_s):
-            origin_url = 'https://' + root.netloc + referer.path
-            if chart.config.get('originUrl') != origin_url:
-                chart.config['originUrl'] = origin_url
-                chart.save()
-
     configfile = chart.get_config()
     canonicalurl = request.build_absolute_uri('/grapher/') + configfile['slug']
     baseurl = request.build_absolute_uri('/grapher/') + configfile['slug']
