@@ -296,6 +296,10 @@ export default class Timeline extends React.Component<TimelineProps> {
         document.documentElement.removeEventListener('touchmove', this.onMouseMove)
     }
 
+    @action.bound onTogglePlay() {
+        this.isPlaying = !this.isPlaying
+    }
+
     render() {
         const { minYear, maxYear, isPlaying, startYear, endYear } = this
 
@@ -303,7 +307,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         const endYearProgress = (endYear - minYear) / (maxYear - minYear)
 
         return <div className={"clickable TimelineControl"} onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
-            <div onClick={action(() => this.isPlaying = !this.isPlaying)}>
+            <div onMouseDown={e => e.stopPropagation()} onClick={this.onTogglePlay}>
                 {isPlaying ? <i className="fa fa-pause" /> : <i className="fa fa-play" />}
             </div>
             <div>{formatYear(minYear)}</div>
