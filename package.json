@@ -53,6 +53,7 @@
     "file-loader": "^0.10.0",
     "flow-bin": "^0.37.4",
     "flow-bin-loader": "^1.0.2",
+    "font-awesome": "^4.7.0",
     "fork-ts-checker-webpack-plugin": "^0.2.8",
     "fs-extra": "^5.0.0",
     "fuzzysort": "^0.9.3",

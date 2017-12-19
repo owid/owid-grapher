@@ -265,14 +265,10 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
     }
 
-    @action.bound onLabel(value: string) {
-        console.log(value)
-    }
-
     render() {
         const { mapConfig } = this.props
         return <Section name="Legend">
-            <BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>
+            {/*<BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>*/}
             <Toggle label="Disable visual scaling of legend bins" value={!!mapConfig.props.equalSizeBins} onValue={this.onEqualSizeBins} />
             {mapConfig.props.isManualBuckets && <EditableList>
                 {mapConfig.data.legendData.map((bin, index) =>

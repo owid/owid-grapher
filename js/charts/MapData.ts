@@ -150,8 +150,9 @@ export default class MapData {
     }
 
     @computed get legendTitle(): string {
-        const {legendDescription} = this.map.props
-        return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
+        return "" // Disabled for now; redundant with chart title
+        //const {legendDescription} = this.map.props
+        //return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
     }
 
     @computed get numAutoBins(): number {

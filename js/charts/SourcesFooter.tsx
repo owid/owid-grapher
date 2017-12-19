@@ -35,7 +35,6 @@ export default class SourcesFooter {
         // Make sure the link back to OWID is consistent
         if (originUrl && originUrl.toLowerCase().indexOf("ourworldindata.org") !== -1) {
             const url = parseUrl(originUrl)
-            console.log(url)
             const finalUrl = `https://ourworldindata.org${url.pathname}`
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
         } else {
