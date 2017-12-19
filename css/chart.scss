@@ -146,70 +146,101 @@ figure[data-grapher-src]:empty:after {
     /* Controls Footer
     --------------------------------------------- */
     
+    $footerRowHeight: 40px;
+
     .ControlsFooter {
         width: 100%;
         position: absolute;
         bottom: 0;
-        border-top: 1px solid #e1e1e1;
         z-index: 2;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-direction: row-reverse;
         color: #777;
-    }
 
-    .extraControls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        padding-top: 0.4em;
-        padding-bottom: 0.4em;
-    }
-    
-    .extraControls label {
-        margin: 0;
-        padding-left: 0.5em;
-        padding-right: 0.5em;
-    }
-    
-    .extraControls button {
-        margin: 0;
-        font-size: 1em;
-        color: #666;
-    }
+        .footerRowSingle, .footerRowMulti {
+            border-top: 1px solid #e1e1e1;
+            box-sizing: content-box;
+            width: 100%;
+            height: $footerRowHeight - 1px;    
+        }
 
-    nav.tabs ul {
-        margin: 0;
-        padding: 0;
-        display: flex;
-    }
+        .footerRowSingle > * {
+            width: 100%;
+        }
+
+        .footerRowMulti {
+            display: flex;
+
+            > * {
+                width: 50%;
+            }
+        }    
+
+        .extraControls {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            font-size: 0.8em;
+        }    
+
+        .footerRowMulti .extraControls {
+            padding-left: 0.5em;
+        }
+
+        .footerRowSingle .extraControls {
+            justify-content: center;
+        }
+
+        .extraControls label {
+            margin: 0;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+        }
+        
+        .extraControls button {
+            margin: 0;
+            font-size: 1em;
+            color: #666;
+        }
     
-    nav.tabs li {
-        list-style-type: none;
-        border-left: 1px solid #e1e1e1;
-        border-bottom: 0.2em solid rgba(0,0,0,0);
-    }
+        nav.tabs ul {
+            margin: 0;
+            padding: 0;
+            display: table;
+            width: 100%;
+            text-align: center;
+        }
     
-    nav.tabs li > a {
-        display: block;
-        padding: 0.5em 0;
-        text-transform: uppercase;
-        color: #777;
-        font-size: 0.8em;
-    }
-    
-    nav.tabs li.icon > a {
-        padding: 0.5em 0.4em;
-    }
-    
-    nav.tabs li > a:hover {
-        text-decoration: none;
-    }
-    
-    nav.tabs li.active {
-        border-bottom-color: rgba(0,33,71,.9);
+        nav.tabs li {
+            list-style-type: none;
+            border-left: 1px solid #e1e1e1;
+            display: table-cell;
+            height: $footerRowHeight;
+        }
+
+        .footerRowSingle nav.tabs li:first-child {
+            border-left: none;
+        }
+        
+        nav.tabs li > a {
+            display: block;
+            text-transform: uppercase;
+            color: #777;
+            font-size: 0.85em;
+            height: $footerRowHeight - 2px;
+            line-height: $footerRowHeight;
+            border-bottom: 2px solid rgba(0,0,0,0);
+        }
+        
+        nav.tabs li.icon > a {
+            padding: 0 0.4em;
+        }
+        
+        nav.tabs li > a:hover {
+            text-decoration: none;
+        }
+        
+        nav.tabs li.active > a {
+            border-bottom-color: rgba(0,33,71,.9);
+        }
     }
         
     /* The little loading icon */
@@ -689,10 +720,49 @@ figure[data-grapher-src]:empty:after {
             border: 1px solid #ccc;
         }
     }
+
+    .TimelineControl {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1em;
+        padding: 0 1em;
+    
+        > div {
+            margin-right: 0.5em;
+        }
+    
+        .slider {
+            height: 0.6em;
+            flex-grow: 1;
+            background: #eee;
+            border-radius: 5px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+    
+        .handle {
+            height: 1em;
+            width: 0.5em;
+            border-radius: 0.2em;
+            margin-left: -5px;
+            background: #3F9EFF;
+            position: absolute;
+        }
+
+        .interval {
+            position: absolute;
+            height: 0.6em;
+            background: #3F9EFF;
+        }
+    }
 }
 
 .chart.portrait .DataSelectorMulti {
-    & .selectedData {
+    .selectedData {
         min-width: 50%;
     }
 }
@@ -704,17 +774,6 @@ figure[data-grapher-src]:empty:after {
     > a > div {
         display: flex;
     }
-}
-
-.chart.landscape .extraControls {
-    padding-left: 1em;
-    font-size: 0.8em;
-}
-
-.chart.landscape .extraControls button {
-    padding-top: 0.1em;
-    padding-bottom: 0.1em;
-    padding-left: 0.5em;
 }
 
 .chart.portrait .downloadTab {
@@ -731,35 +790,8 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart.portrait .ControlsFooter {
-    flex-direction: column-reverse;
-}
-
-.chart.portrait .ControlsFooter > *:not(.shareMenu) {
-    width: 100%;
-}
-
-.chart.portrait .extraControls {
-    font-size: 0.8em;
-    border-bottom: 1px solid #e1e1e1;
-}
-
 .chart.narrow .datasource-wrapper {
     padding: 0;
-}
-
-.chart.landscape nav.tabs li > a {
-    padding: 0.5em 1em;
-}
-
-.chart.portrait nav.tabs ul {
-    display: table;
-    width: 100%;
-    text-align: center;
-}
-
-.chart.portrait nav.tabs li {
-    display: table-cell;
 }
 
 .chart.mobile .shareMenu .btn-embed {

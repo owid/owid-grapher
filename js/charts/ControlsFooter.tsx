@@ -1,4 +1,4 @@
-import { extend, keys, map } from './Util'
+import { extend, keys } from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
@@ -7,6 +7,7 @@ import ChartConfig from './ChartConfig'
 import { getQueryParams } from './Util'
 import ChartView from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
+import HTMLTimeline from './HTMLTimeline'
 
 declare const Global: { rootUrl: string }
 
@@ -111,6 +112,7 @@ interface ControlsFooterProps {
     chartView: ChartView,
 }
 
+@observer
 class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightToggle: HighlightToggleConfig }> {
     @computed get chart() { return this.props.chart }
     @computed get highlight() { return this.props.highlightToggle }
@@ -146,6 +148,7 @@ class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightTog
     }
 }
 
+@observer
 class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     @action.bound onToggle() {
         const { stackedArea } = this.props.chart
@@ -161,53 +164,136 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
-export default class ControlsFooter extends React.Component<ControlsFooterProps> {
+class TimelineControl extends React.Component<{ chart: ChartConfig }> {
+    @action.bound onMapTargetChange({ targetStartYear }: { targetStartYear: number }) {
+        this.props.chart.map.targetYear = targetStartYear
+    }
+
+    @action.bound onScatterTargetChange({ targetStartYear, targetEndYear }: { targetStartYear: number, targetEndYear: number }) {
+        this.props.chart.timeDomain = [targetStartYear, targetEndYear]
+    }
+
+    @action.bound onTimelineStart() {
+        this.props.chart.scatter.useTimelineDomains = true
+    }
+
+    @action.bound onTimelineStop() {
+        this.props.chart.scatter.useTimelineDomains = false
+    }
+
+    render() {
+        const {chart} = this.props
+        if (chart.props.tab === 'map') {
+            const {map} = chart
+            return <HTMLTimeline years={map.data.timelineYears} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
+        } else {
+            return <HTMLTimeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+        }
+    }
+}
+
+export class ControlsFooter {
+    props: { chart: ChartConfig, chartView: ChartView, width: number }
+    constructor(props: { chart: ChartConfig, chartView: ChartView, width: number }) {
+        this.props = props
+    }
+
     @observable isShareMenuActive: boolean = false
-
-    @action.bound onShareMenu() {
-        this.isShareMenuActive = !this.isShareMenuActive
-    }
-
-    @action.bound onDataSelect() {
-        this.props.chartView.isSelectingData = true
-    }
 
     @computed get addDataTerm() {
         const { chart } = this.props
         return chart.data.isSingleEntity ? "data" : chart.entityType
     }
 
+    @computed get hasTimeline(): boolean {
+        const {chart} = this.props
+        return (chart.tab === 'map' && chart.map.data.hasTimeline) || (chart.tab === 'chart' && chart.isScatter && chart.scatter.hasTimeline)
+    }
+
+    @computed get hasExtraControls(): boolean {
+        const {chart} = this.props
+        return chart.tab === 'chart' && (chart.data.canAddData || chart.isScatter || chart.data.canChangeEntity || (chart.isStackedArea && chart.stackedArea.canToggleRelative))
+    }
+
+    @computed get hasSpace(): boolean {
+        return this.props.width > 700
+    }
+
+    @computed get numLines(): number {
+        let numLines = 1
+        if (this.hasTimeline) numLines += 1
+        if (this.hasExtraControls) numLines += 1
+        if (this.hasSpace && numLines > 1) numLines -= 1
+        return numLines
+    }
+
+    @computed get height(): number {
+        return this.numLines*40
+    }
+}
+
+@observer
+export class ControlsFooterView extends React.Component<{ controlsFooter: ControlsFooter }> {
+    @action.bound onShareMenu() {
+        this.props.controlsFooter.isShareMenuActive = !this.props.controlsFooter.isShareMenuActive
+    }
+
+    @action.bound onDataSelect() {
+        this.props.controlsFooter.props.chartView.isSelectingData = true
+    }
+
     render() {
-        const { props, isShareMenuActive } = this
-        const { chart } = props
+        const { props } = this
+        const {isShareMenuActive, hasTimeline, hasExtraControls, addDataTerm, hasSpace} = props.controlsFooter
+        const {chart, chartView} = props.controlsFooter.props
 
-        return <div className="ControlsFooter">
-            <nav className="tabs">
-                <ul>
-                    {map(chart.availableTabs, (tabName) => {
-                        return tabName !== 'download' && <li className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
-                    })}
-                    <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
-                        <a><i className="fa fa-download" /></a>
-                    </li>
-                    <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt" /></a></li>
-                    {props.chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a></li>}
-                </ul>
-            </nav>
-            {chart.tab === 'chart' && <div className="extraControls">
-                {chart.data.canAddData && <button onClick={this.onDataSelect}>
-                    {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {this.addDataTerm}</span>}
-                </button>}
+        const tabs = <nav className="tabs">
+            <ul>
+                {chart.availableTabs.map(tabName => {
+                    return tabName !== 'download' && <li className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
+                })}
+                <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
+                    <a><i className="fa fa-download" /></a>
+                </li>
+                <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt" /></a></li>
+                {chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a></li>}
+            </ul>
+        </nav>
 
-                {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
-                    <i className="fa fa-exchange" /> Change {chart.entityType}
-                </button>}
+        const timeline = hasTimeline && <TimelineControl chart={chart}/>
 
-                {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}
-                {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart} />}
-                {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart} />}
+        const extraControls = hasExtraControls && <div className="extraControls">
+            {chart.data.canAddData && <button onClick={this.onDataSelect}>
+                {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
+            </button>}
+
+            {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
+                <i className="fa fa-exchange" /> Change {chart.entityType}
+            </button>}
+
+            {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}
+            {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart} />}
+            {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart} />}
+        </div>
+
+        return <div className="ControlsFooter" style={{ height: props.controlsFooter.height }}>
+            {hasTimeline && (hasExtraControls || !hasSpace) && <div className="footerRowSingle">
+                {timeline}
             </div>}
-            {isShareMenuActive && <ShareMenu chartView={this.props.chartView} chart={this.props.chart} onDismiss={() => this.isShareMenuActive = false} />}
+            {hasExtraControls && !hasSpace && <div className="footerRowSingle">
+                {extraControls}
+            </div>}
+            {hasSpace && <div className="footerRowMulti">
+                <div>
+                    {hasExtraControls ? extraControls : timeline}
+                </div>
+                {tabs}
+            </div>}
+            {!hasSpace && <div className="footerRowSingle">
+                {tabs}
+            </div>}
+            {isShareMenuActive && <ShareMenu chartView={chartView} chart={chart} onDismiss={this.onShareMenu} />}
         </div>
     }
 }
+

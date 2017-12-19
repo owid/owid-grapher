@@ -126,7 +126,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
 
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
-        return <div>
+        return [
             <a href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
                 {isPortrait
                     ? <div>
@@ -156,8 +156,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                             <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
                         </aside>
                     </div>}
-            </a>
-        </div>
+            </a>]
     }
 
     componentWillMount() {

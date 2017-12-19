@@ -6,7 +6,7 @@ import { select } from 'd3-selection'
 import 'd3-transition'
 
 import ChartConfig, { ChartConfigProps } from './ChartConfig'
-import ControlsFooter from './ControlsFooter'
+import {ControlsFooter, ControlsFooterView} from './ControlsFooter'
 import ChartTab from './ChartTab'
 import DataTab from './DataTab'
 import MapTab from './MapTab'
@@ -88,16 +88,17 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 5) : this.idealWidth }
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
-    @computed get controlsFooterHeight() {
-        const height = Bounds.forText("CHART", { fontSize: this.props.chart.baseFontSize }).height * 2
-        if (this.isPortrait && this.props.chart.tab === 'chart')
-            return height * 2
-        else
-            return height
+    @computed get controlsFooter(): ControlsFooter {
+        const that = this
+        return new ControlsFooter({
+            get chart() { return that.props.chart },
+            get chartView() { return that },
+            get width() { return that.renderWidth }
+        })
     }
 
     @computed get svgBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooterHeight)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
     }
 
     @computed get svgInnerBounds() {
@@ -185,7 +186,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         return [
             this.renderSVG(),
-            <ControlsFooter chart={this.chart} chartView={this} />,
+            <ControlsFooterView controlsFooter={this.controlsFooter} />,
             this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,

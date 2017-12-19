@@ -144,6 +144,10 @@ export default class MapData {
         return sortedUniq(dimension.years.filter((_, i) => !!this.knownMapEntities[dimension.entities[i]]))
     }
 
+    @computed get hasTimeline(): boolean {
+        return !this.map.props.hideTimeline && this.timelineYears.length > 1
+    }
+
     @computed get targetYear(): number {
         const targetYear = defaultTo(this.map.props.targetYear, last(this.timelineYears))
         return defaultTo(findClosest(this.timelineYears, targetYear), last(this.timelineYears))

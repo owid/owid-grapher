@@ -15,7 +15,6 @@ import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 import ChartConfig from './ChartConfig'
 import NoData from './NoData'
-import Timeline from './Timeline'
 import PointsWithLabels, { ScatterSeries, ScatterValue } from './PointsWithLabels'
 import TextWrap from './TextWrap'
 import ConnectedScatterLegend from './ConnectedScatterLegend'
@@ -51,14 +50,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @action.bound onSelectEntity(datakey: string) {
         if (this.chart.addCountryMode !== 'disabled')
             this.chart.data.toggleKey(datakey)
-    }
-
-    @computed get hasTimeline(): boolean {
-        return this.transform.hasTimeline && this.transform.timelineYears.length > 0 && !this.props.isStatic
-    }
-
-    @computed get timelineHeight(): number {
-        return this.hasTimeline ? 35 : 0
     }
 
     // Only show colors on legend that are actually in use
@@ -169,7 +160,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
     @computed get axisBox() {
         const that = this
         return new AxisBox({
-            get bounds() { return that.bounds.padBottom(that.timelineHeight).padRight(that.sidebarWidth + 20) },
+            get bounds() { return that.bounds.padRight(that.sidebarWidth + 20) },
             get fontSize() { return that.chart.baseFontSize },
             get xAxis() { return that.transform.xAxis },
             get yAxis() { return that.transform.yAxis }
@@ -188,14 +179,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         return this.chart.comparisonLine
     }
 
-    @action.bound onTimelineStart() {
-        this.transform.useTimelineDomains = true
-    }
-
-    @action.bound onTimelineStop() {
-        this.transform.useTimelineDomains = false
-    }
-
     @action.bound onToggleEndpoints() {
         this.transform.compareEndPointsOnly = !this.transform.compareEndPointsOnly
     }
@@ -211,7 +194,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             return uniq(transform.currentData.filter(g => activeKeys.indexOf(g.key) !== -1).map(g => g.color))
     }
 
-    renderInner() {
+    render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage} />
 
@@ -228,31 +211,6 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
                 {arrowLegend.render(bounds.right - sidebarWidth, bounds.top + legend.height + 11)}
             </g>}
             {tooltipSeries && <ScatterTooltip formatY={transform.yFormatTooltip} formatX={transform.xFormatTooltip} series={tooltipSeries} maxWidth={sidebarWidth} fontSize={this.chart.baseFontSize} x={bounds.right - sidebarWidth} y={bounds.top + legend.height + 11 + (arrowLegend ? arrowLegend.height + 10 : 0)} />}
-        </g>
-    }
-
-    renderTimeline(): JSX.Element | undefined {
-        const { hasTimeline } = this
-        if (!hasTimeline) return undefined
-
-        const { bounds, transform, onTargetChange } = this
-        const { timelineYears, startYear, endYear } = transform
-
-        return <Timeline
-            bounds={bounds.fromBottom(35)}
-            fontSize={this.chart.baseFontSize}
-            onTargetChange={onTargetChange}
-            years={timelineYears}
-            startYear={startYear}
-            endYear={endYear}
-            onStartDrag={this.onTimelineStart}
-            onStopDrag={this.onTimelineStop} />
-    }
-
-    render() {
-        return <g className="ScatterPlot">
-            {this.renderInner()}
-            {this.renderTimeline()}
         </g>
     }
 }
