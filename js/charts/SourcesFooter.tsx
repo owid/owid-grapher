@@ -29,13 +29,13 @@ export default class SourcesFooter {
     }
 
     @computed get licenseSvg(): string {
-        const { originUrl } = this.props.chart
+        const { originUrl } = this.props.chart.data
         let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
 
-
         // Make sure the link back to OWID is consistent
-        if (originUrl && originUrl.indexOf("ourworldindata.org") !== -1) {
+        if (originUrl && originUrl.toLowerCase().indexOf("ourworldindata.org") !== -1) {
             const url = parseUrl(originUrl)
+            console.log(url)
             const finalUrl = `https://ourworldindata.org${url.pathname}`
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
         } else {

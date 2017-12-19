@@ -76,7 +76,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <textarea className="form-control" value={props.value} onInput={this.onInput} {...passthroughProps}/>
+            <textarea className="form-control" value={props.value} onInput={this.onInput} rows={5} {...passthroughProps}/>
             {props.helpText && <small>{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>

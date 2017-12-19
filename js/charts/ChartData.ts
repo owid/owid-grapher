@@ -143,6 +143,13 @@ export default class ChartData {
         return defaultTo(this.chart.props.slug, this.defaultSlug)
     }
 
+    @computed get originUrl(): string {
+        let url = this.chart.props.originUrl || "ourworldindata.org"
+        if (!url.startsWith("http"))
+           url = "https://" + url
+        return url
+    }
+
     @computed get defaultSourcesLine(): string {
         const sourceNames = this.sources.map(source => source.name)
 
