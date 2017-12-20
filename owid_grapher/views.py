@@ -64,6 +64,7 @@ def embed_snippet(request):
 
     response = HttpResponse(script, content_type="application/javascript")
     response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+    response['Access-Control-Allow-Origin'] = '*'
     return response
 
 def test_all(request):
@@ -249,11 +250,12 @@ def find_with_redirects(slug):
     except ValueError:
         intslug = None
 
-    chart = Chart.objects.filter(config__slug=slug, config__isPublished=True).first()
     if not chart:
-        redirect_chart = ChartSlugRedirect.objects.filter(slug=slug).first()
-        if redirect_chart:
-            chart = Chart.objects.filter(id=redirect_chart.chart_id, config__isPublished=True).first()
+        chart = Chart.objects.filter(config__slug=slug, config__isPublished=True).first()
+        if not chart:
+            redirect_chart = ChartSlugRedirect.objects.filter(slug=slug).first()
+            if redirect_chart:
+                chart = Chart.objects.filter(id=redirect_chart.chart_id, config__isPublished=True).first()
 
     return chart
 
@@ -285,6 +287,7 @@ def config_json_by_slug(request, slug):
 
     response = JsonResponse(configdict)
     response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
+    response['Access-Control-Allow-Origin'] = '*'
 
     return response
 
@@ -396,6 +399,7 @@ def variables(request, ids):
         response['Cache-Control'] = 'max-age=31536000 public'
     else:
         response['Cache-Control'] = 'no-cache'
+    response['Access-Control-Allow-Origin'] = '*'
 
     return response
 
