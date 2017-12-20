@@ -25,5 +25,4 @@ async function main(database: string, chartId: number, baseDir: string) {
 
 main(argv._[0], parseInt(argv._[1]), argv._[2])
 
-
 // TODO: redirects
