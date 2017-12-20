@@ -86,6 +86,7 @@
     "preact-compat": "^3.16.0",
     "precss": "^1.4.0",
     "react-virtual-list": "^2.0.0",
+    "run-parallel": "^1.1.6",
     "sass-loader": "^6.0.6",
     "save-svg-as-png": "^1.2.0",
     "sharp": "^0.18.4",
