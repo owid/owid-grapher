@@ -11,7 +11,9 @@ async function scrapePage(slug: string, baseUrl: string, outDir: string) {
         const outPath = path.join(outDir, `${slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
 
-        html = html.replace(new RegExp(baseUrl, 'g'), "").replace("/grapher/embedCharts.js", "https://ourworldindata.org/grapher/embedCharts.js")
+        html = html.replace(new RegExp(baseUrl, 'g'), "")
+            .replace(new RegExp("http://", 'g'), "https://")
+            .replace(new RegExp("https://ourworldindata.org", 'g'), "https://owid.netlify.com")
 
         await fs.writeFile(outPath, html)
     } catch (err) {
@@ -57,4 +59,4 @@ async function main(baseUrl: string, outDir: string) {
     db.end()
 }
 
-main("http://l:8080", "/Users/mispy/static-owid/wp/")
+main("http://l:8080", "/Users/mispy/static-owid/")

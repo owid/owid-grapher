@@ -1,14 +1,14 @@
 import * as React from 'react'
-import {settings} from './settings'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
+import * as path from 'path'
 
-export const ChartPage = (props: { chart: ChartConfigProps }) => {
-    const {chart} = props
+export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
+    const {chart, canonicalRoot, pathRoot} = props
 
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
-    const canonicalUrl = `${settings.baseUrl}/${chart.slug}`
-    const imageUrl = `${settings.baseUrl}/${chart.slug}.png`
+    const canonicalUrl = path.join(canonicalRoot, chart.slug as string)
+    const imageUrl = `${canonicalUrl}.png`
 
     return <html>
         <head>
@@ -45,10 +45,10 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
                     height: 100%;
                 }`}
             </style>
-            <script src={`${settings.baseUrl}/embedCharts.js`}/>
+            <script src={`${pathRoot}/embedCharts.js`}/>
         </head>
         <body className="singleChart">
-            <figure data-grapher-src={canonicalUrl}/>
+            <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>
         </body>
     </html>
 }

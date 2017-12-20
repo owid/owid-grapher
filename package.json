@@ -17,6 +17,7 @@
     "@types/express": "^4.0.39",
     "@types/extract-text-webpack-plugin": "^2.1.0",
     "@types/fs-extra": "^4.0.6",
+    "@types/fs-promise": "^1.0.3",
     "@types/imagemagick": "^0.0.30",
     "@types/isomorphic-fetch": "^0.0.34",
     "@types/jquery": "^3.2.12",
