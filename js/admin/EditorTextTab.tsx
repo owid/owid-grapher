@@ -2,10 +2,15 @@ import * as React from 'react'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
-import { Toggle, Section, BindString, BindAutoString } from './Forms'
+import { Toggle, Section, BindString, BindAutoString, AutoTextField } from './Forms'
+const slugify = require('slugify')
 
 @observer
 export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
+    @action.bound onSlug(slug: string) {
+        this.props.editor.chart.props.slug = slugify(slug).toLowerCase()
+    }
+
     render() {
         const {chart} = this.props.editor
 
@@ -13,7 +18,7 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
             <Section name="Header">
                 <BindAutoString field="title" store={chart.props} auto={chart.data.title} softCharacterLimit={100}/>
                 <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={action((value: boolean) => chart.props.hideTitleAnnotation = value||undefined)}/>
-                <BindAutoString label="/grapher/" field="slug" store={chart.props} auto={chart.data.slug} helpText="Human-friendly URL for this chart"/>
+                <AutoTextField label="/grapher" value={chart.data.slug} onValue={this.onSlug} isAuto={chart.props.slug === undefined} onToggleAuto={_ => chart.props.slug = chart.props.slug === undefined ? chart.data.slug : undefined} helpText="Human-friendly URL for this chart"/>
                 <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data" textarea softCharacterLimit={280}/>
             </Section>
             <Section name="Footer">

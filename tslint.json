@@ -32,7 +32,8 @@
         "no-boolean-literal-compare": true,
         "restrict-plus-operands": true,
         "strict-type-predicates": true,
-        "no-for-in-array": true
+        "no-for-in-array": true,
+        "eofline": false
     },
     "rulesDirectory": []
 }
