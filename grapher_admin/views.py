@@ -270,7 +270,9 @@ def savechart(chart: Chart, data: Dict, user: User):
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
 
-    chart.bake(user)
+    # Bake published charts into static build
+    if data.get('isPublished') or chart.config.get('isPublished'):
+        chart.bake(user)
 
     return JsonResponse({'success': True, 'data': {'id': chart.pk}}, safe=False)
 
