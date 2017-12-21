@@ -97,6 +97,7 @@
     "save-svg-as-png": "^1.2.0",
     "sharp": "^0.18.4",
     "shelljs": "^0.7.8",
+    "slugify": "^1.2.7",
     "source-map-loader": "^0.1.5",
     "string-pixel-width": "^1.4.0",
     "striptags": "^3.0.1",
