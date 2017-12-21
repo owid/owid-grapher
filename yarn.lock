@@ -213,6 +213,10 @@
     "@types/d3-voronoi" "*"
     "@types/d3-zoom" "*"
 
+"@types/events@*":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/events/-/events-1.1.0.tgz#93b1be91f63c184450385272c47b6496fd028e02"
+
 "@types/expr-eval@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@types/expr-eval/-/expr-eval-1.0.2.tgz#15e437e2143acd142fcc4d28caf56d6036826167"
@@ -260,6 +264,14 @@
   version "7946.0.0"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.0.tgz#e8bc74e8183d966455f82023f0c72e1072a952d0"
 
+"@types/glob@*", "@types/glob@^5.0.34":
+  version "5.0.34"
+  resolved "https://registry.yarnpkg.com/@types/glob/-/glob-5.0.34.tgz#ee626c9be3da877d717911c6101eee0a9871bbf4"
+  dependencies:
+    "@types/events" "*"
+    "@types/minimatch" "*"
+    "@types/node" "*"
+
 "@types/imagemagick@^0.0.30":
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/imagemagick/-/imagemagick-0.0.30.tgz#657846bdaa293c906f045bdf4c9f62d822d41811"
@@ -301,6 +313,10 @@
 "@types/mime@*":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.0.tgz#5a7306e367c539b9f6543499de8dd519fac37a8b"
+
+"@types/minimatch@*":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.2.tgz#09c06877e478a5d5f32ce5017c2eb2b33006f6f5"
 
 "@types/minimist@^1.2.0":
   version "1.2.0"
@@ -370,6 +386,13 @@
   version "0.17.6"
   resolved "https://registry.yarnpkg.com/@types/sharp/-/sharp-0.17.6.tgz#3138602163b30b4969f75a2755a3f90caaaa9be3"
   dependencies:
+    "@types/node" "*"
+
+"@types/shelljs@^0.7.7":
+  version "0.7.7"
+  resolved "https://registry.yarnpkg.com/@types/shelljs/-/shelljs-0.7.7.tgz#1f7bfa28947661afea06365db9b1135bbc903ec4"
+  dependencies:
+    "@types/glob" "*"
     "@types/node" "*"
 
 "@types/source-map@*":
@@ -2486,7 +2509,7 @@ glob@^6.0.4:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.1.1, glob@~7.1.1:
+glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.1.1, glob@^7.1.2, glob@~7.1.1:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -4921,6 +4944,12 @@ readdirp@^2.0.0:
     readable-stream "^2.0.2"
     set-immediate-shim "^1.0.1"
 
+rechoir@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/rechoir/-/rechoir-0.6.2.tgz#85204b54dba82d5742e28c96756ef43af50e3384"
+  dependencies:
+    resolve "^1.1.6"
+
 redent@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/redent/-/redent-1.0.0.tgz#cf916ab1fd5f1f16dfb20822dd6ec7f730c2afde"
@@ -5129,7 +5158,7 @@ resolve-from@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-3.0.0.tgz#b22c7af7d9d6881bc8b6e653335eebcb0a188748"
 
-resolve@^1.3.2, resolve@^1.3.3:
+resolve@^1.1.6, resolve@^1.3.2, resolve@^1.3.3:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.5.0.tgz#1f09acce796c9a762579f31b2c1cc4c3cddf9f36"
   dependencies:
@@ -5338,6 +5367,14 @@ shebang-command@^1.2.0:
 shebang-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
+
+shelljs@^0.7.8:
+  version "0.7.8"
+  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.8.tgz#decbcf874b0d1e5fb72e14b164a9683048e9acb3"
+  dependencies:
+    glob "^7.0.0"
+    interpret "^1.0.0"
+    rechoir "^0.6.2"
 
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"

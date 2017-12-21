@@ -3,7 +3,7 @@
 import {createConnection, DatabaseConnection} from './database'
 import { LOGO, embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
-import { uniq } from 'lodash'
+import { uniq, without } from 'lodash'
 import * as fs from 'fs-extra'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
@@ -11,6 +11,8 @@ import { getVariableData } from './models/Variable'
 import {ChartPage} from './ChartPage'
 import * as path from 'path'
 import * as md5 from 'md5'
+import * as glob from 'glob'
+import * as shell from 'shelljs'
 
 export interface ChartBakerProps {
     database: string
@@ -41,28 +43,37 @@ export class ChartBaker {
         await fs.mkdirp(path.join(this.baseDir, 'assets'))
 
         for (const key in manifest) {
-            fs.copyFileSync(`${buildDir}/${manifest[key]}`, path.join(this.baseDir, `assets/${manifest[key]}`))
+            const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+            fs.copyFileSync(`${buildDir}/${manifest[key]}`, outPath)
+            console.log(outPath)
         }
 
         const chartsJs = `${pathRoot}/assets/${manifest['charts.js']}`
         const chartsCss = `${pathRoot}/assets/${manifest['charts.css']}`
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
+        console.log(`${this.baseDir}/embedCharts.js`)
     }
 
     async bakeVariableData(variableIds: number[]) {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
         const vardata = await getVariableData(variableIds, this.db)
-        await fs.writeFile(`${this.baseDir}/data/variables/${variableIds.join("-")}`, vardata)
+        const outPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
+        await fs.writeFile(`${this.baseDir}/data/variables/${variableIds.join("+")}`, vardata)
+        console.log(outPath)
     }
 
     async bakeChartConfig(chart: ChartConfigProps) {
         (chart as any).logosSVG = [LOGO]
-        await fs.writeFile(`${this.baseDir}/${chart.slug}.config.json`, JSON.stringify(chart))
+        const outPath = `${this.baseDir}/${chart.slug}.config.json`
+        await fs.writeFile(outPath, JSON.stringify(chart))
+        console.log(outPath)
     }
 
     async bakeChartPage(chart: ChartConfigProps) {
-        await fs.writeFile(`${this.baseDir}/${chart.slug}.html`, ReactDOMServer.renderToStaticMarkup(<ChartPage canonicalRoot={this.props.canonicalRoot} pathRoot={this.props.pathRoot} chart={chart}/>))
+        const outPath = `${this.baseDir}/${chart.slug}.html`
+        await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage canonicalRoot={this.props.canonicalRoot} pathRoot={this.props.pathRoot} chart={chart}/>))
+        console.log(outPath)
     }
 
     async bakeChart(chart: ChartConfigProps) {
@@ -72,7 +83,7 @@ export class ChartBaker {
         const variables = await this.db.query(`SELECT updated_at FROM variables WHERE id IN (?)`, [variableIds]);
         (chart as any).variableCacheTag = md5(variables.map(v => v.updated_at).join("+"))
 
-        await Promise.all([
+        return Promise.all([
             this.bakeVariableData(variableIds),
             this.bakeChartConfig(chart),
             this.bakeChartPage(chart),
@@ -95,7 +106,8 @@ export class ChartBaker {
             }
         }
 
-        return fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
+        await fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
+        console.log(`${repoDir}/_redirects`)
     }
 
     async bakeHeaders() {
@@ -106,8 +118,10 @@ export class ChartBaker {
 
 ${pathRoot}/assets/*
   Cache-Control: public, max-age=31556926
+
 `
-        return fs.writeFile(`${repoDir}/_headers`, headers)
+        await fs.writeFile(`${repoDir}/_headers`, headers)
+        console.log(`${repoDir}/_headers`)
     }
 
     /*async bakeAllVariables() {
@@ -125,18 +139,65 @@ ${pathRoot}/assets/*
         console.log(uniq(variableIds))
     }*/
 
+    async bakeCharts() {
+        const {db, baseDir, props} = this
+        const rows = await db.query(`SELECT config, updated_at FROM charts ORDER BY slug ASC`)
+
+        const newSlugs = []
+        const requests = []
+        for (const row of rows) {
+            const chart: ChartConfigProps = JSON.parse(row.config)
+            newSlugs.push(chart.slug)
+
+            const configPath = `${baseDir}/${chart.slug}.config.json`
+            try {
+                const stat = fs.statSync(configPath)
+                if (stat.mtime >= row.updated_at)
+                    continue
+            } catch (err) {
+                if (err.code !== 'ENOENT')
+                    console.error(err)
+            }
+
+            requests.push(this.bakeChart(chart))
+        }
+
+        // Delete any that are missing from the database
+        const oldSlugs = glob.sync(`${baseDir}/*.config.json`).map(slug => slug.replace(`${baseDir}/`, '').replace(".config.json", ""))
+        const toRemove = without(oldSlugs, ...newSlugs)
+        for (const slug of toRemove) {
+            console.log(`DELETING ${slug}`)
+            try {
+                await fs.unlink(`${baseDir}/${slug}.config.json`)
+                await fs.unlink(`${baseDir}/${slug}.html`)
+            } catch (err) {
+                console.error(err)
+            }
+        }
+
+        return Promise.all(requests)
+    }
+
     async bakeAll() {
-        const {db, props} = this
-        const chartQuery = db.query(`SELECT config FROM charts ORDER BY slug ASC`)
-        const variableQuery = db.query(`SELECT id, updated_at FROM variables`)
+        await this.bakeCharts()
+        await this.bakeRedirects()
+        await this.bakeHeaders()
+        await this.bakeAssets()
+    }
 
-        const charts: ChartConfigProps[] = (await chartQuery).map(row => JSON.parse(row.config))
+    exec(cmd: string) {
+        console.log(cmd)
+        shell.exec(cmd)
+    }
 
-        const exportRuns = charts.map(chart => {
-            return this.bakeChart(chart).then(() => console.log(chart.slug))
-        })
-
-        await Promise.all([this.bakeRedirects(), this.bakeHeaders(), this.bakeAssets()].concat(exportRuns))
+    async deploy(authorEmail?: string, authorName?: string, commitMsg?: string) {
+        const {repoDir} = this.props
+        if (authorEmail && authorName && commitMsg) {
+            this.exec(`cd ${repoDir} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}'`)
+        } else {
+            this.exec(`cd ${repoDir} && git add -A . && git commit -a -m "Automated update"`)
+        }
+        this.exec(`cd ${repoDir} && git push origin master`)
     }
 
     async end() {

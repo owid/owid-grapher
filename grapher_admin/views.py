@@ -270,16 +270,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
 
-    # Static export
-
-    command = f"node {settings.BASE_DIR}/dist/src/writeChart.js {settings.DB_NAME} {chart.id} {settings.BASE_DIR}/tmp"
-    
-    print(command)
-
-    try:
-        subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        raise Exception(e.output)
+    chart.bake(user)
 
     return JsonResponse({'success': True, 'data': {'id': chart.pk}}, safe=False)
 

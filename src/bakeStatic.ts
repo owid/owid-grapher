@@ -14,6 +14,8 @@ async function main() {
         await baker.bakeRedirects()
 //    else if (argv._[0] === "variables")
 //        await baker.bakeAllVariables()
+    else if (argv._[0] === "assets")
+        await baker.bakeAssets()
     else if (argv._[0] === "all")
         await baker.bakeAll()
 

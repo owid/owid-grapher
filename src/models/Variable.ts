@@ -8,7 +8,7 @@ export async function getVariableData(variableIds: number[], db: DatabaseConnect
             JOIN datasets as d ON v.fk_dst_id = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
-    `, variableIds)
+    `, [variableIds])
 
     const dataQuery = db.query(`
             SELECT value, year, fk_var_id as variableId, entities.id as entityId,
@@ -17,7 +17,7 @@ export async function getVariableData(variableIds: number[], db: DatabaseConnect
             LEFT JOIN entities ON data_values.fk_ent_id = entities.id
             WHERE data_values.fk_var_id IN (?)
             ORDER BY variableId ASC, year ASC
-    `, variableIds)
+    `, [variableIds])
 
     const variables = await variableQuery
 
