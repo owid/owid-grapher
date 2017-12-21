@@ -128,7 +128,7 @@ export default class VariableData {
             return
         }
 
-        fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
+        fetch(Global.rootUrl + "/data/variables/" + variableIds.join("-") + "?v=" + cacheTag)
             .then(response => response.text())
             .then(rawData => this.receiveData(rawData))
     }

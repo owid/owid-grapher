@@ -336,7 +336,7 @@ def variables(request, ids):
     meta = { "variables": {} }
 
     # First, grab all the variable metadata needed by the frontend
-    variable_ids = [int(idStr) for idStr in ids.split('+')]
+    variable_ids = [int(idStr) for idStr in ids.split('-')]
     variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
         'id', 'name', 'description', 'unit', 'short_unit',
         'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',

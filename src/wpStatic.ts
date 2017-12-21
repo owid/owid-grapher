@@ -14,6 +14,7 @@ async function scrapePage(slug: string, baseUrl: string, outDir: string) {
         html = html.replace(new RegExp(baseUrl, 'g'), "")
             .replace(new RegExp("http://", 'g'), "https://")
             .replace(new RegExp("https://ourworldindata.org", 'g'), "https://owid.netlify.com")
+            .replace(new RegExp("/grapher/embedCharts.js", 'g'), "https://owid.netlify.com/grapher/embedCharts.js")
 
         await fs.writeFile(outPath, html)
     } catch (err) {
@@ -22,8 +23,13 @@ async function scrapePage(slug: string, baseUrl: string, outDir: string) {
 }
 
 async function writeRedirects(db: DatabaseConnection, outDir: string) {
+    const redirects = [
+        "http://owid.netlify.com* https://owid.netlify.com:splat",
+        "/grapher/* https://owid-grapher.netlify.com/grapher/:splat 200"
+    ]
+
     const rows = await db.query(`SELECT url, action_data, action_code FROM wp_redirection_items`)
-    const redirects = rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`)
+    redirects.push(...rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`))
     await fs.writeFile(`${outDir}/_redirects`, redirects.join("\n"))
 }
 
@@ -59,4 +65,4 @@ async function main(baseUrl: string, outDir: string) {
     db.end()
 }
 
-main("http://l:8080", "/Users/mispy/static-owid/")
+main("http://l:8080", "/Users/mispy/wp-static")

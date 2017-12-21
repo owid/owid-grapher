@@ -1,6 +1,6 @@
 import { DatabaseConnection } from '../database'
 
-export async function streamVariableData(variableIds: number[], output: { write: (s: string) => void, end: () => void }, db: DatabaseConnection) {
+export async function getVariableData(variableIds: number[], db: DatabaseConnection): Promise<string> {
     const meta: any = { variables: {} }
 
     const variableQuery = db.query(`
@@ -38,7 +38,12 @@ export async function streamVariableData(variableIds: number[], output: { write:
 
     const results = await dataQuery
 
-    output.write(JSON.stringify(meta))
+    let output = ""
+    function write(s: string) {
+        output += s
+    }
+
+    write(JSON.stringify(meta))
 
     const entityKey: { [entityId: number]: { name: string, code: string } | undefined } = {}
     const seenVariables: { [variableId: number]: true | undefined } = {}
@@ -46,18 +51,19 @@ export async function streamVariableData(variableIds: number[], output: { write:
     for (const row of results) {
         if (seenVariables[row.variableId] === undefined) {
             seenVariables[row.variableId] = true
-            output.write("\r\n")
-            output.write(row.variableId.toString())
+            write("\r\n")
+            write(row.variableId.toString())
         }
 
-        output.write(`;${row.year},${row.entityId},${row.value}`)
+        write(`;${row.year},${row.entityId},${row.value}`)
 
         if (entityKey[row.entityId] === undefined) {
             entityKey[row.entityId] = { name: row.entityName, code: row.entityCode }
         }
     }
 
-    output.write("\r\n")
-    output.write(JSON.stringify(entityKey))
-    output.end()
+    write("\r\n")
+    write(JSON.stringify(entityKey))
+
+    return output
 }
