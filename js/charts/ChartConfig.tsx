@@ -1,4 +1,4 @@
-import { extend, map, filter, includes, uniqWith, find } from "./Util"
+import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from 'mobx'
 import { ComparisonLineConfig } from './ComparisonLine'
 import AxisConfig, { AxisConfigProps } from './AxisConfig'
@@ -165,8 +165,10 @@ export default class ChartConfig {
         this.url = new URLBinder(this, options.queryStr)
 
         window.chart = this
+        this.ensureValidConfig()
+    }
 
-        // Sanity check configuration
+    ensureValidConfig() {
         autorun(() => {
             if (!includes(this.availableTabs, this.props.tab)) {
                 runInAction(() => this.props.tab = this.availableTabs[0])
@@ -176,6 +178,12 @@ export default class ChartConfig {
         autorun(() => {
             if (this.props.hasMapTab && !this.props.map) {
                 runInAction(() => this.props.map = new MapConfigProps())
+            }
+        })
+
+        autorun(() => {
+            if (!isEqual(this.props.dimensions, this.validDimensions)) {
+                this.props.dimensions = this.validDimensions
             }
         })
     }
@@ -240,7 +248,7 @@ export default class ChartConfig {
             return [yAxis]
     }
 
-    @computed get dimensions(): ChartDimension[] {
+    @computed get validDimensions(): ChartDimension[] {
         const { dimensions } = this.props
         const validProperties = map(this.dimensionSlots, "property")
         let validDimensions = filter(dimensions, (dim) => includes(validProperties, dim.property))
@@ -260,6 +268,10 @@ export default class ChartConfig {
         }
 
         return validDimensions
+    }
+
+    @computed get dimensions() {
+        return this.props.dimensions
     }
 
     @computed get availableTabs(): ChartTabOption[] {
