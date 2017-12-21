@@ -144,7 +144,7 @@ ${pathRoot}/assets/*
         const rows = await db.query(`SELECT config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
 
         const newSlugs = []
-        const requests = []
+        let requests = []
         for (const row of rows) {
             const chart: ChartConfigProps = JSON.parse(row.config)
             newSlugs.push(chart.slug)
@@ -160,6 +160,11 @@ ${pathRoot}/assets/*
             }
 
             requests.push(this.bakeChart(chart))
+            // Execute in batches
+            if (requests.length > 20) {
+                await Promise.all(requests)
+                requests = []
+            }
         }
 
         // Delete any that are missing from the database
