@@ -141,7 +141,7 @@ ${pathRoot}/assets/*
 
     async bakeCharts() {
         const {db, baseDir, props} = this
-        const rows = await db.query(`SELECT config, updated_at FROM charts ORDER BY slug ASC`)
+        const rows = await db.query(`SELECT config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
 
         const newSlugs = []
         const requests = []
