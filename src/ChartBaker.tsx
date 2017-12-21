@@ -44,7 +44,7 @@ export class ChartBaker {
 
         for (const key in manifest) {
             const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
-            fs.copyFileSync(`${buildDir}/${manifest[key]}`, outPath)
+            fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
             console.log(outPath)
         }
 
