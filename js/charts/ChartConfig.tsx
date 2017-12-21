@@ -276,8 +276,9 @@ export default class ChartConfig {
         if (json.isAutoTitle)
             this.props.title = undefined
 
-        // Note: no auto slug outside of editor for obvious reasons
-        if (json.isAutoSlug && App.isEditor)
+        // Auto slug is only preserved for drafts in the editor
+        // Once published, slug should stick around (we don't want to create too many redirects)
+        if (json.isAutoSlug && App.isEditor && !json.isPublished)
             this.props.slug = undefined
 
         this.props.map = new MapConfigProps(json.map)
