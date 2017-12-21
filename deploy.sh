@@ -63,8 +63,9 @@ then
   # Install dependencies and migrate
   cd $FINAL_TARGET
   yarn install --production
-  ./env/bin/pip3 install -r requirements.txt
-  ./env/bin/python3 manage.py migrate
+  . env/bin/activate
+  pip3 install -r requirements.txt
+  python3 manage.py migrate
 
   # Ensure consistent permissions
   sudo chown owid:www-data -R $FINAL_TARGET
