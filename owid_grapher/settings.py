@@ -247,3 +247,5 @@ if TESTING:
             return None
 
     MIGRATION_MODULES = DisableMigrations()
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20971520
