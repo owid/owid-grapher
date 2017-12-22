@@ -6,10 +6,13 @@ ROOT="/home/owid"
 
 if [ "$1" == "test" ]; then
   NAME="test-grapher"
+  DB_NAME="test_grapher"
 elif [ "$1" == "mispytest" ]; then
   NAME="mispytest-grapher"
+  DB_NAME="mispytest_grapher"
 elif [ "$1" == "live" ]; then
   NAME="live-grapher"
+  DB_NAME="live_grapher"
 
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r
@@ -72,6 +75,9 @@ then
   sudo chown owid:www-data -R $FINAL_DATA
   sudo chmod g+rw -R $FINAL_TARGET || true
   sudo chmod g+rw -R $FINAL_DATA || true
+
+  # Static rebuild
+  node dist/src/deployHook.js $DB_NAME
 
   # Finally, restart the grapher!
   sudo service $NAME restart

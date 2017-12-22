@@ -149,7 +149,7 @@ class Chart(Model):
         email = shlex.quote(user.email)
         name = shlex.quote(user.get_full_name())
         slug = shlex.quote(self.config['slug'])
-        cmd = f"node {settings.BASE_DIR}/dist/src/chartUpdatedHook.js {settings.DB_NAME} {email} {name} {slug} > /tmp/{settings.DB_NAME}-static.log 2>&1"
+        cmd = f"node {settings.BASE_DIR}/dist/src/chartUpdatedHook.js {settings.DB_NAME} {email} {name} {slug} >> /tmp/{settings.DB_NAME}-static.log 2>&1"
 
         print(cmd)
         subprocess.Popen(cmd, shell=True)

@@ -22,6 +22,7 @@ import * as ReactDOMServer from "react-dom/server"
 import Bounds from "./Bounds"
 import IChartTransform from "./IChartTransform"
 import ChartDimension from "./ChartDimension"
+import * as md5 from 'md5'
 
 declare const App: any
 declare const window: any
@@ -298,7 +299,6 @@ export default class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map((j: any) => new ChartDimension(j))
-        this.variableCacheTag = json["variableCacheTag"]
         this.logosSVG = json["logosSVG"]
     }
 
@@ -356,5 +356,9 @@ export default class ChartConfig {
             bounds={new Bounds(0, 0, 1020, 720)} />)
 
         return svg
+    }
+
+    @computed get cacheTag(): string {
+        return md5(JSON.stringify(this.props))
     }
 }

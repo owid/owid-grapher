@@ -80,9 +80,6 @@ export class ChartBaker {
         const variableIds = uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
-        const variables = await this.db.query(`SELECT updated_at FROM variables WHERE id IN (?)`, [variableIds]);
-        (chart as any).variableCacheTag = md5(variables.map(v => v.updated_at).join("+"))
-
         return Promise.all([
             this.bakeVariableData(variableIds),
             this.bakeChartConfig(chart),

@@ -4,8 +4,7 @@ import * as os from 'os'
 import * as path from 'path'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(database: string, email: string, name: string, slug: string) {
-    console.log(database, email, name)
+async function main(database: string) {
     const baker = new ChartBaker({
         database: database,
         canonicalRoot: 'https://ourworldindata.org',
@@ -15,7 +14,7 @@ async function main(database: string, email: string, name: string, slug: string)
 
     try {
         await baker.bakeAll()
-        await baker.deploy(`Updating ${slug}`, email, name)
+        await baker.deploy(`Code deployment update`)
     } catch (err) {
         console.error(err)
     } finally {
@@ -23,4 +22,4 @@ async function main(database: string, email: string, name: string, slug: string)
     }
 }
 
-main(argv._[0], argv._[1], argv._[2], argv._[3])
+main(argv._[0])

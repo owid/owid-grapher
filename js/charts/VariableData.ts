@@ -3,6 +3,7 @@ import ChartConfig from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 
 declare var Global: { rootUrl: string }
+declare var App: { isEditor: boolean }
 
 export class Variable {
     @observable.ref id: number
@@ -110,7 +111,7 @@ export default class VariableData {
     }
 
     @computed get cacheTag(): string {
-        return this.chart.variableCacheTag || Date.now().toString()
+        return App.isEditor ? Date.now().toString() : this.chart.cacheTag
     }
 
     @computed get availableEntities(): string[] {
