@@ -8,7 +8,7 @@ async function main(database: string, email: string, name: string, slug: string)
     console.log(database, email, name)
     const baker = new ChartBaker({
         database: database,
-        canonicalRoot: 'https://owid.netlify.com',//'https://ourworldindata.org',
+        canonicalRoot: 'https://static.ourworldindata.org',
         pathRoot: '/grapher',
         repoDir: path.join(os.homedir(), `${database}-static`)
     })

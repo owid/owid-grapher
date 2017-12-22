@@ -308,6 +308,7 @@ def starchart(request: HttpRequest, chartid: str):
         Chart.objects.update(starred=False)
         chart.starred = True
         chart.save()
+        chart.bake(request.user)
 
     # Purge the Cloudflare cache for the chart config url
     # Also purge the html for some common query string urls to update the meta tags

@@ -88,18 +88,12 @@ export class ChartBaker {
 
     async bakeRedirects() {
         const {pathRoot, repoDir} = this.props
-        const rows = await this.db.query(`
-            SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
-            FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-        `)
-
         const redirects = []
-        for (const row of rows) {
-            const trueSlug = JSON.parse(row.trueSlug)
-            if (row.slug !== trueSlug) {
-                redirects.push(`${pathRoot}/${row.slug}.config.json ${pathRoot}/${trueSlug}.config.json 302`)
-                redirects.push(`${pathRoot}/${row.slug} ${pathRoot}/${trueSlug} 302`)
-            }
+
+        // Redirect /grapher/latest
+        const latestRows = await this.db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
+        for (const row of latestRows) {
+            redirects.push(`${pathRoot}/latest ${pathRoot}/${JSON.parse(row.slug)} 302`)
         }
 
         // Redirect chart ids to slugs
@@ -107,6 +101,20 @@ export class ChartBaker {
         for (const row of idRows) {
             redirects.push(`${pathRoot}/${row.id}.config.json ${pathRoot}/${JSON.parse(row.slug)}.config.json`)
             redirects.push(`${pathRoot}/${row.id} ${pathRoot}/${JSON.parse(row.slug)} 302`)
+        }
+
+        // Redirect old slugs to new slugs
+        const rows = await this.db.query(`
+            SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
+            FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
+        `)
+
+        for (const row of rows) {
+            const trueSlug = JSON.parse(row.trueSlug)
+            if (row.slug !== trueSlug) {
+                redirects.push(`${pathRoot}/${row.slug}.config.json ${pathRoot}/${trueSlug}.config.json 302`)
+                redirects.push(`${pathRoot}/${row.slug} ${pathRoot}/${trueSlug} 302`)
+            }
         }
 
         await fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
