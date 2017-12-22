@@ -24,13 +24,12 @@ import {when} from 'mobx'
 
 const [configUrl, queryStr] = targetSrc.split(/\?/)
 fetch(configUrl + ".config.json").then(data => data.json()).then(jsonConfig => {
-    const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
-    chart.baseFontSize = 18
+    const chart = new ChartConfig(jsonConfig, { isMediaCard: true })
     when(() => chart.data.isReady, () => {
         setTimeout(() => {
             const svgPath = outputPath.replace('.png', '.svg')
             fs.writeFileSync(svgPath, chart.staticSVG)
-            sharp(svgPath, { density: 144 }).png().resize(1020, 720).flatten().background('#ffffff').toFile(outputPath)
+            sharp(svgPath, { density: 144 }).png().resize(chart.idealBounds.width, chart.idealBounds.height).flatten().background('#ffffff').toFile(outputPath)
         }, 0)
     })
 })
