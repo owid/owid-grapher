@@ -7,7 +7,7 @@ const argv = parseArgs(process.argv.slice(2))
 async function main(database: string) {
     const baker = new ChartBaker({
         database: database,
-        canonicalRoot: 'https://ourworldindata.org',
+        canonicalRoot: 'https://owid.netlify.com',//'https://ourworldindata.org',
         pathRoot: '/grapher',
         repoDir: path.join(os.homedir(), `${database}-static`)
     })
