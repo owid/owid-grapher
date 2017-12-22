@@ -1,7 +1,7 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
 import {createConnection, DatabaseConnection} from './database'
-import { LOGO, embedSnippet } from './staticGen'
+import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import { uniq, without } from 'lodash'
 import * as fs from 'fs-extra'
@@ -64,7 +64,6 @@ export class ChartBaker {
     }
 
     async bakeChartConfig(chart: ChartConfigProps) {
-        (chart as any).logosSVG = [LOGO]
         const outPath = `${this.baseDir}/${chart.slug}.config.json`
         await fs.writeFile(outPath, JSON.stringify(chart))
         console.log(outPath)
@@ -148,8 +147,10 @@ ${pathRoot}/assets/*
 
             const configPath = `${baseDir}/${chart.slug}.config.json`
             try {
-                const stat = fs.statSync(configPath)
-                if (stat.mtime >= row.updated_at)
+                // If the chart config is identical, we can skip baking the data (which is by far the slowest part)
+                const hash = md5(JSON.stringify(chart))
+                const fileHash = md5(await fs.readFile(configPath, 'utf8'))
+                if (hash === fileHash)
                     continue
             } catch (err) {
                 if (err.code !== 'ENOENT')
@@ -158,7 +159,7 @@ ${pathRoot}/assets/*
 
             requests.push(this.bakeChart(chart))
             // Execute in batches
-            if (requests.length > 20) {
+            if (requests.length > 50) {
                 await Promise.all(requests)
                 requests = []
             }
