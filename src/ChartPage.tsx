@@ -21,8 +21,8 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
             <meta property="og:title" content={pageTitle}/>
             <meta property="og:description" content={pageDesc}/>
             <meta property="og:image" content={imageUrl}/>
-            <meta property="og:image:width" content="1080"/>
-            <meta property="og:image:height" content="720"/>
+            <meta property="og:image:width" content="1200"/>
+            <meta property="og:image:height" content="630"/>
             <meta property="og:site_name" content="Our World in Data"/>
             <meta name="twitter:card" content="summary_large_image"/>
             <meta name="twitter:site" content="@OurWorldInData"/>
