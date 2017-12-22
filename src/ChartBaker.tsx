@@ -106,7 +106,7 @@ export class ChartBaker {
         const idRows = await this.db.query(`SELECT id, JSON_EXTRACT(config, "$.slug") as slug FROM charts`)
         for (const row of idRows) {
             redirects.push(`${pathRoot}/${row.id}.config.json ${pathRoot}/${JSON.parse(row.slug)}.config.json`)
-            redirects.push(`${pathRoot}/${row.id} ${pathRoot}/${JSON.parse(row.slug)}`)
+            redirects.push(`${pathRoot}/${row.id} ${pathRoot}/${JSON.parse(row.slug)} 302`)
         }
 
         await fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
