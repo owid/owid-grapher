@@ -209,8 +209,6 @@ def savechart(chart: Chart, data: Dict, user: User):
                 new_chart_redirect.slug = chart.config['slug']
                 new_chart_redirect.save()
 
-    data.pop("logosSVG", None)
-
     dims = []
 
     chart.config = data
@@ -219,6 +217,8 @@ def savechart(chart: Chart, data: Dict, user: User):
     chart.save()
 
     for i, dim in enumerate(data["dimensions"]):
+        # Note: not actually saved because the canonical dimensions are just
+        # read straight from the JSON now
         variable = Variable.objects.get(id=dim["variableId"])
 
         newdim = ChartDimension()
@@ -234,7 +234,6 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.tolerance = dim.get('tolerance', None)
         newdim.isProjection = dim.get('isProjection', None)
         newdim.targetYear = dim.get('targetYear', None)
-
 
         if dim.get('saveToVariable'):
             if newdim.displayName:
