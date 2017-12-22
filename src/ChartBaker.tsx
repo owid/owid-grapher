@@ -3,7 +3,7 @@
 import {createConnection, DatabaseConnection} from './database'
 import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
-import { uniq, without } from 'lodash'
+import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
@@ -30,6 +30,10 @@ export class ChartBaker {
     props: ChartBakerProps
     db: DatabaseConnection
     baseDir: string
+
+    // Keep a list of the files we've generated to add to git later
+    stagedFiles: string[]
+
     constructor(props: ChartBakerProps) {
         this.props = props
         this.db = createConnection({ database: props.database })
@@ -164,6 +168,8 @@ export class ChartBaker {
 ${pathRoot}/assets/*
   Cache-Control: public, max-age=31556926
 
+${pathRoot}/*.png?v=*
+  Cache-Control: public, max-age=31556926
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
         this.stage(`${repoDir}/_headers`)
@@ -217,18 +223,20 @@ ${pathRoot}/assets/*
     }
 
     stage(targetPath: string) {
-        const {repoDir} = this.props
-        this.exec(`cd ${repoDir} && git add -A ${targetPath}`)
+        console.log(targetPath)
+        this.stagedFiles.push(targetPath)
     }
 
     async deploy(authorEmail?: string, authorName?: string, commitMsg?: string) {
         const {repoDir} = this.props
-        if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${repoDir} && git commit --author='${authorName} <${authorEmail}>' -m '${commitMsg}'`)
-        } else {
-            this.exec(`cd ${repoDir} && git commit -m "Automated update"`)
+        for (const files of chunk(this.stagedFiles, 100)) {
+            this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`)
         }
-        this.exec(`cd ${repoDir} && git push origin master`)
+        if (authorEmail && authorName && commitMsg) {
+            this.exec(`cd ${repoDir} && git commit --author='${authorName} <${authorEmail}>' -m '${commitMsg}' && git push origin master`)
+        } else {
+            this.exec(`cd ${repoDir} && git commit -m "Automated update" && git push origin master`)
+        }
     }
 
     async end() {
