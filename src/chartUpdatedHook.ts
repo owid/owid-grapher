@@ -15,7 +15,7 @@ async function main(database: string, email: string, name: string, slug: string)
 
     try {
         await baker.bakeAll()
-        await baker.deploy(`Updating ${slug}`, email, name)
+        await baker.deploy(email, name, `Updating ${slug}`)
     } catch (err) {
         console.error(err)
     } finally {
