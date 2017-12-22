@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import * as path from 'path'
+import * as md5 from 'md5'
 
 export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
     const {chart, canonicalRoot, pathRoot} = props
@@ -8,7 +9,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
     const canonicalUrl = path.join(canonicalRoot, pathRoot, chart.slug as string)
-    const imageUrl = `${canonicalUrl}.png`
+    const imageUrl = `${canonicalUrl}.png?v=${md5(JSON.stringify(chart))}`
 
     return <html>
         <head>

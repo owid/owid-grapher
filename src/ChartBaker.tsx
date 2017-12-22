@@ -20,6 +20,10 @@ export interface ChartBakerProps {
     canonicalRoot: string
     pathRoot: string
     repoDir: string
+
+    regenConfig?: boolean
+    regenImages?: boolean
+    regenData?: boolean
 }
 
 export class ChartBaker {
@@ -56,10 +60,9 @@ export class ChartBaker {
         this.stage(`${this.baseDir}/embedCharts.js`)
     }
 
-    async bakeVariableData(variableIds: number[]): Promise<string> {
+    async bakeVariableData(variableIds: number[], outPath: string): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
         const vardata = await getVariableData(variableIds, this.db)
-        const outPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
         await fs.writeFile(outPath, vardata)
         this.stage(outPath)
         return vardata
@@ -78,19 +81,39 @@ export class ChartBaker {
     }
 
     async bakeChart(chart: ChartConfigProps) {
+        const {baseDir, props} = this
+
+        const configPath = `${baseDir}/${chart.slug}.config.json`
+        let isConfigIdentical = false
+        try {
+            // If the chart config is identical, we can potentially skip baking the data (which is by far the slowest part)
+            const hash = md5(JSON.stringify(chart))
+            const fileHash = md5(await fs.readFile(configPath, 'utf8'))
+            isConfigIdentical = (hash === fileHash)
+        } catch (err) {
+            if (err.code !== 'ENOENT')
+                console.error(err)
+        }
+
         const variableIds = uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
         // Make sure we bake the variables successfully before outputing the chart config
-        const vardata = await this.bakeVariableData(variableIds)
+        const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
+        if (!isConfigIdentical || props.regenData) {
+            await this.bakeVariableData(variableIds, vardataPath)
+        }
 
-        await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
+        if (!isConfigIdentical || props.regenConfig)
+            await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
 
-        // Twitter/fb cards are expensive to make and not super important, so we don't try very hard
+        // Twitter/fb cards are expensive to make and not super important, so we keep the old ones if we can
         try {
-            if (!fs.existsSync(`${this.baseDir}/${chart.slug}.png`)) {
+            const imagePath = `${this.baseDir}/${chart.slug}.png`
+            if (!isConfigIdentical && (!fs.existsSync(imagePath) || props.regenImages)) {
+                const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeSvgPng(this.baseDir, chart, vardata)
-                this.stage(`${this.baseDir}/${chart.slug}.png`)
+                this.stage(imagePath)
             }
         } catch (err) {
             console.error(err)
@@ -146,22 +169,7 @@ ${pathRoot}/assets/*
         this.stage(`${repoDir}/_headers`)
     }
 
-    /*async bakeAllVariables() {
-        // Find all variables used by charts and bake them
-        const {db} = this
-        const chartQuery = db.query(`SELECT JSON_EXTRACT(config, "$.dimensions") as dimensions FROM charts ORDER BY slug ASC`)
-        const rows = await chartQuery
-
-        const variableIds = []
-        for (const row of rows) {
-            const dimensions: { variableId: number }[] = JSON.parse(row.dimensions)
-            variableIds.push(...dimensions.map(d => d.variableId))
-        }
-
-        console.log(uniq(variableIds))
-    }*/
-
-    async bakeCharts() {
+    async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
         const {db, baseDir, props} = this
         const rows = await db.query(`SELECT config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
 
@@ -170,18 +178,6 @@ ${pathRoot}/assets/*
         for (const row of rows) {
             const chart: ChartConfigProps = JSON.parse(row.config)
             newSlugs.push(chart.slug)
-
-            const configPath = `${baseDir}/${chart.slug}.config.json`
-            try {
-                // If the chart config is identical, we can skip baking the data (which is by far the slowest part)
-                const hash = md5(JSON.stringify(chart))
-                const fileHash = md5(await fs.readFile(configPath, 'utf8'))
-                if (hash === fileHash)
-                    continue
-            } catch (err) {
-                if (err.code !== 'ENOENT')
-                    console.error(err)
-            }
 
             requests.push(this.bakeChart(chart))
             // Execute in batches
