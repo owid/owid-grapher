@@ -106,8 +106,7 @@ class Chart(Model):
     max_exports_per_worker = 2
     exports_in_progress = 0
     def export_image(self, query: str, format: str, is_async: bool = False):
-        ts_node = settings.BASE_DIR + "/node_modules/.bin/ts-node"
-        screenshot = settings.BASE_DIR + "/js/exportChart.ts"
+        screenshot = settings.BASE_DIR + "/dist/js/exportChart.js"
 #        targetSrc = settings.BASE_URL + "/" + self.config['slug'] + "?" + query
 #        m = hashlib.md5()
 #        m.update(query.encode(encoding='utf-8'))
@@ -129,8 +128,8 @@ class Chart(Model):
 
         try:
             if not os.path.isfile(return_file):
-                command = "nice %s %s --baseUrl=%s --targetSrc=%s --output=%s" % \
-                        (ts_node, screenshot, shlex.quote(settings.BASE_URL), shlex.quote(targetSrc), shlex.quote(png_file))
+                command = "nice node %s --baseUrl=%s --targetSrc=%s --output=%s" % \
+                        (screenshot, shlex.quote(settings.BASE_URL), shlex.quote(targetSrc), shlex.quote(png_file))
                 print(command)
 
                 if is_async:
