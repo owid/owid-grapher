@@ -96,9 +96,9 @@ export class ChartBaker {
         const redirects = []
         for (const row of rows) {
             const trueSlug = JSON.parse(row.trueSlug)
+            redirects.push(`${pathRoot}/${row.chart_id}* ${pathRoot}/${trueSlug}:splat 302`)
             if (row.slug !== trueSlug) {
-                redirects.push(`${pathRoot}/${row.slug} ${pathRoot}/${trueSlug} 302`)
-                redirects.push(`${pathRoot}/${row.slug}.config.json ${pathRoot}/${trueSlug}.config.json 302`)
+                redirects.push(`${pathRoot}/${row.slug}* ${pathRoot}/${trueSlug}:splat 302`)
             }
         }
 
@@ -182,10 +182,10 @@ ${pathRoot}/assets/*
     }
 
     async bakeAll() {
-        await this.bakeCharts()
         await this.bakeRedirects()
         await this.bakeHeaders()
         await this.bakeAssets()
+        await this.bakeCharts()
     }
 
     exec(cmd: string) {
