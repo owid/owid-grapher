@@ -96,10 +96,15 @@ export class ChartBaker {
         const redirects = []
         for (const row of rows) {
             const trueSlug = JSON.parse(row.trueSlug)
-            redirects.push(`${pathRoot}/${row.chart_id}* ${pathRoot}/${trueSlug}:splat 302`)
             if (row.slug !== trueSlug) {
                 redirects.push(`${pathRoot}/${row.slug}* ${pathRoot}/${trueSlug}:splat 302`)
             }
+        }
+
+        // Redirect chart ids to slugs
+        const idRows = await this.db.query(`SELECT id, JSON_EXTRACT(config, "$.slug") as slug FROM charts`)
+        for (const row of idRows) {
+            redirects.push(`${pathRoot}/${row.id}* ${pathRoot}/${JSON.parse(row.slug)}:splat`)
         }
 
         await fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
