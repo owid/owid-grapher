@@ -46,34 +46,35 @@ export class ChartBaker {
         for (const key in manifest) {
             const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
             fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
-            console.log(outPath)
+            this.stage(outPath)
         }
 
         const chartsJs = `${pathRoot}/assets/${manifest['charts.js']}`
         const chartsCss = `${pathRoot}/assets/${manifest['charts.css']}`
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
-        console.log(`${this.baseDir}/embedCharts.js`)
+        this.stage(`${this.baseDir}/embedCharts.js`)
     }
 
     async bakeVariableData(variableIds: number[]): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
         const vardata = await getVariableData(variableIds, this.db)
         const outPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
-        await fs.writeFile(`${this.baseDir}/data/variables/${variableIds.join("+")}`, vardata)
+        await fs.writeFile(outPath, vardata)
+        this.stage(outPath)
         return vardata
     }
 
     async bakeChartConfig(chart: ChartConfigProps) {
         const outPath = `${this.baseDir}/${chart.slug}.config.json`
         await fs.writeFile(outPath, JSON.stringify(chart))
-        console.log(outPath)
+        this.stage(outPath)
     }
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${this.baseDir}/${chart.slug}.html`
         await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage canonicalRoot={this.props.canonicalRoot} pathRoot={this.props.pathRoot} chart={chart}/>))
-        console.log(outPath)
+        this.stage(outPath)
     }
 
     async bakeChart(chart: ChartConfigProps) {
@@ -85,10 +86,13 @@ export class ChartBaker {
 
         await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
 
+        // Twitter/fb cards are expensive to make and not super important, so we don't try very hard
         try {
-            await bakeSvgPng(this.baseDir, chart, vardata)
+            if (!fs.existsSync(`${this.baseDir}/${chart.slug}.png`)) {
+                await bakeSvgPng(this.baseDir, chart, vardata)
+                this.stage(`${this.baseDir}/${chart.slug}.png`)
+            }
         } catch (err) {
-            // Not the end of the world if we don't have twitter/fb cards
             console.error(err)
         }
     }
@@ -125,7 +129,7 @@ export class ChartBaker {
         }
 
         await fs.writeFile(`${repoDir}/_redirects`, redirects.join("\n"))
-        console.log(`${repoDir}/_redirects`)
+        this.stage(`${repoDir}/_redirects`)
     }
 
     async bakeHeaders() {
@@ -139,7 +143,7 @@ ${pathRoot}/assets/*
 
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
-        console.log(`${repoDir}/_headers`)
+        this.stage(`${repoDir}/_headers`)
     }
 
     /*async bakeAllVariables() {
@@ -193,12 +197,9 @@ ${pathRoot}/assets/*
         for (const slug of toRemove) {
             console.log(`DELETING ${slug}`)
             try {
-                await Promise.all([
-                    fs.unlink(`${baseDir}/${slug}.config.json`),
-                    fs.unlink(`${baseDir}/${slug}.html`),
-                    fs.unlink(`${baseDir}/${slug}.png`),
-                    fs.unlink(`${baseDir}/${slug}.svg`)
-                ])
+                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/${slug}.png`, `${baseDir}/${slug}.svg`)]
+                await Promise.all(paths.map(p => fs.unlink(p)))
+                paths.map(p => this.stage(p))
             } catch (err) {
                 console.error(err)
             }
@@ -219,12 +220,17 @@ ${pathRoot}/assets/*
         shell.exec(cmd)
     }
 
+    stage(targetPath: string) {
+        const {repoDir} = this.props
+        this.exec(`cd ${repoDir} && git add -A ${targetPath}`)
+    }
+
     async deploy(authorEmail?: string, authorName?: string, commitMsg?: string) {
         const {repoDir} = this.props
         if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${repoDir} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}'`)
+            this.exec(`cd ${repoDir} && git commit --author='${authorName} <${authorEmail}>' -m '${commitMsg}'`)
         } else {
-            this.exec(`cd ${repoDir} && git add -A . && git commit -a -m "Automated update"`)
+            this.exec(`cd ${repoDir} && git commit -m "Automated update"`)
         }
         this.exec(`cd ${repoDir} && git push origin master`)
     }

@@ -7,8 +7,5 @@ storage/framework/sessions/*
 storage/framework/cache/*
 public/uploads
 public/exports
-public/js/min
-public/css/min
 data
 .awcache
-charts

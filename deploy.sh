@@ -76,11 +76,11 @@ then
   sudo chmod g+rw -R $FINAL_TARGET || true
   sudo chmod g+rw -R $FINAL_DATA || true
 
-  # Static rebuild
-  node dist/src/deployHook.js $DB_NAME
-
   # Finally, restart the grapher!
   sudo service $NAME restart
+
+  # Static rebuild
+  node dist/src/deployHook.js $DB_NAME
 EOF
 fi
 
