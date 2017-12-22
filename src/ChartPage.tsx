@@ -7,7 +7,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
 
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
-    const canonicalUrl = path.join(canonicalRoot, chart.slug as string)
+    const canonicalUrl = path.join(canonicalRoot, pathRoot, chart.slug as string)
     const imageUrl = `${canonicalUrl}.png`
 
     return <html>
