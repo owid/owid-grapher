@@ -13,6 +13,7 @@ import * as path from 'path'
 import * as md5 from 'md5'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
+import { bakeSvgPng } from './svgPngExport'
 
 export interface ChartBakerProps {
     database: string
@@ -55,12 +56,12 @@ export class ChartBaker {
         console.log(`${this.baseDir}/embedCharts.js`)
     }
 
-    async bakeVariableData(variableIds: number[]) {
+    async bakeVariableData(variableIds: number[]): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
         const vardata = await getVariableData(variableIds, this.db)
         const outPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
         await fs.writeFile(`${this.baseDir}/data/variables/${variableIds.join("+")}`, vardata)
-        console.log(outPath)
+        return vardata
     }
 
     async bakeChartConfig(chart: ChartConfigProps) {
@@ -79,11 +80,17 @@ export class ChartBaker {
         const variableIds = uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
-        return Promise.all([
-            this.bakeVariableData(variableIds),
-            this.bakeChartConfig(chart),
-            this.bakeChartPage(chart),
-        ])
+        // Make sure we bake the variables successfully before outputing the chart config
+        const vardata = await this.bakeVariableData(variableIds)
+
+        await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
+
+        try {
+            await bakeSvgPng(this.baseDir, chart, vardata)
+        } catch (err) {
+            // Not the end of the world if we don't have twitter/fb cards
+            console.error(err)
+        }
     }
 
     async bakeRedirects() {
@@ -186,8 +193,12 @@ ${pathRoot}/assets/*
         for (const slug of toRemove) {
             console.log(`DELETING ${slug}`)
             try {
-                await fs.unlink(`${baseDir}/${slug}.config.json`)
-                await fs.unlink(`${baseDir}/${slug}.html`)
+                await Promise.all([
+                    fs.unlink(`${baseDir}/${slug}.config.json`),
+                    fs.unlink(`${baseDir}/${slug}.html`),
+                    fs.unlink(`${baseDir}/${slug}.png`),
+                    fs.unlink(`${baseDir}/${slug}.svg`)
+                ])
             } catch (err) {
                 console.error(err)
             }

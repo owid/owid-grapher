@@ -26,6 +26,7 @@ import * as md5 from 'md5'
 
 declare const App: any
 declare const window: any
+const isNode: boolean = require('detect-node')
 
 export interface HighlightToggleConfig {
     description: string
@@ -152,21 +153,29 @@ export default class ChartConfig {
     @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
     @observable.ref isEmbed: boolean
+    @observable.ref isMediaCard: boolean
+    @observable.ref isNode: boolean
     @observable.ref baseFontSize: number = 16
 
     vardata: VariableData
     data: ChartData
     url: URLBinder
 
-    constructor(props?: ChartConfigProps, options: { isEmbed?: true, queryStr?: string } = {}) {
+    constructor(props?: ChartConfigProps, options: { isEmbed?: boolean, isMediaCard?: boolean, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed
+        this.isMediaCard = !!options.isMediaCard
+        this.isNode = isNode
+
         this.update(props || new ChartConfigProps())
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)
 
+        if (this.isMediaCard)
+            this.baseFontSize = 24
+
         window.chart = this
-        this.ensureValidConfig()
+        if (!this.isNode) this.ensureValidConfig()
     }
 
     ensureValidConfig() {
@@ -349,11 +358,16 @@ export default class ChartConfig {
             throw new Error("No transform found")
     }
 
+    @computed get idealBounds(): Bounds {
+        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 1020, 720)
+    }
+
     @computed get staticSVG(): string {
         const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
             chart={this}
             isExport={true}
-            bounds={new Bounds(0, 0, 1020, 720)} />)
+            bounds={this.idealBounds}
+        />)
 
         return svg
     }

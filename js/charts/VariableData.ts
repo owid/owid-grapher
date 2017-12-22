@@ -124,7 +124,7 @@ export default class VariableData {
 
     @action.bound update() {
         const { variableIds, cacheTag } = this
-        if (variableIds.length === 0) {
+        if (variableIds.length === 0 || this.chart.isNode) {
             // No data to download
             return
         }

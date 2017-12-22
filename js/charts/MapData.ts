@@ -1,5 +1,5 @@
 import { round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy } from './Util'
-import { computed, autorun, runInAction, reaction, toJS } from 'mobx'
+import { computed, autorun, runInAction, reaction, toJS, IReactionDisposer } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { defaultTo, isString, last, findClosest } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
@@ -86,6 +86,13 @@ export default class MapData {
     chart: ChartConfig
     constructor(chart: ChartConfig) {
         this.chart = chart
+
+        if (!chart.isNode)
+            this.ensureValidConfig()
+    }
+
+    ensureValidConfig() {
+        const {chart} = this
 
         // Validate the map variable id selection to something on the chart
         autorun(() => {

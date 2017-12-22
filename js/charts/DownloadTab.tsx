@@ -12,8 +12,8 @@ interface DownloadTabProps {
 
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed get targetWidth() { return 1020 }
-    @computed get targetHeight() { return 720 }
+    @computed get targetWidth() { return this.props.chart.idealBounds.width }
+    @computed get targetHeight() { return this.props.chart.idealBounds.height }
 
     @observable svgBlob?: Blob
     @observable svgBlobUrl?: string
@@ -58,11 +58,11 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
             img.onload = () => {
                 try {
                     const canvas = document.createElement("canvas")
-                    canvas.width = targetWidth * 2
-                    canvas.height = targetHeight * 2
+                    canvas.width = targetWidth * 4
+                    canvas.height = targetHeight * 4
                     const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D
                     ctx.imageSmoothingEnabled = false
-                    ctx.setTransform(2, 0, 0, 2, 0, 0)
+                    ctx.setTransform(4, 0, 0, 4, 0, 0)
                     ctx.drawImage(img, 0, 0)
                     this.pngDataUri = canvas.toDataURL("image/png")
                     canvas.toBlob(blob => {

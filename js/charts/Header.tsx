@@ -103,7 +103,10 @@ export default class Header {
     }
 
     @computed get height() {
-        return Math.max(this.title.height + this.subtitle.height + 2, this.logoHeight)
+        if (this.props.chart.isMediaCard)
+            return 0
+        else
+            return Math.max(this.title.height + this.subtitle.height + 2, this.logoHeight)
     }
 
     render(x: number, y: number) {
@@ -120,6 +123,9 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
 
         if (!isNode && !chart.isEmbed)
             document.title = titleText
+
+        if (chart.isMediaCard)
+            return null
 
         return <g className="HeaderView">
             {logo && logo.height > 0 && logo.render(props.x + maxWidth - logo.width, props.y)}

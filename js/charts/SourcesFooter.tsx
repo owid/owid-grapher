@@ -74,6 +74,9 @@ export default class SourcesFooter {
     }
 
     @computed get height(): number {
+        if (this.props.chart.isMediaCard)
+            return 0
+
         const { sources, note, license, isCompact, paraMargin } = this
         return sources.height + (note.height ? paraMargin + note.height : 0) + (isCompact ? 0 : paraMargin + license.height)
     }
@@ -83,6 +86,9 @@ export default class SourcesFooter {
     }
 
     render(targetX: number, targetY: number) {
+        if (this.props.chart.isMediaCard)
+            return null
+
         const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this
 
         return <g className="SourcesFooter" style={{ fill: "#777" }}>

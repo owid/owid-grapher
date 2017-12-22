@@ -14,7 +14,6 @@ import { defaultTo } from './Util'
 import ChartConfig, { ChartConfigProps } from './ChartConfig'
 import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from './Util'
 import MapProjection from './MapProjection'
-const isNode: boolean = require('detect-node')
 
 interface ChartQueryParams {
     tab?: string
@@ -44,7 +43,7 @@ export default class URLBinder {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
 
-        if (!isNode && !chart.isEmbed) {
+        if (!chart.isExport && !chart.isEmbed) {
             // Only work with the actual url if we're not an embed
             this.populateFromURL(getQueryParams())
 
