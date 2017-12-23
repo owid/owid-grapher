@@ -32,7 +32,7 @@ export class ChartBaker {
     baseDir: string
 
     // Keep a list of the files we've generated to add to git later
-    stagedFiles: string[]
+    stagedFiles: string[] = []
 
     constructor(props: ChartBakerProps) {
         this.props = props
@@ -113,7 +113,8 @@ export class ChartBaker {
 
         // Twitter/fb cards are expensive to make and not super important, so we keep the old ones if we can
         try {
-            const imagePath = `${this.baseDir}/${chart.slug}.png`
+            await fs.mkdirp(`${this.baseDir}/exports/`)
+            const imagePath = `${this.baseDir}/exports/${chart.slug}.png`
             if (!isConfigIdentical && (!fs.existsSync(imagePath) || props.regenImages)) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeSvgPng(this.baseDir, chart, vardata)
@@ -168,7 +169,7 @@ export class ChartBaker {
 ${pathRoot}/assets/*
   Cache-Control: public, max-age=31556926
 
-${pathRoot}/*.png?v=*
+${pathRoot}/exports/*
   Cache-Control: public, max-age=31556926
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
@@ -199,7 +200,7 @@ ${pathRoot}/*.png?v=*
         for (const slug of toRemove) {
             console.log(`DELETING ${slug}`)
             try {
-                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/${slug}.png`, `${baseDir}/${slug}.svg`)]
+                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/${slug}.png`, `${baseDir}/${slug}.svg`]
                 await Promise.all(paths.map(p => fs.unlink(p)))
                 paths.map(p => this.stage(p))
             } catch (err) {
