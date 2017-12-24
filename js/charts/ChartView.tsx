@@ -173,7 +173,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
         const svgStyle = {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: chart.baseFontSize,
-            backgroundColor: "white"
+            backgroundColor: "white",
+            "text-rendering": "optimizeLegibility",
+            "-webkit-font-smoothing": "antialiased"
         }
 
         return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height} ref={(e: SVGSVGElement) => this.svgNode = e}>

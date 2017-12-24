@@ -57,6 +57,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
             img.onload = () => {
                 try {
                     const canvas = document.createElement("canvas")
+                    // We draw the chart at 4x res then scale it down again -- much better text quality
                     canvas.width = targetWidth * 4
                     canvas.height = targetHeight * 4
                     const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D

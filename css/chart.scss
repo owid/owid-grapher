@@ -114,34 +114,6 @@ figure[data-grapher-src]:empty:after {
         border-bottom: none;
     }
     
-    .logos {
-        float: right;
-        padding-left: 0.6em;
-    }
-    .tab-content {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-    }
-    .tab-content > .clearfix {
-        position: relative;
-        z-index: 2;
-        background-color: #fff;
-    }
-    .tab-pane {
-        position: relative;
-        overflow: auto;
-        width: 100%;
-        height: 100%;
-    }
-    svg {
-        z-index: 1;
-        top: 0;
-        left: 0;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-    }
-    
     
     /* Controls Footer
     --------------------------------------------- */
@@ -243,96 +215,18 @@ figure[data-grapher-src]:empty:after {
         }
     }
         
-    /* The little loading icon */
-    
+    /* The little loading icon on the download tab */
     .loadingIcon {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        -webkit-transform: translate(-50%, -50%);
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 1.3em;
     }
-    .chart-error {
-        position: absolute;
-        left: 0;
-        top: 0;
-        z-index: 50;
-        text-align: center;
-        height: 100%;
-        width: 100%;
-        pointer-events: none;
-        font-weight: bold;
-    }
-    .chart-error:before {
-        content: '';
-        display: inline-block;
-        height: 100%;
-        vertical-align: middle;
-    }
-    .chart-error > div,
-    .chart-error > pre {
-        display: inline-block;
-        text-align: left;
-        vertical-align: middle;
-        white-space: pre-wrap;
-        max-width: 95%;
-        font-weight: bold;
-    }
-    .chart-error.critical > pre {
-        color: red;
-        font-size: 0.9em;
-        font-weight: normal;
-    }
-    
-    /* Header
-    --------------------------------------------- */
-    
-    .title {
-        fill: #4d4d4d;
-    }
-    .title {
-        text-decoration: none !important;
-    }
-    .subtitle {
-        font-size: 0.8em;
-        fill: #4F4B49;
-    }
-    .header path {
-        stroke: #FFFFFF;
-        stroke-width: 1px;
-    }
-    
-    /* Axis and Gridlines
-    --------------------------------------------- */
-    
-    .axis path.domain {
-        stroke: #7f7f7f;
-        stroke-width: 1px;
-        stroke-opacity: 0;
-    }
-    
-    .axis line:first-child {
-        display: none;
-    }
-    
-    .gridline {
-        stroke: #ededed;
-        stroke-dasharray: 3,2;
-    }
-    
-    .axis {
-        font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
-    }
-    
-    .axis .tick {
-        font-size: 0.7em;
-    }
-    
-    .axis .axis-label {
-        font-size: 0.75em;
-    }
-    
     
     /* Axis Scale Selectors
     --------------------------------------------- */
@@ -344,34 +238,6 @@ figure[data-grapher-src]:empty:after {
         text-transform: uppercase;
     }
     
-    /* Chart Tab
-    --------------------------------------------- */
-    
-    .nvd3-svg {
-        /* Tweak some nvd3 styling */
-        /* Allow user to select text */
-        -webkit-user-select: initial;
-        -ms-user-select: initial;
-        -moz-user-select: initial;
-        -webkit-user-select: initial;
-        user-select: initial;        
-    }
-    .nvd3-svg .nvd3 .nv-axis line {
-        fill: none;
-        stroke: #a5a5a5;
-        stroke-dasharray: 2, 2;
-        shape-rendering: crispEdges;
-    }
-    .nvd3-svg .nvd3 text {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-size: 14px;
-    }
-    .nvd3-svg .nvd3 .nv-axis .nv-axisMaxMin text {
-        font-weight: normal;
-    }
-    .nvd3-svg .nvd3 .nv-axis line {
-        opacity: .6;
-    }
     /* Data Tab
     --------------------------------------------- */
     
@@ -422,8 +288,6 @@ figure[data-grapher-src]:empty:after {
     
     /* Sources Tab
     --------------------------------------------- */
-    
-    
     
     .sourcesTab,
     .downloadTab {
@@ -569,25 +433,9 @@ figure[data-grapher-src]:empty:after {
     
     /* Miscellaneous
     --------------------------------------------- */
-    
-    .error-label {
-        color: red;
-    }
-    .owidModal.error .modal-content {
-        color: #dd4b39;
-    }
-    .owidModal .modal-body {
-        overflow: auto;
-        font-size: 16px;
-        max-height: 800px;
-    }
+
     .unstroked {
         display: none;
-    }
-    
-    /* HACK (Mispy): Once we properly update to Bootstrap 4 javascript this shouldn't be needed. */
-    .modal-backdrop {
-        z-index: -1;
     }
     
     .downloadTab,
