@@ -155,11 +155,20 @@ export default class ChartConfig {
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
+    @observable.ref isLocalExport: boolean
     @observable.ref baseFontSize: number = 16
 
     vardata: VariableData
     data: ChartData
     url: URLBinder
+
+    @computed get isIframe(): boolean {
+        return window.self !== window.top
+    }
+
+    @computed get isNativeEmbed(): boolean {
+        return this.isEmbed && !this.isIframe && !this.isLocalExport
+    }
 
     constructor(props?: ChartConfigProps, options: { isEmbed?: boolean, isMediaCard?: boolean, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed

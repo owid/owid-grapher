@@ -43,10 +43,9 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const { targetWidth, targetHeight } = this
         const { chart } = this.props
 
-        const originalFontSize = chart.baseFontSize
-        chart.baseFontSize = 18
+        chart.isLocalExport = true
         const staticSVG = chart.staticSVG
-        chart.baseFontSize = originalFontSize
+        chart.isLocalExport = false
 
         this.svgBlob = new Blob([staticSVG], { type: "image/svg+xml;charset=utf-8" })
         this.svgBlobUrl = URL.createObjectURL(this.svgBlob)
