@@ -151,13 +151,16 @@ export default class ChartData {
     }
 
     @computed get defaultSourcesLine(): string {
-        const sourceNames = this.sources.map(source => source.name)
+        let sourceNames = this.sources.map(source => source.name)
 
-        // Shorten source names for certain major sources
-        for (const majorSource of ["World Bank – WDI", "World Bank", "ILOSTAT"]) {
-            if (sourceNames.every(name => name.startsWith(majorSource)))
-                return majorSource
-        }
+        // Shorten automatic source names for certain major sources
+        sourceNames = sourceNames.map(sourceName => {
+            for (const majorSource of ["World Bank – WDI", "World Bank", "ILOSTAT"]) {
+                if (sourceName.startsWith(majorSource))
+                    return majorSource
+            }
+            return sourceName
+        })
 
         return uniq(sourceNames).join(", ")
     }
