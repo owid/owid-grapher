@@ -2,6 +2,7 @@ import * as React from 'react'
 import { computed, action } from 'mobx'
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
+import Bounds from './Bounds'
 import * as parseUrl from 'url-parse'
 
 interface SourcesFooterProps {
@@ -28,18 +29,25 @@ export default class SourcesFooter {
         return this.props.chart.note ? `Note: ${this.props.chart.note}` : ''
     }
 
+    @computed get defaultLicenseSvg(): string {
+        return `<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a> • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+    }
+
     @computed get licenseSvg(): string {
         const { originUrl } = this.props.chart.data
         let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
 
         // Make sure the link back to OWID is consistent
+        // And don't show the full url if there isn't enough room
         if (originUrl && originUrl.toLowerCase().indexOf("ourworldindata.org") !== -1) {
             const url = parseUrl(originUrl)
             const finalUrl = `https://ourworldindata.org${url.pathname}`
+            if (Bounds.forText(finalUrl, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
+                return this.defaultLicenseSvg
+
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
         } else {
-            licenseSvg = licenseSvg.replace(/\*data-entry\*/,
-                "<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a>")
+            return this.defaultLicenseSvg
         }
 
         return licenseSvg
