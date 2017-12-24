@@ -34,6 +34,9 @@ export default class SourcesFooter {
     }
 
     @computed get licenseSvg(): string {
+        if (this.props.chart.isNativeEmbed)
+            return ""
+
         const { originUrl } = this.props.chart.data
         let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
 
