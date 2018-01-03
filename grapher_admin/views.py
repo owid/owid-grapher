@@ -160,7 +160,6 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
         }
 
     datasets = [serializeDataset(d) for d in Dataset.objects.filter(namespace=namespace).order_by('-updated_at').prefetch_related('variable_set')]
-    namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
     response = JsonResponse({
         'datasets': datasets,
