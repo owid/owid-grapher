@@ -117,7 +117,7 @@ export class ChartBaker {
             const imagePath = `${this.baseDir}/exports/${chart.slug}.png`
             if (!isConfigIdentical && (!fs.existsSync(imagePath) || props.regenImages)) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
-                await bakeSvgPng(this.baseDir, chart, vardata)
+                await bakeSvgPng(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(imagePath)
             }
         } catch (err) {
@@ -200,7 +200,7 @@ ${pathRoot}/exports/*
         for (const slug of toRemove) {
             console.log(`DELETING ${slug}`)
             try {
-                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/${slug}.png`, `${baseDir}/${slug}.svg`]
+                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/exports/${slug}.png`]//, `${baseDir}/exports/${slug}.svg`]
                 await Promise.all(paths.map(p => fs.unlink(p)))
                 paths.map(p => this.stage(p))
             } catch (err) {
