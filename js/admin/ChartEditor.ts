@@ -28,15 +28,17 @@ export interface Dataset {
 
 // This contains the dataset/variable metadata for the entire database
 // Used for variable selector interface
-export class EditorDatabase {
-    @observable.ref datasets: Dataset[]
 
-    @computed get namespaces(): string[] {
-        return uniq(this.datasets.map(d => d.namespace))
-    }
+interface NamespaceData {
+    datasets: Dataset[]
+}
+
+export class EditorDatabase {
+    @observable.ref namespaces: string[]
+    @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
-        this.datasets = json.datasets
+        this.namespaces = json.namespaces
     }
 }
 
@@ -95,6 +97,16 @@ export default class ChartEditor {
         this.currentRequest = promise
         promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)
         return promise
+    }
+
+    // Load index of datasets and variables for the given namespace
+    async loadNamespace(namespace: string) {
+        try {
+            const data = await this.load(this.props.admin.getJSON(`editorData/${namespace}.${this.props.admin.cacheTag}.json`))
+            this.database.dataByNamespace.set(namespace, data)
+        } catch (err) {
+            this.errorMessage = { title: `Error getting index for namespace '${namespace}'`, content: toString(err) }
+        }
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {

@@ -142,7 +142,8 @@ def config_json_by_id(request, chartid):
 
     return response
 
-def editordata(request: HttpRequest, cachetag: Optional[str]):
+
+def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str]):
     datasets = []
 
     def serializeVariable(variable: Variable):
@@ -158,11 +159,23 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
             'variables': [serializeVariable(v) for v in dataset.variable_set.all()]
         }
 
-    datasets = [serializeDataset(d) for d in Dataset.objects.order_by('-updated_at').prefetch_related('variable_set')]
+    datasets = [serializeDataset(d) for d in Dataset.objects.filter(namespace=namespace).order_by('-updated_at').prefetch_related('variable_set')]
     namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
 
     response = JsonResponse({
         'datasets': datasets,
+    })
+
+    if cachetag:
+        response['Cache-Control'] = 'public, max-age=31536000'
+
+    return response
+
+
+def editordata(request: HttpRequest, cachetag: Optional[str]):
+    namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
+
+    response = JsonResponse({
         'namespaces': namespaces
     })
 

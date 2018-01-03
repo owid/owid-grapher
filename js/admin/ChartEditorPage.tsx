@@ -74,7 +74,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         })
 
         try {
-            const json = await admin.getJSON(`editorData.${admin.cacheTag}.json`)
+            const json = await admin.getJSON(`editorData/namespaces.${admin.cacheTag}.json`)
             runInAction(() => this.database = new EditorDatabase(json))
         } catch (err) {
             handleError(err)
@@ -104,7 +104,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
 
         return <div className="ChartEditorPage">
-            {errorMessage && <Modal onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
+            {errorMessage && <Modal className="errorMessage" onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
                 <div className="modal-header">
                     <h5 className="modal-title">{errorMessage.title}</h5>
                 </div>

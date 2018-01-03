@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { groupBy, each, isString, sortBy } from '../charts/Util'
-import { computed, action, observable } from 'mobx'
+import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
@@ -44,8 +44,15 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         return defaultTo(this.chosenNamespace, this.database.namespaces[0])
     }
 
+    @computed get editorData() {
+        return this.database.dataByNamespace.get(this.currentNamespace)
+    }
+
     @computed get datasets() {
-        const datasets = this.database.datasets.filter(d => d.namespace === this.currentNamespace)
+        if (!this.editorData) return []
+
+        const datasets = this.editorData.datasets
+
         if (this.currentNamespace !== 'owid') {
             // The default temporal ordering has no real use for bulk imports
             return sortBy(datasets, d => d.name)
@@ -200,14 +207,24 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.props.onDismiss()
     }
 
+    dispose: IReactionDisposer
     base: HTMLDivElement
     componentDidMount() {
+        this.dispose = autorun(() => {
+            if (!this.editorData)
+                runInAction(() => this.props.editor.loadNamespace(this.currentNamespace))
+        })
+
         this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
             name: d.displayName,
             id: d.variableId,
             datasetName: "",
             searchKey: ""
         }))
+    }
+
+    componentDidUnmount() {
+        this.dispose()
     }
 
     @action.bound onComplete() {

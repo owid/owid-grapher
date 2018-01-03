@@ -396,3 +396,7 @@ html, body {
     background-color: rgba(0,0,0,0.5);
     overflow-y: auto;
 }
+
+.errorMessage {
+    z-index: 2000;
+}
