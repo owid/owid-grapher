@@ -115,7 +115,7 @@ export class ChartBaker {
         try {
             await fs.mkdirp(`${this.baseDir}/exports/`)
             const imagePath = `${this.baseDir}/exports/${chart.slug}.png`
-            if (!isConfigIdentical && (!fs.existsSync(imagePath) || props.regenImages)) {
+            if (!fs.existsSync(imagePath) || props.regenImages) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeSvgPng(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(imagePath)
