@@ -3,42 +3,12 @@ import { db } from './database'
 import { uniq } from 'lodash'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import * as async from 'async'
+import * as React from 'react'
+import * as ReactDOMServer from 'react-dom/server'
+import AdminSPA from './AdminSPA'
 
 const app = express()
 app.use(express.json())
-
-app.get('/grapher/admin/charts/:id/edit', (req, res) => {
-    const baseUrl = "http://l:3000/grapher"
-    const cacheTag = "waffles"
-    const currentUser = "jaiden"
-    const isDebug = true
-
-    res.send(`
-        <html lang="en">
-            <head>
-                <meta charset="utf-8">
-                <title>owid-grapher</title>
-                <meta name="_token" value="kpdrWCwSD2Y2PYEErYpfRSNn6xivJWvXv6jPo0iuLuio2rin0dEC56PDMkgnZmrg">
-                <meta name="description" content="">
-                <link href="http://localhost:8090/charts.css" rel="stylesheet" type="text/css">
-                <link href="http://localhost:8090/editor.css" rel="stylesheet" type="text/css">
-            </head>
-            <body>
-                <script src="http://localhost:8090/charts.js"></script>
-                <script src="http://localhost:8090/editor.js"></script>
-                <script type="text/javascript">
-                    window.Global = {}
-                    Global.rootUrl = "${baseUrl}"
-                    window.App = {}
-                    App.isEditor = true
-                    App.isDebug = ${isDebug}
-                    window.admin = new Admin("${baseUrl}", "${cacheTag}", "${currentUser}")
-                    admin.start(document.body)
-                </script>
-            </body>
-        </html>
-    `)
-})
 
 app.get('/grapher/admin/editorData.:cacheTag.json', (req, res) => {
     interface Dataset {
@@ -254,5 +224,16 @@ app.put('/grapher/admin/charts/:chartId', (req, res) => {
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()*/
 })
+
+// Default route: single page admin app
+app.get('*', (req, res) => {
+    const baseUrl = "http://l:3000/grapher"
+    const cacheTag = "waffles"
+    const currentUser = "jaiden"
+    const isDebug = true
+
+    res.send(ReactDOMServer.renderToStaticMarkup(<AdminSPA currentUser="jaiden"/>))
+})
+
 
 app.listen(3000, () => console.log("Express started"))

@@ -100,7 +100,7 @@ export default class ChartEditor {
     async saveChart({ onError }: { onError?: () => void } = {}) {
         const { chart, isNewChart } = this
 
-        const targetUrl = isNewChart ? "/admin/charts" : `/admin/charts/${chart.props.id}`
+        const targetUrl = isNewChart ? "charts" : `charts/${chart.props.id}`
 
         const handleError = action((err: string) => {
             this.errorMessage = { title: "Error saving chart", content: toString(err) }
@@ -115,7 +115,7 @@ export default class ChartEditor {
             const json = await response.json()
 
             if (isNewChart) {
-                window.location.assign(this.props.admin.url(`/admin/charts/${json.data.id}/edit`))
+                window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
             } else {
                 this.isSaved = true
             }
@@ -139,13 +139,13 @@ export default class ChartEditor {
         })
 
         try {
-            const response = await this.load(this.props.admin.request("/admin/charts", chartJson, 'POST'))
+            const response = await this.load(this.props.admin.request("charts", chartJson, 'POST'))
             if (!response.ok)
                 return handleError(await response.text())
 
             const json = await response.json()
 
-            w.location.assign(this.props.admin.url(`/admin/charts/${json.data.id}/edit`))
+            w.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
         } catch (err) {
             handleError(err)
         }

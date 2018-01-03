@@ -23,7 +23,7 @@ export default class Admin {
     }
 
     url(path: string): string {
-        return this.rootUrl + path
+        return this.rootUrl + '/admin/' + path
     }
 
     get csrfToken() {
@@ -33,8 +33,13 @@ export default class Admin {
         return meta.getAttribute("value")
     }
 
-    fetchJSON(path: string) {
-        return fetch(this.url(path), { credentials: 'same-origin' }).then(data => data.json())
+    async getJSON(path: string): Promise<any> {
+        const response = await this.request(path, {}, 'GET')
+        if (!response.ok) {
+            const errorMessage = await response.text()
+            throw errorMessage
+        }
+        return response.json()
     }
 
     get(path: string) {

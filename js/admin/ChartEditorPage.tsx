@@ -58,12 +58,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         })
 
         try {
-            const response = await admin.get(`/admin/charts/${chartId === undefined ? "newChart" : chartId}.config.json`)
-            if (!response.ok) {
-                return handleError(await response.text())
-            }
-
-            const json = await response.json()
+            const json = await admin.getJSON(`charts/${chartId === undefined ? "newChart" : chartId}.config.json`)
             runInAction(() => this.chart = new ChartConfig(json))
         } catch (err) {
             handleError(err)
@@ -79,12 +74,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         })
 
         try {
-            const response = await admin.get(`/admin/editorData.${admin.cacheTag}.json`)
-            if (!response.ok) {
-                return handleError(await response.text())
-            }
-
-            const json = await response.json()
+            const json = await admin.getJSON(`editorData.${admin.cacheTag}.json`)
             runInAction(() => this.database = new EditorDatabase(json))
         } catch (err) {
             handleError(err)

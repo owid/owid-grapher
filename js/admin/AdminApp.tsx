@@ -4,6 +4,7 @@ import ChartEditorPage from './ChartEditorPage'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import { EditorFAQ } from './EditorFAQ'
+import ChartIndexPage from './ChartIndexPage'
 
 @observer
 export default class AdminApp extends React.Component<{ admin: Admin }> {
