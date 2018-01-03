@@ -70,12 +70,6 @@ then
   pip3 install -r requirements.txt
   python3 manage.py migrate
 
-  # Ensure consistent permissions
-  sudo chown owid:www-data -R $FINAL_TARGET
-  sudo chown owid:www-data -R $FINAL_DATA
-  sudo chmod g+rw -R $FINAL_TARGET || true
-  sudo chmod g+rw -R $FINAL_DATA || true
-
   # Finally, restart the grapher!
   sudo service $NAME restart
 

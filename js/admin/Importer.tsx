@@ -693,10 +693,10 @@ export default class Importer extends React.Component<{ datasets: any[], categor
         const { csv, dataset } = this
         const { datasets, categories, existingEntities } = this.props
 
-        if (App.isDebug) {
+        /*if (App.isDebug) {
             window.Importer = this
             window.dataset = dataset
-        }
+        }*/
 
         Source.template = this.props.sourceTemplate
 
