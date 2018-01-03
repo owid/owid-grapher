@@ -9,6 +9,8 @@ html, body {
 }
 
 .AdminApp {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 
     button, a, .btn, .form-group > label, .form-check > label {
@@ -17,6 +19,40 @@ html, body {
 
     a.logout:hover:after {
         content: " (logout)";
+    }
+
+    > nav {
+        min-height: 60px;
+    }
+
+    > main {
+        display: flex;
+        flex-grow: 1;
+    }
+}
+
+.AdminSidebar {
+    max-height: 100%;
+    overflow-y: auto;
+    background: #222d32;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li.header {
+        color: #4b646f;
+        background: #1a2226;
+        padding: 10px 25px 10px 15px;
+        font-size: 12px;
+    }
+
+    li > a {
+        padding: 12px 5px 12px 15px;
+        display: block;
+        color: #b8c7ce;
     }
 }
 
@@ -40,8 +76,8 @@ html, body {
 }
 
 .ChartEditorPage {
-    height: calc(100% - 60px);
     display: flex;
+    flex-grow: 1;
 
     .btn-group .btn {
         width: 50px;
@@ -58,7 +94,7 @@ html, body {
     > form {
         min-width: 500px;
         width: 500px;
-        height: 100%;
+        min-height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;

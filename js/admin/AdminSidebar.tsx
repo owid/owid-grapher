@@ -1,13 +1,9 @@
 import Admin from './Admin'
+import Link from './Link'
 import * as React from 'react'
 
-
-
-export default function AdminSidebar(props: { admin: Admin }) {
-    const {url} = props.admin
-
-    return <aside className="main-sidebar">
-    <section className="sidebar" style="height: auto;">
+export default function AdminSidebar() {
+    return <aside className="AdminSidebar">
         <ul className="sidebar-menu">
             <li className="header">CHARTS</li>
             <li><Link href="/"><i className="fa fa-bar-chart"></i> Charts</Link></li>
@@ -40,6 +36,5 @@ export default function AdminSidebar(props: { admin: Admin }) {
             <li><Link href="/users/"><i className="fa fa-users"></i> Users</Link></li>
             <li><Link href="/categories/"><i className="fa fa-folder"></i> Categories</Link></li>
         </ul>
-    </section>
-  </aside>
+    </aside>
 }

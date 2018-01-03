@@ -5,6 +5,7 @@ import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
+import AdminSidebar from './AdminSidebar'
 
 @observer
 export default class AdminApp extends React.Component<{ admin: Admin }> {

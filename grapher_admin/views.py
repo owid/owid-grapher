@@ -89,7 +89,7 @@ def storechart(request: HttpRequest):
     else:
         return HttpResponseRedirect(reverse('listcharts'))
 
-def chart_editor(request: HttpRequest, chartconfig: Dict):
+def chart_editor(request: HttpRequest):
     # We cache the editor data based on the timestamp of the last database update
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -104,33 +104,16 @@ def chart_editor(request: HttpRequest, chartconfig: Dict):
 
     cachetag = str(int(database_updated_at.timestamp()))
 
-    # XXX this probably doesn't belong in chart config
-    logos = []
-    for each in list(Logo.objects.filter(name='OWD')):
-        logos.append(each.svg)
-    chartconfig['logosSVG'] = logos
-
     return render(request, 'admin.edit_chart.html', context={
         'current_user': request.user.name,
-        'chartconfig': json.dumps(chartconfig),
         'cachetag': cachetag
     })
 
 def createchart(request: HttpRequest):
-    return chart_editor(request, { "yAxis": { "min": 0 }})
+    return chart_editor(request)#, { "yAxis": { "min": 0 }})
 
 def editchart(request: HttpRequest, chartid: Union[str, int]):
-    try:
-        chartid = int(chartid)
-    except ValueError:
-        return HttpResponseNotFound('Invalid chart id!')
-
-    try:
-        chart = Chart.objects.get(pk=chartid)
-    except Chart.DoesNotExist:
-        return HttpResponseNotFound('Invalid chart id!')
-
-    return chart_editor(request, chart.get_config())
+    return chart_editor(request)
 
 def config_json_by_id(request, chartid):
     """
