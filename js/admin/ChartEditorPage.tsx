@@ -58,7 +58,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         })
 
         try {
-            const json = await admin.getJSON(`charts/${chartId === undefined ? "newChart" : chartId}.config.json`)
+            const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`charts/${chartId}.config.json`)
             runInAction(() => this.chart = new ChartConfig(json))
         } catch (err) {
             handleError(err)
