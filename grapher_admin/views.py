@@ -54,8 +54,42 @@ def custom_login(request: HttpRequest):
     else:
         return loginview(request)
 
+def chartsjson(request: HttpRequest):
+    charts = list(Chart.objects.all().order_by('-last_edited_at'))
+
+    vars_used_in_charts = set()
+    vars_per_chart = {}
+    for chart in charts:
+        for dim in chart.config['dimensions']:
+            vars_used_in_charts.add(dim['variableId'])
+    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
+    vardict = {}
+    for var in allvariables:
+        vardict[var.pk] = {'id': var.pk, 'name': var.name}
+
+    def serializeChart(chart: Chart):
+        return {
+            'id': chart.pk,
+            'slug': chart.config['slug'],
+            'title': chart.config['title'],
+            'isPublished': chart.config.get('isPublished', False),
+            'isStarred': chart.starred,
+            'internalNotes': chart.config.get('internalNotes', None),
+            'type': chart.show_type(),
+            'lastEditedAt': chart.last_edited_at,
+            'lastEditedBy': chart.last_edited_by.name if chart.last_edited_by else None,
+            'variables': [vardict.get(dim['variableId']) for dim in chart.config['dimensions']]
+        }
+
+    json = { 
+        'charts': [serializeChart(chart) for chart in charts]
+    }
+
+    return JsonResponse(json)
 
 def listcharts(request: HttpRequest):
+    return chart_editor(request)
+    """
     charts = list(Chart.objects.all().order_by('-last_edited_at'))
 
     vars_used_in_charts = set()
@@ -89,6 +123,7 @@ def listcharts(request: HttpRequest):
             'current_user': request.user.name,
             'charts': chartlist,
         })
+    """
 
 
 def storechart(request: HttpRequest):
@@ -255,14 +290,9 @@ def savechart(chart: Chart, data: Dict, user: User):
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
 
-    # Remove any old image exports as they will no longer represent the new chart state
-    if isExisting:
-        for path in glob.glob(os.path.join(settings.BASE_DIR, "public/exports/", chart.config['slug'], "*")):
-            os.remove(path)
-
     # Purge the Cloudflare cache for the chart config url
     # Also purge the html for some common query string urls to update the meta tags
-    # TODO: a job queue / coverage of more urls with query strings
+    # Eventually this will be unneeded as we'll be using the static build in production
     if settings.CLOUDFLARE_KEY:
         config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
         chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.config['slug']}"

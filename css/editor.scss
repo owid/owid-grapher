@@ -32,8 +32,10 @@ html, body {
 }
 
 .AdminSidebar {
-    max-height: 100%;
-    overflow-y: auto;
+    /*max-height: 100%;
+    overflow-y: auto;*/
+    min-width: 230px;
+    height: 100%;
     background: #222d32;
 
     ul {
@@ -399,4 +401,8 @@ html, body {
 
 .errorMessage {
     z-index: 2000;
+}
+
+.ChartIndexPage {
+
 }

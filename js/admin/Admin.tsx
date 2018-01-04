@@ -1,29 +1,35 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import AdminApp from './AdminApp'
-import {observable} from 'mobx'
+import {observable, computed} from 'mobx'
+import * as urljoin from 'url-join'
 
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export default class Admin {
-    rootUrl: string
+    grapherRoot: string
+    basePath: string
     cacheTag: string
     username: string
-    @observable.ref currentPath: string
     constructor(rootUrl: string, cacheTag: string, username: string) {
-        this.rootUrl = rootUrl
+        this.grapherRoot = rootUrl
+        this.basePath = "/grapher/admin"
         this.cacheTag = cacheTag
         this.username = username
     }
 
-    start(containerNode: HTMLElement) {
-        this.currentPath = window.location.pathname.split("/grapher/admin")[1]
+    @observable currentRequests: Promise<any>[] = []
 
+    @computed get isLoading() {
+        return this.currentRequests.length > 0
+    }
+
+    start(containerNode: HTMLElement) {
         ReactDOM.render(<AdminApp admin={this}/>, containerNode)
     }
 
     url(path: string): string {
-        return this.rootUrl + '/admin/' + path
+        return urljoin(this.basePath, path)
     }
 
     get csrfToken() {
@@ -34,12 +40,23 @@ export default class Admin {
     }
 
     async getJSON(path: string): Promise<any> {
-        const response = await this.request(path, {}, 'GET')
-        if (!response.ok) {
-            const errorMessage = await response.text()
-            throw errorMessage
+        try {
+            const request = this.request(path, {}, 'GET')
+            this.currentRequests.push(request)
+
+            const response = await request
+            if (!response.ok) {
+                const errorMessage = await response.text()
+                throw errorMessage
+            }
+
+            const json = response.json()
+            this.currentRequests.pop()
+            return json
+        } catch (err) {
+            this.currentRequests.pop()
+            throw err
         }
-        return response.json()
     }
 
     get(path: string) {

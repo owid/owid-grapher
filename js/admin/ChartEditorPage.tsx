@@ -45,13 +45,15 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class ChartEditorPage extends React.Component<{ admin: Admin, chartId: number|undefined }> {
+export default class ChartEditorPage extends React.Component<{ chartId?: number }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     @observable.ref errorMessage?: { title: string, content: string }
+    context: { admin: Admin }
 
     async fetchChart() {
-        const {chartId, admin} = this.props
+        const {chartId} = this.props
+        const {admin} = this.context
 
         const handleError = action((err: string) => {
             this.errorMessage = { title: "Error fetching chart json", content: err }
@@ -67,7 +69,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
     }
 
     async fetchData() {
-        const {admin} = this.props
+        const {admin} = this.context
 
         const handleError = action((err: string) => {
             this.errorMessage = { title: "Error fetching editorData json", content: err }
@@ -88,7 +90,7 @@ export default class ChartEditorPage extends React.Component<{ admin: Admin, cha
         } else {
             const that = this
             return new ChartEditor({
-                get admin() { return that.props.admin },
+                get admin() { return that.context.admin },
                 get chart() { return that.chart as ChartConfig },
                 get database() { return that.database as EditorDatabase }
             })
