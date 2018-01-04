@@ -13,7 +13,7 @@
 			<h3 class="property-title">Charts</h3>
 			<div class="property-value">
                 {% for chart in variable.charts %}
-                <a href="{% url 'editchart' chart.id %}">{{ chart.name }}</a><br/>
+                <a href="{% url 'editchart' chart.id %}">{{ chart.config.title }}</a><br/>
                 {% endfor %}
             </div>
 		</div>

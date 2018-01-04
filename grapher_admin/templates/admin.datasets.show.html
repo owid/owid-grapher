@@ -35,7 +35,7 @@
 		<h3>Charts</h3>
 		<ul>
 			{% for chart in charts %}
-				<li><a href="{% url 'editchart' chart.id %}">{{ chart.name }}</a></li>
+				<li><a href="{% url 'editchart' chart.id %}">{{ chart.config.title }}</a></li>
 			{% endfor %}
 		</ul>
 

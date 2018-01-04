@@ -23,7 +23,6 @@ from importer import views as importer_views
 from django.contrib.auth.views import logout
 
 urlpatterns = [
-
     ### Admin-only
 
     url(r'^grapher/?$', owid_views.index, name="index"),

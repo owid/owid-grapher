@@ -176,6 +176,9 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
                 'id': row['id'],
                 'name': row['name']
             })
+
+        if dataset is not None:
+            datasets.append(dataset)
     
     response = JsonResponse({
         'datasets': datasets
@@ -200,6 +203,7 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
     return response
 
 
+@transaction.atomic
 def savechart(chart: Chart, data: Dict, user: User):
     isExisting = chart.id != None
 
@@ -227,9 +231,11 @@ def savechart(chart: Chart, data: Dict, user: User):
     chart.last_edited_by = user
     chart.save()
 
+    for each in ChartDimension.objects.filter(chartId=chart.pk):
+        each.delete()
+
     for i, dim in enumerate(data["dimensions"]):
-        # Note: not actually saved because the canonical dimensions are just
-        # read straight from the JSON now
+        print(dim)
         variable = Variable.objects.get(id=dim["variableId"])
 
         newdim = ChartDimension()
@@ -245,6 +251,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         newdim.tolerance = dim.get('tolerance', None)
         newdim.isProjection = dim.get('isProjection', None)
         newdim.targetYear = dim.get('targetYear', None)
+        newdim.save()
 
         if dim.get('saveToVariable'):
             if newdim.displayName:
@@ -579,7 +586,7 @@ def showdataset(request: HttpRequest, datasetid: str):
     dataset_chart_ids = []
     for each in dataset_chartdims:
         dataset_chart_ids.append(each.chartId.pk)
-    dataset_charts = Chart.objects.filter(pk__in=dataset_chart_ids).values()
+    dataset_charts = Chart.objects.filter(pk__in=dataset_chart_ids)
     return render(request, 'admin.datasets.show.html', context={'current_user': request.user.name,
                                                                 'dataset': dataset_dict,
                                                                 'variables': dataset_vars.values(),
@@ -897,7 +904,7 @@ def showvariable(request: HttpRequest, variableid: str):
     chart_id_list = []
     for each in chart_dims:
         chart_id_list.append(each['chartId'])
-    charts = list(Chart.objects.filter(pk__in=chart_id_list).values('name', 'id'))
+    charts = list(Chart.objects.filter(pk__in=chart_id_list))
 
     variable_dict = {}
     variable_dict['name'] = variable.name
