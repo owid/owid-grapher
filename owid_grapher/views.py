@@ -278,6 +278,7 @@ def config_json_by_slug(request, slug):
     if not chart:
         return HttpResponseNotFound('No such chart!')
 
+    chart.config['id'] = chart.pk
     response = JsonResponse(chart.config)
     response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     response['Access-Control-Allow-Origin'] = '*'

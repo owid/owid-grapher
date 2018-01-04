@@ -137,6 +137,7 @@ def config_json_by_id(request, chartid):
     except Chart.DoesNotExist:
         return HttpResponseNotFound('Invalid chart id!')
 
+    chart.config['id'] = chart.pk
     return JsonResponse(chart.config)
 
 def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str]):
