@@ -2,10 +2,13 @@
 
 @import "node_modules/bootstrap/scss/bootstrap";
 
+html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
 html, body {
     height: 100%;
     margin: 0;
-    font-family: Roboto, sans-serif;
 }
 
 .AdminApp {

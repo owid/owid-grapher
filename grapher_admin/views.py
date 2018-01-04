@@ -55,17 +55,18 @@ def custom_login(request: HttpRequest):
         return loginview(request)
 
 def chartsjson(request: HttpRequest):
-    charts = list(Chart.objects.all().order_by('-last_edited_at'))
+    """
+    charts = Chart.objects.all().order_by('-last_edited_at')
 
     vars_used_in_charts = set()
     vars_per_chart = {}
     for chart in charts:
         for dim in chart.config['dimensions']:
             vars_used_in_charts.add(dim['variableId'])
-    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
+    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).values('id', 'name').iterator()
     vardict = {}
     for var in allvariables:
-        vardict[var.pk] = {'id': var.pk, 'name': var.name}
+        vardict[var['id']] = {'id': var['id'], 'name': var['name']}
 
     def serializeChart(chart: Chart):
         return {
@@ -78,7 +79,7 @@ def chartsjson(request: HttpRequest):
             'type': chart.show_type(),
             'lastEditedAt': chart.last_edited_at,
             'lastEditedBy': chart.last_edited_by.name if chart.last_edited_by else None,
-            'variables': [vardict.get(dim['variableId']) for dim in chart.config['dimensions']]
+            'variables': []#vardict.get(dim['variableId']) for dim in chart.config['dimensions']]
         }
 
     json = { 
@@ -86,6 +87,14 @@ def chartsjson(request: HttpRequest):
     }
 
     return JsonResponse(json)
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT id, JSON_EXTRACT(config, "$.title") as title FROM charts ORDER BY last_edited_at DESC
+        """)
+        return JsonResponse({
+            'charts': [{ 'id': r[0], 'title': json.loads(r[1]) } for r in cursor.fetchall()]
+        })
 
 def listcharts(request: HttpRequest):
     return chart_editor(request)
