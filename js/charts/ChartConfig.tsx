@@ -142,6 +142,7 @@ export class ChartConfigProps {
     @observable.struct excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
+    @observable lastEditedAt?: string = undefined
 }
 
 // TODO: this really represents more than just the configuration state and should be split

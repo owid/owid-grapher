@@ -227,6 +227,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     dims = []
 
     chart.config = data
+    chart.config['lastEditedAt'] = str(timezone.now())
     chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
