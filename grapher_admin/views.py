@@ -132,26 +132,12 @@ def config_json_by_id(request, chartid):
     :return: config json
     """
 
-    if chartid == "newChart":
-        configdict = {}
-        logos = []
-        for each in list(Logo.objects.filter(name__in=['owd'])):
-            logos.append(each.svg)
-        configdict['logosSVG'] = logos    
-    else:
-        try:
-            chart = Chart.objects.get(pk=int(chartid))
-        except Chart.DoesNotExist:
-            return HttpResponseNotFound('Invalid chart id!')
+    try:
+        chart = Chart.objects.get(pk=int(chartid))
+    except Chart.DoesNotExist:
+        return HttpResponseNotFound('Invalid chart id!')
 
-        configdict = chart.get_config()
-        configdict['variableCacheTag'] = chart.make_cache_tag()
-
-    response = JsonResponse(configdict)
-    #response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
-
-    return response
-
+    return JsonResponse(chart.config)
 
 def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str]):
     datasets = []

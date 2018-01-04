@@ -100,7 +100,6 @@ urlpatterns = [
     url(r'^grapher/admin/login$', admin_views.custom_login, name='login'),
     url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
     url(r'^grapher/embedCharts.js$', owid_views.embed_snippet, name="embedsnippet"),
-    url(r'^grapher/config/(?P<configid>\d+)\.js$', owid_views.config, name="serveconfig"),
     url(r'^grapher/data/variables/(?P<ids>[\d+]+)$', owid_views.variables, name="servevariables"),
     url(r'^grapher/latest/?$', owid_views.latest, name="latestchart"),
     url(r'^grapher/testall', owid_views.test_all, name="testall"),

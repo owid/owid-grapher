@@ -161,39 +161,6 @@ class Chart(Model):
         git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], shell=False)
         return str(git_commit)
 
-    def make_cache_tag(self):
-        """
-        :return: A cache tag we can send along to the client. This uniquely identifies a particular
-        combination of dataset variables, and is sent along to servevariables view when the chart requests
-        all of its data. Allows us to reduce chart loading times by caching most of the data in
-        Cloudflare or the browser.
-        """
-        variable_cache_tag = str(self.updated_at) + ' + ' + Chart.owid_commit()
-        config = self.get_config()
-        dims = config['dimensions']
-        varids = [int(d['variableId']) for d in dims if 'variableId' in d]
-        vartimestamps = Variable.objects.filter(pk__in=varids)
-        updated_at_list = []
-        for each in vartimestamps:
-            updated_at_list.append(str(each.updated_at))
-        variable_cache_tag += ' + '.join(updated_at_list)
-        m = hashlib.md5()
-        m.update(variable_cache_tag.encode(encoding='utf-8'))
-        variable_cache_tag = m.hexdigest()
-        return variable_cache_tag
-
-    def get_config(self):
-        """
-        :return: A Chart's config dictionary
-        """
-        config = dict(self.config)
-        logos = []
-        config['id'] = self.id
-        for each in list(Logo.objects.filter(name__in=['owd'])):
-            logos.append(each.svg)
-        config['logosSVG'] = logos
-        return config
-
     def show_type(self):
         type = "Unknown"
         config = self.config

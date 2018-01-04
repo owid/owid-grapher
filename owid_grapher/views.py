@@ -19,6 +19,7 @@ from grapher_admin.models import Chart, Variable, License, ChartSlugRedirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 from owid_grapher.templatetags.webpack import webpack
 from django.conf import settings
+import hashlib
 
 @login_required
 def index(request):
@@ -195,7 +196,7 @@ def showchart(request, chart):
     :return: Rendered Chart page
     """
 
-    configfile = chart.get_config()
+    configfile = chart.config
     canonicalurl = request.build_absolute_uri('/grapher/') + configfile['slug']
     baseurl = request.build_absolute_uri('/grapher/') + configfile['slug']
 
@@ -208,15 +209,10 @@ def showchart(request, chart):
     else:
         chartmeta['description'] = 'An interactive visualization from Our World in Data.'
     query_string = get_query_string(request)
-#    if query_string:
-#        canonicalurl += '?' + query_string
-    chartmeta['canonicalUrl'] = canonicalurl
-#    if query_string:
-#        imagequery = query_string + '&' + "v=" + chart.make_cache_tag()
-#    else:
-    imagequery = "v=" + chart.make_cache_tag()
 
-    chartmeta['imageUrl'] = baseurl + '.png?' + imagequery
+    chartmeta['canonicalUrl'] = canonicalurl
+    cachetag = hashlib.md5(json.dumps(configfile).encode('utf-8')).hexdigest()
+    chartmeta['imageUrl'] = baseurl + '.png?v=' + cachetag
 
     configpath = "%s/config/%s.js" % (settings.BASE_URL, chart.pk)
 
@@ -282,35 +278,9 @@ def config_json_by_slug(request, slug):
     if not chart:
         return HttpResponseNotFound('No such chart!')
 
-    configdict = chart.get_config()
-    configdict['variableCacheTag'] = chart.make_cache_tag()
-
-    response = JsonResponse(configdict)
+    response = JsonResponse(chart.config)
     response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
     response['Access-Control-Allow-Origin'] = '*'
-
-    return response
-
-def config(request, configid):
-    """
-    :param request: Request object
-    :param configid: id of the config.js file being requested
-    :return: config.js file
-    """
-
-    chartid = int(configid)
-    try:
-        chartobj = Chart.objects.get(pk=chartid)
-    except Chart.DoesNotExist:
-        return HttpResponseNotFound('Config file does not exist!')
-
-    configdict = chartobj.get_config()
-    configdict['variableCacheTag'] = chartobj.make_cache_tag()
-
-    configfile = 'App.loadChart(' + json.dumps(configdict) + ')'
-
-    response = HttpResponse(configfile, content_type="application/javascript")
-    response['Cache-Control'] = 'public, max-age=0, s-maxage=604800'
 
     return response
 
