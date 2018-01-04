@@ -32,6 +32,16 @@ from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_clou
 from typing import Dict, Union, Optional
 from django.db import transaction
 
+def dictfetchall(cursor):
+    """
+    :param cursor: Database cursor
+    :return: Returns all rows from the cursor as a list of dicts
+    """
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
 
 def custom_login(request: HttpRequest):
     """
@@ -146,23 +156,29 @@ def config_json_by_id(request, chartid):
 def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str]):
     datasets = []
 
-    def serializeVariable(variable: Variable):
-        return {
-            'name': variable.name,
-            'id': variable.id,
-        }
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT v.name, v.id, d.name as datasetName, d.namespace FROM variables as v JOIN datasets as d ON v.fk_dst_id = d.id WHERE namespace=%s ORDER BY d.updated_at DESC
+        """, [namespace])
 
-    def serializeDataset(dataset: Dataset):
-        return {
-            'name': dataset.name,
-            'namespace': dataset.namespace,
-            'variables': [serializeVariable(v) for v in dataset.variable_set.all()]
-        }
-
-    datasets = [serializeDataset(d) for d in Dataset.objects.filter(namespace=namespace).order_by('-updated_at').prefetch_related('variable_set')]
-
+        dataset = None
+        for row in dictfetchall(cursor):
+            if dataset is None or row['datasetName'] != dataset['name']:
+                if dataset is not None:
+                    datasets.append(dataset)
+                dataset = {
+                    'name': row['datasetName'],
+                    'namespace': row['namespace'],
+                    'variables': []
+                }
+            
+            dataset['variables'].append({
+                'id': row['id'],
+                'name': row['name']
+            })
+    
     response = JsonResponse({
-        'datasets': datasets,
+        'datasets': datasets
     })
 
     if cachetag:
