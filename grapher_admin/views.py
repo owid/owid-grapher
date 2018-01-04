@@ -90,10 +90,41 @@ def chartsjson(request: HttpRequest):
     """
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT id, JSON_EXTRACT(config, "$.title") as title FROM charts ORDER BY last_edited_at DESC
+            SELECT 
+                id, 
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.title")) AS title,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.type")) AS type,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.internalNotes")) AS internalNotes,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.isPublished")) AS isPublished,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.tab")) AS tab,
+                JSON_EXTRACT(config, "$.hasChartTab") = true AS hasChartTab,
+                JSON_EXTRACT(config, "$.hasMapTab") = true AS hasMapTab,
+                starred AS isStarred,
+                last_edited_at AS lastEditedAt,
+                last_edited_by AS lastEditedBy
+            FROM charts ORDER BY last_edited_at DESC
         """)
+
+        charts = dictfetchall(cursor)
+
+        varIds = [chart['id'] for chart in charts]
+
+        cursor.execute("""
+            SELECT dims.chartId, v.id as variableId, v.name as variableName FROM chart_dimensions AS dims JOIN variables AS v ON v.id=dims.variableId WHERE dims.chartId IN %s
+        """, [varIds])
+
+        variables={}
+        for row in cursor.fetchall():
+            chartId = row[0]
+            variables[chartId] = variables.get(chartId, [])
+            variables[chartId].append({ 'id': row[1], 'name': row[2] })
+
+        for chart in charts:
+            chart['variables'] = variables.get(chart['id'], [])
+
         return JsonResponse({
-            'charts': [{ 'id': r[0], 'title': json.loads(r[1]) } for r in cursor.fetchall()]
+            'charts': charts
         })
 
 def listcharts(request: HttpRequest):
