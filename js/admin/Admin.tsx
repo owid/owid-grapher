@@ -7,6 +7,7 @@ import * as urljoin from 'url-join'
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export default class Admin {
+    @observable errorMessage?: { title: string, content: string }
     grapherRoot: string
     basePath: string
     cacheTag: string
@@ -40,39 +41,35 @@ export default class Admin {
     }
 
     async getJSON(path: string): Promise<any> {
-        try {
-            const request = this.request(path, {}, 'GET')
-            this.currentRequests.push(request)
+        return this.request(path, {}, 'GET')
+    }
 
+    async request(path: string, data: any, method: 'GET' | 'PUT' | 'POST') {
+        try {
+            const request = fetch(this.url(path), {
+                method: method,
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': this.csrfToken as string
+                },
+                body: method !== 'GET' ? JSON.stringify(data) : undefined
+            })
+
+            this.currentRequests.push(request)
             const response = await request
             if (!response.ok) {
                 const errorMessage = await response.text()
                 throw errorMessage
             }
-
             const json = response.json()
             this.currentRequests.pop()
             return json
         } catch (err) {
             this.currentRequests.pop()
-            throw err
+            this.errorMessage = { title: `Failed to ${method} ${path}`, content: err }
+            throw this.errorMessage
         }
-    }
-
-    get(path: string) {
-        return this.request(path, {}, 'GET')
-    }
-
-    request(path: string, data: any, method: 'GET' | 'PUT' | 'POST') {
-        return fetch(this.url(path), {
-            method: method,
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRFToken': this.csrfToken as string
-            },
-            body: method !== 'GET' ? JSON.stringify(data) : undefined
-        })
     }
 }

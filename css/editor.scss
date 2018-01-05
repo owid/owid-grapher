@@ -28,18 +28,30 @@ html, body {
         min-height: 60px;
     }
 
-    > main {
-        display: flex;
-        flex-grow: 1;
+    .navbar-toggler {
+        display: block;
+        margin-right: 1rem;
     }
 }
 
+.FixedOverlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+}
+
 .AdminSidebar {
-    /*max-height: 100%;
-    overflow-y: auto;*/
-    min-width: 230px;
-    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
     background: #222d32;
+    width: 300px;
 
     ul {
         list-style: none;
@@ -407,14 +419,6 @@ html, body {
 }
 
 .ChartIndexPage {
-    div[role=row] {
-        border-bottom: 1px solid #ccc;
-    }
-
-    div[role=gridcell] {
-        font-size: 14px;
-        max-height: 100%;
-        white-space: inherit !important;
-        overflow-y: auto !important;
-    }
+    padding: 2em;
+    flex-grow: 1;
 }

@@ -4,7 +4,7 @@ import * as React from 'react'
 import {includes, capitalize} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import {observer} from 'mobx-react'
-import {observable, computed, runInAction, autorun, action, IReactionDisposer} from 'mobx'
+import {observable, computed, runInAction, autorun, action, reaction, IReactionDisposer} from 'mobx'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
@@ -97,23 +97,29 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
         }
     }
 
-    componentDidMount() {
+    @action.bound refresh() {
         this.fetchChart()
         this.fetchData()
+    }
+
+    dispose: IReactionDisposer
+    componentDidMount() {
+        this.dispose = reaction(
+            () => this.props.chartId,
+            this.refresh
+        )
+
+        this.refresh()
+    }
+
+    componentDidUnmount() {
+        this.dispose()
     }
 
     render() {
         const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
 
         return <div className="ChartEditorPage">
-            {errorMessage && <Modal className="errorMessage" onClose={action(() => { this.errorMessage = undefined; if (this.editor) this.editor.errorMessage = undefined })}>
-                <div className="modal-header">
-                    <h5 className="modal-title">{errorMessage.title}</h5>
-                </div>
-                <div className="modal-body">
-                    {errorMessage.content}
-                </div>
-            </Modal>}
             {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
             {this.editor !== undefined && this.renderReady(this.editor)}
         </div>

@@ -55,39 +55,6 @@ def custom_login(request: HttpRequest):
         return loginview(request)
 
 def chartsjson(request: HttpRequest):
-    """
-    charts = Chart.objects.all().order_by('-last_edited_at')
-
-    vars_used_in_charts = set()
-    vars_per_chart = {}
-    for chart in charts:
-        for dim in chart.config['dimensions']:
-            vars_used_in_charts.add(dim['variableId'])
-    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).values('id', 'name').iterator()
-    vardict = {}
-    for var in allvariables:
-        vardict[var['id']] = {'id': var['id'], 'name': var['name']}
-
-    def serializeChart(chart: Chart):
-        return {
-            'id': chart.pk,
-            'slug': chart.config['slug'],
-            'title': chart.config['title'],
-            'isPublished': chart.config.get('isPublished', False),
-            'isStarred': chart.starred,
-            'internalNotes': chart.config.get('internalNotes', None),
-            'type': chart.show_type(),
-            'lastEditedAt': chart.last_edited_at,
-            'lastEditedBy': chart.last_edited_by.name if chart.last_edited_by else None,
-            'variables': []#vardict.get(dim['variableId']) for dim in chart.config['dimensions']]
-        }
-
-    json = { 
-        'charts': [serializeChart(chart) for chart in charts]
-    }
-
-    return JsonResponse(json)
-    """
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT 
@@ -102,7 +69,9 @@ def chartsjson(request: HttpRequest):
                 JSON_EXTRACT(config, "$.hasMapTab") = true AS hasMapTab,
                 starred AS isStarred,
                 last_edited_at AS lastEditedAt,
-                last_edited_by AS lastEditedBy
+                last_edited_by AS lastEditedBy,
+                published_at AS publishedAt,
+                published_by AS publishedBy
             FROM charts ORDER BY last_edited_at DESC
         """)
 
@@ -129,41 +98,6 @@ def chartsjson(request: HttpRequest):
 
 def listcharts(request: HttpRequest):
     return chart_editor(request)
-    """
-    charts = list(Chart.objects.all().order_by('-last_edited_at'))
-
-    vars_used_in_charts = set()
-    vars_per_chart = {}
-    for chart in charts:
-        for dim in chart.config['dimensions']:
-            vars_used_in_charts.add(dim['variableId'])
-    allvariables = Variable.objects.filter(pk__in=vars_used_in_charts).iterator()
-    vardict = {}
-    for var in allvariables:
-        vardict[var.pk] = {'id': var.pk, 'name': var.name}
-    chartlist = []
-    for chart in charts:
-        each = {}
-        each['config'] = chart.config
-        each['id'] = chart.pk
-        each['starred'] = chart.starred
-        each['type'] = chart.show_type()
-        each['last_edited_at'] = chart.last_edited_at
-        if chart.last_edited_by:
-            each['last_edited_by'] = chart.last_edited_by.name
-        else:
-            each['last_edited_by'] = None
-        variableIds = [dim['variableId'] for dim in chart.config['dimensions']]
-        each['variables'] = [vardict.get(varId) for varId in variableIds]
-        chartlist.append(each)
-    if '.json' in urlparse(request.get_full_path()).path:
-        return JsonResponse(chartlist, safe=False)
-    else:
-        return render(request, 'admin.charts.html', context={
-            'current_user': request.user.name,
-            'charts': chartlist,
-        })
-    """
 
 
 def storechart(request: HttpRequest):
@@ -288,11 +222,18 @@ def savechart(chart: Chart, data: Dict, user: User):
 
     dims = []
 
+    # Set publication info if publishing chart
+    if data.get('isPublished') and not chart.config.get('isPublished'):
+        chart.published_at = timezone.now()
+        chart.published_by = user
+
     chart.config = data
     chart.config['lastEditedAt'] = str(timezone.now())
     chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
+
+    
 
     for each in ChartDimension.objects.filter(chartId=chart.pk):
         each.delete()

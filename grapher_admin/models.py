@@ -96,6 +96,8 @@ class Chart(Model):
     # Null/True due to the behavior of mysql unique indexes (we only want slugs to conflict if published)
     published = models.NullBooleanField(default=None, choices=((None, 'false'), (True, 'true')))
     starred = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True)
+    published_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True, db_column="published_by", related_name="published_charts")
     type = models.CharField(max_length=255, choices=(('LineChart', 'Line chart'), ('ScatterPlot', 'Scatter plot'),
                                                      ('StackedArea', 'Stacked area'), ('MultiBar', 'Multi bar'),
                                                      ('HorizontalMultiBar', 'Horizontal Multi bar'),

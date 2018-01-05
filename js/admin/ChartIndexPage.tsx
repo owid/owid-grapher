@@ -23,6 +23,8 @@ interface ChartMeta {
     type: string
     lastEditedAt: string
     lastEditedBy: string
+    publishedAt: string
+    publishedBy: string
     variables: { id: number, name: string }[]
 
     titleSearch: any
@@ -83,6 +85,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
                 <br/>
             ])}</td>
             <td>{chart.internalNotes}</td>
+            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.lastEditedBy}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
             <td>
                 <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
@@ -100,45 +103,39 @@ export default class ChartIndexPage extends React.Component {
 
     @observable searchInput?: string
     @observable.ref searchIndex: Searchable[] = []
+    @observable maxVisibleCharts = 50
 
-    @observable rowOffset: number = 0
-    @observable numVisibleRows: number = 20
-    @observable rowHeight: number = 32
-    scrollElement: HTMLDivElement
+    @computed get allCharts(): ChartMeta[] {
+        return uniq(this.searchIndex.map(s => s.chart))
+    }
+
+    @computed get numTotalCharts(): number {
+        return this.allCharts.length
+    }
 
     @computed get chartsToShow(): ChartMeta[] {
-        if (this.searchInput) {
-            const results = fuzzysort.go(this.searchInput, this.searchIndex, {
+        const {searchInput, searchIndex, maxVisibleCharts} = this
+        if (searchInput) {
+            const results = fuzzysort.go(searchInput, searchIndex, {
+                limit: 50,
                 key: 'term'
             })
             return uniq(results.map((result: any) => result.obj.chart))
         } else {
-            return uniq(this.searchIndex.map(o => o.chart))
+            return this.allCharts.slice(0, maxVisibleCharts)
         }
     }
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
-        this.rowOffset = 0
-        this.scrollElement.scrollTop = 0
     }
 
-    @computed get numTotalRows(): number {
-        return this.chartsToShow.length
-    }
-
-    @action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
-        const { scrollTop, scrollHeight } = ev.currentTarget
-        const { numTotalRows } = this
-
-        const rowOffset = Math.round(scrollTop / scrollHeight * numTotalRows)
-        ev.currentTarget.scrollTop = Math.round(rowOffset / numTotalRows * scrollHeight)
-
-        this.rowOffset = rowOffset
+    @action.bound onShowMore() {
+        this.maxVisibleCharts += 100
     }
 
     render() {
-        const {chartsToShow, searchInput, numVisibleRows, rowHeight, rowOffset, numTotalRows} = this
+        const {chartsToShow, searchInput, numTotalCharts} = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
@@ -149,27 +146,27 @@ export default class ChartIndexPage extends React.Component {
         }
 
         return <main className="ChartIndexPage">
-            <AdminSidebar/>
-            <div>
-                <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th><i className="fa fa-star"/></th>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Variables</th>
-                            <th>Notes</th>
-                            <th>Last Updated</th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                        <tbody>
-                        {chartsToShow.slice(rowOffset, rowOffset + numVisibleRows).map(chart => <ChartRow chart={chart} highlight={highlight}/>)}
-                    </tbody>
-                </table>
-            </div>
+            <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
+            <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
+            <table className="table table-bordered">
+                <thead>
+                    <tr>
+                        <th><i className="fa fa-star"/></th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Variables</th>
+                        <th>Notes</th>
+                        <th>Published</th>
+                        <th>Last Updated</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                    <tbody>
+                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight}/>)}
+                </tbody>
+            </table>
+            {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
         </main>
     }
 
