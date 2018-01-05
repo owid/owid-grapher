@@ -161,6 +161,7 @@ def testsome(request):
     urls = []
     for chart in charts:
         configfile = chart.config
+        configfile['id'] = chart.id
 
         local_url = request.build_absolute_uri('/grapher/') + chart.config['slug']
         live_url = "https://ourworldindata.org/grapher/" + chart.config['slug']
@@ -197,6 +198,7 @@ def showchart(request, chart):
     """
 
     configfile = chart.config
+    configfile['id'] = chart.id
     canonicalurl = request.build_absolute_uri('/grapher/') + configfile['slug']
     baseurl = request.build_absolute_uri('/grapher/') + configfile['slug']
 
