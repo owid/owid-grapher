@@ -31,6 +31,8 @@ from owid_grapher.views import get_query_string, get_query_as_dict
 from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
 from typing import Dict, Union, Optional
 from django.db import transaction
+from django.core.cache import cache
+import requests
 
 def JsonErrorResponse(message: str, status: int = 400):
     return JsonResponse({
@@ -2003,3 +2005,8 @@ def treeview_datasets(request: HttpRequest):
     return render(request, 'admin.datasets.by.category.html', context={'current_user': request.user.name,
                                                                        'tree_json': tree_json
                                                                        })
+
+def buildstatus(request):
+    r = requests.get(f"https://api.netlify.com/api/v1/sites/a7b9d6fc-5c50-41b8-b37f-9387e90c356d/deploys?access_token={settings.NETLIFY_ACCESS_TOKEN}")
+    return JsonResponse(r.json()[0])
+

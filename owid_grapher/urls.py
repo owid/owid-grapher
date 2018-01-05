@@ -95,8 +95,9 @@ urlpatterns = [
     url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
     url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
 
-    ### Public
+    url(r'^grapher/admin/api/buildStatus.json$', admin_views.buildstatus, name="buildstatus"),
 
+    ### Public
     url(r'^grapher/admin/login$', admin_views.custom_login, name='login'),
     url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
     url(r'^grapher/embedCharts.js$', owid_views.embed_snippet, name="embedsnippet"),
