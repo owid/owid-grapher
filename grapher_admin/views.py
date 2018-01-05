@@ -85,6 +85,7 @@ def _chartsjson():
 
         charts = dictfetchall(cursor)
 
+
         varIds = [chart['id'] for chart in charts]
 
         cursor.execute("""
@@ -319,7 +320,7 @@ def managechart(request: HttpRequest, chartid: str):
         return savechart(chart, data, request.user)
     if request.method == 'DELETE':
         chart.delete()
-        return JsonResponse({ 'success': True, 'charts': _chartsjson() })
+        return JsonResponse({ 'success': True })
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
 
@@ -350,7 +351,7 @@ def starchart(request: HttpRequest, chartid: str):
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
 
-    return JsonResponse({'success': True, 'charts': _chartsjson()})
+    return JsonResponse({'success': True})
 
 
 def unstarchart(request: HttpRequest, chartid: str):
@@ -363,7 +364,7 @@ def unstarchart(request: HttpRequest, chartid: str):
     if request.method == 'POST':
         chart.starred = False
         chart.save()
-        return JsonResponse({'success': True, 'charts': _chartsjson()})
+        return JsonResponse({'success': True})
 
 
 def importdata(request: HttpRequest):

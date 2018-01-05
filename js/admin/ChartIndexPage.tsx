@@ -150,20 +150,28 @@ export default class ChartIndexPage extends React.Component {
     }
 
     @action.bound async onDeleteChart(chart: ChartMeta) {
-        if (!window.confirm(`Delete the chart "${chart.title}"? This action cannot be undone!`))
+        if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return
 
         const json = await this.context.admin.requestJSON(`charts/${chart.id}`, {}, "DELETE")
 
         if (json.success) {
-            runInAction(() => this.allCharts = json.charts)
+            runInAction(() => this.allCharts.splice(this.allCharts.indexOf(chart), 1))
         }
     }
 
     @action.bound async onToggleStar(chart: ChartMeta) {
         const json = await this.context.admin.requestJSON(`charts/${chart.id}/${chart.isStarred ? 'unstar' : 'star'}`, {}, 'POST')
         if (json.success) {
-            runInAction(() => this.allCharts = json.charts)
+            runInAction(() => {
+                for (const otherChart of this.allCharts) {
+                    if (otherChart === chart) {
+                        otherChart.isStarred = true
+                    } else if (otherChart.isStarred) {
+                        otherChart.isStarred = false
+                    }
+                }
+            })
         }
     }
 

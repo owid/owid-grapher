@@ -20,17 +20,17 @@ import { Modal, LoadingBlocker } from './Forms'
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
     dispose: IReactionDisposer
     componentDidMount() {
-        window.addEventListener("hashchange", this.onHashChange)
+        //window.addEventListener("hashchange", this.onHashChange)
         this.onHashChange()
 
         this.dispose = autorun(() => {
             const tab = this.props.editor.tab
-            setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
+            //setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
         })
     }
 
     componentDidUnmount() {
-        window.removeEventListener("hashchange", this.onHashChange)
+        //window.removeEventListener("hashchange", this.onHashChange)
         this.dispose()
     }
 
