@@ -243,7 +243,7 @@ def savechart(chart: Chart, data: Dict, user: User):
         chart.published_by = user
 
     chart.config = data
-    chart.config['lastEditedAt'] = timezone.now()
+    chart.config['lastEditedAt'] = timezone.now().isoformat()
     chart.last_edited_at = timezone.now()
     chart.last_edited_by = user
     chart.save()
@@ -305,7 +305,7 @@ def savechart(chart: Chart, data: Dict, user: User):
     if data.get('isPublished') or chart.config.get('isPublished'):
         chart.bake(user)
 
-    return JsonResponse({'success': True, 'data': {'id': chart.pk}}, safe=False)
+    return JsonResponse({'success': True, 'data': {'id': chart.pk}})
 
 
 def managechart(request: HttpRequest, chartid: str):
