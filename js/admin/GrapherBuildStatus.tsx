@@ -28,6 +28,7 @@ export default class GrapherBuildStatus extends React.Component {
             const json = await response.json()
             runInAction(() => this.buildStatus = json)
         } catch (err) {
+            this.buildStatus = undefined
             console.error(err)
         } finally {
             this.request = undefined
