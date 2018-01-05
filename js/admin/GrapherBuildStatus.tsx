@@ -55,7 +55,7 @@ export default class GrapherBuildStatus extends React.Component {
         return <a className="nav-link" href={`${buildStatus.admin_url}/deploys/${buildStatus.id}`} target="_blank">
             {buildStatus.state === "ready" && <span style={{ color: 'lightgreen' }}>Last static build: {timeago.format(buildStatus.published_at)}</span>}
             {(buildStatus.state === "building" || buildStatus.state === "processing") && <span>Static build started {timeago.format(buildStatus.created_at)}...</span>}
-            {buildStatus.state !== "ready" && buildStatus.state !== "building" && buildStatus.state !== "processing" && <span style={{ color: 'red' }}>Build error: {timeago.format(buildStatus.updated_at)}</span>}
+            {(buildStatus.state === "failed" || buildStatus.state === "retrying" || buildStatus.state === "error") && <span style={{ color: 'red' }}>Build error: {timeago.format(buildStatus.updated_at)}</span>}
         </a>
     }
 }
