@@ -48,40 +48,19 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 export default class ChartEditorPage extends React.Component<{ chartId?: number }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
-    @observable.ref errorMessage?: { title: string, content: string }
     context: { admin: Admin }
 
     async fetchChart() {
         const {chartId} = this.props
         const {admin} = this.context
-
-        const handleError = action((err: string) => {
-            this.errorMessage = { title: "Error fetching chart json", content: err }
-        })
-
-        try {
-            const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`charts/${chartId}.config.json`)
-            runInAction(() => this.chart = new ChartConfig(json))
-        } catch (err) {
-            handleError(err)
-            throw err
-        }
+        const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`charts/${chartId}.config.json`)
+        runInAction(() => this.chart = new ChartConfig(json))
     }
 
     async fetchData() {
         const {admin} = this.context
-
-        const handleError = action((err: string) => {
-            this.errorMessage = { title: "Error fetching editorData json", content: err }
-        })
-
-        try {
-            const json = await admin.getJSON(`editorData/namespaces.${admin.cacheTag}.json`)
-            runInAction(() => this.database = new EditorDatabase(json))
-        } catch (err) {
-            handleError(err)
-            throw err
-        }
+        const json = await admin.getJSON(`editorData/namespaces.${admin.cacheTag}.json`)
+        runInAction(() => this.database = new EditorDatabase(json))
     }
 
     @computed get editor(): ChartEditor|undefined {
@@ -117,8 +96,6 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
     }
 
     render() {
-        const errorMessage = this.errorMessage || (this.editor && this.editor.errorMessage)
-
         return <div className="ChartEditorPage">
             {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
             {this.editor !== undefined && this.renderReady(this.editor)}

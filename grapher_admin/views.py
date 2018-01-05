@@ -32,6 +32,14 @@ from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_clou
 from typing import Dict, Union, Optional
 from django.db import transaction
 
+def JsonErrorResponse(message: str, status: int = 400):
+    return JsonResponse({
+        "error": {
+            "code": status,
+            "message": message
+        }
+    }, status=status)
+
 def dictfetchall(cursor):
     """
     :param cursor: Database cursor
@@ -54,7 +62,7 @@ def custom_login(request: HttpRequest):
     else:
         return loginview(request)
 
-def chartsjson(request: HttpRequest):
+def _chartsjson():
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT 
@@ -92,9 +100,13 @@ def chartsjson(request: HttpRequest):
         for chart in charts:
             chart['variables'] = variables.get(chart['id'], [])
 
-        return JsonResponse({
-            'charts': charts
-        })
+        return charts
+
+
+def chartsjson(request: HttpRequest):
+    return JsonResponse({
+        'charts': _chartsjson()
+    })
 
 def listcharts(request: HttpRequest):
     return chart_editor(request)
@@ -146,7 +158,7 @@ def config_json_by_id(request, chartid):
     except Chart.DoesNotExist:
         return HttpResponseNotFound('Invalid chart id!')
 
-    chart.config['id'] = chart.pk
+    chart.config['id'] = chart.id
     return JsonResponse(chart.config)
 
 def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str]):
@@ -204,10 +216,12 @@ def savechart(chart: Chart, data: Dict, user: User):
     isExisting = chart.id != None
 
     if data.get('isPublished'):
-        if ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
-            return HttpResponse("This chart slug was previously used by another chart: %s" % data["slug"], status=402)
+        if not data.get('slug') or not data.get('slug').strip():
+            return JsonErrorResponse(f"Invalid chart slug `{data.get('slug')}`")
+        elif ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
+            return JsonErrorResponse("This chart slug was previously used by another chart: %s" % data["slug"])
         elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
-            return HttpResponse("This chart slug is currently in use by another chart: %s" % data["slug"], status=402)
+            return JsonErrorResponse("This chart slug is currently in use by another chart: %s" % data["slug"])
         elif chart.config.get('isPublished') and chart.config.get('slug') and chart.config.get('slug') != data['slug']:
             # Changing the slug of an already published chart-- create a redirect
             try:
@@ -303,12 +317,9 @@ def managechart(request: HttpRequest, chartid: str):
     if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
         return savechart(chart, data, request.user)
-    if request.method == 'POST':
-        data = QueryDict(request.body.decode('utf-8'))
-        if data.get('_method', '0') == 'DELETE':
-            chart.delete()
-            messages.success(request, 'Chart deleted successfully')
-        return HttpResponseRedirect(reverse('listcharts'))
+    if request.method == 'DELETE':
+        chart.delete()
+        return JsonResponse({ 'success': True, 'charts': _chartsjson() })
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
 
@@ -317,9 +328,9 @@ def starchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
-        return HttpResponseNotFound('No such chart!')
+        return JsonErrorResponse('No such chart!', status=404)
     except ValueError:
-        return HttpResponseNotFound('No such chart!')
+        return JsonErrorResponse('No such chart!', status=404)
 
     if request.method == 'POST':
         Chart.objects.update(starred=False)
@@ -339,20 +350,20 @@ def starchart(request: HttpRequest, chartid: str):
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
 
-    return JsonResponse({'starred': True}, safe=False)
+    return JsonResponse({'success': True, 'charts': _chartsjson()})
 
 
 def unstarchart(request: HttpRequest, chartid: str):
     try:
         chart = Chart.objects.get(pk=int(chartid))
     except Chart.DoesNotExist:
-        return HttpResponseNotFound('No such chart!')
+        return JsonErrorResponse('No such chart!', status=404)
     except ValueError:
-        return HttpResponseNotFound('No such chart!')
+        return JsonErrorResponse('No such chart!', status=404)
     if request.method == 'POST':
         chart.starred = False
         chart.save()
-        return JsonResponse({'starred': False}, safe=False)
+        return JsonResponse({'success': True, 'charts': _chartsjson()})
 
 
 def importdata(request: HttpRequest):

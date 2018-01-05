@@ -5,7 +5,7 @@
  *
  */
 
-import { observable, computed, reaction, action } from 'mobx'
+import { observable, computed, reaction, action, runInAction } from 'mobx'
 import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
@@ -92,21 +92,10 @@ export default class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    // Track whether we're currently loading something
-    load<T>(promise: Promise<T>) {
-        this.currentRequest = promise
-        promise.then(() => this.currentRequest = undefined).catch(() => this.currentRequest = undefined)
-        return promise
-    }
-
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        try {
-            const data = await this.load(this.props.admin.getJSON(`editorData/${namespace}.${this.props.admin.cacheTag}.json`))
-            this.database.dataByNamespace.set(namespace, data)
-        } catch (err) {
-            this.errorMessage = { title: `Error getting index for namespace '${namespace}'`, content: toString(err) }
-        }
+        const data = await this.props.admin.getJSON(`editorData/${namespace}.${this.props.admin.cacheTag}.json`)
+        runInAction(() => this.database.dataByNamespace.set(namespace, data))
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {
@@ -114,25 +103,16 @@ export default class ChartEditor {
 
         const targetUrl = isNewChart ? "charts" : `charts/${chart.props.id}`
 
-        const handleError = action((err: string) => {
-            this.errorMessage = { title: "Error saving chart", content: toString(err) }
-            if (onError) onError()
-        })
+        const json = await this.props.admin.requestJSON(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT')
 
-        try {
-            const response = await this.load(this.props.admin.request(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT'))
-            if (!response.ok)
-                return handleError(await response.text())
-
-            const json = await response.json()
-
+        if (json.success) {
             if (isNewChart) {
                 window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
             } else {
                 this.isSaved = true
             }
-        } catch (err) {
-            handleError(err)
+        } else {
+            if (onError) onError()
         }
     }
 
@@ -146,21 +126,9 @@ export default class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const handleError = action((err: string) => {
-            this.errorMessage = { title: "Error saving as new chart", content: toString(err) }
-        })
-
-        try {
-            const response = await this.load(this.props.admin.request("charts", chartJson, 'POST'))
-            if (!response.ok)
-                return handleError(await response.text())
-
-            const json = await response.json()
-
+        const json = await this.props.admin.requestJSON("charts", chartJson, 'POST')
+        if (json.success)
             w.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
-        } catch (err) {
-            handleError(err)
-        }
     }
 
     publishChart() {

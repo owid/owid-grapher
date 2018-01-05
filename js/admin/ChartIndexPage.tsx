@@ -61,7 +61,7 @@ function showChartType(chart: ChartMeta) {
 }
 
 @observer
-class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: string) => any }> {
+class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: string) => any, onDelete: (chart: ChartMeta) => void, onToggleStar: (chart: ChartMeta) => void }> {
     context: { admin: Admin }
 
     render() {
@@ -70,7 +70,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
 
         return <tr>
             <td>
-                <a className="star-toggle" title="Show this chart on the front page of the website.">
+                <a title="Show this chart on the front page of the website." onClick={_ => this.props.onToggleStar(chart)}>
                     {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
                 </a>
             </td>
@@ -91,7 +91,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
                 <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
             </td>
             <td>
-                <button className="btn btn-danger">Delete</button>
+                <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>
             </td>
         </tr>
     }
@@ -102,15 +102,30 @@ export default class ChartIndexPage extends React.Component {
     context: { admin: Admin }
 
     @observable searchInput?: string
-    @observable.ref searchIndex: Searchable[] = []
     @observable maxVisibleCharts = 50
-
-    @computed get allCharts(): ChartMeta[] {
-        return uniq(this.searchIndex.map(s => s.chart))
-    }
+    @observable allCharts: ChartMeta[] = []
 
     @computed get numTotalCharts(): number {
         return this.allCharts.length
+    }
+
+    @computed get searchIndex(): Searchable[] {
+        const searchIndex: Searchable[] = []
+        for (const chart of this.allCharts) {
+            searchIndex.push({
+                chart: chart,
+                term: fuzzysort.prepare(chart.title)
+            })
+
+            for (const variable of chart.variables) {
+                searchIndex.push({
+                    chart: chart,
+                    term: fuzzysort.prepare(variable.name)
+                })
+            }
+        }
+
+        return searchIndex
     }
 
     @computed get chartsToShow(): ChartMeta[] {
@@ -132,6 +147,24 @@ export default class ChartIndexPage extends React.Component {
 
     @action.bound onShowMore() {
         this.maxVisibleCharts += 100
+    }
+
+    @action.bound async onDeleteChart(chart: ChartMeta) {
+        if (!window.confirm(`Delete the chart "${chart.title}"? This action cannot be undone!`))
+            return
+
+        const json = await this.context.admin.requestJSON(`charts/${chart.id}`, {}, "DELETE")
+
+        if (json.success) {
+            runInAction(() => this.allCharts = json.charts)
+        }
+    }
+
+    @action.bound async onToggleStar(chart: ChartMeta) {
+        const json = await this.context.admin.requestJSON(`charts/${chart.id}/${chart.isStarred ? 'unstar' : 'star'}`, {}, 'POST')
+        if (json.success) {
+            runInAction(() => this.allCharts = json.charts)
+        }
     }
 
     render() {
@@ -163,7 +196,7 @@ export default class ChartIndexPage extends React.Component {
                     </tr>
                 </thead>
                     <tbody>
-                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight}/>)}
+                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight} onDelete={this.onDeleteChart} onToggleStar={this.onToggleStar}/>)}
                 </tbody>
             </table>
             {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
@@ -171,23 +204,8 @@ export default class ChartIndexPage extends React.Component {
     }
 
     async getData() {
-        const data: { charts: ChartMeta[] } = await this.context.admin.getJSON("/charts.json")
-        const searchIndex: Searchable[] = []
-        for (const chart of data.charts) {
-            searchIndex.push({
-                chart: chart,
-                term: fuzzysort.prepare(chart.title)
-            })
-
-            for (const variable of chart.variables) {
-                searchIndex.push({
-                    chart: chart,
-                    term: fuzzysort.prepare(variable.name)
-                })
-            }
-        }
-
-        runInAction(() => this.searchIndex = searchIndex)
+        const json = await this.context.admin.getJSON("/charts.json")
+        runInAction(() => this.allCharts = json.charts)
     }
     componentDidMount() { this.getData() }
 }
