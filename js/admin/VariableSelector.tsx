@@ -7,6 +7,7 @@ import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
 import FuzzySearch from '../charts/FuzzySearch'
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
+const fuzzysort = require('fuzzysort')
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -70,7 +71,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
-                    searchKey: dataset.name + " - " + variable.name
+                    searchKey: fuzzysort.prepare(dataset.name + " - " + variable.name)
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -82,13 +83,9 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         return this.availableVariables.filter(v => !this.chosenVariables.some(v2 => v.id === v2.id))
     }
 
-    @computed get fuzzy(): FuzzySearch<Variable> {
-        return new FuzzySearch(this.unselectedVariables, 'searchKey')
-    }
-
     @computed get searchResults(): Variable[] {
-        const results = this.searchInput && this.fuzzy.search(this.searchInput)
-        return (results && results.length) ? results : this.unselectedVariables
+        const results = this.searchInput && fuzzysort.go(this.searchInput, this.availableVariables, { key: 'searchKey' })
+        return (results && results.length) ? results.map((result: any) => result.obj) : this.unselectedVariables
     }
 
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
@@ -119,6 +116,14 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         const { currentNamespace, searchInput, chosenVariables } = this
         const { rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows } = this
 
+        const highlight = (text: string) => {
+            if (this.searchInput) {
+                const html = fuzzysort.highlight(fuzzysort.single(this.searchInput, text)) || text
+                return <span dangerouslySetInnerHTML={{__html: html}}/>
+            } else
+                return text
+        }
+
         return <Modal onClose={this.onDismiss} className="VariableSelector">
             <div className="modal-header">
                 <h5 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h5>
@@ -136,11 +141,11 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                                     {searchResultRows.slice(rowOffset, rowOffset + numVisibleRows).map(d => {
                                         if (isString(d)) {
                                             return <li key={d} style={{ 'min-width': '100%' }}>
-                                                <h5 dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", d) }}>{d}</h5>
+                                                <h5>{highlight(d)}</h5>
                                             </li>
                                         } else {
                                             return d.map(v => <li key={v.id} style={{ 'min-width': '50%' }}>
-                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={<span dangerouslySetInnerHTML={{ __html: this.fuzzy.highlight(searchInput || "", v.name) }}>{v.name}</span>}/>
+                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={highlight(v.name)}/>
                                             </li>)
                                         }
                                     })}
