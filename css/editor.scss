@@ -421,4 +421,19 @@ html, body {
 .ChartIndexPage {
     padding: 2em;
     flex-grow: 1;
+
+    .topRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1em;
+
+        .form-group {
+            margin: 0;
+        }
+
+        input {
+            width: 500px;
+        }
+    }
 }

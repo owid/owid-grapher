@@ -64,6 +64,8 @@ export default class Admin {
 
         let response: Response|undefined
         let text: string|undefined
+        let json: any
+
         try {
             const request = this.rawRequest(path, data, method)
             this.currentRequests.push(request)
@@ -71,7 +73,7 @@ export default class Admin {
             response = await request
             text = await response.text()
 
-            const json = JSON.parse(text)
+            json = JSON.parse(text)
             if (json.error) {
                 if (onFailure === 'show') {
                     this.errorMessage = { title: `Failed to ${method} ${path} (${response.status})`, content: json.error.message }
@@ -79,14 +81,14 @@ export default class Admin {
                     throw json.error
                 }
             }
-
-            return json
         } catch (err) {
             this.errorMessage = { title: `Failed to ${method} ${path}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
             throw this.errorMessage
         } finally {
             this.currentRequests.pop()
         }
+
+        return json
     }
 
     async getJSON(path: string): Promise<any> {

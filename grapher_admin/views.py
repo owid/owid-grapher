@@ -62,7 +62,9 @@ def custom_login(request: HttpRequest):
     else:
         return loginview(request)
 
-def _chartsjson():
+
+def chartsjson(request: HttpRequest):
+    limit = int(request.GET.get('limit') or 10000)
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT 
@@ -80,11 +82,10 @@ def _chartsjson():
                 last_edited_by AS lastEditedBy,
                 published_at AS publishedAt,
                 published_by AS publishedBy
-            FROM charts ORDER BY last_edited_at DESC
-        """)
+            FROM charts ORDER BY last_edited_at DESC LIMIT %s
+        """, [limit])
 
         charts = dictfetchall(cursor)
-
 
         varIds = [chart['id'] for chart in charts]
 
@@ -101,12 +102,9 @@ def _chartsjson():
         for chart in charts:
             chart['variables'] = variables.get(chart['id'], [])
 
-        return charts
-
-
-def chartsjson(request: HttpRequest):
     return JsonResponse({
-        'charts': _chartsjson()
+        'charts': charts,
+        'numTotalCharts': Chart.objects.count()
     })
 
 def listcharts(request: HttpRequest):

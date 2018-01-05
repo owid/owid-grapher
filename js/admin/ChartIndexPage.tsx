@@ -1,7 +1,7 @@
 import Admin from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
+import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import { Modal, LoadingBlocker, TextField } from './Forms'
 import Link from './Link'
 import AdminSidebar from './AdminSidebar'
@@ -102,16 +102,14 @@ export default class ChartIndexPage extends React.Component {
     context: { admin: Admin }
 
     @observable searchInput?: string
+    @computed get wantsSearch(): boolean { return !!this.searchInput }
     @observable maxVisibleCharts = 50
-    @observable allCharts: ChartMeta[] = []
-
-    @computed get numTotalCharts(): number {
-        return this.allCharts.length
-    }
+    @observable charts: ChartMeta[] = []
+    @observable numTotalCharts: number = 0
 
     @computed get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
-        for (const chart of this.allCharts) {
+        for (const chart of this.charts) {
             searchIndex.push({
                 chart: chart,
                 term: fuzzysort.prepare(chart.title)
@@ -137,7 +135,7 @@ export default class ChartIndexPage extends React.Component {
             })
             return uniq(results.map((result: any) => result.obj.chart))
         } else {
-            return this.allCharts.slice(0, maxVisibleCharts)
+            return this.charts.slice(0, maxVisibleCharts)
         }
     }
 
@@ -156,7 +154,7 @@ export default class ChartIndexPage extends React.Component {
         const json = await this.context.admin.requestJSON(`charts/${chart.id}`, {}, "DELETE")
 
         if (json.success) {
-            runInAction(() => this.allCharts.splice(this.allCharts.indexOf(chart), 1))
+            runInAction(() => this.charts.splice(this.charts.indexOf(chart), 1))
         }
     }
 
@@ -164,7 +162,7 @@ export default class ChartIndexPage extends React.Component {
         const json = await this.context.admin.requestJSON(`charts/${chart.id}/${chart.isStarred ? 'unstar' : 'star'}`, {}, 'POST')
         if (json.success) {
             runInAction(() => {
-                for (const otherChart of this.allCharts) {
+                for (const otherChart of this.charts) {
                     if (otherChart === chart) {
                         otherChart.isStarred = true
                     } else if (otherChart.isStarred) {
@@ -175,8 +173,16 @@ export default class ChartIndexPage extends React.Component {
         }
     }
 
+    @computed get isSearchReady(): boolean {
+        return this.charts.length >= this.numTotalCharts
+    }
+
+    @computed get needsMoreData(): boolean {
+        return !!(this.maxVisibleCharts > this.charts.length || (this.wantsSearch && !this.isSearchReady))
+    }
+
     render() {
-        const {chartsToShow, searchInput, numTotalCharts} = this
+        const {chartsToShow, searchInput, numTotalCharts, isSearchReady} = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
@@ -187,8 +193,10 @@ export default class ChartIndexPage extends React.Component {
         }
 
         return <main className="ChartIndexPage">
-            <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-            <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
+            <div className="topRow">
+                <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
+                <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
+            </div>
             <table className="table table-bordered">
                 <thead>
                     <tr>
@@ -212,8 +220,30 @@ export default class ChartIndexPage extends React.Component {
     }
 
     async getData() {
-        const json = await this.context.admin.getJSON("/charts.json")
-        runInAction(() => this.allCharts = json.charts)
+        const {admin} = this.context
+        if (admin.currentRequests.length > 0)
+            return
+
+        const json = await admin.getJSON("/charts.json" + (this.wantsSearch ? "" : `?limit=${this.maxVisibleCharts}`))
+        runInAction(() => {
+            this.charts = json.charts
+            this.numTotalCharts = json.numTotalCharts
+        })
     }
-    componentDidMount() { this.getData() }
+
+    dispose: IReactionDisposer
+    componentDidMount() {
+        this.dispose = reaction(
+            () => this.needsMoreData,
+            () => {
+                if (this.needsMoreData)
+                    this.getData()
+            }
+        )
+        this.getData()
+     }
+
+     componentWillUnmount() {
+         this.dispose()
+     }
 }
