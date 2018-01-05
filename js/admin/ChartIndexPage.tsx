@@ -85,8 +85,8 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
                 <br/>
             ])}</td>
             <td>{chart.internalNotes}</td>
-            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.lastEditedBy}</span>}</td>
-            <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
+            <td>{chart.publishedAt && timeago.format(chart.publishedAt+'.000Z')}{chart.publishedBy && <span> by {chart.lastEditedBy}</span>}</td>
+            <td>{timeago.format(chart.lastEditedAt+'.000Z')} by {chart.lastEditedBy}</td>
             <td>
                 <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
             </td>
