@@ -2,6 +2,10 @@ import { extend, some, isString, isNumber, uniq, min, max, keyBy, keys, values, 
 import ChartConfig from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 
+// XXX
+import Admin from '../admin/Admin'
+declare var window: { admin: Admin }
+
 declare var Global: { rootUrl: string }
 declare var App: { isEditor: boolean }
 
@@ -123,15 +127,22 @@ export default class VariableData {
     }
 
     @action.bound update() {
-        const { variableIds, cacheTag } = this
+        const { variableIds, chart, cacheTag } = this
         if (variableIds.length === 0 || this.chart.isNode) {
             // No data to download
             return
         }
 
-        fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
-            .then(response => response.text())
-            .then(rawData => this.receiveData(rawData))
+        if (window.admin) {
+            window.admin.rawRequest("/api/data/variables/" + variableIds.join("+") + "?v=" + cacheTag, {}, "GET")
+                .then(response => response.text())
+                .then(rawData => this.receiveData(rawData))
+        } else {
+            fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
+                .then(response => response.text())
+                .then(rawData => this.receiveData(rawData))
+        }
+
     }
 
     @action.bound receiveData(rawData: string) {

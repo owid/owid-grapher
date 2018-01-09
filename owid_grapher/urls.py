@@ -96,6 +96,7 @@ urlpatterns = [
     url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
 
     url(r'^grapher/admin/api/buildStatus.json$', admin_views.buildstatus, name="buildstatus"),
+    url(r'^grapher/admin/api/data/variables/(?P<ids>[\d+]+)$', admin_views.variables, name="adminvariables"),
 
     ### Public
     url(r'^grapher/admin/login$', admin_views.custom_login, name='login'),

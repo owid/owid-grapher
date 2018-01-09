@@ -167,6 +167,10 @@ export default class ChartConfig {
         return window.self !== window.top
     }
 
+    get isEditor(): boolean {
+        return App.isEditor
+    }
+
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
     }
