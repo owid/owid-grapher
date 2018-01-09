@@ -22,11 +22,12 @@ import { Triangle } from './Marks'
 import { select } from 'd3-selection'
 
 export interface ScatterSeries {
-    color: string,
-    key: string,
-    label: string,
-    size: number,
+    color: string
+    key: string
+    label: string
+    size: number
     values: ScatterValue[]
+    isAutoColor?: true
 }
 
 export interface ScatterValue {

@@ -54,7 +54,7 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
 
     // Only show colors on legend that are actually in use
     @computed get legendColors() {
-        return uniq(this.transform.currentData.map(g => g.color))
+        return uniq(this.transform.currentData.filter(g => g.isAutoColor).map(g => g.color))
     }
 
     @computed get legend(): ScatterColorLegend {

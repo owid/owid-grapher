@@ -238,7 +238,7 @@ export default class ScatterTransform implements IChartTransform {
                             key: datakey,
                             label: chart.data.formatKey(datakey),
                             values: [{ year: outputYear, time: {} }],
-                            color: "#000"
+                            color: keyColors[datakey]||"#000"
                         } as ScatterSeries
                         dataByYear.set(outputYear, series)
                     }
@@ -253,6 +253,7 @@ export default class ScatterTransform implements IChartTransform {
                     (d.time as any)[dimension.property] = year
                     if (dimension.property === 'color') {
                         series.color = keyColors[datakey] || colorScale(value as string)
+                        series.isAutoColor = true
                     } else {
                         (d as any)[dimension.property] = value
                     }
