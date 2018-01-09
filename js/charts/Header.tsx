@@ -59,7 +59,7 @@ export default class Header {
     }
 
     @computed get logo(): Logo|undefined {
-        return this.props.chart.isNativeEmbed ? undefined : new Logo({ svg: LOGO_SVG })
+        return new Logo({ svg: LOGO_SVG })
     }
 
     @computed get logoWidth(): number { return this.logo ? this.logo.width : 0 }
@@ -128,7 +128,7 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
             return null
 
         return <g className="HeaderView">
-            {logo && logo.height > 0 && !chart.isNativeEmbed && logo.render(props.x + maxWidth - logo.width, props.y)}
+            {logo && logo.height > 0 && logo.render(props.x + maxWidth - logo.width, props.y)}
             <a href={chart.url.canonicalUrl} target="_blank">
                 {title.render(props.x, props.y, { fill: "#555" })}
             </a>
