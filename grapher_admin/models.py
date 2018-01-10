@@ -104,48 +104,6 @@ class Chart(Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-
-    max_exports_per_worker = 2
-    exports_in_progress = 0
-    def export_image(self, query: str, format: str, is_async: bool = False):
-        screenshot = settings.BASE_DIR + "/dist/js/exportChart.js"
-#        targetSrc = settings.BASE_URL + "/" + self.config['slug'] + "?" + query
-#        m = hashlib.md5()
-#        m.update(query.encode(encoding='utf-8'))
-#        query_hash = m.hexdigest()
-#        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + ".png"
-#        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "-" + query_hash + "." + format
-        targetSrc = settings.BASE_URL + "/" + self.config['slug']
-        png_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + ".png"
-        return_file = settings.BASE_DIR + "/public/exports/" + self.config['slug'] + "." + format
-
-
-        if Chart.exports_in_progress >= Chart.max_exports_per_worker:
-            if is_async: return return_file
-            else:
-                while Chart.exports_in_progress >= Chart.max_exports_per_worker:
-                    gevent.sleep(0.5)
-
-        Chart.exports_in_progress += 1
-
-        try:
-            if not os.path.isfile(return_file):
-                command = "nice node %s --baseUrl=%s --targetSrc=%s --output=%s" % \
-                        (screenshot, shlex.quote(settings.BASE_URL), shlex.quote(targetSrc), shlex.quote(png_file))
-                print(command)
-
-                if is_async:
-                    subprocess.Popen(command, shell=True)
-                else:
-                    try:
-                        subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-                    except subprocess.CalledProcessError as e:
-                        raise Exception(e.output)
-        finally:
-            Chart.exports_in_progress -= 1
-
-        return return_file
-
     def bake(self, user):
         email = shlex.quote(user.email)
         name = shlex.quote(user.get_full_name())
