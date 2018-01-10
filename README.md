@@ -22,7 +22,7 @@ For static image exports, you will also need a recent version of [node](https://
 
 ## Database setup
 
-Copy `grapher_admin/secret_settings.py.template` to `grapher_admin/secret_settings.py` and fill in your database details. Then run `python manage.py migrate`.
+Copy `.env.example` to `.env` and fill in your database details. Then run `python manage.py migrate`.
 
 Some initial test data and charts can then be imported from `grapher_admin/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
 
