@@ -60,11 +60,16 @@ def servestatic(request, path):
     target_path = os.path.join(STATIC_PATH, "grapher", path)
     if os.path.isfile(target_path+".html"):
         target_path += ".html"
+
     response = _servefile(request, target_path)
 
     for rule in headerRules:
         if rule.match("/grapher/"+path):
             rule.apply(response)
+
+    # Cloudflare caching for now
+    if not response.get("Cache-Control"):
+        response['Cache-Control'] = "public, max-age=0, s-maxage=604800"
     
     return response
 

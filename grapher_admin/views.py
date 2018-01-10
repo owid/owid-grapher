@@ -332,79 +332,79 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
     return response
 
 
-@transaction.atomic
 def savechart(chart: Chart, data: Dict, user: User):
-    isExisting = chart.id != None
+    with transaction.atomic():
+        isExisting = chart.id != None
 
-    if data.get('isPublished'):
-        if not data.get('slug') or not data.get('slug').strip():
-            return JsonErrorResponse(f"Invalid chart slug `{data.get('slug')}`")
-        elif ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
-            return JsonErrorResponse("This chart slug was previously used by another chart: %s" % data["slug"])
-        elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
-            return JsonErrorResponse("This chart slug is currently in use by another chart: %s" % data["slug"])
-        elif chart.config.get('isPublished') and chart.config.get('slug') and chart.config.get('slug') != data['slug']:
-            # Changing the slug of an already published chart-- create a redirect
-            try:
-                old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.config['slug'])
-                old_chart_redirect.chart_id = chart.pk
-                old_chart_redirect.save()
-            except ChartSlugRedirect.DoesNotExist:
-                new_chart_redirect = ChartSlugRedirect()
-                new_chart_redirect.chart_id = chart.pk
-                new_chart_redirect.slug = chart.config['slug']
-                new_chart_redirect.save()
+        if data.get('isPublished'):
+            if not data.get('slug') or not data.get('slug').strip():
+                return JsonErrorResponse(f"Invalid chart slug `{data.get('slug')}`")
+            elif ChartSlugRedirect.objects.filter(~Q(chart_id=chart.pk)).filter(Q(slug=data['slug'])):
+                return JsonErrorResponse("This chart slug was previously used by another chart: %s" % data["slug"])
+            elif Chart.objects.filter(~Q(pk=chart.pk)).filter(config__slug=data['slug'], config__isPublished=True):
+                return JsonErrorResponse("This chart slug is currently in use by another chart: %s" % data["slug"])
+            elif chart.config.get('isPublished') and chart.config.get('slug') and chart.config.get('slug') != data['slug']:
+                # Changing the slug of an already published chart-- create a redirect
+                try:
+                    old_chart_redirect = ChartSlugRedirect.objects.get(slug=chart.config['slug'])
+                    old_chart_redirect.chart_id = chart.pk
+                    old_chart_redirect.save()
+                except ChartSlugRedirect.DoesNotExist:
+                    new_chart_redirect = ChartSlugRedirect()
+                    new_chart_redirect.chart_id = chart.pk
+                    new_chart_redirect.slug = chart.config['slug']
+                    new_chart_redirect.save()
 
-    dims = []
+        dims = []
 
-    # Set publication info if publishing chart
-    if data.get('isPublished') and not chart.config.get('isPublished'):
-        chart.published_at = timezone.now()
-        chart.published_by = user
+        # Set publication info if publishing chart
+        if data.get('isPublished') and not chart.config.get('isPublished'):
+            chart.published_at = timezone.now()
+            chart.published_by = user
 
-    chart.config = data
-    chart.config['lastEditedAt'] = timezone.now().isoformat()
-    chart.last_edited_at = timezone.now()
-    chart.last_edited_by = user
-    chart.save()
+        chart.config = data
+        chart.config['lastEditedAt'] = timezone.now().isoformat()
+        chart.last_edited_at = timezone.now()
+        chart.last_edited_by = user
+        chart.save()
 
-    
+        
 
-    for each in ChartDimension.objects.filter(chartId=chart.pk):
-        each.delete()
+        for each in ChartDimension.objects.filter(chartId=chart.pk):
+            each.delete()
 
-    for i, dim in enumerate(data["dimensions"]):
-        print(dim)
-        variable = Variable.objects.get(id=dim["variableId"])
+        for i, dim in enumerate(data["dimensions"]):
+            print(dim)
+            variable = Variable.objects.get(id=dim["variableId"])
 
-        newdim = ChartDimension()
-        newdim.chartId = chart
-        newdim.variableId = variable
-        newdim.property = dim.get('property', None)
-        newdim.order = i
+            newdim = ChartDimension()
+            newdim.chartId = chart
+            newdim.variableId = variable
+            newdim.property = dim.get('property', None)
+            newdim.order = i
 
-        newdim.displayName = dim.get('displayName', None)
-        newdim.unit = dim.get('unit', None)
-        newdim.shortUnit = dim.get('shortUnit', None)
-        newdim.conversionFactor = dim.get('conversionFactor', None)
-        newdim.tolerance = dim.get('tolerance', None)
-        newdim.isProjection = dim.get('isProjection', None)
-        newdim.targetYear = dim.get('targetYear', None)
-        newdim.save()
+            newdim.displayName = dim.get('displayName', None)
+            newdim.unit = dim.get('unit', None)
+            newdim.shortUnit = dim.get('shortUnit', None)
+            newdim.conversionFactor = dim.get('conversionFactor', None)
+            newdim.tolerance = dim.get('tolerance', None)
+            newdim.isProjection = dim.get('isProjection', None)
+            newdim.targetYear = dim.get('targetYear', None)
+            newdim.save()
 
-        if dim.get('saveToVariable'):
-            if newdim.displayName:
-                variable.displayName = newdim.displayName
-            if newdim.unit:
-                variable.displayUnit = newdim.unit
-            if newdim.shortUnit:
-                variable.displayShortUnit = newdim.shortUnit
-            if newdim.conversionFactor:
-                variable.displayUnitConversionFactor = newdim.conversionFactor
-            if 'tolerance' in dim:
-                variable.displayTolerance = newdim.tolerance
-            variable.displayIsProjection = bool(newdim.isProjection)
-            variable.save()
+            if dim.get('saveToVariable'):
+                if newdim.displayName:
+                    variable.displayName = newdim.displayName
+                if newdim.unit:
+                    variable.displayUnit = newdim.unit
+                if newdim.shortUnit:
+                    variable.displayShortUnit = newdim.shortUnit
+                if newdim.conversionFactor:
+                    variable.displayUnitConversionFactor = newdim.conversionFactor
+                if 'tolerance' in dim:
+                    variable.displayTolerance = newdim.tolerance
+                variable.displayIsProjection = bool(newdim.isProjection)
+                variable.save()
 
     # Bake published charts into static build
     if data.get('isPublished') or chart.config.get('isPublished'):

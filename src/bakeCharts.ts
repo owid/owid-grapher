@@ -24,4 +24,4 @@ async function main(email: string, name: string, slug: string) {
     }
 }
 
-main(argv._[1], argv._[2], argv._[3])
+main(argv._[0], argv._[1], argv._[2])

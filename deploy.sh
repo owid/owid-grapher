@@ -22,6 +22,10 @@ else
   exit 1
 fi
 
+if [ "$2" != "no-webpack" ]; then
+    yarn build
+fi
+
 if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]
 then
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
@@ -41,27 +45,26 @@ then
   # original target to stay around to make future syncs faster
   cp -r $SYNC_TARGET $TMP_NEW
 
+  # Link in all the persistent stuff that needs to stay around between versions
+  ln -sf $FINAL_DATA/.env $TMP_NEW/.env
+  ln -sf $FINAL_DATA/env $TMP_NEW/env
+  ln -sf $FINAL_DATA/public $TMP_NEW/public
+  ln -sf $FINAL_DATA/data $TMP_NEW/data
+
+  # Install dependencies and migrate
+  cd $TMP_NEW
+  yarn install --production
+  . env/bin/activate
+  pip3 install -r requirements.txt
+  python3 manage.py migrate
+
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP
   mv $FINAL_TARGET $OLD_REPO_BACKUP || true
   mv $TMP_NEW $FINAL_TARGET
 
-  # Link in all the persistent stuff that needs to stay around between versions
-  ln -sf $FINAL_DATA/.env $FINAL_TARGET/.env
-  ln -sf $FINAL_DATA/env $FINAL_TARGET/env
-  ln -sf $FINAL_DATA/public $FINAL_TARGET/
-  ln -sf $FINAL_DATA/data $FINAL_TARGET/data
-  ln -sf $FINAL_TARGET/public $ROOT/ourworldindata.org/$NAME
-
-  # Install dependencies and migrate
-  cd $FINAL_TARGET
-  yarn install --production
-  . env/bin/activate
-  pip3 install -r requirements.txt
-  python3 manage.py migrate
-  ./node_modules/.bin/webpack -p
-
   # Static build to update the public frontend code
+  cd $FINAL_TARGET
   node dist/src/bakeCharts.js
 
   # Finally, restart the admin!
