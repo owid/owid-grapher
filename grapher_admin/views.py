@@ -301,6 +301,10 @@ def savechart(chart: Chart, data: Dict, user: User):
             variable.displayIsProjection = bool(newdim.isProjection)
             variable.save()
 
+    # Bake published charts into static build
+    if data.get('isPublished') or chart.config.get('isPublished'):
+        chart.bake(user)
+
     # Purge the Cloudflare cache for the chart config url
     # Also purge the html for some common query string urls to update the meta tags
     # Eventually this will be unneeded as we'll be using the static build in production
@@ -315,10 +319,6 @@ def savechart(chart: Chart, data: Dict, user: User):
                 new_url.save()
         purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
         purge_cache.start()
-
-    # Bake published charts into static build
-    if data.get('isPublished') or chart.config.get('isPublished'):
-        chart.bake(user)
 
     return JsonResponse({'success': True, 'data': {'id': chart.pk}})
 

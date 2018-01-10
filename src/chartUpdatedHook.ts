@@ -10,7 +10,7 @@ async function main(database: string, email: string, name: string, slug: string)
         database: database,
         canonicalRoot: 'https://static.ourworldindata.org',
         pathRoot: '/grapher',
-        repoDir: path.join(os.homedir(), `${database}-static`)
+        repoDir: path.join(__dirname, `../../public`)
     })
 
     try {

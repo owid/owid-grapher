@@ -16,8 +16,9 @@ module.exports = {
         editor: "./js/editor.entry.ts"
     },
     output: {
-        path: path.join(__dirname, "public/build"),
-        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
+        path: path.join(__dirname, "grapher_admin/static/build"),
+//        filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
+        filename: "[name].bundle.[chunkhash].js"
     },
   	resolve: {
         extensions: [".ts", ".tsx", ".js", ".css"],
@@ -102,7 +103,11 @@ module.exports = {
 
         new ForkTsCheckerWebpackPlugin(),
 
-        new ExtractTextPlugin('[name].css')
+        new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
+
+        // Output manifest so server can figure out the hashed
+        // filenames
+        new ManifestPlugin(),
     ]),
     devServer: {
         host: 'localhost',

@@ -45,7 +45,7 @@ export class ChartBaker {
         const isProduction = false
         const {pathRoot} = this.props
 
-        const buildDir = `public/build`
+        const buildDir = `grapher_admin/static/build`
 
         const manifest = JSON.parse(await fs.readFile(`${buildDir}/manifest.json`, 'utf8'))
 

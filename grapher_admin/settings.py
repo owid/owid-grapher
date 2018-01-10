@@ -152,6 +152,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/grapher/admin/static/'
+STATIC_DIR = os.path.join(BASE_DIR, 'grapher_admin/static')
 
 AUTH_USER_MODEL = 'grapher_admin.User'
 

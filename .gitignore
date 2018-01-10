@@ -17,3 +17,5 @@ env
 data
 dist
 charts
+public
+grapher_admin/static/build
