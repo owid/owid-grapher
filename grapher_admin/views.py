@@ -334,6 +334,7 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
 
 def savechart(chart: Chart, data: Dict, user: User):
     with transaction.atomic():
+        wasPublished = chart.config.get("isPublished")
         isExisting = chart.id != None
 
         if data.get('isPublished'):
@@ -407,7 +408,7 @@ def savechart(chart: Chart, data: Dict, user: User):
                 variable.save()
 
     # Bake published charts into static build
-    if data.get('isPublished') or chart.config.get('isPublished'):
+    if data.get('isPublished') or wasPublished:
         chart.bake(user)
 
     # Purge the Cloudflare cache for the chart config url
