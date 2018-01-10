@@ -17,16 +17,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
-from owid_grapher import views as owid_views
 from country_name_tool import views as countrytool_views
 from importer import views as importer_views
 from django.contrib.auth.views import logout
 
 urlpatterns = [
     ### Admin-only
-
-    url(r'^grapher/?$', owid_views.index, name="index"),
-    url(r'^grapher/login$', owid_views.index, name="index"), # Backwards compatibility
     url(r'^grapher/admin/?$', admin_views.listcharts, name="listcharts"),
     url(r'^grapher/admin/charts$', admin_views.storechart, name="storechart"),  # post request for storing
     url(r'^grapher/admin/charts/create/?$', admin_views.createchart, name="createchart"),

@@ -27,12 +27,27 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License, CloudflarePurgeQueue
-from owid_grapher.views import get_query_string, get_query_as_dict
 from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
 from typing import Dict, Union, Optional
 from django.db import transaction
 from django.core.cache import cache
 import requests
+
+def get_query_string(request):
+    """
+    :param request: Request object
+    :return: The URL query string
+    """
+    return urlparse(request.get_full_path()).query
+
+
+def get_query_as_dict(request):
+    """
+    :param request: Request object
+    :return: The dictionary containing URL query parameters
+    """
+    return dict(urllib.parse.parse_qs(urllib.parse.urlsplit(request.get_full_path()).query))
+
 
 def JsonErrorResponse(message: str, status: int = 400):
     return JsonResponse({
