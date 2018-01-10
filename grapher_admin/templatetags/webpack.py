@@ -10,10 +10,10 @@ register = template.Library()
 
 @register.simple_tag
 def webpack(asset_name: str) -> str:
-    if settings.ENV == 'production':
+    #if settings.ENV == 'production':
         # Read version-stamped urls from manifest.json once and cache for process lifetime
         if not hasattr(webpack, 'manifest'):
             webpack.manifest = json.loads(open(os.path.join(settings.BASE_DIR, "public/build/manifest.json")).read())
-        return settings.BASE_URL + "/build/" + webpack.manifest[asset_name]
-    else:
-        return settings.WEBPACK_DEV_URL + "/" + asset_name
+        return settings.STATIC_URL + "build/" + webpack.manifest[asset_name]
+    #else:
+    #    return settings.WEBPACK_DEV_URL + "/" + asset_name

@@ -22,11 +22,11 @@ For static image exports, you will also need a recent version of [node](https://
 
 ## Database setup
 
-Copy `owid_grapher/secret_settings.py.template` to `owid_grapher/secret_settings.py` and fill in your database details. Then run `python manage.py migrate`.
+Copy `grapher_admin/secret_settings.py.template` to `grapher_admin/secret_settings.py` and fill in your database details. Then run `python manage.py migrate`.
 
-Some initial test data and charts can then be imported from `owid_grapher/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
+Some initial test data and charts can then be imported from `grapher_admin/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
 
-`mysql -D grapher < owid_grapher/fixtures/owid_data.sql`	
+`mysql -D grapher < grapher_admin/fixtures/owid_data.sql`	
 
 Run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 

@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 import hashlib
 import json
 import requests

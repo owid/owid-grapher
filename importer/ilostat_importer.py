@@ -12,7 +12,7 @@ import django.db
 import glob
 import gzip
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from openpyxl import load_workbook
 from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
 from importer.models import ImportHistory

@@ -6,7 +6,7 @@ import time
 import csv
 import glob
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, \
     DataValue
 from importer.models import ImportHistory

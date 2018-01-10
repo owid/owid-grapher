@@ -4,7 +4,7 @@ from django.db import connection
 from django.forms.models import model_to_dict
 from django.utils import timezone
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from grapher_admin.models import User, Chart, ChartDimension, VariableType, DataValue, Setting, Entity
 from MySQLdb import escape_string
 import json

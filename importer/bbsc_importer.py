@@ -9,7 +9,7 @@ import shutil
 import time
 import zipfile
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from openpyxl import load_workbook
 from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
 from importer.models import ImportHistory, AdditionalCountryInfo

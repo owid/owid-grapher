@@ -27,7 +27,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
 from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License, CloudflarePurgeQueue
-from owid_grapher.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
+from grapher_admin.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
 from typing import Dict, Union, Optional
 from django.db import transaction
 from django.core.cache import cache

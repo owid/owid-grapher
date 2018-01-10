@@ -55,7 +55,7 @@ then
   mv $TMP_NEW $FINAL_TARGET
 
   # Link in all the persistent stuff that needs to stay around between versions
-  ln -sf $FINAL_DATA/secret_settings.py $FINAL_TARGET/owid_grapher/secret_settings.py
+  ln -sf $FINAL_DATA/secret_settings.py $FINAL_TARGET/grapher_admin/secret_settings.py
   ln -sf $FINAL_DATA/env $FINAL_TARGET/env
   ln -sf $FINAL_DATA/build $FINAL_TARGET/public/build
   ln -sf $FINAL_DATA/uploads $FINAL_TARGET/public/uploads

@@ -1,4 +1,4 @@
-"""owid_grapher URL Configuration
+"""grapher_admin URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
@@ -19,6 +19,7 @@ from django.conf.urls import url, include
 from grapher_admin import views as admin_views
 from country_name_tool import views as countrytool_views
 from importer import views as importer_views
+from django.views.static import serve
 from django.contrib.auth.views import logout
 
 urlpatterns = [

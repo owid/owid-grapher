@@ -10,7 +10,7 @@ import shutil
 import time
 import django.db.utils
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue, ChartDimension
 from importer.models import ImportHistory
 from country_name_tool.models import CountryName

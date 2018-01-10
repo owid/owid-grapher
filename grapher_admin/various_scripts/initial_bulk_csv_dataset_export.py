@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 from grapher_admin.views import write_dataset_csv
 from grapher_admin.models import Dataset, Variable
 from django.conf import settings

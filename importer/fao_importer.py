@@ -9,7 +9,7 @@ import unidecode
 import time
 import zipfile
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-import owid_grapher.wsgi
+import grapher_admin.wsgi
 import django.db
 from grapher_admin.models import Entity, DatasetSubcategory, DatasetCategory, Dataset, Source, Variable, VariableType, DataValue
 from importer.models import ImportHistory

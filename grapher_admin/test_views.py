@@ -10,7 +10,7 @@ class OwidTests(TestCase):
     @transaction.atomic()
     def setUp(self):
         with connection.cursor() as cursor:
-            file = open('owid_grapher/fixtures/owid_data.sql', 'r', encoding='utf8').read()
+            file = open('grapher_admin/fixtures/owid_data.sql', 'r', encoding='utf8').read()
             delimit = ");\n"  # the delimiter that separates each INSERT statement in our export file
             file = [e + delimit for e in file.split(delimit) if e]
             for eachline in file:
