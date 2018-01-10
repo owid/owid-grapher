@@ -11,7 +11,8 @@ export default class FuzzySearch<T> {
     }
 
     search(input: string): T[] {
-        return fuzzysort.go(input, this.strings).map((result: any) => this.datamap[result._target])
+        console.log(fuzzysort.go(input, this.strings))
+        return fuzzysort.go(input, this.strings).map((result: any) => this.datamap[result.target])
     }
 
     highlight(input: string, target: string): string {
