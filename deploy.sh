@@ -74,7 +74,7 @@ then
   sudo service $NAME restart
 
   # Static rebuild
-  node dist/src/deployHook.js $DB_NAME
+  node dist/src/bakeCharts.js
 EOF
 fi
 

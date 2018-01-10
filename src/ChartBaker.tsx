@@ -15,8 +15,9 @@ import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeSvgPng } from './svgPngExport'
 
+import { DB_NAME } from './settings'
+
 export interface ChartBakerProps {
-    database: string
     canonicalRoot: string
     pathRoot: string
     repoDir: string
@@ -36,7 +37,7 @@ export class ChartBaker {
 
     constructor(props: ChartBakerProps) {
         this.props = props
-        this.db = createConnection({ database: props.database })
+        this.db = createConnection({ database: DB_NAME })
         this.baseDir = path.join(this.props.repoDir, this.props.pathRoot)
         fs.mkdirpSync(this.baseDir)
     }

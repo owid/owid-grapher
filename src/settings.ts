@@ -6,9 +6,11 @@ require('module-alias').addAliases({
 require('dotenv').config()
 
 interface Settings {
-    BASE_URL: string
-    STATIC_ROOT: string
     DB_NAME: string
+    DB_USER: string
+    DB_PASS: string
+    DB_HOST: string
+    DB_PORT: string
 }
 
 const env: Settings = (process.env as any)
