@@ -179,12 +179,13 @@ ${pathRoot}/exports/*
 
     async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
         const {db, baseDir, props} = this
-        const rows = await db.query(`SELECT config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
+        const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
 
         const newSlugs = []
         let requests = []
         for (const row of rows) {
             const chart: ChartConfigProps = JSON.parse(row.config)
+            chart.id = row.id
             newSlugs.push(chart.slug)
 
             requests.push(this.bakeChart(chart))

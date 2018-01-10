@@ -30,10 +30,6 @@ then
   FINAL_TARGET="$ROOT/$NAME-code"
   FINAL_DATA="$ROOT/$NAME-data"
 
-  if [ "$2" != "no-webpack" ]; then
-    yarn build
-  fi
-
   # Rsync the local repository to a temporary location on the server
   $RSYNC $DIR/ $HOST:$SYNC_TARGET
 
@@ -45,21 +41,15 @@ then
   # original target to stay around to make future syncs faster
   cp -r $SYNC_TARGET $TMP_NEW
 
-  # Merge the build with what's currently on the server to preserve old cached bundles
-  cp -r $TMP_NEW/public/build $FINAL_DATA/
-  rm -rf $TMP_NEW/public/build
-
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP
   mv $FINAL_TARGET $OLD_REPO_BACKUP || true
   mv $TMP_NEW $FINAL_TARGET
 
   # Link in all the persistent stuff that needs to stay around between versions
-  ln -sf $FINAL_DATA/secret_settings.py $FINAL_TARGET/grapher_admin/secret_settings.py
+  ln -sf $FINAL_DATA/.env $FINAL_TARGET/.env
   ln -sf $FINAL_DATA/env $FINAL_TARGET/env
-  ln -sf $FINAL_DATA/build $FINAL_TARGET/public/build
-  ln -sf $FINAL_DATA/uploads $FINAL_TARGET/public/uploads
-  ln -sf $FINAL_DATA/exports $FINAL_TARGET/public/exports
+  ln -sf $FINAL_DATA/public $FINAL_TARGET/
   ln -sf $FINAL_DATA/data $FINAL_TARGET/data
   ln -sf $FINAL_TARGET/public $ROOT/ourworldindata.org/$NAME
 
@@ -69,12 +59,13 @@ then
   . env/bin/activate
   pip3 install -r requirements.txt
   python3 manage.py migrate
+  ./node_modules/.bin/webpack -p
 
-  # Finally, restart the grapher!
-  sudo service $NAME restart
-
-  # Static rebuild
+  # Static build to update the public frontend code
   node dist/src/bakeCharts.js
+
+  # Finally, restart the admin!
+  sudo service $NAME restart
 EOF
 fi
 

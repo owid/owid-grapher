@@ -68,6 +68,111 @@ def dictfetchall(cursor):
         for row in cursor.fetchall()
     ]
 
+def test_all(request):
+    test_type = request.GET.get('type', '')
+    test_tab = request.GET.get('tab', '')
+    test_overlay = request.GET.get('overlay', '')
+    test_page = request.GET.get('page', '')
+    test_compare = request.GET.get('compare', '')
+
+    if not test_tab and test_type == 'map':
+        test_tab = 'map'
+    elif not test_tab and test_type:
+        test_tab = 'chart'
+
+    if not test_page:
+        test_page = 1
+    else:
+        try:
+            test_page = int(test_page)
+        except ValueError:
+            test_page = 1
+
+    if test_compare == '1':
+        test_compare = 1
+    else:
+        test_compare = 0
+
+    charts_per_page = 5
+
+    query = Chart.objects.filter(config__isPublished=True).exclude(origin_url='').order_by('-created_at')
+
+    if test_type and test_type != 'map':
+        query = query.filter(type=test_type)
+
+    urls = []
+    count = 0
+
+    for each in query:
+        configfile = each.config
+        if test_type == 'map' and not configfile.get('hasMapTab'):
+            continue
+        elif test_type and not configfile.get('hasChartTab'):
+            continue
+
+        count += 1
+        local_url = request.build_absolute_uri('/grapher/') + each.slug
+        live_url = "https://ourworldindata.org/grapher/" + each.slug
+        local_url_png = local_url + '.png'
+        live_url_png = live_url + '.png'
+
+        if test_tab:
+            local_url = local_url + '?tab=' + test_tab
+            live_url = live_url + '?tab=' + test_tab
+            local_url_png = local_url_png + '?tab=' + test_tab
+            live_url_png = live_url_png + '?tab=' + test_tab
+
+        if test_overlay:
+            local_url = local_url + '?overlay=' + test_overlay
+            live_url = live_url + '?overlay=' + test_overlay
+            local_url_png = local_url_png + '?overlay=' + test_overlay
+            live_url_png = live_url_png + '?overlay=' + test_overlay
+
+        urls.append({'local_url': local_url, 'live_url': live_url, 'local_url_png': local_url_png,
+                     'live_url_png': live_url_png})
+
+    num_pages = -(-count // charts_per_page)
+
+
+    next_page_url = None
+    if test_page < num_pages:
+        next_page_params = request.GET.copy()
+        next_page_params['page'] = test_page+1
+        next_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(next_page_params)
+
+    prev_page_url = None
+    if test_page > 1:
+        prev_page_params = request.GET.copy()
+        prev_page_params['page'] = test_page-1
+        prev_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(prev_page_params)
+
+    starting_point = (test_page - 1) * charts_per_page
+    end_point = ((test_page - 1) * charts_per_page) + charts_per_page
+    links = urls[starting_point:end_point]
+
+    return render(request, 'testall.html', context={'urls': links, 'next_page_url': next_page_url,
+                                                            'prev_page_url': prev_page_url, 'compare': test_compare,
+                                                    })
+
+def testsome(request):
+    ids = [563, 646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302]
+    charts = sorted(Chart.objects.filter(id__in=ids), key=lambda c: ids.index(c.id))
+
+    urls = []
+    for chart in charts:
+        configfile = chart.config
+        configfile['id'] = chart.id
+
+        local_url = request.build_absolute_uri('/grapher/') + chart.config['slug']
+        live_url = "https://ourworldindata.org/grapher/" + chart.config['slug']
+        local_url_png = local_url + '.png'
+        live_url_png = live_url + '.png'
+
+        urls.append({'local_url': local_url, 'live_url': live_url, 'local_url_png': local_url_png,
+                     'live_url_png': live_url_png})
+
+    return render(request, 'testsome.html', context={'urls': urls})
+
 def custom_login(request: HttpRequest):
     """
     Redirects to index page if the user is already logged in

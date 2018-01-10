@@ -17,6 +17,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
+from grapher_admin import glue_views
 from country_name_tool import views as countrytool_views
 from importer import views as importer_views
 from django.views.static import serve
@@ -77,6 +78,8 @@ urlpatterns = [
     url(r'^grapher/admin/gbdcausedatasets/?$', importer_views.listgbdcausedatasets, name="listgbdcausedatasets"),
     url(r'^grapher/admin/gbdriskdatasets/?$', importer_views.listgbdriskdatasets, name="listgbdriskdatasets"),
     url(r'^grapher/admin/ilostatdatasets/?$', importer_views.listilostatdatasets, name="listilostatdatasets"),
+    url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
+    url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     # for future use on the frontend
     url(r'^grapher/admin/charts\.json$',  admin_views.chartsjson, name="chartsjson"),
     url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
@@ -94,6 +97,7 @@ urlpatterns = [
     url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
     url(r'^grapher/admin/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servewdicountryinfo'),
+
     url(r'^grapher/edstats/EDSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveedstatscountryinfo'),
     url(r'^grapher/genderstats/GENDERSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servegenderstatscountryinfo'),
     url(r'^grapher/hnpstats/HNPSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpstatscountryinfo'),
@@ -102,4 +106,7 @@ urlpatterns = [
     url(r'^grapher/povstats/POVSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servepovstatscountryinfo'),
     url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
     url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
+
+    ### Glue code until we can go fully static
+    url(r'^grapher/(?P<path>.+)/?$', glue_views.servestatic, name="servestatic"),
 ]
