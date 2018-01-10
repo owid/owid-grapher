@@ -18,7 +18,7 @@ class DisableCacheProtectAdminPages(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
 
         if '/grapher/admin' in request.path:
-            if not '/grapher/admin/login' in request.path:
+            if not '/grapher/admin/login' in request.path and not '/grapher/admin/invitation' in request.path:
                 return login_required(view_func)(request, *view_args, **view_kwargs)
 
         return None
