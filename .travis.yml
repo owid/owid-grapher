@@ -12,7 +12,7 @@ addons:
 dist: trusty
 sudo: required
 before_script:
-  - cp grapher_admin/secret_settings.py.travis grapher_admin/secret_settings.py
+  - cp .env.travis .env
   - mysql -e 'CREATE DATABASE test_grapher;'
   - mkdir tmp
 script:

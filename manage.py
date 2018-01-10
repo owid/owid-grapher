@@ -4,6 +4,9 @@ import sys
 import pymysql
 pymysql.install_as_MySQLdb()
 
+import dotenv
+dotenv.read_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
+
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "grapher_admin.settings")
     try:
