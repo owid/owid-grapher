@@ -102,6 +102,8 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                             </Link>
                         </li>
                     </ul>
+                    {/* This lets the public frontend know to show edit links and such */}
+                    <iframe src="https://ourworldindata.org/identifyadmin" style={{display: 'none'}}/>
                 </nav>
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ}/>}
                 <AdminErrorMessage admin={admin}/>
