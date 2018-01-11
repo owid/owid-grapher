@@ -8,7 +8,8 @@ async function main(email: string, name: string, slug: string) {
     const baker = new ChartBaker({
         canonicalRoot: 'https://ourworldindata.org',
         pathRoot: '/grapher',
-        repoDir: path.join(__dirname, `../../public`)
+        repoDir: path.join(__dirname, `../../public`),
+        regenConfig: argv.regenConfig
     })
 
     try {
