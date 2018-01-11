@@ -13,6 +13,7 @@ interface Settings {
     DB_PORT: string
     ENV: 'production'|'development'
     WEBPACK_DEV_URL: string
+    BAKED_URL: string
 }
 
 const env: Settings = (process.env as any)

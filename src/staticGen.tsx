@@ -1,7 +1,9 @@
+import { BAKED_URL } from './settings'
+
 export function embedSnippet(basePath: string, chartsJs: string, chartsCss: string): string {
     return `
         window.App = {};
-        window.Global = { rootUrl: '${basePath}' };
+        window.Global = { rootUrl: '${BAKED_URL}${basePath}' };
 
         var link = document.createElement('link');
         link.type = 'text/css';

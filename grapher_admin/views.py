@@ -27,8 +27,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from .forms import InviteUserForm, InvitedUserRegisterForm
-from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License, CloudflarePurgeQueue
-from grapher_admin.various_scripts.purge_cloudflare_cache_queue import purge_cloudflare_cache_queue
+from .models import Chart, Variable, User, UserInvitation, Logo, ChartSlugRedirect, ChartDimension, Dataset, Setting, DatasetCategory, DatasetSubcategory, Entity, Source, VariableType, DataValue, License
 from typing import Dict, Union, Optional
 from django.db import transaction
 from django.core.cache import cache
@@ -335,21 +334,6 @@ def _post_update(request, chart: Chart):
     # Bake published charts into static build
     Chart.bake(request.user, chart.slug)
 
-    # Purge the Cloudflare cache for the chart config url
-    # Also purge the html for some common query string urls to update the meta tags
-    # Eventually this will be unneeded as we'll be using the static build in production
-    if settings.CLOUDFLARE_KEY:
-        config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
-        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.config['slug']}"
-        urls_to_purge = [config_url, chart_url, chart_url + ".config.json", chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
-        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
-        for each_url in urls_to_purge:
-            if each_url not in existing_urls:
-                new_url = CloudflarePurgeQueue(url=each_url)
-                new_url.save()
-        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
-        purge_cache.start()
-
     return JsonResponse({'success': True, 'data': {'id': chart.pk}})
 
 def savechart(request, chart: Chart, data: Dict, user: User):
@@ -464,18 +448,6 @@ def starchart(request: HttpRequest, chartid: str):
         chart.save()
 
     Chart.bake(request.user, chart.slug)
-
-    # Purge the Cloudflare cache for the chart config url
-    # Also purge the html for some common query string urls to update the meta tags
-    # TODO: a job queue / coverage of more urls with query strings
-    if settings.CLOUDFLARE_KEY:
-        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/latest"
-        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
-        if chart_url not in existing_urls:
-            new_url = CloudflarePurgeQueue(url=chart_url)
-            new_url.save()
-        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
-        purge_cache.start()
 
     return JsonResponse({'success': True})
 

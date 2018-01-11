@@ -346,7 +346,3 @@ class UserInvitation(Model):
     valid_till = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
-class CloudflarePurgeQueue(Model):
-    url = models.CharField(max_length=255, unique=True)

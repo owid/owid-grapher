@@ -66,10 +66,6 @@ def servestatic(request, path):
     for rule in headerRules:
         if rule.match("/grapher/"+path):
             rule.apply(response)
-
-    # Cloudflare caching for now
-    if not response.get("Cache-Control"):
-        response['Cache-Control'] = "public, max-age=0, s-maxage=604800"
     
     return response
 
