@@ -104,14 +104,15 @@ class Chart(Model):
                                                      ('DiscreteBar', 'Discrete bar'),
                                                      ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
-    def bake(self, user):
+    @classmethod
+    def bake(cls, user, slug):
         email = shlex.quote(user.email)
         name = shlex.quote(user.get_full_name())
-        slug = shlex.quote(self.config['slug'])
+        slug = shlex.quote(slug)
         cmd = f"node {settings.BASE_DIR}/dist/src/bakeCharts.js {email} {name} {slug} >> /tmp/{settings.DB_NAME}-static.log 2>&1"
 
         print(cmd)
-        subprocess.check_output(cmd, shell=True)
+        subprocess.Popen(cmd, shell=True)
 
     @classmethod
     def owid_commit(cls):

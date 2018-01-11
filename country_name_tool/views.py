@@ -530,4 +530,4 @@ def serve_country_tool_data(request):
 
 def serve_instructions(request):
     return render(request, 'country_tool_instructions.html', context={'current_user': request.user.name,
-                                                                      'images_folder': settings.BASE_URL + '/public/img/'})
+                                                                      'images_folder': settings.STATIC_URL + 'img/'})

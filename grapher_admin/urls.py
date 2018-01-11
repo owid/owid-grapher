@@ -32,7 +32,6 @@ urlpatterns = [
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit/?$', admin_views.editchart, name="editchart"),
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"),  # update, destroy requests
     url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/unstar$', admin_views.unstarchart, name="unstarchart"),
     url(r'^grapher/admin/import/?$', admin_views.importdata, name="importdata"),
     url(r'^grapher/admin/import/variables$', admin_views.store_import_data, name="storeimportdata"),  # data import post requests
     url(r'^grapher/admin/datasets/?$', admin_views.listdatasets, name="listdatasets"),

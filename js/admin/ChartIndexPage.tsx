@@ -61,7 +61,7 @@ function showChartType(chart: ChartMeta) {
 }
 
 @observer
-class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: string) => any, onDelete: (chart: ChartMeta) => void, onToggleStar: (chart: ChartMeta) => void }> {
+class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: string) => any, onDelete: (chart: ChartMeta) => void, onStar: (chart: ChartMeta) => void }> {
     context: { admin: Admin }
 
     render() {
@@ -70,7 +70,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
 
         return <tr>
             <td>
-                <a title="Show this chart on the front page of the website." onClick={_ => this.props.onToggleStar(chart)}>
+                <a title="Show this chart on the front page of the website." onClick={_ => this.props.onStar(chart)}>
                     {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
                 </a>
             </td>
@@ -158,8 +158,10 @@ export default class ChartIndexPage extends React.Component {
         }
     }
 
-    @action.bound async onToggleStar(chart: ChartMeta) {
-        const json = await this.context.admin.requestJSON(`charts/${chart.id}/${chart.isStarred ? 'unstar' : 'star'}`, {}, 'POST')
+    @action.bound async onStar(chart: ChartMeta) {
+        if (chart.isStarred) return
+
+        const json = await this.context.admin.requestJSON(`charts/${chart.id}/star`, {}, 'POST')
         if (json.success) {
             runInAction(() => {
                 for (const otherChart of this.charts) {
@@ -212,7 +214,7 @@ export default class ChartIndexPage extends React.Component {
                     </tr>
                 </thead>
                     <tbody>
-                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight} onDelete={this.onDeleteChart} onToggleStar={this.onToggleStar}/>)}
+                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
                 </tbody>
             </table>
             {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}

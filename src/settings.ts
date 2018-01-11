@@ -11,7 +11,12 @@ interface Settings {
     DB_PASS: string
     DB_HOST: string
     DB_PORT: string
+    ENV: 'production'|'development'
+    WEBPACK_DEV_URL: string
 }
 
 const env: Settings = (process.env as any)
+
+env.ENV = env.ENV === "production" ? "production" : "development"
+
 export = env

@@ -15,7 +15,7 @@ import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeSvgPng } from './svgPngExport'
 
-import { DB_NAME } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
 export interface ChartBakerProps {
     canonicalRoot: string
@@ -43,23 +43,27 @@ export class ChartBaker {
     }
 
     async bakeAssets() {
-        const isProduction = false
         const {pathRoot} = this.props
 
-        const buildDir = `grapher_admin/static/build`
+        let chartsJs = `${WEBPACK_DEV_URL}/charts.js`
+        let chartsCss = `${WEBPACK_DEV_URL}/charts.css`
 
-        const manifest = JSON.parse(await fs.readFile(`${buildDir}/manifest.json`, 'utf8'))
+        if (ENV === "production") {
+            const buildDir = `grapher_admin/static/build`
 
-        await fs.mkdirp(path.join(this.baseDir, 'assets'))
+            const manifest = JSON.parse(await fs.readFile(`${buildDir}/manifest.json`, 'utf8'))
 
-        for (const key in manifest) {
-            const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
-            fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
-            this.stage(outPath)
+            await fs.mkdirp(path.join(this.baseDir, 'assets'))
+
+            for (const key in manifest) {
+                const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+                fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
+                this.stage(outPath)
+            }
+
+            chartsJs = `${pathRoot}/assets/${manifest['charts.js']}`
+            chartsCss = `${pathRoot}/assets/${manifest['charts.css']}`
         }
-
-        const chartsJs = `${pathRoot}/assets/${manifest['charts.js']}`
-        const chartsCss = `${pathRoot}/assets/${manifest['charts.css']}`
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
         this.stage(`${this.baseDir}/embedCharts.js`)

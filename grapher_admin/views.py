@@ -13,6 +13,7 @@ import time
 from ansi2html import Ansi2HTMLConverter
 from unidecode import unidecode
 from io import StringIO
+import urllib
 from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
@@ -39,7 +40,6 @@ def get_query_string(request):
     :return: The URL query string
     """
     return urlparse(request.get_full_path()).query
-
 
 def get_query_as_dict(request):
     """
@@ -237,7 +237,7 @@ def storechart(request: HttpRequest):
     if request.method == 'POST':
         chart = Chart()
         data = json.loads(request.body.decode('utf-8'))
-        return savechart(chart, data, request.user)
+        return savechart(request, chart, data, request.user)
     else:
         return HttpResponseRedirect(reverse('listcharts'))
 
@@ -331,10 +331,30 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
 
     return response
 
+def _post_update(request, chart: Chart):
+    # Bake published charts into static build
+    Chart.bake(request.user, chart.slug)
 
-def savechart(chart: Chart, data: Dict, user: User):
+    # Purge the Cloudflare cache for the chart config url
+    # Also purge the html for some common query string urls to update the meta tags
+    # Eventually this will be unneeded as we'll be using the static build in production
+    if settings.CLOUDFLARE_KEY:
+        config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
+        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.config['slug']}"
+        urls_to_purge = [config_url, chart_url, chart_url + ".config.json", chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
+        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
+        for each_url in urls_to_purge:
+            if each_url not in existing_urls:
+                new_url = CloudflarePurgeQueue(url=each_url)
+                new_url.save()
+        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
+        purge_cache.start()
+
+    return JsonResponse({'success': True, 'data': {'id': chart.pk}})
+
+def savechart(request, chart: Chart, data: Dict, user: User):
     with transaction.atomic():
-        wasPublished = chart.config.get("isPublished")
+        wasPublished = data.get("isPublished") or chart.config.get("isPublished")
         isExisting = chart.id != None
 
         if data.get('isPublished'):
@@ -368,7 +388,6 @@ def savechart(chart: Chart, data: Dict, user: User):
         chart.last_edited_at = timezone.now()
         chart.last_edited_by = user
         chart.save()
-
         
 
         for each in ChartDimension.objects.filter(chartId=chart.pk):
@@ -407,27 +426,10 @@ def savechart(chart: Chart, data: Dict, user: User):
                 variable.displayIsProjection = bool(newdim.isProjection)
                 variable.save()
 
-    # Bake published charts into static build
-    if data.get('isPublished') or wasPublished:
-        chart.bake(user)
+    if wasPublished:
+        _post_update(request, chart)
 
-    # Purge the Cloudflare cache for the chart config url
-    # Also purge the html for some common query string urls to update the meta tags
-    # Eventually this will be unneeded as we'll be using the static build in production
-    if settings.CLOUDFLARE_KEY:
-        config_url = f"{settings.CLOUDFLARE_BASE_URL}/config/{chart.id}.js"
-        chart_url = f"{settings.CLOUDFLARE_BASE_URL}/{chart.config['slug']}"
-        urls_to_purge = [config_url, chart_url, chart_url + ".config.json", chart_url + "?tab=chart", chart_url + "?tab=map", chart_url + ".csv", chart_url + ".png", chart_url + ".svg"]
-        existing_urls = {item['url'] for item in CloudflarePurgeQueue.objects.all().values('url')}
-        for each_url in urls_to_purge:
-            if each_url not in existing_urls:
-                new_url = CloudflarePurgeQueue(url=each_url)
-                new_url.save()
-        purge_cache = threading.Thread(target=purge_cloudflare_cache_queue, args=(), kwargs={})
-        purge_cache.start()
-
-    return JsonResponse({'success': True, 'data': {'id': chart.pk}})
-
+    return JsonResponse({ 'success': True, 'data': {'id': chart.pk} })
 
 def managechart(request: HttpRequest, chartid: str):
     try:
@@ -438,27 +440,30 @@ def managechart(request: HttpRequest, chartid: str):
         return HttpResponseNotFound('No such chart!')
     if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
-        return savechart(chart, data, request.user)
+        return savechart(request, chart, data, request.user)
     if request.method == 'DELETE':
+        wasPublished = chart.config.get("isPublished")
         chart.delete()
+        if wasPublished:
+            _post_update(request, chart)
         return JsonResponse({ 'success': True })
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
 
-@transaction.atomic
 def starchart(request: HttpRequest, chartid: str):
-    try:
-        chart = Chart.objects.get(pk=int(chartid))
-    except Chart.DoesNotExist:
-        return JsonErrorResponse('No such chart!', status=404)
-    except ValueError:
-        return JsonErrorResponse('No such chart!', status=404)
+    with transaction.atomic():
+        try:
+            chart = Chart.objects.get(pk=int(chartid))
+        except Chart.DoesNotExist:
+            return JsonErrorResponse('No such chart!', status=404)
+        except ValueError:
+            return JsonErrorResponse('No such chart!', status=404)
 
-    if request.method == 'POST':
         Chart.objects.update(starred=False)
         chart.starred = True
         chart.save()
-        chart.bake(request.user)
+
+    Chart.bake(request.user, chart.slug)
 
     # Purge the Cloudflare cache for the chart config url
     # Also purge the html for some common query string urls to update the meta tags
@@ -473,20 +478,6 @@ def starchart(request: HttpRequest, chartid: str):
         purge_cache.start()
 
     return JsonResponse({'success': True})
-
-
-def unstarchart(request: HttpRequest, chartid: str):
-    try:
-        chart = Chart.objects.get(pk=int(chartid))
-    except Chart.DoesNotExist:
-        return JsonErrorResponse('No such chart!', status=404)
-    except ValueError:
-        return JsonErrorResponse('No such chart!', status=404)
-    if request.method == 'POST':
-        chart.starred = False
-        chart.save()
-        return JsonResponse({'success': True})
-
 
 def importdata(request: HttpRequest):
     datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
