@@ -18,7 +18,7 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
         const { xScale, yScale } = axisBox
 
         const yEquals = defaultTo(comparisonLine.yEquals, "x")
-        const yFunc = (x: number) => evalEquation(yEquals, { x: x }, x)
+        const yFunc = (x: number) => evalEquation(yEquals, { x: x, e: Math.E, pi: Math.PI }, x)
 
         // Construct control data by running the equation across sample points
         const numPoints = 100
