@@ -170,12 +170,16 @@ export class ChartBaker {
 
         const headers = `${pathRoot}/data/variables/*
   Cache-Control: public, max-age=31556926
+  Access-Control-Allow-Origin: *
 
 ${pathRoot}/assets/*
   Cache-Control: public, max-age=31556926
 
 ${pathRoot}/exports/*
   Cache-Control: public, max-age=31556926
+
+${pathRoot}/*.json
+  Access-Control-Allow-Origin: *
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
         this.stage(`${repoDir}/_headers`)
