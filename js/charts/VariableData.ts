@@ -107,7 +107,7 @@ export default class VariableData {
     }
 
     @computed get variableIds() {
-        return this.chart.dimensions.map(d => d.variableId)
+        return uniq(this.chart.dimensions.map(d => d.variableId))
     }
 
     @computed get entityMetaByKey() {
