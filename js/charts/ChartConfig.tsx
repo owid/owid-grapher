@@ -163,7 +163,7 @@ export default class ChartConfig {
         if (this.isMediaCard)
             return 24
         else if (this.isLocalExport)
-            return 16
+            return 18
         else
             return this.setBaseFontSize
     }
@@ -383,7 +383,7 @@ export default class ChartConfig {
     }
 
     @computed get idealBounds(): Bounds {
-        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 750, 535)
+        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 850, 600)
     }
 
     @computed get staticSVG(): string {
