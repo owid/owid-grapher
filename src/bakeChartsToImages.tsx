@@ -21,7 +21,6 @@ require('module-alias').addAliases({
 
 import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
 
-
 async function getChartsBySlug(db: DatabaseConnection) {
     const chartsBySlug: Map<string, ChartConfigProps> = new Map()
     const chartsById = new Map()
@@ -32,7 +31,7 @@ async function getChartsBySlug(db: DatabaseConnection) {
     for (const row of await chartsQuery) {
         const chart = JSON.parse(row.config)
         chart.id = row.id
-        chartsBySlug.set(row.slug, chart)
+        chartsBySlug.set(chart.slug, chart)
         chartsById.set(row.id, chart)
     }
 
@@ -43,14 +42,10 @@ async function getChartsBySlug(db: DatabaseConnection) {
     return chartsBySlug
 }
 
-interface ImageMeta {
-
-}
 
 async function main(chartUrls: string[], outDir: string) {
     const db = createConnection({ database: DB_NAME })
     try {
-        const imagesByUrl: {[key: string]: ImageMeta} = {}
         await fs.mkdirp(outDir)
         const chartsBySlug = await getChartsBySlug(db)
 
@@ -60,12 +55,12 @@ async function main(chartUrls: string[], outDir: string) {
             const jsonConfig = chartsBySlug.get(slug)
             if (jsonConfig) {
                 const queryStr = url.query as any
-                const outPath = `${outDir}/${slug}${queryStr ? "_"+filenamify(queryStr, { replacement: '_' }) : ""}_v${jsonConfig.version}.svg`
 
                 const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
                 chart.isLocalExport = true
-
                 const {width, height} = chart.idealBounds
+                const outPath = `${outDir}/${slug}${queryStr ? "-"+md5(queryStr) : ""}_v${jsonConfig.version}_${width}x${height}.svg`
+                console.log(outPath)
 
                 if (!fs.existsSync(outPath)) {
                     const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
@@ -75,8 +70,6 @@ async function main(chartUrls: string[], outDir: string) {
                 }
             }
         }
-
-        console.log(JSON.stringify(imagesByUrl))
     } finally {
         db.end()
     }

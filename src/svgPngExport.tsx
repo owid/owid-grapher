@@ -23,10 +23,3 @@ export async function bakeMediaCard(outDir: string, jsonConfig: ChartConfigProps
         sharp(new Buffer(chart.staticSVG), { density: 144 }).png().resize(chart.idealBounds.width, chart.idealBounds.height).flatten().background('#ffffff').toFile(`${outPath}.png`)
     ])
 }
-
-export async function chartToSvg(jsonConfig: ChartConfigProps, vardata: string, opts: { queryStr?: string } = {}) {
-    const chart = new ChartConfig(jsonConfig, opts)
-    chart.isLocalExport = true
-    chart.vardata.receiveData(vardata)
-    return { svg: chart.staticSVG, width: chart.idealBounds.width, height: chart.idealBounds.height }
-}
