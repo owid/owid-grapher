@@ -3,6 +3,7 @@ import { ChartConfigProps } from '../js/charts/ChartConfig'
 import * as path from 'path'
 import * as md5 from 'md5'
 import * as urljoin from 'url-join'
+import {BAKED_URL, ASSETS_URL} from './settings'
 
 export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
     const {chart, canonicalRoot, pathRoot} = props
@@ -47,10 +48,19 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                     height: 100%;
                 }`}
             </style>
-            <script src={`${pathRoot}/embedCharts.js`}/>
+            <link rel="stylesheet" href={`${ASSETS_URL}/charts.css`}/>
         </head>
         <body className="singleChart">
             <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>
+            <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
+            <script src={`${ASSETS_URL}/charts.js`}/>
+            <script>
+                {`
+                    window.App = {};
+                    window.Global = { rootUrl: '${BAKED_URL}${pathRoot}' };
+                    window.Grapher.embedAll();
+                `}
+            </script>
         </body>
     </html>
 }

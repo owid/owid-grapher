@@ -56,13 +56,18 @@ export class ChartBaker {
             await fs.mkdirp(path.join(this.baseDir, 'assets'))
 
             for (const key in manifest) {
-                const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+                let outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+                if (key === "charts.js" || key === "charts.css")
+                    outPath = path.join(this.baseDir, `assets/${key}`) // We'll handle the fingerprinting for these separately
+                else if (key.match(/.js$/) || key.match(/.css$/))
+                    continue // Not interested in the admin js/css
+
                 fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
                 this.stage(outPath)
             }
 
-            chartsJs = `${pathRoot}/assets/${manifest['charts.js']}`
-            chartsCss = `${pathRoot}/assets/${manifest['charts.css']}`
+            chartsJs = `${pathRoot}/assets/charts.js?v=${manifest['charts.js']}`
+            chartsCss = `${pathRoot}/assets/charts.js?v=${manifest['charts.css']}`
         }
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
@@ -112,8 +117,8 @@ export class ChartBaker {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 
-        if (!isConfigIdentical || props.regenConfig)
-            await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
+        //if (!isConfigIdentical || props.regenConfig)
+        await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
 
         // Twitter/fb cards are expensive to make and not super important, so we keep the old ones if we can
         try {

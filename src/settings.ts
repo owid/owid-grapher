@@ -14,6 +14,7 @@ interface Settings {
     ENV: 'production'|'development'
     WEBPACK_DEV_URL: string
     BAKED_URL: string
+    ASSETS_URL: string
 }
 
 const env: Settings = (process.env as any)
