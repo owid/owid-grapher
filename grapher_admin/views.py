@@ -368,6 +368,7 @@ def savechart(request, chart: Chart, data: Dict, user: User):
             chart.published_by = user
 
         data['version'] = chart.config.get('version', 0) + 1
+        chart.config = data
         chart.last_edited_at = timezone.now()
         chart.last_edited_by = user
         chart.save()

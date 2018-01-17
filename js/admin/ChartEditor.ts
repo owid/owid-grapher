@@ -110,6 +110,7 @@ export default class ChartEditor {
                 window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
             } else {
                 this.isSaved = true
+                chart.props.version += 1
             }
         } else {
             if (onError) onError()
