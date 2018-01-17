@@ -13,7 +13,7 @@ import * as path from 'path'
 import * as md5 from 'md5'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
-import { bakeSvgPng } from './svgPngExport'
+import { bakeMediaCard } from './svgPngExport'
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
@@ -95,10 +95,9 @@ export class ChartBaker {
         const configPath = `${baseDir}/${chart.slug}.config.json`
         let isConfigIdentical = false
         try {
-            // If the chart config is identical, we can potentially skip baking the data (which is by far the slowest part)
-            const hash = md5(JSON.stringify(chart))
-            const fileHash = md5(await fs.readFile(configPath, 'utf8'))
-            isConfigIdentical = (hash === fileHash)
+            // If the chart config is the same version, we can potentially skip baking the data (which is by far the slowest part)
+            const fileVersion = JSON.parse(await fs.readFile(configPath, 'utf8')).version
+            isConfigIdentical = chart.version === fileVersion
         } catch (err) {
             if (err.code !== 'ENOENT')
                 console.error(err)
@@ -122,7 +121,7 @@ export class ChartBaker {
             const imagePath = `${this.baseDir}/exports/${chart.slug}.png`
             if (!fs.existsSync(imagePath) || props.regenImages) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
-                await bakeSvgPng(`${this.baseDir}/exports`, chart, vardata)
+                await bakeMediaCard(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(imagePath)
             }
         } catch (err) {

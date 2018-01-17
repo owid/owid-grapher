@@ -142,7 +142,7 @@ export class ChartConfigProps {
     @observable.struct excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
-    @observable lastEditedAt?: string = undefined
+    @observable.ref version: number = 1
 }
 
 // TODO: this really represents more than just the configuration state and should be split
@@ -157,7 +157,20 @@ export default class ChartConfig {
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
     @observable.ref isLocalExport: boolean
-    @observable.ref baseFontSize: number = 16
+
+    @observable.ref setBaseFontSize: number = 16
+    @computed get baseFontSize(): number {
+        if (this.isMediaCard)
+            return 24
+        else if (this.isLocalExport)
+            return 16
+        else
+            return this.setBaseFontSize
+    }
+
+    set baseFontSize(val: number) {
+        this.setBaseFontSize = val
+    }
 
     vardata: VariableData
     data: ChartData
@@ -184,9 +197,6 @@ export default class ChartConfig {
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)
-
-        if (this.isMediaCard)
-            this.baseFontSize = 24
 
         window.chart = this
         if (!this.isNode) this.ensureValidConfig()
@@ -373,7 +383,7 @@ export default class ChartConfig {
     }
 
     @computed get idealBounds(): Bounds {
-        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 1020, 720)
+        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 750, 535)
     }
 
     @computed get staticSVG(): string {
@@ -387,6 +397,6 @@ export default class ChartConfig {
     }
 
     @computed get cacheTag(): string {
-        return md5(JSON.stringify(this.props))
+        return this.props.version.toString()
     }
 }

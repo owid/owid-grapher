@@ -135,7 +135,10 @@ export function last<T>(arr: T[]) { return arr[arr.length - 1] }
 export interface QueryParams { [key: string]: string|undefined }
 
 export function getQueryParams(queryStr?: string): QueryParams {
-    queryStr = queryStr || window.location.search.substring(1)
+    queryStr = queryStr || window.location.search
+    if (queryStr[0] === "?")
+        queryStr = queryStr.substring(1)
+
     const querySplit = filter(queryStr.split("&"), s => !isEmpty(s))
     const params: QueryParams = {}
 
