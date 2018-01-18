@@ -6,7 +6,7 @@ This is the project we use internally at the University of Oxford to create embe
 
 An example of what this can make (click for interactive):
 
-[![Internet users by world region](https://ourworldindata.org/grapher/exports/internet-users-by-world-region.svg)](https://ourworldindata.org/grapher/exports/internet-users-by-world-region)
+[![Internet users by world region](https://ourworldindata.org/grapher/exports/internet-users-by-world-region.svg)](https://ourworldindata.org/grapher/internet-users-by-world-region)
 
 The owid-grapher visualization frontend code can run isomorphically under node to render data directly to an SVG string, which is how the above image works!
 
