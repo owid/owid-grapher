@@ -123,12 +123,13 @@ export class ChartBaker {
         // Static images are expensive to make and not super important, so we keep the old ones if we can
         try {
             await fs.mkdirp(`${this.baseDir}/exports/`)
-            const imagePath = `${this.baseDir}/exports/${chart.slug}`
-            if (!fs.existsSync(imagePath) || props.regenImages) {
+            const svgPath = `${this.baseDir}/exports/${chart.slug}.svg`
+            const pngPath = `${this.baseDir}/exports/${chart.slug}.png`
+            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath) || props.regenImages) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeImageExports(`${this.baseDir}/exports`, chart, vardata)
-                this.stage(`${imagePath}.png`)
-                this.stage(`${imagePath}.svg`)
+                this.stage(svgPath)
+                this.stage(pngPath)
             }
         } catch (err) {
             console.error(err)
