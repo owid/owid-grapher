@@ -67,7 +67,7 @@ export class ChartBaker {
             }
 
             chartsJs = `${pathRoot}/assets/charts.js?v=${manifest['charts.js']}`
-            chartsCss = `${pathRoot}/assets/charts.js?v=${manifest['charts.css']}`
+            chartsCss = `${pathRoot}/assets/charts.css?v=${manifest['charts.css']}`
         }
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
