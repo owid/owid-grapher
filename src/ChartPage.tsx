@@ -13,6 +13,40 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
     const canonicalUrl = urljoin(canonicalRoot, pathRoot, chart.slug as string)
     const imageUrl = urljoin(canonicalRoot, pathRoot, "exports", `${chart.slug}.png?v=${md5(JSON.stringify(chart))}`)
 
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        figure[data-grapher-src], #fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #fallback > img {
+            max-width: 100%;
+            border: 1px solid #ccc;
+        }
+    `
+
+    const script = `
+        try {
+            window.App = {};
+            window.Global = { rootUrl: '${BAKED_URL}${pathRoot}' };
+            window.Grapher.embedAll();
+        } catch (err) {
+            var figure = document.getElementsByTagName("figure")[0];
+            figure.innerHTML = "<img src=\\"${pathRoot}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
+            figure.setAttribute("id", "fallback");
+        }
+    `
+
     return <html>
         <head>
             <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -24,8 +58,8 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
             <meta property="og:title" content={pageTitle}/>
             <meta property="og:description" content={pageDesc}/>
             <meta property="og:image" content={imageUrl}/>
-            <meta property="og:image:width" content="1200"/>
-            <meta property="og:image:height" content="630"/>
+            <meta property="og:image:width" content="850"/>
+            <meta property="og:image:height" content="600"/>
             <meta property="og:site_name" content="Our World in Data"/>
             <meta name="twitter:card" content="summary_large_image"/>
             <meta name="twitter:site" content="@OurWorldInData"/>
@@ -33,34 +67,23 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
             <meta name="twitter:title" content={pageTitle}/>
             <meta name="twitter:description" content={pageDesc}/>
             <meta name="twitter:image" content={imageUrl}/>
-            <style>
-                {`html, body {
-                    height: 100%;
-                    margin: 0;
-                }
-
-                figure[data-grapher-src] {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 0;
-                    width: 100%;
-                    height: 100%;
-                }`}
-            </style>
+            <style dangerouslySetInnerHTML={{__html: style}}/>
+            <noscript>
+                <style>{`
+                    figure { display: none !important; }
+                `}</style>
+            </noscript>
             <link rel="stylesheet" href={`${ASSETS_URL}/charts.css`}/>
         </head>
         <body className="singleChart">
             <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>
+            <noscript id="fallback">
+                <img src={`${pathRoot}/exports/${chart.slug}.svg`}/>
+                <p>Interactive visualization requires JavaScript</p>
+            </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
             <script src={`${ASSETS_URL}/charts.js`}/>
-            <script>
-                {`
-                    window.App = {};
-                    window.Global = { rootUrl: '${BAKED_URL}${pathRoot}' };
-                    window.Grapher.embedAll();
-                `}
-            </script>
+            <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>
 }

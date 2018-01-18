@@ -14,12 +14,14 @@ require('module-alias').addAliases({
 
 import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
 
-export async function bakeMediaCard(outDir: string, jsonConfig: ChartConfigProps, vardata: string) {
-    const chart = new ChartConfig(jsonConfig, { isMediaCard: true })
+export async function bakeImageExports(outDir: string, jsonConfig: ChartConfigProps, vardata: string) {
+    const chart = new ChartConfig(jsonConfig)
+    chart.isLocalExport = true
     chart.vardata.receiveData(vardata)
     const outPath = path.join(outDir, chart.props.slug as string)
+
     return Promise.all([
-//        fs.writeFile(`${outPath}.svg`, chart.staticSVG).then(_ => console.log(`${outPath}.svg`)),
+        fs.writeFile(`${outPath}.svg`, chart.staticSVG).then(_ => console.log(`${outPath}.svg`)),
         sharp(new Buffer(chart.staticSVG), { density: 144 }).png().resize(chart.idealBounds.width, chart.idealBounds.height).flatten().background('#ffffff').toFile(`${outPath}.png`)
     ])
 }

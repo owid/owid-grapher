@@ -13,7 +13,7 @@ import * as path from 'path'
 import * as md5 from 'md5'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
-import { bakeMediaCard } from './svgPngExport'
+import { bakeImageExports } from './svgPngExport'
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
@@ -120,13 +120,13 @@ export class ChartBaker {
         //if (!isConfigIdentical || props.regenConfig)
         await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
 
-        // Twitter/fb cards are expensive to make and not super important, so we keep the old ones if we can
+        // Static images are expensive to make and not super important, so we keep the old ones if we can
         try {
             await fs.mkdirp(`${this.baseDir}/exports/`)
             const imagePath = `${this.baseDir}/exports/${chart.slug}.png`
             if (!fs.existsSync(imagePath) || props.regenImages) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
-                await bakeMediaCard(`${this.baseDir}/exports`, chart, vardata)
+                await bakeImageExports(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(imagePath)
             }
         } catch (err) {
