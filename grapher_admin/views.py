@@ -372,7 +372,6 @@ def savechart(request, chart: Chart, data: Dict, user: User):
         chart.last_edited_at = timezone.now()
         chart.last_edited_by = user
         chart.save()
-        
 
         for each in ChartDimension.objects.filter(chartId=chart.pk):
             each.delete()

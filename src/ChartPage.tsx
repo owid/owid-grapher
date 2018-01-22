@@ -36,12 +36,13 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
     `
 
     const script = `
+        var jsonConfig = ${JSON.stringify(chart)};
+        var figure = document.getElementsByTagName("figure")[0];
         try {
             window.App = {};
             window.Global = { rootUrl: '${BAKED_URL}${pathRoot}' };
-            window.Grapher.embedAll();
+            ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
-            var figure = document.getElementsByTagName("figure")[0];
             figure.innerHTML = "<img src=\\"${pathRoot}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
         }
