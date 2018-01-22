@@ -378,7 +378,6 @@ def savechart(request, chart: Chart, data: Dict, user: User):
             each.delete()
 
         for i, dim in enumerate(data["dimensions"]):
-            print(dim)
             variable = Variable.objects.get(id=dim["variableId"])
 
             newdim = ChartDimension()
