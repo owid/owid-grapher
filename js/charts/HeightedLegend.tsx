@@ -105,11 +105,12 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
 
             return {
                 mark: m,
+                y: y,
                 origBounds: bounds,
                 bounds: bounds,
                 isOverlap: false
             }
-        }), m => m.bounds.y)
+        }), m => m.y)
     }
 
     // Each mark starts at target height. When a conflict is detected, the lower label is pushed down a bit.
