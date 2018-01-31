@@ -84,7 +84,7 @@ export default class ChartData {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
         //    return null
-        if (chart.tab === "map")
+        if (chart.primaryTab === "map")
             return chart.map.data.targetYear
         else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.startYear
@@ -98,7 +98,7 @@ export default class ChartData {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
         //    return null
-        if (chart.tab === "map")
+        if (chart.primaryTab === "map")
             return chart.map.data.targetYear
         else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.endYear

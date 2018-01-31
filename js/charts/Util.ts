@@ -99,13 +99,19 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
             output = formatValue(value / 1e6, extend({}, options, { unit: "million" }))
     } else {
         if (maxDecimalPlaces >= 0 && value % 1 !== 0) {
-            const fixed = Math.min(20, maxDecimalPlaces)
-            output = format(`,.${fixed}f`)(value)
+            if (value < Math.pow(10, -maxDecimalPlaces)) {
+                // Special case to avoid formatting e.g. 0.00002 to 0
+                output = format(",")(value)
+            } else {
+                const fixed = Math.min(20, maxDecimalPlaces)
+                output = format(`,.${fixed}f`)(value)
+            }
         } else {
             output = format(",")(value)
         }
 
         if (noTrailingZeroes) {
+            // Convert e.g. 2.200 to 2.2
             const m = output.match(/([0-9,-]+.[0-9,]*?)0*$/)
             if (m) output = m[1]
             if (output[output.length - 1] === ".")
