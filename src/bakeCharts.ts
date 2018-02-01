@@ -17,7 +17,7 @@ async function main(email: string, name: string, slug: string) {
         if (email && name && slug)
             await baker.deploy(email, name, `Updating ${slug}`)
         else
-            await baker.deploy("Automated update")
+            await baker.deploy("Code deployment update")
     } catch (err) {
         console.error(err)
     } finally {
