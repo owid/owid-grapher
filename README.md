@@ -18,9 +18,9 @@ Running `pip install -r requirements.txt` and `yarn install` in the repo root wi
 
 ## Database setup
 
-An initial test database can be imported from `owid_grapher/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
+An initial test database can be imported from `grapher_admin/fixtures/owid_data.sql`. For example, if your database is called `grapher`:
 
-`mysql -u root -p -D grapher < owid_grapher/fixtures/owid_data.sql`	
+`mysql -u root -p -D grapher < grapher_admin/fixtures/owid_data.sql`	
 
 Now copy `.env.example` to `.env` and fill in your database details in that file.
 
