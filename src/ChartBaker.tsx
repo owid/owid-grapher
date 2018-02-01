@@ -82,12 +82,6 @@ export class ChartBaker {
         return vardata
     }
 
-    async bakeChartConfig(chart: ChartConfigProps) {
-        const outPath = `${this.baseDir}/${chart.slug}.config.json`
-        await fs.writeFile(outPath, JSON.stringify(chart))
-        this.stage(outPath)
-    }
-
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${this.baseDir}/${chart.slug}.html`
         await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage canonicalRoot={this.props.canonicalRoot} pathRoot={this.props.pathRoot} chart={chart}/>))
@@ -97,12 +91,16 @@ export class ChartBaker {
     async bakeChart(chart: ChartConfigProps) {
         const {baseDir, props} = this
 
-        const configPath = `${baseDir}/${chart.slug}.config.json`
-        let isConfigIdentical = false
+        const htmlPath = `${baseDir}/${chart.slug}.html`
+        let isSameVersion = false
         try {
-            // If the chart config is the same version, we can potentially skip baking the data (which is by far the slowest part)
-            const fileVersion = JSON.parse(await fs.readFile(configPath, 'utf8')).version
-            isConfigIdentical = chart.version === fileVersion
+            // If the chart is the same version, we can potentially skip baking the data (which is by far the slowest part)
+            const html = await fs.readFile(htmlPath, 'utf8')
+            const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
+            if (match) {
+                const fileVersion = JSON.parse(match[1]).version
+                isSameVersion = chart.version === fileVersion
+            }
         } catch (err) {
             if (err.code !== 'ENOENT')
                 console.error(err)
@@ -111,14 +109,14 @@ export class ChartBaker {
         const variableIds = uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
-        // Make sure we bake the variables successfully before outputing the chart config
+        // Make sure we bake the variables successfully before outputing the chart html
         const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
-        if (!isConfigIdentical || props.regenData) {
+        if (!isSameVersion || props.regenData) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 
-        //if (!isConfigIdentical || props.regenConfig)
-        await Promise.all([this.bakeChartConfig(chart), this.bakeChartPage(chart)])
+        // Always bake the html for every chart; it's cheap to do so
+        await Promise.all([this.bakeChartPage(chart)])
 
         // Static images are expensive to make and not super important, so we keep the old ones if we can
         try {
@@ -146,13 +144,6 @@ export class ChartBaker {
             redirects.push(`${pathRoot}/latest ${pathRoot}/${JSON.parse(row.slug)} 302`)
         }
 
-        // Redirect chart ids to slugs
-        const idRows = await this.db.query(`SELECT id, JSON_EXTRACT(config, "$.slug") as slug FROM charts`)
-        for (const row of idRows) {
-            redirects.push(`${pathRoot}/${row.id}.config.json ${pathRoot}/${JSON.parse(row.slug)}.config.json`)
-            redirects.push(`${pathRoot}/${row.id} ${pathRoot}/${JSON.parse(row.slug)} 302`)
-        }
-
         // Redirect old slugs to new slugs
         const rows = await this.db.query(`
             SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
@@ -162,7 +153,6 @@ export class ChartBaker {
         for (const row of rows) {
             const trueSlug = JSON.parse(row.trueSlug)
             if (row.slug !== trueSlug) {
-                redirects.push(`${pathRoot}/${row.slug}.config.json ${pathRoot}/${trueSlug}.config.json 302`)
                 redirects.push(`${pathRoot}/${row.slug} ${pathRoot}/${trueSlug} 302`)
             }
         }
@@ -211,12 +201,12 @@ ${pathRoot}/*.json
         }
 
         // Delete any that are missing from the database
-        const oldSlugs = glob.sync(`${baseDir}/*.config.json`).map(slug => slug.replace(`${baseDir}/`, '').replace(".config.json", ""))
+        const oldSlugs = glob.sync(`${baseDir}/*.html`).map(slug => slug.replace(`${baseDir}/`, '').replace(".html", ""))
         const toRemove = without(oldSlugs, ...newSlugs)
         for (const slug of toRemove) {
             console.log(`DELETING ${slug}`)
             try {
-                const paths = [`${baseDir}/${slug}.config.json`, `${baseDir}/${slug}.html`, `${baseDir}/exports/${slug}.png`]//, `${baseDir}/exports/${slug}.svg`]
+                const paths = [`${baseDir}/${slug}.html`, `${baseDir}/exports/${slug}.png`]//, `${baseDir}/exports/${slug}.svg`]
                 await Promise.all(paths.map(p => fs.unlink(p)))
                 paths.map(p => this.stage(p))
             } catch (err) {

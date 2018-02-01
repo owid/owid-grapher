@@ -19,8 +19,10 @@ export class MultiEmbedder {
                 const figure: LoadableFigure = { configUrl, queryStr, element }
                 this.figuresToLoad.push(figure)
 
-                fetch(configUrl + ".config.json").then(data => data.json()).then(jsonConfig => {
-                    figure.jsonConfig = jsonConfig
+                fetch(configUrl).then(data => data.text()).then(html => {
+                    const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
+                    if (m)
+                        figure.jsonConfig = JSON.parse(m[1])
                     this.update()
                 })
             }
