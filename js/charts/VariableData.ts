@@ -25,6 +25,7 @@ export class Variable {
     @observable.ref displayUnitConversionFactor?: number = undefined
     @observable.ref displayTolerance?: number = undefined
     @observable.ref displayIsProjection?: boolean = undefined
+    @observable.ref displayNumDecimalPlaces?: number = undefined
 
     @observable.struct source: {
         id: number,

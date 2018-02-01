@@ -12,11 +12,12 @@ import { AxisGridLines } from './AxisBox'
 import NoData from './NoData'
 
 export interface DiscreteBarDatum {
-    key: string,
-    value: number,
-    year: number,
-    label: string,
+    key: string
+    value: number
+    year: number
+    label: string
     color: Color
+    formatValue: (value: number) => string
 }
 
 @observer

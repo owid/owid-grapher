@@ -12,6 +12,7 @@ export default class ChartDimension {
     @observable isProjection?: true = undefined
     @observable conversionFactor?: number = undefined
     @observable tolerance?: number = undefined
+    @observable numDecimalPlaces?: number = undefined
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: number = undefined

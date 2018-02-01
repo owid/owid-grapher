@@ -44,7 +44,8 @@ export default class DimensionCard extends React.Component<{ dimension: Dimensio
                 <BindAutoString label="Display name" field="displayName" store={dimension.props} auto={dimension.displayName}/>
                 <BindAutoString label="Unit of measurement" field="unit" store={dimension.props} auto={dimension.unit} helpText={`Original database unit: ${dimension.variable.unit}`}/>
                 <BindAutoString label="Short (axis) unit" field="shortUnit" store={dimension.props} auto={dimension.shortUnit}/>
-                <BindAutoFloat label="Unit conversion factor" field="conversionFactor" store={dimension.props} auto={dimension.unitConversionFactor}/>
+                <BindAutoFloat label="Number of decimal places" field="numDecimalPlaces" store={dimension.props} auto={dimension.numDecimalPlaces} helpText={`A negative number here will round integers`}/>
+                <BindAutoFloat label="Unit conversion factor" field="conversionFactor" store={dimension.props} auto={dimension.unitConversionFactor} helpText={`Multiply all values by this amount`}/>
                 {(chart.isScatter || chart.isDiscreteBar) && <BindAutoFloat field="tolerance" store={dimension.props} auto={dimension.tolerance}/>}
                 {chart.isLineChart && <Toggle label="Is projection" value={dimension.isProjection} onValue={this.onIsProjection} />}
                 <hr className="ui divider"/>

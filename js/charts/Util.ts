@@ -81,9 +81,14 @@ export function component<T extends { [key: string]: any }>(current: T | undefin
     return instance
 }
 
-export function formatValue(value: number, options: { maxDecimalPlaces?: number, unit?: string }): string {
+export function precisionRound(num: number, precision: number) {
+    const factor = Math.pow(10, precision)
+    return Math.round(num * factor) / factor
+}
+
+export function formatValue(value: number, options: { numDecimalPlaces?: number, unit?: string }): string {
     const noTrailingZeroes = true
-    const maxDecimalPlaces = defaultTo(options.maxDecimalPlaces, 2)
+    const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
     const isNoSpaceUnit = unit[0] === "%"
 
@@ -92,27 +97,27 @@ export function formatValue(value: number, options: { maxDecimalPlaces?: number,
     const absValue = Math.abs(value)
     if (!isNoSpaceUnit && absValue >= 1e6) {
         if (absValue >= 1e12)
-            output = formatValue(value / 1e12, extend({}, options, { unit: "trillion" }))
+            output = formatValue(value / 1e12, extend({}, options, { unit: "trillion", numDecimalPlaces: 2 }))
         else if (absValue >= 1e9)
-            output = formatValue(value / 1e9, extend({}, options, { unit: "billion" }))
+            output = formatValue(value / 1e9, extend({}, options, { unit: "billion", numDecimalPlaces: 2 }))
         else if (absValue >= 1e6)
-            output = formatValue(value / 1e6, extend({}, options, { unit: "million" }))
+            output = formatValue(value / 1e6, extend({}, options, { unit: "million", numDecimalPlaces: 2 }))
     } else {
-        if (maxDecimalPlaces >= 0 && value % 1 !== 0) {
-            if (value < Math.pow(10, -maxDecimalPlaces)) {
-                // Special case to avoid formatting e.g. 0.00002 to 0
-                output = format(",")(value)
-            } else {
-                const fixed = Math.min(20, maxDecimalPlaces)
-                output = format(`,.${fixed}f`)(value)
-            }
+        const targetDigits = Math.pow(10, -numDecimalPlaces)
+
+        if (value !== 0 && Math.abs(value) < targetDigits) {
+            if (value < 0)
+                output = `>-${targetDigits}`
+            else
+                output = `<${targetDigits}`
         } else {
-            output = format(",")(value)
+            const rounded = precisionRound(value, numDecimalPlaces)
+            output = format(`,`)(rounded)
         }
 
         if (noTrailingZeroes) {
             // Convert e.g. 2.200 to 2.2
-            const m = output.match(/([0-9,-]+.[0-9,]*?)0*$/)
+            const m = output.match(/(.*?[0-9,-]+.[0-9,]*?)0*$/)
             if (m) output = m[1]
             if (output[output.length - 1] === ".")
                 output = output.slice(0, output.length - 1)

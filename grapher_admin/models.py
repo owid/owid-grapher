@@ -228,6 +228,7 @@ class Variable(Model):
     displayUnitConversionFactor = models.FloatField(null=True)
     displayIsProjection = models.NullBooleanField(null=True)
     displayTolerance = models.IntegerField(null=True)
+    displayNumDecimalPlaces = models.IntegerField(null=True)
 
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
@@ -259,6 +260,7 @@ class ChartDimension(Model):
     isProjection = models.NullBooleanField(null=True)
     tolerance = models.IntegerField(null=True)
     conversionFactor = models.FloatField(null=True)
+    numDecimalPlaces = models.IntegerField(null=True)
 
     # XXX todo move this elsewhere
     targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)

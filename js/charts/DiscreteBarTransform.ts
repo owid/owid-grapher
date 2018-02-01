@@ -47,10 +47,9 @@ export default class DiscreteBarTransform implements IChartTransform {
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
         const { primaryDimension, targetYear } = this
-        const formatValue = primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
 
         return (datum: DiscreteBarDatum) => {
-            return formatValue(datum.value) + (datum.year !== targetYear ? ` (in ${datum.year})` : "")
+            return datum.formatValue(datum.value) + (datum.year !== targetYear ? ` (in ${datum.year})` : "")
         }
     }
 
@@ -85,7 +84,8 @@ export default class DiscreteBarTransform implements IChartTransform {
                     value: +dimension.values[i],
                     year: year,
                     label: chart.data.formatKey(datakey),
-                    color: "#F2585B"
+                    color: "#F2585B",
+                    formatValue: dimension.formatValueShort
                 }
 
                 dataByKey[datakey] = datum

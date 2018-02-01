@@ -45,6 +45,10 @@ export default class DimensionWithData {
         return defaultTo(defaultTo(this.props.tolerance, this.variable.displayTolerance), 0)
     }
 
+    @computed get numDecimalPlaces(): number {
+        return defaultTo(defaultTo(this.props.numDecimalPlaces, this.variable.displayNumDecimalPlaces), 2)
+    }
+
     @computed get shortUnit(): string {
         const { unit } = this
         const shortUnit = defaultTo(defaultTo(this.props.shortUnit, this.variable.displayShortUnit), this.variable.shortUnit||undefined)
@@ -65,22 +69,22 @@ export default class DimensionWithData {
     }
 
     @computed get formatValueShort(): (value: number | string) => string {
-        const { shortUnit } = this
+        const { shortUnit, numDecimalPlaces } = this
         return value => {
             if (isString(value))
                 return value
             else
-                return formatValue(value, { unit: shortUnit })
+                return formatValue(value, { unit: shortUnit, numDecimalPlaces: numDecimalPlaces })
         }
     }
 
     @computed get formatValueLong(): (value: number) => string {
-        const { unit } = this
+        const { unit, numDecimalPlaces } = this
         return value => {
             if (isString(value))
                 return value
             else
-                return formatValue(value, { unit: unit })
+                return formatValue(value, { unit: unit, numDecimalPlaces: numDecimalPlaces })
         }
     }
 

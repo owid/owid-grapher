@@ -154,7 +154,7 @@ def test_all(request):
                                                     })
 
 def testsome(request):
-    ids = [563, 646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302]
+    ids = [563, 646, 292, 51, 72, 132, 144, 194, 197, 864, 190, 302, 1690]
     charts = sorted(Chart.objects.filter(id__in=ids), key=lambda c: ids.index(c.id))
 
     urls = []
@@ -405,6 +405,8 @@ def savechart(request, chart: Chart, data: Dict, user: User):
                     variable.displayUnitConversionFactor = newdim.conversionFactor
                 if 'tolerance' in dim:
                     variable.displayTolerance = newdim.tolerance
+                if 'numDecimalPlaces' in dim:
+                    variable.displayNumDecimalPlaces = newdim.numDecimalPlaces
                 variable.displayIsProjection = bool(newdim.isProjection)
                 variable.save()
 
