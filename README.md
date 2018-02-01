@@ -22,7 +22,7 @@ An initial test database can be imported from `owid_grapher/fixtures/owid_data.s
 
 `mysql -u root -p -D grapher < owid_grapher/fixtures/owid_data.sql`	
 
-Now copy `owid_grapher/secret_settings.py.template` to `owid_grapher/secret_settings.py` and fill in your database details.
+Now copy `.env.example` to `.env` and fill in your database details in that file.
 
 Run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
