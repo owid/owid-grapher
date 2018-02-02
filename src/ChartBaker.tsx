@@ -174,7 +174,7 @@ ${pathRoot}/assets/*
 ${pathRoot}/exports/*
   Cache-Control: public, max-age=31556926
 
-${pathRoot}/*.json
+${pathRoot}/*
   Access-Control-Allow-Origin: *
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
