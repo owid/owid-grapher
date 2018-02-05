@@ -148,8 +148,8 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
             key: d.key,
             label: this.chart.data.formatKey(d.key),
             yValue: midpoints[i]
-        }))
-        return sortBy(items, d => d.yValue)
+        })).reverse()
+        return items
     }
 
     @computed get legend(): HeightedLegend|undefined {
