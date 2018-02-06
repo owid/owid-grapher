@@ -59,12 +59,12 @@ export default class SlopeChartTransform implements IChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): DimensionWithData {
-        return find(this.chart.data.filledDimensions, d => d.property === 'size') as DimensionWithData
+    @computed.struct get sizeDim(): DimensionWithData|undefined {
+        return find(this.chart.data.filledDimensions, d => d.property === 'size')
     }
 
-    @computed.struct get colorDim(): DimensionWithData {
-        return find(this.chart.data.filledDimensions, d => d.property === 'color') as DimensionWithData
+    @computed.struct get colorDim(): DimensionWithData|undefined {
+        return find(this.chart.data.filledDimensions, d => d.property === 'color')
     }
 
     @computed.struct get yDimension(): DimensionWithData | undefined {
@@ -141,8 +141,8 @@ export default class SlopeChartTransform implements IChartTransform {
             return {
                 label: entityKey[entity].name,
                 key: makeSafeForCSS(entityKey[entity].name),
-                color: colorScale(rows.first(colorDim.variable.id)),
-                size: rows.first(sizeDim.variable.id),
+                color: colorDim ? colorScale(rows.first(colorDim.variable.id)) : "#000",
+                size: sizeDim ? rows.first(sizeDim.variable.id) : 1,
                 values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year === minYear || d.year === maxYear)).mergeBy('year').map((d: any) => {
                     return {
                         x: d.year,
