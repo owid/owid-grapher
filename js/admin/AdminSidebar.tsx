@@ -30,6 +30,7 @@ export default function AdminSidebar() {
             <li><Link native to="/gbdcausedatasets"><i className="fa fa-database"></i> GBD Cause Datasets</Link></li>
             <li><Link native to="/gbdriskdatasets"><i className="fa fa-database"></i> GBD Risk Datasets</Link></li>
             <li><Link native to="/ilostatdatasets"><i className="fa fa-database"></i> ILOSTAT Datasets</Link></li>
+            <li><Link native to="/unsdgdatasets"><i className="fa fa-database"></i> UN SDG Datasets</Link></li>
             <li><Link native to="/standardize"><i className="fa fa-flag"></i> Country name tool</Link></li>
             <li><Link native to="/datasets/history/all"><i className="fa fa-history"></i> Version history</Link></li>
             <li className="header">SETTINGS</li>
