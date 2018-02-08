@@ -49,6 +49,7 @@
     "child-process-promise": "^2.2.1",
     "colorbrewer": "^1.0.0",
     "concurrently": "^3.4.0",
+    "cookie-parser": "^1.4.3",
     "css-loader": "^0.26.1",
     "csv-parse": "^1.2.0",
     "d3": "^4.5.0",

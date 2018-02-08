@@ -17,5 +17,5 @@
             { "name": "tslint-language-service" }
         ]
     },
-    "exclude": ["node_modules", "src/server.tsx"]
+    "exclude": ["node_modules"]
 }
