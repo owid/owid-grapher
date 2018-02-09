@@ -221,6 +221,12 @@
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@types/expr-eval/-/expr-eval-1.0.2.tgz#15e437e2143acd142fcc4d28caf56d6036826167"
 
+"@types/express-promise-router@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@types/express-promise-router/-/express-promise-router-2.0.0.tgz#d8393324309b3d184e5531fdb4a314490b9e1550"
+  dependencies:
+    "@types/express" "*"
+
 "@types/express-serve-static-core@*":
   version "4.11.0"
   resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.11.0.tgz#aaaf472777191c3e56ec7aa160034c6b55ebdd59"
@@ -2327,6 +2333,20 @@ expr-eval@^1.0.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/expr-eval/-/expr-eval-1.2.1.tgz#1425caf4d7ccb7439ce72d0488b20c3f6e4ea25a"
 
+express-async-errors@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/express-async-errors/-/express-async-errors-2.1.0.tgz#67b536db21c20668d5cf637a8aa4a4868e54b06a"
+  dependencies:
+    express "^4.16.2"
+
+express-promise-router@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/express-promise-router/-/express-promise-router-3.0.1.tgz#49c16c62c3eeac13fa359fbef89f5284d0e3d649"
+  dependencies:
+    is-promise "^2.1.0"
+    lodash.flattendeep "^4.0.0"
+    methods "^1.0.0"
+
 express@^4.16.2:
   version "4.16.2"
   resolved "https://registry.yarnpkg.com/express/-/express-4.16.2.tgz#e35c6dfe2d64b7dca0a5cd4f21781be3299e076c"
@@ -3434,6 +3454,10 @@ is-primitive@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/is-primitive/-/is-primitive-2.0.0.tgz#207bab91638499c07b2adf240a41a87210034575"
 
+is-promise@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/is-promise/-/is-promise-2.1.0.tgz#79a2a9ece7f096e80f36d2b2f3bc16c1ff4bf3fa"
+
 is-property@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-property/-/is-property-1.0.2.tgz#57fe1c4e48474edd65b09911f26b1cd4095dda84"
@@ -3768,6 +3792,10 @@ lodash.endswith@^4.2.1:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/lodash.endswith/-/lodash.endswith-4.2.1.tgz#fed59ac1738ed3e236edd7064ec456448b37bc09"
 
+lodash.flattendeep@^4.0.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/lodash.flattendeep/-/lodash.flattendeep-4.4.0.tgz#fb030917f86a3134e5bc9bec0d69e0013ddfedb2"
+
 lodash.isfunction@^3.0.8:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/lodash.isfunction/-/lodash.isfunction-3.0.8.tgz#4db709fc81bc4a8fd7127a458a5346c5cdce2c6b"
@@ -3931,7 +3959,7 @@ merge-descriptors@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
 
-methods@~1.1.2:
+methods@^1.0.0, methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
 

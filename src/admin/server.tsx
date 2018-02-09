@@ -1,18 +1,37 @@
 import * as express from 'express'
+require('express-async-errors')
 import { uniq } from 'lodash'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
+const cookieParser = require('cookie-parser')
+
 import * as db from '../db'
 import AdminSPA from './AdminSPA'
-
 import {authMiddleware} from './authentication'
+import * as api from './api'
 
 const app = express()
 
-authMiddleware(app)
+// Parse cookies https://github.com/expressjs/cookie-parser
+app.use(cookieParser())
 
+// Require authentication for all requests
+app.use(authMiddleware)
+
+// Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
 app.use(express.json())
+
 db.connect()
+
+
+async function hi() {
+    throw new Error("oh dear")
+}
+
+app.get('/admin/api/charts.json', api.chartsJson)
+app.get('/admin/api/test', async (req, res) => {
+    res.send(await hi())
+})
 
 function renderToHtmlPage(element: any) {
     return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`

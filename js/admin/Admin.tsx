@@ -16,7 +16,7 @@ export default class Admin {
     username: string
     constructor(rootUrl: string, username: string) {
         this.grapherRoot = rootUrl
-        this.basePath = "/grapher/admin"
+        this.basePath = "/admin/api"
         this.username = username
     }
 
@@ -34,13 +34,6 @@ export default class Admin {
         return urljoin(this.basePath, path)
     }
 
-    get csrfToken() {
-        const meta = document.querySelector("[name=_token]")
-        if (!meta)
-            throw new Error("Could not find csrf token")
-        return meta.getAttribute("value")
-    }
-
     // Make a request with no error or response handling
     async rawRequest(path: string, data: any, method: HTTPMethod) {
         return fetch(this.url(path), {
@@ -48,8 +41,7 @@ export default class Admin {
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRFToken': this.csrfToken as string
+                'Accept': 'application/json'
             },
             body: method !== 'GET' ? JSON.stringify(data) : undefined
         })

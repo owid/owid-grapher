@@ -1,8 +1,6 @@
 import * as express from 'express'
 import * as db from '../db'
 
-const cookieParser = require('cookie-parser')
-
 interface User {
     id: number
     name: string
@@ -10,7 +8,7 @@ interface User {
     fullName: string
 }
 
-async function authenticate(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
     let user: User|undefined
 
     const sessionid = req.cookies['sessionid']
@@ -39,9 +37,4 @@ async function authenticate(req: express.Request, res: express.Response, next: e
     } else {
         return res.redirect('/grapher/admin/login')
     }
-}
-
-export function authMiddleware(app: express.Express) {
-    app.use(cookieParser())
-    app.use(authenticate)
 }
