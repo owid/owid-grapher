@@ -1193,7 +1193,7 @@ def managelicense(request: HttpRequest, licenseid: str):
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
 
-def showsource(request: HttpRequest, sourceid: str):
+def _showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
@@ -1236,12 +1236,12 @@ def editsource(request: HttpRequest, sourceid: str):
 
 
 def managesource(request: HttpRequest, sourceid: str):
-    try:
-        source = Source.objects.get(pk=int(sourceid))
-    except Source.DoesNotExist:
-        return HttpResponseNotFound('Source does not exist!')
-
     if request.method == 'POST':
+        try:
+            source = Source.objects.get(pk=int(sourceid))
+        except Source.DoesNotExist:
+            return HttpResponseNotFound('Source does not exist!')
+
         request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
@@ -1263,12 +1263,12 @@ def managesource(request: HttpRequest, sourceid: str):
                 source.save()
             except Exception as e:
                 messages.error(request, e.args[1])
-                return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+                return HttpResponseRedirect(reverse('managesource', args=[sourceid]))
             messages.success(request, 'Source updated!')
-            return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+            return HttpResponseRedirect(reverse('managesource', args=[sourceid]))
 
     if request.method == 'GET':
-        return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+        return _showsource(request, sourceid)
 
 
 def editsubcategory(request: HttpRequest, subcatid: str):

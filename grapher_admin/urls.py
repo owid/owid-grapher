@@ -53,7 +53,6 @@ urlpatterns = [
     url(r'^grapher/admin/variables/(?P<variableid>[\w]+)/$', admin_views.showvariable, name="showvariable"),
     url(r'^grapher/admin/variables/(?P<variableid>[\w]+)$', admin_views.managevariable, name="managevariable"),
     url(r'^grapher/admin/variables/(?P<variableid>[\w]+)/edit/$', admin_views.editvariable, name="editvariable"),
-    url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/?$', admin_views.showsource, name="showsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/edit/?$', admin_views.editsource, name="editsource"),
     url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)$', admin_views.managesource, name="managesource"),
     url(r'^grapher/admin/subcategories/(?P<subcatid>[\w]+)/edit/$', admin_views.editsubcategory, name="editsubcategory"),
