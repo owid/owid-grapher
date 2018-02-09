@@ -23,15 +23,12 @@ app.use(express.json())
 
 db.connect()
 
+app.get('/admin/api/charts.json', api.getChartsJson)
+app.post('/admin/api/charts/:chartId/star', api.starChart)
+app.get('/admin/api/editorData/namespaces.json', api.getNamespaces)
 
-async function hi() {
-    throw new Error("oh dear")
-}
-
-app.get('/admin/api/charts.json', api.chartsJson)
-app.get('/admin/api/test', async (req, res) => {
-    res.send(await hi())
-})
+//url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
+//url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
 
 function renderToHtmlPage(element: any) {
     return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`

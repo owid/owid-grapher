@@ -151,7 +151,7 @@ export default class ChartIndexPage extends React.Component {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return
 
-        const json = await this.context.admin.requestJSON(`charts/${chart.id}`, {}, "DELETE")
+        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}`, {}, "DELETE")
 
         if (json.success) {
             runInAction(() => this.charts.splice(this.charts.indexOf(chart), 1))
@@ -161,7 +161,7 @@ export default class ChartIndexPage extends React.Component {
     @action.bound async onStar(chart: ChartMeta) {
         if (chart.isStarred) return
 
-        const json = await this.context.admin.requestJSON(`charts/${chart.id}/star`, {}, 'POST')
+        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/star`, {}, 'POST')
         if (json.success) {
             runInAction(() => {
                 for (const otherChart of this.charts) {
@@ -226,7 +226,7 @@ export default class ChartIndexPage extends React.Component {
         if (admin.currentRequests.length > 0)
             return
 
-        const json = await admin.getJSON("/charts.json" + (this.wantsSearch ? "" : `?limit=${this.maxVisibleCharts}`))
+        const json = await admin.getJSON("/api/charts.json" + (this.wantsSearch ? "" : `?limit=${this.maxVisibleCharts}`))
         runInAction(() => {
             this.charts = json.charts
             this.numTotalCharts = json.numTotalCharts

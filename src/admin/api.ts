@@ -1,7 +1,8 @@
 import {Request, Response} from 'express'
 import * as db from '../db'
 
-export async function chartsJson(req: Request, res: Response) {
+// Retrieve list of charts and their associated variables, for the admin index page
+export async function getChartsJson(req: Request, res: Response) {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
         SELECT
@@ -27,7 +28,7 @@ export async function chartsJson(req: Request, res: Response) {
     const variableRows = await db.query(`
         SELECT dims.chartId, v.id as variableId, v.name as variableName
         FROM chart_dimensions AS dims
-        JOIN variables AS v ON v.id=dims.variableId WHERE dims.chartId IN ?
+        JOIN variables AS v ON v.id=dims.variableId WHERE dims.chartId IN (?)
     `, [chartIds])
 
     const variablesByChartId = new Map<number, { id: number, name: string }[]>()
@@ -47,4 +48,21 @@ export async function chartsJson(req: Request, res: Response) {
         charts: charts,
         numTotalCharts: numTotalCharts
     })
+}
+
+export async function getNamespaces(req: Request, res: Response) {
+    const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`)
+
+    res.send({
+        namespaces: rows.map(row => row.namespace)
+    })
+}
+
+// Mark a chart for display on the front page
+export async function starChart(req: Request, res: Response) {
+    db.query(`UPDATE charts SET starred=(charts.id=?)`, req.params.chartId)
+
+    //Chart.bake(request.user, chart.slug)
+
+    res.send({ success: true })
 }

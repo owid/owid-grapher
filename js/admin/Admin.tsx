@@ -16,7 +16,7 @@ export default class Admin {
     username: string
     constructor(rootUrl: string, username: string) {
         this.grapherRoot = rootUrl
-        this.basePath = "/admin/api"
+        this.basePath = "/admin"
         this.username = username
     }
 
