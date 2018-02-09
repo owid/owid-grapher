@@ -1,5 +1,6 @@
 import {Request, Response} from 'express'
 import * as db from '../db'
+import {getVariableData} from '../models/Variable'
 
 function jsonError(res: Response, message: string, code?: number) {
     code = code || 400
@@ -79,6 +80,11 @@ export async function getNamespaces(req: Request, res: Response) {
     res.send({
         namespaces: rows.map(row => row.namespace)
     })
+}
+
+export async function getVariables(req: Request, res: Response) {
+    const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
+    res.send(await getVariableData(variableIds))
 }
 
 // Mark a chart for display on the front page

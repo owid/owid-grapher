@@ -1,6 +1,6 @@
-import { DatabaseConnection } from '../database'
+import * as db from '../db'
 
-export async function getVariableData(variableIds: number[], db: DatabaseConnection): Promise<string> {
+export async function getVariableData(variableIds: number[]): Promise<string> {
     const meta: any = { variables: {} }
 
     const variableQuery = db.query(`

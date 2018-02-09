@@ -26,6 +26,7 @@ db.connect()
 app.get('/admin/api/charts.json', api.getChartsJson)
 app.post('/admin/api/charts/:chartId/star', api.starChart)
 app.get('/admin/api/charts/:chartId.config.json', api.getChartConfig)
+app.get('/admin/api/data/variables/:variableStr', api.getVariables)
 app.get('/admin/api/editorData/namespaces.json', api.getNamespaces)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
