@@ -1,6 +1,16 @@
 import {Request, Response} from 'express'
 import * as db from '../db'
 
+function jsonError(res: Response, message: string, code?: number) {
+    code = code || 400
+    res.status(code).send({
+        error: {
+            code: code,
+            message: message
+        }
+    })
+}
+
 // Retrieve list of charts and their associated variables, for the admin index page
 export async function getChartsJson(req: Request, res: Response) {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
@@ -48,6 +58,19 @@ export async function getChartsJson(req: Request, res: Response) {
         charts: charts,
         numTotalCharts: numTotalCharts
     })
+}
+
+export async function getChartConfig(req: Request, res: Response) {
+    const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [req.params.chartId]))[0]
+
+    if (chart) {
+        const config = JSON.parse(chart.config)
+        config.id = chart.id
+        res.send(config)
+    } else {
+        jsonError(res, "No such chart", 404)
+    }
+
 }
 
 export async function getNamespaces(req: Request, res: Response) {

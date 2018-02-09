@@ -53,7 +53,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
     async fetchChart() {
         const {chartId} = this.props
         const {admin} = this.context
-        const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`charts/${chartId}.config.json`)
+        const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`/api/charts/${chartId}.config.json`)
         runInAction(() => this.chart = new ChartConfig(json))
     }
 
