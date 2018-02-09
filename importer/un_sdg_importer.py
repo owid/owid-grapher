@@ -322,8 +322,11 @@ with transaction.atomic():
                 for i in range(1000, 2020):
                     if str(i) in reader.fieldnames:
                         if row[str(i)]:
-                            data_values_tuple_list.append((row[str(i)], i,
-                                               c_name_entity_ref[row['Country or Area Name']].pk, variable_name_to_object[variable_name].pk))
+                            try:
+                                data_values_tuple_list.append((str(float(row[str(i)])), i,
+                                                   c_name_entity_ref[row['Country or Area Name']].pk, variable_name_to_object[variable_name].pk))
+                            except:
+                                pass
 
                 if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
 
