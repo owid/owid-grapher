@@ -317,19 +317,6 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
 
     return response
 
-
-def editordata(request: HttpRequest, cachetag: Optional[str]):
-    namespaces = list(Dataset.objects.values_list('namespace', flat=True).distinct())
-
-    response = JsonResponse({
-        'namespaces': namespaces
-    })
-
-    if cachetag:
-        response['Cache-Control'] = 'public, max-age=31536000'
-
-    return response
-
 def _post_update(request, chart: Chart):
     # Bake published charts into static build
     Chart.bake(request.user, chart.slug)
@@ -414,42 +401,6 @@ def savechart(request, chart: Chart, data: Dict, user: User):
         _post_update(request, chart)
 
     return JsonResponse({ 'success': True, 'data': {'id': chart.pk} })
-
-def managechart(request: HttpRequest, chartid: str):
-    try:
-        chart = Chart.objects.get(pk=int(chartid))
-    except Chart.DoesNotExist:
-        return HttpResponseNotFound('No such chart!')
-    except ValueError:
-        return HttpResponseNotFound('No such chart!')
-    if request.method == 'PUT':
-        data = json.loads(request.body.decode('utf-8'))
-        return savechart(request, chart, data, request.user)
-    if request.method == 'DELETE':
-        wasPublished = chart.config.get("isPublished")
-        chart.delete()
-        if wasPublished:
-            _post_update(request, chart)
-        return JsonResponse({ 'success': True })
-    if request.method == 'GET':
-        return HttpResponseRedirect(reverse('showchartinternal', args=(chartid,)))
-
-def starchart(request: HttpRequest, chartid: str):
-    with transaction.atomic():
-        try:
-            chart = Chart.objects.get(pk=int(chartid))
-        except Chart.DoesNotExist:
-            return JsonErrorResponse('No such chart!', status=404)
-        except ValueError:
-            return JsonErrorResponse('No such chart!', status=404)
-
-        Chart.objects.update(starred=False)
-        chart.starred = True
-        chart.save()
-
-    Chart.bake(request.user, chart.slug)
-
-    return JsonResponse({'success': True})
 
 def importdata(request: HttpRequest):
     datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
@@ -1995,84 +1946,3 @@ def treeview_datasets(request: HttpRequest):
     return render(request, 'admin.datasets.by.category.html', context={'current_user': request.user.name,
                                                                        'tree_json': tree_json
                                                                        })
-
-def buildstatus(request):
-    r = requests.get(f"https://api.netlify.com/api/v1/sites/a7b9d6fc-5c50-41b8-b37f-9387e90c356d/deploys?access_token={settings.NETLIFY_ACCESS_TOKEN}")
-    return JsonResponse(r.json()[0])
-
-
-def variables(request, ids):
-    """
-    :param request: Request object
-    :param ids: ids of requested variables
-    :return: json file of requested variables in plain text format
-    """
-    meta = { "variables": {} }
-
-    # First, grab all the variable metadata needed by the frontend
-    variable_ids = [int(idStr) for idStr in ids.split('+')]
-    variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
-        'id', 'name', 'description', 'unit', 'short_unit',
-        'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',
-        'fk_dst_id__name', 'sourceId__pk', 'sourceId__name', 'sourceId__description'
-    )
-
-    # Process the metadata into a nicer form
-    for variable in variables:
-        variable['shortUnit'] = variable.pop('short_unit')
-        variable['datasetName'] = variable.pop('fk_dst_id__name')
-        source_description = json.loads(variable.pop('sourceId__description'))
-        variable['source'] = source_description
-        variable['source']['id'] = variable.pop('sourceId__pk')
-        variable['source']['name'] = variable.pop('sourceId__name')
-        variable['source']['dataPublishedBy'] = "" if not source_description['dataPublishedBy'] else source_description['dataPublishedBy']
-        variable['source']['dataPublisherSource'] = "" if not source_description['dataPublisherSource'] else source_description[
-            'dataPublisherSource']
-        variable['source']['link'] = "" if not source_description['link'] else source_description['link']
-        variable['source']['retrievedDate'] = "" if not source_description['retrievedDate'] else source_description['retrievedDate']
-        variable['source']['additionalInfo'] = "" if not source_description['additionalInfo'] else source_description[
-            'additionalInfo']
-        meta['variables'][variable['id']] = variable
-
-    # Now fetch the actual data, using a custom csv-like transfer format
-    # for efficiency (this is the most common expensive operation in the grapher)
-    varstring = ""
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT value, year, fk_var_id as var_id, entities.id as entity_id, 
-            entities.name as entity_name, entities.code as entity_code 
-            FROM data_values 
-            LEFT JOIN entities ON data_values.fk_ent_id = entities.id 
-            WHERE data_values.fk_var_id IN %s 
-            ORDER BY var_id ASC, year ASC
-        """, [variable_ids])
-        rows = dictfetchall(cursor)
-
-    def stream():
-        yield json.dumps(meta)
-
-        entitykey = {}
-        seen_variables = {}
-        for row in rows:
-            if row['var_id'] not in seen_variables:
-                seen_variables[row['var_id']] = True
-                yield "\r\n"
-                yield str(row['var_id'])
-
-            yield f";{row['year']},{row['entity_id']},{row['value']}"
-
-            if row['entity_id'] not in entitykey:
-                entitykey[row['entity_id']] = {'name': row['entity_name'], 'code': row['entity_code']}
-
-        yield "\r\n"
-        yield json.dumps(entitykey)
-
-    response = StreamingHttpResponse(stream(), content_type="text/plain")
-
-    if get_query_string(request):
-        response['Cache-Control'] = 'max-age=31536000 public'
-    else:
-        response['Cache-Control'] = 'no-cache'
-    response['Access-Control-Allow-Origin'] = '*'
-
-    return response

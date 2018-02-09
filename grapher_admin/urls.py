@@ -81,16 +81,8 @@ urlpatterns = [
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     # for future use on the frontend
-    url(r'^grapher/admin/charts\.json$',  admin_views.chartsjson, name="chartsjson"),
-    url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
     url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),
     url(r'^grapher/admin/users\.json$', admin_views.listusers, name="listusersjson"),
-    url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
-    url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
-
-    url(r'^grapher/admin/api/buildStatus.json$', admin_views.buildstatus, name="buildstatus"),
-    url(r'^grapher/admin/api/data/variables/(?P<ids>[\d+]+)$', admin_views.variables, name="adminvariables"),
 
     ### Public
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),

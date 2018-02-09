@@ -82,6 +82,40 @@ export async function getNamespaces(req: Request, res: Response) {
     })
 }
 
+export async function getNamespaceData(req: Request, res: Response) {
+    const datasets = []
+    const rows = await db.query(
+        `SELECT v.name, v.id, d.name as datasetName, d.namespace
+         FROM variables as v JOIN datasets as d ON v.fk_dst_id = d.id
+         WHERE namespace=? ORDER BY d.updated_at DESC`, [req.params.namespace])
+
+    let dataset: { name: string, namespace: string, variables: { id: number, name: string }[] }|undefined
+    for (const row of rows) {
+        if (!dataset || row.datasetName !== dataset.name) {
+            if (dataset)
+                datasets.push(dataset)
+
+            dataset = {
+                name: row.datasetName,
+                namespace: row.namespace,
+                variables: []
+            }
+        }
+
+        dataset.variables.push({
+            id: row.id,
+            name: row.name
+        })
+    }
+
+    if (dataset)
+        datasets.push(dataset)
+
+    res.send({
+        datasets: datasets
+    })
+}
+
 export async function getVariables(req: Request, res: Response) {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
     res.send(await getVariableData(variableIds))
