@@ -1,3 +1,5 @@
+import * as path from 'path'
+
 require('module-alias').addAliases({
     'react'  : 'preact-compat',
     'react-dom': 'preact-compat'
@@ -15,10 +17,13 @@ interface Settings {
     WEBPACK_DEV_URL: string
     BAKED_URL: string
     ASSETS_URL: string
+    BASE_DIR: string
 }
 
 const env: Settings = (process.env as any)
 
 env.ENV = env.ENV === "production" ? "production" : "development"
+
+env.BASE_DIR = path.join(__dirname, "../")
 
 export = env
