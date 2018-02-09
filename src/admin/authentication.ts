@@ -43,4 +43,5 @@ async function authenticate(req: express.Request, res: express.Response, next: e
 
 export function authMiddleware(app: express.Express) {
     app.use(cookieParser())
+    app.use(authenticate)
 }

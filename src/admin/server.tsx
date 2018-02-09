@@ -7,14 +7,12 @@ import AdminSPA from './AdminSPA'
 
 import {authMiddleware} from './authentication'
 
-
 const app = express()
 
 authMiddleware(app)
 
 app.use(express.json())
 db.connect()
-
 
 function renderToHtmlPage(element: any) {
     return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -28,7 +26,9 @@ app.get('*', (req, res) => {
     const currentUser = "jaiden"
     const isDebug = true
 
-    res.send(renderToHtmlPage(<AdminSPA username={res.locals.user.username}/>))
+    const rootUrl = `${req.protocol}://${req.get('host')}`
+
+    res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.username}/>))
 })
 
 app.listen(3000, () => console.log("Express started"))

@@ -94,7 +94,7 @@ export default class ChartEditor {
 
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        const data = await this.props.admin.getJSON(`editorData/${namespace}.${this.props.admin.cacheTag}.json`)
+        const data = await this.props.admin.getJSON(`editorData/${namespace}.json`)
         runInAction(() => this.database.dataByNamespace.set(namespace, data))
     }
 

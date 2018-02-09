@@ -13,12 +13,10 @@ export default class Admin {
     @observable errorMessage?: { title: string, content: string, isFatal?: true }
     grapherRoot: string
     basePath: string
-    cacheTag: string
     username: string
-    constructor(rootUrl: string, cacheTag: string, username: string) {
+    constructor(rootUrl: string, username: string) {
         this.grapherRoot = rootUrl
         this.basePath = "/grapher/admin"
-        this.cacheTag = cacheTag
         this.username = username
     }
 

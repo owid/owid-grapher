@@ -59,7 +59,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
 
     async fetchData() {
         const {admin} = this.context
-        const json = await admin.getJSON(`editorData/namespaces.${admin.cacheTag}.json`)
+        const json = await admin.getJSON(`editorData/namespaces.json`)
         runInAction(() => this.database = new EditorDatabase(json))
     }
 
