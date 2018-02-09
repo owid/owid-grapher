@@ -42,7 +42,7 @@ gbd_category_name_in_db = 'Global Burden of Disease Datasets - Causes'  # set th
 # below are the field values that we should include in our data import
 measure_names = ['Deaths', 'DALYs (Disability-Adjusted Life Years)']
 age_names = ['All Ages', 'Age-standardized', 'Under 5', '5-14 years', '15-49 years', '50-69 years', '70+ years']
-metric_names = ['Number', 'Rate']
+metric_names = ['Number', 'Rate', 'Percent']
 sex_names = ['Both']
 new_datasets_list = []
 existing_datasets_list = []
@@ -151,6 +151,8 @@ with transaction.atomic():
                     if row['location_name'] not in c_name_entity_ref:
                         if row['location_name'] == 'Global':
                             newentity = Entity.objects.get(name='World')
+                        elif row['location_name'] == 'High-income North America':
+                            newentity = Entity.objects.get(name='North America')
                         elif country_tool_names_dict.get(unidecode.unidecode(row['location_name'].lower()), 0):
                             newentity = Entity.objects.get(
                                 name=country_tool_names_dict[unidecode.unidecode(row['location_name'].lower())].owid_name)
@@ -161,7 +163,7 @@ with transaction.atomic():
                             newentity.save()
                         c_name_entity_ref[row['location_name']] = newentity
 
-                    data_values_tuple_list.append((row['val'], int(row['year']),
+                    data_values_tuple_list.append((str(float(row['val'])*100) if row['metric_name'] == 'Percent' else row['val'], int(row['year']),
                                                    c_name_entity_ref[row['location_name']].pk, variable_name_to_object[variable_name].pk))
 
                     if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
