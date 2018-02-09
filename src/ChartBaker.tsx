@@ -76,7 +76,7 @@ export class ChartBaker {
 
     async bakeVariableData(variableIds: number[], outPath: string): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
-        const vardata = await getVariableData(variableIds, this.db)
+        const vardata = await getVariableData(variableIds)
         await fs.writeFile(outPath, vardata)
         this.stage(outPath)
         return vardata

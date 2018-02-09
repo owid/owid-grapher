@@ -64,7 +64,7 @@ async function main(chartUrls: string[], outDir: string) {
 
                 if (!fs.existsSync(outPath)) {
                     const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
-                    const vardata = await getVariableData(variableIds, db)
+                    const vardata = await getVariableData(variableIds)
                     chart.vardata.receiveData(vardata)
                     fs.writeFile(outPath, chart.staticSVG)
                 }

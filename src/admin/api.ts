@@ -53,7 +53,7 @@ export async function getChartsJson(req: Request, res: Response) {
         chart.variables = variablesByChartId.get(chart.id)
     }
 
-    const numTotalCharts = (await db.query(`SELECT COUNT(*) FROM charts AS total`))[0].total
+    const numTotalCharts = (await db.query(`SELECT COUNT(*) AS total FROM charts`))[0].total
 
     res.send({
         charts: charts,
