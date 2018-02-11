@@ -113,6 +113,21 @@ def listunsdgdatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listgbdprevalencedatasets(request: HttpRequest):
+    variables = Variable.objects.filter(fk_dst_id__namespace='gbd_prevalence')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
+            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.gbdprevalence.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def listilostatdatasets(request: HttpRequest):
     variables = Variable.objects.filter(fk_dst_id__namespace='ilostat')
     datasets: Dict = {}
