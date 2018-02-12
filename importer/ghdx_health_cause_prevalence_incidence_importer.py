@@ -27,7 +27,7 @@ import zipfile
 # but will not delete any variables.
 ###############################################################
 
-ghdx_downloads_save_location = settings.BASE_DIR + '/data/health_data_cause/'
+ghdx_downloads_save_location = settings.BASE_DIR + '/data/health_data_cause_prevalence_incidence/'
 
 source_description = {
     'dataPublishedBy': "Global Burden of Disease Collaborative Network. Global Burden of Disease Study 2016 (GBD 2016) Results. Seattle, United States: Institute for Health Metrics and Evaluation (IHME), 2017.",
@@ -37,10 +37,10 @@ source_description = {
     'additionalInfo': None
 }
 
-gbd_category_name_in_db = 'Global Burden of Disease Datasets - Causes'  # set the name of the root category of all data that will be imported by this script
+gbd_category_name_in_db = 'Global Burden of Disease Datasets - Causes - Prevalence and Incidence'  # set the name of the root category of all data that will be imported by this script
 
 # below are the field values that we should include in our data import
-measure_names = ['Deaths', 'DALYs (Disability-Adjusted Life Years)']
+measure_names = ['Prevalence', 'Incidence']
 age_names = ['All Ages', 'Age-standardized', 'Under 5', '5-14 years', '15-49 years', '50-69 years', '70+ years']
 metric_names = ['Number', 'Rate', 'Percent']
 sex_names = ['Both']
@@ -63,7 +63,7 @@ with transaction.atomic():
     existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-    existing_variables = Variable.objects.filter(fk_dst_id__namespace='gbd_cause').values('name')
+    existing_variables = Variable.objects.filter(fk_dst_id__namespace='gbd_prevalence').values('name')
     existing_variables_list = {item['name'] for item in existing_variables}
 
     dataset_name_to_object = {}
@@ -103,7 +103,7 @@ with transaction.atomic():
                         the_subcategory.save()
                         newdataset = Dataset(name=row['cause_name'],
                                              description='This is a dataset imported by the automated fetcher',
-                                             namespace='gbd_cause', fk_dst_cat_id=the_category,
+                                             namespace='gbd_prevalence', fk_dst_cat_id=the_category,
                                              fk_dst_subcat_id=the_subcategory)
                         newdataset.save()
                         dataset_name_to_object[row['cause_name']] = newdataset
@@ -187,9 +187,9 @@ with transaction.atomic():
 # for dataset in new_datasets_list:
 #     write_dataset_csv(dataset.pk, dataset.name, None, 'gbd_cause_fetcher', '')
 
-newimport = ImportHistory(import_type='gbd_cause', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+newimport = ImportHistory(import_type='gbd_prevalence', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='A gbd import was performed',
-                                  import_state='There are a total of %s gbd_cause variables after the import' % Variable.objects.filter(fk_dst_id__namespace='gbd_cause').count())
+                                  import_state='There are a total of %s gbd_prevalence variables after the import' % Variable.objects.filter(fk_dst_id__namespace='gbd_prevalence').count())
 newimport.save()
 
 print("--- %s seconds ---" % (time.time() - start_time))

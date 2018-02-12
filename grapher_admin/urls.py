@@ -77,6 +77,8 @@ urlpatterns = [
     url(r'^grapher/admin/gbdriskdatasets/?$', importer_views.listgbdriskdatasets, name="listgbdriskdatasets"),
     url(r'^grapher/admin/ilostatdatasets/?$', importer_views.listilostatdatasets, name="listilostatdatasets"),
     url(r'^grapher/admin/unsdgdatasets/?$', importer_views.listunsdgdatasets, name="listunsdgdatasets"),
+    url(r'^grapher/admin/gbdprevalencedatasets/?$', importer_views.listgbdprevalencedatasets, name="listgbdprevalencedatasets"),
+    url(r'^grapher/admin/gbdmentalhealthdatasets/?$', importer_views.listgbdmentalhealthdatasets, name="listgbdmentalhealthdatasets"),
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     # for future use on the frontend
