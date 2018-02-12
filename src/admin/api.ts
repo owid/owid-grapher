@@ -129,3 +129,11 @@ export async function starChart(req: Request, res: Response) {
 
     res.send({ success: true })
 }
+
+export async function createChart(req: Request, res: Response) {
+    console.log(req.body)
+}
+
+export async function updateChart(req: Request, res: Response) {
+
+}

@@ -29,6 +29,8 @@ app.get('/admin/api/charts/:chartId.config.json', api.getChartConfig)
 app.get('/admin/api/data/variables/:variableStr', api.getVariables)
 app.get('/admin/api/editorData/namespaces.json', api.getNamespaces)
 app.get('/admin/api/editorData/:namespace.json', api.getNamespaceData)
+app.post('/admin/api/charts', api.createChart)
+app.post('/admin/api/charts/:chartId', api.updateChart)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 //url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
@@ -47,7 +49,7 @@ app.get('*', (req, res) => {
 
     const rootUrl = `${req.protocol}://${req.get('host')}`
 
-    res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.username}/>))
+    res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.name}/>))
 })
 
 app.listen(3000, () => console.log("Express started"))

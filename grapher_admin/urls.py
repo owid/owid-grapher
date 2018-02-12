@@ -25,13 +25,6 @@ from django.contrib.auth.views import logout
 
 urlpatterns = [
     ### Admin-only
-    url(r'^grapher/admin/?$', admin_views.listcharts, name="listcharts"),
-    url(r'^grapher/admin/charts$', admin_views.storechart, name="storechart"),  # post request for storing
-    url(r'^grapher/admin/charts/create/?$', admin_views.createchart, name="createchart"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+).config.json$', admin_views.config_json_by_id, name="configjsonbyid"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit/?$', admin_views.editchart, name="editchart"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"),  # update, destroy requests
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
     url(r'^grapher/admin/import/?$', admin_views.importdata, name="importdata"),
     url(r'^grapher/admin/import/variables$', admin_views.store_import_data, name="storeimportdata"),  # data import post requests
     url(r'^grapher/admin/datasets/?$', admin_views.listdatasets, name="listdatasets"),

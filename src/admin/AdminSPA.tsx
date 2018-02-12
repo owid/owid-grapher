@@ -7,7 +7,7 @@ export default function AdminSPA(props: { rootUrl: string, username: string }) {
         Global.rootUrl = "${props.rootUrl}"
         window.App = {}
         App.isEditor = true
-        window.admin = new Admin(Global.rootUrl, ${props.username})
+        window.admin = new Admin(Global.rootUrl, "${props.username}")
         admin.start(document.body)
     `
     return <html lang="en">

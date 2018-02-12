@@ -101,7 +101,7 @@ export default class ChartEditor {
     async saveChart({ onError }: { onError?: () => void } = {}) {
         const { chart, isNewChart } = this
 
-        const targetUrl = isNewChart ? "charts" : `charts/${chart.props.id}`
+        const targetUrl = isNewChart ? "/api/charts" : `/api/charts/${chart.props.id}`
 
         const json = await this.props.admin.requestJSON(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT')
 

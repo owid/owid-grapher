@@ -4,7 +4,7 @@
     "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon dist/src/admin/server.js\"",
     "serve": "nodemon dist/src/server.js",
     "lint": "tslint --project . -t verbose",
-    "build": "webpack -p --progress"
+    "build": "tsc && webpack -p --progress"
   },
   "dependencies": {
     "@types/async": "^2.0.45",
