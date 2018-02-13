@@ -85,7 +85,7 @@ export default class DataTab extends React.Component<{ bounds: Bounds, chart: Ch
         return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
             <div style={{"max-width": "100%"}}>
                 <p>Download a CSV file containing all data used in this visualization:</p>
-                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" target="_blank" onClick={this.onDownload}><i className="fa fa-download"></i> {csvFilename}</a>
+                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" onClick={this.onDownload}><i className="fa fa-download"></i> {csvFilename}</a>
             </div>
         </div>
     }
