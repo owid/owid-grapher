@@ -1,4 +1,4 @@
-import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
+import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
 import DataKey from './DataKey'
@@ -251,7 +251,7 @@ export default class ChartData {
             return this.availableKeys.map(key => this.lookupKey(key)).filter(d => d.dimension.variableId === dim.variableId).map(d => d.entity)
         })
 
-        return intersection(...entitiesForDimensions)
+        return union(...entitiesForDimensions)
     }
 
     switchEntity(entityId: number) {
