@@ -19,7 +19,6 @@ interface TimelineProps {
 
 @observer
 export default class Timeline extends React.Component<TimelineProps> {
-    props: TimelineProps
     base: HTMLDivElement
 
     @observable startYearInput: number
@@ -251,7 +250,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         this.endYearInput = inputYear
     }
 
-    mouseFrameQueued: boolean
+    mouseFrameQueued: boolean = false
 
     @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
         const { dragTarget, mouseFrameQueued } = this
@@ -312,9 +311,9 @@ export default class Timeline extends React.Component<TimelineProps> {
             </div>
             <div>{formatYear(minYear)}</div>
             <div className="slider">
-                <div className="handle" style={{ left: `${startYearProgress * 100}%` }} />
+                <div className="handle startMarker" style={{ left: `${startYearProgress * 100}%` }} />
                 <div className="interval" style={{ left: `${startYearProgress * 100}%`, right: `${100 - (endYearProgress * 100)}%` }} />
-                <div className="handle" style={{ left: `${endYearProgress * 100}%` }} />
+                <div className="handle endMarker" style={{ left: `${endYearProgress * 100}%` }} />
             </div>
             <div>{formatYear(maxYear)}</div>
         </div>
