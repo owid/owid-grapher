@@ -62,7 +62,7 @@ function showChartType(chart: ChartMeta) {
 
 @observer
 class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: string) => any, onDelete: (chart: ChartMeta) => void, onStar: (chart: ChartMeta) => void }> {
-    context: { admin: Admin }
+    context!: { admin: Admin }
 
     render() {
         const {chart, highlight} = this.props
@@ -99,7 +99,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
 
 @observer
 export default class ChartIndexPage extends React.Component {
-    context: { admin: Admin }
+    context!: { admin: Admin }
 
     @observable searchInput?: string
     @computed get wantsSearch(): boolean { return !!this.searchInput }
@@ -233,7 +233,7 @@ export default class ChartIndexPage extends React.Component {
         })
     }
 
-    dispose: IReactionDisposer
+    dispose!: IReactionDisposer
     componentDidMount() {
         this.dispose = reaction(
             () => this.needsMoreData,

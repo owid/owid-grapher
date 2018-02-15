@@ -200,7 +200,6 @@ export async function createChart(req: Request, res: Response) {
 export async function updateChart(req: Request, res: Response) {
     let existingConfig: ChartConfigProps|undefined
     const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [req.params.chartId]))[0]
-    console.log(req.params.chartId)
 
     if (chart) {
         const config = JSON.parse(chart.config)

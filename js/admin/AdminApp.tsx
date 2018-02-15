@@ -12,7 +12,7 @@ import { LoadingBlocker, Modal } from './Forms'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
     @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
         if (e.target === this.base)
             this.props.onDismiss()

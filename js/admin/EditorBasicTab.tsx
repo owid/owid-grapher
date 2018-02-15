@@ -12,7 +12,7 @@ import DimensionCard from './DimensionCard'
 
 @observer
 class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
-    dispose: IReactionDisposer
+    dispose!: IReactionDisposer
 
     @observable.ref isSelectingVariables: boolean = false
 
@@ -78,7 +78,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 @observer
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
     @observable.ref isAddingVariable: boolean = false
     @observable.struct unassignedVariables: Variable[] = []
 

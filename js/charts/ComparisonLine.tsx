@@ -38,7 +38,7 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
         return line(controlData)
     }
 
-    renderUid: number
+    renderUid!: number
     componentWillMount() {
         this.renderUid = guid()
     }

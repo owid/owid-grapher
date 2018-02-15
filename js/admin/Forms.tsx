@@ -43,7 +43,7 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    base: HTMLDivElement
+    base!: HTMLDivElement
     componentDidMount() {
         if (this.props.autofocus) {
             const input = this.base.querySelector("input") as HTMLInputElement
@@ -291,7 +291,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number }> {
+export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }
@@ -309,7 +309,7 @@ export class BindString<T extends {[field: string]: string|undefined}, K extends
 }
 
 @observer
-export class BindAutoString<T extends {[field: string]: string|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string, softCharacterLimit?: number }> {
+export class BindAutoString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string, softCharacterLimit?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value
     }
@@ -354,7 +354,7 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
 }
 
 @observer
-export class BindAutoFloat<T extends {[field: string]: number|undefined}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
+export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
     @action.bound onValue(value: number|undefined) {
         this.props.store[this.props.field] = value
     }
@@ -374,7 +374,7 @@ export class BindAutoFloat<T extends {[field: string]: number|undefined}, K exte
 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
 
     @action.bound onClickOutside() {
         this.props.onClose()

@@ -10,8 +10,8 @@ import FuzzySearch from './FuzzySearch'
 @observer
 export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
-    searchField: HTMLInputElement
-    base: HTMLDivElement
+    searchField!: HTMLInputElement
+    base!: HTMLDivElement
 
     @computed get availableData(): DataKeyInfo[] {
         const { chart } = this.props
@@ -95,8 +95,8 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
 @observer
 export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
-    searchField: HTMLInputElement
-    base: HTMLDivElement
+    searchField!: HTMLInputElement
+    base!: HTMLDivElement
 
     @computed get availableItems() {
         const availableItems: { id: number, label: string }[] = []

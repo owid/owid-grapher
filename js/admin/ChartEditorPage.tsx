@@ -18,7 +18,7 @@ import { Modal, LoadingBlocker } from './Forms'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
-    dispose: IReactionDisposer
+    dispose!: IReactionDisposer
     componentDidMount() {
         //window.addEventListener("hashchange", this.onHashChange)
         this.onHashChange()
@@ -48,7 +48,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 export default class ChartEditorPage extends React.Component<{ chartId?: number }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
-    context: { admin: Admin }
+    context!: { admin: Admin }
 
     async fetchChart() {
         const {chartId} = this.props
@@ -81,7 +81,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
         this.fetchData()
     }
 
-    dispose: IReactionDisposer
+    dispose!: IReactionDisposer
     componentDidMount() {
         this.dispose = reaction(
             () => this.props.chartId,

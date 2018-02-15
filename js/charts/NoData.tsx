@@ -6,7 +6,7 @@ import {observer} from 'mobx-react'
 
 @observer
 export default class NoData extends React.Component<{ bounds: Bounds, message?: string }> {
-    context: { chart: ChartConfig }
+    context!: { chart: ChartConfig }
 
     render() {
         const { bounds, message } = this.props
