@@ -1,11 +1,17 @@
 import * as express from 'express'
 import * as db from '../db'
 
-interface User {
+export interface User {
     id: number
     name: string
     email: string
     fullName: string
+}
+
+export type Request = express.Request
+
+export interface Response extends express.Response {
+    locals: { user: User }
 }
 
 export async function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {

@@ -11,7 +11,30 @@ export function connect() {
     })
 }
 
-export function query(queryStr: string, params?: any[]): Promise<any[]> {
+export function transaction<T>(callback: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        conn.beginTransaction(err => {
+            if (err) reject(err)
+
+            callback().then(() => {
+                conn.commit(err2 => {
+                    if (err2) {
+                        conn.rollback(() => {
+                            reject(err2)
+                        })
+                    }
+                    resolve()
+                })
+            }).catch((err2) => {
+                conn.rollback(() => {
+                    reject(err2)
+                })
+            })
+        })
+    })
+}
+
+export function query(queryStr: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
         conn.query(queryStr, params, (err, rows) => {
             if (err) return reject(err)

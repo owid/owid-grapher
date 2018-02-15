@@ -30,7 +30,7 @@ app.get('/admin/api/data/variables/:variableStr', api.getVariables)
 app.get('/admin/api/editorData/namespaces.json', api.getNamespaces)
 app.get('/admin/api/editorData/:namespace.json', api.getNamespaceData)
 app.post('/admin/api/charts', api.createChart)
-app.post('/admin/api/charts/:chartId', api.updateChart)
+app.put('/admin/api/charts/:chartId', api.updateChart)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 //url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
@@ -41,7 +41,6 @@ function renderToHtmlPage(element: any) {
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    console.log(res.locals.user)
     const baseUrl = "http://l:3000/grapher"
     const cacheTag = "waffles"
     const currentUser = "jaiden"
