@@ -155,11 +155,11 @@ with transaction.atomic():
             if varname not in existing_variables_list:
                 newsource = Source(name=varname,
                                    description=json.dumps(source_description),
-                                   datasetId=newdataset.pk)
+                                   datasetId=dataset_name_to_object[subcategory_name].pk)
                 newsource.save()
                 source_name_to_object[varname] = newsource
             else:
-                newsource = Source.objects.get(name=varname, datasetId=newdataset.pk)
+                newsource = Source.objects.get(name=varname, datasetId=dataset_name_to_object[subcategory_name].pk)
                 newsource.description = json.dumps(source_description)
                 newsource.save()
                 source_name_to_object[varname] = newsource
