@@ -30,8 +30,8 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     @observable.ref isProjection?: true
     @observable.ref tolerance?: number
     @observable.ref chosenVariables: Variable[] = []
-    searchField: HTMLInputElement
-    scrollElement: HTMLDivElement
+    searchField!: HTMLInputElement
+    scrollElement!: HTMLDivElement
 
     @observable rowOffset: number = 0
     @observable numVisibleRows: number = 15
@@ -212,8 +212,8 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         this.props.onDismiss()
     }
 
-    dispose: IReactionDisposer
-    base: HTMLDivElement
+    dispose!: IReactionDisposer
+    base!: HTMLDivElement
     componentDidMount() {
         this.dispose = autorun(() => {
             if (!this.editorData)

@@ -108,9 +108,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
-    @observable.ref htmlNode: HTMLDivElement
-    @observable.ref svgNode: SVGSVGElement
-    base: HTMLDivElement
+    @observable.ref htmlNode!: HTMLDivElement
+    @observable.ref svgNode!: SVGSVGElement
+    base!: HTMLDivElement
     hasFadedIn: boolean = false
 
     @computed get classNames(): string {

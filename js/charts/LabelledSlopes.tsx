@@ -72,8 +72,6 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         }
     }
 
-    props: AxisProps
-
     @computed get ticks() {
         return SlopeChartAxis.getTicks(this.props.scale, this.props.scaleType)
     }
@@ -115,7 +113,6 @@ export interface SlopeProps {
 
 @observer
 class Slope extends React.Component<SlopeProps> {
-    props: SlopeProps
     line: SVGElement
 
     render() {

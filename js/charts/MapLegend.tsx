@@ -171,7 +171,7 @@ class NumericMapLegend {
 
 @observer
 class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x: number, y: number, onMouseOver: (d: MapLegendBin) => void, onMouseLeave: () => void }> {
-    base: SVGGElement
+    base!: SVGGElement
 
     @computed get bounds(): Bounds {
         const { props } = this

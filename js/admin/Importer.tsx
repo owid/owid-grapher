@@ -657,7 +657,7 @@ export default class Importer extends React.Component<{ datasets: any[], categor
         ReactDOM.render(<Importer datasets={props.datasets} categories={props.categories} sourceTemplate={props.sourceTemplate.meta_value} existingEntities={props.entityNames} />, document.getElementById("import-view"))
     }
 
-    @observable csv: CSV
+    @observable csv!: CSV
     @observable.ref dataset = new Dataset()
 
     @action.bound onChooseDataset({ target }: { target: HTMLSelectElement }) {

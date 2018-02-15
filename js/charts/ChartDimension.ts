@@ -4,8 +4,8 @@
 import {observable} from 'mobx'
 
 export default class ChartDimension {
-    @observable property: string
-    @observable variableId: number
+    @observable property!: string
+    @observable variableId!: number
     @observable displayName?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined

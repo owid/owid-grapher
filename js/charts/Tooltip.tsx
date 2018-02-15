@@ -13,7 +13,7 @@ export interface TooltipProps {
 
 @observer
 class TooltipView extends React.Component<TooltipProps> {
-    context: { chartView: ChartView }
+    context!: { chartView: ChartView }
 
     @computed get rendered() {
         const { props, bounds } = this
@@ -41,7 +41,7 @@ class TooltipView extends React.Component<TooltipProps> {
         </div>
     }
 
-    base: HTMLDivElement
+    base!: HTMLDivElement
     @observable.struct bounds?: Bounds
     componentDidMount() {
         this.componentDidUpdate()

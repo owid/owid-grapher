@@ -37,7 +37,7 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 export class Areas extends React.Component<AreasProps> {
-    base: SVGGElement
+    base!: SVGGElement
 
     @observable hoverIndex?: number
 
@@ -125,7 +125,7 @@ export class Areas extends React.Component<AreasProps> {
 
 @observer
 export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base: SVGGElement
+    base!: SVGGElement
 
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }

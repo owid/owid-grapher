@@ -22,7 +22,7 @@ export interface DiscreteBarDatum {
 
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base: SVGGElement
+    base!: SVGGElement
 
     @computed get chart() { return this.props.chart }
     @computed.struct get bounds() { return this.props.bounds.padRight(10) }
@@ -111,7 +111,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         })
     }
 
-    dispose: IReactionDisposer
+    dispose!: IReactionDisposer
     componentDidMount() {
         this.dispose = autorun(() => {
             if (this.failMessage) return

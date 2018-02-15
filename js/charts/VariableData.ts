@@ -10,14 +10,14 @@ declare var Global: { rootUrl: string }
 declare var App: { isEditor: boolean }
 
 export class Variable {
-    @observable.ref id: number
-    @observable.ref name: string
-    @observable.ref description: string
-    @observable.ref unit: string
-    @observable.ref shortUnit: string
-    @observable.ref coverage: string
-    @observable.ref timespan: string
-    @observable.ref datasetName: string
+    @observable.ref id!: number
+    @observable.ref name!: string
+    @observable.ref description!: string
+    @observable.ref unit!: string
+    @observable.ref shortUnit!: string
+    @observable.ref coverage!: string
+    @observable.ref timespan!: string
+    @observable.ref datasetName!: string
 
     @observable.ref displayName?: string = undefined
     @observable.ref displayUnit?: string = undefined
@@ -27,7 +27,7 @@ export class Variable {
     @observable.ref displayIsProjection?: boolean = undefined
     @observable.ref displayNumDecimalPlaces?: number = undefined
 
-    @observable.struct source: {
+    @observable.struct source!: {
         id: number,
         name: string,
         dataPublishedBy: string,
@@ -40,7 +40,7 @@ export class Variable {
     @observable.ref entities: string[] = []
     @observable.ref values: (string | number)[] = []
 
-    constructor(meta: Partial<Variable>) {
+    constructor(meta: any) {
         extend(this, meta)
     }
 

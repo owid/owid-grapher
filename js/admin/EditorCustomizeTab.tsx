@@ -33,7 +33,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 
 @observer
 class TimeSection extends React.Component<{ editor: ChartEditor }> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
 
     @computed get chart() { return this.props.editor.chart }
 
