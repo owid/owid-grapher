@@ -10,10 +10,10 @@ import * as ReactDOMServer from 'react-dom/server'
 import { getVariableData } from './models/Variable'
 import {ChartPage} from './ChartPage'
 import * as path from 'path'
-import * as md5 from 'md5'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeImageExports } from './svgPngExport'
+const md5 = require('md5')
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
