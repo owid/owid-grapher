@@ -57,7 +57,7 @@
 										by {{ chart.last_edited_by }}
 									{% endif %}
 								</td>
-								<td><a href="{% url 'editchart' chart.id %}" class="btn btn-primary">Edit</a></td>
+								<td><a href="/admin/charts/{{chart.id}}/edit" class="btn btn-primary">Edit</a></td>
 								<td>
 									<form method="POST" action="{% url 'managechart' chart.id %}" accept-charset="UTF-8" class="form-inline">
                                         <input name="_method" type="hidden" value="DELETE">

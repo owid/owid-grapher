@@ -12,7 +12,7 @@ export default function AdminSPA(props: { rootUrl: string, username: string }) {
     `
     return <html lang="en">
         <head>
-            <title>owid-grapher</title>
+            <title>owid-admin</title>
             <meta name="description" content=""/>
             <link href={webpack("charts.css")} rel="stylesheet" type="text/css"/>
             <link href={webpack("editor.css")} rel="stylesheet" type="text/css"/>

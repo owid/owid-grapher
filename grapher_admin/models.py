@@ -264,16 +264,6 @@ class DataValue(Model):
     year = models.IntegerField()
 
 
-class InputFile(Model):
-    class Meta:
-        db_table = 'input_files'
-
-    raw_data = models.TextField()
-    fk_user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='fk_user_id')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class License(Model):
     class Meta:
         db_table = 'licenses'

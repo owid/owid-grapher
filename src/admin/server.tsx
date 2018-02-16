@@ -23,14 +23,17 @@ app.use(express.json())
 
 db.connect()
 
-app.get('/admin/api/charts.json', api.getChartsJson)
-app.post('/admin/api/charts/:chartId/star', api.starChart)
-app.get('/admin/api/charts/:chartId.config.json', api.getChartConfig)
-app.get('/admin/api/data/variables/:variableStr', api.getVariables)
-app.get('/admin/api/editorData/namespaces.json', api.getNamespaces)
-app.get('/admin/api/editorData/:namespace.json', api.getNamespaceData)
-app.post('/admin/api/charts', api.createChart)
-app.put('/admin/api/charts/:chartId', api.updateChart)
+app.get('/admin/api/charts.json', api.chartsIndex)
+app.post('/admin/api/charts/:chartId/star', api.chartsStar)
+app.get('/admin/api/charts/:chartId.config.json', api.chartsConfig)
+app.get('/admin/api/data/variables/:variableStr', api.variablesGet)
+app.get('/admin/api/editorData/namespaces.json', api.editorNamespaces)
+app.get('/admin/api/editorData/:namespace.json', api.editorDataForNamespace)
+app.post('/admin/api/charts', api.chartsCreate)
+app.put('/admin/api/charts/:chartId', api.chartsUpdate)
+app.delete('/admin/api/charts/:chartId', api.chartsDelete)
+app.get('/admin/api/users.json', api.usersIndex)
+app.delete('/admin/api/users/:userId', api.usersDelete)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 //url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),

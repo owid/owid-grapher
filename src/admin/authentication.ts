@@ -6,6 +6,7 @@ export interface User {
     name: string
     email: string
     fullName: string
+    isSuperuser: boolean
 }
 
 export type Request = express.Request
@@ -24,16 +25,7 @@ export async function authMiddleware(req: express.Request, res: express.Response
             const sessionData = Buffer.from(rows[0].session_data, 'base64').toString('utf8')
             const session = JSON.parse(sessionData.split(":").slice(1).join(":"))
 
-            const userRows = await db.query(`SELECT * FROM users WHERE id = ?`, [session._auth_user_id])
-            if (userRows.length) {
-                const row = userRows[0]
-                user = {
-                    id: row.id,
-                    name: row.name,
-                    email: row.email,
-                    fullName: row.full_name
-                }
-            }
+            user = (await db.query(`SELECT id, name, email, full_name as fullName, is_superuser as isSuperuser FROM users WHERE id = ?`, [session._auth_user_id]))[0]
         }
     }
 

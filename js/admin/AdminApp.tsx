@@ -5,6 +5,7 @@ import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
+import UsersIndexPage from './UsersIndexPage'
 import AdminSidebar from './AdminSidebar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
@@ -78,7 +79,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <button className="navbar-toggler" type="button" onClick={this.onToggleSidebar}>
                         <span className="navbar-toggler-icon"></span>
                     </button>
-                    <Link className="navbar-brand" to="/">owid-grapher</Link>
+                    <Link className="navbar-brand" to="/">owid-admin</Link>
                     <ul className="navbar-nav">
                         <li className="nav-item">
                             <Link className="nav-link" to="/charts/create" native>
@@ -93,9 +94,9 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     </ul>
                     <ul className="navbar-nav ml-auto">
                         <li className="nav-item">
-                            <Link className="nav-link logout" to="/logout" native>
+                            <a className="nav-link logout" href="/grapher/admin/logout">
                                 {admin.username}
-                            </Link>
+                            </a>
                         </li>
                     </ul>
                     {/* This lets the public frontend know to show edit links and such */}
@@ -108,6 +109,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 <Switch>
                     <Route path="/charts/create" component={ChartEditorPage}/>
                     <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
+                    <Route path="/users" component={UsersIndexPage}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>
             </div>
