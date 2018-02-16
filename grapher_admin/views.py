@@ -94,7 +94,7 @@ def test_all(request):
 
     charts_per_page = 5
 
-    query = Chart.objects.filter(config__isPublished=True).exclude(origin_url='').order_by('-created_at')
+    query = Chart.objects.filter(config__isPublished=True).order_by('-created_at')
 
     if test_type and test_type != 'map':
         query = query.filter(type=test_type)
@@ -110,8 +110,8 @@ def test_all(request):
             continue
 
         count += 1
-        local_url = request.build_absolute_uri('/grapher/') + each.slug
-        live_url = "https://ourworldindata.org/grapher/" + each.slug
+        local_url = request.build_absolute_uri('/grapher/') + each.config['slug']
+        live_url = "https://ourworldindata.org/grapher/" + each.config['slug']
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
 
@@ -332,7 +332,7 @@ def editordata(request: HttpRequest, cachetag: Optional[str]):
 
 def _post_update(request, chart: Chart):
     # Bake published charts into static build
-    Chart.bake(request.user, chart.slug)
+    Chart.bake(request.user, chart.config['slug'])
 
     return JsonResponse({'success': True, 'data': {'id': chart.pk}})
 
@@ -387,19 +387,8 @@ def savechart(request, chart: Chart, data: Dict, user: User):
             newdim.save()
 
             if dim.get('saveToVariable'):
-                if newdim.displayName:
-                    variable.displayName = newdim.displayName
-                if newdim.unit:
-                    variable.displayUnit = newdim.unit
-                if newdim.shortUnit:
-                    variable.displayShortUnit = newdim.shortUnit
-                if newdim.conversionFactor:
-                    variable.displayUnitConversionFactor = newdim.conversionFactor
-                if 'tolerance' in dim:
-                    variable.displayTolerance = newdim.tolerance
-                if 'numDecimalPlaces' in dim:
-                    variable.displayNumDecimalPlaces = newdim.numDecimalPlaces
-                variable.displayIsProjection = bool(newdim.isProjection)
+                for key in dim['display']:
+                    variable.display[key] = dim['display'][key]
                 variable.save()
 
     if wasPublished:
@@ -439,7 +428,7 @@ def starchart(request: HttpRequest, chartid: str):
         chart.starred = True
         chart.save()
 
-    Chart.bake(request.user, chart.slug)
+    Chart.bake(request.user, chart.config['slug'])
 
     return JsonResponse({'success': True})
 
@@ -2005,8 +1994,7 @@ def variables(request, ids):
     variable_ids = [int(idStr) for idStr in ids.split('+')]
     variables = Variable.objects.filter(id__in=variable_ids).select_related('fk_dst_id', 'sourceId').values(
         'id', 'name', 'description', 'unit', 'short_unit',
-        'displayName', 'displayUnit', 'displayShortUnit', 'displayUnitConversionFactor', 'displayTolerance', 'displayIsProjection',
-        'fk_dst_id__name', 'sourceId__pk', 'sourceId__name', 'sourceId__description'
+        'display', 'fk_dst_id__name', 'sourceId__pk', 'sourceId__name', 'sourceId__description'
     )
 
     # Process the metadata into a nicer form

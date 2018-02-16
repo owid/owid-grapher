@@ -208,6 +208,8 @@ class Variable(Model):
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
 
+    display = JSONField()
+
     # Separate "display" properties to allow overriding metadata for
     # display on charts while also preserving the original source metadata
     displayName = models.CharField(max_length=255, null=True)

@@ -17,11 +17,11 @@ export default class DimensionWithData {
     }
 
     @computed get displayName(): string {
-        return defaultTo(defaultTo(this.props.display.name, this.variable.displayName), this.variable.name)
+        return defaultTo(defaultTo(this.props.display.name, this.variable.display.name), this.variable.name)
     }
 
     @computed get unit(): string {
-        return defaultTo(defaultTo(this.props.display.unit, this.variable.displayUnit), this.variable.unit)
+        return defaultTo(defaultTo(this.props.display.unit, this.variable.display.unit), this.variable.unit)
     }
 
     // Full name of the variable with associated unit information, used for data export
@@ -30,11 +30,11 @@ export default class DimensionWithData {
     }
 
     @computed get unitConversionFactor(): number {
-        return defaultTo(defaultTo(this.props.display.conversionFactor, this.variable.displayUnitConversionFactor), 1)
+        return defaultTo(defaultTo(this.props.display.conversionFactor, this.variable.display.conversionFactor), 1)
     }
 
     @computed get isProjection(): boolean {
-        return !!defaultTo(this.props.display.isProjection, this.variable.displayIsProjection)
+        return !!defaultTo(this.props.display.isProjection, this.variable.display.isProjection)
     }
 
     @computed get targetYear(): number | undefined {
@@ -42,16 +42,16 @@ export default class DimensionWithData {
     }
 
     @computed get tolerance(): number {
-        return defaultTo(defaultTo(this.props.display.tolerance, this.variable.displayTolerance), 0)
+        return defaultTo(defaultTo(this.props.display.tolerance, this.variable.display.tolerance), 0)
     }
 
     @computed get numDecimalPlaces(): number {
-        return defaultTo(defaultTo(this.props.display.numDecimalPlaces, this.variable.displayNumDecimalPlaces), 2)
+        return defaultTo(defaultTo(this.props.display.numDecimalPlaces, this.variable.display.numDecimalPlaces), 2)
     }
 
     @computed get shortUnit(): string {
         const { unit } = this
-        const shortUnit = defaultTo(defaultTo(this.props.display.shortUnit, this.variable.displayShortUnit), this.variable.shortUnit||undefined)
+        const shortUnit = defaultTo(defaultTo(this.props.display.shortUnit, this.variable.display.shortUnit), this.variable.shortUnit||undefined)
 
         if (shortUnit !== undefined) return shortUnit
 

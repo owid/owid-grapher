@@ -2,16 +2,8 @@
 // and a particular variable that it requests as data
 
 import {observable} from 'mobx'
-
-interface VariableDisplaySettings {
-    name?: string
-    unit?: string
-    shortUnit?: string
-    isProjection?: true
-    conversionFactor?: number
-    numDecimalPlaces?: number
-    tolerance?: number
-}
+import {extend} from './Util'
+import {VariableDisplaySettings} from './VariableData'
 
 export default class ChartDimension {
     @observable property!: string
@@ -33,8 +25,13 @@ export default class ChartDimension {
     // for future charts
     @observable saveToVariable?: true = undefined
 
-    constructor(json: { property: string, variableId: number }) {
+    constructor(json: any) {
         for (const key in this) {
+            if (key === "display") {
+                extend(this.display, json.display)
+                continue
+            }
+
             if (key in json) {
                 (this as any)[key] = (json as any)[key]
             }
@@ -42,6 +39,6 @@ export default class ChartDimension {
             // XXX migrate this away (remember targetYear)
             if ((json as any)[key] === "" || (json as any)[key] === null)
                 (this as any)[key] = undefined
-            }
+        }
     }
 }
