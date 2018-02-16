@@ -210,16 +210,6 @@ class Variable(Model):
 
     display = JSONField()
 
-    # Separate "display" properties to allow overriding metadata for
-    # display on charts while also preserving the original source metadata
-    displayName = models.CharField(max_length=255, null=True)
-    displayUnit = models.CharField(max_length=255, null=True)
-    displayShortUnit = models.CharField(max_length=255, null=True)
-    displayUnitConversionFactor = models.FloatField(null=True)
-    displayIsProjection = models.NullBooleanField(null=True)
-    displayTolerance = models.IntegerField(null=True)
-    displayNumDecimalPlaces = models.IntegerField(null=True)
-
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
