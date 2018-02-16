@@ -384,14 +384,6 @@ def savechart(request, chart: Chart, data: Dict, user: User):
             newdim.variableId = variable
             newdim.property = dim.get('property', None)
             newdim.order = i
-
-            newdim.displayName = dim.get('displayName', None)
-            newdim.unit = dim.get('unit', None)
-            newdim.shortUnit = dim.get('shortUnit', None)
-            newdim.conversionFactor = dim.get('conversionFactor', None)
-            newdim.tolerance = dim.get('tolerance', None)
-            newdim.isProjection = dim.get('isProjection', None)
-            newdim.targetYear = dim.get('targetYear', None)
             newdim.save()
 
             if dim.get('saveToVariable'):

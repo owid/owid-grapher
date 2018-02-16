@@ -241,18 +241,6 @@ class ChartDimension(Model):
     order = models.IntegerField()
     property = models.CharField(max_length=255)
 
-    # These fields override the variable metadata on a per-chart basis
-    unit = models.CharField(max_length=255, null=True)
-    shortUnit = models.CharField(max_length=255, null=True)
-    displayName = models.CharField(max_length=255, db_column='displayName', null=True)
-    isProjection = models.NullBooleanField(null=True)
-    tolerance = models.IntegerField(null=True)
-    conversionFactor = models.FloatField(null=True)
-    numDecimalPlaces = models.IntegerField(null=True)
-
-    # XXX todo move this elsewhere
-    targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
-
 class ChartSlugRedirect(Model):
     class Meta:
         db_table = 'chart_slug_redirects'
