@@ -127,7 +127,7 @@ export default class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const json = await this.props.admin.requestJSON("charts", chartJson, 'POST')
+        const json = await this.props.admin.requestJSON("/api/charts", chartJson, 'POST')
         if (json.success)
             w.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
     }

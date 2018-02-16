@@ -94,7 +94,7 @@ def test_all(request):
 
     charts_per_page = 5
 
-    query = Chart.objects.filter(config__isPublished=True).exclude(origin_url='').order_by('-created_at')
+    query = Chart.objects.filter(config__isPublished=True).order_by('-created_at')
 
     if test_type and test_type != 'map':
         query = query.filter(type=test_type)
