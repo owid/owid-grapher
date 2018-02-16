@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="module-wrapper edit-datasource-module">
-		<a class="back-btn" href="{% url 'showsource' source.id %}"><i class="fa fa-arrow-left"></i>Back to the source</a>
+		<a class="back-btn" href="{% url 'managesource' source.id %}"><i class="fa fa-arrow-left"></i>Back to the source</a>
 		<h2>Edit source</h2>
 		<form method="POST" action="{% url 'managesource' source.id %}" accept-charset="UTF-8">
             <input name="_method" type="hidden" value="PATCH">

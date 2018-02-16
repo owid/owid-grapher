@@ -29,8 +29,11 @@ export default function AdminSidebar() {
             <li><Link native to="/wb/aspiredatasets"><i className="fa fa-database"></i> WB ASPIRE Datasets</Link></li>
             <li><Link native to="/gbdcausedatasets"><i className="fa fa-database"></i> GBD Cause Datasets</Link></li>
             <li><Link native to="/gbdriskdatasets"><i className="fa fa-database"></i> GBD Risk Datasets</Link></li>
+            <li><Link native to="/gbdprevalencedatasets"><i className="fa fa-database"></i> GBD Prevalence and Incidence Datasets</Link></li>
+            <li><Link native to="/gbdmentalhealthdatasets"><i className="fa fa-database"></i> GBD Mental Health Datasets</Link></li>
             <li><Link native to="/ilostatdatasets"><i className="fa fa-database"></i> ILOSTAT Datasets</Link></li>
             <li><Link native to="/unsdgdatasets"><i className="fa fa-database"></i> UN SDG Datasets</Link></li>
+            <li><Link native to="/unepdatasets"><i className="fa fa-database"></i> UN EP Datasets</Link></li>
             <li><Link native to="/standardize"><i className="fa fa-flag"></i> Country name tool</Link></li>
             <li><Link native to="/datasets/history/all"><i className="fa fa-history"></i> Version history</Link></li>
             <li className="header">SETTINGS</li>

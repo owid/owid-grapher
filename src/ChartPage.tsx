@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import * as path from 'path'
-import * as md5 from 'md5'
 import * as urljoin from 'url-join'
 import {BAKED_URL, ASSETS_URL} from './settings'
+const md5 = require('md5')
 
 export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
     const {chart, canonicalRoot, pathRoot} = props

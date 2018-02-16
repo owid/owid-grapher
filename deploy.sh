@@ -57,6 +57,7 @@ then
   . env/bin/activate
   pip3 install -r requirements.txt
   python3 manage.py migrate
+  ./node_modules/.bin/tsc
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

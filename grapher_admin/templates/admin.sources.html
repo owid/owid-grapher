@@ -14,7 +14,7 @@
 		<tbody>
 			{% for source in sources %}
 				<tr>
-					<td><a href="{% url 'showsource' source.id %}">{{ source.name }}</a></td>
+					<td><a href="{% url 'managesource' source.id %}">{{ source.name }}</a></td>
 					<td>
                         {% if source.dataset.id %}
 						<a href="{% url 'showdataset' source.dataset.id %}">{{ source.dataset.name }}</a>

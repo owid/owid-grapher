@@ -6,8 +6,8 @@ import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from './models/Variable'
 import * as fs from 'fs-extra'
-import * as md5 from 'md5'
 import * as filenamify from 'filenamify'
+const md5 = require('md5')
 
 declare var global: any
 global.window = { location: { search: "" }}

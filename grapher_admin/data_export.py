@@ -115,10 +115,8 @@ for one_type in chart_ids:
                                                                                                             variable.uploaded_by.name, current_time, current_time, current_time)
                 seen_vars[each.variableId.pk] = 1
             chart_dim = each
-            out += format_sql('INSERT INTO chart_dimensions (`id`, `order`, `property`, `unit`, `displayName`, `targetYear`, `isProjection`, `tolerance`, `chartId`, `variableId`) VALUES ' \
-                   "({}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", chart_dim.pk, chart_dim.order, chart_dim.property, chart_dim.unit,
-                                                                                chart_dim.displayName, chart_dim.targetYear, chart_dim.isProjection,
-                                                                                chart_dim.tolerance, chart_dim.chartId.pk, chart_dim.variableId.pk)
+            out += format_sql('INSERT INTO chart_dimensions (`id`, `order`, `property`, `display`, `targetYear`, `chartId`, `variableId`) VALUES ' \
+                   "({}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", chart_dim.pk, chart_dim.order, chart_dim.property, chart_dim.display, chart_dim.targetYear, chart_dim.chartId.pk, chart_dim.variableId.pk)
 
             entity_ids = DataValue.objects.filter(fk_var_id=each.variableId).values_list('fk_ent_id', flat=True)
             for one_id in entity_ids:

@@ -10,10 +10,10 @@ import * as ReactDOMServer from 'react-dom/server'
 import { getVariableData } from './models/Variable'
 import {ChartPage} from './ChartPage'
 import * as path from 'path'
-import * as md5 from 'md5'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeImageExports } from './svgPngExport'
+const md5 = require('md5')
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
@@ -183,7 +183,7 @@ ${pathRoot}/*
 
     async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
         const {db, baseDir, props} = this
-        const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY slug ASC`)
+        const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
 
         const newSlugs = []
         let requests = []

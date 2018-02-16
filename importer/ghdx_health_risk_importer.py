@@ -156,6 +156,8 @@ with transaction.atomic():
                     if row['location_name'] not in c_name_entity_ref:
                         if row['location_name'] == 'Global':
                             newentity = Entity.objects.get(name='World')
+                        elif row['location_name'] == 'High-income North America':
+                            newentity = Entity.objects.get(name='North America')
                         elif country_tool_names_dict.get(unidecode.unidecode(row['location_name'].lower()), 0):
                             newentity = Entity.objects.get(
                                 name=country_tool_names_dict[

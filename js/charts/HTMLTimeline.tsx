@@ -312,9 +312,9 @@ export default class Timeline extends React.Component<TimelineProps> {
             </div>
             <div>{formatYear(minYear)}</div>
             <div className="slider">
-                <div className="handle" style={{ left: `${startYearProgress * 100}%` }} />
+                <div className="handle startMarker" style={{ left: `${startYearProgress * 100}%` }} />
                 <div className="interval" style={{ left: `${startYearProgress * 100}%`, right: `${100 - (endYearProgress * 100)}%` }} />
-                <div className="handle" style={{ left: `${endYearProgress * 100}%` }} />
+                <div className="handle endMarker" style={{ left: `${endYearProgress * 100}%` }} />
             </div>
             <div>{formatYear(maxYear)}</div>
         </div>

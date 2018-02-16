@@ -2,17 +2,21 @@
 // and a particular variable that it requests as data
 
 import {observable} from 'mobx'
+import {extend} from './Util'
+import {VariableDisplaySettings} from './VariableData'
 
 export default class ChartDimension {
     @observable property!: string
     @observable variableId!: number
-    @observable displayName?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: true = undefined
-    @observable conversionFactor?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable numDecimalPlaces?: number = undefined
+    @observable display: VariableDisplaySettings = {
+        name: undefined,
+        unit: undefined,
+        shortUnit: undefined,
+        isProjection: undefined,
+        conversionFactor: undefined,
+        numDecimalPlaces: undefined,
+        tolerance: undefined
+    }
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: number = undefined
@@ -21,15 +25,20 @@ export default class ChartDimension {
     // for future charts
     @observable saveToVariable?: true = undefined
 
-    constructor(json: { property: string, variableId: number }) {
+    constructor(json: any) {
         for (const key in this) {
+            if (key === "display") {
+                extend(this.display, json.display)
+                continue
+            }
+
             if (key in json) {
                 (this as any)[key] = (json as any)[key]
-
-                // XXX migrate this away
-                if ((json as any)[key] === "" || (json as any)[key] === null)
-                    (this as any)[key] = undefined
             }
+
+            // XXX migrate this away (remember targetYear)
+            if ((json as any)[key] === "" || (json as any)[key] === null)
+                (this as any)[key] = undefined
         }
     }
 }

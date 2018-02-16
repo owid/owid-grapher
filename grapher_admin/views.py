@@ -110,8 +110,8 @@ def test_all(request):
             continue
 
         count += 1
-        local_url = request.build_absolute_uri('/grapher/') + each.slug
-        live_url = "https://ourworldindata.org/grapher/" + each.slug
+        local_url = request.build_absolute_uri('/grapher/') + each.config['slug']
+        live_url = "https://ourworldindata.org/grapher/" + each.config['slug']
         local_url_png = local_url + '.png'
         live_url_png = live_url + '.png'
 
@@ -319,7 +319,7 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
 
 def _post_update(request, chart: Chart):
     # Bake published charts into static build
-    Chart.bake(request.user, chart.slug)
+    Chart.bake(request.user, chart.config['slug'])
 
     return JsonResponse({'success': True, 'data': {'id': chart.pk}})
 
@@ -371,30 +371,11 @@ def savechart(request, chart: Chart, data: Dict, user: User):
             newdim.variableId = variable
             newdim.property = dim.get('property', None)
             newdim.order = i
-
-            newdim.displayName = dim.get('displayName', None)
-            newdim.unit = dim.get('unit', None)
-            newdim.shortUnit = dim.get('shortUnit', None)
-            newdim.conversionFactor = dim.get('conversionFactor', None)
-            newdim.tolerance = dim.get('tolerance', None)
-            newdim.isProjection = dim.get('isProjection', None)
-            newdim.targetYear = dim.get('targetYear', None)
             newdim.save()
 
             if dim.get('saveToVariable'):
-                if newdim.displayName:
-                    variable.displayName = newdim.displayName
-                if newdim.unit:
-                    variable.displayUnit = newdim.unit
-                if newdim.shortUnit:
-                    variable.displayShortUnit = newdim.shortUnit
-                if newdim.conversionFactor:
-                    variable.displayUnitConversionFactor = newdim.conversionFactor
-                if 'tolerance' in dim:
-                    variable.displayTolerance = newdim.tolerance
-                if 'numDecimalPlaces' in dim:
-                    variable.displayNumDecimalPlaces = newdim.numDecimalPlaces
-                variable.displayIsProjection = bool(newdim.isProjection)
+                for key in dim['display']:
+                    variable.display[key] = dim['display'][key]
                 variable.save()
 
     if wasPublished:
@@ -1144,7 +1125,7 @@ def managelicense(request: HttpRequest, licenseid: str):
     if request.method == 'GET':
         return HttpResponseRedirect(reverse('showlicense', args=[licenseid]))
 
-def showsource(request: HttpRequest, sourceid: str):
+def _showsource(request: HttpRequest, sourceid: str):
     try:
         source = Source.objects.get(pk=int(sourceid))
     except Source.DoesNotExist:
@@ -1187,12 +1168,12 @@ def editsource(request: HttpRequest, sourceid: str):
 
 
 def managesource(request: HttpRequest, sourceid: str):
-    try:
-        source = Source.objects.get(pk=int(sourceid))
-    except Source.DoesNotExist:
-        return HttpResponseNotFound('Source does not exist!')
-
     if request.method == 'POST':
+        try:
+            source = Source.objects.get(pk=int(sourceid))
+        except Source.DoesNotExist:
+            return HttpResponseNotFound('Source does not exist!')
+
         request_dict = QueryDict(request.body.decode('utf-8')).dict()
         if request_dict['_method'] == 'PATCH':
             request_dict.pop('_method', None)
@@ -1214,12 +1195,12 @@ def managesource(request: HttpRequest, sourceid: str):
                 source.save()
             except Exception as e:
                 messages.error(request, e.args[1])
-                return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+                return HttpResponseRedirect(reverse('managesource', args=[sourceid]))
             messages.success(request, 'Source updated!')
-            return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+            return HttpResponseRedirect(reverse('managesource', args=[sourceid]))
 
     if request.method == 'GET':
-        return HttpResponseRedirect(reverse('showsource', args=[sourceid]))
+        return _showsource(request, sourceid)
 
 
 def editsubcategory(request: HttpRequest, subcatid: str):
