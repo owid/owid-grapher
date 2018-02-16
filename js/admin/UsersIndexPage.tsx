@@ -7,22 +7,15 @@ import Link from './Link'
 import AdminSidebar from './AdminSidebar'
 import FuzzySearch from '../charts/FuzzySearch'
 import { uniq } from '../charts/Util'
+import { UserIndexMeta } from '../../src/admin/api'
 const timeago = require('timeago.js')()
-
-interface User {
-    id: number
-    name: string
-    fullName: string
-    createdAt: string
-    isActive: boolean
-}
 
 @observer
 export default class UsersIndexPage extends React.Component {
     context!: { admin: Admin }
-    @observable users: User[] = []
+    @observable users: UserIndexMeta[] = []
 
-    @action.bound async onDelete(user: User) {
+    @action.bound async onDelete(user: UserIndexMeta) {
         if (!window.confirm(`Delete the user ${user.name}? This action cannot be undone!`))
             return
 

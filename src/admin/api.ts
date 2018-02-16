@@ -3,6 +3,7 @@ import {getVariableData} from '../models/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import * as _ from 'lodash'
 import {Request, Response, User} from './authentication'
+import {Express} from 'express'
 
 class JsonError extends Error {
     code: number
@@ -150,22 +151,22 @@ export async function chartsIndex(req: Request, res: Response) {
 
     const numTotalCharts = (await db.query(`SELECT COUNT(*) AS total FROM charts`))[0].total
 
-    res.send({
+    return {
         charts: charts,
         numTotalCharts: numTotalCharts
-    })
+    }
 }
 
 export async function chartsConfig(req: Request, res: Response) {
-    res.send(await expectChartById(req.params.chartId))
+    return await expectChartById(req.params.chartId)
 }
 
 export async function editorNamespaces(req: Request, res: Response) {
     const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`) as any[]
 
-    res.send({
+    return {
         namespaces: rows.map(row => row.namespace)
-    })
+    }
 }
 
 export async function editorDataForNamespace(req: Request, res: Response) {
@@ -197,14 +198,12 @@ export async function editorDataForNamespace(req: Request, res: Response) {
     if (dataset)
         datasets.push(dataset)
 
-    res.send({
-        datasets: datasets
-    })
+    return { datasets: datasets }
 }
 
 export async function variablesGet(req: Request, res: Response) {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
-    res.send(await getVariableData(variableIds))
+    return await getVariableData(variableIds)
 }
 
 // Mark a chart for display on the front page
@@ -213,20 +212,21 @@ export async function chartsStar(req: Request, res: Response) {
 
     //Chart.bake(request.user, chart.slug)
 
-    res.send({ success: true })
+    return { success: true }
 }
 
 export async function chartsCreate(req: Request, res: Response) {
     const chartId = await saveChart(res.locals.user, req.body)
-    res.send({ success: true, chartId: chartId })
+    return { success: true, chartId: chartId }
 }
 
 export async function chartsUpdate(req: Request, res: Response) {
     const existingConfig = await expectChartById(req.params.chartId)
     await saveChart(res.locals.user, req.body, existingConfig)
-    res.send({ success: true, chartId: existingConfig.id })
 
     // bake
+
+    return { success: true, chartId: existingConfig.id }
 }
 
 export async function chartsDelete(req: Request, res: Response) {
@@ -236,14 +236,32 @@ export async function chartsDelete(req: Request, res: Response) {
         await db.query(`DELETE FROM charts WHERE id=?`, [req.params.chartId])
     })
 
-    res.send({ success: true })
-
     // bake
+
+    return { success: true }
 }
 
-export async function usersIndex(req: Request, res: Response) {
+export interface UserIndexMeta {
+    id: number
+    name: string
+    fullName: string
+    createdAt: Date
+    updatedAt: Date
+    isActive: boolean
+}
+
+export async function usersIndex(req: Request, res: Response): Promise<{ users: UserIndexMeta[] }> {
     const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users`)
-    res.send({ users: rows })
+    return { users: rows }
+}
+
+export async function usersGet(req: Request, res: Response): Promise<{ user: UserIndexMeta }> {
+    const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
+
+    if (rows.length)
+        return { user: rows[0] }
+    else
+        throw new JsonError("No such user", 404)
 }
 
 export async function usersDelete(req: Request, res: Response) {
@@ -255,5 +273,15 @@ export async function usersDelete(req: Request, res: Response) {
         await db.query(`DELETE FROM user_invitations WHERE user_id=?`, req.params.userId)
         await db.query(`DELETE FROM users WHERE id=?`, req.params.userId)
     })
-    res.send({ success: true })
+
+    return { success: true }
+}
+
+export async function usersUpdate(req: Request, res: Response) {
+    if (!res.locals.user.isSuperuser) {
+        throw new JsonError("Permission denied", 403)
+    }
+
+    await db.query(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
+    return { success: true }
 }
