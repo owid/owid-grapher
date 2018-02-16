@@ -16,14 +16,14 @@ export function transaction<T>(callback: () => Promise<T>): Promise<T> {
         conn.beginTransaction(err => {
             if (err) reject(err)
 
-            callback().then(() => {
+            callback().then((...args: any[]) => {
                 conn.commit(err2 => {
                     if (err2) {
                         conn.rollback(() => {
                             reject(err2)
                         })
                     }
-                    resolve()
+                    resolve(...args)
                 })
             }).catch((err2) => {
                 conn.rollback(() => {

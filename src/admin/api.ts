@@ -179,7 +179,7 @@ async function saveChart(user: User, newConfig: ChartConfigProps, existingConfig
         if (existingConfig) {
             await db.query(`UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ? `, [JSON.stringify(newConfig), now, now, user.name, chartId])
         } else {
-            const result = await db.query(`INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by) VALUES (?)`, [[JSON.stringify(newConfig), now, now, now, user.name]])
+            const result = await db.query(`INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`, [[JSON.stringify(newConfig), now, now, now, user.name, false]])
             chartId = result.insertId
         }
 
@@ -195,53 +195,18 @@ async function saveChart(user: User, newConfig: ChartConfigProps, existingConfig
 
         for (let i = 0; i < newConfig.dimensions.length; i++) {
             const dim = newConfig.dimensions[i]
-            await db.query(`INSERT INTO chart_dimensions (chartId, variableId) VALUES (?)`, [[chartId, dim.variableId]])
+            await db.query(`INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`, [[chartId, dim.variableId, dim.property, i]])
 
-            /*if (dim.saveToVariable) {
-                const displaySettings = JSON.parse((await db.query(`SELECT displaySettings FROM variables WHERE id=?`, [dim.variableId]))[0].displaySettings)
+            if (dim.saveToVariable) {
+                const display = JSON.parse((await db.query(`SELECT display FROM variables WHERE id=?`, [dim.variableId]))[0].display)
 
+                for (const key in dim.display) {
+                    display[key] = (dim as any)[key]
+                }
 
-                await db.query(`UPDATE variables SET displaySettings=? WHERE id=?`, []
-            }*/
+                await db.query(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
+            }
         }
-
-/*
-        for i, dim in enumerate(data["dimensions"]):
-            variable = Variable.objects.get(id=dim["variableId"])
-
-            newdim = ChartDimension()
-            newdim.chartId = chart
-            newdim.variableId = variable
-            newdim.property = dim.get('property', None)
-            newdim.order = i
-
-            newdim.displayName = dim.get('displayName', None)
-            newdim.unit = dim.get('unit', None)
-            newdim.shortUnit = dim.get('shortUnit', None)
-            newdim.conversionFactor = dim.get('conversionFactor', None)
-            newdim.tolerance = dim.get('tolerance', None)
-            newdim.isProjection = dim.get('isProjection', None)
-            newdim.targetYear = dim.get('targetYear', None)
-            newdim.save()
-
-            if dim.get('saveToVariable'):
-                if newdim.displayName:
-                    variable.displayName = newdim.displayName
-                if newdim.unit:
-                    variable.displayUnit = newdim.unit
-                if newdim.shortUnit:
-                    variable.displayShortUnit = newdim.shortUnit
-                if newdim.conversionFactor:
-                    variable.displayUnitConversionFactor = newdim.conversionFactor
-                if 'tolerance' in dim:
-                    variable.displayTolerance = newdim.tolerance
-                if 'numDecimalPlaces' in dim:
-                    variable.displayNumDecimalPlaces = newdim.numDecimalPlaces
-                variable.displayIsProjection = bool(newdim.isProjection)
-                variable.save()*/
-
-
-        // TODO dimensions
 
         return chartId
     })

@@ -129,7 +129,7 @@ export default class ChartEditor {
 
         const json = await this.props.admin.requestJSON("/api/charts", chartJson, 'POST')
         if (json.success)
-            w.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
+            w.location.assign(this.props.admin.url(`charts/${json.chartId}/edit`))
     }
 
     publishChart() {
