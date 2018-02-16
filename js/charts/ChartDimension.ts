@@ -3,16 +3,28 @@
 
 import {observable} from 'mobx'
 
+interface VariableDisplaySettings {
+    name?: string
+    unit?: string
+    shortUnit?: string
+    isProjection?: true
+    conversionFactor?: number
+    numDecimalPlaces?: number
+    tolerance?: number
+}
+
 export default class ChartDimension {
     @observable property!: string
     @observable variableId!: number
-    @observable displayName?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: true = undefined
-    @observable conversionFactor?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable numDecimalPlaces?: number = undefined
+    @observable display: VariableDisplaySettings = {
+        name: undefined,
+        unit: undefined,
+        shortUnit: undefined,
+        isProjection: undefined,
+        conversionFactor: undefined,
+        numDecimalPlaces: undefined,
+        tolerance: undefined
+    }
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: number = undefined
@@ -25,11 +37,11 @@ export default class ChartDimension {
         for (const key in this) {
             if (key in json) {
                 (this as any)[key] = (json as any)[key]
-
-                // XXX migrate this away
-                if ((json as any)[key] === "" || (json as any)[key] === null)
-                    (this as any)[key] = undefined
             }
-        }
+
+            // XXX migrate this away (remember targetYear)
+            if ((json as any)[key] === "" || (json as any)[key] === null)
+                (this as any)[key] = undefined
+            }
     }
 }
