@@ -11,7 +11,7 @@ export interface ColorpickerProps {
 }
 
 export default class Colorpicker extends React.Component<ColorpickerProps> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
 
     componentDidMount() {
         const textField = this.base.querySelector("input") as HTMLInputElement

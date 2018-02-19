@@ -19,13 +19,12 @@ interface TimelineProps {
 
 @observer
 export default class Timeline extends React.Component<TimelineProps> {
-    props: TimelineProps
-    base: HTMLDivElement
+    base!: HTMLDivElement
 
-    @observable startYearInput: number
-    @observable endYearInput: number
+    @observable startYearInput: number = 1900
+    @observable endYearInput: number = 2000
     @observable isPlaying: boolean = false
-    @observable dragTarget: string | null
+    @observable dragTarget?: string
 
     @computed get isDragging(): boolean {
         return !!this.dragTarget
@@ -133,17 +132,17 @@ export default class Timeline extends React.Component<TimelineProps> {
         }
     }
 
-    animRequest: number
+    animRequest?: number
 
     @action.bound onStartPlaying() {
-        let lastTime: number | null = null
+        let lastTime: number|undefined
         const ticksPerSec = 5
 
         const playFrame = action((time: number) => {
             const { isPlaying, endYear, years, minYear, maxYear } = this
             if (!isPlaying) return
 
-            if (lastTime === null) {
+            if (lastTime === undefined) {
                 // If we start playing from the end, loop around to beginning
                 if (endYear >= maxYear) {
                     this.startYearInput = minYear
@@ -172,7 +171,8 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
     onStopPlaying() {
-        cancelAnimationFrame(this.animRequest)
+        if (this.animRequest !== undefined)
+            cancelAnimationFrame(this.animRequest)
     }
 
     get sliderBounds() {
@@ -251,7 +251,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         this.endYearInput = inputYear
     }
 
-    mouseFrameQueued: boolean
+    mouseFrameQueued?: boolean
 
     @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
         const { dragTarget, mouseFrameQueued } = this
@@ -265,7 +265,7 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onMouseUp() {
-        this.dragTarget = null
+        this.dragTarget = undefined
     }
 
     // Allow proper dragging behavior even if mouse leaves timeline area
@@ -312,9 +312,9 @@ export default class Timeline extends React.Component<TimelineProps> {
             </div>
             <div>{formatYear(minYear)}</div>
             <div className="slider">
-                <div className="handle" style={{ left: `${startYearProgress * 100}%` }} />
+                <div className="handle startMarker" style={{ left: `${startYearProgress * 100}%` }} />
                 <div className="interval" style={{ left: `${startYearProgress * 100}%`, right: `${100 - (endYearProgress * 100)}%` }} />
-                <div className="handle" style={{ left: `${endYearProgress * 100}%` }} />
+                <div className="handle endMarker" style={{ left: `${endYearProgress * 100}%` }} />
             </div>
             <div>{formatYear(maxYear)}</div>
         </div>

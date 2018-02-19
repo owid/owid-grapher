@@ -96,7 +96,7 @@ interface ScatterLabel {
 
 @observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
-    base: SVGElement
+    base!: SVGGElement
     @observable hoverKey: string | null = null
 
     @computed get data(): ScatterSeries[] {

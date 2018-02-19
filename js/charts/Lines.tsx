@@ -35,7 +35,7 @@ export interface HoverTarget {
 
 @observer
 export default class Lines extends React.Component<LinesProps> {
-    base: SVGGElement
+    base!: SVGGElement
     @observable.ref hover: HoverTarget | null = null
 
     @computed get renderUid(): number {

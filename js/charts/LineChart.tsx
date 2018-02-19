@@ -41,7 +41,7 @@ export interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base: SVGGElement
+    base!: SVGGElement
 
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }

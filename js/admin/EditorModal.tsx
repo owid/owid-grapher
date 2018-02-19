@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
 export default class EditorModal extends React.Component<{ children: any }> {
-    modalContainer: HTMLDivElement
+    modalContainer!: HTMLDivElement
 
     componentDidMount() {
         const modalContainer = document.createElement('div')

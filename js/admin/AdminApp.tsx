@@ -9,11 +9,10 @@ import AdminSidebar from './AdminSidebar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
 import { LoadingBlocker, Modal } from './Forms'
-import GrapherBuildStatus from './GrapherBuildStatus'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base: HTMLDivElement
+    base!: HTMLDivElement
     @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
         if (e.target === this.base)
             this.props.onDismiss()
@@ -93,9 +92,6 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                         </li>
                     </ul>
                     <ul className="navbar-nav ml-auto">
-                        <li className="nav-item">
-                            <GrapherBuildStatus/>
-                        </li>
                         <li className="nav-item">
                             <Link className="nav-link logout" to="/logout" native>
                                 {admin.username}

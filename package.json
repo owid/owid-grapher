@@ -118,7 +118,7 @@
     "tslint": "^5.7.0",
     "tslint-language-service": "^0.9.6",
     "tslint-loader": "^3.5.3",
-    "typescript": "^2.6.2",
+    "typescript": "^2.7.1",
     "url-join": "^2.0.2",
     "url-loader": "^0.5.8",
     "url-parse": "^1.2.0",

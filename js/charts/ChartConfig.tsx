@@ -150,13 +150,11 @@ export class ChartConfigProps {
 export default class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
-    @observable.ref logosSVG: string[]
-    @observable.ref variableCacheTag: string
     @observable.ref tooltip: React.ReactNode
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
-    @observable.ref isLocalExport: boolean
+    @observable.ref isLocalExport?: boolean
 
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
@@ -332,7 +330,6 @@ export default class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map((j: any) => new ChartDimension(j))
-        this.logosSVG = json["logosSVG"]
     }
 
     @computed.struct get json() {

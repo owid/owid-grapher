@@ -10,6 +10,6 @@ all_unwpp_variables = Variable.objects.filter(fk_dst_id__namespace__contains='un
 
 for each in all_unwpp_variables:
     if each.unit == 'thousands':
-        each.displayUnitConversionFactor = 1000
+        each.display['conversionFactor'] = 1000
         each.save()
 

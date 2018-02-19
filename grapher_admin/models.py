@@ -80,29 +80,17 @@ class PasswordReset(Model):
 class Chart(Model):
     class Meta:
         db_table = "charts"
-        unique_together = (('slug', 'published'),)
 
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
     config = JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_edited_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True,
                                        db_column='last_edited_by')
     last_edited_at = models.DateTimeField()
-    origin_url = models.CharField(max_length=255)
-    notes = models.TextField()
-    slug = models.CharField(max_length=255, blank=True, null=True)
-    # Null/True due to the behavior of mysql unique indexes (we only want slugs to conflict if published)
-    published = models.NullBooleanField(default=None, choices=((None, 'false'), (True, 'true')))
     starred = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True)
     published_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, blank=True, null=True, db_column="published_by", related_name="published_charts")
-    type = models.CharField(max_length=255, choices=(('LineChart', 'Line chart'), ('ScatterPlot', 'Scatter plot'),
-                                                     ('StackedArea', 'Stacked area'), ('MultiBar', 'Multi bar'),
-                                                     ('HorizontalMultiBar', 'Horizontal Multi bar'),
-                                                     ('DiscreteBar', 'Discrete bar'),
-                                                     ('SlopeChart', 'Slope chart')), blank=True, null=True)
 
     @classmethod
     def bake(cls, user, slug):
@@ -220,15 +208,7 @@ class Variable(Model):
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
 
-    # Separate "display" properties to allow overriding metadata for
-    # display on charts while also preserving the original source metadata
-    displayName = models.CharField(max_length=255, null=True)
-    displayUnit = models.CharField(max_length=255, null=True)
-    displayShortUnit = models.CharField(max_length=255, null=True)
-    displayUnitConversionFactor = models.FloatField(null=True)
-    displayIsProjection = models.NullBooleanField(null=True)
-    displayTolerance = models.IntegerField(null=True)
-    displayNumDecimalPlaces = models.IntegerField(null=True)
+    display = JSONField()
 
     description = models.TextField(blank=True, null=True)
     fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
@@ -252,18 +232,6 @@ class ChartDimension(Model):
     variableId = models.ForeignKey(Variable, models.DO_NOTHING, db_column='variableId')
     order = models.IntegerField()
     property = models.CharField(max_length=255)
-
-    # These fields override the variable metadata on a per-chart basis
-    unit = models.CharField(max_length=255, null=True)
-    shortUnit = models.CharField(max_length=255, null=True)
-    displayName = models.CharField(max_length=255, db_column='displayName', null=True)
-    isProjection = models.NullBooleanField(null=True)
-    tolerance = models.IntegerField(null=True)
-    conversionFactor = models.FloatField(null=True)
-    numDecimalPlaces = models.IntegerField(null=True)
-
-    # XXX todo move this elsewhere
-    targetYear = models.IntegerField(db_column='targetYear', blank=True, null=True)
 
 class ChartSlugRedirect(Model):
     class Meta:
