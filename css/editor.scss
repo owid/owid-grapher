@@ -418,8 +418,11 @@ html, body {
     z-index: 2000;
 }
 
-.ChartIndexPage, .UsersIndexPage {
+main:not(.ChartEditorPage) {
     padding: 2em;
+}
+
+.ChartIndexPage, .UsersIndexPage {
     flex-grow: 1;
 
     .topRow {

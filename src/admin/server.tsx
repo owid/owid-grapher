@@ -67,6 +67,7 @@ urls.get('/admin/api/users/:userId.json', api.usersGet)
 urls.get('/admin/api/users.json', api.usersIndex)
 urls.delete('/admin/api/users/:userId', api.usersDelete)
 urls.put('/admin/api/users/:userId', api.usersUpdate)
+urls.post('/admin/api/users/invite', api.usersInvite)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 //url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),

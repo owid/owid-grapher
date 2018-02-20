@@ -34,6 +34,10 @@ export default class Admin {
         return urljoin(this.basePath, path)
     }
 
+    goto(path: string) {
+        this.url(path)
+    }
+
     // Make a request with no error or response handling
     async rawRequest(path: string, data: any, method: HTTPMethod) {
         return fetch(this.url(path), {

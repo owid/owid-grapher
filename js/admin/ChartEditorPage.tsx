@@ -96,10 +96,10 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
     }
 
     render() {
-        return <div className="ChartEditorPage">
+        return <main className="ChartEditorPage">
             {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
             {this.editor !== undefined && this.renderReady(this.editor)}
-        </div>
+        </main>
     }
 
     renderReady(editor: ChartEditor) {

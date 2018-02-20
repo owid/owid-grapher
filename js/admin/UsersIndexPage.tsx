@@ -10,10 +10,48 @@ import { uniq } from '../charts/Util'
 import { UserIndexMeta } from '../../src/admin/api'
 const timeago = require('timeago.js')()
 
+class InviteModal extends React.Component<{ onClose: () => void }> {
+    context!: { admin: Admin }
+
+    @observable email: string = ""
+    @observable username: string = ""
+
+    async submit() {
+        if (this.email && this.username) {
+            await this.context.admin.requestJSON("/api/users/invite", { email: this.email, username: this.username }, "POST")
+        }
+    }
+
+    render() {
+        return <Modal onClose={this.props.onClose}>
+            <form onSubmit={e => { e.preventDefault(); this.submit() } }>
+                <div className="modal-header">
+                    <h5 className="modal-title">Invite a user</h5>
+                </div>
+                <div className="modal-body">
+                    <div className="form-group">
+                        <label>Email address to invite</label>
+                        <input type="email" className="form-control" onInput={e => this.email = e.currentTarget.value} required/>
+                    </div>
+                    <div className="form-group">
+                        <label>Username of invited user</label>
+                        <input type="text" className="form-control" onInput={e => this.username = e.currentTarget.value} required/>
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <input type="submit" className="btn btn-primary">Send invite</input>
+                </div>
+            </form>
+        </Modal>
+    }
+}
+
+
 @observer
 export default class UsersIndexPage extends React.Component {
     context!: { admin: Admin }
     @observable users: UserIndexMeta[] = []
+    @observable isInviteModal: boolean = false
 
     @action.bound async onDelete(user: UserIndexMeta) {
         if (!window.confirm(`Delete the user ${user.name}? This action cannot be undone!`))
@@ -29,9 +67,11 @@ export default class UsersIndexPage extends React.Component {
     render() {
         const {users} = this
         return <main className="UsersIndexPage">
+            {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
             <div className="topbar">
                 <h2>Users</h2>
                 <a href="/grapher/admin/invite" className="btn btn-primary">Invite a user</a>
+                {/*<button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>*/}
             </div>
             <table className="table table-bordered">
                 <tr>

@@ -37,7 +37,7 @@ export default function AdminSidebar() {
             <li><Link native to="/standardize"><i className="fa fa-flag"></i> Country name tool</Link></li>
             <li><Link native to="/datasets/history/all"><i className="fa fa-history"></i> Version history</Link></li>
             <li className="header">SETTINGS</li>
-            <li><Link native to="/users/"><i className="fa fa-users"></i> Users</Link></li>
+            <li><Link to="/users/"><i className="fa fa-users"></i> Users</Link></li>
             <li><Link native to="/categories/"><i className="fa fa-folder"></i> Categories</Link></li>
         </ul>
     </aside>

@@ -285,3 +285,11 @@ export async function usersUpdate(req: Request, res: Response) {
     await db.query(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
     return { success: true }
 }
+
+export async function usersInvite(req: Request, res: Response) {
+    if (!res.locals.user.isSuperuser) {
+        throw new JsonError("Permission denied", 403)
+    }
+
+    // TODO
+}
