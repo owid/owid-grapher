@@ -45,7 +45,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class ChartEditorPage extends React.Component<{ chartId?: number }> {
+export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     context!: { admin: Admin }
@@ -83,12 +83,13 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.dispose = reaction(
-            () => this.props.chartId,
-            this.refresh
-        )
-
         this.refresh()
+    }
+
+    // This funny construction allows the "new chart" link to work by forcing an update
+    // even if the props don't change
+    componentWillReceiveProps() {
+        setTimeout(() => this.refresh(), 0)
     }
 
     componentDidUnmount() {

@@ -7,6 +7,7 @@ import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
 import UserEditPage from './UserEditPage'
+import ImportPage from './ImportPage'
 import AdminSidebar from './AdminSidebar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
@@ -57,6 +58,7 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 export default class AdminApp extends React.Component<{ admin: Admin }> {
     @observable isFAQ: boolean = false
     @observable isSidebar: boolean = false
+    @observable newChartIndex: number = 0
 
     @action.bound onToggleFAQ() {
         this.isFAQ = !this.isFAQ
@@ -83,7 +85,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Link className="navbar-brand" to="/">owid-admin</Link>
                     <ul className="navbar-nav">
                         <li className="nav-item">
-                            <Link className="nav-link" to="/charts/create" native>
+                            <Link className="nav-link" to="/charts/create">
                                 <i className="fa fa-plus"/> New chart
                             </Link>
                         </li>
@@ -106,12 +108,13 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ}/>}
                 <AdminErrorMessage admin={admin}/>
                 <AdminLoader admin={admin}/>
-                {isSidebar && <FixedOverlay onDismiss={this.onToggleSidebar}><AdminSidebar/></FixedOverlay>}
+                {isSidebar && <FixedOverlay onDismiss={this.onToggleSidebar}><AdminSidebar onDismiss={this.onToggleSidebar}/></FixedOverlay>}
                 <Switch>
                     <Route path="/charts/create" component={ChartEditorPage}/>
                     <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
                     <Route path="/users/:userId/edit" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
                     <Route path="/users" component={UsersIndexPage}/>
+                    <Route path="/import" component={ImportPage}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>
             </div>
