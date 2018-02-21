@@ -335,12 +335,12 @@ export interface VariableSingleMeta {
     vardata: string
 }
 
-export async function variablesGet(req: Request, res: Response): Promise<{ variable: VariableSingleMeta }> {
+api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const variableId = expectInt(req.params.variableId)
 
     const variable =(await db.query(`
-        SELECT v.id, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
-               d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+        SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
+               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
         FROM variables AS v
         JOIN datasets AS d ON d.id = v.fk_dst_id
         WHERE v.id = ?
@@ -350,9 +350,9 @@ export async function variablesGet(req: Request, res: Response): Promise<{ varia
         throw new JsonError(`No variable by id '${variableId}'`, 404)
     }
 
-    variable.vardata = await getVariableData([variableId])
+    variable.display = JSON.parse(variable.display)
 
-    return variable
-}
+    return { variable: variable as VariableSingleMeta, vardata: await getVariableData([variableId]) }
+})
 
 export default api

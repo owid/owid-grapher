@@ -9,14 +9,14 @@ declare var window: { admin: Admin }
 declare var Global: { rootUrl: string }
 declare var App: { isEditor: boolean }
 
-export interface VariableDisplaySettings {
-    name?: string
-    unit?: string
-    shortUnit?: string
-    isProjection?: true
-    conversionFactor?: number
-    numDecimalPlaces?: number
-    tolerance?: number
+export class VariableDisplaySettings {
+    @observable name?: string = undefined
+    @observable unit?: string = undefined
+    @observable shortUnit?: string = undefined
+    @observable isProjection?: true = undefined
+    @observable conversionFactor?: number = undefined
+    @observable numDecimalPlaces?: number = undefined
+    @observable tolerance?: number = undefined
 }
 
 export class Variable {
@@ -29,15 +29,7 @@ export class Variable {
     @observable.ref timespan!: string
     @observable.ref datasetName!: string
 
-    @observable display: VariableDisplaySettings = {
-        name: undefined,
-        unit: undefined,
-        shortUnit: undefined,
-        isProjection: undefined,
-        conversionFactor: undefined,
-        numDecimalPlaces: undefined,
-        tolerance: undefined
-    }
+    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
     @observable.struct source!: {
         id: number,
@@ -147,7 +139,7 @@ export default class VariableData {
         return values(this.variablesById)
     }
 
-    @action.bound update() {
+    @action.bound async update() {
         const { variableIds, chart, cacheTag } = this
         if (variableIds.length === 0 || this.chart.isNode) {
             // No data to download
@@ -155,51 +147,23 @@ export default class VariableData {
         }
 
         if (window.admin) {
-            window.admin.rawRequest("/api/data/variables/" + variableIds.join("+") + "?v=" + cacheTag, {}, "GET")
-                .then(response => response.text())
-                .then(rawData => this.receiveData(rawData))
+            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}?v=${cacheTag}`)
+            this.receiveData(json)
         } else {
-            fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
-                .then(response => response.text())
-                .then(rawData => this.receiveData(rawData))
+            const json = (await fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)).json()
+            this.receiveData(json)
         }
 
     }
 
-    @action.bound receiveData(rawData: string) {
-        const lines = rawData.split("\r\n")
-
-        const variablesById: { [id: string]: Variable } = {}
-        let entityMetaById: { [key: string]: EntityMeta } = {}
-
-        lines.forEach((line, i) => {
-            if (i === 0) { // First line contains the basic variable metadata
-                each(JSON.parse(line).variables, (d: any) => {
-                    variablesById[d.id] = new Variable(d)
-                })
-            } else if (i === lines.length - 1) { // Final line is entity id => name mapping
-                entityMetaById = JSON.parse(line)
-            } else {
-                const points = line.split(";")
-                let variable: Variable
-                points.forEach((d, j) => {
-                    if (j === 0) {
-                        variable = variablesById[d]
-                    } else {
-                        const spl = d.split(",")
-                        variable.years.push(+spl[0])
-                        variable.entities.push(spl[1])
-                        const asNumber = parseFloat(spl[2])
-                        if (!isNaN(asNumber))
-                            variable.values.push(asNumber)
-                        else
-                            variable.values.push(spl[2])
-                    }
-                })
-            }
-        })
-
-        each(variablesById, v => v.entities = v.entities.map(id => entityMetaById[id].name))
+    @action.bound receiveData(json: any) {
+        const variablesById: { [id: string]: Variable } = json.variables
+        const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
+        for (const key in variablesById) {
+            const variable = new Variable(variablesById[key])
+            variable.entities = variable.entities.map(id => entityMetaById[id].name)
+            variablesById[key] = variable
+        }
         each(entityMetaById, (e, id) => e.id = +id)
         this.variablesById = variablesById
         this.entityMetaById = entityMetaById

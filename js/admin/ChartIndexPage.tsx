@@ -81,7 +81,7 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
             </td>}
             <td style={{"min-width": "120px"}}>{showChartType(chart)}</td>
             <td>{chart.variables.map(v => [
-                <Link to={`/variables/${v.id}`} native>{highlight(v.name)}</Link>,
+                <Link to={`/variables/${v.id}`}>{highlight(v.name)}</Link>,
                 <br/>
             ])}</td>
             <td>{chart.internalNotes}</td>

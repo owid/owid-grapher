@@ -7,6 +7,7 @@ import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
 import UserEditPage from './UserEditPage'
+import VariableEditPage from './VariableEditPage'
 import ImportPage from './ImportPage'
 import AdminSidebar from './AdminSidebar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
@@ -112,9 +113,10 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 <Switch>
                     <Route path="/charts/create" component={ChartEditorPage}/>
                     <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
-                    <Route path="/users/:userId/edit" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
+                    <Route path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
                     <Route path="/users" component={UsersIndexPage}/>
                     <Route path="/import" component={ImportPage}/>
+                    <Route path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>
             </div>

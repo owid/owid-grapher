@@ -291,7 +291,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number }> {
+export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }
@@ -350,6 +350,45 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
         })
 
         return <AutoTextField {...textFieldProps}/>
+    }
+}
+
+
+export interface FloatFieldProps {
+    label?: string
+    value: number|undefined
+    helpText?: string
+    onValue: (value: number|undefined) => void
+}
+
+export class FloatField extends React.Component<FloatFieldProps> {
+    render() {
+        const { props } = this
+
+        const textFieldProps = extend({}, props, {
+            value: props.value === undefined ? undefined : props.value.toString(),
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            }
+        })
+
+        return <TextField {...textFieldProps}/>
+    }
+}
+
+@observer
+export class BindFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, helpText?: string }> {
+    @action.bound onValue(value: number|undefined) {
+        this.props.store[this.props.field] = value
+    }
+
+    render() {
+        const {field, store, label, ...rest} = this.props
+
+        const value = store[field] as number|undefined
+
+        return <FloatField label={label||capitalize(field)} value={value} onValue={this.onValue} {...rest}/>
     }
 }
 

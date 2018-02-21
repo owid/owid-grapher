@@ -7,9 +7,10 @@ export default class Variable extends Model<Variable> {
 }
 
 import * as db from '../db'
+import * as _ from 'lodash'
 
-export async function getVariableData(variableIds: number[]): Promise<string> {
-    const meta: any = { variables: {} }
+export async function getVariableData(variableIds: number[]): Promise<any> {
+    const data: any = { variables: {}, entityKey: {} }
 
     const variableQuery = db.query(`
         SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
@@ -41,37 +42,31 @@ export async function getVariableData(variableIds: number[]): Promise<string> {
             retrievedData: sourceDescription.retrievedData || "",
             additionalInfo: sourceDescription.additionalInfo || ""
         }
-        meta.variables[row.id] = row
+        data.variables[row.id] = _.extend({
+            years: [],
+            entities: [],
+            values: []
+        }, row)
     }
 
     const results = await dataQuery
 
-    let output = ""
-    function write(s: string) {
-        output += s
-    }
-
-    write(JSON.stringify(meta))
-
-    const entityKey: { [entityId: number]: { name: string, code: string } | undefined } = {}
-    const seenVariables: { [variableId: number]: true | undefined } = {}
-
     for (const row of results) {
-        if (seenVariables[row.variableId] === undefined) {
-            seenVariables[row.variableId] = true
-            write("\r\n")
-            write(row.variableId.toString())
-        }
+        const variable = data.variables[row.variableId]
+        variable.years.push(row.year)
+        variable.entities.push(row.entityId)
 
-        write(`;${row.year},${row.entityId},${row.value}`)
 
-        if (entityKey[row.entityId] === undefined) {
-            entityKey[row.entityId] = { name: row.entityName, code: row.entityCode }
+        const asNumber = parseFloat(row.value)
+        if (!isNaN(asNumber))
+            variable.values.push(asNumber)
+        else
+            variable.values.push(row.value)
+
+        if (data.entityKey[row.entityId] === undefined) {
+            data.entityKey[row.entityId] = { name: row.entityName, code: row.entityCode }
         }
     }
 
-    write("\r\n")
-    write(JSON.stringify(entityKey))
-
-    return output
+    return data
 }
