@@ -4,6 +4,7 @@ import {observable, computed, action, runInAction, reaction, IReactionDisposer} 
 import * as _ from 'lodash'
 
 import Admin from './Admin'
+import Link from './Link'
 import { LoadingBlocker, TextField, BindString, BindFloat, Toggle, FieldsRow } from './Forms'
 import { VariableDisplaySettings } from '../charts/VariableData'
 import ChartConfig from '../charts/ChartConfig'
@@ -54,7 +55,8 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
         return <main className="VariableEditPage">
             <ol className="breadcrumb">
                 <li className="breadcrumb-item">{variable.datasetNamespace}</li>
-                <li className="breadcrumb-item active">{variable.datasetName}</li>
+                <li className="breadcrumb-item"><Link to={`/datasets/${variable.datasetId}`}>{variable.datasetName}</Link></li>
+                <li className="breadcrumb-item active">{variable.name}</li>
             </ol>
             <form>
                 <div className="row">
@@ -74,10 +76,12 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                         <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={variable.display} helpText={`A negative number here will round integers`}/>
                         <BindFloat label="Unit conversion factor" field="conversionFactor" store={variable.display} helpText={`Multiply all values by this amount`}/>
                     </div>
-                    <div className="col">
+                    {this.chart && <div className="col">
                         <h3>Preview</h3>
-                        {this.chart && <ChartView chart={this.chart} bounds={new Bounds(0, 0, 360, 500)}/>}
-                    </div>
+
+                        <ChartView chart={this.chart} bounds={new Bounds(0, 0, 500, 500)}/>
+                        <Link className="btn btn-secondary" to={`/charts/create?config=${JSON.stringify(this.chart.json)}`}>Edit as new chart</Link>
+                    </div>}
                 </div>
                 <input type="submit" className="btn btn-success" value="Update variable" disabled={!this.isModified}/>
             </form>
@@ -98,6 +102,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
             this.chart = new ChartConfig({
                 yAxis: { min: 0 },
                 map: { variableId: this.variable.id },
+                tab: "map",
                 hasMapTab: true,
                 dimensions: [{
                     property: 'y',
