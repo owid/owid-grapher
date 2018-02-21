@@ -37,7 +37,8 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: "ts-loader",
                 options: {
-                    transpileOnly: true
+                    transpileOnly: true,
+                    configFile: path.join(__dirname, "tsconfig.client.json")
                 }
             },
             {
