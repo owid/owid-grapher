@@ -150,7 +150,7 @@ export default class VariableData {
             const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}?v=${cacheTag}`)
             this.receiveData(json)
         } else {
-            const json = (await fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)).json()
+            const json = (await fetch(`${Global.rootUrl}/data/variables/${variableIds.join("+")}?v=${cacheTag}`)).json()
             this.receiveData(json)
         }
 

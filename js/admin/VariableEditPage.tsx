@@ -2,10 +2,13 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
-import { VariableDisplaySettings } from '../charts/VariableData'
 
 import Admin from './Admin'
 import { LoadingBlocker, TextField, BindString, BindFloat, Toggle, FieldsRow } from './Forms'
+import { VariableDisplaySettings } from '../charts/VariableData'
+import ChartConfig from '../charts/ChartConfig'
+import ChartView from '../charts/ChartView'
+import Bounds from '../charts/Bounds'
 
 class VariableSingleMeta {
     @observable id: number = 0
@@ -37,6 +40,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
     @observable origVariable?: VariableSingleMeta
     @observable variable?: VariableSingleMeta
     @observable.ref vardata?: string
+    @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
         return JSON.stringify(this.variable) !== JSON.stringify(this.origVariable)
@@ -72,6 +76,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                     </div>
                     <div className="col">
                         <h3>Preview</h3>
+                        {this.chart && <ChartView chart={this.chart} bounds={new Bounds(0, 0, 360, 500)}/>}
                     </div>
                 </div>
                 <input type="submit" className="btn btn-success" value="Update variable" disabled={!this.isModified}/>
@@ -90,6 +95,15 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
             this.origVariable = new VariableSingleMeta(json.variable)
             this.variable = new VariableSingleMeta(json.variable)
             this.vardata = json.vardata
+            this.chart = new ChartConfig({
+                yAxis: { min: 0 },
+                map: { variableId: this.variable.id },
+                hasMapTab: true,
+                dimensions: [{
+                    property: 'y',
+                    variableId: this.variable.id
+                }]
+            } as any)
         })
     }
 

@@ -191,7 +191,7 @@ export default class ChartConfig {
         this.isMediaCard = !!options.isMediaCard
         this.isNode = isNode
 
-        this.update(props || new ChartConfigProps())
+        this.update(props || { yAxis: { min: 0 }})
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)
