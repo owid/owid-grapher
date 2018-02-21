@@ -3,8 +3,41 @@ import {getVariableData} from '../models/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import * as _ from 'lodash'
 import {Request, Response, CurrentUser} from './authentication'
-import {Express} from 'express'
+import {Express, Router} from 'express'
 import {JsonError, expectInt} from './serverUtil'
+
+// Little wrapper to automatically send returned objects as JSON, makes
+// the API code a bit cleaner
+class FunctionalRouter {
+    router: Router
+    constructor() {
+        this.router = Router()
+    }
+
+    wrap(callback: (req: Request, res: Response) => Promise<any>) {
+        return async (req: Request, res: Response) => {
+            res.send(await callback(req, res))
+        }
+    }
+
+    get(path: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.get(path, this.wrap(callback))
+    }
+
+    post(path: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.post(path, this.wrap(callback))
+    }
+
+    put(path: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.put(path, this.wrap(callback))
+    }
+
+    delete(path: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.delete(path, this.wrap(callback))
+    }
+}
+
+const api = new FunctionalRouter()
 
 async function getChartById(chartId: number): Promise<ChartConfigProps|undefined> {
     const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId]))[0]
@@ -102,7 +135,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 }
 
 // Retrieve list of charts and their associated variables, for the admin index page
-export async function chartsIndex(req: Request, res: Response) {
+api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
         SELECT
@@ -148,21 +181,21 @@ export async function chartsIndex(req: Request, res: Response) {
         charts: charts,
         numTotalCharts: numTotalCharts
     }
-}
+})
 
-export async function chartsConfig(req: Request, res: Response) {
+api.get('/charts/:chartId.config.json', async (req: Request, res: Response) => {
     return await expectChartById(req.params.chartId)
-}
+})
 
-export async function editorNamespaces(req: Request, res: Response) {
+api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
     const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`) as any[]
 
     return {
         namespaces: rows.map(row => row.namespace)
     }
-}
+})
 
-export async function editorDataForNamespace(req: Request, res: Response) {
+api.get('/admin/api/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(
         `SELECT v.name, v.id, d.name as datasetName, d.namespace
@@ -192,37 +225,37 @@ export async function editorDataForNamespace(req: Request, res: Response) {
         datasets.push(dataset)
 
     return { datasets: datasets }
-}
+})
 
-export async function variablesGetData(req: Request, res: Response) {
+api.get('/data/variables/:variableStr', async (req: Request, res: Response) => {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
     return await getVariableData(variableIds)
-}
+})
 
 // Mark a chart for display on the front page
-export async function chartsStar(req: Request, res: Response) {
+api.get('/charts/star', async (req: Request, res: Response) => {
     db.query(`UPDATE charts SET starred=(charts.id=?)`, req.params.chartId)
 
     //Chart.bake(request.user, chart.slug)
 
     return { success: true }
-}
+})
 
-export async function chartsCreate(req: Request, res: Response) {
+api.post('/charts', async (req: Request, res: Response) => {
     const chartId = await saveChart(res.locals.user, req.body)
     return { success: true, chartId: chartId }
-}
+})
 
-export async function chartsUpdate(req: Request, res: Response) {
+api.put('/charts/:chartId', async (req: Request, res: Response) => {
     const existingConfig = await expectChartById(req.params.chartId)
     await saveChart(res.locals.user, req.body, existingConfig)
 
     // bake
 
     return { success: true, chartId: existingConfig.id }
-}
+})
 
-export async function chartsDelete(req: Request, res: Response) {
+api.delete('/charts/:chartId', async (req: Request, res: Response) => {
     await db.transaction(async () => {
         await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [req.params.chartId])
         await db.query(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [req.params.chartId])
@@ -232,7 +265,7 @@ export async function chartsDelete(req: Request, res: Response) {
     // bake
 
     return { success: true }
-}
+})
 
 export interface UserIndexMeta {
     id: number
@@ -243,21 +276,21 @@ export interface UserIndexMeta {
     isActive: boolean
 }
 
-export async function usersIndex(req: Request, res: Response): Promise<{ users: UserIndexMeta[] }> {
+api.get('/users.json', async (req: Request, res: Response) => {
     const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users`)
-    return { users: rows }
-}
+    return { users: rows as UserIndexMeta[] }
+})
 
-export async function usersGet(req: Request, res: Response): Promise<{ user: UserIndexMeta }> {
+api.get('/users/:userId.json', async (req: Request, res: Response) => {
     const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
 
     if (rows.length)
-        return { user: rows[0] }
+        return { user: rows[0] as UserIndexMeta }
     else
         throw new JsonError("No such user", 404)
-}
+})
 
-export async function usersDelete(req: Request, res: Response) {
+api.delete('/users/:userId', async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser) {
         throw new JsonError("Permission denied", 403)
     }
@@ -268,24 +301,26 @@ export async function usersDelete(req: Request, res: Response) {
     })
 
     return { success: true }
-}
+})
 
-export async function usersUpdate(req: Request, res: Response) {
+
+
+api.put('/users/:userId', async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser) {
         throw new JsonError("Permission denied", 403)
     }
 
     await db.query(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
     return { success: true }
-}
+})
 
-export async function usersInvite(req: Request, res: Response) {
+api.post('/users/invite', async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser) {
         throw new JsonError("Permission denied", 403)
     }
 
     // TODO
-}
+})
 
 export interface VariableSingleMeta {
     id: number
@@ -320,11 +355,4 @@ export async function variablesGet(req: Request, res: Response): Promise<{ varia
     return variable
 }
 
-import User from '../models/User'
-
-export async function test(req: Request, res: Response) {
-    const user = await User.findOne()
-    if (user) {
-        return user.toJSON()
-    }
-}
+export default api

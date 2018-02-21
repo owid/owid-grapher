@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon dist/src/admin/server.js\"",
+    "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon --inspect dist/src/admin/server.js\"",
     "serve": "nodemon dist/src/server.js",
     "lint": "tslint --project . -t verbose",
     "build": "tsc && webpack -p --progress"
