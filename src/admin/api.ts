@@ -4,14 +4,7 @@ import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import * as _ from 'lodash'
 import {Request, Response, User} from './authentication'
 import {Express} from 'express'
-
-class JsonError extends Error {
-    code: number
-    constructor(message: string, code?: number) {
-        super(message)
-        this.code = code || 400
-    }
-}
+import {JsonError, expectInt} from './serverUtil'
 
 async function getChartById(chartId: number): Promise<ChartConfigProps|undefined> {
     const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId]))[0]
@@ -201,7 +194,7 @@ export async function editorDataForNamespace(req: Request, res: Response) {
     return { datasets: datasets }
 }
 
-export async function variablesGet(req: Request, res: Response) {
+export async function variablesGetData(req: Request, res: Response) {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
     return await getVariableData(variableIds)
 }
@@ -292,4 +285,37 @@ export async function usersInvite(req: Request, res: Response) {
     }
 
     // TODO
+}
+
+export interface VariableSingleMeta {
+    id: number
+    unit: string
+    shortUnit: string
+    description: string
+
+    datasetId: number
+    datasetName: string
+    datasetNamespace: string
+
+    vardata: string
+}
+
+export async function variablesGet(req: Request, res: Response): Promise<{ variable: VariableSingleMeta }> {
+    const variableId = expectInt(req.params.variableId)
+
+    const variable =(await db.query(`
+        SELECT v.id, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
+               d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+        FROM variables AS v
+        JOIN datasets AS d ON d.id = v.fk_dst_id
+        WHERE v.id = ?
+    `, [variableId]))[0]
+
+    if (!variable) {
+        throw new JsonError(`No variable by id '${variableId}'`, 404)
+    }
+
+    variable.vardata = await getVariableData([variableId])
+
+    return variable
 }

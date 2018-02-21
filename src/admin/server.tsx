@@ -57,7 +57,7 @@ const urls = new FunctionalWrapper(app)
 urls.get('/admin/api/charts.json', api.chartsIndex)
 urls.post('/admin/api/charts/:chartId/star', api.chartsStar)
 urls.get('/admin/api/charts/:chartId.config.json', api.chartsConfig)
-urls.get('/admin/api/data/variables/:variableStr', api.variablesGet)
+urls.get('/admin/api/data/variables/:variableStr', api.variablesGetData)
 urls.get('/admin/api/editorData/namespaces.json', api.editorNamespaces)
 urls.get('/admin/api/editorData/:namespace.json', api.editorDataForNamespace)
 urls.post('/admin/api/charts', api.chartsCreate)
@@ -68,6 +68,7 @@ urls.get('/admin/api/users.json', api.usersIndex)
 urls.delete('/admin/api/users/:userId', api.usersDelete)
 urls.put('/admin/api/users/:userId', api.usersUpdate)
 urls.post('/admin/api/users/invite', api.usersInvite)
+urls.get('/admin/api/variables/:variableId', api.variablesGet)
 
 //url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
 //url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
