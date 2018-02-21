@@ -1,3 +1,11 @@
+import {Table, Column, Model} from 'sequelize-typescript'
+
+@Table({ tableName: 'variables' })
+export default class Variable extends Model<Variable> {
+    @Column
+    name!: string
+}
+
 import * as db from '../db'
 
 export async function getVariableData(variableIds: number[]): Promise<string> {

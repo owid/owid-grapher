@@ -7,7 +7,18 @@ import Link from './Link'
 import AdminSidebar from './AdminSidebar'
 import FuzzySearch from '../charts/FuzzySearch'
 import { uniq } from '../charts/Util'
-import { UserIndexMeta } from '../../src/admin/api'
+
+declare var admin: any
+
+interface UserIndexMeta {
+    id: number
+    name: string
+    fullName: string
+    createdAt: Date
+    updatedAt: Date
+    isActive: boolean
+}
+
 const timeago = require('timeago.js')()
 
 class InviteModal extends React.Component<{ onClose: () => void }> {
@@ -103,7 +114,9 @@ export default class UsersIndexPage extends React.Component {
     async getData() {
         const {admin} = this.context
 
-        const json = await admin.getJSON("/api/users.json")
+        const json = await admin.getJSON("/api/users.json") as { users: UserIndexMeta[] }
+
+
         runInAction(() => {
             this.users = json.users
         })

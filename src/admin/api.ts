@@ -2,7 +2,7 @@ import * as db from '../db'
 import {getVariableData} from '../models/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import * as _ from 'lodash'
-import {Request, Response, User} from './authentication'
+import {Request, Response, CurrentUser} from './authentication'
 import {Express} from 'express'
 import {JsonError, expectInt} from './serverUtil'
 
@@ -32,7 +32,7 @@ function isValidSlug(slug: any) {
     return _.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
 }
 
-async function saveChart(user: User, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
+async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
     return await db.transaction(async () => {
         async function isSlugUsedInRedirect() {
             const rows = await db.query(`SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
@@ -318,4 +318,13 @@ export async function variablesGet(req: Request, res: Response): Promise<{ varia
     variable.vardata = await getVariableData([variableId])
 
     return variable
+}
+
+import User from '../models/User'
+
+export async function test(req: Request, res: Response) {
+    const user = await User.findOne()
+    if (user) {
+        return user.toJSON()
+    }
 }

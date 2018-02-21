@@ -1,7 +1,7 @@
 import * as express from 'express'
 import * as db from '../db'
 
-export interface User {
+export interface CurrentUser {
     id: number
     name: string
     email: string
@@ -12,11 +12,11 @@ export interface User {
 export type Request = express.Request
 
 export interface Response extends express.Response {
-    locals: { user: User }
+    locals: { user: CurrentUser }
 }
 
 export async function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
-    let user: User|undefined
+    let user: CurrentUser|undefined
 
     const sessionid = req.cookies['sessionid']
     if (sessionid) {

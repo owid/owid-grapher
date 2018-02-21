@@ -8,8 +8,16 @@ import AdminSidebar from './AdminSidebar'
 import FuzzySearch from '../charts/FuzzySearch'
 import { uniq } from '../charts/Util'
 const timeago = require('timeago.js')()
-import { UserIndexMeta } from '../../src/admin/api'
 import { Redirect } from 'react-router-dom'
+
+interface UserIndexMeta {
+    id: number
+    name: string
+    fullName: string
+    createdAt: Date
+    updatedAt: Date
+    isActive: boolean
+}
 
 @observer
 export default class UserEditPage extends React.Component<{ userId: number }> {
