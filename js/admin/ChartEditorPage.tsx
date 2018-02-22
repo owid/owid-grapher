@@ -45,15 +45,15 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number }> {
+export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     context!: { admin: Admin }
 
     async fetchChart() {
-        const {chartId} = this.props
+        const {chartId, chartConfig} = this.props
         const {admin} = this.context
-        const json = chartId === undefined ? undefined : await admin.getJSON(`/api/charts/${chartId}.config.json`)
+        const json = chartId === undefined ? chartConfig : await admin.getJSON(`/api/charts/${chartId}.config.json`)
         runInAction(() => this.chart = new ChartConfig(json))
     }
 

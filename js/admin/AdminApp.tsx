@@ -111,6 +111,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 <AdminLoader admin={admin}/>
                 {isSidebar && <FixedOverlay onDismiss={this.onToggleSidebar}><AdminSidebar onDismiss={this.onToggleSidebar}/></FixedOverlay>}
                 <Switch>
+                    <Route path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
                     <Route path="/charts/create" component={ChartEditorPage}/>
                     <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
                     <Route path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>

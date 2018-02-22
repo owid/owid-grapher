@@ -85,7 +85,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                     {this.chart && <div className="col">
                         <div className="topbar">
                             <h3>Preview</h3>
-                            <Link className="btn btn-secondary" to={`/charts/create?config=${JSON.stringify(this.chart.json)}`}>Edit as new chart</Link>
+                            <Link className="btn btn-secondary" to={`/charts/create/${encodeURIComponent(JSON.stringify(this.chartConfig))}`}>Edit as new chart</Link>
                         </div>
                         <ChartFigureView chart={this.chart}/>
                     </div>}
