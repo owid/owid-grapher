@@ -324,6 +324,7 @@ api.post('/users/invite', async (req: Request, res: Response) => {
 
 export interface VariableSingleMeta {
     id: number
+    name: string
     unit: string
     shortUnit: string
     description: string
@@ -333,6 +334,7 @@ export interface VariableSingleMeta {
     datasetNamespace: string
 
     vardata: string
+    display: any
 }
 
 api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
@@ -352,7 +354,16 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
 
     variable.display = JSON.parse(variable.display)
 
-    return { variable: variable as VariableSingleMeta, vardata: await getVariableData([variableId]) }
+    return { variable: variable as VariableSingleMeta }/*, vardata: await getVariableData([variableId]) }*/
+})
+
+api.put('/variables/:variableId', async (req: Request) => {
+    const variableId = expectInt(req.params.variableId)
+    const variable = (req.body as { variable: VariableSingleMeta }).variable
+
+    await db.query(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
+        [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variable.id])
+    return { success: true }
 })
 
 export default api

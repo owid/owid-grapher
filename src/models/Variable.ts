@@ -2,8 +2,9 @@ import {Table, Column, Model} from 'sequelize-typescript'
 
 @Table({ tableName: 'variables' })
 export default class Variable extends Model<Variable> {
-    @Column
-    name!: string
+    @Column name!: string
+    @Column unit!: string
+    @Column description!: string
 }
 
 import * as db from '../db'

@@ -119,7 +119,7 @@ export default class VariableData {
         this.update()
     }
 
-    @computed get variableIds() {
+    @computed.struct get variableIds() {
         return uniq(this.chart.dimensions.map(d => d.variableId))
     }
 

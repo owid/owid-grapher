@@ -9,6 +9,7 @@ html {
 html, body {
     height: 100%;
     margin: 0;
+    font-size: 14px;
 }
 
 .AdminApp {
@@ -352,6 +353,8 @@ html, body {
     > * {
         padding-right: 1rem;
         margin-bottom: 0 !important;
+        flex-grow: 1;
+        flex-basis: 0;
     }
 }
 
@@ -543,4 +546,17 @@ main:not(.ChartEditorPage) {
             margin: 10px;
         }
     }    
+}
+
+.VariableEditPage {
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
 }
