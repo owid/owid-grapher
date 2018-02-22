@@ -1,6 +1,5 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import {createConnection, DatabaseConnection} from './database'
 import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import { uniq, without, chunk } from 'lodash'
@@ -14,6 +13,7 @@ import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
+import * as db from './db'
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
 
@@ -29,7 +29,6 @@ export interface ChartBakerProps {
 
 export class ChartBaker {
     props: ChartBakerProps
-    db: DatabaseConnection
     baseDir: string
 
     // Keep a list of the files we've generated to add to git later
@@ -37,9 +36,9 @@ export class ChartBaker {
 
     constructor(props: ChartBakerProps) {
         this.props = props
-        this.db = createConnection({ database: DB_NAME })
         this.baseDir = path.join(this.props.repoDir, this.props.pathRoot)
         fs.mkdirpSync(this.baseDir)
+        db.connect()
     }
 
     async bakeAssets() {
@@ -111,7 +110,7 @@ export class ChartBaker {
 
         // Make sure we bake the variables successfully before outputing the chart html
         const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
-        if (!isSameVersion || props.regenData) {
+        if (!fs.existsSync(vardataPath) || !isSameVersion || props.regenData) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 
@@ -139,13 +138,13 @@ export class ChartBaker {
         const redirects = []
 
         // Redirect /grapher/latest
-        const latestRows = await this.db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
+        const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
         for (const row of latestRows) {
             redirects.push(`${pathRoot}/latest ${pathRoot}/${JSON.parse(row.slug)} 302`)
         }
 
         // Redirect old slugs to new slugs
-        const rows = await this.db.query(`
+        const rows = await db.query(`
             SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
             FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
         `)
@@ -182,7 +181,7 @@ ${pathRoot}/*
     }
 
     async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
-        const {db, baseDir, props} = this
+        const {baseDir, props} = this
         const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
 
         const newSlugs = []
@@ -247,6 +246,6 @@ ${pathRoot}/*
     }
 
     async end() {
-        return this.db.end()
+        return db.end()
     }
 }

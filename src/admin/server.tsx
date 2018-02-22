@@ -31,14 +31,8 @@ function renderToHtmlPage(element: any) {
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    const baseUrl = "http://l:3030/grapher"
-    const cacheTag = "waffles"
-    const currentUser = "jaiden"
-    const isDebug = true
-
     const rootUrl = `${req.protocol}://${req.get('host')}`
-
     res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.name}/>))
 })
 
-app.listen(3030, () => console.log("Express started"))
+app.listen(3030, 'localhost', () => console.log("Express started"))

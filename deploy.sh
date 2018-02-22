@@ -66,10 +66,11 @@ then
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  node dist/src/bakeCharts.js --regenConfig
+  node dist/src/bakeCharts.js
 
   # Finally, restart the admin!
   sudo service $NAME restart
+  sudo service $NAME-node restart
 EOF
 fi
 
