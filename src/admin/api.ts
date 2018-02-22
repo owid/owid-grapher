@@ -195,7 +195,7 @@ api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
     }
 })
 
-api.get('/admin/api/editorData/:namespace.json', async (req: Request, res: Response) => {
+api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(
         `SELECT v.name, v.id, d.name as datasetName, d.namespace
