@@ -1,3 +1,6 @@
+import * as React from 'react'
+import * as ReactDOMServer from 'react-dom/server'
+
 export class JsonError extends Error {
     code: number
     constructor(message: string, code?: number) {
@@ -13,3 +16,6 @@ export function expectInt(value: any): number {
     return num
 }
 
+export function renderToHtmlPage(element: any): string {
+    return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
+}

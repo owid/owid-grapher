@@ -18,12 +18,14 @@ interface Settings {
     BAKED_URL: string
     ASSETS_URL: string
     BASE_DIR: string
+    SECRET_KEY: string
+    SESSION_COOKIE_AGE: number
 }
 
 const env: Settings = (process.env as any)
 
 env.ENV = env.ENV === "production" ? "production" : "development"
-
 env.BASE_DIR = path.join(__dirname, "../")
+env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 
 export = env

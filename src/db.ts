@@ -70,6 +70,10 @@ export function query(queryStr: string, params?: any[]): Promise<any> {
     })
 }
 
+export async function get(queryStr: string, params?: any[]): Promise<any> {
+    return (await query(queryStr, params))[0]
+}
+
 export function end() {
     pool.end()
 }

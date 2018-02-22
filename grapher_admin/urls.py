@@ -81,7 +81,7 @@ urlpatterns = [
 
     ### Public
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),
-    url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
+    url(r'^grapher/admin/logout/?$', logout, {'next_page': "/admin"}, name="logout"),
     url(r'^grapher/admin/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servewdicountryinfo'),
 

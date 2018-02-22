@@ -3,8 +3,10 @@ import {getVariableData} from '../models/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import * as _ from 'lodash'
 import {Request, Response, CurrentUser} from './authentication'
+import * as express from 'express'
 import {Express, Router} from 'express'
 import {JsonError, expectInt} from './serverUtil'
+
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -12,6 +14,8 @@ class FunctionalRouter {
     router: Router
     constructor() {
         this.router = Router()
+        // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
+        this.router.use(express.json())
     }
 
     wrap(callback: (req: Request, res: Response) => Promise<any>) {

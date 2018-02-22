@@ -1,14 +1,16 @@
 import * as express from 'express'
 require('express-async-errors')
 import { uniq } from 'lodash'
-import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
 const cookieParser = require('cookie-parser')
 
 import * as db from '../db'
 import AdminSPA from './AdminSPA'
-import {authMiddleware} from './authentication'
+import LoginPage from './LoginPage'
+import {authMiddleware, loginSubmit} from './authentication'
 import api from './api'
+import {renderToHtmlPage} from './serverUtil'
+
+import * as React from 'react'
 
 const app = express()
 
@@ -18,16 +20,15 @@ app.use(cookieParser())
 // Require authentication for all requests
 app.use(authMiddleware)
 
-// Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-app.use(express.json())
+//app.use(express.urlencoded())
 
 db.connect()
 
-app.use('/admin/api', api.router)
+/*app.get('/admin/login', (req, res) => {
+    res.send(renderToHtmlPage(<LoginPage/>))
+})*/
 
-function renderToHtmlPage(element: any) {
-    return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
-}
+app.use('/admin/api', api.router)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
@@ -35,4 +36,8 @@ app.get('*', (req, res) => {
     res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.name}/>))
 })
 
-app.listen(3030, 'localhost', () => console.log("Express started"))
+const HOST = 'localhost'
+const PORT = 3030
+app.listen(PORT, HOST, () => {
+    console.log(`Express started on ${HOST}:${PORT}`)
+})

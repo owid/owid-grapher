@@ -179,8 +179,9 @@ def custom_login(request: HttpRequest):
     :return: Redirects to index page if the user is logged in, otherwise will show the login page
     """
     if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('listcharts'))
+        return HttpResponseRedirect("/admin/charts")
     else:
+        setattr(request, '_dont_enforce_csrf_checks', True)
         return loginview(request)
 
 
