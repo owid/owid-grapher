@@ -127,8 +127,8 @@ export default class VariableData {
         return keyBy(this.entityMetaById, 'name')
     }
 
-    @computed get cacheTag(): string {
-        return App.isEditor ? Date.now().toString() : this.chart.cacheTag
+    @computed get cacheTag(): string|undefined {
+        return App.isEditor ? undefined : this.chart.cacheTag
     }
 
     @computed get availableEntities(): string[] {
@@ -147,10 +147,10 @@ export default class VariableData {
         }
 
         if (window.admin) {
-            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}?v=${cacheTag}`)
+            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}${cacheTag ? "?v="+cacheTag : ""}`)
             this.receiveData(json)
         } else {
-            const json = (await fetch(`${Global.rootUrl}/data/variables/${variableIds.join("+")}?v=${cacheTag}`)).json()
+            const json = (await fetch(`${Global.rootUrl}/data/variables/${variableIds.join("+")}${cacheTag ? "?v="+cacheTag : ""}`)).json()
             this.receiveData(json)
         }
 

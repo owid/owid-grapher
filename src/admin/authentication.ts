@@ -29,6 +29,8 @@ export async function authMiddleware(req: express.Request, res: express.Response
         }
     }
 
+    res.set('Cache-Control', 'public, max-age=1, must-revalidate')
+
     if (user) {
         res.locals.user = user
         return next()

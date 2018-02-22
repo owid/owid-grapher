@@ -132,7 +132,6 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
     componentDidMount() {
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {
-                console.log(this.chartConfig)
                 this.chart.update(this.chartConfig)
             }
         })
