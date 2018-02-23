@@ -8,6 +8,7 @@ import UsersIndexPage from './UsersIndexPage'
 import DatasetsIndexPage from './DatasetsIndexPage'
 import UserEditPage from './UserEditPage'
 import VariableEditPage from './VariableEditPage'
+import VariablesIndexPage from './VariablesIndexPage'
 import ImportPage from './ImportPage'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
@@ -60,6 +61,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route path="/users" component={UsersIndexPage}/>
                     <Route path="/import" component={ImportPage}/>
                     <Route path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
+                    <Route path="/variables" component={VariablesIndexPage}/>
                     <Route path="/datasets" component={DatasetsIndexPage}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>

@@ -362,4 +362,23 @@ api.get('/datasets.json', async req => {
     return { datasets: rows }
 })
 
+api.get('/variables.json', async req => {
+    const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 50
+    const searchStr = req.query.search
+
+    const query = `
+        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        FROM variables AS v
+        ${searchStr ? "WHERE v.name LIKE ?" : ""}
+        ORDER BY v.uploaded_at DESC
+        LIMIT ?
+    `
+
+    const rows = await db.query(query, searchStr ? [`%${searchStr}%`, limit] : [limit])
+
+    const numTotalRows = (await db.query(`SELECT COUNT(*) as count FROM variables`))[0].count
+
+    return { variables: rows, numTotalRows: numTotalRows }
+})
+
 export default api
