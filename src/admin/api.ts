@@ -370,4 +370,18 @@ api.put('/variables/:variableId', async (req: Request) => {
     return { success: true }
 })
 
+api.get('/datasets.json', async req => {
+    const rows = await db.query(`
+        SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt
+        FROM datasets AS d
+        LEFT JOIN dataset_categories AS c ON c.id=d.fk_dst_cat_id
+        LEFT JOIN dataset_subcategories AS sc ON sc.id=d.fk_dst_subcat_id
+        ORDER BY d.created_at DESC
+    `)
+    /*LEFT JOIN variables AS v ON v.fk_dst_id=d.id
+    GROUP BY d.id*/
+
+    return { datasets: rows }
+})
+
 export default api

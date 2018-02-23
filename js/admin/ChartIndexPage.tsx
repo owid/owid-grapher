@@ -236,7 +236,7 @@ export default class ChartIndexPage extends React.Component {
     }
 
     dispose!: IReactionDisposer
-componentDidMount() {
+    componentDidMount() {
         this.dispose = reaction(
             () => this.needsMoreData,
             () => {

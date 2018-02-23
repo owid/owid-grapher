@@ -5,6 +5,7 @@ import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
+import DatasetsIndexPage from './DatasetsIndexPage'
 import UserEditPage from './UserEditPage'
 import VariableEditPage from './VariableEditPage'
 import ImportPage from './ImportPage'
@@ -59,6 +60,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route path="/users" component={UsersIndexPage}/>
                     <Route path="/import" component={ImportPage}/>
                     <Route path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
+                    <Route path="/datasets" component={DatasetsIndexPage}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>
             </div>

@@ -83,6 +83,10 @@ export class TextAreaField extends React.Component<TextFieldProps> {
     }
 }
 
+export class SearchField extends TextField {
+
+}
+
 export interface NumberFieldProps {
     label?: string,
     value: number | undefined,

@@ -9,7 +9,7 @@ export default function AdminSidebar(props: { onDismiss: () => void }) {
             <li><Link to="/"><i className="fa fa-bar-chart"></i> Charts</Link></li>
             <li className="header">DATA</li>
             <li><Link to="/import"><i className="fa fa-upload"></i> Import CSV</Link></li>
-            <li><Link native to="/datasets"><i className="fa fa-table"></i> Datasets</Link></li>
+            <li><Link to="/datasets"><i className="fa fa-table"></i> Datasets</Link></li>
             <li><a href="/grapher/admin/standardize"><i className="fa fa-flag"></i> Country name tool</a></li>
             <li><a href="/grapher/admin/datasets/history/all"><i className="fa fa-history"></i> Version history</a></li>
             <li className="header">SETTINGS</li>
