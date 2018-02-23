@@ -5,6 +5,7 @@ import './charts.entry'
 import 'AdminLTE.min.css'
 import '_all-skins.min.css'
 import '../css/admin.css'
+import '../css/libs/bootstrap.css'
 
 // Admin only code
 

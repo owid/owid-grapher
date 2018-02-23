@@ -2,13 +2,13 @@ import Admin from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
+
 import { Modal, LoadingBlocker, TextField } from './Forms'
 import Link from './Link'
 import AdminSidebar from './AdminSidebar'
-import FuzzySearch from '../charts/FuzzySearch'
-import { uniq } from '../charts/Util'
+import AdminLayout from './AdminLayout'
 
-declare var admin: any
+import { uniq } from '../charts/Util'
 
 interface UserIndexMeta {
     id: number
@@ -77,38 +77,40 @@ export default class UsersIndexPage extends React.Component {
 
     render() {
         const {users} = this
-        return <main className="UsersIndexPage">
-            {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
-            <div className="topbar">
-                <h2>Users</h2>
-                <a href="/grapher/admin/invite" className="btn btn-primary">Invite a user</a>
-                {/*<button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>*/}
-            </div>
-            <table className="table table-bordered">
-                <tr>
-                    <th>Username</th>
-                    <th>Full Name</th>
-                    <th>Joined</th>
-                    <th>Status</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                {users.map(user =>
+        return <AdminLayout>
+            <main className="UsersIndexPage">
+                {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
+                <div className="topbar">
+                    <h2>Users</h2>
+                    <a href="/grapher/admin/invite" className="btn btn-primary">Invite a user</a>
+                    {/*<button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>*/}
+                </div>
+                <table className="table table-bordered">
                     <tr>
-                        <td>{user.name}</td>
-                        <td>{user.fullName}</td>
-                        <td>{timeago.format(user.createdAt)}</td>
-                        <td>{user.isActive ? 'active' : 'inactive'}</td>
-                        <td>
-                            <Link to={`/users/${user.id}/edit`} className="btn btn-primary">Edit</Link>
-                        </td>
-                        <td>
-                            <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>
-                        </td>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th></th>
+                        <th></th>
                     </tr>
-                )}
-            </table>
-        </main>
+                    {users.map(user =>
+                        <tr>
+                            <td>{user.name}</td>
+                            <td>{user.fullName}</td>
+                            <td>{timeago.format(user.createdAt)}</td>
+                            <td>{user.isActive ? 'active' : 'inactive'}</td>
+                            <td>
+                                <Link to={`/users/${user.id}/edit`} className="btn btn-primary">Edit</Link>
+                            </td>
+                            <td>
+                                <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>
+                            </td>
+                        </tr>
+                    )}
+                </table>
+            </main>
+        </AdminLayout>
     }
 
     async getData() {

@@ -3,31 +3,14 @@ import Admin from './Admin'
 import ChartEditorPage from './ChartEditorPage'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
-import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
 import UserEditPage from './UserEditPage'
 import VariableEditPage from './VariableEditPage'
 import ImportPage from './ImportPage'
-import AdminSidebar from './AdminSidebar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
 import { LoadingBlocker, Modal } from './Forms'
-
-@observer
-class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base!: HTMLDivElement
-    @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
-        if (e.target === this.base)
-            this.props.onDismiss()
-    }
-
-    render() {
-        return <div className="FixedOverlay" onClick={this.onClick}>
-            {this.props.children}
-        </div>
-    }
-}
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -57,59 +40,17 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 
 @observer
 export default class AdminApp extends React.Component<{ admin: Admin }> {
-    @observable isFAQ: boolean = false
-    @observable isSidebar: boolean = false
-    @observable newChartIndex: number = 0
-
-    @action.bound onToggleFAQ() {
-        this.isFAQ = !this.isFAQ
-    }
-
-    @action.bound onToggleSidebar() {
-        this.isSidebar = !this.isSidebar
-    }
-
     getChildContext() {
         return { admin: this.props.admin }
     }
 
     render() {
         const {admin} = this.props
-        const {isFAQ, isSidebar} = this
 
         return <Router basename={admin.basePath}>
             <div className="AdminApp">
-                <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">
-                    <button className="navbar-toggler" type="button" onClick={this.onToggleSidebar}>
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
-                    <Link className="navbar-brand" to="/">owid-admin</Link>
-                    <ul className="navbar-nav">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/charts/create">
-                                <i className="fa fa-plus"/> New chart
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" onClick={this.onToggleFAQ}>
-                                FAQ
-                            </a>
-                        </li>
-                    </ul>
-                    <ul className="navbar-nav ml-auto">
-                        <li className="nav-item">
-                            <a className="nav-link logout" href="/grapher/admin/logout">
-                                {admin.username}
-                            </a>
-                        </li>
-                    </ul>
-                    {/* This lets the public frontend know to show edit links and such */}
-                    <iframe src="https://ourworldindata.org/identifyadmin" style={{display: 'none'}}/>
-                </nav>
-                {isFAQ && <EditorFAQ onClose={this.onToggleFAQ}/>}
                 <AdminErrorMessage admin={admin}/>
                 <AdminLoader admin={admin}/>
-                {isSidebar && <FixedOverlay onDismiss={this.onToggleSidebar}><AdminSidebar onDismiss={this.onToggleSidebar}/></FixedOverlay>}
                 <Switch>
                     <Route path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
                     <Route path="/charts/create" component={ChartEditorPage}/>

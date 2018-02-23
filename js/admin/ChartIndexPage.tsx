@@ -4,7 +4,7 @@ import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import { Modal, LoadingBlocker, TextField } from './Forms'
 import Link from './Link'
-import AdminSidebar from './AdminSidebar'
+import AdminLayout from './AdminLayout'
 import FuzzySearch from '../charts/FuzzySearch'
 import { uniq } from '../charts/Util'
 const timeago = require('timeago.js')()
@@ -194,31 +194,33 @@ export default class ChartIndexPage extends React.Component {
                 return text
         }
 
-        return <main className="ChartIndexPage">
-            <div className="topRow">
-                <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
-                <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-            </div>
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th><i className="fa fa-star"/></th>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Variables</th>
-                        <th>Notes</th>
-                        <th>Published</th>
-                        <th>Last Updated</th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                    <tbody>
-                    {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
-                </tbody>
-            </table>
-            {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
-        </main>
+        return <AdminLayout>
+            <main className="ChartIndexPage">
+                <div className="topRow">
+                    <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
+                    <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
+                </div>
+                <table className="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th><i className="fa fa-star"/></th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Variables</th>
+                            <th>Notes</th>
+                            <th>Published</th>
+                            <th>Last Updated</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                        {chartsToShow.map(chart => <ChartRow chart={chart} highlight={highlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
+                    </tbody>
+                </table>
+                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
+            </main>
+        </AdminLayout>
     }
 
     async getData() {
@@ -234,7 +236,7 @@ export default class ChartIndexPage extends React.Component {
     }
 
     dispose!: IReactionDisposer
-    componentDidMount() {
+componentDidMount() {
         this.dispose = reaction(
             () => this.needsMoreData,
             () => {

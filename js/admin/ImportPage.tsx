@@ -6,6 +6,7 @@ import { observer } from 'mobx-react'
 
 import * as parse from 'csv-parse'
 import { Modal } from '../admin/Forms'
+import AdminLayout from './AdminLayout'
 
 declare const App: any
 declare const window: any
@@ -698,39 +699,41 @@ export default class ImportPage extends React.Component<{ datasets: any[], categ
             dataset.subcategoryId = (find(categories, c => c.name === "Uncategorized") || {}).id
         }
 
-        return <main className="ImportPage">
-            <form className="importer" onSubmit={this.onSubmit}>
-                <h2>Import CSV file</h2>
-                <p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred. <span className="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a></span></p>
-                <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
+        return <AdminLayout>
+            <main className="ImportPage">
+                <form className="importer" onSubmit={this.onSubmit}>
+                    <h2>Import CSV file</h2>
+                    <p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred. <span className="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a></span></p>
+                    <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
 
-                {csv && csv.isValid && <section>
-                    <p style={{ opacity: dataset.id ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
-                    <select className="chooseDataset" onChange={this.onChooseDataset}>
-                        <option selected={dataset.id == null}>Create new dataset</option>
-                        {map(datasets, (d) =>
-                            <option value={d.id} selected={d.id === dataset.id}>{d.name}</option>
-                        )}
-                    </select>
-                    <hr />
-                    <h3>Dataset name and description</h3>
-                    <p>The dataset name and description are for our own internal use and do not appear on the charts.<br />
-                        <span className="form-section-desc explanatory-notes">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
-                    <EditName dataset={dataset} />
-                    <hr />
-                    <EditDescription dataset={dataset} />
-                    <hr />
-                    <EditCategory dataset={dataset} categories={categories} />
-                    <hr />
+                    {csv && csv.isValid && <section>
+                        <p style={{ opacity: dataset.id ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
+                        <select className="chooseDataset" onChange={this.onChooseDataset}>
+                            <option selected={dataset.id == null}>Create new dataset</option>
+                            {map(datasets, (d) =>
+                                <option value={d.id} selected={d.id === dataset.id}>{d.name}</option>
+                            )}
+                        </select>
+                        <hr />
+                        <h3>Dataset name and description</h3>
+                        <p>The dataset name and description are for our own internal use and do not appear on the charts.<br />
+                            <span className="form-section-desc explanatory-notes">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
+                        <EditName dataset={dataset} />
+                        <hr />
+                        <EditDescription dataset={dataset} />
+                        <hr />
+                        <EditCategory dataset={dataset} categories={categories} />
+                        <hr />
 
-                    {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
-                    {!dataset.isLoading && [
-                        <EditVariables dataset={dataset} />,
-                        <input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"} />,
-                        dataset.importRequest && <ImportProgressModal dataset={dataset} />
-                    ]}
-                </section>}
-            </form>
-        </main>
+                        {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
+                        {!dataset.isLoading && [
+                            <EditVariables dataset={dataset} />,
+                            <input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"} />,
+                            dataset.importRequest && <ImportProgressModal dataset={dataset} />
+                        ]}
+                    </section>}
+                </form>
+            </main>
+        </AdminLayout>
     }
 }

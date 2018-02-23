@@ -1,20 +1,23 @@
-import ChartEditor, {EditorDatabase} from './ChartEditor'
-import Admin from './Admin'
 import * as React from 'react'
-import {includes, capitalize} from '../charts/Util'
-import ChartConfig from '../charts/ChartConfig'
 import {observer} from 'mobx-react'
 import {observable, computed, runInAction, autorun, action, reaction, IReactionDisposer} from 'mobx'
+
+import ChartView from '../charts/ChartView'
+import Bounds from '../charts/Bounds'
+import {includes, capitalize} from '../charts/Util'
+import ChartConfig from '../charts/ChartConfig'
+
+import Admin from './Admin'
+import ChartEditor, {EditorDatabase} from './ChartEditor'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
-import ChartView from '../charts/ChartView'
-import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
 import { Modal, LoadingBlocker } from './Forms'
+import AdminLayout from './AdminLayout'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -97,10 +100,12 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     }
 
     render() {
-        return <main className="ChartEditorPage">
-            {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
-            {this.editor !== undefined && this.renderReady(this.editor)}
-        </main>
+        return <AdminLayout noSidebar>
+            <main className="ChartEditorPage">
+                {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
+                {this.editor !== undefined && this.renderReady(this.editor)}
+            </main>
+        </AdminLayout>
     }
 
     renderReady(editor: ChartEditor) {

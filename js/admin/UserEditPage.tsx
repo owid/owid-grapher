@@ -1,14 +1,16 @@
-import Admin from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import { LoadingBlocker, TextField, BindString, Toggle } from './Forms'
+const timeago = require('timeago.js')()
+import { Redirect } from 'react-router-dom'
+
+import Admin from './Admin'
+import AdminLayout from './AdminLayout'
 import Link from './Link'
 import AdminSidebar from './AdminSidebar'
 import FuzzySearch from '../charts/FuzzySearch'
 import { uniq } from '../charts/Util'
-const timeago = require('timeago.js')()
-import { Redirect } from 'react-router-dom'
 
 interface UserIndexMeta {
     id: number
@@ -33,11 +35,13 @@ export default class UserEditPage extends React.Component<{ userId: number }> {
             return <Redirect to="/users"/>
 
 
-        return <main className="UserEditPage">
-            <BindString label="Full Name" field="fullName" store={user}/>
-            <Toggle label="User is active" value={user.isActive} onValue={v => user.isActive = v}/>
-            <button className="btn btn-success" onClick={_ => this.save()}>Update user</button>
-        </main>
+        return <AdminLayout>
+            <main className="UserEditPage">
+                <BindString label="Full Name" field="fullName" store={user}/>
+                <Toggle label="User is active" value={user.isActive} onValue={v => user.isActive = v}/>
+                <button className="btn btn-success" onClick={_ => this.save()}>Update user</button>
+            </main>
+        </AdminLayout>
     }
 
     async save() {

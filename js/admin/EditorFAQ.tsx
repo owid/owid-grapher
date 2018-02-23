@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Modal } from './Forms'
 
-export class EditorFAQ extends React.Component<{ onClose: () => void }> {
+export default class EditorFAQ extends React.Component<{ onClose: () => void }> {
     render() {
         return <Modal onClose={this.props.onClose} className="EditorFAQ">
             <div className="modal-header">

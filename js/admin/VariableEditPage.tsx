@@ -4,6 +4,7 @@ import {observable, computed, action, runInAction, autorun, IReactionDisposer} f
 import * as _ from 'lodash'
 
 import Admin from './Admin'
+import AdminLayout from './AdminLayout'
 import Link from './Link'
 import { LoadingBlocker, TextField, BindString, BindFloat, Toggle, FieldsRow } from './Forms'
 import { VariableDisplaySettings } from '../charts/VariableData'
@@ -47,7 +48,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
         return JSON.stringify(this.variable) !== JSON.stringify(this.origVariable)
     }
 
-    render() {
+    renderWithVariable() {
         const {variable} = this
         if (!variable) return null
         const isBulkImport = variable.datasetNamespace !== 'owid'
@@ -95,6 +96,12 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
         </main>
     }
 
+    render() {
+        return <AdminLayout>
+            {this.variable && this.renderWithVariable()}
+        </AdminLayout>
+    }
+
     async save() {
         if (this.variable)
             await this.context.admin.requestJSON(`/api/variables/${this.variable.id}`, { variable: this.variable }, "PUT")
@@ -135,6 +142,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                 this.chart.update(this.chartConfig)
             }
         })
+
         this.getData()
     }
 
