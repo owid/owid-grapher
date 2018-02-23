@@ -25,10 +25,6 @@ interface ChartMeta {
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
-    variables: { id: number, name: string }[]
-
-    titleSearch: any
-    variableSearch: any
 }
 
 interface Searchable {
@@ -80,10 +76,6 @@ class ChartRow extends React.Component<{ chart: ChartMeta, highlight: (text: str
                 <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
             </td>}
             <td style={{"min-width": "120px"}}>{showChartType(chart)}</td>
-            <td>{chart.variables.map(v => [
-                <Link to={`/variables/${v.id}`}>{highlight(v.name)}</Link>,
-                <br/>
-            ])}</td>
             <td>{chart.internalNotes}</td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.lastEditedBy}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
@@ -102,10 +94,12 @@ export default class ChartIndexPage extends React.Component {
     context!: { admin: Admin }
 
     @observable searchInput?: string
-    @computed get wantsSearch(): boolean { return !!this.searchInput }
     @observable maxVisibleCharts = 50
     @observable charts: ChartMeta[] = []
-    @observable numTotalCharts: number = 0
+
+    @computed get numTotalCharts() {
+        return this.charts.length
+    }
 
     @computed get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
@@ -114,13 +108,6 @@ export default class ChartIndexPage extends React.Component {
                 chart: chart,
                 term: fuzzysort.prepare(chart.title)
             })
-
-            for (const variable of chart.variables) {
-                searchIndex.push({
-                    chart: chart,
-                    term: fuzzysort.prepare(variable.name)
-                })
-            }
         }
 
         return searchIndex
@@ -175,16 +162,8 @@ export default class ChartIndexPage extends React.Component {
         }
     }
 
-    @computed get isSearchReady(): boolean {
-        return this.charts.length >= this.numTotalCharts
-    }
-
-    @computed get needsMoreData(): boolean {
-        return !!(this.maxVisibleCharts > this.charts.length || (this.wantsSearch && !this.isSearchReady))
-    }
-
     render() {
-        const {chartsToShow, searchInput, numTotalCharts, isSearchReady} = this
+        const {chartsToShow, searchInput, numTotalCharts} = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
@@ -206,7 +185,6 @@ export default class ChartIndexPage extends React.Component {
                             <th><i className="fa fa-star"/></th>
                             <th>Title</th>
                             <th>Type</th>
-                            <th>Variables</th>
                             <th>Notes</th>
                             <th>Published</th>
                             <th>Last Updated</th>
@@ -228,26 +206,13 @@ export default class ChartIndexPage extends React.Component {
         if (admin.currentRequests.length > 0)
             return
 
-        const json = await admin.getJSON("/api/charts.json" + (this.wantsSearch ? "" : `?limit=${this.maxVisibleCharts}`))
+        const json = await admin.getJSON("/api/charts.json")
         runInAction(() => {
             this.charts = json.charts
-            this.numTotalCharts = json.numTotalCharts
         })
     }
 
-    dispose!: IReactionDisposer
     componentDidMount() {
-        this.dispose = reaction(
-            () => this.needsMoreData,
-            () => {
-                if (this.needsMoreData)
-                    this.getData()
-            }
-        )
         this.getData()
-     }
-
-     componentWillUnmount() {
-         this.dispose()
      }
 }

@@ -160,30 +160,8 @@ api.get('/charts.json', async (req: Request, res: Response) => {
         FROM charts ORDER BY last_edited_at DESC LIMIT ?
     `, [limit]) as any[]
 
-    const chartIds = charts.map(row => row.id)
-
-    const variableRows = await db.query(`
-        SELECT dims.chartId, v.id as variableId, v.name as variableName
-        FROM chart_dimensions AS dims
-        JOIN variables AS v ON v.id=dims.variableId WHERE dims.chartId IN (?)
-    `, [chartIds])
-
-    const variablesByChartId = new Map<number, { id: number, name: string }[]>()
-    for (const row of variableRows) {
-        const variables = variablesByChartId.get(row.chartId) || []
-        variables.push({ id: row.variableId, name: row.variableName })
-        variablesByChartId.set(row.chartId, variables)
-    }
-
-    for (const chart of charts) {
-        chart.variables = variablesByChartId.get(chart.id) || []
-    }
-
-    const numTotalCharts = (await db.query(`SELECT COUNT(*) AS total FROM charts`))[0].total
-
     return {
-        charts: charts,
-        numTotalCharts: numTotalCharts
+        charts: charts
     }
 })
 
