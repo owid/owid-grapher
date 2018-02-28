@@ -19,7 +19,7 @@ class Logo {
     }
 
     @computed get targetHeight() {
-        return 30*(this.props.fontSize/16)
+        return 35
     }
 
     @computed get origWidth() { return 211 }
