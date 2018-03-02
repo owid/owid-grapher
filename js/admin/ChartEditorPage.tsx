@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, runInAction, autorun, action, reaction, IReactionDisposer} from 'mobx'
+import {Prompt} from 'react-router'
 
 import ChartView from '../charts/ChartView'
 import Bounds from '../charts/Bounds'
@@ -112,6 +113,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
         const {chart, availableTabs, previewMode} = editor
 
         return [
+            <Prompt when={!editor.isSaved} message="Are you sure you want to leave? Unsaved changes to this chart will be lost."/>,
             <TabBinder editor={editor}/>,
             <form onSubmit={e => e.preventDefault()}>
                 <div className="p-2">
