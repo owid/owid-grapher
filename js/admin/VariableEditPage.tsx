@@ -2,6 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
+import {Prompt} from 'react-router'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
@@ -54,6 +55,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
         const isBulkImport = variable.datasetNamespace !== 'owid'
 
         return <main className="VariableEditPage">
+            <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
             <ol className="breadcrumb">
                 <li className="breadcrumb-item">{variable.datasetNamespace}</li>
                 <li className="breadcrumb-item"><Link to={`/datasets/${variable.datasetId}`}>{variable.datasetName}</Link></li>
