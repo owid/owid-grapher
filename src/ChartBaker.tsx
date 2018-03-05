@@ -15,7 +15,7 @@ import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
 import * as db from './db'
 
-import { ENV, WEBPACK_DEV_URL, DB_NAME } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BAKED_URL } from './settings'
 
 export interface ChartBakerProps {
     canonicalRoot: string
@@ -65,8 +65,8 @@ export class ChartBaker {
                 this.stage(outPath)
             }
 
-            chartsJs = `${pathRoot}/assets/charts.js?v=${manifest['charts.js']}`
-            chartsCss = `${pathRoot}/assets/charts.css?v=${manifest['charts.css']}`
+            chartsJs = `${BAKED_URL}/grapher/assets/charts.js?v=${manifest['charts.js']}`
+            chartsCss = `${BAKED_URL}/grapher/assets/charts.css?v=${manifest['charts.css']}`
         }
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
