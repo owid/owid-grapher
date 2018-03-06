@@ -6,6 +6,7 @@ import {Request, Response, CurrentUser} from './authentication'
 import * as express from 'express'
 import {Express, Router} from 'express'
 import {JsonError, expectInt} from './serverUtil'
+import Chart from '../models/Chart'
 
 
 // Little wrapper to automatically send returned objects as JSON, makes
@@ -142,22 +143,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
-        SELECT
-            id,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.title")) AS title,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.type")) AS type,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.internalNotes")) AS internalNotes,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.isPublished")) AS isPublished,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.tab")) AS tab,
-            JSON_EXTRACT(config, "$.hasChartTab") = true AS hasChartTab,
-            JSON_EXTRACT(config, "$.hasMapTab") = true AS hasMapTab,
-            starred AS isStarred,
-            last_edited_at AS lastEditedAt,
-            last_edited_by AS lastEditedBy,
-            published_at AS publishedAt,
-            published_by AS publishedBy
-        FROM charts ORDER BY last_edited_at DESC LIMIT ?
+        SELECT ${Chart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
     `, [limit]) as any[]
 
     return {
@@ -215,8 +201,9 @@ api.get('/data/variables/:variableStr', async (req: Request, res: Response) => {
 })
 
 // Mark a chart for display on the front page
-api.get('/charts/star', async (req: Request, res: Response) => {
-    db.query(`UPDATE charts SET starred=(charts.id=?)`, req.params.chartId)
+api.post('/charts/:chartId/star', async (req: Request, res: Response) => {
+    const chartId = expectInt(req.params.chartId)
+    db.query(`UPDATE charts SET starred=(charts.id=?)`, [chartId])
 
     //Chart.bake(request.user, chart.slug)
 
@@ -395,10 +382,22 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name FROM variables AS v WHERE v.fk_dst_id = ?
+        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        FROM variables AS v
+        WHERE v.fk_dst_id = ?
     `, [datasetId])
 
     dataset.variables = variables
+
+    const charts = await db.query(`
+        SELECT ${Chart.listFields}
+        FROM charts
+        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+        JOIN variables AS v ON cd.variableId = v.id
+        WHERE v.fk_dst_id = ?
+    `, [datasetId])
+
+    dataset.charts = charts
 
     return { dataset: dataset }
 })

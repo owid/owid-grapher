@@ -55,7 +55,7 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
         const isBulkImport = variable.datasetNamespace !== 'owid'
 
         return <main className="VariableEditPage">
-            <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
+            <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <ol className="breadcrumb">
                 <li className="breadcrumb-item">{variable.datasetNamespace}</li>
                 <li className="breadcrumb-item"><Link to={`/datasets/${variable.datasetId}`}>{variable.datasetName}</Link></li>

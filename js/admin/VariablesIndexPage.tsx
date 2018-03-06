@@ -9,42 +9,19 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { Modal, LoadingBlocker, SearchField, FieldsRow } from './Forms'
 import Link from './Link'
-
-interface VariableIndexMeta {
-    id: number
-    name: string
-    uploadedAt: Date
-    uploadedBy: string
-}
-
-@observer
-class VariableRow extends React.Component<{ variable: VariableIndexMeta, highlight: (text: string) => any }> {
-    context!: { admin: Admin }
-
-    render() {
-        const {variable, highlight} = this.props
-        const {admin} = this.context
-
-        return <tr>
-            <td>
-                <Link to={`/variables/${variable.id}`}>{highlight(variable.name)}</Link>
-            </td>
-            <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "aibek"}</td>
-        </tr>
-    }
-}
+import VariableList, {VariableListItem} from './VariableList'
 
 @observer
 export default class VariablesIndexPage extends React.Component {
     context!: { admin: Admin }
 
-    @observable variables: VariableIndexMeta[] = []
+    @observable variables: VariableListItem[] = []
     @observable maxVisibleRows = 50
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
 
-    @computed get variablesToShow(): VariableIndexMeta[] {
+    @computed get variablesToShow(): VariableListItem[] {
         return this.variables
     }
 
@@ -69,17 +46,7 @@ export default class VariablesIndexPage extends React.Component {
                     <span>Showing {variablesToShow.length} of {numTotalRows} variables</span>
                     <SearchField placeholder="Search all variables..." value={searchInput} onValue={action((v: string) => this.searchInput = v)} autofocus/>
                 </FieldsRow>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Variable</th>
-                            <th>Uploaded</th>
-                        </tr>
-                    </thead>
-                        <tbody>
-                        {variablesToShow.map(variable => <VariableRow variable={variable} highlight={highlight}/>)}
-                    </tbody>
-                </table>
+                <VariableList variables={variablesToShow} searchHighlight={highlight}/>
                 {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more variables...</button>}
             </main>
         </AdminLayout>
