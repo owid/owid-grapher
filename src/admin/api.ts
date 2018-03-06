@@ -350,7 +350,7 @@ api.put('/variables/:variableId', async (req: Request) => {
     const variable = (req.body as { variable: VariableSingleMeta }).variable
 
     await db.query(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
-        [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variable.id])
+        [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variableId])
     return { success: true }
 })
 
@@ -400,6 +400,25 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     dataset.charts = charts
 
     return { dataset: dataset }
+})
+
+api.put('/datasets/:datasetId', async (req: Request) => {
+    const datasetId = expectInt(req.params.datasetId)
+    const dataset = (req.body as { dataset: any }).dataset
+    await db.query(`UPDATE datasets SET name=?, description=? WHERE id=?`, [dataset.name, dataset.description, datasetId])
+    return { success: true }
+})
+
+api.delete('/datasets/:datasetId', async (req: Request) => {
+    const datasetId = expectInt(req.params.datasetId)
+    await db.transaction(async () => {
+        await db.query(`DELETE d FROM data_values AS d JOIN variables AS v ON d.fk_var_id=v.id WHERE v.fk_dst_id=?`, [datasetId])
+        await db.query(`DELETE FROM variables WHERE fk_dst_id=?`, [datasetId])
+        await db.query(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
+        await db.query(`DELETE FROM datasets WHERE id=?`, [datasetId])
+    })
+
+    return { success: true }
 })
 
 export default api

@@ -29,7 +29,7 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
             <td>
                 <Link to={`/variables/${variable.id}`}>{searchHighlight ? searchHighlight(variable.name) : variable.name}</Link>
             </td>
-            <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "aibek"}</td>
+            <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "Bulk import"}</td>
         </tr>
     }
 }

@@ -7,13 +7,13 @@ html {
 }
 
 html, body {
-    height: 100%;
+    min-height: 100%;
     margin: 0;
     font-size: 14px;
 }
 
 .AdminApp {
-    height: 100%;
+    min-height: 100%;
 
     button, a, .btn, .form-group > label, .form-check > label {
         @extend .clickable;
@@ -26,6 +26,36 @@ html, body {
     .navbar-toggler {
         display: block;
         margin-right: 1rem;
+    }
+
+    section {
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        h3 {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e4e8;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .card-footer {
+            border-radius: 0;
+            border: 0;
+            background: none;
+            padding: 0;
+        }
+
+        > .btn {
+            margin-right: 10px;
+        }
+    }
+    
+    section:not(:first-child) {
+        margin-top: 40px;
     }
 }
 
@@ -40,7 +70,7 @@ html, body {
 }
 
 .AdminLayout {
-    height: 100%;
+    min-height: 100%;
 
     padding-top: 60px;
     > nav {

@@ -11,6 +11,16 @@ import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 import Colorpicker from './Colorpicker'
 
+export class PageTitle extends React.Component<{ children: string }> {
+    componentDidMount() {
+        this.componentDidUpdate()
+    }
+
+    componentDidUpdate() {
+        document.title = this.props.children
+    }
+}
+
 export class FieldsRow extends React.Component<{}> {
     render() {
         const {props} = this
