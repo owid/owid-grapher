@@ -117,8 +117,8 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         let previewWidth: number
         let previewHeight: number
         if (isPortrait) {
-            previewWidth = props.bounds.width * 0.6
-            previewHeight = (targetHeight / targetWidth) * previewWidth
+            previewHeight = props.bounds.height * 0.2
+            previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
             previewHeight = props.bounds.height * 0.4
             previewWidth = (targetWidth / targetHeight) * previewHeight
@@ -142,6 +142,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                         </aside>
                     </div>}
             </a>,
+            isPortrait ? <hr/> : undefined,
             <a href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
                 {isPortrait
                     ? <div>
@@ -171,7 +172,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     render() {
-        return <div className='downloadTab' style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className='DownloadTab' style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
             {this.isReady ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
         </div>
     }
