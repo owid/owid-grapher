@@ -128,35 +128,22 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
 
         return [
             <a href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
-                {isPortrait
-                    ? <div>
+                <div>
+                    <img src={pngPreviewUrl} style={imgStyle} />
+                    <aside>
                         <h2>Save as .png</h2>
-                        <img src={pngPreviewUrl} style={imgStyle} />
                         <p>A standard image of the visualization that can be used in presentations or other documents.</p>
-                    </div>
-                    : <div>
-                        <img src={pngPreviewUrl} style={imgStyle} />
-                        <aside>
-                            <h2>Save as .png</h2>
-                            <p>A standard image of the visualization that can be used in presentations or other documents.</p>
-                        </aside>
-                    </div>}
+                    </aside>
+                </div>
             </a>,
-            isPortrait ? <hr/> : undefined,
             <a href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
-                {isPortrait
-                    ? <div>
+                <div>
+                    <img src={svgPreviewUrl} style={imgStyle} />
+                    <aside>
                         <h2>Save as .svg</h2>
-                        <img src={svgPreviewUrl} style={imgStyle} />
                         <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
-                    </div>
-                    : <div>
-                        <img src={svgPreviewUrl} style={imgStyle} />
-                        <aside>
-                            <h2>Save as .svg</h2>
-                            <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
-                        </aside>
-                    </div>}
+                    </aside>
+                </div>
             </a>]
     }
 
@@ -172,7 +159,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     render() {
-        return <div className={"DownloadTab" + (this.isPortrait ? " portrait" : " landscape")} style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className="DownloadTab" style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
             {this.isReady ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
         </div>
     }

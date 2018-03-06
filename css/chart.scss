@@ -35,6 +35,8 @@ figure[data-grapher-src]:empty:after {
     border-bottom: none;
     border-radius: 2px;
 
+    line-height: 1em;
+
     background: white;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #333;
@@ -615,26 +617,12 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart .DownloadTab.landscape {
+.chart .DownloadTab{
     font-size: 0.8em;
-    padding: 3em;
+    padding: 2em;
 
     > a > div {
         display: flex;
-    }
-}
-
-.chart .DownloadTab.portrait {
-    font-size: 0.7em;
-    padding: 1em;
-
-    .imgLoader {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    h2 {
-        margin-bottom: 0.2em;
     }
 }
 
