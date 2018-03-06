@@ -304,6 +304,25 @@ api.post('/users/invite', async (req: Request, res: Response) => {
     // TODO
 })
 
+api.get('/variables.json', async req => {
+    const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 50
+    const searchStr = req.query.search
+
+    const query = `
+        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        FROM variables AS v
+        ${searchStr ? "WHERE v.name LIKE ?" : ""}
+        ORDER BY v.uploaded_at DESC
+        LIMIT ?
+    `
+
+    const rows = await db.query(query, searchStr ? [`%${searchStr}%`, limit] : [limit])
+
+    const numTotalRows = (await db.query(`SELECT COUNT(*) as count FROM variables`))[0].count
+
+    return { variables: rows, numTotalRows: numTotalRows }
+})
+
 export interface VariableSingleMeta {
     id: number
     name: string
@@ -362,23 +381,26 @@ api.get('/datasets.json', async req => {
     return { datasets: rows }
 })
 
-api.get('/variables.json', async req => {
-    const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 50
-    const searchStr = req.query.search
+api.get('/datasets/:datasetId.json', async (req: Request) => {
+    const datasetId = expectInt(req.params.datasetId)
 
-    const query = `
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
-        FROM variables AS v
-        ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY v.uploaded_at DESC
-        LIMIT ?
-    `
+    const dataset = await db.get(`
+        SELECT d.id, d.namespace, d.name, d.description
+        FROM datasets AS d
+        WHERE d.id = ?
+    `, [datasetId])
 
-    const rows = await db.query(query, searchStr ? [`%${searchStr}%`, limit] : [limit])
+    if (!dataset) {
+        throw new JsonError(`No dataset by id '${datasetId}'`, 404)
+    }
 
-    const numTotalRows = (await db.query(`SELECT COUNT(*) as count FROM variables`))[0].count
+    const variables = await db.query(`
+        SELECT v.id, v.name FROM variables AS v WHERE v.fk_dst_id = ?
+    `, [datasetId])
 
-    return { variables: rows, numTotalRows: numTotalRows }
+    dataset.variables = variables
+
+    return { dataset: dataset }
 })
 
 export default api
