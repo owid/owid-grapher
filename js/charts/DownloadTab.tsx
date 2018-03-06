@@ -116,12 +116,12 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
 
         let previewWidth: number
         let previewHeight: number
-        if (isPortrait) {
-            previewHeight = props.bounds.height * 0.2
-            previewWidth = (targetWidth / targetHeight) * previewHeight
-        } else {
+        if (props.bounds.width/props.bounds.height > targetWidth/targetHeight) {
             previewHeight = props.bounds.height * 0.4
             previewWidth = (targetWidth / targetHeight) * previewHeight
+        } else {
+            previewWidth = props.bounds.width * 0.4
+            previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
@@ -172,7 +172,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     render() {
-        return <div className='DownloadTab' style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className={"DownloadTab" + (this.isPortrait ? " portrait" : " landscape")} style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
             {this.isReady ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
         </div>
     }

@@ -615,7 +615,7 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart.landscape .DownloadTab {
+.chart .DownloadTab.landscape {
     font-size: 0.8em;
     padding: 3em;
 
@@ -624,7 +624,7 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart.portrait .DownloadTab {
+.chart .DownloadTab.portrait {
     font-size: 0.7em;
     padding: 1em;
 
