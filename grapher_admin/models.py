@@ -259,7 +259,7 @@ class DataValue(Model):
         unique_together = (('fk_ent_id', 'fk_var_id', 'year'),)
 
     value = models.CharField(max_length=255)
-    fk_ent_id = models.ForeignKey(Entity, blank=True, null=True, on_delete=models.DO_NOTHING, db_column='fk_ent_id')
+    fk_ent_id = models.ForeignKey(Entity, on_delete=models.DO_NOTHING, db_column='fk_ent_id')
     fk_var_id = models.ForeignKey(Variable, on_delete=models.CASCADE, db_column='fk_var_id')
     year = models.IntegerField()
 

@@ -97,7 +97,10 @@ def test_all(request):
     query = Chart.objects.filter(config__isPublished=True).order_by('-created_at')
 
     if test_type and test_type != 'map':
-        query = query.filter(type=test_type)
+        if test_type == "stackedarea":
+            query = query.filter(config__type="StackedArea")
+        else:
+            query = query.filter(config__type=test_type)
 
     urls = []
     count = 0
