@@ -64,26 +64,30 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
             <form onSubmit={e => { e.preventDefault(); this.save() }}>
                 <div className="row">
                     <div className="col">
-                        <h3>Variable metadata</h3>
-                        {isBulkImport ?
-                            <p>This variable came from an automated import, so we can't change the original metadata manually.</p>
-                        : <p>The core metadata for the variable. It's important to keep this consistent.</p>}
-                        <BindString field="name" store={variable} label="Variable Name" disabled={isBulkImport}/>
-                        <FieldsRow>
-                            <BindString field="unit" store={variable} label="Unit of measurement" disabled={isBulkImport}/>
-                            <BindString field="shortUnit" store={variable} label="Short (axis) unit" disabled={isBulkImport}/>
-                        </FieldsRow>
-                        <h3>Display settings</h3>
-                        <p>These settings tell the grapher how to display the variable. They can also be changed in the chart editor.</p>
-                        <BindString label="Display name" field="name" store={variable.display}/>
-                        <FieldsRow>
-                            <BindString label="Unit of measurement" field="unit" store={variable.display}/>
-                            <BindString label="Short (axis) unit" field="shortUnit" store={variable.display}/>
-                        </FieldsRow>
-                        <FieldsRow>
-                            <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={variable.display} helpText={`A negative number here will round integers`}/>
-                            <BindFloat label="Unit conversion factor" field="conversionFactor" store={variable.display} helpText={`Multiply all values by this amount`}/>
-                        </FieldsRow>
+                        <section>
+                            <h3>Variable metadata</h3>
+                            {isBulkImport ?
+                                <p>This variable came from an automated import, so we can't change the original metadata manually.</p>
+                            : <p>The core metadata for the variable. It's important to keep this consistent.</p>}
+                            <BindString field="name" store={variable} label="Variable Name" disabled={isBulkImport}/>
+                            <FieldsRow>
+                                <BindString field="unit" store={variable} label="Unit of measurement" disabled={isBulkImport}/>
+                                <BindString field="shortUnit" store={variable} label="Short (axis) unit" disabled={isBulkImport}/>
+                            </FieldsRow>
+                        </section>
+                        <section>
+                            <h3>Display settings</h3>
+                            <p>These settings tell the grapher how to display the variable. They can also be changed in the chart editor.</p>
+                            <BindString label="Display name" field="name" store={variable.display}/>
+                            <FieldsRow>
+                                <BindString label="Unit of measurement" field="unit" store={variable.display}/>
+                                <BindString label="Short (axis) unit" field="shortUnit" store={variable.display}/>
+                            </FieldsRow>
+                            <FieldsRow>
+                                <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={variable.display} helpText={`A negative number here will round integers`}/>
+                                <BindFloat label="Unit conversion factor" field="conversionFactor" store={variable.display} helpText={`Multiply all values by this amount`}/>
+                            </FieldsRow>
+                        </section>
                     </div>
                     {this.chart && <div className="col">
                         <div className="topbar">

@@ -23,6 +23,7 @@ interface Dataset {
     updatedAt: string
     variables: VariableListItem[]
     charts: ChartListItem[]
+    sources: { id: number, name: string }[]
 }
 
 class DatasetEditable {
@@ -109,6 +110,21 @@ class DatasetEditor extends React.Component<{ dataset: Dataset }> {
             <section>
                 <h3>Variables</h3>
                 <VariableList variables={dataset.variables}/>
+            </section>
+            <section>
+                <h3>Sources</h3>
+                <table className="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {dataset.sources.map(source => <tr>
+                        <td><Link to={`/sources/${source.id}`}>{source.name}</Link></td>
+                    </tr>)}
+                </tbody>
+            </table>
             </section>
             <section>
                 <h3>Charts</h3>

@@ -389,12 +389,21 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     dataset.variables = variables
 
+    const sources = await db.query(`
+        SELECT s.id, s.name
+        FROM sources AS s
+        WHERE s.datasetId = ?
+    `, [datasetId])
+
+    dataset.sources = sources
+
     const charts = await db.query(`
         SELECT ${Chart.listFields}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
         WHERE v.fk_dst_id = ?
+        GROUP BY charts.id
     `, [datasetId])
 
     dataset.charts = charts
