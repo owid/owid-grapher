@@ -110,7 +110,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
             <Section name="Colors">
                 <ColorSchemeSelector chart={chart} />
             </Section>
-            {(features.hideLegend || features.relativeModeToggle) && <Section name="Legend">
+            {(features.hideLegend || features.relativeModeToggle || features.entityType) && <Section name="Legend">
                 <FieldsRow>
                     {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}
                     {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
