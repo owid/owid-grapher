@@ -202,28 +202,30 @@ export default class ScatterTransform implements IChartTransform {
         const dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
 
         // The data values
-        filledDimensions.forEach(dimension => {
+        for (const dimension of filledDimensions) {
             const tolerance = (dimension.property === 'color' || dimension.property === 'size') ? Infinity : dimension.tolerance
+            const minUsefulYear = first(yearsToCalculate) - tolerance
+            const maxUsefulYear = last(yearsToCalculate) + tolerance
 
-            yearsToCalculate.forEach((outputYear) => {
-                for (let i = 0; i < dimension.years.length; i++) {
-                    const year = dimension.years[i]
-                    const value = dimension.values[i]
-                    const entity = dimension.entities[i]
+            for (let i = 0; i < dimension.years.length; i++) {
+                const year = dimension.years[i]
+                const value = dimension.values[i]
+                const entity = dimension.entities[i]
 
-                    // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
-                    const datakey = chart.data.keyFor(entity, 0)
+                if (!validEntityLookup[entity])
+                    continue
 
-                    if (!validEntityLookup[entity])
-                        continue
+                if ((dimension.property === 'x' || dimension.property === 'y') && !isNumber(value))
+                    continue
 
-                    if ((dimension.property === 'x' || dimension.property === 'y') && !isNumber(value))
-                        continue
+                if (year < minUsefulYear || year > maxUsefulYear)
+                    continue
 
+                for (const outputYear of yearsToCalculate) {
                     const targetYear = (dimension.property === 'x' && xOverrideYear !== undefined) ? xOverrideYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
-                    if (year < targetYear - tolerance || year > targetYear + tolerance)
+                    if (year < (targetYear - tolerance) || year > (targetYear + tolerance))
                         continue
 
                     let dataByYear = dataByEntityAndYear.get(entity)
@@ -231,6 +233,9 @@ export default class ScatterTransform implements IChartTransform {
                         dataByYear = new Map()
                         dataByEntityAndYear.set(entity, dataByYear)
                     }
+
+                    // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
+                    const datakey = chart.data.keyFor(entity, 0)
 
                     let series = dataByYear.get(outputYear)
                     if (!series) {
@@ -258,8 +263,8 @@ export default class ScatterTransform implements IChartTransform {
                         (d as any)[dimension.property] = value
                     }
                 }
-            })
-        })
+            }
+        }
 
         // Exclude any with data for only one axis
         dataByEntityAndYear.forEach((dataByYear, entity) => {
