@@ -450,7 +450,16 @@ export default class ScatterTransform implements IChartTransform {
             const lastPoint = last(group.values)
 
             if (group && group.values.length) {
-                group.color = keyColors[datakey] || last(group.values.map(v => v.color).filter(s => s)) || group.color
+                const keyColor = keyColors[datakey]
+                if (keyColor !== undefined) {
+                    group.color = keyColor
+                } else {
+                    const color = last(group.values.map(v => v.color).filter(s => s))
+                    if (color !== undefined) {
+                        group.color = color
+                        group.isAutoColor = true
+                    }
+                }
                 group.size = last(group.values.map(v => v.size).filter(s => isNumber(s)))
                 currentData.push(group)
             }
