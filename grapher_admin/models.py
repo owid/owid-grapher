@@ -204,7 +204,7 @@ class Variable(Model):
         db_table = 'variables'
         unique_together = (('code', 'fk_dst_id'), ('name', 'fk_dst_id'),)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=1000)
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
 
