@@ -7,13 +7,13 @@ html {
 }
 
 html, body {
-    min-height: 100%;
+    height: 100%;
     margin: 0;
     font-size: 14px;
 }
 
 .AdminApp {
-    min-height: 100%;
+    height: 100%;
 
     button, a, .btn, .form-group > label, .form-check > label {
         @extend .clickable;
@@ -70,7 +70,7 @@ html, body {
 }
 
 .AdminLayout {
-    min-height: 100%;
+    height: 100%;
 
     padding-top: 60px;
     > nav {

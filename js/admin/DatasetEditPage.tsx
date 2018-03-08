@@ -102,7 +102,7 @@ class DatasetEditor extends React.Component<{ dataset: Dataset }> {
                     {isBulkImport ?
                         <p>This dataset came from an automated import, so we can't change the original metadata manually.</p>
                     : <p>The core metadata for the dataset. It's important to keep this in a standardized style across datasets.</p>}
-                    <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} required helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
+                    <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
                     <input type="submit" className="btn btn-success" value="Update dataset" disabled={!this.isModified}/>
                 </form>

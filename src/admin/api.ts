@@ -8,7 +8,6 @@ import {Express, Router} from 'express'
 import {JsonError, expectInt} from './serverUtil'
 import Chart from '../models/Chart'
 
-
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
 class FunctionalRouter {
