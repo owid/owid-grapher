@@ -99,6 +99,8 @@ def test_all(request):
     if test_type and test_type != 'map':
         if test_type == "stackedarea":
             query = query.filter(config__type="StackedArea")
+        if test_type == "scatter":
+            query = query.filter(config__type="ScatterPlot")
         else:
             query = query.filter(config__type=test_type)
 
