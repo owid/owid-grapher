@@ -23,6 +23,7 @@ export async function getVariableData(variableIds: number[], db: DatabaseConnect
 
     for (const row of variables) {
         row.shortUnit = row.short_unit; delete row.short_unit
+        row.display = JSON.parse(row.display)
         const sourceDescription = JSON.parse(row.s_description); delete row.s_description
         row.source = {
             id: row.s_id,
