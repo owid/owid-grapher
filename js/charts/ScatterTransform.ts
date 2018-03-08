@@ -1,6 +1,6 @@
 import { scaleOrdinal } from 'd3-scale'
 import ChartConfig from './ChartConfig'
-import { some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, groupBy, sortBy, map, includes } from './Util'
+import { some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, groupBy, sortBy, map, includes, sortedFindClosestIndex } from './Util'
 import { computed, observable } from 'mobx'
 import { defaultTo, defaultWith, first, last } from './Util'
 import DimensionWithData from './DimensionWithData'

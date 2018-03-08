@@ -240,3 +240,34 @@ export function defaultWith<T>(value: T|undefined, defaultFunc: () => T): T {
 export function keysOf<T, K extends keyof T>(obj: T): K[] {
     return Object.keys(obj) as K[]
 }
+
+// Based on https://stackoverflow.com/a/30245398/1983739
+// In case of tie returns higher value
+export function sortedFindClosestIndex(array: number[], value: number): number {
+    if (array.length === 0)
+        return -1
+
+    if (value < array[0])
+        return 0
+
+    if (value > array[array.length-1])
+        return array[array.length-1]
+
+    let lo = 0
+    let hi = array.length - 1
+
+    while (lo <= hi) {
+        const mid = (hi + lo) / 2
+
+        if (value < array[mid]) {
+            hi = mid - 1
+        } else if (value > array[mid]) {
+            lo = mid + 1
+        } else {
+            return array[mid]
+        }
+    }
+
+    // lo == hi + 1
+    return (array[lo] - value) < (value - array[hi]) ? array[lo] : array[hi]
+}
