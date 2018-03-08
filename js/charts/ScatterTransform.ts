@@ -238,7 +238,7 @@ export default class ScatterTransform implements IChartTransform {
                     const datakey = chart.data.keyFor(entity, 0)
 
                     let series = dataByYear.get(outputYear)
-                    if (!series) {
+                    if (series === undefined) {
                         series = {
                             key: datakey,
                             label: chart.data.formatKey(datakey),
@@ -268,13 +268,11 @@ export default class ScatterTransform implements IChartTransform {
 
         // Exclude any with data for only one axis
         dataByEntityAndYear.forEach((dataByYear, entity) => {
-            const newDataByYear = new Map()
             dataByYear.forEach((series, year) => {
                 const datum = series.values[0]
-                if (has(datum, 'x') && has(datum, 'y'))
-                    newDataByYear.set(year, series)
+                if (!has(datum, 'x') || !has(datum, 'y'))
+                    dataByYear.delete(year)
             })
-            dataByEntityAndYear.set(entity, newDataByYear)
         })
 
         return dataByEntityAndYear
