@@ -256,10 +256,10 @@ class Entity(Model):
 class DataValue(Model):
     class Meta:
         db_table = "data_values"
-        unique_together = (('fk_ent_id', 'fk_var_id', 'year'),)
+        unique_together = (('entityId', 'fk_var_id', 'year'),)
 
     value = models.CharField(max_length=255)
-    fk_ent_id = models.ForeignKey(Entity, on_delete=models.DO_NOTHING, db_column='fk_ent_id')
+    entityId = models.ForeignKey(Entity, on_delete=models.DO_NOTHING, db_column='entityId')
     fk_var_id = models.ForeignKey(Variable, on_delete=models.CASCADE, db_column='fk_var_id')
     year = models.IntegerField()
 

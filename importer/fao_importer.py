@@ -500,7 +500,7 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
     else:
         the_subcategory = DatasetSubcategory.objects.get(name=file_to_category_dict[original_filename], fk_dst_cat_id=the_category)
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
     data_values_tuple_list = []
 
     # inserting a dataset
@@ -788,7 +788,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
     if processed_values % 300 == 0:
         time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     if year is not False and value is not False:
         if tuple([countryname, variablecode]) not in unique_data_tracker:
