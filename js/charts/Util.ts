@@ -251,23 +251,23 @@ export function sortedFindClosestIndex(array: number[], value: number): number {
         return 0
 
     if (value > array[array.length-1])
-        return array[array.length-1]
+        return array.length-1
 
     let lo = 0
     let hi = array.length - 1
 
     while (lo <= hi) {
-        const mid = (hi + lo) / 2
+        const mid = Math.round((hi + lo) / 2)
 
         if (value < array[mid]) {
             hi = mid - 1
         } else if (value > array[mid]) {
             lo = mid + 1
         } else {
-            return array[mid]
+            return mid
         }
     }
 
     // lo == hi + 1
-    return (array[lo] - value) < (value - array[hi]) ? array[lo] : array[hi]
+    return (array[lo] - value) < (value - array[hi]) ? lo : hi
 }

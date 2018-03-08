@@ -194,12 +194,13 @@ export default class ScatterTransform implements IChartTransform {
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
-    @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterSeries>> {
+    // This is a very expensive calculation-- try to optimize it
+    @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterValue>> {
         const { chart, yearsToCalculate, colorScale, entitiesToShow, xOverrideYear } = this
-        const { filledDimensions, keyColors } = chart.data
+        const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
-        const dataByEntityAndYear = new Map<string, Map<number, ScatterSeries>>()
+        const dataByEntityAndYear = new Map<string, Map<number, ScatterValue>>()
 
         // The data values
         for (const dimension of filledDimensions) {
@@ -222,45 +223,37 @@ export default class ScatterTransform implements IChartTransform {
                     continue
 
                 for (const outputYear of yearsToCalculate) {
-                    const targetYear = (dimension.property === 'x' && xOverrideYear !== undefined) ? xOverrideYear : outputYear
+                    const targetYear = (xOverrideYear !== undefined && dimension.property === 'x') ? xOverrideYear : outputYear
 
                     // Skip years that aren't within tolerance of the target
                     if (year < (targetYear - tolerance) || year > (targetYear + tolerance))
                         continue
 
                     let dataByYear = dataByEntityAndYear.get(entity)
-                    if (!dataByYear) {
+                    if (dataByYear === undefined) {
                         dataByYear = new Map()
                         dataByEntityAndYear.set(entity, dataByYear)
                     }
 
-                    // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
-                    const datakey = chart.data.keyFor(entity, 0)
-
-                    let series = dataByYear.get(outputYear)
-                    if (series === undefined) {
-                        series = {
-                            key: datakey,
-                            label: chart.data.formatKey(datakey),
-                            values: [{ year: outputYear, time: {} }],
-                            color: keyColors[datakey]||"#000"
-                        } as ScatterSeries
-                        dataByYear.set(outputYear, series)
+                    let point = dataByYear.get(outputYear)
+                    if (point === undefined) {
+                        point = {
+                            year: outputYear,
+                            time: {}
+                        } as ScatterValue
+                        dataByYear.set(outputYear, point)
                     }
 
-                    const d = series.values[0]
-
                     // Ensure we use the closest year to the target
-                    const originYear = (d.time as any)[dimension.property]
+                    const originYear = (point.time as any)[dimension.property]
                     if (isFinite(originYear) && Math.abs(originYear - targetYear) < Math.abs(year - targetYear))
                         continue
 
-                    (d.time as any)[dimension.property] = year
+                    (point.time as any)[dimension.property] = year
                     if (dimension.property === 'color') {
-                        series.color = keyColors[datakey] || colorScale(value as string)
-                        series.isAutoColor = true
+                        point.color = colorScale(value as string)
                     } else {
-                        (d as any)[dimension.property] = value
+                        (point as any)[dimension.property] = value
                     }
                 }
             }
@@ -268,9 +261,8 @@ export default class ScatterTransform implements IChartTransform {
 
         // Exclude any with data for only one axis
         dataByEntityAndYear.forEach((dataByYear, entity) => {
-            dataByYear.forEach((series, year) => {
-                const datum = series.values[0]
-                if (!has(datum, 'x') || !has(datum, 'y'))
+            dataByYear.forEach((point, year) => {
+                if (!has(point, 'x') || !has(point, 'y'))
                     dataByYear.delete(year)
             })
         })
@@ -278,20 +270,14 @@ export default class ScatterTransform implements IChartTransform {
         return dataByEntityAndYear
     }
 
-    @computed get allGroups(): ScatterSeries[] {
-        const allGroups: ScatterSeries[] = []
+    @computed get allPoints(): ScatterValue[] {
+        const allPoints: ScatterValue[] = []
         this.dataByEntityAndYear.forEach(dataByYear => {
-            dataByYear.forEach(group => {
-                allGroups.push(group)
+            dataByYear.forEach(point => {
+                allPoints.push(point)
             })
         })
-        return allGroups
-    }
-
-    @computed get allValues(): ScatterValue[] {
-        const allValues: ScatterValue[] = []
-        this.allGroups.forEach(group => allValues.push(...group.values))
-        return allValues
+        return allPoints
     }
 
     @computed get currentValues(): ScatterValue[] {
@@ -310,7 +296,7 @@ export default class ScatterTransform implements IChartTransform {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).map(g => g.values[0]).filter(v => v.x !== 0 && v.y !== 0)
+                const values = Array.from(dataByYear.values()).filter(v => v.x !== 0 && v.y !== 0)
                 for (let i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (let j = i; j < values.length; j++) {
@@ -323,7 +309,7 @@ export default class ScatterTransform implements IChartTransform {
             })
             return [minChange, maxChange]
         } else {
-            return domainExtent(this.allValues.map(v => v.x), this.xScaleType)
+            return domainExtent(this.allPoints.map(v => v.x), this.xScaleType)
         }
     }
 
@@ -336,7 +322,7 @@ export default class ScatterTransform implements IChartTransform {
             let minChange = 0
             let maxChange = 0
             this.dataByEntityAndYear.forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).map(g => g.values[0]).filter(v => v.x !== 0 && v.y !== 0)
+                const values = Array.from(dataByYear.values()).filter(v => v.x !== 0 && v.y !== 0)
                 for (let i = 0; i < values.length; i++) {
                     const indexValue = values[i]
                     for (let j = i; j < values.length; j++) {
@@ -349,13 +335,13 @@ export default class ScatterTransform implements IChartTransform {
             })
             return [minChange, maxChange]
         } else {
-            return domainExtent(this.allValues.map(v => v.y), this.yScaleType)
+            return domainExtent(this.allPoints.map(v => v.y), this.yScaleType)
         }
     }
 
     @computed get sizeDomain(): [number, number] {
         const sizeValues: number[] = []
-        this.allGroups.forEach(g => g.values[0].size && sizeValues.push(g.values[0].size))
+        this.allPoints.forEach(g => g.size && sizeValues.push(g.size))
         if (sizeValues.length === 0)
             return [1, 1]
         else
@@ -436,26 +422,35 @@ export default class ScatterTransform implements IChartTransform {
         if (!this.chart.data.isReady)
             return []
 
-        const { dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode, compareEndPointsOnly, xOverrideYear } = this
+        const { chart, dataByEntityAndYear, startYear, endYear, xScaleType, yScaleType, isRelativeMode, compareEndPointsOnly, xOverrideYear } = this
+        const { keyColors } = chart.data
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
-        dataByEntityAndYear.forEach(dataByYear => {
-            let group: ScatterSeries | undefined
-            dataByYear.forEach((groupForYear, year) => {
+        dataByEntityAndYear.forEach((dataByYear, entity) => {
+            // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
+            const datakey = chart.data.keyFor(entity, 0)
+
+            const group = {
+                key: datakey,
+                label: chart.data.formatKey(datakey),
+                color: "#000",
+                size: 0,
+                values: []
+            } as ScatterSeries
+
+            dataByYear.forEach((point, year) => {
                 if (year < startYear || year > endYear)
                     return
 
-                group = group || extend({}, groupForYear, { values: [] }) as ScatterSeries
-                group.values = group.values.concat(groupForYear.values)
-
-                // Use most recent size and color values
-                group.color = groupForYear.color || group.color
-                if (isNumber(groupForYear.values[0].size))
-                    group.size = groupForYear.values[0].size
+                group.values.push(point)
             })
 
+            // Use most recent size and color values
+            const lastPoint = last(group.values)
+
             if (group && group.values.length) {
+                group.color = keyColors[datakey] || last(group.values.map(v => v.color).filter(s => s)) || group.color
                 group.size = last(group.values.map(v => v.size).filter(s => isNumber(s)))
                 currentData.push(group)
             }
