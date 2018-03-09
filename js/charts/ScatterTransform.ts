@@ -194,7 +194,6 @@ export default class ScatterTransform implements IChartTransform {
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
-    // This is a very expensive calculation-- try to optimize it
     @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterValue>> {
         const { chart, yearsToCalculate, colorScale, entitiesToShow, xOverrideYear } = this
         const { filledDimensions } = chart.data
@@ -202,12 +201,11 @@ export default class ScatterTransform implements IChartTransform {
 
         const dataByEntityAndYear = new Map<string, Map<number, ScatterValue>>()
 
-        // The data values
         for (const dimension of filledDimensions) {
             const tolerance = (dimension.property === 'color' || dimension.property === 'size') ? Infinity : dimension.tolerance
-            const minUsefulYear = first(yearsToCalculate) - tolerance
-            const maxUsefulYear = last(yearsToCalculate) + tolerance
 
+            // First, we organize the data by entity
+            const initialDataByEntity = new Map<string, { years: number[], values: (string|number)[] }>()
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = dimension.values[i]
@@ -219,21 +217,35 @@ export default class ScatterTransform implements IChartTransform {
                 if ((dimension.property === 'x' || dimension.property === 'y') && !isNumber(value))
                     continue
 
-                if (year < minUsefulYear || year > maxUsefulYear)
-                    continue
+                let byEntity = initialDataByEntity.get(entity)
+                if (!byEntity) {
+                    byEntity = { years: [], values: [] }
+                    initialDataByEntity.set(entity, byEntity)
+                }
+
+                byEntity.years.push(year)
+                byEntity.values.push(value)
+            }
+
+            // Now go through each entity + timeline year and use a binary search to find the closest
+            // matching data year within tolerance
+            initialDataByEntity.forEach((byEntity, entity) => {
+                let dataByYear = dataByEntityAndYear.get(entity)
+                if (dataByYear === undefined) {
+                    dataByYear = new Map()
+                    dataByEntityAndYear.set(entity, dataByYear)
+                }
 
                 for (const outputYear of yearsToCalculate) {
                     const targetYear = (xOverrideYear !== undefined && dimension.property === 'x') ? xOverrideYear : outputYear
+                    const i = sortedFindClosestIndex(byEntity.years, targetYear)
+                    const year = byEntity.years[i]
 
                     // Skip years that aren't within tolerance of the target
                     if (year < (targetYear - tolerance) || year > (targetYear + tolerance))
                         continue
 
-                    let dataByYear = dataByEntityAndYear.get(entity)
-                    if (dataByYear === undefined) {
-                        dataByYear = new Map()
-                        dataByEntityAndYear.set(entity, dataByYear)
-                    }
+                    const value = byEntity.values[i]
 
                     let point = dataByYear.get(outputYear)
                     if (point === undefined) {
@@ -244,11 +256,6 @@ export default class ScatterTransform implements IChartTransform {
                         dataByYear.set(outputYear, point)
                     }
 
-                    // Ensure we use the closest year to the target
-                    const originYear = (point.time as any)[dimension.property]
-                    if (isFinite(originYear) && Math.abs(originYear - targetYear) < Math.abs(year - targetYear))
-                        continue
-
                     (point.time as any)[dimension.property] = year
                     if (dimension.property === 'color') {
                         point.color = colorScale(value as string)
@@ -256,7 +263,7 @@ export default class ScatterTransform implements IChartTransform {
                         (point as any)[dimension.property] = value
                     }
                 }
-            }
+            })
         }
 
         // Exclude any with data for only one axis

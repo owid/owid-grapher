@@ -142,13 +142,13 @@ def test_all(request):
     if test_page < num_pages:
         next_page_params = request.GET.copy()
         next_page_params['page'] = test_page+1
-        next_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(next_page_params)
+        next_page_url = request.build_absolute_uri('/grapher/admin/testall') + "?" + urllib.parse.urlencode(next_page_params)
 
     prev_page_url = None
     if test_page > 1:
         prev_page_params = request.GET.copy()
         prev_page_params['page'] = test_page-1
-        prev_page_url = request.build_absolute_uri('/grapher/testall') + "?" + urllib.parse.urlencode(prev_page_params)
+        prev_page_url = request.build_absolute_uri('/grapher/admin/testall') + "?" + urllib.parse.urlencode(prev_page_params)
 
     starting_point = (test_page - 1) * charts_per_page
     end_point = ((test_page - 1) * charts_per_page) + charts_per_page
