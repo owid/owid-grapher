@@ -269,7 +269,7 @@ with transaction.atomic():
 
             column_number = 0
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
         datasets_list = []
         for category in povstats_categories_list:
@@ -574,7 +574,7 @@ with transaction.atomic():
 
             column_number = 0
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         total_values_tracker = 0

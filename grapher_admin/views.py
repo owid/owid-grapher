@@ -304,7 +304,7 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
                     'namespace': row['namespace'],
                     'variables': []
                 }
-            
+
             dataset['variables'].append({
                 'id': row['id'],
                 'name': row['name']
@@ -312,7 +312,7 @@ def namespacedata(request: HttpRequest, namespace: str, cachetag: Optional[str])
 
         if dataset is not None:
             datasets.append(dataset)
-    
+
     response = JsonResponse({
         'datasets': datasets
     })
@@ -594,7 +594,7 @@ def store_import_data(request: HttpRequest):
                             # the LIMIT is here so that the database doesn't try to delete a large number of values at
                             # once and becomes unresponsive
 
-                    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'
+                    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'
                     data_values_tuple_list = []
                     for i in range(0, len(years)):
                         if values[i] == '':
@@ -770,7 +770,7 @@ def dataset_csv(request: HttpRequest, datasetid: str):
     id_tuple = id_tuple[:-1]
     # get all entity ids that have data values in the current dataset
     with connection.cursor() as entity_cursor:
-        entity_cursor.execute('select distinct fk_ent_id from data_values where fk_var_id in (%s);' % ','.join([str(item['id']) for item in allvariables.values('id')]))
+        entity_cursor.execute('select distinct entityId from data_values where fk_var_id in (%s);' % ','.join([str(item['id']) for item in allvariables.values('id')]))
         dataset_entities_list = [item[0] for item in entity_cursor.fetchall()]
     # get the names for entity ids
     allentities = Entity.objects.filter(pk__in=dataset_entities_list).values('id', 'name')
@@ -786,10 +786,10 @@ def dataset_csv(request: HttpRequest, datasetid: str):
     # - when there are many rows present
     entity_chunks = [allentities_list[x:x + 3] for x in range(0, len(allentities_list), 3)]
 
-    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`fk_ent_id` as entity_id ' \
+    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`entityId` as entity_id ' \
                 ' from data_values ' \
                 ' WHERE ' \
-                'data_values.`fk_var_id` in (%s) AND data_values.`fk_ent_id` in (%s) ORDER BY fk_ent_id, year, fk_var_id;'
+                'data_values.`fk_var_id` in (%s) AND data_values.`entityId` in (%s) ORDER BY entityId, year, fk_var_id;'
 
     # our csv streaming function
 
@@ -1015,12 +1015,12 @@ def showvariable(request: HttpRequest, variableid: str):
         if year_query:
             values = values.filter(year=year_query)
         if entity_query:
-            values = values.filter(fk_ent_id__name=entity_query)
+            values = values.filter(entityId__name=entity_query)
 
     else:
         values = DataValue.objects.filter(fk_var_id=variable)
 
-    values = list(values.values('pk', 'value', 'year', 'fk_ent_id__name'))
+    values = list(values.values('pk', 'value', 'year', 'entityId__name'))
 
     total_rows = len(values)
     total_pages = -(-len(values) // items_per_page)
@@ -1057,8 +1057,8 @@ def showvariable(request: HttpRequest, variableid: str):
 
     allentities = []
     for each in values:
-        if each['fk_ent_id__name'] not in allentities:
-            allentities.append(each['fk_ent_id__name'])
+        if each['entityId__name'] not in allentities:
+            allentities.append(each['entityId__name'])
 
     request_string_for_pages = '?'
     for key, value in request_dict.items():
@@ -1591,7 +1591,7 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
     id_tuple = id_tuple[:-1]
     # get all entity ids that have data values in the current dataset
     with connection.cursor() as entity_cursor:
-        entity_cursor.execute('select distinct fk_ent_id from data_values where fk_var_id in (%s);' %
+        entity_cursor.execute('select distinct entityId from data_values where fk_var_id in (%s);' %
                               ','.join([str(item['id']) for item in allvariables.values('id')]))
         dataset_entities_list = [item[0] for item in entity_cursor.fetchall()]
     # get the names for entity ids
@@ -1626,10 +1626,10 @@ def write_dataset_csv(datasetid: int, new_dataset_name, old_dataset_name, commit
 
     dataset_meta['variables'] = vardata
 
-    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`fk_ent_id` as entity_id ' \
+    sql_query = 'SELECT `value`, `year`, data_values.`fk_var_id` as var_id, data_values.`entityId` as entity_id ' \
                 ' from data_values ' \
                 ' WHERE data_values.`fk_var_id` in (%s) AND ' \
-                'data_values.`fk_ent_id` in (%s) ORDER BY fk_ent_id, year, fk_var_id;'
+                'data_values.`entityId` in (%s) ORDER BY entityId, year, fk_var_id;'
 
     metadata_filename = (unidecode(new_dataset_name) + '.json').replace('/', '_')
     dataset_filename = (unidecode(new_dataset_name) + '.csv').replace('/', '_')
@@ -2027,7 +2027,7 @@ def variables(request, ids):
             SELECT value, year, fk_var_id as var_id, entities.id as entity_id, 
             entities.name as entity_name, entities.code as entity_code 
             FROM data_values 
-            LEFT JOIN entities ON data_values.fk_ent_id = entities.id 
+            LEFT JOIN entities ON data_values.entityId = entities.id 
             WHERE data_values.fk_var_id IN %s 
             ORDER BY var_id ASC, year ASC
         """, [variable_ids])

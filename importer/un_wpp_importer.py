@@ -281,7 +281,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -375,7 +375,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -565,7 +565,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -724,7 +724,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1

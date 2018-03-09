@@ -14,7 +14,7 @@ export async function getVariableData(variableIds: number[], db: DatabaseConnect
             SELECT value, year, fk_var_id as variableId, entities.id as entityId,
             entities.name as entityName, entities.code as entityCode
             FROM data_values
-            LEFT JOIN entities ON data_values.fk_ent_id = entities.id
+            LEFT JOIN entities ON data_values.entityId = entities.id
             WHERE data_values.fk_var_id IN (?)
             ORDER BY variableId ASC, year ASC
     `, [variableIds])

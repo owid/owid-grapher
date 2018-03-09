@@ -269,7 +269,7 @@ with transaction.atomic():
             logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
             vars_ref_models[varcode] = newvariable
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values
@@ -659,7 +659,7 @@ with transaction.atomic():
                         c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, variable.pk))
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values
