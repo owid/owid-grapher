@@ -154,11 +154,11 @@ class DatasetCategory(Model):
 class DatasetSubcategory(Model):
     class Meta:
         db_table = "dataset_subcategories"
-        unique_together = (('name', 'fk_dst_cat_id'),)
+        unique_together = (('name', 'categoryId'),)
 
     name = models.CharField(max_length=255)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                      db_column='fk_dst_cat_id')
+    categoryId = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='categoryId')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -172,8 +172,8 @@ class Dataset(Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                      db_column='fk_dst_cat_id')
+    categoryId = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='categoryId')
     fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
                                          db_column='fk_dst_subcat_id')
     namespace = models.CharField(max_length=255, default='owid')

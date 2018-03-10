@@ -151,7 +151,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=qog_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         categories_ref_models = {}  # this dict will hold the category name and its corresponding object
@@ -160,11 +160,11 @@ with transaction.atomic():
 
         for key, value in abbr_category_names.items():
             if value not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=value, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % value.encode('utf8'))
             else:
-                the_subcategory = DatasetSubcategory.objects.get(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory.objects.get(name=value, categoryId=the_category)
             categories_ref_models[value] = the_subcategory
 
         existing_entities = Entity.objects.values('name')
@@ -207,7 +207,7 @@ with transaction.atomic():
         for key, category in abbr_category_names.items():
             newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='qog', fk_dst_cat_id=the_category,
+                                 namespace='qog', categoryId=the_category,
                                  fk_dst_subcat_id=categories_ref_models[category])
             newdataset.save()
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
@@ -383,7 +383,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=qog_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         categories_ref_models = {}  # this dict will hold the category name and its corresponding object
@@ -392,11 +392,11 @@ with transaction.atomic():
 
         for key, value in abbr_category_names.items():
             if value not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=value, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % value.encode('utf8'))
             else:
-                the_subcategory = DatasetSubcategory.objects.get(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory.objects.get(name=value, categoryId=the_category)
             categories_ref_models[value] = the_subcategory
 
         existing_entities = Entity.objects.values('name')
@@ -440,13 +440,13 @@ with transaction.atomic():
             if category not in existing_subcategories_list:
                 newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='qog', fk_dst_cat_id=the_category,
+                                 namespace='qog', categoryId=the_category,
                                  fk_dst_subcat_id=categories_ref_models[category])
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(namespace='qog', fk_dst_cat_id=the_category, fk_dst_subcat_id=categories_ref_models[category])
+                newdataset = Dataset.objects.get(namespace='qog', categoryId=the_category, fk_dst_subcat_id=categories_ref_models[category])
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             datasets_ref_models[category] = newdataset
 

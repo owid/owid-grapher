@@ -45,7 +45,7 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=un_ep_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     existing_variables = Variable.objects.filter(fk_dst_id__namespace='un_ep').values('name')
@@ -133,22 +133,22 @@ with transaction.atomic():
             source_description['additionalInfo'] = metadata_string if metadata_string else None
 
             if subcategory_name not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=subcategory_name, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=subcategory_name, categoryId=the_category)
                 the_subcategory.save()
                 newdataset = Dataset(name=subcategory_name,
                                      description='This is a dataset imported by the automated fetcher',
-                                     namespace='un_ep', fk_dst_cat_id=the_category,
+                                     namespace='un_ep', categoryId=the_category,
                                      fk_dst_subcat_id=the_subcategory)
                 newdataset.save()
                 dataset_name_to_object[subcategory_name] = newdataset
                 new_datasets_list.append(newdataset)
 
-                existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                     'name')
                 existing_subcategories_list = {item['name'] for item in existing_subcategories}
             else:
                 if subcategory_name not in dataset_name_to_object:
-                    newdataset = Dataset.objects.get(name=subcategory_name, fk_dst_cat_id=the_category)
+                    newdataset = Dataset.objects.get(name=subcategory_name, categoryId=the_category)
                     dataset_name_to_object[subcategory_name] = newdataset
                     existing_datasets_list.append(newdataset)
 

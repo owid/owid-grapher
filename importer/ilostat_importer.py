@@ -316,7 +316,7 @@ with transaction.atomic():
             else:
                 the_category = DatasetCategory.objects.get(name=ilostat_category_name_in_db)
 
-            existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+            existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                 'name')
             existing_subcategories_list = {item['name'].lower() for item in existing_subcategories}
 
@@ -350,18 +350,18 @@ with transaction.atomic():
                         if the_subcategory_name not in datasetname_to_object:
 
                             if the_subcategory_name.lower() not in existing_subcategories_list:
-                                the_subcategory = DatasetSubcategory(name=the_subcategory_name, fk_dst_cat_id=the_category)
+                                the_subcategory = DatasetSubcategory(name=the_subcategory_name, categoryId=the_category)
                                 the_subcategory.save()
                                 newdataset = Dataset(name=the_subcategory_name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='ilostat', fk_dst_cat_id=the_category,
+                                                     namespace='ilostat', categoryId=the_category,
                                                      fk_dst_subcat_id=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 datasetname_to_object[the_subcategory_name] = newdataset
                             else:
                                 the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name,
-                                                                                 fk_dst_cat_id=the_category)
+                                                                                 categoryId=the_category)
                                 newdataset = Dataset.objects.get(name=the_subcategory_name,
                                                                  namespace='ilostat')
                                 datasetname_to_object[the_subcategory_name] = newdataset
@@ -543,7 +543,7 @@ with transaction.atomic():
                 else:
                     the_category = DatasetCategory.objects.get(name=ilostat_category_name_in_db)
 
-                existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                     'name')
                 existing_subcategories_list = {item['name'].lower() for item in existing_subcategories}
 
@@ -578,18 +578,18 @@ with transaction.atomic():
 
                                 if the_subcategory_name.lower() not in existing_subcategories_list:
                                     the_subcategory = DatasetSubcategory(name=the_subcategory_name,
-                                                                         fk_dst_cat_id=the_category)
+                                                                         categoryId=the_category)
                                     the_subcategory.save()
                                     newdataset = Dataset(name=the_subcategory_name,
                                                          description='This is a dataset imported by the automated fetcher',
-                                                         namespace='ilostat', fk_dst_cat_id=the_category,
+                                                         namespace='ilostat', categoryId=the_category,
                                                          fk_dst_subcat_id=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     datasetname_to_object[the_subcategory_name] = newdataset
                                 else:
                                     the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name,
-                                                                                     fk_dst_cat_id=the_category)
+                                                                                     categoryId=the_category)
                                     newdataset = Dataset.objects.get(name=the_subcategory_name,
                                                                      namespace='ilostat')
                                     datasetname_to_object[the_subcategory_name] = newdataset

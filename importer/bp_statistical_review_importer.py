@@ -946,21 +946,21 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=bp_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     if bp_subcategory_name_in_db not in existing_subcategories_list:
-        the_subcategory = DatasetSubcategory(name=bp_subcategory_name_in_db, fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory(name=bp_subcategory_name_in_db, categoryId=the_category)
         the_subcategory.save()
     else:
-        the_subcategory = DatasetSubcategory.objects.get(name=bp_subcategory_name_in_db, fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory.objects.get(name=bp_subcategory_name_in_db, categoryId=the_category)
 
     if Dataset.objects.filter(name='BP Statistical Review of Global Energy', namespace='bpstatreview'):
         newdataset = Dataset.objects.get(name='BP Statistical Review of Global Energy', namespace='bpstatreview')
     else:
         newdataset = Dataset(name='BP Statistical Review of Global Energy',
                          description='This is a dataset imported by the automated fetcher',
-                         namespace='bpstatreview', fk_dst_cat_id=the_category,
+                         namespace='bpstatreview', categoryId=the_category,
                          fk_dst_subcat_id=the_subcategory)
         newdataset.save()
 

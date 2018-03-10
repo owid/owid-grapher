@@ -160,7 +160,7 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=clioinfra_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     existing_entities = Entity.objects.values('name')
@@ -212,18 +212,18 @@ with transaction.atomic():
                             # inserting a subcategory and dataset
                             if dataset_to_category[varname] not in existing_subcategories_list:
                                 the_subcategory = DatasetSubcategory(name=dataset_to_category[varname],
-                                                                     fk_dst_cat_id=the_category)
+                                                                     categoryId=the_category)
                                 the_subcategory.save()
                                 newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='clioinfra', fk_dst_cat_id=the_category,
+                                                     namespace='clioinfra', categoryId=the_category,
                                                      fk_dst_subcat_id=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 existing_subcategories_list.add(dataset_to_category[varname])
                             else:
                                 the_subcategory = DatasetSubcategory.objects.get(
-                                    name=dataset_to_category[varname], fk_dst_cat_id=the_category)
+                                    name=dataset_to_category[varname], categoryId=the_category)
                                 newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
                                                                  namespace='clioinfra')
                             source_description['link'] = filename_to_pagelink[one_file]
@@ -322,18 +322,18 @@ with transaction.atomic():
                                 # inserting a subcategory and dataset
                                 if dataset_to_category[varname] not in existing_subcategories_list:
                                     the_subcategory = DatasetSubcategory(name=dataset_to_category[varname],
-                                                                         fk_dst_cat_id=the_category)
+                                                                         categoryId=the_category)
                                     the_subcategory.save()
                                     newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                          description='This is a dataset imported by the automated fetcher',
-                                                         namespace='clioinfra', fk_dst_cat_id=the_category,
+                                                         namespace='clioinfra', categoryId=the_category,
                                                          fk_dst_subcat_id=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     existing_subcategories_list.add(dataset_to_category[varname])
                                 else:
                                     the_subcategory = DatasetSubcategory.objects.get(
-                                        name=dataset_to_category[varname], fk_dst_cat_id=the_category)
+                                        name=dataset_to_category[varname], categoryId=the_category)
                                     try:
                                         newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
                                                                      namespace='clioinfra')

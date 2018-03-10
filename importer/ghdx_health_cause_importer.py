@@ -60,7 +60,7 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=gbd_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     existing_variables = Variable.objects.filter(fk_dst_id__namespace='gbd_cause').values('name')
@@ -99,11 +99,11 @@ with transaction.atomic():
                 row_number += 1
                 if row['sex_name'] in sex_names and row['age_name'] in age_names and row['metric_name'] in metric_names and row['measure_name'] in measure_names:
                     if row['cause_name'] not in existing_subcategories_list:
-                        the_subcategory = DatasetSubcategory(name=row['cause_name'], fk_dst_cat_id=the_category)
+                        the_subcategory = DatasetSubcategory(name=row['cause_name'], categoryId=the_category)
                         the_subcategory.save()
                         newdataset = Dataset(name=row['cause_name'],
                                              description='This is a dataset imported by the automated fetcher',
-                                             namespace='gbd_cause', fk_dst_cat_id=the_category,
+                                             namespace='gbd_cause', categoryId=the_category,
                                              fk_dst_subcat_id=the_subcategory)
                         newdataset.save()
                         dataset_name_to_object[row['cause_name']] = newdataset
@@ -113,12 +113,12 @@ with transaction.atomic():
                                            datasetId=newdataset.pk)
                         newsource.save()
                         source_name_to_object[row['cause_name']] = newsource
-                        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                             'name')
                         existing_subcategories_list = {item['name'] for item in existing_subcategories}
                     else:
                         if row['cause_name'] not in dataset_name_to_object:
-                            newdataset = Dataset.objects.get(name=row['cause_name'], fk_dst_cat_id=the_category)
+                            newdataset = Dataset.objects.get(name=row['cause_name'], categoryId=the_category)
                             dataset_name_to_object[row['cause_name']] = newdataset
                             existing_datasets_list.append(newdataset)
                             newsource = Source.objects.get(name=row['cause_name'], datasetId=newdataset.pk)

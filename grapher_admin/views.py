@@ -459,10 +459,10 @@ def importdata(request: HttpRequest):
     source_template['updated_at'] = str(source_template['updated_at'])
 
     categories = DatasetSubcategory.objects.all().select_related().filter(
-        fk_dst_cat_id__fetcher_autocreated=False).order_by('fk_dst_cat_id__pk').order_by('pk')
+        categoryId__fetcher_autocreated=False).order_by('categoryId__pk').order_by('pk')
     category_list = []
     for each in categories:
-        category_list.append({'name': each.name, 'id': each.pk, 'parent': each.fk_dst_cat_id.name})
+        category_list.append({'name': each.name, 'id': each.pk, 'parent': each.categoryId.name})
     entitynames = Entity.objects.all().iterator()
     entitynameslist = []
     entitycodeslist = []
@@ -494,7 +494,7 @@ def store_import_data(request: HttpRequest):
 
                 datasetprops = {'name': datasetmeta['name'],
                                 'description': datasetmeta['description'],
-                                'fk_dst_cat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).fk_dst_cat_id,
+                                'categoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).categoryId,
                                 'fk_dst_subcat_id': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
                                 }
 
@@ -658,7 +658,7 @@ def showdataset(request: HttpRequest, datasetid: str):
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
-    dataset_dict = {'id': dataset.pk, 'name': dataset.name, 'category': dataset.fk_dst_cat_id.name,
+    dataset_dict = {'id': dataset.pk, 'name': dataset.name, 'category': dataset.categoryId.name,
                     'subcategory': dataset.fk_dst_subcat_id.name,
                     'description': dataset.description}
 
@@ -694,7 +694,7 @@ def editdataset(request: HttpRequest, datasetid: str):
         cats_list.append({'id': int(each['pk']), 'name': each['name']})
     subcats_list = []
     if dataset.namespace == 'owid':
-        subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id__fetcher_autocreated=False).values('pk', 'name')
+        subcategories = DatasetSubcategory.objects.filter(categoryId__fetcher_autocreated=False).values('pk', 'name')
     else:
         subcategories = DatasetSubcategory.objects.values('pk', 'name')
     for each in subcategories:
@@ -731,7 +731,7 @@ def managedataset(request: HttpRequest, datasetid: str):
             dataset_old_name = dataset.name
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
-            request_dict['fk_dst_cat_id'] = DatasetCategory.objects.get(pk=request_dict['fk_dst_cat_id'])
+            request_dict['categoryId'] = DatasetCategory.objects.get(pk=request_dict['categoryId'])
             request_dict['fk_dst_subcat_id'] = DatasetSubcategory.objects.get(pk=request_dict['fk_dst_subcat_id'])
             Dataset.objects.filter(pk=datasetid).update(updated_at=timezone.now(), **request_dict)
             write_dataset_csv(dataset.pk, request_dict['name'],
@@ -843,7 +843,7 @@ def dataset_json(request: HttpRequest, datasetid: str):
     except Dataset.DoesNotExist:
         return HttpResponseNotFound('Dataset does not exist!')
 
-    data = {'name': dataset.name, 'description': dataset.description, 'categoryId': dataset.fk_dst_cat_id_id,
+    data = {'name': dataset.name, 'description': dataset.description, 'categoryId': dataset.categoryId_id,
             'subcategoryId': dataset.fk_dst_subcat_id_id, 'variables': []}
 
     allchart_dimensions = ChartDimension.objects.all().values('chartId', 'variableId')
@@ -915,7 +915,7 @@ def showcategory(request: HttpRequest, catid: str):
     except DatasetCategory.DoesNotExist:
         return HttpResponseNotFound('Category does not exist!')
 
-    subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=catobj).values()
+    subcategories = DatasetSubcategory.objects.filter(categoryId=catobj).values()
     category = DatasetCategory.objects.filter(pk=int(catid)).values()[0]
     category['subcategories'] = subcategories
 
@@ -942,7 +942,7 @@ def managecategory(request: HttpRequest, catid: str):
             request_dict.pop('_method', None)
             request_dict.pop('csrfmiddlewaretoken', None)
             category = DatasetCategory.objects.get(pk=int(catid))
-            subcategory = DatasetSubcategory.objects.filter(fk_dst_cat_id=category)
+            subcategory = DatasetSubcategory.objects.filter(categoryId=category)
             try:
                 for each in subcategory:
                     each.delete()
@@ -1263,9 +1263,9 @@ def editsubcategory(request: HttpRequest, subcatid: str):
     except DatasetSubcategory.DoesNotExist:
         return HttpResponseNotFound('Subcategory does not exist!')
 
-    subcategory = {'id': subcat.pk, 'name': subcat.name, 'category': subcat.fk_dst_cat_id.pk}
+    subcategory = {'id': subcat.pk, 'name': subcat.name, 'category': subcat.categoryId.pk}
     categories = DatasetCategory.objects.values()
-    category = {'id': subcat.fk_dst_cat_id.pk}
+    category = {'id': subcat.categoryId.pk}
 
     return render(request, 'admin.subcategories.edit.html', context={'current_user': request.user.name,
                                                                      'subcategory': subcategory,
@@ -1279,7 +1279,7 @@ def managesubcategory(request: HttpRequest, subcatid: str):
     except DatasetSubcategory.DoesNotExist:
         return HttpResponseNotFound('Subcategory does not exist!')
 
-    parent_cat = subcat.fk_dst_cat_id.pk
+    parent_cat = subcat.categoryId.pk
 
     if request.method == 'POST':
         request_dict = QueryDict(request.body.decode('utf-8')).dict()
@@ -1321,7 +1321,7 @@ def storesubcategory(request: HttpRequest):
                                    'categories': categories})
         subcat = DatasetSubcategory()
         subcat.name = request.POST['name']
-        subcat.fk_dst_cat_id = DatasetCategory.objects.get(pk=int(request.POST['fk_dst_cat_id']))
+        subcat.categoryId = DatasetCategory.objects.get(pk=int(request.POST['categoryId']))
         subcat.save()
         messages.success(request, 'Subcategory created!')
         return HttpResponseRedirect(reverse('listcategories'))
@@ -1922,22 +1922,22 @@ def serve_commit_file(request: HttpRequest, namespace: str, commit_hash: str, fi
 def treeview_datasets(request: HttpRequest):
     tree = []
     tree_dict = {}
-    all_variables = Variable.objects.all().values('id', 'name', 'fk_dst_id__fk_dst_cat_id__name',
+    all_variables = Variable.objects.all().values('id', 'name', 'fk_dst_id__categoryId__name',
                                                   'fk_dst_id__fk_dst_subcat_id__name', 'fk_dst_id__name', 'fk_dst_id').iterator()
 
     for var in all_variables:
-        if var['fk_dst_id__fk_dst_cat_id__name'] not in tree_dict:
-            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']] = {}
+        if var['fk_dst_id__categoryId__name'] not in tree_dict:
+            tree_dict[var['fk_dst_id__categoryId__name']] = {}
 
-        if var['fk_dst_id__fk_dst_subcat_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']]:
-            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']] = {}
+        if var['fk_dst_id__fk_dst_subcat_id__name'] not in tree_dict[var['fk_dst_id__categoryId__name']]:
+            tree_dict[var['fk_dst_id__categoryId__name']][var['fk_dst_id__fk_dst_subcat_id__name']] = {}
 
-        if var['fk_dst_id__name'] not in tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][
+        if var['fk_dst_id__name'] not in tree_dict[var['fk_dst_id__categoryId__name']][
             var['fk_dst_id__fk_dst_subcat_id__name']]:
-            tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+            tree_dict[var['fk_dst_id__categoryId__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
                 var['fk_dst_id__name']] = {'id': var['fk_dst_id'], 'vars': []}
 
-        tree_dict[var['fk_dst_id__fk_dst_cat_id__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
+        tree_dict[var['fk_dst_id__categoryId__name']][var['fk_dst_id__fk_dst_subcat_id__name']][
             var['fk_dst_id__name']]['vars'].append({'varname': var['name'], 'varid': var['id']})
     cat_id_count = 0
     subcat_id_count = 0

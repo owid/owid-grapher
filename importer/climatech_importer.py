@@ -151,7 +151,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=climatech_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         climatech_categories_list = []
@@ -159,7 +159,7 @@ with transaction.atomic():
         for key, value in category_vars.items():
             climatech_categories_list.append(key)
             if key not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=key, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
@@ -202,8 +202,8 @@ with transaction.atomic():
         for category in climatech_categories_list:
             newdataset = Dataset(name='World Bank Climate Change Data - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='climatech', fk_dst_cat_id=the_category,
-                                 fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, fk_dst_cat_id=the_category))
+                                 namespace='climatech', categoryId=the_category,
+                                 fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, categoryId=the_category))
             newdataset.save()
             datasets_list.append(newdataset)
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
@@ -400,7 +400,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=climatech_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         climatech_categories_list = []
@@ -408,7 +408,7 @@ with transaction.atomic():
         for key, value in category_vars.items():
             climatech_categories_list.append(key)
             if key not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=key, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
@@ -458,14 +458,14 @@ with transaction.atomic():
             if category in cats_to_add:
                 newdataset = Dataset(name='World Bank Climate Change Data - ' + category,
                                      description='This is a dataset imported by the automated fetcher',
-                                     namespace='climatech', fk_dst_cat_id=the_category,
+                                     namespace='climatech', categoryId=the_category,
                                      fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
-                                                                                     fk_dst_cat_id=the_category))
+                                                                                     categoryId=the_category))
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(name='World Bank Climate Change Data - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
+                newdataset = Dataset.objects.get(name='World Bank Climate Change Data - ' + category, categoryId=DatasetCategory.objects.get(
                                                                                          name=climatech_category_name_in_db))
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             row_number = 0

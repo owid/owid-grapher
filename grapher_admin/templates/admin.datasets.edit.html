@@ -1,5 +1,5 @@
 {% extends 'base_admin_template.html' %}
- 
+
 {% block content %}
 	<div class="module-wrapper edit-dataset-module">
 		<a class="back-btn" href="{% url 'showdataset' dataset.id %}"><i class="fa fa-arrow-left"></i>Back to the dataset</a>
@@ -16,10 +16,10 @@
 				<textarea class="form-control" name="description" cols="50" rows="10" id="description">{{ dataset.description }}</textarea>
 			</div>
 			<div class="form-group">
-				<label for="fk_dst_cat_id">Category</label>
-                <select class="form-control" id="fk_dst_cat_id" name="fk_dst_cat_id">
+				<label for="categoryId">Category</label>
+                <select class="form-control" id="categoryId" name="categoryId">
                 {% for i in categories %}
-                    {% if dataset.fk_dst_cat_id_id == i.id %}
+                    {% if dataset.categoryId_id == i.id %}
                     <option value="{{ i.id }}" selected="selected">{{ i.name }}</option>
                     {% else %}
                         <option value="{{ i.id }}">{{ i.name }}</option>
