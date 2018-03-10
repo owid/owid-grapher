@@ -460,7 +460,7 @@ with transaction.atomic():
                                            description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                            code=varcode_for_reference,
                                            timespan='',
-                                           fk_dst_id=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat'), fk_var_type_id=VariableType.objects.get(pk=4),
+                                           datasetId=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat'), variableTypeId=VariableType.objects.get(pk=4),
                                            sourceId=newsource)
 
                     varcode_to_object[varcode_for_reference] = newvariable
@@ -661,7 +661,7 @@ with transaction.atomic():
                     varcode_to_object = {}
                     existing_sources = Source.objects.filter(datasetId__in=Dataset.objects.filter(namespace='ilostat'))
                     existing_sources_list = [ onesource.name for onesource in existing_sources ]
-                    existing_vars = Variable.objects.filter(fk_dst_id__namespace='ilostat')
+                    existing_vars = Variable.objects.filter(datasetId__namespace='ilostat')
                     existing_vars_list = [onevar.code for onevar in existing_vars]
                     for varname, sourcedata in variables.items():
 
@@ -706,12 +706,12 @@ with transaction.atomic():
                                                description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                                code=varcode_for_reference,
                                                timespan='',
-                                               fk_dst_id=Dataset.objects.get(
+                                               datasetId=Dataset.objects.get(
                                                    name=file_name_to_category[row['indicator']], namespace='ilostat'),
-                                               fk_var_type_id=VariableType.objects.get(pk=4),
+                                               variableTypeId=VariableType.objects.get(pk=4),
                                                sourceId=newsource)
                         else:
-                            newvariable = Variable.objects.get(code=varcode_for_reference, fk_dst_id__namespace__exact='ilostat')
+                            newvariable = Variable.objects.get(code=varcode_for_reference, datasetId__namespace__exact='ilostat')
                             newvariable.description = 'See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata'
                             newvariable.name = variable_name
                             newvariable.unit = varunit if varunit else ''

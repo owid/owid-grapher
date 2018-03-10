@@ -63,7 +63,7 @@ with transaction.atomic():
     existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-    existing_variables = Variable.objects.filter(fk_dst_id__namespace='gbd_prevalence').values('name')
+    existing_variables = Variable.objects.filter(datasetId__namespace='gbd_prevalence').values('name')
     existing_variables_list = {item['name'] for item in existing_variables}
 
     dataset_name_to_object = {}
@@ -134,14 +134,14 @@ with transaction.atomic():
                         newvariable = Variable(name=variable_name,
                                                unit=row['metric_name'],
                                                code=variable_code,
-                                               fk_dst_id=dataset_name_to_object[row['cause_name']], fk_var_type_id=VariableType.objects.get(pk=4),
+                                               datasetId=dataset_name_to_object[row['cause_name']], variableTypeId=VariableType.objects.get(pk=4),
                                                sourceId=source_name_to_object[row['cause_name']])
                         newvariable.save()
                         variable_name_to_object[variable_name] = newvariable
                         existing_variables_list.add(newvariable.name)
                     else:
                         if variable_name not in variable_name_to_object:
-                            newvariable = Variable.objects.get(name=variable_name, fk_dst_id=dataset_name_to_object[row['cause_name']])
+                            newvariable = Variable.objects.get(name=variable_name, datasetId=dataset_name_to_object[row['cause_name']])
                             while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                 with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                                     c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
@@ -189,7 +189,7 @@ with transaction.atomic():
 
 newimport = ImportHistory(import_type='gbd_prevalence', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='A gbd import was performed',
-                                  import_state='There are a total of %s gbd_prevalence variables after the import' % Variable.objects.filter(fk_dst_id__namespace='gbd_prevalence').count())
+                                  import_state='There are a total of %s gbd_prevalence variables after the import' % Variable.objects.filter(datasetId__namespace='gbd_prevalence').count())
 newimport.save()
 
 print("--- %s seconds ---" % (time.time() - start_time))

@@ -237,7 +237,7 @@ with transaction.atomic():
                                                    varunit else '', short_unit=short_unit_extract(varunit),
                                                    description='',
                                                    code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], timespan='',
-                                                   fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                                   datasetId=newdataset, variableTypeId=VariableType.objects.get(pk=4),
                                                    sourceId=newsource)
 
                             newvariable.save()
@@ -343,20 +343,20 @@ with transaction.atomic():
                                     if newdataset not in old_datasets_list:
                                         old_datasets_list.append(newdataset)
 
-                                newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra').sourceId
+                                newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], datasetId__namespace='clioinfra').sourceId
                                 source_description['link'] = filename_to_pagelink[one_file]
                                 newsource.description = json.dumps(source_description)
                                 newsource.datasetId = newdataset.pk
                                 newsource.save()
 
-                                newvariable = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra')
+                                newvariable = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], datasetId__namespace='clioinfra')
                                 newvariable.name = varname
                                 newvariable.unit = varunit if varunit else ''
                                 newvariable.short_unit = short_unit_extract(varunit)
                                 newvariable.description = ''
                                 newvariable.timespan = ''
-                                newvariable.fk_dst_id = newdataset
-                                newvariable.fk_var_type_id = VariableType.objects.get(pk=4)
+                                newvariable.datasetId = newdataset
+                                newvariable.variableTypeId = VariableType.objects.get(pk=4)
                                 newvariable.sourceId = newsource
 
                                 newvariable.save()

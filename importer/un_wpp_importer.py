@@ -330,8 +330,8 @@ with transaction.atomic():
                                                            description='',
                                                            code=None,
                                                            timespan=timespan,
-                                                           fk_dst_id=newdataset,
-                                                           fk_var_type_id=VariableType.objects.get(pk=4),
+                                                           datasetId=newdataset,
+                                                           variableTypeId=VariableType.objects.get(pk=4),
                                                            sourceId=newsource)
                                     newvariable.save()
 
@@ -423,8 +423,8 @@ with transaction.atomic():
                                                        description='',
                                                        code=None,
                                                        timespan=timespan,
-                                                       fk_dst_id=newdataset,
-                                                       fk_var_type_id=VariableType.objects.get(pk=4),
+                                                       datasetId=newdataset,
+                                                       variableTypeId=VariableType.objects.get(pk=4),
                                                        sourceId=newsource)
                                 newvariable.save()
 
@@ -525,7 +525,7 @@ with transaction.atomic():
 
             thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
-                fk_dst_id=thedataset)
+                datasetId=thedataset)
             available_variables_list = []
 
             for each in available_variables.values('name'):
@@ -553,7 +553,7 @@ with transaction.atomic():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                             c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
-                    Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
+                    Variable.objects.get(name=each, datasetId=thedataset).delete()
 
             dataset_saved = False
 
@@ -615,12 +615,12 @@ with transaction.atomic():
                                                                description='',
                                                                code=None,
                                                                timespan=timespan,
-                                                               fk_dst_id=newdataset,
-                                                               fk_var_type_id=VariableType.objects.get(pk=4),
+                                                               datasetId=newdataset,
+                                                               variableTypeId=VariableType.objects.get(pk=4),
                                                                sourceId=newsource)
                                         newvariable.save()
                                     else:
-                                        newvariable = Variable.objects.get(name=varname, fk_dst_id=newdataset)
+                                        newvariable = Variable.objects.get(name=varname, datasetId=newdataset)
                                         while DataValue.objects.filter(
                                             variableId__pk=existing_variables_name_id[varname]).first():
                                             with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
@@ -685,7 +685,7 @@ with transaction.atomic():
 
             thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
-                fk_dst_id=thedataset)
+                datasetId=thedataset)
             available_variables_list = []
 
             for each in available_variables.values('name'):
@@ -713,7 +713,7 @@ with transaction.atomic():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                             c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
-                    Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
+                    Variable.objects.get(name=each, datasetId=thedataset).delete()
 
             dataset_saved = False
 
@@ -772,12 +772,12 @@ with transaction.atomic():
                                                            description='',
                                                            code=None,
                                                            timespan=timespan,
-                                                           fk_dst_id=newdataset,
-                                                           fk_var_type_id=VariableType.objects.get(pk=4),
+                                                           datasetId=newdataset,
+                                                           variableTypeId=VariableType.objects.get(pk=4),
                                                            sourceId=newsource)
                                     newvariable.save()
                                 else:
-                                    newvariable = Variable.objects.get(name=var_name, fk_dst_id=newdataset)
+                                    newvariable = Variable.objects.get(name=var_name, datasetId=newdataset)
                                     while DataValue.objects.filter(
                                         variableId__pk=existing_variables_name_id[var_name]).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang

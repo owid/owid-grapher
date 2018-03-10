@@ -19,7 +19,7 @@ app.get('/grapher/admin/editorData.:cacheTag.json', (req, res) => {
 
     const datasets: Dataset[] = []
 
-    db.query(`SELECT v.name, v.id, d.name as datasetName, d.namespace FROM variables as v JOIN datasets as d ON v.fk_dst_id = d.id ORDER BY d.id`, (err, rows) => {
+    db.query(`SELECT v.name, v.id, d.name as datasetName, d.namespace FROM variables as v JOIN datasets as d ON v.datasetId = d.id ORDER BY d.id`, (err, rows) => {
         if (err) throw err
 
         let dataset: Dataset | undefined
@@ -65,7 +65,7 @@ app.get('/grapher/data/variables/:variableIds', (req, res) => {
 
     const variableQuery = `
         SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
-            JOIN datasets as d ON v.fk_dst_id = d.id
+            JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
     `

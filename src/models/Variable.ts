@@ -5,7 +5,7 @@ export async function getVariableData(variableIds: number[], db: DatabaseConnect
 
     const variableQuery = db.query(`
         SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
-            JOIN datasets as d ON v.fk_dst_id = d.id
+            JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
     `, [variableIds])

@@ -466,7 +466,7 @@ def process_csv_file_update(filename_to_process: str, original_filename: str):
                         unique_var_names.append(variablename)
 
         for onevariable in unique_var_names:
-            found_vars = Variable.objects.filter(name=onevariable, fk_dst_id__namespace='faostat')
+            found_vars = Variable.objects.filter(name=onevariable, datasetId__namespace='faostat')
             if found_vars:
                 for each_found_var in found_vars:
                     vars_to_delete.append(each_found_var)
@@ -552,7 +552,7 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
                            datasetId=newdataset.pk)
         newsource.save()
 
-    existing_fao_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='faostat'))
+    existing_fao_variables = Variable.objects.filter(datasetId__in=Dataset.objects.filter(namespace='faostat'))
     existing_fao_variables_dict = {}
     for each in existing_fao_variables:
         existing_fao_variables_dict[each.name] = each
@@ -810,7 +810,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                                        unit else '', short_unit=s_unit,
                                        description=var_desc,
                                        code=variablecode, timespan='',
-                                       fk_dst_id=dataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                       datasetId=dataset, variableTypeId=VariableType.objects.get(pk=4),
                                        sourceId=source)
                 try:
                     with transaction.atomic():
@@ -821,7 +821,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                                            unit else '', short_unit=s_unit,
                                            description=var_desc,
                                            code=None, timespan='',
-                                           fk_dst_id=dataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                           datasetId=dataset, variableTypeId=VariableType.objects.get(pk=4),
                                            sourceId=source)
                     newvariable.save()
                 existing_fao_variables_dict[variablename] = newvariable
@@ -831,7 +831,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                     existing_fao_variables_dict[variablename].short_unit = short_unit_extract(unit)
                     existing_fao_variables_dict[variablename].description = var_desc
                     existing_fao_variables_dict[variablename].code = variablecode
-                    existing_fao_variables_dict[variablename].fk_dst_id = dataset
+                    existing_fao_variables_dict[variablename].datasetId = dataset
                     existing_fao_variables_dict[variablename].sourceId = source
                     try:
                         with transaction.atomic():

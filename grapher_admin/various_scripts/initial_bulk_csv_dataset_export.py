@@ -11,7 +11,7 @@ from django.conf import settings
 all_datasets = Dataset.objects.all()
 
 for each in all_datasets:
-    last_updated_by = Variable.objects.filter(fk_dst_id=each).order_by('-updated_at')
+    last_updated_by = Variable.objects.filter(datasetId=each).order_by('-updated_at')
     if last_updated_by:
         committer = last_updated_by.first()
         if not committer.uploaded_by:

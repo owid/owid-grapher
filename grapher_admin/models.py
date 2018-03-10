@@ -202,7 +202,7 @@ class VariableType(Model):
 class Variable(Model):
     class Meta:
         db_table = 'variables'
-        unique_together = (('code', 'fk_dst_id'), ('name', 'fk_dst_id'),)
+        unique_together = (('code', 'datasetId'), ('name', 'datasetId'),)
 
     name = models.CharField(max_length=1000)
     unit = models.CharField(max_length=255)
@@ -211,11 +211,11 @@ class Variable(Model):
     display = JSONField()
 
     description = models.TextField(blank=True, null=True)
-    fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
+    datasetId = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='datasetId')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    fk_var_type_id = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING, db_column='fk_var_type_id')
+    variableTypeId = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING, db_column='variableTypeId')
     uploaded_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, db_column='uploaded_by',
                                     blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
