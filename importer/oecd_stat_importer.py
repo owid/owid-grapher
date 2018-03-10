@@ -145,7 +145,7 @@ with transaction.atomic():
                     newdataset = Dataset(name=metadata_dict[file_name]['category'],
                                          description='This is a dataset imported by the automated fetcher',
                                          namespace='oecd_stat', categoryId=the_category,
-                                         fk_dst_subcat_id=the_subcategory)
+                                         subcategoryId=the_subcategory)
                     newdataset.save()
                     dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                     new_datasets_list.append(newdataset)
@@ -465,7 +465,7 @@ with transaction.atomic():
                     newdataset = Dataset(name=metadata_dict[file_name]['category'],
                                          description='This is a dataset imported by the automated fetcher',
                                          namespace='oecd_stat', categoryId=the_category,
-                                         fk_dst_subcat_id=the_subcategory)
+                                         subcategoryId=the_subcategory)
                     newdataset.save()
                     dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                     new_datasets_list.append(newdataset)

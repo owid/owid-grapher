@@ -28,10 +28,10 @@
                 </select>
 			</div>
 			<div class="form-group">
-				<label for="fk_dst_subcat_id">Subcategory</label>
-                <select class="form-control" id="fk_dst_subcat_id" name="fk_dst_subcat_id">
+				<label for="subcategoryId">Subcategory</label>
+                <select class="form-control" id="subcategoryId" name="subcategoryId">
                 {% for i in subcategories %}
-                    {% if dataset.fk_dst_subcat_id_id == i.id %}
+                    {% if dataset.subcategoryId_id == i.id %}
                     <option value="{{ i.id }}" selected="selected">{{ i.name }}</option>
                     {% else %}
                         <option value="{{ i.id }}">{{ i.name }}</option>

@@ -174,8 +174,8 @@ class Dataset(Model):
     updated_at = models.DateTimeField(auto_now=True)
     categoryId = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
                                       db_column='categoryId')
-    fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                         db_column='fk_dst_subcat_id')
+    subcategoryId = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                         db_column='subcategoryId')
     namespace = models.CharField(max_length=255, default='owid')
 
 

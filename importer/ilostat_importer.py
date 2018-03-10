@@ -355,7 +355,7 @@ with transaction.atomic():
                                 newdataset = Dataset(name=the_subcategory_name,
                                                      description='This is a dataset imported by the automated fetcher',
                                                      namespace='ilostat', categoryId=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 datasetname_to_object[the_subcategory_name] = newdataset
@@ -583,7 +583,7 @@ with transaction.atomic():
                                     newdataset = Dataset(name=the_subcategory_name,
                                                          description='This is a dataset imported by the automated fetcher',
                                                          namespace='ilostat', categoryId=the_category,
-                                                         fk_dst_subcat_id=the_subcategory)
+                                                         subcategoryId=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     datasetname_to_object[the_subcategory_name] = newdataset

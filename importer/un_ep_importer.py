@@ -138,7 +138,7 @@ with transaction.atomic():
                 newdataset = Dataset(name=subcategory_name,
                                      description='This is a dataset imported by the automated fetcher',
                                      namespace='un_ep', categoryId=the_category,
-                                     fk_dst_subcat_id=the_subcategory)
+                                     subcategoryId=the_subcategory)
                 newdataset.save()
                 dataset_name_to_object[subcategory_name] = newdataset
                 new_datasets_list.append(newdataset)

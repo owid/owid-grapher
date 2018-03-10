@@ -278,7 +278,7 @@ with transaction.atomic():
             newdataset = Dataset(name='World Bank Gender Statistics - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
                                  namespace='genderstats', categoryId=the_category,
-                                 fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, categoryId=the_category))
+                                 subcategoryId=DatasetSubcategory.objects.get(name=category, categoryId=the_category))
             newdataset.save()
             datasets_list.append(newdataset)
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
@@ -587,7 +587,7 @@ with transaction.atomic():
                 newdataset = Dataset(name='World Bank Gender Statistics - ' + category,
                                      description='This is a dataset imported by the automated fetcher',
                                      namespace='genderstats', categoryId=the_category,
-                                     fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
+                                     subcategoryId=DatasetSubcategory.objects.get(name=category,
                                                                                      categoryId=the_category))
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
@@ -727,7 +727,7 @@ with transaction.atomic():
 
         for each in all_genderstats_datasets:
             if each.pk not in all_genderstats_datasets_with_vars_dict:
-                cat_to_delete = each.fk_dst_subcat_id
+                cat_to_delete = each.subcategoryId
                 logger.info("Deleting empty dataset %s." % each.name)
                 logger.info("Deleting empty category %s." % cat_to_delete.name)
                 each.delete()

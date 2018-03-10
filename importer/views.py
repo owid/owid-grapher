@@ -28,11 +28,11 @@ def listqogdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.qog.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -43,11 +43,11 @@ def listfaodatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.faostat.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -58,11 +58,11 @@ def listclioinfradatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.clioinfra.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -73,11 +73,11 @@ def listgbdcausedatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.gbdcause.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -88,11 +88,11 @@ def listgbdriskdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.gbdrisk.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -103,11 +103,11 @@ def listunsdgdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.unsdg.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -118,11 +118,11 @@ def listgbdprevalencedatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.gbdprevalence.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -133,11 +133,11 @@ def listgbdmentalhealthdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.gbdmentalhealth.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -148,11 +148,11 @@ def listilostatdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.ilostat.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -163,11 +163,11 @@ def listunepdatasets(request: HttpRequest):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.unep.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets})
@@ -212,11 +212,11 @@ def listwbdatasets(request: HttpRequest, dataset: str):
     datasets: Dict = {}
 
     for each in variables:
-        if datasets.get(each.fk_dst_id.fk_dst_subcat_id.name):
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        if datasets.get(each.fk_dst_id.subcategoryId.name):
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
         else:
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name] = []
-            datasets[each.fk_dst_id.fk_dst_subcat_id.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+            datasets[each.fk_dst_id.subcategoryId.name] = []
+            datasets[each.fk_dst_id.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
 
     return render(request, 'admin.wb.data.html', context={'current_user': request.user.name,
                                                            'datasets': datasets,

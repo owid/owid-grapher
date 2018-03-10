@@ -308,7 +308,7 @@ with transaction.atomic():
                                 newdataset = Dataset(name='UN WPP - %s' % dataset_name,
                                                      description='This is a dataset imported by the automated fetcher',
                                                      namespace='unwpp', categoryId=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
                                 source_description['additionalInfo'] = dataset_info['description']
@@ -402,7 +402,7 @@ with transaction.atomic():
                                 newdataset = Dataset(name='UN WPP - %s' % dataset_name,
                                                      description='This is a dataset imported by the automated fetcher',
                                                      namespace='unwpp', categoryId=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
                                 source_description['additionalInfo'] = dataset_info['description']
@@ -591,7 +591,7 @@ with transaction.atomic():
                             if not dataset_saved:
                                 newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
                                 newdataset.categoryId = the_category
-                                newdataset.fk_dst_subcat_id = the_subcategory
+                                newdataset.subcategoryId = the_subcategory
                                 newdataset.save()
                                 dataset_saved = True
 
@@ -750,7 +750,7 @@ with transaction.atomic():
                             if not dataset_saved:
                                 newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
                                 newdataset.categoryId = the_category
-                                newdataset.fk_dst_subcat_id = the_subcategory
+                                newdataset.subcategoryId = the_subcategory
                                 newdataset.save()
                                 dataset_saved = True
 

@@ -217,7 +217,7 @@ with transaction.atomic():
                                 newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                      description='This is a dataset imported by the automated fetcher',
                                                      namespace='clioinfra', categoryId=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 existing_subcategories_list.add(dataset_to_category[varname])
@@ -327,7 +327,7 @@ with transaction.atomic():
                                     newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                          description='This is a dataset imported by the automated fetcher',
                                                          namespace='clioinfra', categoryId=the_category,
-                                                         fk_dst_subcat_id=the_subcategory)
+                                                         subcategoryId=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     existing_subcategories_list.add(dataset_to_category[varname])

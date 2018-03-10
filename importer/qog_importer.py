@@ -208,7 +208,7 @@ with transaction.atomic():
             newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
                                  namespace='qog', categoryId=the_category,
-                                 fk_dst_subcat_id=categories_ref_models[category])
+                                 subcategoryId=categories_ref_models[category])
             newdataset.save()
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             datasets_ref_models[category] = newdataset
@@ -331,7 +331,7 @@ with transaction.atomic():
         existing_sources = {}
         for each in existing_variables:
             source_name = each.code[:each.code.index('_') + 1]
-            category_name = each.fk_dst_id.fk_dst_subcat_id.name
+            category_name = each.fk_dst_id.subcategoryId.name
             if source_name in existing_sources:
                 if category_name not in existing_sources[source_name]:
                     existing_sources[source_name].update({category_name: each.sourceId})
@@ -441,12 +441,12 @@ with transaction.atomic():
                 newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
                                  namespace='qog', categoryId=the_category,
-                                 fk_dst_subcat_id=categories_ref_models[category])
+                                 subcategoryId=categories_ref_models[category])
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(namespace='qog', categoryId=the_category, fk_dst_subcat_id=categories_ref_models[category])
+                newdataset = Dataset.objects.get(namespace='qog', categoryId=the_category, subcategoryId=categories_ref_models[category])
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             datasets_ref_models[category] = newdataset
 
@@ -695,7 +695,7 @@ with transaction.atomic():
 
         for each in all_qog_datasets:
             if each.pk not in all_qog_datasets_with_vars_dict:
-                cat_to_delete = each.fk_dst_subcat_id
+                cat_to_delete = each.subcategoryId
                 logger.info("Deleting empty dataset %s." % each.name)
                 logger.info("Deleting empty category %s." % cat_to_delete.name)
                 each.delete()

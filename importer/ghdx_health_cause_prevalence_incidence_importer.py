@@ -104,7 +104,7 @@ with transaction.atomic():
                         newdataset = Dataset(name=row['cause_name'],
                                              description='This is a dataset imported by the automated fetcher',
                                              namespace='gbd_prevalence', categoryId=the_category,
-                                             fk_dst_subcat_id=the_subcategory)
+                                             subcategoryId=the_subcategory)
                         newdataset.save()
                         dataset_name_to_object[row['cause_name']] = newdataset
                         new_datasets_list.append(newdataset)

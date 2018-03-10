@@ -511,7 +511,7 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
         newdataset = Dataset(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]),
                              description='This is a dataset imported by the automated fetcher',
                              namespace='faostat', categoryId=the_category,
-                             fk_dst_subcat_id=the_subcategory)
+                             subcategoryId=the_subcategory)
         newdataset.save()
         datasets_list.append(newdataset)
 

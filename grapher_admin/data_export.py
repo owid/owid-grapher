@@ -87,16 +87,16 @@ for one_type in chart_ids:
                 out += format_sql('INSERT INTO dataset_categories (`id`, `name`, `fetcher_autocreated`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, 0, {}, {});\n", category.pk, category.name, current_time, current_time)
                 seen_categories[each.variableId.fk_dst_id.categoryId.pk] = 1
-            if not seen_subcategories.get(each.variableId.fk_dst_id.fk_dst_subcat_id.pk, 0):
-                subcategory = each.variableId.fk_dst_id.fk_dst_subcat_id
+            if not seen_subcategories.get(each.variableId.fk_dst_id.subcategoryId.pk, 0):
+                subcategory = each.variableId.fk_dst_id.subcategoryId
                 out += format_sql('INSERT INTO dataset_subcategories (`id`, `name`, `categoryId`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, {}, {}, {});\n", subcategory.pk, subcategory.name, subcategory.categoryId.pk, current_time, current_time)
-                seen_subcategories[each.variableId.fk_dst_id.fk_dst_subcat_id.pk] = 1
+                seen_subcategories[each.variableId.fk_dst_id.subcategoryId.pk] = 1
             if not seen_datasets.get(each.variableId.fk_dst_id.pk, 0):
                 dataset = each.variableId.fk_dst_id
-                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `categoryId`, `fk_dst_subcat_id`, `created_at`, `updated_at`) VALUES ' \
+                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `categoryId`, `subcategoryId`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, {}, {}, {}, {}, {}, {});\n", dataset.pk, dataset.name, dataset.description,
-                                                                          dataset.namespace, dataset.categoryId.pk, dataset.fk_dst_subcat_id.pk,
+                                                                          dataset.namespace, dataset.categoryId.pk, dataset.subcategoryId.pk,
                                                                           current_time, current_time)
                 seen_datasets[each.variableId.fk_dst_id.pk] = 1
             if not seen_sources.get(each.variableId.sourceId.pk, 0):

@@ -961,7 +961,7 @@ with transaction.atomic():
         newdataset = Dataset(name='BP Statistical Review of Global Energy',
                          description='This is a dataset imported by the automated fetcher',
                          namespace='bpstatreview', categoryId=the_category,
-                         fk_dst_subcat_id=the_subcategory)
+                         subcategoryId=the_subcategory)
         newdataset.save()
 
     if Source.objects.filter(name='BP Statistical Review of Global Energy', datasetId=newdataset.pk):
