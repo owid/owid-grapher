@@ -19,7 +19,6 @@ export interface VariableDisplaySettings {
     tolerance?: number
 }
 
-
 export class Variable {
     @observable.ref id!: number
     @observable.ref name!: string

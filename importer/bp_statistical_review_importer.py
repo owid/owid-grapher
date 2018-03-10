@@ -876,7 +876,7 @@ def insert_values(valuelist, worksheet_name):
 
     data_values_tuple_list = []
 
-    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     for onevalue in valuelist:
         countryname = onevalue['country_name']
@@ -914,9 +914,9 @@ def insert_values(valuelist, worksheet_name):
             if onevalue['variable'].pk not in unique_vars:
                 unique_vars.append(onevalue['variable'].pk)
         for onevariable in unique_vars:
-            while DataValue.objects.filter(fk_var_id__pk=onevariable).first():
+            while DataValue.objects.filter(variableId__pk=onevariable).first():
                 with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                    c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                    c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                               (DataValue._meta.db_table, onevariable))
 
     with connection.cursor() as c:

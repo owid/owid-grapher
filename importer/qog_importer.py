@@ -269,7 +269,7 @@ with transaction.atomic():
             logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
             vars_ref_models[varcode] = newvariable
 
-        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values
@@ -358,9 +358,9 @@ with transaction.atomic():
             delete_source_also = False
             if each not in vars_being_used:
                 logger.info("Deleting data values for the variable: %s" % each.encode('utf8'))
-                while DataValue.objects.filter(fk_var_id__pk=existing_variables_code_id[each]).first():
+                while DataValue.objects.filter(variableId__pk=existing_variables_code_id[each]).first():
                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, existing_variables_code_id[each]))
                 vars_same_source = Variable.objects.filter(sourceId__pk=existing_variables_code_sourceid[each])
                 if len(vars_same_source) == 1:  # the source is being used only by one variable
@@ -654,12 +654,12 @@ with transaction.atomic():
                 vars_ref_models[varcode] = variable
 
                 logger.info("Deleting data values for the variable: %s" % variable.name.encode('utf8'))
-                while DataValue.objects.filter(fk_var_id__pk=variable.pk).first():
+                while DataValue.objects.filter(variableId__pk=variable.pk).first():
                     with connection.cursor() as c:
-                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, variable.pk))
 
-        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values

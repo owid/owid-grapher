@@ -24,3 +24,4 @@ Unidecode==0.4.20
 ansi2html==1.2.0
 django-mysql==2.2.0
 django-dotenv==1.4.2
+sqlparse==0.2.4

@@ -107,7 +107,7 @@ with transaction.atomic():
 
     c_name_entity_ref = {}  # this dict will hold the country names from excel and the appropriate entity object (this is used when saving the variables and their values)
 
-    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     data_values_tuple_list = []
 
@@ -216,9 +216,9 @@ with transaction.atomic():
 
                             if variable_name.lower() not in variable_name_to_object:
                                 newvariable = Variable.objects.get(name=variable_name, fk_dst_id=dataset_name_to_object[metadata_dict[file_name]['category']])
-                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                   (DataValue._meta.db_table, newvariable.pk))
                                 variable_name_to_object[variable_name.lower()] = newvariable
 
@@ -537,9 +537,9 @@ with transaction.atomic():
                                     newvariable = Variable.objects.get(name=variable_name,
                                                                        fk_dst_id=dataset_name_to_object[
                                                                            metadata_dict[file_name]['category']])
-                                    while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                    while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                       (DataValue._meta.db_table, newvariable.pk))
                                     variable_name_to_object[variable_name.lower()] = newvariable
                             if ((int(dict_year), c_name_entity_ref[country_col].pk,

@@ -271,7 +271,7 @@ with transaction.atomic():
 
             column_number = 0
 
-        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
         datasets_list = []
         for category in hnpqstats_categories_list:
@@ -474,9 +474,9 @@ with transaction.atomic():
         for each in vars_to_delete:
             if each not in vars_being_used:
                 logger.info("Deleting data values for the variable: %s" % each.encode('utf8'))
-                while DataValue.objects.filter(fk_var_id__pk=existing_variables_code_id[each]).first():
+                while DataValue.objects.filter(variableId__pk=existing_variables_code_id[each]).first():
                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, existing_variables_code_id[each]))
                 source_object = Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='hnpqstats')).sourceId
                 Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='hnpqstats')).delete()
@@ -576,7 +576,7 @@ with transaction.atomic():
 
             column_number = 0
 
-        insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         total_values_tracker = 0
@@ -692,10 +692,10 @@ with transaction.atomic():
                                             newvariable = global_cat[indicator_code]['variable_object']
                                         if indicator_code not in newly_added_vars:
                                             if not deleted_indicators.get(indicator_code, 0):
-                                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                                while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                                     with connection.cursor() as c:
                                                         c.execute(
-                                                                  'DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                                                  'DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                                   (DataValue._meta.db_table, newvariable.pk))
                                                 deleted_indicators[indicator_code] = True
                                                 logger.info("Deleting data values for the variable %s." % indicator_code.encode('utf8'))

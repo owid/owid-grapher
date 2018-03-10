@@ -7,15 +7,17 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('grapher_admin', '0035_auto_20180216_0144'),
     ]
 
+    # Optimized SQL to drop foreign key, rename columns and add foreign key again at the same time, because this operation is very very slow
     operations = [
-        migrations.AlterField(
-            model_name='datavalue',
-            name='fk_ent_id',
-            field=models.ForeignKey(db_column='fk_ent_id', on_delete=django.db.models.deletion.DO_NOTHING, to='grapher_admin.Entity'),
-        ),
+        migrations.RunSQL("""
+            ALTER TABLE data_values DROP FOREIGN KEY data_values_fk_ent_id_134839b0_fk_entities_id, DROP FOREIGN KEY data_values_fk_var_id_eff4cfce_fk_variables_id, 
+            CHANGE fk_ent_id entityId INTEGER NOT NULL,
+            CHANGE fk_var_id variableId INTEGER NOT NULL,
+            ADD CONSTRAINT `data_values_entityId_entities_id` FOREIGN KEY (`entityId`) REFERENCES `entities` (`id`),
+            ADD CONSTRAINT `data_values_variableId_variables_id` FOREIGN KEY (`variableId`) REFERENCES `variables` (`id`)
+        """)
     ]

@@ -89,11 +89,11 @@ app.get('/grapher/data/variables/:variableIds', (req, res) => {
         }
 
         const dataQuery = `
-            SELECT value, year, fk_var_id as variableId, entities.id as entityId,
+            SELECT value, year, variableId as variableId, entities.id as entityId,
             entities.name as entityName, entities.code as entityCode
             FROM data_values
             LEFT JOIN entities ON data_values.entityId = entities.id
-            WHERE data_values.fk_var_id IN (?)
+            WHERE data_values.variableId IN (?)
             ORDER BY variableId ASC, year ASC
         `
 

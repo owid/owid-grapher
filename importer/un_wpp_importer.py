@@ -281,7 +281,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -375,7 +375,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -549,9 +549,9 @@ with transaction.atomic():
 
             for each in vars_to_delete:
                 if each not in vars_being_used:
-                    while DataValue.objects.filter(fk_var_id__pk=existing_variables_name_id[each]).first():
+                    while DataValue.objects.filter(variableId__pk=existing_variables_name_id[each]).first():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
                     Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
 
@@ -565,7 +565,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -622,9 +622,9 @@ with transaction.atomic():
                                     else:
                                         newvariable = Variable.objects.get(name=varname, fk_dst_id=newdataset)
                                         while DataValue.objects.filter(
-                                            fk_var_id__pk=existing_variables_name_id[varname]).first():
+                                            variableId__pk=existing_variables_name_id[varname]).first():
                                             with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                                c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                                c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                           (DataValue._meta.db_table, existing_variables_name_id[varname]))
 
                                     column_var_dict[columnnum] = newvariable
@@ -709,9 +709,9 @@ with transaction.atomic():
 
             for each in vars_to_delete:
                 if each not in vars_being_used:
-                    while DataValue.objects.filter(fk_var_id__pk=existing_variables_name_id[each]).first():
+                    while DataValue.objects.filter(variableId__pk=existing_variables_name_id[each]).first():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
                     Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
 
@@ -724,7 +724,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -779,9 +779,9 @@ with transaction.atomic():
                                 else:
                                     newvariable = Variable.objects.get(name=var_name, fk_dst_id=newdataset)
                                     while DataValue.objects.filter(
-                                        fk_var_id__pk=existing_variables_name_id[var_name]).first():
+                                        variableId__pk=existing_variables_name_id[var_name]).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                       (DataValue._meta.db_table, existing_variables_name_id[var_name]))
 
                                 variables_saved = True

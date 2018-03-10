@@ -118,7 +118,7 @@ for one_type in chart_ids:
             out += format_sql('INSERT INTO chart_dimensions (`id`, `order`, `property`, `chartId`, `variableId`) VALUES ' \
                    "({}, {}, {}, {}, {});\n", chart_dim.pk, chart_dim.order, chart_dim.property, chart_dim.chartId.pk, chart_dim.variableId.pk)
 
-            entity_ids = DataValue.objects.filter(fk_var_id=each.variableId).values_list('entityId', flat=True)
+            entity_ids = DataValue.objects.filter(variableId=each.variableId).values_list('entityId', flat=True)
             for one_id in entity_ids:
                 if not seen_entities.get(one_id, 0):
                     out += format_sql('INSERT INTO entities (`id`, `code`, `name`, `validated`, `displayName`, `created_at`, `updated_at`) VALUES ' \
@@ -128,15 +128,15 @@ for one_type in chart_ids:
                     seen_entities[one_id] = 1
 
             with connection.cursor() as cursor:
-                cursor.execute(format_sql('SELECT * FROM data_values WHERE fk_var_id = {};', each.variableId.pk))
+                cursor.execute(format_sql('SELECT * FROM data_values WHERE variableId = {};', each.variableId.pk))
                 data_values = dictfetchall(cursor)
             data_values_str = ''
             for onevalue in data_values:
                 if onevalue['id'] not in seen_data_values:
-                    data_values_str += format_sql("({}, {}, {}, {}, {}),", onevalue['id'], onevalue['value'], onevalue['year'], onevalue['entityId'], onevalue['fk_var_id'])
+                    data_values_str += format_sql("({}, {}, {}, {}, {}),", onevalue['id'], onevalue['value'], onevalue['year'], onevalue['entityId'], onevalue['variableId'])
                     seen_data_values[onevalue['id']] = 1
             if data_values_str:
-                out += 'INSERT INTO data_values (`id`, `value`, `year`, `entityId`, `fk_var_id`) VALUES ' + data_values_str[:-1] + ';\n'
+                out += 'INSERT INTO data_values (`id`, `value`, `year`, `entityId`, `variableId`) VALUES ' + data_values_str[:-1] + ';\n'
 
 
 out += format_sql('INSERT INTO licenses (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES ' \

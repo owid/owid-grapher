@@ -468,7 +468,7 @@ with transaction.atomic():
 
                 variables = None
 
-                insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
                 data_values_tuple_list = []
                 with open(file.replace('.gz', ''), 'r', encoding='utf8') as f:
                     reader = csv.DictReader(f)
@@ -718,9 +718,9 @@ with transaction.atomic():
                             newvariable.short_unit = short_unit_extract(varunit)
                             newvariable.sourceId = newsource
 
-                            while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                            while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                 with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                    c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                    c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                               (DataValue._meta.db_table, newvariable.pk))
 
                         varcode_to_object[varcode_for_reference] = newvariable
@@ -728,7 +728,7 @@ with transaction.atomic():
 
                     variables = None
 
-                    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
                     data_values_tuple_list = []
                     with open(file.replace('.gz', ''), 'r', encoding='utf8') as f:
                         reader = csv.DictReader(f)

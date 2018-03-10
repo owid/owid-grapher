@@ -173,7 +173,7 @@ with transaction.atomic():
 
     country_name_entity_ref = {}  # this dict will hold the country names and the appropriate entity object (this is used when saving the variables and their values)
 
-    insert_string = 'INSERT into data_values (value, year, entityId, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     for file in glob.glob(files_save_location + "/*.xlsx"):
         column_to_year = {}
@@ -362,9 +362,9 @@ with transaction.atomic():
                                 newvariable.save()
 
                                 # Deleting old data values
-                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                   (DataValue._meta.db_table, newvariable.pk))
 
                             if row_number == 3 and column_number > 6:
