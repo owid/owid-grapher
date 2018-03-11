@@ -128,6 +128,21 @@ def listgbdprevalencedatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listgbdprevalencebygenderdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(datasetId__namespace='gbd_prevalence_by_gender')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.datasetId.subcategoryId.name):
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.datasetId.subcategoryId.name] = []
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.gbdprevalencebygender.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def listgbdmentalhealthdatasets(request: HttpRequest):
     variables = Variable.objects.filter(datasetId__namespace='gbd_mental_health')
     datasets: Dict = {}

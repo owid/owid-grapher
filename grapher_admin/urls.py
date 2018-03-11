@@ -78,6 +78,7 @@ urlpatterns = [
     url(r'^grapher/admin/ilostatdatasets/?$', importer_views.listilostatdatasets, name="listilostatdatasets"),
     url(r'^grapher/admin/unsdgdatasets/?$', importer_views.listunsdgdatasets, name="listunsdgdatasets"),
     url(r'^grapher/admin/gbdprevalencedatasets/?$', importer_views.listgbdprevalencedatasets, name="listgbdprevalencedatasets"),
+    url(r'^grapher/admin/gbdprevalencebygenderdatasets/?$', importer_views.listgbdprevalencebygenderdatasets, name="listgbdprevalencebygenderdatasets"),
     url(r'^grapher/admin/gbdmentalhealthdatasets/?$', importer_views.listgbdmentalhealthdatasets, name="listgbdmentalhealthdatasets"),
     url(r'^grapher/admin/unepdatasets/?$', importer_views.listunepdatasets, name="listunepdatasets"),
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),

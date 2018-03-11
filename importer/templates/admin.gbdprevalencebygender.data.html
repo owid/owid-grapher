@@ -1,0 +1,24 @@
+{% extends 'base_admin_template.html' %}
+{% block content %}
+	<h2>GBD Prevalence & Incidence Datasets - Breakdowns by Gender</h2>
+	<table class="table table-bordered table-hover dataTable">
+		<thead>
+			<tr>
+				<th>Category</th>
+				<th>Variables</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for key, value in datasets.items %}
+				<tr>
+                    <td><h3>{{ key }}</h3></td>
+					<td>
+                        {% for each in value %}
+							<a href="{% url 'showvariable' each.id %}">{{ each.name }}</a><br>
+                        {% endfor %}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}

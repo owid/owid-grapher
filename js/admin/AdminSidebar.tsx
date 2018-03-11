@@ -30,6 +30,7 @@ export default function AdminSidebar() {
             <li><Link native to="/gbdcausedatasets"><i className="fa fa-database"></i> GBD Cause Datasets</Link></li>
             <li><Link native to="/gbdriskdatasets"><i className="fa fa-database"></i> GBD Risk Datasets</Link></li>
             <li><Link native to="/gbdprevalencedatasets"><i className="fa fa-database"></i> GBD Prevalence and Incidence Datasets</Link></li>
+            <li><Link native to="/gbdprevalencebygenderdatasets"><i className="fa fa-database"></i> GBD Prevalence/Incidence by Gender Datasets</Link></li>
             <li><Link native to="/gbdmentalhealthdatasets"><i className="fa fa-database"></i> GBD Mental Health Datasets</Link></li>
             <li><Link native to="/ilostatdatasets"><i className="fa fa-database"></i> ILOSTAT Datasets</Link></li>
             <li><Link native to="/unsdgdatasets"><i className="fa fa-database"></i> UN SDG Datasets</Link></li>
