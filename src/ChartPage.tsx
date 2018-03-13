@@ -1,9 +1,12 @@
+import {BAKED_URL, ASSETS_URL} from './settings'
+
 import * as React from 'react'
-import { ChartConfigProps } from '../js/charts/ChartConfig'
 import * as path from 'path'
 import * as urljoin from 'url-join'
-import {BAKED_URL, ASSETS_URL} from './settings'
+import * as _ from 'lodash'
 const md5 = require('md5')
+
+import { ChartConfigProps } from '../js/charts/ChartConfig'
 
 export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
     const {chart, canonicalRoot, pathRoot} = props
@@ -11,7 +14,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
     const canonicalUrl = urljoin(canonicalRoot, pathRoot, chart.slug as string)
-    const imageUrl = urljoin(canonicalRoot, pathRoot, "exports", `${chart.slug}.png?v=${md5(JSON.stringify(chart))}`)
+    const imageUrl = urljoin(canonicalRoot, pathRoot, "exports", `${chart.slug}.png?v=${chart.version}`)
 
     const style = `
         html, body {
@@ -48,6 +51,8 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
         }
     `
 
+    const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+
     return <html>
         <head>
             <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -75,6 +80,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 `}</style>
             </noscript>
             <link rel="stylesheet" href={`${ASSETS_URL}/charts.css`}/>
+            <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}?v=${chart.version}`} as="fetch"/>
         </head>
         <body className="singleChart">
             <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>
