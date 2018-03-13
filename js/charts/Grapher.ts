@@ -9,24 +9,39 @@ interface LoadableFigure {
     isActive?: true
 }
 
+// Given the html for a chart, extract the JSON config fragment
+function readConfigFromHTML(html: string): any {
+    const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
+    return m ? JSON.parse(m[1]) : undefined
+}
+
+
+// Determine whether this device is powerful enough to handle
+// loading a bunch of inline interactive charts
+export function shouldProgressiveEmbed() {
+    return !window.navigator.userAgent.toLowerCase().includes("mobi")
+}
+
 export class MultiEmbedder {
     figuresToLoad: LoadableFigure[] = []
     constructor() {
-        Array.from(document.getElementsByTagName("figure")).forEach(element => {
+        const figures = Array.from(document.querySelectorAll("*[data-grapher-src]"))
+        for (const element of figures) {
             const dataSrc = element.getAttribute('data-grapher-src')
             if (dataSrc) {
-                const [configUrl, queryStr] = dataSrc.split(/\?/)
-                const figure: LoadableFigure = { configUrl, queryStr, element }
-                this.figuresToLoad.push(figure)
+                // Only load inline embeds if the device is powerful enough, or if there's no static preview available
+                if (shouldProgressiveEmbed() || !element.querySelector("img")) {
+                    const [configUrl, queryStr] = dataSrc.split(/\?/)
+                    const figure: LoadableFigure = { configUrl, queryStr, element: element as HTMLElement }
+                    this.figuresToLoad.push(figure)
 
-                fetch(configUrl).then(data => data.text()).then(html => {
-                    const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
-                    if (m)
-                        figure.jsonConfig = JSON.parse(m[1])
-                    this.update()
-                })
+                    fetch(configUrl).then(data => data.text()).then(html => {
+                        figure.jsonConfig = readConfigFromHTML(html)
+                        this.update()
+                    })
+                }
             }
-        })
+        }
 
         window.addEventListener('scroll', throttle(() => this.update(), 100))
     }
@@ -44,7 +59,10 @@ export class MultiEmbedder {
                 const figureBottom = figureRect.bottom-bodyRect.top
                 if (windowBottom+preloadDistance >= figureTop && windowTop-preloadDistance <= figureBottom) {
                     figure.isActive = true
-                    ChartView.bootstrap({ jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr })
+                    figure.element.classList.remove("grapherPreview")
+                    ChartView.bootstrap({
+                        jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr
+                    })
                 }
             }
         })
