@@ -159,9 +159,13 @@ export default class VariableData {
                 .then(response => response.text())
                 .then(rawData => this.receiveData(rawData))
         } else {
-            fetch(Global.rootUrl + "/data/variables/" + variableIds.join("+") + "?v=" + cacheTag)
-                .then(response => response.text())
-                .then(rawData => this.receiveData(rawData))
+            const req = new XMLHttpRequest()
+            const that = this
+            req.addEventListener("load", function() {
+                that.receiveData(this.responseText)
+            })
+            req.open("GET", `${Global.rootUrl}/data/variables/${variableIds.join("+")}?v=${cacheTag}`)
+            req.send()
         }
 
     }
