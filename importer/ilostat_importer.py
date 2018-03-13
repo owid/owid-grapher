@@ -316,7 +316,7 @@ with transaction.atomic():
             else:
                 the_category = DatasetCategory.objects.get(name=ilostat_category_name_in_db)
 
-            existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+            existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                 'name')
             existing_subcategories_list = {item['name'].lower() for item in existing_subcategories}
 
@@ -350,18 +350,18 @@ with transaction.atomic():
                         if the_subcategory_name not in datasetname_to_object:
 
                             if the_subcategory_name.lower() not in existing_subcategories_list:
-                                the_subcategory = DatasetSubcategory(name=the_subcategory_name, fk_dst_cat_id=the_category)
+                                the_subcategory = DatasetSubcategory(name=the_subcategory_name, categoryId=the_category)
                                 the_subcategory.save()
                                 newdataset = Dataset(name=the_subcategory_name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='ilostat', fk_dst_cat_id=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     namespace='ilostat', categoryId=the_category,
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 datasetname_to_object[the_subcategory_name] = newdataset
                             else:
                                 the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name,
-                                                                                 fk_dst_cat_id=the_category)
+                                                                                 categoryId=the_category)
                                 newdataset = Dataset.objects.get(name=the_subcategory_name,
                                                                  namespace='ilostat')
                                 datasetname_to_object[the_subcategory_name] = newdataset
@@ -460,7 +460,7 @@ with transaction.atomic():
                                            description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                            code=varcode_for_reference,
                                            timespan='',
-                                           fk_dst_id=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat'), fk_var_type_id=VariableType.objects.get(pk=4),
+                                           datasetId=Dataset.objects.get(name=file_name_to_category[row['indicator']], namespace='ilostat'), variableTypeId=VariableType.objects.get(pk=4),
                                            sourceId=newsource)
 
                     varcode_to_object[varcode_for_reference] = newvariable
@@ -543,7 +543,7 @@ with transaction.atomic():
                 else:
                     the_category = DatasetCategory.objects.get(name=ilostat_category_name_in_db)
 
-                existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                     'name')
                 existing_subcategories_list = {item['name'].lower() for item in existing_subcategories}
 
@@ -578,18 +578,18 @@ with transaction.atomic():
 
                                 if the_subcategory_name.lower() not in existing_subcategories_list:
                                     the_subcategory = DatasetSubcategory(name=the_subcategory_name,
-                                                                         fk_dst_cat_id=the_category)
+                                                                         categoryId=the_category)
                                     the_subcategory.save()
                                     newdataset = Dataset(name=the_subcategory_name,
                                                          description='This is a dataset imported by the automated fetcher',
-                                                         namespace='ilostat', fk_dst_cat_id=the_category,
-                                                         fk_dst_subcat_id=the_subcategory)
+                                                         namespace='ilostat', categoryId=the_category,
+                                                         subcategoryId=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     datasetname_to_object[the_subcategory_name] = newdataset
                                 else:
                                     the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name,
-                                                                                     fk_dst_cat_id=the_category)
+                                                                                     categoryId=the_category)
                                     newdataset = Dataset.objects.get(name=the_subcategory_name,
                                                                      namespace='ilostat')
                                     datasetname_to_object[the_subcategory_name] = newdataset
@@ -661,7 +661,7 @@ with transaction.atomic():
                     varcode_to_object = {}
                     existing_sources = Source.objects.filter(datasetId__in=Dataset.objects.filter(namespace='ilostat'))
                     existing_sources_list = [ onesource.name for onesource in existing_sources ]
-                    existing_vars = Variable.objects.filter(fk_dst_id__namespace='ilostat')
+                    existing_vars = Variable.objects.filter(datasetId__namespace='ilostat')
                     existing_vars_list = [onevar.code for onevar in existing_vars]
                     for varname, sourcedata in variables.items():
 
@@ -706,12 +706,12 @@ with transaction.atomic():
                                                description='See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata',
                                                code=varcode_for_reference,
                                                timespan='',
-                                               fk_dst_id=Dataset.objects.get(
+                                               datasetId=Dataset.objects.get(
                                                    name=file_name_to_category[row['indicator']], namespace='ilostat'),
-                                               fk_var_type_id=VariableType.objects.get(pk=4),
+                                               variableTypeId=VariableType.objects.get(pk=4),
                                                sourceId=newsource)
                         else:
-                            newvariable = Variable.objects.get(code=varcode_for_reference, fk_dst_id__namespace__exact='ilostat')
+                            newvariable = Variable.objects.get(code=varcode_for_reference, datasetId__namespace__exact='ilostat')
                             newvariable.description = 'See concepts and methods provided by ILOSTAT at http://www.ilo.org/ilostat/faces/ilostat-home/metadata'
                             newvariable.name = variable_name
                             newvariable.unit = varunit if varunit else ''

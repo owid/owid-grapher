@@ -82,23 +82,23 @@ for one_type in chart_ids:
 
         chart_dims = ChartDimension.objects.filter(chartId=charts)
         for each in chart_dims:
-            if not seen_categories.get(each.variableId.fk_dst_id.fk_dst_cat_id.pk, 0):
-                category = each.variableId.fk_dst_id.fk_dst_cat_id
+            if not seen_categories.get(each.variableId.datasetId.categoryId.pk, 0):
+                category = each.variableId.datasetId.categoryId
                 out += format_sql('INSERT INTO dataset_categories (`id`, `name`, `fetcher_autocreated`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, 0, {}, {});\n", category.pk, category.name, current_time, current_time)
-                seen_categories[each.variableId.fk_dst_id.fk_dst_cat_id.pk] = 1
-            if not seen_subcategories.get(each.variableId.fk_dst_id.fk_dst_subcat_id.pk, 0):
-                subcategory = each.variableId.fk_dst_id.fk_dst_subcat_id
-                out += format_sql('INSERT INTO dataset_subcategories (`id`, `name`, `fk_dst_cat_id`, `created_at`, `updated_at`) VALUES ' \
-                       "({}, {}, {}, {}, {});\n", subcategory.pk, subcategory.name, subcategory.fk_dst_cat_id.pk, current_time, current_time)
-                seen_subcategories[each.variableId.fk_dst_id.fk_dst_subcat_id.pk] = 1
-            if not seen_datasets.get(each.variableId.fk_dst_id.pk, 0):
-                dataset = each.variableId.fk_dst_id
-                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `fk_dst_cat_id`, `fk_dst_subcat_id`, `created_at`, `updated_at`) VALUES ' \
+                seen_categories[each.variableId.datasetId.categoryId.pk] = 1
+            if not seen_subcategories.get(each.variableId.datasetId.subcategoryId.pk, 0):
+                subcategory = each.variableId.datasetId.subcategoryId
+                out += format_sql('INSERT INTO dataset_subcategories (`id`, `name`, `categoryId`, `created_at`, `updated_at`) VALUES ' \
+                       "({}, {}, {}, {}, {});\n", subcategory.pk, subcategory.name, subcategory.categoryId.pk, current_time, current_time)
+                seen_subcategories[each.variableId.datasetId.subcategoryId.pk] = 1
+            if not seen_datasets.get(each.variableId.datasetId.pk, 0):
+                dataset = each.variableId.datasetId
+                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `categoryId`, `subcategoryId`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, {}, {}, {}, {}, {}, {});\n", dataset.pk, dataset.name, dataset.description,
-                                                                          dataset.namespace, dataset.fk_dst_cat_id.pk, dataset.fk_dst_subcat_id.pk,
+                                                                          dataset.namespace, dataset.categoryId.pk, dataset.subcategoryId.pk,
                                                                           current_time, current_time)
-                seen_datasets[each.variableId.fk_dst_id.pk] = 1
+                seen_datasets[each.variableId.datasetId.pk] = 1
             if not seen_sources.get(each.variableId.sourceId.pk, 0):
                 source = each.variableId.sourceId
                 out += format_sql('INSERT INTO sources (`id`, `name`, `description`, `datasetId`, `created_at`, `updated_at`) VALUES ' \
@@ -108,10 +108,10 @@ for one_type in chart_ids:
             if not seen_vars.get(each.variableId.pk, 0):
                 each.variableId.uploaded_by = admin_user
                 variable = each.variableId
-                out += format_sql('INSERT INTO variables (`id`, `name`, `unit`, `description`, `code`, `coverage`, `timespan`, `fk_dst_id`, `fk_var_type_id`, `sourceId`, `uploaded_by`, `created_at`, `updated_at`, `uploaded_at`, `display`) VALUES ' \
+                out += format_sql('INSERT INTO variables (`id`, `name`, `unit`, `description`, `code`, `coverage`, `timespan`, `datasetId`, `variableTypeId`, `sourceId`, `uploaded_by`, `created_at`, `updated_at`, `uploaded_at`, `display`) VALUES ' \
                        "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", variable.pk, variable.name, variable.unit, variable.description,
                                                                                                             variable.code, variable.coverage, variable.timespan,
-                                                                                                            variable.fk_dst_id.pk, variable.fk_var_type_id.pk, variable.sourceId.pk,
+                                                                                                            variable.datasetId.pk, variable.variableTypeId.pk, variable.sourceId.pk,
                                                                                                             variable.uploaded_by.name, current_time, current_time, current_time, "{}")
                 seen_vars[each.variableId.pk] = 1
             chart_dim = each

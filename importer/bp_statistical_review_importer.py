@@ -121,7 +121,7 @@ worksheets_types = {
 def check_var_existence(varname):
     global newdataset
 
-    if Variable.objects.filter(name=varname, fk_dst_id=newdataset):
+    if Variable.objects.filter(name=varname, datasetId=newdataset):
         return True
     else:
         return False
@@ -151,7 +151,7 @@ def process_type1(worksheet, worksheet_name):
                     varname = varname.replace('*', '')
                 varname = varname.strip()
                 if update_flag and check_var_existence(worksheet_name.strip()):
-                    newvariable = Variable.objects.get(name=worksheet_name.strip(), fk_dst_id=newdataset)
+                    newvariable = Variable.objects.get(name=worksheet_name.strip(), datasetId=newdataset)
                     newvariable.description = varname
                 else:
                     newvariable = Variable(name=worksheet_name.strip(), description=varname)
@@ -198,8 +198,8 @@ def process_type1(worksheet, worksheet_name):
 
     if notes.strip():
         newvariable.description += ' ' + notes
-    newvariable.fk_dst_id = newdataset
-    newvariable.fk_var_type_id = VariableType.objects.get(pk=4)
+    newvariable.datasetId = newdataset
+    newvariable.variableTypeId = VariableType.objects.get(pk=4)
     newvariable.sourceId = newsource
     newvariable.save()
 
@@ -252,13 +252,13 @@ def process_type2(worksheet, worksheet_name):
                     else:
                         if update_flag and check_var_existence(worksheet_name.strip() + ': ' + cell.value):
                             var_dict[newvarname] = Variable.objects.get(
-                                    name=worksheet_name.strip() + ': ' + cell.value, fk_dst_id=newdataset)
+                                    name=worksheet_name.strip() + ': ' + cell.value, datasetId=newdataset)
                             var_dict[newvarname].description = newvarname
                         else:
                             var_dict[newvarname] = Variable(name=worksheet_name.strip() + ': ' + cell.value,
-                                                                unit=varunit, fk_dst_id=newdataset,
+                                                                unit=varunit, datasetId=newdataset,
                                                                 sourceId=newsource, description=newvarname,
-                                                                fk_var_type_id=VariableType.objects.get(pk=4))
+                                                                variableTypeId=VariableType.objects.get(pk=4))
                         column_to_varname[column_number] = var_dict[newvarname]
 
             if row_number >= 5:
@@ -351,27 +351,27 @@ def process_type3(worksheet, worksheet_name):
                                 if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + column_to_unit[key]):
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]] = Variable.objects.get(
                                         name=worksheet_name.strip() + ' - ' + column_to_unit[key],
-                                        fk_dst_id=newdataset)
+                                        datasetId=newdataset)
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]].description = mainvarname + ' - ' + column_to_unit[key]
                                 else:
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]] = Variable(
                                             name=worksheet_name.strip() + ' - ' + column_to_unit[key],
-                                            unit=var_unit, fk_dst_id=newdataset,
+                                            unit=var_unit, datasetId=newdataset,
                                             sourceId=newsource, description=mainvarname + ' - ' + column_to_unit[key],
-                                            fk_var_type_id=VariableType.objects.get(pk=4)
+                                            variableTypeId=VariableType.objects.get(pk=4)
                                             )
                             else:
                                 if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + column_to_unit[key]):
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]] = Variable.objects.get(
                                         name=worksheet_name.strip() + ' - ' + column_to_unit[key],
-                                        fk_dst_id=newdataset)
+                                        datasetId=newdataset)
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]].description = mainvarname + ' - ' + column_to_unit[key]
                                 else:
                                     var_dict[worksheet_name.strip() + ' - ' + column_to_unit[key]] = Variable(
                                         name=worksheet_name.strip() + ' - ' + column_to_unit[key],
-                                        unit=column_to_unit[key], fk_dst_id=newdataset,
+                                        unit=column_to_unit[key], datasetId=newdataset,
                                         sourceId=newsource, description=mainvarname + ' - ' + column_to_unit[key],
-                                        fk_var_type_id=VariableType.objects.get(pk=4)
+                                        variableTypeId=VariableType.objects.get(pk=4)
                                         )
 
             if row_number >= 7:
@@ -455,14 +455,14 @@ def process_type4(worksheet, worksheet_name):
                                     if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + 'Total'):
                                         var_dict[varname] = Variable.objects.get(
                                             name=worksheet_name.strip() + ' - ' + 'Total',
-                                            fk_dst_id=newdataset)
+                                            datasetId=newdataset)
                                         var_dict[varname].description = varname
                                     else:
                                         var_dict[varname] = Variable(
                                             name=worksheet_name.strip() + ' - ' + 'Total',
-                                            unit=varunit, fk_dst_id=newdataset,
+                                            unit=varunit, datasetId=newdataset,
                                             sourceId=newsource, description=varname,
-                                            fk_var_type_id=VariableType.objects.get(pk=4)
+                                            variableTypeId=VariableType.objects.get(pk=4)
                                             )
                             country_name = country_name.strip()
                         else:
@@ -470,13 +470,13 @@ def process_type4(worksheet, worksheet_name):
                             if not var_dict.get(varname):
                                 if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + cell.value.replace('of which:', '').strip()):
                                     var_dict[varname] = Variable.objects.get(name=worksheet_name.strip() + ' - ' + cell.value.replace('of which:', '').strip(),
-                                                           fk_dst_id=newdataset)
+                                                           datasetId=newdataset)
                                     var_dict[varname].description = varname
                                 else:
                                     var_dict[varname] = Variable(name=worksheet_name.strip() + ' - ' + cell.value.replace('of which:', '').strip(),
-                                                                  unit=varunit, fk_dst_id=newdataset,
+                                                                  unit=varunit, datasetId=newdataset,
                                                                   sourceId=newsource, description=varname,
-                                                                  fk_var_type_id=VariableType.objects.get(pk=4)
+                                                                  variableTypeId=VariableType.objects.get(pk=4)
                                                                   )
 
                 if column_number > 1:
@@ -541,14 +541,14 @@ def process_type5(worksheet, worksheet_name):
 
             if row_number == 5 and column_number == 1:
                 if update_flag and check_var_existence(worksheet_name.strip()):
-                    newvariable = Variable.objects.get(name=worksheet_name.strip(), fk_dst_id=newdataset)
+                    newvariable = Variable.objects.get(name=worksheet_name.strip(), datasetId=newdataset)
                     newvariable.description = varname
                 else:
                     newvariable = Variable(
                         name=worksheet_name.strip(),
-                        unit=varunit, fk_dst_id=newdataset,
+                        unit=varunit, datasetId=newdataset,
                         sourceId=newsource, description=varname,
-                        fk_var_type_id=VariableType.objects.get(pk=4)
+                        variableTypeId=VariableType.objects.get(pk=4)
                     )
 
             if row_number >= 6:
@@ -614,14 +614,14 @@ def process_type6(worksheet, worksheet_name):
 
             if row_number == 4 and column_number == 1:
                 if update_flag and check_var_existence(worksheet_name.strip()):
-                    newvariable = Variable.objects.get(name=worksheet_name.strip(), fk_dst_id=newdataset)
+                    newvariable = Variable.objects.get(name=worksheet_name.strip(), datasetId=newdataset)
                     newvariable.description = varname
                 else:
                     newvariable = Variable(
                         name=worksheet_name.strip(),
-                        unit=varunit, fk_dst_id=newdataset,
+                        unit=varunit, datasetId=newdataset,
                         sourceId=newsource, description=varname,
-                        fk_var_type_id=VariableType.objects.get(pk=4)
+                        variableTypeId=VariableType.objects.get(pk=4)
                     )
 
             if row_number >= 5:
@@ -704,14 +704,14 @@ def process_type7(worksheet, worksheet_name):
                         if not var_dict.get(varname):
                             if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + cell.value):
                                 var_dict[varname] = Variable.objects.get(name=worksheet_name.strip() + ' - ' + cell.value,
-                                                                         fk_dst_id=newdataset)
+                                                                         datasetId=newdataset)
                                 var_dict[varname].description = varname
                             else:
                                 var_dict[varname] = Variable(
                                     name=worksheet_name.strip() + ' - ' + cell.value,
-                                    unit=varunit, fk_dst_id=newdataset,
+                                    unit=varunit, datasetId=newdataset,
                                     sourceId=newsource, description=varname,
-                                    fk_var_type_id=VariableType.objects.get(pk=4)
+                                    variableTypeId=VariableType.objects.get(pk=4)
                                 )
                         else:
                             country_name = cell.value
@@ -796,14 +796,14 @@ def process_type8(worksheet, worksheet_name):
                     if not var_dict.get(value + current_var_unit):
                         if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit):
                             var_dict[value + current_var_unit] = Variable.objects.get(name=worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit,
-                                                                                      fk_dst_id=newdataset)
+                                                                                      datasetId=newdataset)
                             var_dict[value + current_var_unit].description = mainvarname + ' - ' + value + ' - ' + current_var_unit
                         else:
                             var_dict[value + current_var_unit] = Variable(
                                     name=worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit,
-                                    unit=current_var_unit, fk_dst_id=newdataset,
+                                    unit=current_var_unit, datasetId=newdataset,
                                     sourceId=newsource, description=mainvarname + ' - ' + value + ' - ' + current_var_unit,
-                                    fk_var_type_id=VariableType.objects.get(pk=4)
+                                    variableTypeId=VariableType.objects.get(pk=4)
                                 )
 
             if row_number >= 5:
@@ -818,15 +818,15 @@ def process_type8(worksheet, worksheet_name):
                                 if not var_dict.get(value + current_var_unit):
                                     if update_flag and check_var_existence(worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit):
                                         var_dict[value + current_var_unit] = Variable.objects.get(name=worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit,
-                                                                                                  fk_dst_id=newdataset)
+                                                                                                  datasetId=newdataset)
                                         var_dict[value + current_var_unit].description = mainvarname + ' - ' + value + ' - ' + current_var_unit
                                     else:
                                         var_dict[value + current_var_unit] = Variable(
                                             name=worksheet_name.strip() + ' - ' + value + ' - ' + current_var_unit,
-                                            unit=current_var_unit, fk_dst_id=newdataset,
+                                            unit=current_var_unit, datasetId=newdataset,
                                             sourceId=newsource,
                                             description=mainvarname + ' - ' + value + ' - ' + current_var_unit,
-                                            fk_var_type_id=VariableType.objects.get(pk=4)
+                                            variableTypeId=VariableType.objects.get(pk=4)
                                         )
                         if cell.font.bold:
                             set_flag_for_var_unit = True
@@ -946,22 +946,22 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=bp_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     if bp_subcategory_name_in_db not in existing_subcategories_list:
-        the_subcategory = DatasetSubcategory(name=bp_subcategory_name_in_db, fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory(name=bp_subcategory_name_in_db, categoryId=the_category)
         the_subcategory.save()
     else:
-        the_subcategory = DatasetSubcategory.objects.get(name=bp_subcategory_name_in_db, fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory.objects.get(name=bp_subcategory_name_in_db, categoryId=the_category)
 
     if Dataset.objects.filter(name='BP Statistical Review of Global Energy', namespace='bpstatreview'):
         newdataset = Dataset.objects.get(name='BP Statistical Review of Global Energy', namespace='bpstatreview')
     else:
         newdataset = Dataset(name='BP Statistical Review of Global Energy',
                          description='This is a dataset imported by the automated fetcher',
-                         namespace='bpstatreview', fk_dst_cat_id=the_category,
-                         fk_dst_subcat_id=the_subcategory)
+                         namespace='bpstatreview', categoryId=the_category,
+                         subcategoryId=the_subcategory)
         newdataset.save()
 
     if Source.objects.filter(name='BP Statistical Review of Global Energy', datasetId=newdataset.pk):

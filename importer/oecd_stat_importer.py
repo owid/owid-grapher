@@ -85,10 +85,10 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=oecd_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-    existing_variables = Variable.objects.filter(fk_dst_id__namespace='oecd_stat').values('name')
+    existing_variables = Variable.objects.filter(datasetId__namespace='oecd_stat').values('name')
     existing_variables_list = {item['name'].lower() for item in existing_variables}
 
     dataset_name_to_object = {}
@@ -140,23 +140,23 @@ with transaction.atomic():
 
                 if metadata_dict[file_name]['category'] not in existing_subcategories_list:
                     the_subcategory = DatasetSubcategory(name=metadata_dict[file_name]['category'],
-                                                         fk_dst_cat_id=the_category)
+                                                         categoryId=the_category)
                     the_subcategory.save()
                     newdataset = Dataset(name=metadata_dict[file_name]['category'],
                                          description='This is a dataset imported by the automated fetcher',
-                                         namespace='oecd_stat', fk_dst_cat_id=the_category,
-                                         fk_dst_subcat_id=the_subcategory)
+                                         namespace='oecd_stat', categoryId=the_category,
+                                         subcategoryId=the_subcategory)
                     newdataset.save()
                     dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                     new_datasets_list.append(newdataset)
 
-                    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                         'name')
                     existing_subcategories_list = {item['name'] for item in existing_subcategories}
                 else:
                     if metadata_dict[file_name]['category'] not in dataset_name_to_object:
                         newdataset = Dataset.objects.get(name=metadata_dict[file_name]['category'],
-                                                         fk_dst_cat_id=the_category)
+                                                         categoryId=the_category)
                         dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                         existing_datasets_list.append(newdataset)
 
@@ -207,7 +207,7 @@ with transaction.atomic():
                             newvariable = Variable(name=variable_name,
                                                    unit=varunit,
                                                    code=variable_code,
-                                                   fk_dst_id=dataset_name_to_object[metadata_dict[file_name]['category']], fk_var_type_id=VariableType.objects.get(pk=4),
+                                                   datasetId=dataset_name_to_object[metadata_dict[file_name]['category']], variableTypeId=VariableType.objects.get(pk=4),
                                                    sourceId=source_name_to_object[source_name])
                             newvariable.save()
                             variable_name_to_object[variable_name.lower()] = newvariable
@@ -215,7 +215,7 @@ with transaction.atomic():
                         else:
 
                             if variable_name.lower() not in variable_name_to_object:
-                                newvariable = Variable.objects.get(name=variable_name, fk_dst_id=dataset_name_to_object[metadata_dict[file_name]['category']])
+                                newvariable = Variable.objects.get(name=variable_name, datasetId=dataset_name_to_object[metadata_dict[file_name]['category']])
                                 while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                                         c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
@@ -460,24 +460,24 @@ with transaction.atomic():
 
                 if metadata_dict[file_name]['category'] not in existing_subcategories_list:
                     the_subcategory = DatasetSubcategory(name=metadata_dict[file_name]['category'],
-                                                         fk_dst_cat_id=the_category)
+                                                         categoryId=the_category)
                     the_subcategory.save()
                     newdataset = Dataset(name=metadata_dict[file_name]['category'],
                                          description='This is a dataset imported by the automated fetcher',
-                                         namespace='oecd_stat', fk_dst_cat_id=the_category,
-                                         fk_dst_subcat_id=the_subcategory)
+                                         namespace='oecd_stat', categoryId=the_category,
+                                         subcategoryId=the_subcategory)
                     newdataset.save()
                     dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                     new_datasets_list.append(newdataset)
 
                     existing_subcategories = DatasetSubcategory.objects.filter(
-                        fk_dst_cat_id=the_category.pk).values(
+                        categoryId=the_category.pk).values(
                         'name')
                     existing_subcategories_list = {item['name'] for item in existing_subcategories}
                 else:
                     if metadata_dict[file_name]['category'] not in dataset_name_to_object:
                         newdataset = Dataset.objects.get(name=metadata_dict[file_name]['category'],
-                                                         fk_dst_cat_id=the_category)
+                                                         categoryId=the_category)
                         dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
                         existing_datasets_list.append(newdataset)
 
@@ -524,9 +524,9 @@ with transaction.atomic():
                                 newvariable = Variable(name=variable_name,
                                                        unit=varname_to_unit[variable_name],
                                                        code=variable_code,
-                                                       fk_dst_id=dataset_name_to_object[
+                                                       datasetId=dataset_name_to_object[
                                                            metadata_dict[file_name]['category']],
-                                                       fk_var_type_id=VariableType.objects.get(pk=4),
+                                                       variableTypeId=VariableType.objects.get(pk=4),
                                                        sourceId=source_name_to_object[source_name])
                                 newvariable.save()
                                 variable_name_to_object[variable_name.lower()] = newvariable
@@ -535,7 +535,7 @@ with transaction.atomic():
 
                                 if variable_name.lower() not in variable_name_to_object:
                                     newvariable = Variable.objects.get(name=variable_name,
-                                                                       fk_dst_id=dataset_name_to_object[
+                                                                       datasetId=dataset_name_to_object[
                                                                            metadata_dict[file_name]['category']])
                                     while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
@@ -581,7 +581,7 @@ with transaction.atomic():
 
 newimport = ImportHistory(import_type='oecd_stat', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='An oecd_stat import was performed',
-                                  import_state='There are a total of %s oecd_stat variables after the import' % Variable.objects.filter(fk_dst_id__namespace='oecd_stat').count())
+                                  import_state='There are a total of %s oecd_stat variables after the import' % Variable.objects.filter(datasetId__namespace='oecd_stat').count())
 newimport.save()
 
 print("--- %s seconds ---" % (time.time() - start_time))

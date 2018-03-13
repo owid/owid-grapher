@@ -8,7 +8,7 @@ from grapher_admin.models import Variable
 
 common_short_units = ['$', '£', '€', '%']
 
-all_variables = Variable.objects.filter(fk_dst_id__namespace='wdi')
+all_variables = Variable.objects.filter(datasetId__namespace='wdi')
 
 for each in all_variables:
     if each.unit and not each.short_unit:

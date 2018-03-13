@@ -151,7 +151,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=climatech_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         climatech_categories_list = []
@@ -159,7 +159,7 @@ with transaction.atomic():
         for key, value in category_vars.items():
             climatech_categories_list.append(key)
             if key not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=key, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
@@ -202,8 +202,8 @@ with transaction.atomic():
         for category in climatech_categories_list:
             newdataset = Dataset(name='World Bank Climate Change Data - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='climatech', fk_dst_cat_id=the_category,
-                                 fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category, fk_dst_cat_id=the_category))
+                                 namespace='climatech', categoryId=the_category,
+                                 subcategoryId=DatasetSubcategory.objects.get(name=category, categoryId=the_category))
             newdataset.save()
             datasets_list.append(newdataset)
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
@@ -258,7 +258,7 @@ with transaction.atomic():
                                             unit_of_measure = ''
                                         s_unit = short_unit_extract(unit_of_measure)
                                         newvariable = Variable(name=global_cat[indicator_code]['name'], unit=unit_of_measure, short_unit=s_unit, description=global_cat[indicator_code]['description'],
-                                                               code=indicator_code, timespan='', fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4), sourceId=newsource)
+                                                               code=indicator_code, timespan='', datasetId=newdataset, variableTypeId=VariableType.objects.get(pk=4), sourceId=newsource)
                                         newvariable.save()
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
                                         global_cat[indicator_code]['variable_object'] = newvariable
@@ -299,7 +299,7 @@ with transaction.atomic():
             sys.exit('No updates available.')
 
         logger.info('New data is available.')
-        available_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='climatech'))
+        available_variables = Variable.objects.filter(datasetId__in=Dataset.objects.filter(namespace='climatech'))
         available_variables_list = []
 
         for each in available_variables.values('code'):
@@ -374,8 +374,8 @@ with transaction.atomic():
                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                         c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, existing_variables_code_id[each]))
-                source_object = Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='climatech')).sourceId
-                Variable.objects.get(code=each, fk_dst_id__in=Dataset.objects.filter(namespace='climatech')).delete()
+                source_object = Variable.objects.get(code=each, datasetId__in=Dataset.objects.filter(namespace='climatech')).sourceId
+                Variable.objects.get(code=each, datasetId__in=Dataset.objects.filter(namespace='climatech')).delete()
                 logger.info("Deleting the variable: %s" % each.encode('utf8'))
                 logger.info("Deleting the source: %s" % source_object.name.encode('utf8'))
                 source_object.delete()
@@ -400,7 +400,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=climatech_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         climatech_categories_list = []
@@ -408,7 +408,7 @@ with transaction.atomic():
         for key, value in category_vars.items():
             climatech_categories_list.append(key)
             if key not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=key, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=key, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % key.encode('utf8'))
 
@@ -458,14 +458,14 @@ with transaction.atomic():
             if category in cats_to_add:
                 newdataset = Dataset(name='World Bank Climate Change Data - ' + category,
                                      description='This is a dataset imported by the automated fetcher',
-                                     namespace='climatech', fk_dst_cat_id=the_category,
-                                     fk_dst_subcat_id=DatasetSubcategory.objects.get(name=category,
-                                                                                     fk_dst_cat_id=the_category))
+                                     namespace='climatech', categoryId=the_category,
+                                     subcategoryId=DatasetSubcategory.objects.get(name=category,
+                                                                                     categoryId=the_category))
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(name='World Bank Climate Change Data - ' + category, fk_dst_cat_id=DatasetCategory.objects.get(
+                newdataset = Dataset.objects.get(name='World Bank Climate Change Data - ' + category, categoryId=DatasetCategory.objects.get(
                                                                                          name=climatech_category_name_in_db))
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             row_number = 0
@@ -526,8 +526,8 @@ with transaction.atomic():
                                                                description=global_cat[indicator_code]['description'],
                                                                code=indicator_code,
                                                                timespan='',
-                                                               fk_dst_id=newdataset,
-                                                               fk_var_type_id=VariableType.objects.get(pk=4),
+                                                               datasetId=newdataset,
+                                                               variableTypeId=VariableType.objects.get(pk=4),
                                                                sourceId=newsource)
                                         newvariable.save()
                                         global_cat[indicator_code]['variable_object'] = newvariable
@@ -536,7 +536,7 @@ with transaction.atomic():
                                         logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
                                     else:
                                         if not global_cat[indicator_code]['saved']:
-                                            newsource = Source.objects.get(name='World Bank Climate Change Data: ' + Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='climatech')).name)
+                                            newsource = Source.objects.get(name='World Bank Climate Change Data: ' + Variable.objects.get(code=indicator_code, datasetId__in=Dataset.objects.filter(namespace='climatech')).name)
                                             newsource.name = 'World Bank Climate Change Data: ' + global_cat[indicator_code]['name']
                                             source_description['additionalInfo'] = None
                                             source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
@@ -552,13 +552,13 @@ with transaction.atomic():
                                             else:
                                                 unit_of_measure = ''
                                             s_unit = short_unit_extract(unit_of_measure)
-                                            newvariable = Variable.objects.get(code=indicator_code, fk_dst_id__in=Dataset.objects.filter(namespace='climatech'))
+                                            newvariable = Variable.objects.get(code=indicator_code, datasetId__in=Dataset.objects.filter(namespace='climatech'))
                                             newvariable.name = global_cat[indicator_code]['name']
                                             newvariable.unit=unit_of_measure
                                             newvariable.short_unit = s_unit
                                             newvariable.description=global_cat[indicator_code]['description']
                                             newvariable.timespan=''
-                                            newvariable.fk_dst_id=newdataset
+                                            newvariable.datasetId=newdataset
                                             newvariable.sourceId=newsource
                                             newvariable.save()
                                             global_cat[indicator_code]['variable_object'] = newvariable
@@ -597,13 +597,13 @@ with transaction.atomic():
         # now deleting subcategories and datasets that are empty (that don't contain any variables), if any
 
         all_climatech_datasets = Dataset.objects.filter(namespace='climatech')
-        all_climatech_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_climatech_datasets).values(
-            'fk_dst_id').distinct()
-        all_climatech_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_climatech_datasets_with_vars}
+        all_climatech_datasets_with_vars = Variable.objects.filter(datasetId__in=all_climatech_datasets).values(
+            'datasetId').distinct()
+        all_climatech_datasets_with_vars_dict = {item['datasetId'] for item in all_climatech_datasets_with_vars}
 
         for each in all_climatech_datasets:
             if each.pk not in all_climatech_datasets_with_vars_dict:
-                cat_to_delete = each.fk_dst_subcat_id
+                cat_to_delete = each.subcategoryId
                 logger.info("Deleting empty dataset %s." % each.name)
                 logger.info("Deleting empty category %s." % cat_to_delete.name)
                 each.delete()

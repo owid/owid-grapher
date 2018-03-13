@@ -140,7 +140,7 @@ class OwidTests(TestCase):
         test_dataset['dataset']['id'] = last_dataset_insert_id.pk  # set the dataset id to overwrite
         test_dataset['dataset']['name'] = 'changed name'
         test_dataset['dataset']['description'] = 'changed description'
-        variable_to_overwrite = Variable.objects.filter(fk_dst_id=last_dataset_insert_id).first()
+        variable_to_overwrite = Variable.objects.filter(datasetId=last_dataset_insert_id).first()
         test_dataset['variables'][0]['overwriteId'] = variable_to_overwrite.pk  # the first variable will overwrite one of the variables in the DB
         test_dataset['variables'][0]['source']['id'] = variable_to_overwrite.sourceId.pk
         test_dataset['variables'][0]['values'].append('0.000478732')  # adding an extra value - referenced in inserted_values below
