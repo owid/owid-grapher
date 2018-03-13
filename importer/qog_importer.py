@@ -151,7 +151,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=qog_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         categories_ref_models = {}  # this dict will hold the category name and its corresponding object
@@ -160,11 +160,11 @@ with transaction.atomic():
 
         for key, value in abbr_category_names.items():
             if value not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=value, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % value.encode('utf8'))
             else:
-                the_subcategory = DatasetSubcategory.objects.get(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory.objects.get(name=value, categoryId=the_category)
             categories_ref_models[value] = the_subcategory
 
         existing_entities = Entity.objects.values('name')
@@ -207,8 +207,8 @@ with transaction.atomic():
         for key, category in abbr_category_names.items():
             newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='qog', fk_dst_cat_id=the_category,
-                                 fk_dst_subcat_id=categories_ref_models[category])
+                                 namespace='qog', categoryId=the_category,
+                                 subcategoryId=categories_ref_models[category])
             newdataset.save()
             logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             datasets_ref_models[category] = newdataset
@@ -262,14 +262,14 @@ with transaction.atomic():
                                    unit='',
                                    description=vardata['description'],
                                    code=varcode, timespan=vardata['timespan'],
-                                   fk_dst_id=datasets_ref_models[vardata['category']],
-                                   fk_var_type_id=VariableType.objects.get(pk=4),
+                                   datasetId=datasets_ref_models[vardata['category']],
+                                   variableTypeId=VariableType.objects.get(pk=4),
                                    sourceId=newsource)
             newvariable.save()
             logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
             vars_ref_models[varcode] = newvariable
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values
@@ -321,7 +321,7 @@ with transaction.atomic():
         dataset_id_oldname_list = []  # for using with the csv exporter for version tracking
         qog_datasets = Dataset.objects.filter(namespace='qog')
 
-        existing_variables = Variable.objects.filter(fk_dst_id__in=qog_datasets)
+        existing_variables = Variable.objects.filter(datasetId__in=qog_datasets)
         existing_variables_ids = [item['id'] for item in existing_variables.values('id')]
         existing_variables_codes = [item['code'] for item in existing_variables.values('code')]
         existing_variables_id_code = {item['id']: item['code'] for item in existing_variables.values('id', 'code')}
@@ -331,7 +331,7 @@ with transaction.atomic():
         existing_sources = {}
         for each in existing_variables:
             source_name = each.code[:each.code.index('_') + 1]
-            category_name = each.fk_dst_id.fk_dst_subcat_id.name
+            category_name = each.datasetId.subcategoryId.name
             if source_name in existing_sources:
                 if category_name not in existing_sources[source_name]:
                     existing_sources[source_name].update({category_name: each.sourceId})
@@ -358,16 +358,16 @@ with transaction.atomic():
             delete_source_also = False
             if each not in vars_being_used:
                 logger.info("Deleting data values for the variable: %s" % each.encode('utf8'))
-                while DataValue.objects.filter(fk_var_id__pk=existing_variables_code_id[each]).first():
+                while DataValue.objects.filter(variableId__pk=existing_variables_code_id[each]).first():
                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, existing_variables_code_id[each]))
                 vars_same_source = Variable.objects.filter(sourceId__pk=existing_variables_code_sourceid[each])
                 if len(vars_same_source) == 1:  # the source is being used only by one variable
                     if vars_same_source[0].code == each:  # and it is the variable that we are deleting
                         delete_source_also = True
                         source_object = vars_same_source[0].sourceId
-                Variable.objects.get(code=each, fk_dst_id__in=qog_datasets).delete()
+                Variable.objects.get(code=each, datasetId__in=qog_datasets).delete()
                 logger.info("Deleting the variable: %s" % each.encode('utf8'))
                 if delete_source_also:
                     logger.info("Deleting the source: %s" % source_object.name.encode('utf8'))
@@ -383,7 +383,7 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=qog_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         categories_ref_models = {}  # this dict will hold the category name and its corresponding object
@@ -392,11 +392,11 @@ with transaction.atomic():
 
         for key, value in abbr_category_names.items():
             if value not in existing_subcategories_list:
-                the_subcategory = DatasetSubcategory(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory(name=value, categoryId=the_category)
                 the_subcategory.save()
                 logger.info("Inserting a subcategory %s." % value.encode('utf8'))
             else:
-                the_subcategory = DatasetSubcategory.objects.get(name=value, fk_dst_cat_id=the_category)
+                the_subcategory = DatasetSubcategory.objects.get(name=value, categoryId=the_category)
             categories_ref_models[value] = the_subcategory
 
         existing_entities = Entity.objects.values('name')
@@ -440,13 +440,13 @@ with transaction.atomic():
             if category not in existing_subcategories_list:
                 newdataset = Dataset(name='QoG - ' + category,
                                  description='This is a dataset imported by the automated fetcher',
-                                 namespace='qog', fk_dst_cat_id=the_category,
-                                 fk_dst_subcat_id=categories_ref_models[category])
+                                 namespace='qog', categoryId=the_category,
+                                 subcategoryId=categories_ref_models[category])
                 newdataset.save()
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': None})
                 logger.info("Inserting a dataset %s." % newdataset.name.encode('utf8'))
             else:
-                newdataset = Dataset.objects.get(namespace='qog', fk_dst_cat_id=the_category, fk_dst_subcat_id=categories_ref_models[category])
+                newdataset = Dataset.objects.get(namespace='qog', categoryId=the_category, subcategoryId=categories_ref_models[category])
                 dataset_id_oldname_list.append({'id': newdataset.pk, 'newname': newdataset.name, 'oldname': newdataset.name})
             datasets_ref_models[category] = newdataset
 
@@ -544,8 +544,8 @@ with transaction.atomic():
                                    unit='',
                                    description=qog_vars[each]['description'],
                                    code=each, timespan=qog_vars[each]['timespan'],
-                                   fk_dst_id=datasets_ref_models[category],
-                                   fk_var_type_id=VariableType.objects.get(pk=4),
+                                   datasetId=datasets_ref_models[category],
+                                   variableTypeId=VariableType.objects.get(pk=4),
                                    sourceId=source)
             newvariable.save()
             logger.info("Inserting a variable %s." % newvariable.name.encode('utf8'))
@@ -641,25 +641,25 @@ with transaction.atomic():
                     if category not in up_to_date_sources[source_name]:
                         up_to_date_sources[source_name].update({category: 1})
 
-                variable = Variable.objects.get(code=varcode, fk_dst_id__in=qog_datasets)
+                variable = Variable.objects.get(code=varcode, datasetId__in=qog_datasets)
                 variable.name = '%s - %s' % (vardata['name'], varcode)
                 variable.unit = ''
                 variable.description = vardata['description']
                 variable.timespan = vardata['timespan']
-                variable.fk_dst_id = datasets_ref_models[vardata['category']]
-                variable.fk_var_type_id = VariableType.objects.get(pk=4)
+                variable.datasetId = datasets_ref_models[vardata['category']]
+                variable.variableTypeId = VariableType.objects.get(pk=4)
                 variable.sourceId = source
                 variable.save()
                 logger.info("Updating the variable %s." % variable.name.encode('utf8'))
                 vars_ref_models[varcode] = variable
 
                 logger.info("Deleting data values for the variable: %s" % variable.name.encode('utf8'))
-                while DataValue.objects.filter(fk_var_id__pk=variable.pk).first():
+                while DataValue.objects.filter(variableId__pk=variable.pk).first():
                     with connection.cursor() as c:
-                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                   (DataValue._meta.db_table, variable.pk))
 
-        insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+        insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
         data_values_tuple_list = []
 
         # now saving the data values
@@ -690,12 +690,12 @@ with transaction.atomic():
         # now deleting subcategories and datasets that are empty (that don't contain any variables), if any
 
         all_qog_datasets = Dataset.objects.filter(namespace='qog')
-        all_qog_datasets_with_vars = Variable.objects.filter(fk_dst_id__in=all_qog_datasets).values('fk_dst_id').distinct()
-        all_qog_datasets_with_vars_dict = {item['fk_dst_id'] for item in all_qog_datasets_with_vars}
+        all_qog_datasets_with_vars = Variable.objects.filter(datasetId__in=all_qog_datasets).values('datasetId').distinct()
+        all_qog_datasets_with_vars_dict = {item['datasetId'] for item in all_qog_datasets_with_vars}
 
         for each in all_qog_datasets:
             if each.pk not in all_qog_datasets_with_vars_dict:
-                cat_to_delete = each.fk_dst_subcat_id
+                cat_to_delete = each.subcategoryId
                 logger.info("Deleting empty dataset %s." % each.name)
                 logger.info("Deleting empty category %s." % cat_to_delete.name)
                 each.delete()

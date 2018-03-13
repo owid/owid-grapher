@@ -110,7 +110,7 @@ export class ChartBaker {
 
         // Make sure we bake the variables successfully before outputing the chart html
         const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
-        if (!fs.existsSync(vardataPath) || !isSameVersion || props.regenData) {
+        if (!isSameVersion || props.regenData || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 

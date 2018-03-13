@@ -257,15 +257,15 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=un_wpp_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         the_subcategory_name = dataset_info['category']
         if the_subcategory_name not in existing_subcategories_list:
-            the_subcategory = DatasetSubcategory(name=the_subcategory_name, fk_dst_cat_id=the_category)
+            the_subcategory = DatasetSubcategory(name=the_subcategory_name, categoryId=the_category)
             the_subcategory.save()
         else:
-            the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name, fk_dst_cat_id=the_category)
+            the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name, categoryId=the_category)
 
         wb = load_workbook(os.path.join(wpp_downloads_save_location, file_to_parse), read_only=True)
         sheets = wb.get_sheet_names()
@@ -281,7 +281,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -307,8 +307,8 @@ with transaction.atomic():
                             if not dataset_saved:
                                 newdataset = Dataset(name='UN WPP - %s' % dataset_name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='unwpp', fk_dst_cat_id=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     namespace='unwpp', categoryId=the_category,
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
                                 source_description['additionalInfo'] = dataset_info['description']
@@ -330,8 +330,8 @@ with transaction.atomic():
                                                            description='',
                                                            code=None,
                                                            timespan=timespan,
-                                                           fk_dst_id=newdataset,
-                                                           fk_var_type_id=VariableType.objects.get(pk=4),
+                                                           datasetId=newdataset,
+                                                           variableTypeId=VariableType.objects.get(pk=4),
                                                            sourceId=newsource)
                                     newvariable.save()
 
@@ -375,7 +375,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -401,8 +401,8 @@ with transaction.atomic():
                             if not dataset_saved:
                                 newdataset = Dataset(name='UN WPP - %s' % dataset_name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='unwpp', fk_dst_cat_id=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     namespace='unwpp', categoryId=the_category,
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 dataset_saved = True
                                 source_description['additionalInfo'] = dataset_info['description']
@@ -423,8 +423,8 @@ with transaction.atomic():
                                                        description='',
                                                        code=None,
                                                        timespan=timespan,
-                                                       fk_dst_id=newdataset,
-                                                       fk_var_type_id=VariableType.objects.get(pk=4),
+                                                       datasetId=newdataset,
+                                                       variableTypeId=VariableType.objects.get(pk=4),
                                                        sourceId=newsource)
                                 newvariable.save()
 
@@ -481,15 +481,15 @@ with transaction.atomic():
         else:
             the_category = DatasetCategory.objects.get(name=un_wpp_category_name_in_db)
 
-        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
         existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
         the_subcategory_name = dataset_info['category']
         if the_subcategory_name not in existing_subcategories_list:
-            the_subcategory = DatasetSubcategory(name=the_subcategory_name, fk_dst_cat_id=the_category)
+            the_subcategory = DatasetSubcategory(name=the_subcategory_name, categoryId=the_category)
             the_subcategory.save()
         else:
-            the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name, fk_dst_cat_id=the_category)
+            the_subcategory = DatasetSubcategory.objects.get(name=the_subcategory_name, categoryId=the_category)
 
         wb = load_workbook(os.path.join(wpp_downloads_save_location, file_to_parse), read_only=True)
         sheets = wb.get_sheet_names()
@@ -525,7 +525,7 @@ with transaction.atomic():
 
             thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
-                fk_dst_id=thedataset)
+                datasetId=thedataset)
             available_variables_list = []
 
             for each in available_variables.values('name'):
@@ -549,11 +549,11 @@ with transaction.atomic():
 
             for each in vars_to_delete:
                 if each not in vars_being_used:
-                    while DataValue.objects.filter(fk_var_id__pk=existing_variables_name_id[each]).first():
+                    while DataValue.objects.filter(variableId__pk=existing_variables_name_id[each]).first():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
-                    Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
+                    Variable.objects.get(name=each, datasetId=thedataset).delete()
 
             dataset_saved = False
 
@@ -565,7 +565,7 @@ with transaction.atomic():
                 column_var_dict = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -590,8 +590,8 @@ with transaction.atomic():
                         if row_number == 18:
                             if not dataset_saved:
                                 newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
-                                newdataset.fk_dst_cat_id = the_category
-                                newdataset.fk_dst_subcat_id = the_subcategory
+                                newdataset.categoryId = the_category
+                                newdataset.subcategoryId = the_subcategory
                                 newdataset.save()
                                 dataset_saved = True
 
@@ -615,16 +615,16 @@ with transaction.atomic():
                                                                description='',
                                                                code=None,
                                                                timespan=timespan,
-                                                               fk_dst_id=newdataset,
-                                                               fk_var_type_id=VariableType.objects.get(pk=4),
+                                                               datasetId=newdataset,
+                                                               variableTypeId=VariableType.objects.get(pk=4),
                                                                sourceId=newsource)
                                         newvariable.save()
                                     else:
-                                        newvariable = Variable.objects.get(name=varname, fk_dst_id=newdataset)
+                                        newvariable = Variable.objects.get(name=varname, datasetId=newdataset)
                                         while DataValue.objects.filter(
-                                            fk_var_id__pk=existing_variables_name_id[varname]).first():
+                                            variableId__pk=existing_variables_name_id[varname]).first():
                                             with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                                c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                                c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                           (DataValue._meta.db_table, existing_variables_name_id[varname]))
 
                                     column_var_dict[columnnum] = newvariable
@@ -685,7 +685,7 @@ with transaction.atomic():
 
             thedataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
             available_variables = Variable.objects.filter(
-                fk_dst_id=thedataset)
+                datasetId=thedataset)
             available_variables_list = []
 
             for each in available_variables.values('name'):
@@ -709,11 +709,11 @@ with transaction.atomic():
 
             for each in vars_to_delete:
                 if each not in vars_being_used:
-                    while DataValue.objects.filter(fk_var_id__pk=existing_variables_name_id[each]).first():
+                    while DataValue.objects.filter(variableId__pk=existing_variables_name_id[each]).first():
                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                       (DataValue._meta.db_table, existing_variables_name_id[each]))
-                    Variable.objects.get(name=each, fk_dst_id=thedataset).delete()
+                    Variable.objects.get(name=each, datasetId=thedataset).delete()
 
             dataset_saved = False
 
@@ -724,7 +724,7 @@ with transaction.atomic():
                 column_to_year = {}
                 data_values_tuple_list = []
 
-                insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+                insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
                 for row in wb[sheet]:
                     row_number += 1
@@ -749,8 +749,8 @@ with transaction.atomic():
                         if row_number == 18:
                             if not dataset_saved:
                                 newdataset = Dataset.objects.get(name='UN WPP - %s' % dataset_name, namespace__contains='unwpp')
-                                newdataset.fk_dst_cat_id = the_category
-                                newdataset.fk_dst_subcat_id = the_subcategory
+                                newdataset.categoryId = the_category
+                                newdataset.subcategoryId = the_subcategory
                                 newdataset.save()
                                 dataset_saved = True
 
@@ -772,16 +772,16 @@ with transaction.atomic():
                                                            description='',
                                                            code=None,
                                                            timespan=timespan,
-                                                           fk_dst_id=newdataset,
-                                                           fk_var_type_id=VariableType.objects.get(pk=4),
+                                                           datasetId=newdataset,
+                                                           variableTypeId=VariableType.objects.get(pk=4),
                                                            sourceId=newsource)
                                     newvariable.save()
                                 else:
-                                    newvariable = Variable.objects.get(name=var_name, fk_dst_id=newdataset)
+                                    newvariable = Variable.objects.get(name=var_name, datasetId=newdataset)
                                     while DataValue.objects.filter(
-                                        fk_var_id__pk=existing_variables_name_id[var_name]).first():
+                                        variableId__pk=existing_variables_name_id[var_name]).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                            c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                       (DataValue._meta.db_table, existing_variables_name_id[var_name]))
 
                                 variables_saved = True

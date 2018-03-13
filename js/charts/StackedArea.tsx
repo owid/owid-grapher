@@ -134,10 +134,14 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     @computed get midpoints(): number[] {
         let prevY = 0
         return this.transform.stackedData.map(series => {
-            const lastValue = last(series.values) as StackedAreaValue
-            const middleY = prevY + (lastValue.y - prevY)/2
-            prevY = lastValue.y
-            return middleY
+            const lastValue = last(series.values)
+            if (lastValue) {
+                const middleY = prevY + (lastValue.y - prevY)/2
+                prevY = lastValue.y
+                return middleY
+            } else {
+                return 0
+            }
         })
     }
 

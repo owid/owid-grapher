@@ -118,46 +118,34 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
 
         let previewWidth: number
         let previewHeight: number
-        if (isPortrait) {
-            previewWidth = props.bounds.width * 0.6
-            previewHeight = (targetHeight / targetWidth) * previewWidth
-        } else {
+        if (props.bounds.width/props.bounds.height > targetWidth/targetHeight) {
             previewHeight = props.bounds.height * 0.4
             previewWidth = (targetWidth / targetHeight) * previewHeight
+        } else {
+            previewWidth = props.bounds.width * 0.4
+            previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
         return [
             <a href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
-                {isPortrait
-                    ? <div>
+                <div>
+                    <img src={pngPreviewUrl} style={imgStyle} />
+                    <aside>
                         <h2>Save as .png</h2>
-                        <img src={pngPreviewUrl} style={imgStyle} />
                         <p>A standard image of the visualization that can be used in presentations or other documents.</p>
-                    </div>
-                    : <div>
-                        <img src={pngPreviewUrl} style={imgStyle} />
-                        <aside>
-                            <h2>Save as .png</h2>
-                            <p>A standard image of the visualization that can be used in presentations or other documents.</p>
-                        </aside>
-                    </div>}
+                    </aside>
+                </div>
             </a>,
             <a href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
-                {isPortrait
-                    ? <div>
+                <div>
+                    <img src={svgPreviewUrl} style={imgStyle} />
+                    <aside>
                         <h2>Save as .svg</h2>
-                        <img src={svgPreviewUrl} style={imgStyle} />
                         <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
-                    </div>
-                    : <div>
-                        <img src={svgPreviewUrl} style={imgStyle} />
-                        <aside>
-                            <h2>Save as .svg</h2>
-                            <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
-                        </aside>
-                    </div>}
+                    </aside>
+                </div>
             </a>]
     }
 
@@ -173,7 +161,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     render() {
-        return <div className='downloadTab' style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
+        return <div className="DownloadTab" style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
             {this.isReady ? this.renderReady() : <div className="loadingIcon"><i className="fa fa-spinner fa-spin" /></div>}
         </div>
     }

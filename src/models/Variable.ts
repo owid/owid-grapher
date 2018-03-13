@@ -15,17 +15,17 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
 
     const variableQuery = db.query(`
         SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
-            JOIN datasets as d ON v.fk_dst_id = d.id
+            JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
     `, [variableIds])
 
     const dataQuery = db.query(`
-            SELECT value, year, fk_var_id as variableId, entities.id as entityId,
+            SELECT value, year, variableId as variableId, entities.id as entityId,
             entities.name as entityName, entities.code as entityCode
             FROM data_values
-            LEFT JOIN entities ON data_values.fk_ent_id = entities.id
-            WHERE data_values.fk_var_id IN (?)
+            LEFT JOIN entities ON data_values.entityId = entities.id
+            WHERE data_values.variableId IN (?)
             ORDER BY variableId ASC, year ASC
     `, [variableIds])
 
@@ -33,6 +33,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
 
     for (const row of variables) {
         row.shortUnit = row.short_unit; delete row.short_unit
+        row.display = JSON.parse(row.display)
         const sourceDescription = JSON.parse(row.s_description); delete row.s_description
         row.source = {
             id: row.s_id,

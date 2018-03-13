@@ -44,6 +44,7 @@ seen_sources = {}
 seen_categories = {}
 seen_subcategories = {}
 seen_entities = {}
+seen_data_values = {}
 
 all_entities = list(Entity.objects.all().values())
 entities_dict = {}
@@ -64,41 +65,40 @@ if var_types:
 
 chart_ids = [284, 561, 222, 112, 341, 414]
 
-['law-mandate-nondiscrimination-hiring', 'law-mandate-equal-pay', 'does-legislation-explicitly-criminalise-marital-rape', 'gender-rights-to-property', 
+['law-mandate-nondiscrimination-hiring', 'law-mandate-equal-pay', 'does-legislation-explicitly-criminalise-marital-rape', 'gender-rights-to-property',
 'women-required-to-obey-husband', 'does-law-mandate-paid-or-unpaid-maternity-leave', 'nondiscrimination-clause-gender']
 
 
 for one_type in chart_ids:
 
-    charts = Chart.objects.get(pk=one_type, published=True)
+    charts = Chart.objects.get(pk=one_type)
 
     if charts:
         charts.last_edited_by = admin_user
         out += format_sql(
-            'INSERT INTO charts (`id`, `name`, `config`, `slug`, `published`, `starred`, `type`, `last_edited_by`, `created_at`, `updated_at`, `last_edited_at`, `origin_url`, `notes`) VALUES ' \
-               "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", charts.pk, charts.name, json.dumps(charts.config), charts.slug,
-                                                                                 charts.published, charts.starred, charts.type, charts.last_edited_by.name,
-                                                                                 current_time, current_time, current_time, '', '')
+            'INSERT INTO charts (`id`, `config`, `starred`, `last_edited_by`, `created_at`, `updated_at`, `last_edited_at`, `published_at`, `published_by`) VALUES ' \
+               "({}, {}, {}, {}, {}, {}, {}, {}, {});\n", charts.pk, json.dumps(charts.config), charts.starred, charts.last_edited_by.name,
+                                                                                 current_time, current_time, current_time, current_time, charts.last_edited_by.name)
 
         chart_dims = ChartDimension.objects.filter(chartId=charts)
         for each in chart_dims:
-            if not seen_categories.get(each.variableId.fk_dst_id.fk_dst_cat_id.pk, 0):
-                category = each.variableId.fk_dst_id.fk_dst_cat_id
+            if not seen_categories.get(each.variableId.datasetId.categoryId.pk, 0):
+                category = each.variableId.datasetId.categoryId
                 out += format_sql('INSERT INTO dataset_categories (`id`, `name`, `fetcher_autocreated`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, 0, {}, {});\n", category.pk, category.name, current_time, current_time)
-                seen_categories[each.variableId.fk_dst_id.fk_dst_cat_id.pk] = 1
-            if not seen_subcategories.get(each.variableId.fk_dst_id.fk_dst_subcat_id.pk, 0):
-                subcategory = each.variableId.fk_dst_id.fk_dst_subcat_id
-                out += format_sql('INSERT INTO dataset_subcategories (`id`, `name`, `fk_dst_cat_id`, `created_at`, `updated_at`) VALUES ' \
-                       "({}, {}, {}, {}, {});\n", subcategory.pk, subcategory.name, subcategory.fk_dst_cat_id.pk, current_time, current_time)
-                seen_subcategories[each.variableId.fk_dst_id.fk_dst_subcat_id.pk] = 1
-            if not seen_datasets.get(each.variableId.fk_dst_id.pk, 0):
-                dataset = each.variableId.fk_dst_id
-                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `fk_dst_cat_id`, `fk_dst_subcat_id`, `created_at`, `updated_at`) VALUES ' \
+                seen_categories[each.variableId.datasetId.categoryId.pk] = 1
+            if not seen_subcategories.get(each.variableId.datasetId.subcategoryId.pk, 0):
+                subcategory = each.variableId.datasetId.subcategoryId
+                out += format_sql('INSERT INTO dataset_subcategories (`id`, `name`, `categoryId`, `created_at`, `updated_at`) VALUES ' \
+                       "({}, {}, {}, {}, {});\n", subcategory.pk, subcategory.name, subcategory.categoryId.pk, current_time, current_time)
+                seen_subcategories[each.variableId.datasetId.subcategoryId.pk] = 1
+            if not seen_datasets.get(each.variableId.datasetId.pk, 0):
+                dataset = each.variableId.datasetId
+                out += format_sql('INSERT INTO datasets (`id`, `name`, `description`, `namespace`, `categoryId`, `subcategoryId`, `created_at`, `updated_at`) VALUES ' \
                        "({}, {}, {}, {}, {}, {}, {}, {});\n", dataset.pk, dataset.name, dataset.description,
-                                                                          dataset.namespace, dataset.fk_dst_cat_id.pk, dataset.fk_dst_subcat_id.pk,
+                                                                          dataset.namespace, dataset.categoryId.pk, dataset.subcategoryId.pk,
                                                                           current_time, current_time)
-                seen_datasets[each.variableId.fk_dst_id.pk] = 1
+                seen_datasets[each.variableId.datasetId.pk] = 1
             if not seen_sources.get(each.variableId.sourceId.pk, 0):
                 source = each.variableId.sourceId
                 out += format_sql('INSERT INTO sources (`id`, `name`, `description`, `datasetId`, `created_at`, `updated_at`) VALUES ' \
@@ -108,17 +108,17 @@ for one_type in chart_ids:
             if not seen_vars.get(each.variableId.pk, 0):
                 each.variableId.uploaded_by = admin_user
                 variable = each.variableId
-                out += format_sql('INSERT INTO variables (`id`, `name`, `unit`, `description`, `code`, `coverage`, `timespan`, `fk_dst_id`, `fk_var_type_id`, `sourceId`, `uploaded_by`, `created_at`, `updated_at`, `uploaded_at`) VALUES ' \
-                       "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", variable.pk, variable.name, variable.unit, variable.description,
+                out += format_sql('INSERT INTO variables (`id`, `name`, `unit`, `description`, `code`, `coverage`, `timespan`, `datasetId`, `variableTypeId`, `sourceId`, `uploaded_by`, `created_at`, `updated_at`, `uploaded_at`, `display`) VALUES ' \
+                       "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", variable.pk, variable.name, variable.unit, variable.description,
                                                                                                             variable.code, variable.coverage, variable.timespan,
-                                                                                                            variable.fk_dst_id.pk, variable.fk_var_type_id.pk, variable.sourceId.pk,
-                                                                                                            variable.uploaded_by.name, current_time, current_time, current_time)
+                                                                                                            variable.datasetId.pk, variable.variableTypeId.pk, variable.sourceId.pk,
+                                                                                                            variable.uploaded_by.name, current_time, current_time, current_time, "{}")
                 seen_vars[each.variableId.pk] = 1
             chart_dim = each
-            out += format_sql('INSERT INTO chart_dimensions (`id`, `order`, `property`, `display`, `targetYear`, `chartId`, `variableId`) VALUES ' \
-                   "({}, {}, {}, {}, {}, {}, {}, {}, {}, {});\n", chart_dim.pk, chart_dim.order, chart_dim.property, chart_dim.display, chart_dim.targetYear, chart_dim.chartId.pk, chart_dim.variableId.pk)
+            out += format_sql('INSERT INTO chart_dimensions (`id`, `order`, `property`, `chartId`, `variableId`) VALUES ' \
+                   "({}, {}, {}, {}, {});\n", chart_dim.pk, chart_dim.order, chart_dim.property, chart_dim.chartId.pk, chart_dim.variableId.pk)
 
-            entity_ids = DataValue.objects.filter(fk_var_id=each.variableId).values_list('fk_ent_id', flat=True)
+            entity_ids = DataValue.objects.filter(variableId=each.variableId).values_list('entityId', flat=True)
             for one_id in entity_ids:
                 if not seen_entities.get(one_id, 0):
                     out += format_sql('INSERT INTO entities (`id`, `code`, `name`, `validated`, `displayName`, `created_at`, `updated_at`) VALUES ' \
@@ -128,12 +128,15 @@ for one_type in chart_ids:
                     seen_entities[one_id] = 1
 
             with connection.cursor() as cursor:
-                cursor.execute(format_sql('SELECT * FROM data_values WHERE fk_var_id = {};', each.variableId.pk))
+                cursor.execute(format_sql('SELECT * FROM data_values WHERE variableId = {};', each.variableId.pk))
                 data_values = dictfetchall(cursor)
             data_values_str = ''
             for onevalue in data_values:
-                data_values_str += format_sql("({}, {}, {}, {}, {}),", onevalue['id'], onevalue['value'], onevalue['year'], onevalue['fk_ent_id'], onevalue['fk_var_id'])
-            out += 'INSERT INTO data_values (`id`, `value`, `year`, `fk_ent_id`, `fk_var_id`) VALUES ' + data_values_str[:-1] + ';\n'
+                if onevalue['id'] not in seen_data_values:
+                    data_values_str += format_sql("({}, {}, {}, {}, {}),", onevalue['id'], onevalue['value'], onevalue['year'], onevalue['entityId'], onevalue['variableId'])
+                    seen_data_values[onevalue['id']] = 1
+            if data_values_str:
+                out += 'INSERT INTO data_values (`id`, `value`, `year`, `entityId`, `variableId`) VALUES ' + data_values_str[:-1] + ';\n'
 
 
 out += format_sql('INSERT INTO licenses (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES ' \

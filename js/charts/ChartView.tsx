@@ -36,9 +36,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-
-            if (containerBounds.width <= 350)
+            
+            if (containerBounds.width <= 400)
                 chart.baseFontSize = 14
+            else if (containerBounds.width < 1080)
+                chart.baseFontSize = 16
             else if (containerBounds.width >= 1080)
                 chart.baseFontSize = 18
             Bounds.baseFontFamily = "Helvetica, Arial"

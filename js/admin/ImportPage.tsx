@@ -67,7 +67,7 @@ interface ExistingVariable {
 
 class Dataset {
     static fromServer(d: any) {
-        return new Dataset({ id: d.id, name: d.name, description: d.description, subcategoryId: d.fk_dst_subcat_id })
+        return new Dataset({ id: d.id, name: d.name, description: d.description, subcategoryId: d.subcategoryId })
     }
 
     @observable id: number | null

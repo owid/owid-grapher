@@ -154,11 +154,11 @@ class DatasetCategory(Model):
 class DatasetSubcategory(Model):
     class Meta:
         db_table = "dataset_subcategories"
-        unique_together = (('name', 'fk_dst_cat_id'),)
+        unique_together = (('name', 'categoryId'),)
 
     name = models.CharField(max_length=255)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                      db_column='fk_dst_cat_id')
+    categoryId = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='categoryId')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -172,10 +172,10 @@ class Dataset(Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    fk_dst_cat_id = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                      db_column='fk_dst_cat_id')
-    fk_dst_subcat_id = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
-                                         db_column='fk_dst_subcat_id')
+    categoryId = models.ForeignKey(DatasetCategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                      db_column='categoryId')
+    subcategoryId = models.ForeignKey(DatasetSubcategory, blank=True, null=True, on_delete=models.DO_NOTHING,
+                                         db_column='subcategoryId')
     namespace = models.CharField(max_length=255, default='owid')
 
 
@@ -202,20 +202,20 @@ class VariableType(Model):
 class Variable(Model):
     class Meta:
         db_table = 'variables'
-        unique_together = (('code', 'fk_dst_id'), ('name', 'fk_dst_id'),)
+        unique_together = (('code', 'datasetId'), ('name', 'datasetId'),)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=1000)
     unit = models.CharField(max_length=255)
     short_unit = models.CharField(max_length=255, null=True)
 
     display = JSONField()
 
     description = models.TextField(blank=True, null=True)
-    fk_dst_id = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='fk_dst_id')
+    datasetId = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='datasetId')
     sourceId = models.ForeignKey(Source, on_delete=models.DO_NOTHING, db_column='sourceId')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    fk_var_type_id = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING, db_column='fk_var_type_id')
+    variableTypeId = models.ForeignKey(VariableType, on_delete=models.DO_NOTHING, db_column='variableTypeId')
     uploaded_by = models.ForeignKey(User, to_field='name', on_delete=models.DO_NOTHING, db_column='uploaded_by',
                                     blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -256,11 +256,11 @@ class Entity(Model):
 class DataValue(Model):
     class Meta:
         db_table = "data_values"
-        unique_together = (('fk_ent_id', 'fk_var_id', 'year'),)
+        unique_together = (('entityId', 'variableId', 'year'),)
 
     value = models.CharField(max_length=255)
-    fk_ent_id = models.ForeignKey(Entity, blank=True, null=True, on_delete=models.DO_NOTHING, db_column='fk_ent_id')
-    fk_var_id = models.ForeignKey(Variable, on_delete=models.CASCADE, db_column='fk_var_id')
+    entityId = models.ForeignKey(Entity, on_delete=models.DO_NOTHING, db_column='entityId')
+    variableId = models.ForeignKey(Variable, on_delete=models.CASCADE, db_column='variableId')
     year = models.IntegerField()
 
 

@@ -35,6 +35,8 @@ figure[data-grapher-src]:empty:after {
     border-bottom: none;
     border-radius: 2px;
 
+    line-height: 1em;
+
     background: white;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #333;
@@ -290,14 +292,14 @@ figure[data-grapher-src]:empty:after {
     --------------------------------------------- */
     
     .sourcesTab,
-    .downloadTab {
+    .DownloadTab {
         padding: 1em;
         text-align: left;
         background: rgba(255,255,255,0.95);
     }
     
     .sourcesTab > div,
-    .downloadTab > div {
+    .DownloadTab > div {
         height: 100%;
         overflow-y: auto;
     }
@@ -443,13 +445,13 @@ figure[data-grapher-src]:empty:after {
         display: none;
     }
     
-    .downloadTab,
+    .DownloadTab,
     .dataTab,
     .sourcesTab {
         z-index: 1;
     }
     
-    .downloadTab {
+    .DownloadTab {
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -620,26 +622,12 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart.landscape .downloadTab {
+.chart .DownloadTab{
     font-size: 0.8em;
-    padding: 3em;
+    padding: 2em;
 
     > a > div {
         display: flex;
-    }
-}
-
-.chart.portrait .downloadTab {
-    font-size: 0.7em;
-    padding: 1em;
-
-    .imgLoader {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    h2 {
-        margin-bottom: 0.2em;
     }
 }
 

@@ -10,7 +10,7 @@
 
 import * as React from 'react'
 import { scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20 } from 'd3-scale'
-import { some, map, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
+import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
@@ -34,6 +34,7 @@ export interface ScatterValue {
     x: number
     y: number
     size: number
+    color?: string
     year: number
     time: {
         x: number,
@@ -50,9 +51,9 @@ interface PointsWithLabelsProps {
     xScale: AxisScale
     yScale: AxisScale
     sizeDomain: [number, number]
-    onSelectEntity: (datakey: string) => void
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
+    onClick: () => void
 }
 
 interface ScatterRenderValue {
@@ -95,10 +96,58 @@ interface ScatterLabel {
 }
 
 @observer
+class ScatterBackgroundLine extends React.Component<{ group: ScatterRenderSeries, isLayerMode: boolean, isConnected: boolean }> {
+    render() {
+        const {group, isLayerMode, isConnected} = this.props
+
+        const firstValue = first(group.values) as ScatterRenderValue
+        const color = !isLayerMode ? group.color : "#e2e2e2"
+
+        if (group.values.length === 1) {
+            const size = isConnected ? 1 + firstValue.size / 16 : firstValue.size
+            return <g key={group.displayKey} className={group.displayKey}>
+                <circle cx={firstValue.position.x.toFixed(2)} cy={firstValue.position.y.toFixed(2)} r={size.toFixed(2)} fill={color} opacity={0.8} />
+            </g>
+        } else {
+            const lastValue = last(group.values) as ScatterRenderValue
+            let rotation = Vector2.angle(group.offsetVector, Vector2.up)
+            if (group.offsetVector.x < 0) rotation = -rotation
+
+            return <g key={group.displayKey} className={group.displayKey}>
+                <circle
+                    cx={firstValue.position.x.toFixed(2)}
+                    cy={firstValue.position.y.toFixed(2)}
+                    r={(1 + firstValue.size / 16).toFixed(2)}
+                    fill={!isLayerMode ? group.color : "#e2e2e2"}
+                    stroke="#ccc"
+                    opacity={0.6}
+                />
+                <polyline
+                    strokeLinecap="round"
+                    stroke={isLayerMode ? "#ccc" : group.color}
+                    points={group.values.map(v => `${v.position.x.toFixed(2)},${v.position.y.toFixed(2)}`).join(' ')}
+                    fill="none"
+                    strokeWidth={(0.3 + (group.size / 16)).toFixed(2)}
+                    opacity={0.6}
+                />
+                <Triangle
+                    transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(2)}, ${lastValue.position.y.toFixed(2)})`}
+                    cx={lastValue.position.x}
+                    cy={lastValue.position.y}
+                    r={1 + lastValue.size / 16}
+                    fill={color}
+                    stroke="#ccc"
+                    strokeWidth={0.2}
+                    opacity={0.6}
+                />
+            </g>
+        }
+    }
+}
+
+@observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     base!: SVGGElement
-    @observable hoverKey: string | null = null
-
     @computed get data(): ScatterSeries[] {
         return this.props.data
     }
@@ -112,7 +161,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get hoverKeys(): string[] {
-        return this.props.hoverKeys.concat(this.hoverKey ? [this.hoverKey] : [])
+        return this.props.hoverKeys
     }
 
     // Layered mode occurs when any entity on the chart is hovered or focused
@@ -160,7 +209,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     @computed get initialRenderData(): ScatterRenderSeries[] {
         const { data, xScale, yScale, defaultColorScale, sizeScale, fontScale } = this
         return sortBy(data.map(d => {
-            const values = map(d.values, v => {
+            const values = d.values.map(v => {
                 const area = sizeScale(v.size || 1)
                 return {
                     position: new Vector2(
@@ -238,7 +287,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const fontSize = series.isForeground ? (this.isSubtleForeground ? 8 : 9) : 7
         const { labelFontFamily } = this
 
-        return map(series.values.slice(1, -1), (v, i) => {
+        return series.values.slice(1, -1).map((v, i) => {
             const prevPos = i > 0 && series.values[i - 1].position
             const prevSegment = prevPos && v.position.subtract(prevPos)
             const nextPos = series.values[i + 1].position
@@ -247,7 +296,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             let pos = v.position
             if (prevPos && prevSegment) {
                 const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
-                const potentialSpots = map(normals, n => v.position.add(n))
+                const potentialSpots = normals.map(n => v.position.add(n))
                 pos = sortBy(potentialSpots, p => {
                     return -(Vector2.distance(p, prevPos) + Vector2.distance(p, nextPos))
                 })[0]
@@ -329,7 +378,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             series.allLabels = filter([series.startLabel].concat(series.midLabels).concat([series.endLabel])) as ScatterLabel[]
         })
 
-        const allLabels = flatten(map(renderData, series => series.allLabels))
+        const allLabels = flatten(renderData.map(series => series.allLabels))
 
         // Ensure labels fit inside bounds
         // Must do before collision detection since it'll change the positions
@@ -367,15 +416,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @computed get allColors(): string[] {
-        return uniq(map(this.renderData, 'color'))
+        return uniq(this.renderData.map(d => d.color))
     }
 
     mouseFrame?: number
     @action.bound onMouseLeave() {
         if (this.mouseFrame !== undefined)
             cancelAnimationFrame(this.mouseFrame)
-
-        this.hoverKey = null
 
         if (this.props.onMouseLeave)
             this.props.onMouseLeave()
@@ -393,21 +440,21 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     return -Infinity*/
 
                 if (series.values.length > 1) {
-                    return min(map(series.values.slice(0, -1), (d, i) => {
+                    return min(series.values.slice(0, -1).map((d, i) => {
                         return Vector2.distanceFromPointToLineSq(mouse, d.position, series.values[i + 1].position)
                     }))
                 } else {
-                    return min(map(series.values, v => Vector2.distanceSq(v.position, mouse)))
+                    return min(series.values.map(v => Vector2.distanceSq(v.position, mouse)))
                 }
             })[0]
 
-            if (closestSeries)
+            /*if (closestSeries)
                 this.hoverKey = closestSeries.key
             else
-                this.hoverKey = null
+                this.hoverKey = null*/
 
-            if (this.props.onMouseOver) {
-                const datum = find(this.data, d => d.key === this.hoverKey)
+            if (closestSeries && this.props.onMouseOver) {
+                const datum = find(this.data, d => d.key === closestSeries.key)
                 if (datum)
                     this.props.onMouseOver(datum)
             }
@@ -415,8 +462,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     @action.bound onClick() {
-        if (this.hoverKey)
-            this.props.onSelectEntity(this.hoverKey)
+        if (this.props.onClick)
+            this.props.onClick()
     }
 
     @computed get backgroundGroups(): ScatterRenderSeries[] {
@@ -427,75 +474,35 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return filter(this.renderData, group => !!group.isForeground)
     }
 
-    renderBackgroundLines() {
+    renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected } = this
 
-        return map(backgroundGroups, series => {
-            const firstValue = first(series.values) as ScatterRenderValue
-            const color = !isLayerMode ? series.color : "#e2e2e2"
-
-            if (series.values.length === 1) {
-                const size = isConnected ? 1 + firstValue.size / 16 : firstValue.size
-                return <circle key={series.displayKey + '-end'} cx={firstValue.position.x} cy={firstValue.position.y} r={size} fill={color} opacity={0.8} />
-            } else {
-                const lastValue = last(series.values) as ScatterRenderValue
-                let rotation = Vector2.angle(series.offsetVector, Vector2.up)
-                if (series.offsetVector.x < 0) rotation = -rotation
-
-                return <g key={series.displayKey} className={series.displayKey}>
-                    <circle
-                        cx={firstValue.position.x}
-                        cy={firstValue.position.y}
-                        r={1 + firstValue.size / 16}
-                        fill={!isLayerMode ? series.color : "#e2e2e2"}
-                        stroke="#ccc"
-                        opacity={0.6}
-                    />
-                    <polyline
-                        strokeLinecap="round"
-                        stroke={isLayerMode ? "#ccc" : series.color}
-                        points={map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
-                        fill="none"
-                        strokeWidth={0.3 + (series.size / 16)}
-                        opacity={0.6}
-                    />
-                    <Triangle
-                        transform={`rotate(${rotation}, ${lastValue.position.x}, ${lastValue.position.y})`}
-                        cx={lastValue.position.x}
-                        cy={lastValue.position.y}
-                        r={1 + lastValue.size / 16}
-                        fill={color}
-                        stroke="#ccc"
-                        strokeWidth={0.2}
-                        opacity={0.6}
-                    />
-                </g>
-            }
-        })
+        return backgroundGroups.map(group => <ScatterBackgroundLine group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
     }
 
     renderBackgroundLabels() {
-        const { backgroundGroups, isLayerMode, labelFontFamily } = this
-        return map(backgroundGroups, series => {
-            return map(series.allLabels, l =>
-                !l.isHidden && <text key={series.displayKey + '-endLabel'}
-                    x={l.bounds.x}
-                    y={l.bounds.y + l.bounds.height}
-                    fontSize={l.fontSize}
-                    fontFamily={labelFontFamily}
-                    fill={!isLayerMode ? "#666" : "#aaa"}>{l.text}</text>
-            )
-        })
+        const { backgroundGroups, isLayerMode } = this
+        return <g className="backgroundLabels" fill={!isLayerMode ? "#666" : "#aaa"}>
+            {backgroundGroups.map(series => {
+                return series.allLabels.map(l =>
+                    !l.isHidden && <text key={series.displayKey + '-endLabel'}
+                        x={l.bounds.x.toFixed(2)}
+                        y={(l.bounds.y + l.bounds.height).toFixed(2)}
+                        fontSize={l.fontSize.toFixed(2)}
+                    >{l.text}</text>
+                )
+            })}
+        </g>
     }
 
     @computed get renderUid() {
         return guid()
     }
 
-    renderForegroundLines() {
+    renderForegroundGroups() {
         const { foregroundGroups, isSubtleForeground, renderUid } = this
 
-        return map(foregroundGroups, series => {
+        return foregroundGroups.map(series => {
             const lastValue = last(series.values) as ScatterRenderValue
             const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size * 0.05
 
@@ -503,8 +510,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                 const v = series.values[0]
                 if (series.isFocus) {
                     return <g key={series.displayKey}>
-                        <circle cx={v.position.x} cy={v.position.y} fill="none" stroke={series.color} r={series.size + 2} />
-                        <circle cx={v.position.x} cy={v.position.y} fill={series.color} r={series.size} />
+                        <circle cx={v.position.x.toFixed(2)} cy={v.position.y.toFixed(2)} fill="none" stroke={series.color} r={(series.size + 2).toFixed(2)} />
+                        <circle cx={v.position.x.toFixed(2)} cy={v.position.y.toFixed(2)} fill={series.color} r={series.size.toFixed(2)} />
                     </g>
                 } else {
                     return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={series.size} />
@@ -522,8 +529,8 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                         </marker>
                     </defs>
                     {series.isFocus && <circle
-                        cx={firstValue.position.x}
-                        cy={firstValue.position.y}
+                        cx={firstValue.position.x.toFixed(2)}
+                        cy={firstValue.position.y.toFixed(2)}
                         r={strokeWidth + 1}
                         fill="none"
                         stroke={series.color}
@@ -532,7 +539,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     <polyline
                         strokeLinecap="round"
                         stroke={series.color}
-                        points={map(series.values, v => `${v.position.x},${v.position.y}`).join(' ')}
+                        points={series.values.map(v => `${v.position.x.toFixed(2)},${v.position.y.toFixed(2)}`).join(' ')}
                         fill="none"
                         strokeWidth={strokeWidth}
                         opacity={isSubtleForeground ? 0.6 : 1}
@@ -547,12 +554,12 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     renderForegroundLabels() {
         const { foregroundGroups, labelFontFamily } = this
-        return map(foregroundGroups, series => {
-            return map(series.allLabels, (l, i) =>
+        return foregroundGroups.map(series => {
+            return series.allLabels.map((l, i) =>
                 !l.isHidden && <text
                     key={`${series.displayKey}-label-${i}`}
-                    x={l.bounds.x}
-                    y={l.bounds.y + l.bounds.height}
+                    x={l.bounds.x.toFixed(2)}
+                    y={(l.bounds.y + l.bounds.height).toFixed(2)}
                     fontSize={l.fontSize}
                     fontFamily={labelFontFamily}
                     fill="#333">{l.text}</text>
@@ -573,22 +580,22 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     render() {
         //Bounds.debug(flatten(map(this.renderData, d => map(d.labels, 'bounds'))))
 
-        const { bounds, renderData, renderUid } = this
+        const { bounds, renderData, renderUid, labelFontFamily } = this
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(renderData))
             return <NoData bounds={bounds} />
 
-        return <g className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        return <g className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" />
             <defs>
                 <clipPath id={`scatterBounds-${renderUid}`}>
                     <rect x={clipBounds.x} y={clipBounds.y} width={clipBounds.width} height={clipBounds.height} />
                 </clipPath>
             </defs>
-            {this.renderBackgroundLines()}
+            {this.renderBackgroundGroups()}
             {this.renderBackgroundLabels()}
-            {this.renderForegroundLines()}
+            {this.renderForegroundGroups()}
             {this.renderForegroundLabels()}
         </g>
     }

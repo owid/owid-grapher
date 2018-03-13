@@ -60,10 +60,10 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=gbd_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
-    existing_variables = Variable.objects.filter(fk_dst_id__namespace='gbd_cause').values('name')
+    existing_variables = Variable.objects.filter(datasetId__namespace='gbd_cause').values('name')
     existing_variables_list = {item['name'] for item in existing_variables}
 
     dataset_name_to_object = {}
@@ -82,7 +82,7 @@ with transaction.atomic():
 
     c_name_entity_ref = {}  # this dict will hold the country names from excel and the appropriate entity object (this is used when saving the variables and their values)
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     data_values_tuple_list = []
 
@@ -99,12 +99,12 @@ with transaction.atomic():
                 row_number += 1
                 if row['sex_name'] in sex_names and row['age_name'] in age_names and row['metric_name'] in metric_names and row['measure_name'] in measure_names:
                     if row['cause_name'] not in existing_subcategories_list:
-                        the_subcategory = DatasetSubcategory(name=row['cause_name'], fk_dst_cat_id=the_category)
+                        the_subcategory = DatasetSubcategory(name=row['cause_name'], categoryId=the_category)
                         the_subcategory.save()
                         newdataset = Dataset(name=row['cause_name'],
                                              description='This is a dataset imported by the automated fetcher',
-                                             namespace='gbd_cause', fk_dst_cat_id=the_category,
-                                             fk_dst_subcat_id=the_subcategory)
+                                             namespace='gbd_cause', categoryId=the_category,
+                                             subcategoryId=the_subcategory)
                         newdataset.save()
                         dataset_name_to_object[row['cause_name']] = newdataset
                         new_datasets_list.append(newdataset)
@@ -113,12 +113,12 @@ with transaction.atomic():
                                            datasetId=newdataset.pk)
                         newsource.save()
                         source_name_to_object[row['cause_name']] = newsource
-                        existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values(
+                        existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                             'name')
                         existing_subcategories_list = {item['name'] for item in existing_subcategories}
                     else:
                         if row['cause_name'] not in dataset_name_to_object:
-                            newdataset = Dataset.objects.get(name=row['cause_name'], fk_dst_cat_id=the_category)
+                            newdataset = Dataset.objects.get(name=row['cause_name'], categoryId=the_category)
                             dataset_name_to_object[row['cause_name']] = newdataset
                             existing_datasets_list.append(newdataset)
                             newsource = Source.objects.get(name=row['cause_name'], datasetId=newdataset.pk)
@@ -134,17 +134,17 @@ with transaction.atomic():
                         newvariable = Variable(name=variable_name,
                                                unit=row['metric_name'],
                                                code=variable_code,
-                                               fk_dst_id=dataset_name_to_object[row['cause_name']], fk_var_type_id=VariableType.objects.get(pk=4),
+                                               datasetId=dataset_name_to_object[row['cause_name']], variableTypeId=VariableType.objects.get(pk=4),
                                                sourceId=source_name_to_object[row['cause_name']])
                         newvariable.save()
                         variable_name_to_object[variable_name] = newvariable
                         existing_variables_list.add(newvariable.name)
                     else:
                         if variable_name not in variable_name_to_object:
-                            newvariable = Variable.objects.get(name=variable_name, fk_dst_id=dataset_name_to_object[row['cause_name']])
-                            while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                            newvariable = Variable.objects.get(name=variable_name, datasetId=dataset_name_to_object[row['cause_name']])
+                            while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                 with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                    c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                    c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                               (DataValue._meta.db_table, newvariable.pk))
                             variable_name_to_object[variable_name] = newvariable
 
@@ -189,7 +189,7 @@ with transaction.atomic():
 
 newimport = ImportHistory(import_type='gbd_cause', import_time=timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                                   import_notes='A gbd import was performed',
-                                  import_state='There are a total of %s gbd_cause variables after the import' % Variable.objects.filter(fk_dst_id__namespace='gbd_cause').count())
+                                  import_state='There are a total of %s gbd_cause variables after the import' % Variable.objects.filter(datasetId__namespace='gbd_cause').count())
 newimport.save()
 
 print("--- %s seconds ---" % (time.time() - start_time))

@@ -160,7 +160,7 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=clioinfra_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     existing_entities = Entity.objects.values('name')
@@ -173,7 +173,7 @@ with transaction.atomic():
 
     country_name_entity_ref = {}  # this dict will hold the country names and the appropriate entity object (this is used when saving the variables and their values)
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     for file in glob.glob(files_save_location + "/*.xlsx"):
         column_to_year = {}
@@ -212,18 +212,18 @@ with transaction.atomic():
                             # inserting a subcategory and dataset
                             if dataset_to_category[varname] not in existing_subcategories_list:
                                 the_subcategory = DatasetSubcategory(name=dataset_to_category[varname],
-                                                                     fk_dst_cat_id=the_category)
+                                                                     categoryId=the_category)
                                 the_subcategory.save()
                                 newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                      description='This is a dataset imported by the automated fetcher',
-                                                     namespace='clioinfra', fk_dst_cat_id=the_category,
-                                                     fk_dst_subcat_id=the_subcategory)
+                                                     namespace='clioinfra', categoryId=the_category,
+                                                     subcategoryId=the_subcategory)
                                 newdataset.save()
                                 new_datasets_list.append(newdataset)
                                 existing_subcategories_list.add(dataset_to_category[varname])
                             else:
                                 the_subcategory = DatasetSubcategory.objects.get(
-                                    name=dataset_to_category[varname], fk_dst_cat_id=the_category)
+                                    name=dataset_to_category[varname], categoryId=the_category)
                                 newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
                                                                  namespace='clioinfra')
                             source_description['link'] = filename_to_pagelink[one_file]
@@ -237,7 +237,7 @@ with transaction.atomic():
                                                    varunit else '', short_unit=short_unit_extract(varunit),
                                                    description='',
                                                    code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], timespan='',
-                                                   fk_dst_id=newdataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                                   datasetId=newdataset, variableTypeId=VariableType.objects.get(pk=4),
                                                    sourceId=newsource)
 
                             newvariable.save()
@@ -322,18 +322,18 @@ with transaction.atomic():
                                 # inserting a subcategory and dataset
                                 if dataset_to_category[varname] not in existing_subcategories_list:
                                     the_subcategory = DatasetSubcategory(name=dataset_to_category[varname],
-                                                                         fk_dst_cat_id=the_category)
+                                                                         categoryId=the_category)
                                     the_subcategory.save()
                                     newdataset = Dataset(name='Clio-Infra - %s' % the_subcategory.name,
                                                          description='This is a dataset imported by the automated fetcher',
-                                                         namespace='clioinfra', fk_dst_cat_id=the_category,
-                                                         fk_dst_subcat_id=the_subcategory)
+                                                         namespace='clioinfra', categoryId=the_category,
+                                                         subcategoryId=the_subcategory)
                                     newdataset.save()
                                     new_datasets_list.append(newdataset)
                                     existing_subcategories_list.add(dataset_to_category[varname])
                                 else:
                                     the_subcategory = DatasetSubcategory.objects.get(
-                                        name=dataset_to_category[varname], fk_dst_cat_id=the_category)
+                                        name=dataset_to_category[varname], categoryId=the_category)
                                     try:
                                         newdataset = Dataset.objects.get(name='Clio-Infra - %s' % the_subcategory.name,
                                                                      namespace='clioinfra')
@@ -343,28 +343,28 @@ with transaction.atomic():
                                     if newdataset not in old_datasets_list:
                                         old_datasets_list.append(newdataset)
 
-                                newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra').sourceId
+                                newsource = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], datasetId__namespace='clioinfra').sourceId
                                 source_description['link'] = filename_to_pagelink[one_file]
                                 newsource.description = json.dumps(source_description)
                                 newsource.datasetId = newdataset.pk
                                 newsource.save()
 
-                                newvariable = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], fk_dst_id__namespace='clioinfra')
+                                newvariable = Variable.objects.get(code=filename_to_pagelink[one_file][filename_to_pagelink[one_file].rfind('/') + 1:], datasetId__namespace='clioinfra')
                                 newvariable.name = varname
                                 newvariable.unit = varunit if varunit else ''
                                 newvariable.short_unit = short_unit_extract(varunit)
                                 newvariable.description = ''
                                 newvariable.timespan = ''
-                                newvariable.fk_dst_id = newdataset
-                                newvariable.fk_var_type_id = VariableType.objects.get(pk=4)
+                                newvariable.datasetId = newdataset
+                                newvariable.variableTypeId = VariableType.objects.get(pk=4)
                                 newvariable.sourceId = newsource
 
                                 newvariable.save()
 
                                 # Deleting old data values
-                                while DataValue.objects.filter(fk_var_id__pk=newvariable.pk).first():
+                                while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                                        c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                                        c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                                                   (DataValue._meta.db_table, newvariable.pk))
 
                             if row_number == 3 and column_number > 6:

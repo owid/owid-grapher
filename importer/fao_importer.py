@@ -466,15 +466,15 @@ def process_csv_file_update(filename_to_process: str, original_filename: str):
                         unique_var_names.append(variablename)
 
         for onevariable in unique_var_names:
-            found_vars = Variable.objects.filter(name=onevariable, fk_dst_id__namespace='faostat')
+            found_vars = Variable.objects.filter(name=onevariable, datasetId__namespace='faostat')
             if found_vars:
                 for each_found_var in found_vars:
                     vars_to_delete.append(each_found_var)
 
         for each_var in vars_to_delete:
-            while DataValue.objects.filter(fk_var_id__pk=each_var.pk).first():
+            while DataValue.objects.filter(variableId__pk=each_var.pk).first():
                 with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
-                    c.execute('DELETE FROM %s WHERE fk_var_id = %s LIMIT 10000;' %
+                    c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
                               (DataValue._meta.db_table, each_var.pk))
 
     process_csv_file_insert(filename_to_process, original_filename)
@@ -494,13 +494,13 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
 
     # inserting a subcategory
     if file_to_category_dict[original_filename] not in existing_subcategories_list:
-        the_subcategory = DatasetSubcategory(name=file_to_category_dict[original_filename], fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory(name=file_to_category_dict[original_filename], categoryId=the_category)
         the_subcategory.save()
         existing_subcategories_list.add(file_to_category_dict[original_filename])
     else:
-        the_subcategory = DatasetSubcategory.objects.get(name=file_to_category_dict[original_filename], fk_dst_cat_id=the_category)
+        the_subcategory = DatasetSubcategory.objects.get(name=file_to_category_dict[original_filename], categoryId=the_category)
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
     data_values_tuple_list = []
 
     # inserting a dataset
@@ -510,8 +510,8 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
     else:
         newdataset = Dataset(name='%s: %s' % (file_to_category_dict[original_filename], file_dataset_names[original_filename]),
                              description='This is a dataset imported by the automated fetcher',
-                             namespace='faostat', fk_dst_cat_id=the_category,
-                             fk_dst_subcat_id=the_subcategory)
+                             namespace='faostat', categoryId=the_category,
+                             subcategoryId=the_subcategory)
         newdataset.save()
         datasets_list.append(newdataset)
 
@@ -552,7 +552,7 @@ def process_csv_file_insert(filename_to_process: str, original_filename: str):
                            datasetId=newdataset.pk)
         newsource.save()
 
-    existing_fao_variables = Variable.objects.filter(fk_dst_id__in=Dataset.objects.filter(namespace='faostat'))
+    existing_fao_variables = Variable.objects.filter(datasetId__in=Dataset.objects.filter(namespace='faostat'))
     existing_fao_variables_dict = {}
     for each in existing_fao_variables:
         existing_fao_variables_dict[each.name] = each
@@ -788,7 +788,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
     if processed_values % 300 == 0:
         time.sleep(0.001)  # this is done in order to not keep the CPU busy all the time
 
-    insert_string = 'INSERT into data_values (value, year, fk_ent_id, fk_var_id) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
+    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'  # this is used for constructing the query for mass inserting to the data_values table
 
     if year is not False and value is not False:
         if tuple([countryname, variablecode]) not in unique_data_tracker:
@@ -810,7 +810,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                                        unit else '', short_unit=s_unit,
                                        description=var_desc,
                                        code=variablecode, timespan='',
-                                       fk_dst_id=dataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                       datasetId=dataset, variableTypeId=VariableType.objects.get(pk=4),
                                        sourceId=source)
                 try:
                     with transaction.atomic():
@@ -821,7 +821,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                                            unit else '', short_unit=s_unit,
                                            description=var_desc,
                                            code=None, timespan='',
-                                           fk_dst_id=dataset, fk_var_type_id=VariableType.objects.get(pk=4),
+                                           datasetId=dataset, variableTypeId=VariableType.objects.get(pk=4),
                                            sourceId=source)
                     newvariable.save()
                 existing_fao_variables_dict[variablename] = newvariable
@@ -831,7 +831,7 @@ def process_one_row(year, value, countryname, variablecode, variablename, existi
                     existing_fao_variables_dict[variablename].short_unit = short_unit_extract(unit)
                     existing_fao_variables_dict[variablename].description = var_desc
                     existing_fao_variables_dict[variablename].code = variablecode
-                    existing_fao_variables_dict[variablename].fk_dst_id = dataset
+                    existing_fao_variables_dict[variablename].datasetId = dataset
                     existing_fao_variables_dict[variablename].sourceId = source
                     try:
                         with transaction.atomic():
@@ -864,7 +864,7 @@ with transaction.atomic():
     else:
         the_category = DatasetCategory.objects.get(name=fao_category_name_in_db)
 
-    existing_subcategories = DatasetSubcategory.objects.filter(fk_dst_cat_id=the_category.pk).values('name')
+    existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values('name')
     existing_subcategories_list = {item['name'] for item in existing_subcategories}
 
     existing_entities = Entity.objects.values('name')
