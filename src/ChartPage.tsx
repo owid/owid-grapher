@@ -8,6 +8,13 @@ const md5 = require('md5')
 
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 
+// HACK (Mispy): Typescript bindings don't support crossorigin attribute on link as of 14 Mar 2018
+declare module 'react' {
+    interface HTMLAttributes<T> {
+       crossorigin?: boolean
+   }
+}
+
 export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
     const {chart, canonicalRoot, pathRoot} = props
 
@@ -80,7 +87,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 `}</style>
             </noscript>
             <link rel="stylesheet" href={`${BUILD_ASSETS_URL}/charts.css`}/>
-            <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}?v=${chart.version}`} as="fetch"/>
+            <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
         </head>
         <body className="singleChart">
             <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>

@@ -15,7 +15,7 @@ import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
 import * as db from './db'
 
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BAKED_URL } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL } from './settings'
 
 export interface ChartBakerProps {
     canonicalRoot: string
@@ -44,8 +44,8 @@ export class ChartBaker {
     async bakeAssets() {
         const {pathRoot} = this.props
 
-        let chartsJs = `${WEBPACK_DEV_URL}/charts.js`
-        let chartsCss = `${WEBPACK_DEV_URL}/charts.css`
+        let chartsJs = `${BUILD_ASSETS_URL}/charts.js`
+        let chartsCss = `${BUILD_ASSETS_URL}/charts.css`
 
         if (ENV === "production") {
             const buildDir = `grapher_admin/static/build`
@@ -65,8 +65,8 @@ export class ChartBaker {
                 this.stage(outPath)
             }
 
-            chartsJs = `${BAKED_URL}/grapher/assets/charts.js?v=${manifest['charts.js']}`
-            chartsCss = `${BAKED_URL}/grapher/assets/charts.css?v=${manifest['charts.css']}`
+            chartsJs = `${BUILD_ASSETS_URL}/charts.js?v=${manifest['charts.js']}`
+            chartsCss = `${BUILD_ASSETS_URL}/charts.css?v=${manifest['charts.css']}`
         }
 
         await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
@@ -76,7 +76,7 @@ export class ChartBaker {
     async bakeVariableData(variableIds: number[], outPath: string): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
         const vardata = await getVariableData(variableIds)
-        await fs.writeFile(outPath, vardata)
+        await fs.writeFile(outPath, JSON.stringify(vardata))
         this.stage(outPath)
         return vardata
     }
@@ -109,7 +109,7 @@ export class ChartBaker {
         if (!variableIds.length) return
 
         // Make sure we bake the variables successfully before outputing the chart html
-        const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
+        const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}.json`
         if (!isSameVersion || props.regenData || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }

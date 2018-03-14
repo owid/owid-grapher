@@ -147,11 +147,16 @@ export default class VariableData {
         }
 
         if (window.admin) {
-            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}${cacheTag ? "?v="+cacheTag : ""}`)
+            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}.json${cacheTag ? "?v="+cacheTag : ""}`)
             this.receiveData(json)
         } else {
-            const json = (await fetch(`${Global.rootUrl}/data/variables/${variableIds.join("+")}${cacheTag ? "?v="+cacheTag : ""}`)).json()
-            this.receiveData(json)
+            const req = new XMLHttpRequest()
+            const that = this
+            req.addEventListener("load", function() {
+                that.receiveData(JSON.parse(this.responseText))
+            })
+            req.open("GET", `${Global.rootUrl}/data/variables/${variableIds.join("+")}.json?v=${cacheTag}`)
+            req.send()
         }
 
     }

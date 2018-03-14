@@ -12,7 +12,7 @@ import DataTab from './DataTab'
 import MapTab from './MapTab'
 import SourcesTab from './SourcesTab'
 import DownloadTab from './DownloadTab'
-import { VNode, throttle } from './Util'
+import { VNode, throttle, isMobile } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 
@@ -36,7 +36,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-            
+
             if (containerBounds.width <= 400)
                 chart.baseFontSize = 14
             else if (containerBounds.width < 1080)
@@ -57,7 +57,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @computed get isExport() { return !!this.props.isExport }
     @computed get isEditor() { return !!this.props.isEditor }
     @computed get isEmbed() { return this.props.isEmbed || (!this.isExport && (window.self !== window.top || this.isEditor)) }
-    @computed get isMobile() { return select('html').classed('touchevents') }
+    @computed get isMobile() { return isMobile() }
 
     @computed get containerBounds() { return this.props.bounds }
 

@@ -12,6 +12,7 @@ import VariablesIndexPage from './VariablesIndexPage'
 import DatasetEditPage from './DatasetEditPage'
 import SourceEditPage from './SourceEditPage'
 import ImportPage from './ImportPage'
+import NotFoundPage from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
 import { LoadingBlocker, Modal } from './Forms'
@@ -56,18 +57,19 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 <AdminErrorMessage admin={admin}/>
                 <AdminLoader admin={admin}/>
                 <Switch>
-                    <Route path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
-                    <Route path="/charts/create" component={ChartEditorPage}/>
-                    <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
-                    <Route path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
-                    <Route path="/users" component={UsersIndexPage}/>
-                    <Route path="/import" component={ImportPage}/>
-                    <Route path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
-                    <Route path="/variables" component={VariablesIndexPage}/>
-                    <Route path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
-                    <Route path="/datasets" component={DatasetsIndexPage}/>
-                    <Route path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
-                    <Route path="/" component={ChartIndexPage}/>
+                    <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
+                    <Route exact path="/charts/create" component={ChartEditorPage}/>
+                    <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
+                    <Route exact path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
+                    <Route exact path="/users" component={UsersIndexPage}/>
+                    <Route exact path="/import" component={ImportPage}/>
+                    <Route exact path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
+                    <Route exact path="/variables" component={VariablesIndexPage}/>
+                    <Route exact path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
+                    <Route exact path="/datasets" component={DatasetsIndexPage}/>
+                    <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
+                    <Route exact path="/" component={ChartIndexPage}/>
+                    <Route component={NotFoundPage}/>
                 </Switch>
             </div>
         </Router>

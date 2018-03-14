@@ -1,7 +1,8 @@
-import { uniqBy } from './Util'
 import * as React from 'react'
 import { observer } from 'mobx-react'
 import { computed, action, observable } from 'mobx'
+
+import { uniqBy, isTouchDevice } from './Util'
 import ChartConfig from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
 import ChartView from './ChartView'
@@ -41,7 +42,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
 
     componentDidMount() {
         setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
-        if (!this.props.chartView.isMobile)
+        if (!isTouchDevice())
             this.searchField.focus()
     }
 

@@ -271,3 +271,11 @@ export function sortedFindClosestIndex(array: number[], value: number): number {
     // lo == hi + 1
     return (array[lo] - value) < (value - array[hi]) ? lo : hi
 }
+
+export function isMobile() {
+    return window.navigator.userAgent.toLowerCase().includes("mobi")
+}
+
+export function isTouchDevice() {
+    return !!('ontouchstart' in window)
+}

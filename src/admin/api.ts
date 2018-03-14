@@ -194,7 +194,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     return { datasets: datasets }
 })
 
-api.get('/data/variables/:variableStr', async (req: Request, res: Response) => {
+api.get('/data/variables/:variableStr.json', async (req: Request, res: Response) => {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
     return await getVariableData(variableIds)
 })
