@@ -11,21 +11,31 @@ import { LoadingBlocker, TextField, BindString, BindFloat, Toggle, FieldsRow } f
 import { VariableDisplaySettings } from '../charts/VariableData'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
+import ChartList, { ChartListItem } from './ChartList'
 import Bounds from '../charts/Bounds'
 
-class VariableSingleMeta {
-    @observable id: number = 0
+interface VariablePageData {
+    id: number
+    name: string
+    unit: string
+    shortUnit: string
+    description: string
+    display: VariableDisplaySettings
+
+    datasetId: number
+    datasetName: string
+    datasetNamespace: string
+
+    charts: ChartListItem[]
+    source: { id: number, name: string }
+}
+
+class VariableEditable {
     @observable name: string = ""
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-
-    datasetId: number = 0
-    datasetName: string = ""
-    datasetNamespace: string = ""
-
-    display: VariableDisplaySettings = new VariableDisplaySettings()
-    vardata: string = ""
+    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -38,20 +48,25 @@ class VariableSingleMeta {
 }
 
 @observer
-export default class VariableEditPage extends React.Component<{ variableId: number }> {
+class VariableEditor extends React.Component<{ variable: VariablePageData }> {
+    @observable newVariable!: VariableEditable
+
+    // Store the original dataset to determine when it is modified
+    componentWillMount() { this.componentWillReceiveProps() }
+    componentWillReceiveProps() {
+        this.newVariable = new VariableEditable(this.props.variable)
+    }
+
     context!: { admin: Admin }
-    @observable origVariable?: VariableSingleMeta
-    @observable variable?: VariableSingleMeta
-    @observable.ref vardata?: string
     @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
-        return JSON.stringify(this.variable) !== JSON.stringify(this.origVariable)
+        return JSON.stringify(this.newVariable) !== JSON.stringify(new VariableEditable(this.props.variable))
     }
 
-    renderWithVariable() {
-        const {variable} = this
-        if (!variable) return null
+    render() {
+        const {variable} = this.props
+        const {newVariable} = this
         const isBulkImport = variable.datasetNamespace !== 'owid'
 
         return <main className="VariableEditPage">
@@ -69,25 +84,26 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                             {isBulkImport ?
                                 <p>This variable came from an automated import, so we can't change the original metadata manually.</p>
                             : <p>The core metadata for the variable. It's important to keep this consistent.</p>}
-                            <BindString field="name" store={variable} label="Variable Name" disabled={isBulkImport}/>
+                            <BindString field="name" store={newVariable} label="Variable Name" disabled={isBulkImport}/>
                             <FieldsRow>
-                                <BindString field="unit" store={variable} label="Unit of measurement" disabled={isBulkImport}/>
-                                <BindString field="shortUnit" store={variable} label="Short (axis) unit" disabled={isBulkImport}/>
+                                <BindString field="unit" store={newVariable} label="Unit of measurement" disabled={isBulkImport}/>
+                                <BindString field="shortUnit" store={newVariable} label="Short (axis) unit" disabled={isBulkImport}/>
                             </FieldsRow>
                         </section>
                         <section>
                             <h3>Display settings</h3>
                             <p>These settings tell the grapher how to display the variable. They can also be changed in the chart editor.</p>
-                            <BindString label="Display name" field="name" store={variable.display}/>
+                            <BindString label="Display name" field="name" store={newVariable.display}/>
                             <FieldsRow>
-                                <BindString label="Unit of measurement" field="unit" store={variable.display}/>
-                                <BindString label="Short (axis) unit" field="shortUnit" store={variable.display}/>
+                                <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
+                                <BindString label="Short (axis) unit" field="shortUnit" store={newVariable.display}/>
                             </FieldsRow>
                             <FieldsRow>
-                                <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={variable.display} helpText={`A negative number here will round integers`}/>
-                                <BindFloat label="Unit conversion factor" field="conversionFactor" store={variable.display} helpText={`Multiply all values by this amount`}/>
+                                <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={newVariable.display} helpText={`A negative number here will round integers`}/>
+                                <BindFloat label="Unit conversion factor" field="conversionFactor" store={newVariable.display} helpText={`Multiply all values by this amount`}/>
                             </FieldsRow>
                         </section>
+                        <input type="submit" className="btn btn-success" value="Update variable"/>
                     </div>
                     {this.chart && <div className="col">
                         <div className="topbar">
@@ -97,62 +113,88 @@ export default class VariableEditPage extends React.Component<{ variableId: numb
                         <ChartFigureView chart={this.chart}/>
                     </div>}
                 </div>
-                <input type="submit" className="btn btn-success" value="Update variable" disabled={!this.isModified}/>
+                <section>
+                    <h3>Source</h3>
+                    <table className="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><Link to={`/sources/${variable.source.id}`}>{variable.source.name}</Link></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <section>
+                    <h3>Charts</h3>
+                    <ChartList charts={variable.charts}/>
+                </section>
             </form>
         </main>
     }
 
-    render() {
-        return <AdminLayout>
-            {this.variable && this.renderWithVariable()}
-        </AdminLayout>
-    }
-
     async save() {
-        if (this.variable)
-            await this.context.admin.requestJSON(`/api/variables/${this.variable.id}`, { variable: this.variable }, "PUT")
+        const {variable} = this.props
+        const json = await this.context.admin.requestJSON(`/api/datasets/${variable.id}`, { variable: this.newVariable }, "PUT")
+
+        if (json.success) {
+            Object.assign(this.props.variable, this.newVariable)
+        }
     }
 
     @computed get chartConfig() {
-        if (!this.variable) return undefined
-
         return {
             yAxis: { min: 0 },
-            map: { variableId: this.variable.id },
+            map: { variableId: this.props.variable.id },
             tab: "map",
             hasMapTab: true,
             dimensions: [{
                 property: 'y',
-                variableId: this.variable.id,
-                display: _.clone(this.variable.display)
+                variableId: this.props.variable.id,
+                display: _.clone(this.newVariable.display)
             }]
         }
     }
 
-    async getData() {
-        const json = await this.context.admin.getJSON(`/api/variables/${this.props.variableId}.json`)
-        runInAction(() => {
-            this.origVariable = new VariableSingleMeta(json.variable)
-            this.variable = new VariableSingleMeta(json.variable)
-//            this.vardata = json.vardata
-
-            const variable = this.variable
-            this.chart = new ChartConfig(this.chartConfig as any)
-        })
-    }
-
     dispose!: IReactionDisposer
     componentDidMount() {
+        this.chart = new ChartConfig(this.chartConfig as any)
+
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {
                 this.chart.update(this.chartConfig)
             }
         })
-
-        this.getData()
     }
 
     componentDidUnmount() {
         this.dispose()
+    }
+}
+
+@observer
+export default class VariableEditPage extends React.Component<{ variableId: number }> {
+    context!: { admin: Admin }
+    @observable variable?: VariablePageData
+
+    render() {
+        return <AdminLayout>
+            {this.variable && <VariableEditor variable={this.variable}/>}
+        </AdminLayout>
+    }
+
+    async getData() {
+        const json = await this.context.admin.getJSON(`/api/variables/${this.props.variableId}.json`)
+        runInAction(() => {
+            this.variable = json.variable as VariablePageData
+        })
+    }
+
+    componentDidMount() { this.componentWillReceiveProps() }
+    componentWillReceiveProps() {
+        this.getData()
     }
 }

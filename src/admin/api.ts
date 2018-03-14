@@ -327,19 +327,31 @@ export interface VariableSingleMeta {
 api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const variableId = expectInt(req.params.variableId)
 
-    const variable =(await db.query(`
+    const variable = await db.get(`
         SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
         FROM variables AS v
         JOIN datasets AS d ON d.id = v.datasetId
         WHERE v.id = ?
-    `, [variableId]))[0]
+    `, [variableId])
 
     if (!variable) {
         throw new JsonError(`No variable by id '${variableId}'`, 404)
     }
 
     variable.display = JSON.parse(variable.display)
+
+    variable.source = await db.get(`SELECT id, name FROM sources AS s WHERE id = ?`, variable.sourceId)
+
+    const charts = await db.query(`
+        SELECT ${Chart.listFields}
+        FROM charts
+        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+        WHERE cd.variableId = ?
+        GROUP BY charts.id
+    `, [variableId])
+
+    variable.charts = charts
 
     return { variable: variable as VariableSingleMeta }/*, vardata: await getVariableData([variableId]) }*/
 })
@@ -426,6 +438,26 @@ api.delete('/datasets/:datasetId', async (req: Request) => {
         await db.query(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
 
+    return { success: true }
+})
+
+api.get('/sources/:sourceId.json', async (req: Request) => {
+    const sourceId = expectInt(req.params.sourceId)
+    const source = await db.get(`
+        SELECT s.id, s.name, s.description, s.created_at AS createdAt, s.updated_at AS updatedAt, d.namespace AS namespace
+        FROM sources AS s
+        JOIN datasets AS d ON d.id=s.datasetId
+        WHERE s.id=?`, [sourceId])
+    source.description = JSON.parse(source.description)
+    source.variables = await db.query(`SELECT id, name, uploaded_at AS uploadedAt FROM variables WHERE variables.sourceId=?`, [sourceId])
+
+    return { source: source }
+})
+
+api.put('/sources/:sourceId', async (req: Request) => {
+    const sourceId = expectInt(req.params.sourceId)
+    const source = (req.body as { source: any }).source
+    await db.query(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
     return { success: true }
 })
 

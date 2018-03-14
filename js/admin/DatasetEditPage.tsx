@@ -15,7 +15,7 @@ import Bounds from '../charts/Bounds'
 import ChartList, { ChartListItem } from './ChartList'
 import VariableList, { VariableListItem } from './VariableList'
 
-interface Dataset {
+interface DatasetPageData {
     id: number
     name: string
     description: string
@@ -30,7 +30,7 @@ class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
 
-    constructor(json: Dataset) {
+    constructor(json: DatasetPageData) {
         for (const key in this) {
             if (key in json)
                 this[key] = (json as any)[key]
@@ -39,7 +39,7 @@ class DatasetEditable {
 }
 
 @observer
-class DatasetEditor extends React.Component<{ dataset: Dataset }> {
+class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
@@ -104,7 +104,7 @@ class DatasetEditor extends React.Component<{ dataset: Dataset }> {
                     : <p>The core metadata for the dataset. It's important to keep this in a standardized style across datasets.</p>}
                     <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
-                    <input type="submit" className="btn btn-success" value="Update dataset" disabled={!this.isModified}/>
+                    <input type="submit" className="btn btn-success" value="Update dataset"/>
                 </form>
             </section>
             <section>
@@ -146,7 +146,7 @@ class DatasetEditor extends React.Component<{ dataset: Dataset }> {
 @observer
 export default class DatasetEditPage extends React.Component<{ datasetId: number }> {
     context!: { admin: Admin }
-    @observable dataset?: Dataset
+    @observable dataset?: DatasetPageData
 
     render() {
         return <AdminLayout>
@@ -157,7 +157,7 @@ export default class DatasetEditPage extends React.Component<{ datasetId: number
     async getData() {
         const json = await this.context.admin.getJSON(`/api/datasets/${this.props.datasetId}.json`)
         runInAction(() => {
-            this.dataset = json.dataset as Dataset
+            this.dataset = json.dataset as DatasetPageData
         })
     }
 

@@ -471,6 +471,9 @@ html, body {
 
 .errorMessage {
     z-index: 2000;
+    .modal-dialog {
+        max-width: 80%;
+    }
 }
 
 main:not(.ChartEditorPage) {

@@ -10,6 +10,7 @@ import UserEditPage from './UserEditPage'
 import VariableEditPage from './VariableEditPage'
 import VariablesIndexPage from './VariablesIndexPage'
 import DatasetEditPage from './DatasetEditPage'
+import SourceEditPage from './SourceEditPage'
 import ImportPage from './ImportPage'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Link from './Link'
@@ -65,6 +66,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route path="/variables" component={VariablesIndexPage}/>
                     <Route path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
                     <Route path="/datasets" component={DatasetsIndexPage}/>
+                    <Route path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
                     <Route path="/" component={ChartIndexPage}/>
                 </Switch>
             </div>
