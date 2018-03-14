@@ -8,7 +8,7 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { PageTitle, LoadingBlocker, TextField, BindString, Toggle, FieldsRow } from './Forms'
+import { LoadingBlocker, TextField, BindString, Toggle, FieldsRow } from './Forms'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import Bounds from '../charts/Bounds'
@@ -82,7 +82,6 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
         const isBulkImport = source.namespace !== 'owid'
 
         return <main className="DatasetEditPage">
-            <PageTitle>{source.name}</PageTitle>
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
                 <h1>Source: {source.name}</h1>
@@ -114,7 +113,7 @@ export default class SourceEditPage extends React.Component<{ sourceId: number }
     @observable source?: SourcePageData
 
     render() {
-        return <AdminLayout>
+        return <AdminLayout title={this.source && this.source.name}>
             {this.source && <SourceEditor source={this.source}/>}
         </AdminLayout>
     }

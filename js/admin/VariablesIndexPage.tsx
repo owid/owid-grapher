@@ -40,7 +40,7 @@ export default class VariablesIndexPage extends React.Component {
                 return text
         }
 
-        return <AdminLayout>
+        return <AdminLayout title="Variables">
             <main className="DatasetsIndexPage">
                 <FieldsRow>
                     <span>Showing {variablesToShow.length} of {numTotalRows} variables</span>

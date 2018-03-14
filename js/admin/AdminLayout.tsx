@@ -23,7 +23,7 @@ class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
 }
 
 @observer
-export default class AdminLayout extends React.Component<{ noSidebar?: boolean, children: any }> {
+export default class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
     context!: { admin: Admin }
 
     @observable isFAQ: boolean = false
@@ -39,6 +39,14 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
 
     componentDidMount() {
         this.isSidebar = !this.props.noSidebar
+        this.componentDidUpdate()
+    }
+
+    componentDidUpdate() {
+        if (this.props.title)
+            document.title = this.props.title + " - owid-admin"
+        else
+            document.title = "owid-admin"
     }
 
     render() {
@@ -61,6 +69,11 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
                     <li className="nav-item">
                         <a className="nav-link" onClick={this.onToggleFAQ}>
                             FAQ
+                        </a>
+                    </li>
+                    <li className="nav-item">
+                        <a className="nav-link" href="/wp-admin" target="_blank">
+                            Wordpress
                         </a>
                     </li>
                 </ul>

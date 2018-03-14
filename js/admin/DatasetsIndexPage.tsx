@@ -110,7 +110,7 @@ export default class DatasetsIndexPage extends React.Component {
                 return text
         }
 
-        return <AdminLayout>
+        return <AdminLayout title="Datasets">
             <main className="DatasetsIndexPage">
                 <FieldsRow>
                     <span>Showing {datasetsToShow.length} of {numTotalRows} datasets</span>

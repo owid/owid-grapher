@@ -5,7 +5,7 @@ const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 
 import Admin from './Admin'
-import { Modal, LoadingBlocker, TextField } from './Forms'
+import { Modal, LoadingBlocker, TextField} from './Forms'
 import Link from './Link'
 import AdminLayout from './AdminLayout'
 import FuzzySearch from '../charts/FuzzySearch'
@@ -73,7 +73,7 @@ export default class ChartIndexPage extends React.Component {
                 return text
         }
 
-        return <AdminLayout>
+        return <AdminLayout title="Charts">
             <main className="ChartIndexPage">
                 <div className="topRow">
                     <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>

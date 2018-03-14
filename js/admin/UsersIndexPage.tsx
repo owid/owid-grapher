@@ -77,7 +77,7 @@ export default class UsersIndexPage extends React.Component {
 
     render() {
         const {users} = this
-        return <AdminLayout>
+        return <AdminLayout title="Users">
             <main className="UsersIndexPage">
                 {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
                 <div className="topbar">

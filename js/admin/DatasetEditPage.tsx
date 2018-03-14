@@ -8,7 +8,7 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { PageTitle, LoadingBlocker, TextField, BindString, Toggle, FieldsRow, NumericSelectField } from './Forms'
+import { LoadingBlocker, TextField, BindString, Toggle, FieldsRow, NumericSelectField } from './Forms'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import Bounds from '../charts/Bounds'
@@ -110,7 +110,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         const isBulkImport = dataset.namespace !== 'owid'
 
         return <main className="DatasetEditPage">
-            <PageTitle>{dataset.name}</PageTitle>
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
                 <h1>{dataset.name}</h1>
@@ -176,7 +175,7 @@ export default class DatasetEditPage extends React.Component<{ datasetId: number
     @observable dataset?: DatasetPageData
 
     render() {
-        return <AdminLayout>
+        return <AdminLayout title={this.dataset && this.dataset.name}>
             {this.dataset && <DatasetEditor dataset={this.dataset}/>}
         </AdminLayout>
     }
