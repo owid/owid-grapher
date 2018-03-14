@@ -45,8 +45,6 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
     componentDidUpdate() {
         if (this.props.title)
             document.title = this.props.title + " - owid-admin"
-        else
-            document.title = "owid-admin"
     }
 
     render() {

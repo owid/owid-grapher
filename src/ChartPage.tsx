@@ -1,4 +1,4 @@
-import {BAKED_URL, ASSETS_URL} from './settings'
+import {BUILD_GRAPHER_URL, BUILD_ASSETS_URL} from './settings'
 
 import * as React from 'react'
 import * as path from 'path'
@@ -43,7 +43,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
         var figure = document.getElementsByTagName("figure")[0];
         try {
             window.App = {};
-            window.Global = { rootUrl: '${BAKED_URL}${pathRoot}' };
+            window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
             figure.innerHTML = "<img src=\\"${pathRoot}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
@@ -79,7 +79,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                     figure { display: none !important; }
                 `}</style>
             </noscript>
-            <link rel="stylesheet" href={`${ASSETS_URL}/charts.css`}/>
+            <link rel="stylesheet" href={`${BUILD_ASSETS_URL}/charts.css`}/>
             <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}?v=${chart.version}`} as="fetch"/>
         </head>
         <body className="singleChart">
@@ -89,7 +89,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
-            <script src={`${ASSETS_URL}/charts.js`}/>
+            <script src={`${BUILD_ASSETS_URL}/charts.js`}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>

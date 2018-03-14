@@ -33,7 +33,8 @@
         "restrict-plus-operands": true,
         "strict-type-predicates": true,
         "no-for-in-array": true,
-        "eofline": false
+        "eofline": false,
+        "no-unused-variable": true
     },
     "rulesDirectory": []
 }

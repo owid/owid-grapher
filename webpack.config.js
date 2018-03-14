@@ -5,7 +5,6 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
-
 const isProduction = process.argv.indexOf('-p') !== -1
 
 module.exports = {

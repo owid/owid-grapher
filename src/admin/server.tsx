@@ -9,6 +9,7 @@ import LoginPage from './LoginPage'
 import {authMiddleware, loginSubmit} from './authentication'
 import api from './api'
 import {renderToHtmlPage} from './serverUtil'
+import {BUILD_GRAPHER_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -32,8 +33,7 @@ app.use('/admin/api', api.router)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    const rootUrl = `${req.protocol}://${req.get('host')}`
-    res.send(renderToHtmlPage(<AdminSPA rootUrl={rootUrl} username={res.locals.user.name}/>))
+    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.name}/>))
 })
 
 const HOST = 'localhost'
