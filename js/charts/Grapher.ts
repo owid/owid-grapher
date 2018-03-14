@@ -1,5 +1,5 @@
 import ChartView from './ChartView'
-import {throttle} from './Util'
+import {throttle, isMobile} from './Util'
 
 interface LoadableFigure {
     configUrl: string
@@ -19,7 +19,7 @@ function readConfigFromHTML(html: string): any {
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
 export function shouldProgressiveEmbed() {
-    return !window.navigator.userAgent.toLowerCase().includes("mobi")
+    return !isMobile()
 }
 
 export class MultiEmbedder {
