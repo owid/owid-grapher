@@ -106,10 +106,12 @@ export default class StackedAreaTransform implements IChartTransform {
         })
 
         // Strip years at start and end where we couldn't successfully interpolate
-        for (let i = groupedData[0].values.length-1; i >= 0; i--) {
-            if (groupedData.some(series => isNaN(series.values[i].y))) {
-                for (const series of groupedData) {
-                    series.values.splice(i, 1)
+        for (const firstSeries of groupedData.slice(0, 1)) {
+            for (let i = firstSeries.values.length-1; i >= 0; i--) {
+                if (groupedData.some(series => isNaN(series.values[i].y))) {
+                    for (const series of groupedData) {
+                        series.values.splice(i, 1)
+                    }
                 }
             }
         }
