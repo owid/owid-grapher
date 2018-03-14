@@ -239,6 +239,7 @@ export function defaultWith<T>(value: T|undefined, defaultFunc: () => T): T {
 
 export function keysOf<T, K extends keyof T>(obj: T): K[] {
     return Object.keys(obj) as K[]
+}
 
 // Based on https://stackoverflow.com/a/30245398/1983739
 // In case of tie returns higher value

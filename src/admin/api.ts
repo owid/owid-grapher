@@ -166,7 +166,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(
         `SELECT v.name, v.id, d.name as datasetName, d.namespace
-         FROM variables as v JOIN datasets as d ON v.fk_dst_id = d.id
+         FROM variables as v JOIN datasets as d ON v.datasetId = d.id
          WHERE namespace=? ORDER BY d.updated_at DESC`, [req.params.namespace])
 
     let dataset: { name: string, namespace: string, variables: { id: number, name: string }[] }|undefined
@@ -331,7 +331,7 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
         SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
         FROM variables AS v
-        JOIN datasets AS d ON d.id = v.fk_dst_id
+        JOIN datasets AS d ON d.id = v.datasetId
         WHERE v.id = ?
     `, [variableId]))[0]
 
@@ -357,11 +357,11 @@ api.get('/datasets.json', async req => {
     const rows = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt
         FROM datasets AS d
-        LEFT JOIN dataset_categories AS c ON c.id=d.fk_dst_cat_id
-        LEFT JOIN dataset_subcategories AS sc ON sc.id=d.fk_dst_subcat_id
+        LEFT JOIN dataset_categories AS c ON c.id=d.categoryId
+        LEFT JOIN dataset_subcategories AS sc ON sc.id=d.subcategoryId
         ORDER BY d.created_at DESC
     `)
-    /*LEFT JOIN variables AS v ON v.fk_dst_id=d.id
+    /*LEFT JOIN variables AS v ON v.datasetId=d.id
     GROUP BY d.id*/
 
     return { datasets: rows }
@@ -383,7 +383,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const variables = await db.query(`
         SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
         FROM variables AS v
-        WHERE v.fk_dst_id = ?
+        WHERE v.datasetId = ?
     `, [datasetId])
 
     dataset.variables = variables
@@ -401,7 +401,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
-        WHERE v.fk_dst_id = ?
+        WHERE v.datasetId = ?
         GROUP BY charts.id
     `, [datasetId])
 
@@ -420,8 +420,8 @@ api.put('/datasets/:datasetId', async (req: Request) => {
 api.delete('/datasets/:datasetId', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
     await db.transaction(async () => {
-        await db.query(`DELETE d FROM data_values AS d JOIN variables AS v ON d.fk_var_id=v.id WHERE v.fk_dst_id=?`, [datasetId])
-        await db.query(`DELETE FROM variables WHERE fk_dst_id=?`, [datasetId])
+        await db.query(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
+        await db.query(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
         await db.query(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
         await db.query(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
