@@ -383,7 +383,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description
+        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -419,13 +419,21 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     dataset.charts = charts
 
+    const availableCategories = await db.query(`
+        SELECT sc.id, sc.name, c.name AS parentName, c.fetcher_autocreated AS isAutocreated
+        FROM dataset_subcategories AS sc
+        JOIN dataset_categories AS c ON sc.categoryId=c.id
+    `)
+
+    dataset.availableCategories = availableCategories
+
     return { dataset: dataset }
 })
 
 api.put('/datasets/:datasetId', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
     const dataset = (req.body as { dataset: any }).dataset
-    await db.query(`UPDATE datasets SET name=?, description=? WHERE id=?`, [dataset.name, dataset.description, datasetId])
+    await db.query(`UPDATE datasets SET name=?, description=?, subcategoryId=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, datasetId])
     return { success: true }
 })
 

@@ -8,7 +8,7 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { PageTitle, LoadingBlocker, TextField, BindString, Toggle, FieldsRow } from './Forms'
+import { PageTitle, LoadingBlocker, TextField, BindString, Toggle, FieldsRow, NumericSelectField } from './Forms'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import Bounds from '../charts/Bounds'
@@ -21,6 +21,9 @@ interface DatasetPageData {
     description: string
     namespace: string
     updatedAt: string
+    subcategoryId: number
+
+    availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
     sources: { id: number, name: string }[]
@@ -29,12 +32,35 @@ interface DatasetPageData {
 class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
+    @observable subcategoryId: number = 0
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
             if (key in json)
                 this[key] = (json as any)[key]
         }
+    }
+}
+
+@observer
+class EditCategory extends React.Component<{ newDataset: DatasetEditable, availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[], isBulkImport: boolean }> {
+    render() {
+        const {availableCategories, newDataset, isBulkImport} = this.props
+        const categories = availableCategories.filter(c => isBulkImport || !c.isAutocreated)
+        const categoriesByParent = _.groupBy(categories, c => c.parentName)
+
+        return <div className="form-group">
+            <label>Category</label>
+            <select className="form-control" onChange={e => newDataset.subcategoryId = parseInt(e.target.value)} value={newDataset.subcategoryId} disabled={isBulkImport}>
+                {_.map(categoriesByParent, (subcats, parentName) =>
+                    <optgroup label={parentName}>
+                        {_.map(subcats, category =>
+                            <option value={category.id}>{category.name}</option>
+                        )}
+                    </optgroup>
+                )}
+            </select>
+        </div>
     }
 }
 
@@ -104,6 +130,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     : <p>The core metadata for the dataset. It's important to keep this in a standardized style across datasets.</p>}
                     <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
+                    <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
                     <input type="submit" className="btn btn-success" value="Update dataset"/>
                 </form>
             </section>
