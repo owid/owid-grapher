@@ -20,6 +20,7 @@ from openpyxl import load_workbook
 
 oecd_downloads_save_location = settings.BASE_DIR + '/data/OECD/'
 oecd_metadata_file = settings.BASE_DIR + '/data/OECD/oecd_metadata.xlsx'
+oecd_dataset_base_link = 'https://stats.oecd.org/Index.aspx?DataSetCode={}'
 
 source_description = {
     'dataPublishedBy': "OECD.Stat",
@@ -91,7 +92,7 @@ with transaction.atomic():
     existing_variables = Variable.objects.filter(datasetId__namespace='oecd_stat').values('name')
     existing_variables_list = {item['name'].lower() for item in existing_variables}
 
-    dataset_name_to_object = {}
+    dataset_name_to_object = {item.name: item for item in Dataset.objects.filter(namespace='oecd_stat')}
     source_name_to_object = { item.name: item for item in Source.objects.filter(datasetId__in=[x.pk for x in Dataset.objects.filter(namespace='oecd_stat')]) }
 
     variable_name_to_object = {}
@@ -115,8 +116,19 @@ with transaction.atomic():
         file_name = os.path.basename(file)
         file_name = file_name[:file_name.rfind('_')]
 
+        if file_name in ['FIXINCLSA', 'SOCR', 'EDU_ENTR_FIELD', 'EDU_ENTR_AGE', 'EDU_ENRL_AGE', 'EDU_ENRL_FIELD', 'EDU_FIN_NATURE',
+                         'EDU_GRAD_AGE', 'EAG_ENRL_MOBILES_ORIGIN', 'EDU_PERS_AGE', 'EDU_ENRL_INST',
+                         'EDU_PERS_INST', 'EAG_FIN_RATIO_CATEGORY', 'EDU_DEM', 'EAG_EA_SKILLS', 'EDU_GRAD_FIELD',
+                         'EAG_ENRL_SHARE_CATEGORY', 'EDU_GRAD_MOBILE', 'EDU_ENRL_MOBILE', 'TOURISM_REC_EXP',
+                         'ALFS_EMP', 'TENURE_DIS', 'TEMP_D', 'TENURE_FREQ', 'SKILLS_2', 'USLHRS_I', 'TENURE_AVE',
+                         'TEMP_I', 'PPP2014', 'TAXAUTO', 'REV', 'RS_AFR', 'RS_ASI', 'RSLACT', 'TXWDECOMP']:
+            continue
+
         file_category = file[file.index('data/OECD/'):].replace(os.path.basename(file), '').replace('data/OECD/',
                                                                                                     '').replace('/', '')
+
+        if file_category == 'National Accounts':
+            continue
 
         if file_name not in duplicate_value_tracker:
             duplicate_value_tracker[file_name] = set()
@@ -142,26 +154,29 @@ with transaction.atomic():
                     the_subcategory = DatasetSubcategory(name=metadata_dict[file_name]['category'],
                                                          categoryId=the_category)
                     the_subcategory.save()
-                    newdataset = Dataset(name=metadata_dict[file_name]['category'],
-                                         description='This is a dataset imported by the automated fetcher',
-                                         namespace='oecd_stat', categoryId=the_category,
-                                         subcategoryId=the_subcategory)
-                    newdataset.save()
-                    dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
-                    new_datasets_list.append(newdataset)
 
                     existing_subcategories = DatasetSubcategory.objects.filter(categoryId=the_category.pk).values(
                         'name')
                     existing_subcategories_list = {item['name'] for item in existing_subcategories}
                 else:
-                    if metadata_dict[file_name]['category'] not in dataset_name_to_object:
-                        newdataset = Dataset.objects.get(name=metadata_dict[file_name]['category'],
-                                                         categoryId=the_category)
-                        dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
-                        existing_datasets_list.append(newdataset)
+                    the_subcategory = DatasetSubcategory.objects.get(name=metadata_dict[file_name]['category'],
+                                                                     categoryId=the_category)
+
+                long_dataset_name = "{} - {}".format(file_category, filename)
+                if long_dataset_name not in dataset_name_to_object:
+                    newdataset = Dataset(name=long_dataset_name,
+                                         description='This is a dataset imported by the automated fetcher',
+                                         namespace='oecd_stat', categoryId=the_category,
+                                         subcategoryId=the_subcategory)
+                    newdataset.save()
+                    dataset_name_to_object[long_dataset_name] = newdataset
+                    new_datasets_list.append(newdataset)
+                else:
+                    newdataset = Dataset.objects.get(name=long_dataset_name, categoryId=the_category)
 
                 source_name = "OECD - {} - {}".format(metadata_dict[file_name]['category'], filename)
                 source_description['additionalInfo'] = metadata_dict[file_name]['meta_text']
+                source_description['link'] = oecd_dataset_base_link.format(file_name)
                 if source_name not in source_name_to_object:
                     newsource = Source(name=source_name,
                                        description=json.dumps(source_description),
@@ -175,13 +190,29 @@ with transaction.atomic():
                     source_name_to_object[source_name] = newsource
 
                 for row in reader:
+                    if (file_name == 'GIDDB2014') and ((row['Region'] != 'All regions') or (row['Income group'] != 'All income categories')):
+                        continue
+                    if (file_name == 'SIGI2014') and ((row['Region'] != 'All regions') or (row['Income'] != 'All income categories')):
+                        continue
+                    if (file_name == 'SOCX_AGG') and ((row['Type of Expenditure'] != 'Total') or (row['Type of Programme'] != 'Total')):
+                        continue
+                    if (file_name == 'EDU_FIN_SOURCE') and ((row['ISCED 2011 P category'] != 'All educational programmes') or (row['Type of expenditure'] != 'All expenditure types') or (row['Counterpart sector'] != 'All sectors')):
+                        continue
+                    if (file_name == 'EAG_EARNINGS') and (row['Earnings category'] != 'All earners'):
+                        continue
+                    if (file_name == 'EAG_NEAC') and (row['Field'] != 'Total'):
+                        continue
+                    if (file_name == 'ANBERD_REV4') and not row['Industry'].isupper():
+                        continue
+                    if (file_name == 'INVPT_I') and ((row['Sex'] != 'All persons') or (row['Age'] != 'Total') or (row['Employment status'] != 'Total employment')):
+                        continue
                     if row['Value']:
                         country_col = None
                         year_col_name = None
 
                         row_number += 1
 
-                        thevarname = [filename]
+                        thevarname = []
                         for key in columns_to_process:
                             if row[key]:
                                 thevarname.append("{}:{}".format(key, row[key]))
@@ -192,7 +223,7 @@ with transaction.atomic():
 
                         if file_name == 'ANBERD_REV4':
                             variable_name += ' - ' + row['Country - distribution'][row['Country - distribution'].rfind('-'):]
-
+                        variable_name += ' - ' + file_name
                         variable_code = None
 
                         if 'Unit' in reader.fieldnames:
@@ -207,7 +238,7 @@ with transaction.atomic():
                             newvariable = Variable(name=variable_name,
                                                    unit=varunit,
                                                    code=variable_code,
-                                                   datasetId=dataset_name_to_object[metadata_dict[file_name]['category']], variableTypeId=VariableType.objects.get(pk=4),
+                                                   datasetId=newdataset, variableTypeId=VariableType.objects.get(pk=4),
                                                    sourceId=source_name_to_object[source_name])
                             newvariable.save()
                             variable_name_to_object[variable_name.lower()] = newvariable
@@ -215,7 +246,7 @@ with transaction.atomic():
                         else:
 
                             if variable_name.lower() not in variable_name_to_object:
-                                newvariable = Variable.objects.get(name=variable_name, datasetId=dataset_name_to_object[metadata_dict[file_name]['category']])
+                                newvariable = Variable.objects.get(name=variable_name, datasetId=newdataset)
                                 while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                     with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                                         c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
@@ -408,7 +439,7 @@ with transaction.atomic():
                                     else:
                                         continue
 
-                            thevarname = [filename, add_to_variable_name[i]]
+                            thevarname = [add_to_variable_name[i]]
                             for key in columns_to_process:
                                 if row[key]:
                                     thevarname.append("{}:{}".format(key, row[key]))
@@ -462,30 +493,33 @@ with transaction.atomic():
                     the_subcategory = DatasetSubcategory(name=metadata_dict[file_name]['category'],
                                                          categoryId=the_category)
                     the_subcategory.save()
-                    newdataset = Dataset(name=metadata_dict[file_name]['category'],
-                                         description='This is a dataset imported by the automated fetcher',
-                                         namespace='oecd_stat', categoryId=the_category,
-                                         subcategoryId=the_subcategory)
-                    newdataset.save()
-                    dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
-                    new_datasets_list.append(newdataset)
 
                     existing_subcategories = DatasetSubcategory.objects.filter(
                         categoryId=the_category.pk).values(
                         'name')
                     existing_subcategories_list = {item['name'] for item in existing_subcategories}
                 else:
-                    if metadata_dict[file_name]['category'] not in dataset_name_to_object:
-                        newdataset = Dataset.objects.get(name=metadata_dict[file_name]['category'],
-                                                         categoryId=the_category)
-                        dataset_name_to_object[metadata_dict[file_name]['category']] = newdataset
-                        existing_datasets_list.append(newdataset)
+                    the_subcategory = DatasetSubcategory.objects.get(name=metadata_dict[file_name]['category'],
+                                                                     categoryId=the_category)
+
+                long_dataset_name = "{} - {}".format(file_category, filename)
+                if long_dataset_name not in dataset_name_to_object:
+                    newdataset = Dataset(name=long_dataset_name,
+                                         description='This is a dataset imported by the automated fetcher',
+                                         namespace='oecd_stat', categoryId=the_category,
+                                         subcategoryId=the_subcategory)
+                    newdataset.save()
+                    dataset_name_to_object[long_dataset_name] = newdataset
+                    new_datasets_list.append(newdataset)
+                else:
+                    newdataset = Dataset.objects.get(name=long_dataset_name, categoryId=the_category)
 
                 source_name = "OECD - {} - {}".format(metadata_dict[file_name]['category'], filename)
                 source_description['additionalInfo'] = metadata_dict[file_name]['meta_text']
                 source_description['additionalInfo'] += '\n{} contains {}'.format(add_to_variable_name[0], ', '.join(entity1_values))
                 source_description['additionalInfo'] += '\n{} contains {}'.format(add_to_variable_name[1],
                                                                                   ', '.join(entity2_values))
+                source_description['link'] = oecd_dataset_base_link.format(file_name)
                 if source_name not in source_name_to_object:
                     newsource = Source(name=source_name,
                                        description=json.dumps(source_description),
@@ -524,8 +558,7 @@ with transaction.atomic():
                                 newvariable = Variable(name=variable_name,
                                                        unit=varname_to_unit[variable_name],
                                                        code=variable_code,
-                                                       datasetId=dataset_name_to_object[
-                                                           metadata_dict[file_name]['category']],
+                                                       datasetId=newdataset,
                                                        variableTypeId=VariableType.objects.get(pk=4),
                                                        sourceId=source_name_to_object[source_name])
                                 newvariable.save()
@@ -535,8 +568,7 @@ with transaction.atomic():
 
                                 if variable_name.lower() not in variable_name_to_object:
                                     newvariable = Variable.objects.get(name=variable_name,
-                                                                       datasetId=dataset_name_to_object[
-                                                                           metadata_dict[file_name]['category']])
+                                                                       datasetId=newdataset)
                                     while DataValue.objects.filter(variableId__pk=newvariable.pk).first():
                                         with connection.cursor() as c:  # if we don't limit the deleted values, the db might just hang
                                             c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %

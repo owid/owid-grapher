@@ -188,6 +188,21 @@ def listunepdatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listwhowashdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(datasetId__namespace='who_wash')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.datasetId.subcategoryId.name):
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.datasetId.subcategoryId.name] = []
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.whowash.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def listwbdatasets(request: HttpRequest, dataset: str):
     if dataset == 'wdidatasets':
         dataset_name = 'wdi'

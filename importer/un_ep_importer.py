@@ -151,7 +151,12 @@ with transaction.atomic():
                     newdataset = Dataset.objects.get(name=subcategory_name, categoryId=the_category)
                     dataset_name_to_object[subcategory_name] = newdataset
                     existing_datasets_list.append(newdataset)
-
+            if 'iea.org' in json.dumps(source_description).lower() or 'iea stat' in json.dumps(
+                source_description).lower() or 'iea 2014' in json.dumps(source_description).lower():
+                source_description[
+                    'dataPublishedBy'] = 'International Energy Agency (IEA) via United Nations Environment Programme'
+            else:
+                source_description['dataPublishedBy'] = "United Nations Environment Programme"
             if varname not in existing_variables_list:
                 newsource = Source(name=varname,
                                    description=json.dumps(source_description),

@@ -244,6 +244,10 @@ with transaction.atomic():
                                     if not global_cat[indicator_code]['saved']:
                                         source_description['additionalInfo'] = None
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                        if 'iea.org' in json.dumps(source_description).lower() or 'iea stat' in json.dumps(source_description).lower() or 'iea 2014' in json.dumps(source_description).lower():
+                                            source_description['dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                        else:
+                                            source_description['dataPublishedBy'] = "World Bank Climate Change Data"
                                         newsource = Source(name='World Bank Climate Change Data: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
@@ -507,6 +511,10 @@ with transaction.atomic():
                                     if indicator_code in vars_to_add:
                                         source_description['additionalInfo'] = None
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                        if 'iea.org' in json.dumps(source_description).lower() or 'iea stat' in json.dumps(source_description).lower() or 'iea 2014' in json.dumps(source_description).lower():
+                                            source_description['dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                        else:
+                                            source_description['dataPublishedBy'] = "World Bank Climate Change Data"
                                         newsource = Source(name='World Bank Climate Change Data: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
@@ -540,6 +548,14 @@ with transaction.atomic():
                                             newsource.name = 'World Bank Climate Change Data: ' + global_cat[indicator_code]['name']
                                             source_description['additionalInfo'] = None
                                             source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                            if 'iea.org' in json.dumps(
+                                                source_description).lower() or 'iea stat' in json.dumps(
+                                                source_description).lower() or 'iea 2014' in json.dumps(
+                                                source_description).lower():
+                                                source_description[
+                                                    'dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                            else:
+                                                source_description['dataPublishedBy'] = "World Bank Climate Change Data"
                                             newsource.description=json.dumps(source_description)
                                             newsource.datasetId=newdataset.pk
                                             newsource.save()
