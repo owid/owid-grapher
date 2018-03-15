@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon --watch dist/src --inspect dist/src/admin/server.js\"",
     "lint": "tslint --project . -t verbose",
-    "build": "tsc && webpack -p --progress"
+    "build": "rm -rf dist && tsc && rm -rf grapher_admin/static/build && webpack -p --progress"
   },
   "dependencies": {
     "@types/async": "^2.0.45",

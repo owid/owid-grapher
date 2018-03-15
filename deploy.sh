@@ -22,10 +22,6 @@ else
   exit 1
 fi
 
-if [ "$2" != "no-webpack" ]; then
-    yarn build
-fi
-
 if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]
 then
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
@@ -51,13 +47,13 @@ then
   ln -sf $FINAL_DATA/public $TMP_NEW/public
   ln -sf $FINAL_DATA/data $TMP_NEW/data
 
-  # Install dependencies and migrate
+  # Install dependencies, build assets and migrate
   cd $TMP_NEW
   yarn install --production
   . env/bin/activate
   pip3 install -r requirements.txt
+  yarn build
   python3 manage.py migrate
-  ./node_modules/.bin/tsc
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

@@ -6,7 +6,7 @@ export default function AdminSidebar(props: { onDismiss: () => void }) {
     return <aside className="AdminSidebar">
         <ul className="sidebar-menu">
             <li className="header">CHARTS</li>
-            <li><Link to="/"><i className="fa fa-bar-chart"></i> Charts</Link></li>
+            <li><Link to="/charts"><i className="fa fa-bar-chart"></i> Charts</Link></li>
             <li className="header">DATA</li>
             <li><Link to="/import"><i className="fa fa-upload"></i> Import CSV</Link></li>
             <li><Link to="/datasets"><i className="fa fa-table"></i> Datasets</Link></li>
