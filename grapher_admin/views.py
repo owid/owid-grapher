@@ -2004,7 +2004,9 @@ def variables(request, ids):
 
     # Process the metadata into a nicer form
     for variable in variables:
-        variable['shortUnit'] = variable.pop('short_unit')
+        shortUnit = variable.pop('short_unit')
+        if shortUnit is not None:
+            variable['shortUnit'] = shortUnit
         variable['datasetName'] = variable.pop('datasetId__name')
         source_description = json.loads(variable.pop('sourceId__description'))
         variable['source'] = source_description
