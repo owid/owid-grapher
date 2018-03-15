@@ -1,12 +1,16 @@
-import * as db from '../db'
-import {getVariableData} from '../models/Variable'
-import { ChartConfigProps } from '../../js/charts/ChartConfig'
-import * as _ from 'lodash'
-import {Request, Response, CurrentUser} from './authentication'
 import * as express from 'express'
 import {Express, Router} from 'express'
-import {JsonError, expectInt} from './serverUtil'
+import * as _ from 'lodash'
+import {spawn} from 'child_process'
+import * as path from 'path'
+
+import * as db from '../db'
+import {BASE_DIR, DB_NAME} from '../settings'
+import {JsonError, expectInt, isValidSlug, shellEscape} from './serverUtil'
 import Chart from '../models/Chart'
+import {Request, Response, CurrentUser} from './authentication'
+import {getVariableData} from '../models/Variable'
+import { ChartConfigProps } from '../../js/charts/ChartConfig'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -24,24 +28,35 @@ class FunctionalRouter {
         }
     }
 
-    get(path: string, callback: (req: Request, res: Response) => Promise<any>) {
-        this.router.get(path, this.wrap(callback))
+    get(targetPath: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.get(targetPath, this.wrap(callback))
     }
 
-    post(path: string, callback: (req: Request, res: Response) => Promise<any>) {
-        this.router.post(path, this.wrap(callback))
+    post(targetPath: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.post(targetPath, this.wrap(callback))
     }
 
-    put(path: string, callback: (req: Request, res: Response) => Promise<any>) {
-        this.router.put(path, this.wrap(callback))
+    put(targetPath: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.put(targetPath, this.wrap(callback))
     }
 
-    delete(path: string, callback: (req: Request, res: Response) => Promise<any>) {
-        this.router.delete(path, this.wrap(callback))
+    delete(targetPath: string, callback: (req: Request, res: Response) => Promise<any>) {
+        this.router.delete(targetPath, this.wrap(callback))
     }
 }
 
 const api = new FunctionalRouter()
+
+// Trigger incremental rebuild of static charts and data
+async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
+    const email = shellEscape(user.email)
+    const name = shellEscape(user.fullName)
+    const message = shellEscape(commitMessage)
+    const bakeCharts = path.join(BASE_DIR, 'dist/src/bakeCharts.js')
+    const cmd = `node ${bakeCharts} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
+    const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
+    subprocess.unref()
+}
 
 async function getChartById(chartId: number): Promise<ChartConfigProps|undefined> {
     const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId]))[0]
@@ -55,8 +70,8 @@ async function getChartById(chartId: number): Promise<ChartConfigProps|undefined
     }
 }
 
-async function expectChartById(chartId: number): Promise<ChartConfigProps> {
-    const chart = await getChartById(chartId)
+async function expectChartById(chartId: any): Promise<ChartConfigProps> {
+    const chart = await getChartById(expectInt(chartId))
 
     if (chart) {
         return chart
@@ -65,12 +80,9 @@ async function expectChartById(chartId: number): Promise<ChartConfigProps> {
     }
 }
 
-function isValidSlug(slug: any) {
-    return _.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
-}
-
 async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
     return await db.transaction(async () => {
+        // Slugs need some special logic to ensure public urls remain consistent whenever possible
         async function isSlugUsedInRedirect() {
             const rows = await db.query(`SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
             return rows.length > 0
@@ -94,31 +106,31 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             }
         }
 
-        // Bump chart version
+        // Bump chart version, very important for cachebusting
         if (existingConfig)
             newConfig.version = existingConfig.version + 1
         else
             newConfig.version = 1
 
+        // Execute the actual database update or creation
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
         if (existingConfig) {
-            await db.query(`UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ? `, [JSON.stringify(newConfig), now, now, user.name, chartId])
+            await db.query(
+                `UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ?`,
+                [JSON.stringify(newConfig), now, now, user.name, chartId]
+            )
         } else {
-            const result = await db.query(`INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`, [[JSON.stringify(newConfig), now, now, now, user.name, false]])
+            const result = await db.query(
+                `INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`,
+                [[JSON.stringify(newConfig), now, now, now, user.name, false]]
+            )
             chartId = result.insertId
         }
 
-        if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
-            // Newly published, set publication info
-            await db.query(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
-        }
-
-        // Store dimensions
+        // Remove any old dimensions and store the new ones
         // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-
         await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [chartId])
-
         for (let i = 0; i < newConfig.dimensions.length; i++) {
             const dim = newConfig.dimensions[i]
             await db.query(`INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`, [[chartId, dim.variableId, dim.property, i]])
@@ -134,11 +146,20 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             }
         }
 
+        if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
+            // Newly published, set publication info
+            await db.query(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
+            await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
+        } else if (!newConfig.isPublished && existingConfig && existingConfig.isPublished) {
+            await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
+        } else if (newConfig.isPublished) {
+            await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+        }
+
         return chartId
     })
 }
 
-// Retrieve list of charts and their associated variables, for the admin index page
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
@@ -201,10 +222,10 @@ api.get('/data/variables/:variableStr.json', async (req: Request, res: Response)
 
 // Mark a chart for display on the front page
 api.post('/charts/:chartId/star', async (req: Request, res: Response) => {
-    const chartId = expectInt(req.params.chartId)
-    db.query(`UPDATE charts SET starred=(charts.id=?)`, [chartId])
+    const chart = await expectChartById(req.params.chartId)
 
-    //Chart.bake(request.user, chart.slug)
+    db.query(`UPDATE charts SET starred=(charts.id=?)`, [chart.id])
+    await triggerStaticBuild(res.locals.user, `Setting front page chart to ${chart.slug}`)
 
     return { success: true }
 })
@@ -216,21 +237,23 @@ api.post('/charts', async (req: Request, res: Response) => {
 
 api.put('/charts/:chartId', async (req: Request, res: Response) => {
     const existingConfig = await expectChartById(req.params.chartId)
-    await saveChart(res.locals.user, req.body, existingConfig)
 
-    // bake
+    await saveChart(res.locals.user, req.body, existingConfig)
 
     return { success: true, chartId: existingConfig.id }
 })
 
 api.delete('/charts/:chartId', async (req: Request, res: Response) => {
+    const chart = await expectChartById(req.params.chartId)
+
     await db.transaction(async () => {
-        await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [req.params.chartId])
-        await db.query(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [req.params.chartId])
-        await db.query(`DELETE FROM charts WHERE id=?`, [req.params.chartId])
+        await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [chart.id])
+        await db.query(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [chart.id])
+        await db.query(`DELETE FROM charts WHERE id=?`, [chart.id])
     })
 
-    // bake
+    if (chart.isPublished)
+        await triggerStaticBuild(res.locals.user, `Deleting chart ${chart.slug}`)
 
     return { success: true }
 })
@@ -270,8 +293,6 @@ api.delete('/users/:userId', async (req: Request, res: Response) => {
 
     return { success: true }
 })
-
-
 
 api.put('/users/:userId', async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser) {

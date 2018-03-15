@@ -21,10 +21,6 @@ export interface ChartBakerProps {
     canonicalRoot: string
     pathRoot: string
     repoDir: string
-
-    regenConfig?: boolean
-    regenImages?: boolean
-    regenData?: boolean
 }
 
 export class ChartBaker {
@@ -110,7 +106,7 @@ export class ChartBaker {
 
         // Make sure we bake the variables successfully before outputing the chart html
         const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}.json`
-        if (!isSameVersion || props.regenData || !fs.existsSync(vardataPath)) {
+        if (!isSameVersion || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 
@@ -122,7 +118,7 @@ export class ChartBaker {
             await fs.mkdirp(`${this.baseDir}/exports/`)
             const svgPath = `${this.baseDir}/exports/${chart.slug}.svg`
             const pngPath = `${this.baseDir}/exports/${chart.slug}.png`
-            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath) || props.regenImages) {
+            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeImageExports(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(svgPath)
@@ -233,15 +229,15 @@ ${pathRoot}/*
         this.stagedFiles.push(targetPath)
     }
 
-    async deploy(authorEmail?: string, authorName?: string, commitMsg?: string) {
+    async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         const {repoDir} = this.props
         for (const files of chunk(this.stagedFiles, 100)) {
             this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`)
         }
         if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${repoDir} && git commit --author='${authorName} <${authorEmail}>' -m '${commitMsg}' && git push origin master`)
+            this.exec(`cd ${repoDir} && git commit -m '${commitMsg}' --author='${authorName} <${authorEmail}>' && git push origin master`)
         } else {
-            this.exec(`cd ${repoDir} && git commit -m "Automated update" && git push origin master`)
+            this.exec(`cd ${repoDir} && git commit -m "${commitMsg}" && git push origin master`)
         }
     }
 

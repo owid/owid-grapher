@@ -26,7 +26,7 @@ interface Settings {
 const env: Settings = (process.env as any)
 
 env.ENV = env.ENV === "production" ? "production" : "development"
-env.BASE_DIR = path.join(__dirname, "../")
+env.BASE_DIR = path.join(__dirname, "../../")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 
 export = env
