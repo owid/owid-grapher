@@ -1933,3 +1933,6 @@ def treeview_datasets(request: HttpRequest):
     return render(request, 'admin.datasets.by.category.html', context={'current_user': request.user.name,
                                                                        'tree_json': tree_json
                                                                        })
+
+def redirect_404(request: HttpRequest, path: str):
+    return HttpResponseRedirect('/admin/' + path)

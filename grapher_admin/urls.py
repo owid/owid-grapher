@@ -61,24 +61,9 @@ urlpatterns = [
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/standardize/instructions/?', countrytool_views.serve_instructions, name="countrytoolinstructions"),
     url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
-    url(r'^grapher/admin/unwppdatasets/?$', importer_views.listunwppdatasets, name="listunwppdatasets"),
-    url(r'^grapher/admin/qogdatasets/?$', importer_views.listqogdatasets, name="listqogdatasets"),
-    url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
-    url(r'^grapher/admin/clioinfradatasets/?$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
-    url(r'^grapher/admin/wb/(?P<dataset>[\w]+)/?$', importer_views.listwbdatasets, name="listwbdatasets"),
-    url(r'^grapher/admin/gbdcausedatasets/?$', importer_views.listgbdcausedatasets, name="listgbdcausedatasets"),
-    url(r'^grapher/admin/gbdriskdatasets/?$', importer_views.listgbdriskdatasets, name="listgbdriskdatasets"),
-    url(r'^grapher/admin/ilostatdatasets/?$', importer_views.listilostatdatasets, name="listilostatdatasets"),
-    url(r'^grapher/admin/unsdgdatasets/?$', importer_views.listunsdgdatasets, name="listunsdgdatasets"),
-    url(r'^grapher/admin/gbdprevalencedatasets/?$', importer_views.listgbdprevalencedatasets, name="listgbdprevalencedatasets"),
-    url(r'^grapher/admin/gbdprevalencebygenderdatasets/?$', importer_views.listgbdprevalencebygenderdatasets, name="listgbdprevalencebygenderdatasets"),
-    url(r'^grapher/admin/gbdmentalhealthdatasets/?$', importer_views.listgbdmentalhealthdatasets, name="listgbdmentalhealthdatasets"),
-    url(r'^grapher/admin/unepdatasets/?$', importer_views.listunepdatasets, name="listunepdatasets"),
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
-    # for future use on the frontend
-    url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),
-    url(r'^grapher/admin/users\.json$', admin_views.listusers, name="listusersjson"),
+    url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),    
 
     ### Public
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),
@@ -95,6 +80,9 @@ urlpatterns = [
     url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
     url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
 
-    ### Glue code until we can go fully static
+    # Redirect other urls to node
+    url(r'^grapher/admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),
+
+    # Development urls to serve static build locally
     url(r'^grapher/(?P<path>.+)/?$', glue_views.servestatic, name="servestatic"),
 ]
