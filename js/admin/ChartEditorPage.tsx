@@ -113,7 +113,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
         const {chart, availableTabs, previewMode} = editor
 
         return [
-            <Prompt when={!editor.isSaved} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
+            <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
             <TabBinder editor={editor}/>,
             <form onSubmit={e => e.preventDefault()}>
                 <div className="p-2">

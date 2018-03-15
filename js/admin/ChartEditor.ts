@@ -1,3 +1,4 @@
+import { IReactionDisposer } from 'mobx';
 /* ChartEditor.ts
  * ================
  *
@@ -5,7 +6,7 @@
  *
  */
 
-import { observable, computed, reaction, action, runInAction } from 'mobx'
+import { observable, computed, reaction, action, runInAction, when } from 'mobx'
 import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
@@ -51,18 +52,22 @@ export interface ChartEditorProps {
 export default class ChartEditor {
     props: ChartEditorProps
     // Whether the current chart state is saved or not
-    @observable.ref isSaved: boolean = true
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = 'basic'
     @observable.ref errorMessage?: { title: string, content: string }
     @observable.ref previewMode: 'mobile'|'desktop' = 'mobile'
+    @observable.ref savedChartConfig: string = ""
 
     constructor(props: ChartEditorProps) {
         this.props = props
-        reaction(
-            () => this.chart && this.chart.json,
-            () => this.isSaved = false
+        when(
+            () => this.chart.data.isReady,
+            () => this.savedChartConfig = JSON.stringify(this.chart.json)
         )
+    }
+
+    @computed get isModified(): boolean {
+        return JSON.stringify(this.chart.json) !== this.savedChartConfig
     }
 
     @computed get chart(): ChartConfig {
@@ -109,8 +114,8 @@ export default class ChartEditor {
             if (isNewChart) {
                 window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
             } else {
-                this.isSaved = true
                 chart.props.version += 1
+                this.savedChartConfig = JSON.stringify(chart.json)
             }
         } else {
             if (onError) onError()
