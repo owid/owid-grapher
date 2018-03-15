@@ -318,6 +318,10 @@ with transaction.atomic():
                                         source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                         source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                        if 'iea.org' in json.dumps(source_description).lower() or 'iea stat' in json.dumps(source_description).lower() or 'iea 2014' in json.dumps(source_description).lower():
+                                            source_description['dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                        else:
+                                            source_description['dataPublishedBy'] = 'World Bank – World Development Indicators'
                                         newsource = Source(name='World Bank – WDI: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
@@ -628,6 +632,10 @@ with transaction.atomic():
                                         source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                         source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                         source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                        if 'iea.org' in json.dumps(source_description).lower() or 'iea stat' in json.dumps(source_description).lower() or 'iea 2014' in json.dumps(source_description).lower():
+                                            source_description['dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                        else:
+                                            source_description['dataPublishedBy'] = 'World Bank – World Development Indicators'
                                         newsource = Source(name='World Bank – WDI: ' + global_cat[indicator_code]['name'],
                                                            description=json.dumps(source_description),
                                                            datasetId=newdataset.pk)
@@ -662,6 +670,15 @@ with transaction.atomic():
                                             source_description['additionalInfo'] += "Related source links:\n" + global_cat[indicator_code]['sourcelinks'] + "\n" if global_cat[indicator_code]['sourcelinks'] else ''
                                             source_description['additionalInfo'] += "Other web links:\n" + global_cat[indicator_code]['weblinks'] + "\n" if global_cat[indicator_code]['weblinks'] else ''
                                             source_description['dataPublisherSource'] = global_cat[indicator_code]['source']
+                                            if 'iea.org' in json.dumps(
+                                                source_description).lower() or 'iea stat' in json.dumps(
+                                                source_description).lower() or 'iea 2014' in json.dumps(
+                                                source_description).lower():
+                                                source_description[
+                                                    'dataPublishedBy'] = 'International Energy Agency (IEA) via The World Bank'
+                                            else:
+                                                source_description[
+                                                    'dataPublishedBy'] = 'World Bank – World Development Indicators'
                                             newsource.description=json.dumps(source_description)
                                             newsource.datasetId=newdataset.pk
                                             newsource.save()
