@@ -203,6 +203,21 @@ def listwhowashdatasets(request: HttpRequest):
                                                            'datasets': datasets})
 
 
+def listoecdstatdatasets(request: HttpRequest):
+    variables = Variable.objects.filter(datasetId__namespace='oecd_stat')
+    datasets: Dict = {}
+
+    for each in variables:
+        if datasets.get(each.datasetId.subcategoryId.name):
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+        else:
+            datasets[each.datasetId.subcategoryId.name] = []
+            datasets[each.datasetId.subcategoryId.name].append({'id': each.pk, 'name': each.name, 'code': each.code})
+
+    return render(request, 'admin.oecdstat.data.html', context={'current_user': request.user.name,
+                                                           'datasets': datasets})
+
+
 def listwbdatasets(request: HttpRequest, dataset: str):
     if dataset == 'wdidatasets':
         dataset_name = 'wdi'

@@ -82,6 +82,7 @@ urlpatterns = [
     url(r'^grapher/admin/gbdmentalhealthdatasets/?$', importer_views.listgbdmentalhealthdatasets, name="listgbdmentalhealthdatasets"),
     url(r'^grapher/admin/unepdatasets/?$', importer_views.listunepdatasets, name="listunepdatasets"),
     url(r'^grapher/admin/whowashdatasets/?$', importer_views.listwhowashdatasets, name="listwhowashdatasets"),
+    url(r'^grapher/admin/oecdstatdatasets/?$', importer_views.listoecdstatdatasets, name="listoecdstatdatasets"),
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     # for future use on the frontend
