@@ -1,14 +1,16 @@
 /* Forms.tsx
  * ================
  *
- * Reusable React components to keep admin form code succint and consistent
+ * Reusable React components to keep admin UI succint and consistent
  */
 
 import * as React from 'react'
-import { extend, pick, capitalize } from '../charts/Util'
+import * as _ from 'lodash'
 import { bind } from 'decko'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
+
+import { extend, pick, capitalize } from '../charts/Util'
 import Colorpicker from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
@@ -449,5 +451,22 @@ export class LoadingBlocker extends React.Component<{}> {
         return <div className="LoadingBlocker">
             <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
         </div>
+    }
+}
+
+export class Pagination extends React.Component<{ totalItems: number, perPage: number }> {
+    render() {
+        const {totalItems, perPage} = this.props
+        const numPages = Math.ceil(totalItems/perPage)
+        return <nav>
+            <ul className="pagination">
+                <li className="page-item"><a className="page-link">Previous</a></li>
+                {_.range(1, numPages+1).map(pageNum =>
+                    <li className="page-item"><a className="page-link">{pageNum}</a></li>
+                )}
+                <li className="page-item"><a className="page-link">Next</a></li>
+            </ul>
+        </nav>
+
     }
 }

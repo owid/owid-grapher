@@ -5,7 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
-        "max-classes-per-file": [true, 20],
+        "max-classes-per-file": false,
         "member-access": false,
         "semicolon": [true, "never"],
         "curly": false,

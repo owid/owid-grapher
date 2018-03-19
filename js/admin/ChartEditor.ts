@@ -1,4 +1,3 @@
-import { IReactionDisposer } from 'mobx';
 /* ChartEditor.ts
  * ================
  *
@@ -6,7 +5,7 @@ import { IReactionDisposer } from 'mobx';
  *
  */
 
-import { observable, computed, reaction, action, runInAction, when } from 'mobx'
+import { observable, computed, reaction, action, runInAction, when, IReactionDisposer } from 'mobx'
 import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
@@ -101,7 +100,7 @@ export default class ChartEditor {
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
         const data = await this.props.admin.getJSON(`/api/editorData/${namespace}.json`)
-        runInAction(() => this.database.dataByNamespace.set(namespace, data))
+        runInAction(() => this.database.dataByNamespace.set(namespace, data as any))
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {

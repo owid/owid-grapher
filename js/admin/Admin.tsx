@@ -1,9 +1,12 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import AdminApp from './AdminApp'
+import * as _ from 'lodash'
 import {observable, computed} from 'mobx'
 import * as urljoin from 'url-join'
-import {extend} from '../charts/Util'
+import * as queryString from 'query-string'
+
+import AdminApp from './AdminApp'
+import { Json } from '../charts/Util'
 
 type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
 
@@ -39,8 +42,15 @@ export default class Admin {
     }
 
     // Make a request with no error or response handling
-    async rawRequest(path: string, data: any, method: HTTPMethod) {
-        return fetch(this.url(path), {
+    async rawRequest(path: string, data: Json, method: HTTPMethod) {
+        let targetPath = path
+
+        // Tack params on the end if it's a GET request
+        if (method === "GET" && !_.isEmpty(data)) {
+            targetPath += "?" + queryString.stringify(data)
+        }
+
+        return fetch(this.url(targetPath), {
             method: method,
             credentials: 'same-origin',
             headers: {
@@ -53,12 +63,12 @@ export default class Admin {
 
     // Make a request and expect JSON in response
     // If we can't retrieve and parse JSON, it is treated as a fatal/unexpected error
-    async requestJSON(path: string, data: any, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
+    async requestJSON(path: string, data: Json, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
         const onFailure = opts.onFailure || 'show'
 
         let response: Response|undefined
         let text: string|undefined
-        let json: any
+        let json: Json
 
         try {
             const request = this.rawRequest(path, data, method)
@@ -85,20 +95,7 @@ export default class Admin {
         return json
     }
 
-    async getJSON(path: string): Promise<any> {
-        return this.requestJSON(path, {}, 'GET')
+    async getJSON(path: string, params: Json = {}): Promise<Json> {
+        return this.requestJSON(path, params, 'GET')
     }
-
-    /*async request(path: string, data: any, method: 'GET' | 'PUT' | 'POST') {
-        try {
-            const request = this.rawRequest(path, data, method)
-            this.currentRequests.push(request)
-            const response = await request
-            this.currentRequests.pop()
-        } catch (err) {
-            this.currentRequests.pop()
-            this.errorMessage = { title: `Failed to ${method} ${path}`, content: err }
-            throw this.errorMessage
-        }
-    }*/
 }

@@ -45,8 +45,10 @@ export default class UserEditPage extends React.Component<{ userId: number }> {
     }
 
     async save() {
-        await this.context.admin.requestJSON(`/api/users/${this.props.userId}`, this.user, "PUT")
-        this.isSaved = true
+        if (this.user) {
+            await this.context.admin.requestJSON(`/api/users/${this.props.userId}`, this.user, "PUT")
+            this.isSaved = true
+        }
     }
 
     async getData() {

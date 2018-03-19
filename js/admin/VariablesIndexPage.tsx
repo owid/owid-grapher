@@ -7,7 +7,7 @@ import * as _ from 'lodash'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { Modal, LoadingBlocker, SearchField, FieldsRow } from './Forms'
+import { Modal, LoadingBlocker, SearchField, FieldsRow, Pagination } from './Forms'
 import Link from './Link'
 import VariableList, {VariableListItem} from './VariableList'
 
@@ -53,8 +53,8 @@ export default class VariablesIndexPage extends React.Component {
     }
 
     async getData() {
-        const {searchInput} = this
-        const json = await this.context.admin.getJSON("/api/variables.json" + (searchInput ? `?search=${searchInput}` : ""))
+        const {searchInput, maxVisibleRows} = this
+        const json = await this.context.admin.getJSON("/api/variables.json", { search: searchInput, limit: maxVisibleRows })
         runInAction(() => {
             if (searchInput === this.searchInput) { // Make sure this response is current
                 this.variables = json.variables
@@ -67,7 +67,7 @@ export default class VariablesIndexPage extends React.Component {
     dispose!: IReactionDisposer
     componentDidMount() {
         this.dispose = reaction(
-            () => this.searchInput,
+            () => this.searchInput || this.maxVisibleRows,
             _.debounce(() => this.getData(), 200)
         )
         this.getData()
