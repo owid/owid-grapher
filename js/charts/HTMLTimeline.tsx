@@ -60,15 +60,15 @@ export default class Timeline extends React.Component<TimelineProps> {
             }
         })
 
-        autorunAsync(() => {
+        autorun(() => {
             if (this.props.onInputChange)
                 this.props.onInputChange({ startYear: this.startYear, endYear: this.endYear })
-        })
+        }, { delay: 0 })
 
-        autorunAsync(() => {
+        autorun(() => {
             if (this.props.onTargetChange)
                 this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
-        })
+        }, { delay: 0 })
     }
 
     @computed get years(): number[] {

@@ -85,7 +85,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 }
 
 @observer
-export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any }> {
+export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
     @action.bound async onDeleteChart(chart: ChartListItem) {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return
@@ -93,7 +93,10 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
         const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}`, {}, "DELETE")
 
         if (json.success) {
-            runInAction(() => this.props.charts.splice(this.props.charts.indexOf(chart), 1))
+            if (this.props.onDelete)
+                this.props.onDelete(chart)
+            else
+                runInAction(() => this.props.charts.splice(this.props.charts.indexOf(chart), 1))
         }
     }
 

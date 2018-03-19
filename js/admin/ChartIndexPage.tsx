@@ -79,7 +79,7 @@ export default class ChartIndexPage extends React.Component {
                     <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
                     <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
                 </div>
-                <ChartList charts={chartsToShow} searchHighlight={highlight}/>
+                <ChartList charts={chartsToShow} searchHighlight={highlight} onDelete={action((c: any) => this.charts.splice(this.charts.indexOf(c), 1))}/>
                 {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
             </main>
         </AdminLayout>
