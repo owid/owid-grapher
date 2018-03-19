@@ -2,7 +2,6 @@ const path = require('path')
 const webpack = require('webpack')
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
 const isProduction = process.argv.indexOf('-p') !== -1
@@ -42,7 +41,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
+                loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]'] })
             },
             {
                 test: /\.scss$/,
@@ -59,10 +58,6 @@ module.exports = {
     devtool: (isProduction ? false : "cheap-module-eval-source-map"),
 
     plugins: (isProduction ? [
-        new webpack.optimize.CommonsChunkPlugin({
-            name: "charts"
-        }),
-
         // This plugin extracts css files required in the entry points
         // into a separate CSS bundle for download
         new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
@@ -75,33 +70,13 @@ module.exports = {
 
         // JS optimization
         new ParallelUglifyPlugin({
-            cachePath: path.join(__dirname, 'tmp'),
-            uglifyJS: {
-                compress: {
-                  warnings: false,
-                  screw_ie8: true,
-                  conditionals: true,
-                  unused: false,
-                  comparisons: true,
-                  sequences: true,
-                  dead_code: true,
-                  evaluate: true,
-                  if_return: true,
-                  join_vars: true
-                },
-            }
+            cachePath: path.join(__dirname, 'tmp')
         }),
 
         // Output manifest so server can figure out the hashed
         // filenames
         new ManifestPlugin(),
     ] : [
-        new webpack.optimize.CommonsChunkPlugin({
-            name: "charts"
-        }),
-
-        new ForkTsCheckerWebpackPlugin(),
-
         new ExtractTextPlugin('[name].css'),
 
         // Output manifest so server can figure out the hashed
