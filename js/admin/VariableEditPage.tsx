@@ -89,6 +89,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 <BindString field="unit" store={newVariable} label="Unit of measurement" disabled={isBulkImport}/>
                                 <BindString field="shortUnit" store={newVariable} label="Short (axis) unit" disabled={isBulkImport}/>
                             </FieldsRow>
+                            <BindString field="description" store={newVariable} label="Description" textarea disabled={isBulkImport}/>
                         </section>
                         <section>
                             <h3>Display settings</h3>
@@ -138,7 +139,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     async save() {
         const {variable} = this.props
-        const json = await this.context.admin.requestJSON(`/api/datasets/${variable.id}`, { variable: this.newVariable }, "PUT")
+        const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, { variable: this.newVariable }, "PUT")
 
         if (json.success) {
             Object.assign(this.props.variable, this.newVariable)
