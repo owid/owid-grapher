@@ -404,7 +404,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId
+        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
