@@ -55,11 +55,12 @@ export default class ChartEditor {
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = 'basic'
     @observable.ref errorMessage?: { title: string, content: string }
-    @observable.ref previewMode: 'mobile'|'desktop' = 'mobile'
+    @observable.ref previewMode: 'mobile'|'desktop'
     @observable.ref savedChartConfig: string = ""
 
     constructor(props: ChartEditorProps) {
         this.props = props
+        this.previewMode = localStorage.getItem('editorPreviewMode') === 'desktop' ? 'desktop' : 'mobile'
         when(
             () => this.chart.data.isReady,
             () => this.savedChartConfig = JSON.stringify(this.chart.json)

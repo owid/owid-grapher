@@ -88,6 +88,15 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     dispose!: IReactionDisposer
     componentDidMount() {
         this.refresh()
+
+        this.dispose = reaction(
+            () => this.editor && this.editor.previewMode,
+            () => {
+                if (this.editor) {
+                    localStorage.setItem('editorPreviewMode', this.editor.previewMode)
+                }
+            }
+        )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update
