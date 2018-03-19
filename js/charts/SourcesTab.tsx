@@ -28,7 +28,7 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
         const { dimension } = source
         const { variable } = dimension
 
-        const editUrl = Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/sources/${source.id}/edit` : undefined
+        const editUrl = Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/sources/${source.id}` : undefined
 
         return <div className="datasource-wrapper">
             <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>

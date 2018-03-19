@@ -25,7 +25,7 @@ export default class SaveButtons extends React.Component<{ editor: ChartEditor }
         const { chart } = editor
 
         return <div className="SaveButtons">
-            <button className="btn btn-success" onClick={this.onSaveChart}>{chart.isPublished ? "Update chart" : "Save draft"}</button>
+            <button className="btn btn-success" onClick={this.onSaveChart}>{chart.isPublished ? "Update chart" : (chart.props.id ? "Save draft" : "Create draft")}</button>
             {" "}<button className="btn btn-secondary" onClick={this.onSaveAsNew}>Save as new</button>
             {" "}<button className="btn btn-danger" onClick={this.onPublishToggle}>{chart.isPublished ? "Unpublish" : "Publish"}</button>
         </div>

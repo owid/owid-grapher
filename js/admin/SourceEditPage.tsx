@@ -2,7 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
-import {Prompt, Redirect} from 'react-router'
+import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
 import Admin from './Admin'

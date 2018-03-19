@@ -57,6 +57,10 @@ export default class ChartEditor {
     @observable.ref previewMode: 'mobile'|'desktop'
     @observable.ref savedChartConfig: string = ""
 
+    // This gets set when we save a new chart for the first time
+    // so the page knows to update the url
+    @observable.ref newChartId?: number
+
     constructor(props: ChartEditorProps) {
         this.props = props
         this.previewMode = localStorage.getItem('editorPreviewMode') === 'desktop' ? 'desktop' : 'mobile'
@@ -112,10 +116,12 @@ export default class ChartEditor {
 
         if (json.success) {
             if (isNewChart) {
-                window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
+                this.newChartId = json.chartId
             } else {
-                chart.props.version += 1
-                this.savedChartConfig = JSON.stringify(chart.json)
+                runInAction(() => {
+                    chart.props.version += 1
+                    this.savedChartConfig = JSON.stringify(chart.json)
+                })
             }
         } else {
             if (onError) onError()

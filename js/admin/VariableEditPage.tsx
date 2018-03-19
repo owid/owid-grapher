@@ -2,7 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
-import {Prompt} from 'react-router'
+import {Prompt} from 'react-router-dom'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
