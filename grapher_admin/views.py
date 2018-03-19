@@ -1233,5 +1233,5 @@ def treeview_datasets(request: HttpRequest):
                                                                        'tree_json': tree_json
                                                                        })
 
-def redirect_404(request: HttpRequest, path: str):
+def redirect_404(request: HttpRequest, path: str = ""):
     return HttpResponseRedirect('/admin/' + path)
