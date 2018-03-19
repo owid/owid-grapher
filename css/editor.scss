@@ -23,6 +23,10 @@ html, body {
         content: " (logout)";
     }
 
+    .navbar {
+        z-index: 2;
+    }
+
     .navbar-toggler {
         display: block;
         margin-right: 1rem;
