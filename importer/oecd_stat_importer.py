@@ -121,7 +121,8 @@ with transaction.atomic():
                          'EDU_PERS_INST', 'EAG_FIN_RATIO_CATEGORY', 'EDU_DEM', 'EAG_EA_SKILLS', 'EDU_GRAD_FIELD',
                          'EAG_ENRL_SHARE_CATEGORY', 'EDU_GRAD_MOBILE', 'EDU_ENRL_MOBILE', 'TOURISM_REC_EXP',
                          'ALFS_EMP', 'TENURE_DIS', 'TEMP_D', 'TENURE_FREQ', 'SKILLS_2', 'USLHRS_I', 'TENURE_AVE',
-                         'TEMP_I', 'PPP2014', 'TAXAUTO', 'REV', 'RS_AFR', 'RS_ASI', 'RSLACT', 'TXWDECOMP']:
+                         'TEMP_I', 'PPP2014', 'TAXAUTO', 'REV', 'RS_AFR', 'RS_ASI', 'RSLACT', 'TXWDECOMP', 'TABLE1',
+                         'EPER', 'ICT_BUS']:
             continue
 
         file_category = file[file.index('data/OECD/'):].replace(os.path.basename(file), '').replace('data/OECD/',
@@ -129,6 +130,10 @@ with transaction.atomic():
 
         if file_category == 'National Accounts':
             continue
+
+        if file_category == 'Demography and Population':
+            if file_name not in ['MIG']:
+                continue
 
         if file_name not in duplicate_value_tracker:
             duplicate_value_tracker[file_name] = set()
