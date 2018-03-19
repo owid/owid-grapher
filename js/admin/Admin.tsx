@@ -3,10 +3,9 @@ import * as ReactDOM from 'react-dom'
 import * as _ from 'lodash'
 import {observable, computed} from 'mobx'
 import * as urljoin from 'url-join'
-import * as queryString from 'query-string'
 
 import AdminApp from './AdminApp'
-import { Json } from '../charts/Util'
+import { Json, queryParamsToStr } from '../charts/Util'
 
 type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
 
@@ -47,7 +46,7 @@ export default class Admin {
 
         // Tack params on the end if it's a GET request
         if (method === "GET" && !_.isEmpty(data)) {
-            targetPath += "?" + queryString.stringify(data)
+            targetPath += queryParamsToStr(data)
         }
 
         return fetch(this.url(targetPath), {

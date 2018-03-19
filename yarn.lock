@@ -379,10 +379,6 @@
   version "6.0.41"
   resolved "http://registry.npmjs.org/@types/node/-/node-6.0.41.tgz#578cf53aaec65887bcaf16792f8722932e8ff8ea"
 
-"@types/query-string@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@types/query-string/-/query-string-5.1.0.tgz#7f40cdea49ddafa0ea4f3db35fb6c24d3bfd4dcc"
-
 "@types/randomstring@^1.1.6":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@types/randomstring/-/randomstring-1.1.6.tgz#45cdc060a6f043d610bcd46503a6887db2a209c3"
@@ -623,13 +619,6 @@ any-observable@^0.2.0:
 any-promise@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-0.1.0.tgz#830b680aa7e56f33451d4b049f3bd8044498ee27"
-
-anymatch@^1.3.0:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/anymatch/-/anymatch-1.3.2.tgz#553dcb8f91e3c889845dfdba34c77721b90b9d7a"
-  dependencies:
-    micromatch "^2.1.5"
-    normalize-path "^2.0.0"
 
 anymatch@^2.0.0:
   version "2.0.0"
@@ -1846,21 +1835,6 @@ child-process-promise@^2.2.1:
     cross-spawn "^4.0.2"
     node-version "^1.0.0"
     promise-polyfill "^6.0.1"
-
-chokidar@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-1.7.0.tgz#798e689778151c8076b4b360e5edd28cda2bb468"
-  dependencies:
-    anymatch "^1.3.0"
-    async-each "^1.0.0"
-    glob-parent "^2.0.0"
-    inherits "^2.0.1"
-    is-binary-path "^1.0.0"
-    is-glob "^2.0.0"
-    path-is-absolute "^1.0.0"
-    readdirp "^2.0.0"
-  optionalDependencies:
-    fsevents "^1.0.0"
 
 chokidar@^2.0.0, chokidar@^2.0.2:
   version "2.0.2"
@@ -3446,19 +3420,6 @@ forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
 
-fork-ts-checker-webpack-plugin@^0.2.8:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-0.2.10.tgz#d0a4080e77e9f5d6e3b43cdce7d26658f9d250c6"
-  dependencies:
-    babel-code-frame "^6.22.0"
-    chalk "^1.1.3"
-    chokidar "^1.7.0"
-    lodash.endswith "^4.2.1"
-    lodash.isfunction "^3.0.8"
-    lodash.isstring "^4.0.1"
-    lodash.startswith "^4.2.1"
-    minimatch "^3.0.4"
-
 form-data@~2.1.1:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.1.4.tgz#33c183acf193276ecaa98143a69e94bfee1750d1"
@@ -4799,6 +4760,13 @@ klaw@^1.0.0:
   optionalDependencies:
     graceful-fs "^4.1.9"
 
+last-call-webpack-plugin@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/last-call-webpack-plugin/-/last-call-webpack-plugin-3.0.0.tgz#9742df0e10e3cf46e5c0381c2de90d3a7a2d7555"
+  dependencies:
+    lodash "^4.17.5"
+    webpack-sources "^1.1.0"
+
 latest-version@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-3.1.0.tgz#a205383fea322b33b5ae3b18abee0dc2f356ee15"
@@ -4951,21 +4919,9 @@ lodash.deburr@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/lodash.deburr/-/lodash.deburr-4.1.0.tgz#ddb1bbb3ef07458c0177ba07de14422cb033ff9b"
 
-lodash.endswith@^4.2.1:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/lodash.endswith/-/lodash.endswith-4.2.1.tgz#fed59ac1738ed3e236edd7064ec456448b37bc09"
-
 lodash.flattendeep@^4.0.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/lodash.flattendeep/-/lodash.flattendeep-4.4.0.tgz#fb030917f86a3134e5bc9bec0d69e0013ddfedb2"
-
-lodash.isfunction@^3.0.8:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/lodash.isfunction/-/lodash.isfunction-3.0.9.tgz#06de25df4db327ac931981d1bdb067e5af68d051"
-
-lodash.isstring@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz#d527dfb5456eca7cc9bb95d5daeaf88ba54a5451"
 
 lodash.memoize@^4.1.2:
   version "4.1.2"
@@ -4974,10 +4930,6 @@ lodash.memoize@^4.1.2:
 lodash.mergewith@^4.6.0:
   version "4.6.1"
   resolved "https://registry.yarnpkg.com/lodash.mergewith/-/lodash.mergewith-4.6.1.tgz#639057e726c3afbdb3e7d42741caa8d6e4335927"
-
-lodash.startswith@^4.2.1:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/lodash.startswith/-/lodash.startswith-4.2.1.tgz#c598c4adce188a27e53145731cdc6c0e7177600c"
 
 lodash.tail@^4.1.1:
   version "4.1.1"
@@ -5171,7 +5123,7 @@ methods@^1.0.0, methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
 
-micromatch@^2.1.5, micromatch@^2.3.11, micromatch@^2.3.7:
+micromatch@^2.3.11, micromatch@^2.3.7:
   version "2.3.11"
   resolved "https://registry.yarnpkg.com/micromatch/-/micromatch-2.3.11.tgz#86677c97d1720b363431d04d0d15293bd38c1565"
   dependencies:
@@ -5239,13 +5191,6 @@ mimic-fn@^1.0.0:
 mimic-response@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.0.tgz#df3d3652a73fded6b9b0b24146e6fd052353458e"
-
-mini-css-extract-plugin@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/mini-css-extract-plugin/-/mini-css-extract-plugin-0.2.0.tgz#7a16b0e1096c86de8e4d1c3b063aa1aeae88d41d"
-  dependencies:
-    loader-utils "^1.1.0"
-    webpack-sources "^1.1.0"
 
 minimalistic-assert@^1.0.0:
   version "1.0.0"
@@ -5636,7 +5581,7 @@ normalize-package-data@^2.3.2, normalize-package-data@^2.3.4:
     semver "2 || 3 || 4 || 5"
     validate-npm-package-license "^3.0.1"
 
-normalize-path@^2.0.0, normalize-path@^2.0.1, normalize-path@^2.1.1:
+normalize-path@^2.0.1, normalize-path@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-2.1.1.tgz#1ab28b556e198363a8c1a6f7e6fa20137fe6aed9"
   dependencies:
@@ -5772,13 +5717,12 @@ opn@^5.1.0:
   dependencies:
     is-wsl "^1.1.0"
 
-optimize-css-assets-webpack-plugin@^1.3.0:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/optimize-css-assets-webpack-plugin/-/optimize-css-assets-webpack-plugin-1.3.2.tgz#eb27456e21eefbd8080f31e8368c59684e585a2c"
+optimize-css-assets-webpack-plugin@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/optimize-css-assets-webpack-plugin/-/optimize-css-assets-webpack-plugin-4.0.0.tgz#d5f80041fb1391b358a1f35273c3b53de814e8fe"
   dependencies:
     cssnano "^3.4.0"
-    underscore "^1.8.3"
-    webpack-sources "^0.1.0"
+    last-call-webpack-plugin "^3.0.0"
 
 ora@^0.2.3:
   version "0.2.3"
@@ -6648,13 +6592,6 @@ query-string@^5.0.1:
     decode-uri-component "^0.2.0"
     object-assign "^4.1.0"
     strict-uri-encode "^1.0.0"
-
-query-string@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/query-string/-/query-string-6.0.0.tgz#8b8f39447b73e8290d6f5e3581779218e9171142"
-  dependencies:
-    decode-uri-component "^0.2.0"
-    strict-uri-encode "^2.0.0"
 
 querystring-es3@^0.2.0:
   version "0.2.1"
@@ -7599,7 +7536,7 @@ sort-keys@^2.0.0:
   dependencies:
     is-plain-obj "^1.0.0"
 
-source-list-map@^0.1.7, source-list-map@~0.1.7:
+source-list-map@^0.1.7:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-0.1.8.tgz#c550b2ab5427f6b3f21f5afead88c4f5587b2106"
 
@@ -7641,7 +7578,7 @@ source-map@^0.4.2:
   dependencies:
     amdefine ">=0.0.4"
 
-source-map@^0.5.3, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.3:
+source-map@^0.5.3, source-map@^0.5.6, source-map@^0.5.7:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
 
@@ -7816,10 +7753,6 @@ stream-to-observable@^0.2.0:
 strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
-
-strict-uri-encode@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-2.0.0.tgz#b9c7330c7042862f6b142dc274bbcc5866ce3546"
 
 string-hash@^1.1.0:
   version "1.1.3"
@@ -8341,10 +8274,6 @@ undefsafe@^2.0.2:
   dependencies:
     debug "^2.2.0"
 
-underscore@^1.8.3:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
-
 underscore@~1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.6.0.tgz#8b38b10cacdef63337b8b24e4ff86d45aea529a8"
@@ -8719,13 +8648,6 @@ webpack-parallel-uglify-plugin@^1.1.0:
     uglify-js "^3.0.21"
     webpack-sources "^1.0.0"
     worker-farm "^1.3.1"
-
-webpack-sources@^0.1.0:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-0.1.5.tgz#aa1f3abf0f0d74db7111c40e500b84f966640750"
-  dependencies:
-    source-list-map "~0.1.7"
-    source-map "~0.5.3"
 
 webpack-sources@^1.0.0, webpack-sources@^1.0.1, webpack-sources@^1.1.0:
   version "1.1.0"
