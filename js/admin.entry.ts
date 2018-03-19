@@ -18,4 +18,5 @@ require('./libs/bootstrap.min.js')
 
 require('./admin/admin.global')
 
+window.Importer = require('./admin/Importer').default
 window.Admin = require('./admin/Admin').default

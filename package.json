@@ -109,6 +109,7 @@
     "preact": "^8.1.0",
     "preact-compat": "^3.16.0",
     "precss": "^1.4.0",
+    "process-nextick-args": "^2.0.0",
     "query-string": "^6.0.0",
     "randomstring": "^1.1.5",
     "react-router-dom": "^4.2.2",
