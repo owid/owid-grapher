@@ -4,6 +4,7 @@ const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
@@ -23,7 +24,17 @@ module.exports = (env, argv) => {
                         minChunks: 2
                     }
                 }
-            }
+            },
+            minimizer: [
+                new UglifyJsPlugin({
+                    uglifyOptions: {
+                        compress: {
+                            // https://github.com/developit/preact/issues/961
+                            reduce_vars: false
+                        }    
+                    },
+                })
+            ]
         },
         output: {
             path: path.join(__dirname, "grapher_admin/static/build"),
