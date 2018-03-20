@@ -14,6 +14,17 @@ module.exports = (env, argv) => {
             admin: "./js/admin.entry.ts",
             oldadmin: "./js/oldadmin.entry.ts"
         },
+        optimization: {
+            splitChunks: {
+                cacheGroups: {
+                    charts: {
+                        name: "charts",
+                        chunks: "initial",
+                        minChunks: 2
+                    }
+                }
+            }
+        },
         output: {
             path: path.join(__dirname, "grapher_admin/static/build"),
             filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
@@ -53,20 +64,12 @@ module.exports = (env, argv) => {
                 }
             ],
         },
-    
-        plugins: (isProduction ? [
+        plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
-            new ParallelUglifyPlugin({
-                cachePath: path.join(__dirname, 'tmp')
-            }),
+            new ExtractTextPlugin(isProduction ? '[name].bundle.[chunkhash].css' : '[name].css'),
             new ManifestPlugin(),
-        ] : [
-            new ExtractTextPlugin('[name].css'),    
-            // Output manifest so server can figure out the hashed filenames
-            new ManifestPlugin(),
-        ]),
+        ],
         devServer: {
             host: 'localhost',
             port: 8090,
