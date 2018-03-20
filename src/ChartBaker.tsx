@@ -40,8 +40,9 @@ export class ChartBaker {
     async bakeAssets() {
         const {pathRoot} = this.props
 
+        let commonsJs = `${BUILD_ASSETS_URL}/commons.js`
+        let commonsCss = `${BUILD_ASSETS_URL}/commons.css`
         let chartsJs = `${BUILD_ASSETS_URL}/charts.js`
-        let chartsCss = `${BUILD_ASSETS_URL}/charts.css`
 
         if (ENV === "production") {
             const buildDir = `grapher_admin/static/build`
@@ -52,7 +53,7 @@ export class ChartBaker {
 
             for (const key in manifest) {
                 let outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
-                if (key === "charts.js" || key === "charts.css")
+                if (key === "charts.js" || key === "commons.css" || key === "commons.js")
                     outPath = path.join(this.baseDir, `assets/${key}`) // We'll handle the fingerprinting for these separately
                 else if (key.match(/.js$/) || key.match(/.css$/))
                     continue // Not interested in the admin js/css
@@ -61,11 +62,12 @@ export class ChartBaker {
                 this.stage(outPath)
             }
 
+            commonsJs = `${BUILD_ASSETS_URL}/commons.js?v=${manifest['commons.js']}`
+            commonsCss = `${BUILD_ASSETS_URL}/commons.css?v=${manifest['commons.css']}`
             chartsJs = `${BUILD_ASSETS_URL}/charts.js?v=${manifest['charts.js']}`
-            chartsCss = `${BUILD_ASSETS_URL}/charts.css?v=${manifest['charts.css']}`
         }
 
-        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
+        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, commonsJs, commonsCss, chartsJs))
         this.stage(`${this.baseDir}/embedCharts.js`)
     }
 

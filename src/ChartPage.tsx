@@ -86,7 +86,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                     figure { display: none !important; }
                 `}</style>
             </noscript>
-            <link rel="stylesheet" href={`${BUILD_ASSETS_URL}/charts.css`}/>
+            <link rel="stylesheet" href={`${BUILD_ASSETS_URL}/commons.css`}/>
             <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
         </head>
         <body className="singleChart">
@@ -96,6 +96,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
+            <script src={`${BUILD_ASSETS_URL}/commons.js`}/>
             <script src={`${BUILD_ASSETS_URL}/charts.js`}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>

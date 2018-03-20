@@ -18,9 +18,9 @@ module.exports = (env, argv) => {
         optimization: {
             splitChunks: {
                 cacheGroups: {
-                    charts: {
-                        name: "charts",
-                        chunks: "initial",
+                    commons: {
+                        name: "commons",
+                        chunks: "all",
                         minChunks: 2
                     }
                 }

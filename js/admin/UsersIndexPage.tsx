@@ -101,7 +101,7 @@ export default class UsersIndexPage extends React.Component {
                             <td>{timeago.format(user.createdAt)}</td>
                             <td>{user.isActive ? 'active' : 'inactive'}</td>
                             <td>
-                                <Link to={`/users/${user.id}/edit`} className="btn btn-primary">Edit</Link>
+                                <Link to={`/users/${user.id}`} className="btn btn-primary">Edit</Link>
                             </td>
                             <td>
                                 <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>

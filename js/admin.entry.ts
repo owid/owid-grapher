@@ -1,5 +1,3 @@
-// Currently chart editor only entry point; will eventually become entire app
-
 import './charts.entry'
 
 import '../css/admin.scss'
