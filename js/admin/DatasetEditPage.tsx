@@ -130,7 +130,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
                     <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
-                    <input type="submit" className="btn btn-success" value="Update dataset"/>
+                    {!isBulkImport && <input type="submit" className="btn btn-success" value="Update dataset"/>}
                 </form>
             </section>
             <section>
