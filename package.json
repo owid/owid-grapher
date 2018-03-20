@@ -94,6 +94,8 @@
     "nodemon": "^1.12.5",
     "normalize.css": "^5.0.0",
     "optimize-css-assets-webpack-plugin": "^4.0.0",
+    "postcss-loader": "^2.1.2",
+    "postcss-smart-import": "^0.7.6",
     "preact": "^8.2.7",
     "preact-compat": "^3.16.0",
     "precss": "^1.4.0",

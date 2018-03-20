@@ -15,4 +15,3 @@ require('./libs/bootstrap.min.js')
 require('./admin/oldadmin')
 
 window.Importer = require('./admin/Importer').default
-window.Admin = require('./admin/Admin').default
