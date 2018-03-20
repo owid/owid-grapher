@@ -14,12 +14,10 @@ export default function AdminSPA(props: { rootUrl: string, username: string }) {
         <head>
             <title>owid-admin</title>
             <meta name="description" content=""/>
-            <link href={webpack("charts.css")} rel="stylesheet" type="text/css"/>
-            <link href={webpack("editor.css")} rel="stylesheet" type="text/css"/>
+            <link href={webpack("admin.css")} rel="stylesheet" type="text/css"/>
         </head>
         <body>
-            <script src={webpack("charts.js")}></script>
-            <script src={webpack("editor.js")}></script>
+            <script src={webpack("admin.js")}></script>
             <script type="text/javascript" dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>

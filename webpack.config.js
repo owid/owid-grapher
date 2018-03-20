@@ -11,7 +11,7 @@ module.exports = {
     entry: {
         charts: "./js/charts.entry.ts",
         admin: "./js/admin.entry.ts",
-        editor: "./js/editor.entry.ts"
+        oldadmin: "./js/oldadmin.entry.ts"
     },
     output: {
         path: path.join(__dirname, "grapher_admin/static/build"),
