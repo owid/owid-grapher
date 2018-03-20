@@ -21,6 +21,7 @@ interface Settings {
     BASE_DIR: string
     SECRET_KEY: string
     SESSION_COOKIE_AGE: number
+    NODE_SERVER_PORT: number
 }
 
 const env: Settings = (process.env as any)

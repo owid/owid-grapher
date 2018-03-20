@@ -9,7 +9,7 @@ import LoginPage from './LoginPage'
 import {authMiddleware, loginSubmit} from './authentication'
 import api from './api'
 import {renderToHtmlPage} from './serverUtil'
-import {BUILD_GRAPHER_URL} from '../settings'
+import {NODE_SERVER_PORT, BUILD_GRAPHER_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -37,7 +37,6 @@ app.get('*', (req, res) => {
 })
 
 const HOST = 'localhost'
-const PORT = 3030
-app.listen(PORT, HOST, () => {
-    console.log(`Express started on ${HOST}:${PORT}`)
+app.listen(NODE_SERVER_PORT, HOST, () => {
+    console.log(`Express started on ${HOST}:${NODE_SERVER_PORT}`)
 })

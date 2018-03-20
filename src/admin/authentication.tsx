@@ -46,7 +46,8 @@ export async function authMiddleware(req: express.Request, res: express.Response
         }
     }
 
-    res.set('Cache-Control', 'public, max-age=1, must-revalidate')
+    // Authed urls shouldn't be cached
+    res.set('Cache-Control', 'public, max-age=0, must-revalidate')
 
     if (user) {
         res.locals.session = session
