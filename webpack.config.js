@@ -58,7 +58,9 @@ module.exports = (env, argv) => {
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
             new ExtractTextPlugin('[name].bundle.[chunkhash].css'),
-            // Output manifest so server can figure out the hashed filenames
+            new ParallelUglifyPlugin({
+                cachePath: path.join(__dirname, 'tmp')
+            }),
             new ManifestPlugin(),
         ] : [
             new ExtractTextPlugin('[name].css'),    
