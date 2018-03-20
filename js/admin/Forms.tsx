@@ -1,14 +1,16 @@
 /* Forms.tsx
  * ================
  *
- * Reusable React components to keep admin form code succint and consistent
+ * Reusable React components to keep admin UI succint and consistent
  */
 
 import * as React from 'react'
-import { extend, pick, capitalize } from '../charts/Util'
+import * as _ from 'lodash'
 import { bind } from 'decko'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
+
+import { extend, pick, capitalize } from '../charts/Util'
 import Colorpicker from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
@@ -57,7 +59,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -81,6 +83,10 @@ export class TextAreaField extends React.Component<TextFieldProps> {
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
     }
+}
+
+export class SearchField extends TextField {
+
 }
 
 export interface NumberFieldProps {
@@ -291,7 +297,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number }> {
+export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }
@@ -353,6 +359,45 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     }
 }
 
+
+export interface FloatFieldProps {
+    label?: string
+    value: number|undefined
+    helpText?: string
+    onValue: (value: number|undefined) => void
+}
+
+export class FloatField extends React.Component<FloatFieldProps> {
+    render() {
+        const { props } = this
+
+        const textFieldProps = extend({}, props, {
+            value: props.value === undefined ? undefined : props.value.toString(),
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+            }
+        })
+
+        return <TextField {...textFieldProps}/>
+    }
+}
+
+@observer
+export class BindFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, helpText?: string }> {
+    @action.bound onValue(value: number|undefined) {
+        this.props.store[this.props.field] = value
+    }
+
+    render() {
+        const {field, store, label, ...rest} = this.props
+
+        const value = store[field] as number|undefined
+
+        return <FloatField label={label||capitalize(field)} value={value} onValue={this.onValue} {...rest}/>
+    }
+}
+
 @observer
 export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
     @action.bound onValue(value: number|undefined) {
@@ -406,5 +451,22 @@ export class LoadingBlocker extends React.Component<{}> {
         return <div className="LoadingBlocker">
             <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
         </div>
+    }
+}
+
+export class Pagination extends React.Component<{ totalItems: number, perPage: number }> {
+    render() {
+        const {totalItems, perPage} = this.props
+        const numPages = Math.ceil(totalItems/perPage)
+        return <nav>
+            <ul className="pagination">
+                <li className="page-item"><a className="page-link">Previous</a></li>
+                {_.range(1, numPages+1).map(pageNum =>
+                    <li className="page-item"><a className="page-link">{pageNum}</a></li>
+                )}
+                <li className="page-item"><a className="page-link">Next</a></li>
+            </ul>
+        </nav>
+
     }
 }

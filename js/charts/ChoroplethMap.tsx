@@ -46,7 +46,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     @computed get geoData(): GeoFeature[] {
-        return topojson.feature(MapTopology, MapTopology.objects.world).features.filter(feature => feature.id !== "ATA")
+        return (topojson.feature(MapTopology, MapTopology.objects.world) as any).features.filter((feature: any) => feature.id !== "ATA")
     }
 
     @computed.struct get projection(): MapProjection {

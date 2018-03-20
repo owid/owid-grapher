@@ -362,7 +362,12 @@ figure[data-grapher-src]:empty:after {
         width: 15em;
         z-index: 2;
     }
-    
+
+    .shareMenu.disabled a {
+        pointer-events: none;
+        opacity: 0.3;
+    }
+
     .shareMenu h2 {
         padding: 0.8em 1em;
         margin: 0;

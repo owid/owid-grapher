@@ -834,56 +834,56 @@ input.TextField, .TextField > input {
     
     text-align: left;
 
-    & h2 button {
+    h2 button {
         float: right;
     }
 
-    & .modal-body {
+    .modal-body {
         display: flex;
         justify-content: space-between;
         max-height: 80vh;
         overflow-y: scroll;
     }
 
-    & .selectedData {
+    .selectedData {
         min-width: 25%;
         padding-left: 1em;
     }
 
-    & .searchResults {
+    .searchResults {
         width: 100%;
     }
 
-    & .searchResults h5 {
+    .searchResults h5 {
       color: #666;
       font-size: 1rem;
       padding-bottom: 5px;
       border-bottom: 1px solid #ccc;
     }
 
-    & .searchResults ul {
+    .searchResults ul {
         display: flex;
         flex-wrap: wrap;
     }
 
-    & .searchResults b {
+    .searchResults b {
       color: orange;
     }
 
-    & ul {
+    ul {
         padding: 0;
     }
     
-    & li {
+    li {
         list-style-type: none;
         flex: 1 0 15em;
     }
 
-    & li > label {
+    li > label {
         width: 100%;
     }
 
-    & input[type=search] {
+    input[type=search] {
         width: 100%;
         font-size: 0.9em;
         padding: 0.4em;
@@ -893,7 +893,7 @@ input.TextField, .TextField > input {
 }
 
 .EditorMapTab {
-    & .map-color-scheme-preview .TextField {
+    .map-color-scheme-preview .TextField {
         display: inline-block;
         width: auto;
     }

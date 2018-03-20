@@ -4,20 +4,16 @@ import * as os from 'os'
 import * as path from 'path'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(email: string, name: string, slug: string) {
+async function main(email: string, name: string, message: string) {
     const baker = new ChartBaker({
         canonicalRoot: 'https://ourworldindata.org',
         pathRoot: '/grapher',
-        repoDir: path.join(__dirname, `../../public`),
-        regenConfig: argv.regenConfig
+        repoDir: path.join(__dirname, `../../public`)
     })
 
     try {
         await baker.bakeAll()
-        if (email && name && slug)
-            await baker.deploy(email, name, `Updating ${slug}`)
-        else
-            await baker.deploy("Code deployment update")
+        await baker.deploy(message || "Automated update", email, name)
     } catch (err) {
         console.error(err)
     } finally {

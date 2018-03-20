@@ -25,20 +25,9 @@ from django.contrib.auth.views import logout
 
 urlpatterns = [
     ### Admin-only
-    url(r'^grapher/admin/?$', admin_views.listcharts, name="listcharts"),
-    url(r'^grapher/admin/charts$', admin_views.storechart, name="storechart"),  # post request for storing
-    url(r'^grapher/admin/charts/create/?$', admin_views.createchart, name="createchart"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+).config.json$', admin_views.config_json_by_id, name="configjsonbyid"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit/?$', admin_views.editchart, name="editchart"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)$', admin_views.managechart, name="managechart"),  # update, destroy requests
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/star$', admin_views.starchart, name="starchart"),
     url(r'^grapher/admin/import/?$', admin_views.importdata, name="importdata"),
     url(r'^grapher/admin/import/variables$', admin_views.store_import_data, name="storeimportdata"),  # data import post requests
-    url(r'^grapher/admin/datasets/?$', admin_views.listdatasets, name="listdatasets"),
     url(r'^grapher/admin/datasets_treeview/?$', admin_views.treeview_datasets, name="treeviewdatasets"),
-    url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)/$', admin_views.showdataset, name="showdataset"),
-    url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)$', admin_views.managedataset, name="managedataset"),
-    url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)/edit/$', admin_views.editdataset, name="editdataset"),
     url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)\.csv$', admin_views.dataset_csv, name="datasetcsv"),
     url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)\.json$', admin_views.dataset_json, name="datasetjson"),
     url(r'^grapher/admin/datasets/history/all$', admin_views.all_dataset_history, name="alldatasethistory"),
@@ -49,57 +38,24 @@ urlpatterns = [
     url(r'^grapher/admin/categories/(?P<catid>[\w]+)/?$', admin_views.showcategory, name="showcategory"),
     url(r'^grapher/admin/categories/(?P<catid>[\w]+)$', admin_views.managecategory, name="managecategory"),
     url(r'^grapher/admin/categories/(?P<catid>[\w]+)/edit/?$', admin_views.editcategory, name="editcategory"),
-    url(r'^grapher/admin/variables/$', admin_views.listvariables, name="listvariables"),
-    url(r'^grapher/admin/variables/(?P<variableid>[\w]+)/$', admin_views.showvariable, name="showvariable"),
-    url(r'^grapher/admin/variables/(?P<variableid>[\w]+)$', admin_views.managevariable, name="managevariable"),
-    url(r'^grapher/admin/variables/(?P<variableid>[\w]+)/edit/$', admin_views.editvariable, name="editvariable"),
-    url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)/edit/?$', admin_views.editsource, name="editsource"),
-    url(r'^grapher/admin/sources/(?P<sourceid>[\w]+)$', admin_views.managesource, name="managesource"),
     url(r'^grapher/admin/subcategories/(?P<subcatid>[\w]+)/edit/$', admin_views.editsubcategory, name="editsubcategory"),
     url(r'^grapher/admin/subcategories/(?P<subcatid>[\w]+)$', admin_views.managesubcategory, name="managesubcategory"),
     url(r'^grapher/admin/subcategories/create/$', admin_views.createsubcategory, name="createsubcategory"),
     url(r'^grapher/admin/subcategories$', admin_views.storesubcategory, name="storesubcategory"),
-    url(r'^grapher/admin/users/$', admin_views.listusers, name="listusers"),
-    url(r'^grapher/admin/users/(?P<userid>[\w]+)/edit/$', admin_views.edituser, name="edituser"),
-    url(r'^grapher/admin/users/(?P<userid>[\w]+)$', admin_views.manageuser, name="manageuser"),
     url(r'^grapher/admin/standardize/?$', countrytool_views.country_tool_page, name="countrytoolpage"),
     url(r'^grapher/admin/standardize/countrytooldata/?$', countrytool_views.serve_country_tool_data, name="servecountrytooldata"),
     url(r'^grapher/admin/standardize/update/?$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/standardize/instructions/?', countrytool_views.serve_instructions, name="countrytoolinstructions"),
     url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
-    url(r'^grapher/admin/unwppdatasets/?$', importer_views.listunwppdatasets, name="listunwppdatasets"),
-    url(r'^grapher/admin/qogdatasets/?$', importer_views.listqogdatasets, name="listqogdatasets"),
-    url(r'^grapher/admin/faodatasets/?$', importer_views.listfaodatasets, name="listfaodatasets"),
-    url(r'^grapher/admin/clioinfradatasets/?$', importer_views.listclioinfradatasets, name="listclioinfradatasets"),
-    url(r'^grapher/admin/wb/(?P<dataset>[\w]+)/?$', importer_views.listwbdatasets, name="listwbdatasets"),
-    url(r'^grapher/admin/gbdcausedatasets/?$', importer_views.listgbdcausedatasets, name="listgbdcausedatasets"),
-    url(r'^grapher/admin/gbdriskdatasets/?$', importer_views.listgbdriskdatasets, name="listgbdriskdatasets"),
-    url(r'^grapher/admin/ilostatdatasets/?$', importer_views.listilostatdatasets, name="listilostatdatasets"),
-    url(r'^grapher/admin/unsdgdatasets/?$', importer_views.listunsdgdatasets, name="listunsdgdatasets"),
-    url(r'^grapher/admin/gbdprevalencedatasets/?$', importer_views.listgbdprevalencedatasets, name="listgbdprevalencedatasets"),
-    url(r'^grapher/admin/gbdprevalencebygenderdatasets/?$', importer_views.listgbdprevalencebygenderdatasets, name="listgbdprevalencebygenderdatasets"),
-    url(r'^grapher/admin/gbdmentalhealthdatasets/?$', importer_views.listgbdmentalhealthdatasets, name="listgbdmentalhealthdatasets"),
-    url(r'^grapher/admin/unepdatasets/?$', importer_views.listunepdatasets, name="listunepdatasets"),
-    url(r'^grapher/admin/whowashdatasets/?$', importer_views.listwhowashdatasets, name="listwhowashdatasets"),
-    url(r'^grapher/admin/oecdstatdatasets/?$', importer_views.listoecdstatdatasets, name="listoecdstatdatasets"),
+
     url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
-    # for future use on the frontend
-    url(r'^grapher/admin/charts\.json$',  admin_views.chartsjson, name="chartsjson"),
-    url(r'^grapher/admin/charts/create.json$', admin_views.createchart, name="createchartjson"),
-    url(r'^grapher/admin/charts/(?P<chartid>[\w]+)/edit\.json$', admin_views.editchart, name="editchartjson"),
-    url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),
-    url(r'^grapher/admin/users\.json$', admin_views.listusers, name="listusersjson"),
-    url(r'^grapher/admin/editorData/namespaces\.(?P<cachetag>[^.]*?)\.?json', admin_views.editordata, name="editordata"),
-    url(r'^grapher/admin/editorData/(?P<namespace>[^.]*?)\.(?P<cachetag>[^.]*?)\.?json', admin_views.namespacedata, name="namespacedata"),
-
-    url(r'^grapher/admin/api/buildStatus.json$', admin_views.buildstatus, name="buildstatus"),
-    url(r'^grapher/admin/api/data/variables/(?P<ids>[\d+]+)$', admin_views.variables, name="adminvariables"),
+    url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),    
 
     ### Public
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),
-    url(r'^grapher/admin/logout/?$', logout, {'next_page': settings.BASE_URL}, name="logout"),
+    url(r'^grapher/admin/logout/?$', logout, {'next_page': "/admin"}, name="logout"),
     url(r'^grapher/admin/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
     url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servewdicountryinfo'),
 
@@ -112,6 +68,10 @@ urlpatterns = [
     url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
     url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
 
-    ### Glue code until we can go fully static
+    # Redirect other urls to node
+    url(r'^grapher/admin/?$', admin_views.redirect_404, name="redirect404"),
+    url(r'^grapher/admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),
+
+    # Development urls to serve static build locally
     url(r'^grapher/(?P<path>.+)/?$', glue_views.servestatic, name="servestatic"),
 ]

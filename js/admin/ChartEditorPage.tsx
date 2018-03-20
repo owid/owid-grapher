@@ -1,20 +1,24 @@
-import ChartEditor, {EditorDatabase} from './ChartEditor'
-import Admin from './Admin'
 import * as React from 'react'
-import {includes, capitalize} from '../charts/Util'
-import ChartConfig from '../charts/ChartConfig'
 import {observer} from 'mobx-react'
 import {observable, computed, runInAction, autorun, action, reaction, IReactionDisposer} from 'mobx'
+import { Prompt, Redirect } from 'react-router-dom'
+
+import ChartView from '../charts/ChartView'
+import Bounds from '../charts/Bounds'
+import {includes, capitalize} from '../charts/Util'
+import ChartConfig from '../charts/ChartConfig'
+
+import Admin from './Admin'
+import ChartEditor, {EditorDatabase} from './ChartEditor'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
-import ChartView from '../charts/ChartView'
-import Bounds from '../charts/Bounds'
 import SaveButtons from './SaveButtons'
 import { Modal, LoadingBlocker } from './Forms'
+import AdminLayout from './AdminLayout'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -45,21 +49,21 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class ChartEditorPage extends React.Component<{ chartId?: number }> {
+export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     context!: { admin: Admin }
 
     async fetchChart() {
-        const {chartId} = this.props
+        const {chartId, chartConfig} = this.props
         const {admin} = this.context
-        const json = chartId === undefined ? { yAxis: { min: 0 }} : await admin.getJSON(`charts/${chartId}.config.json`)
+        const json = chartId === undefined ? chartConfig : await admin.getJSON(`/api/charts/${chartId}.config.json`)
         runInAction(() => this.chart = new ChartConfig(json))
     }
 
     async fetchData() {
         const {admin} = this.context
-        const json = await admin.getJSON(`editorData/namespaces.${admin.cacheTag}.json`)
+        const json = await admin.getJSON(`/api/editorData/namespaces.json`)
         runInAction(() => this.database = new EditorDatabase(json))
     }
 
@@ -83,12 +87,22 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.dispose = reaction(
-            () => this.props.chartId,
-            this.refresh
-        )
-
         this.refresh()
+
+        this.dispose = reaction(
+            () => this.editor && this.editor.previewMode,
+            () => {
+                if (this.editor) {
+                    localStorage.setItem('editorPreviewMode', this.editor.previewMode)
+                }
+            }
+        )
+    }
+
+    // This funny construction allows the "new chart" link to work by forcing an update
+    // even if the props don't change
+    componentWillReceiveProps() {
+        setTimeout(() => this.refresh(), 0)
     }
 
     componentDidUnmount() {
@@ -96,16 +110,20 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number 
     }
 
     render() {
-        return <div className="ChartEditorPage">
-            {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
-            {this.editor !== undefined && this.renderReady(this.editor)}
-        </div>
+        return <AdminLayout noSidebar>
+            <main className="ChartEditorPage">
+                {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
+                {this.editor !== undefined && this.renderReady(this.editor)}
+            </main>
+        </AdminLayout>
     }
 
     renderReady(editor: ChartEditor) {
         const {chart, availableTabs, previewMode} = editor
 
         return [
+            !editor.newChartId && <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
+            editor.newChartId && <Redirect to={`/charts/${editor.newChartId}/edit`}/>,
             <TabBinder editor={editor}/>,
             <form onSubmit={e => e.preventDefault()}>
                 <div className="p-2">

@@ -5,7 +5,7 @@
  *
  */
 
-import { observable, computed, reaction, action, runInAction } from 'mobx'
+import { observable, computed, reaction, action, runInAction, when, IReactionDisposer } from 'mobx'
 import { extend, toString, uniq } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
@@ -51,18 +51,27 @@ export interface ChartEditorProps {
 export default class ChartEditor {
     props: ChartEditorProps
     // Whether the current chart state is saved or not
-    @observable.ref isSaved: boolean = true
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = 'basic'
     @observable.ref errorMessage?: { title: string, content: string }
-    @observable.ref previewMode: 'mobile'|'desktop' = 'mobile'
+    @observable.ref previewMode: 'mobile'|'desktop'
+    @observable.ref savedChartConfig: string = ""
+
+    // This gets set when we save a new chart for the first time
+    // so the page knows to update the url
+    @observable.ref newChartId?: number
 
     constructor(props: ChartEditorProps) {
         this.props = props
-        reaction(
-            () => this.chart && this.chart.json,
-            () => this.isSaved = false
+        this.previewMode = localStorage.getItem('editorPreviewMode') === 'desktop' ? 'desktop' : 'mobile'
+        when(
+            () => this.chart.data.isReady,
+            () => this.savedChartConfig = JSON.stringify(this.chart.json)
         )
+    }
+
+    @computed get isModified(): boolean {
+        return JSON.stringify(this.chart.json) !== this.savedChartConfig
     }
 
     @computed get chart(): ChartConfig {
@@ -94,23 +103,25 @@ export default class ChartEditor {
 
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        const data = await this.props.admin.getJSON(`editorData/${namespace}.${this.props.admin.cacheTag}.json`)
-        runInAction(() => this.database.dataByNamespace.set(namespace, data))
+        const data = await this.props.admin.getJSON(`/api/editorData/${namespace}.json`)
+        runInAction(() => this.database.dataByNamespace.set(namespace, data as any))
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {
         const { chart, isNewChart } = this
 
-        const targetUrl = isNewChart ? "charts" : `charts/${chart.props.id}`
+        const targetUrl = isNewChart ? "/api/charts" : `/api/charts/${chart.props.id}`
 
         const json = await this.props.admin.requestJSON(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT')
 
         if (json.success) {
             if (isNewChart) {
-                window.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
+                this.newChartId = json.chartId
             } else {
-                this.isSaved = true
-                chart.props.version += 1
+                runInAction(() => {
+                    chart.props.version += 1
+                    this.savedChartConfig = JSON.stringify(chart.json)
+                })
             }
         } else {
             if (onError) onError()
@@ -127,9 +138,9 @@ export default class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const json = await this.props.admin.requestJSON("charts", chartJson, 'POST')
+        const json = await this.props.admin.requestJSON("/api/charts", chartJson, 'POST')
         if (json.success)
-            w.location.assign(this.props.admin.url(`charts/${json.data.id}/edit`))
+            w.location.assign(this.props.admin.url(`charts/${json.chartId}/edit`))
     }
 
     publishChart() {

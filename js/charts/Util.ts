@@ -279,3 +279,8 @@ export function isMobile() {
 export function isTouchDevice() {
     return !!('ontouchstart' in window)
 }
+
+// General type reperesenting arbitrary json data; basically a non-nullable 'any'
+export interface Json {
+    [x: string]: any
+}

@@ -16,6 +16,5 @@ env
 .awcache
 data
 dist
-charts
 public
 grapher_admin/static/build

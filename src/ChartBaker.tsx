@@ -1,6 +1,5 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import {createConnection, DatabaseConnection} from './database'
 import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import { uniq, without, chunk } from 'lodash'
@@ -14,22 +13,18 @@ import * as glob from 'glob'
 import * as shell from 'shelljs'
 import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
+import * as db from './db'
 
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BAKED_URL } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL } from './settings'
 
 export interface ChartBakerProps {
     canonicalRoot: string
     pathRoot: string
     repoDir: string
-
-    regenConfig?: boolean
-    regenImages?: boolean
-    regenData?: boolean
 }
 
 export class ChartBaker {
     props: ChartBakerProps
-    db: DatabaseConnection
     baseDir: string
 
     // Keep a list of the files we've generated to add to git later
@@ -37,16 +32,17 @@ export class ChartBaker {
 
     constructor(props: ChartBakerProps) {
         this.props = props
-        this.db = createConnection({ database: DB_NAME })
         this.baseDir = path.join(this.props.repoDir, this.props.pathRoot)
         fs.mkdirpSync(this.baseDir)
+        db.connect()
     }
 
     async bakeAssets() {
         const {pathRoot} = this.props
 
-        let chartsJs = `${WEBPACK_DEV_URL}/charts.js`
-        let chartsCss = `${WEBPACK_DEV_URL}/charts.css`
+        let commonsJs = `${BUILD_ASSETS_URL}/commons.js`
+        let commonsCss = `${BUILD_ASSETS_URL}/commons.css`
+        let chartsJs = `${BUILD_ASSETS_URL}/charts.js`
 
         if (ENV === "production") {
             const buildDir = `grapher_admin/static/build`
@@ -57,7 +53,7 @@ export class ChartBaker {
 
             for (const key in manifest) {
                 let outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
-                if (key === "charts.js" || key === "charts.css")
+                if (key === "charts.js" || key === "commons.css" || key === "commons.js")
                     outPath = path.join(this.baseDir, `assets/${key}`) // We'll handle the fingerprinting for these separately
                 else if (key.match(/.js$/) || key.match(/.css$/))
                     continue // Not interested in the admin js/css
@@ -66,18 +62,19 @@ export class ChartBaker {
                 this.stage(outPath)
             }
 
-            chartsJs = `${BAKED_URL}/grapher/assets/charts.js?v=${manifest['charts.js']}`
-            chartsCss = `${BAKED_URL}/grapher/assets/charts.css?v=${manifest['charts.css']}`
+            commonsJs = `${BUILD_ASSETS_URL}/commons.js?v=${manifest['commons.js']}`
+            commonsCss = `${BUILD_ASSETS_URL}/commons.css?v=${manifest['commons.css']}`
+            chartsJs = `${BUILD_ASSETS_URL}/charts.js?v=${manifest['charts.js']}`
         }
 
-        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, chartsJs, chartsCss))
+        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, commonsJs, commonsCss, chartsJs))
         this.stage(`${this.baseDir}/embedCharts.js`)
     }
 
     async bakeVariableData(variableIds: number[], outPath: string): Promise<string> {
         await fs.mkdirp(`${this.baseDir}/data/variables/`)
-        const vardata = await getVariableData(variableIds, this.db)
-        await fs.writeFile(outPath, vardata)
+        const vardata = await getVariableData(variableIds)
+        await fs.writeFile(outPath, JSON.stringify(vardata))
         this.stage(outPath)
         return vardata
     }
@@ -110,8 +107,8 @@ export class ChartBaker {
         if (!variableIds.length) return
 
         // Make sure we bake the variables successfully before outputing the chart html
-        const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}`
-        if (!isSameVersion || props.regenData || !fs.existsSync(vardataPath)) {
+        const vardataPath = `${this.baseDir}/data/variables/${variableIds.join("+")}.json`
+        if (!isSameVersion || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
 
@@ -123,7 +120,7 @@ export class ChartBaker {
             await fs.mkdirp(`${this.baseDir}/exports/`)
             const svgPath = `${this.baseDir}/exports/${chart.slug}.svg`
             const pngPath = `${this.baseDir}/exports/${chart.slug}.png`
-            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath) || props.regenImages) {
+            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
                 const vardata = await fs.readFile(vardataPath, 'utf8')
                 await bakeImageExports(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(svgPath)
@@ -139,13 +136,13 @@ export class ChartBaker {
         const redirects = []
 
         // Redirect /grapher/latest
-        const latestRows = await this.db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
+        const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
         for (const row of latestRows) {
             redirects.push(`${pathRoot}/latest ${pathRoot}/${JSON.parse(row.slug)} 302`)
         }
 
         // Redirect old slugs to new slugs
-        const rows = await this.db.query(`
+        const rows = await db.query(`
             SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
             FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
         `)
@@ -182,7 +179,7 @@ ${pathRoot}/*
     }
 
     async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
-        const {db, baseDir, props} = this
+        const {baseDir, props} = this
         const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
 
         const newSlugs = []
@@ -234,19 +231,19 @@ ${pathRoot}/*
         this.stagedFiles.push(targetPath)
     }
 
-    async deploy(authorEmail?: string, authorName?: string, commitMsg?: string) {
+    async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         const {repoDir} = this.props
         for (const files of chunk(this.stagedFiles, 100)) {
             this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`)
         }
         if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${repoDir} && git commit --author='${authorName} <${authorEmail}>' -m '${commitMsg}' && git push origin master`)
+            this.exec(`cd ${repoDir} && git commit -m '${commitMsg}' --author='${authorName} <${authorEmail}>' && git push origin master`)
         } else {
-            this.exec(`cd ${repoDir} && git commit -m "Automated update" && git push origin master`)
+            this.exec(`cd ${repoDir} && git commit -m "${commitMsg}" && git push origin master`)
         }
     }
 
     async end() {
-        return this.db.end()
+        return db.end()
     }
 }

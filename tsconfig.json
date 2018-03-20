@@ -8,13 +8,13 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "jsx": "react",
-        "target": "es5",
+        "target": "es6",
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es6"],
+        "lib": ["dom", "es6", "esnext.asynciterable"],
         "plugins": [
             { "name": "tslint-language-service" }
         ]
     },
-    "exclude": ["node_modules", "src/server.tsx"]
+    "exclude": ["node_modules"]
 }

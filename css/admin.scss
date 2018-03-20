@@ -9,11 +9,10 @@ html {
 html, body {
     height: 100%;
     margin: 0;
+    font-size: 14px;
 }
 
 .AdminApp {
-    display: flex;
-    flex-direction: column;
     height: 100%;
 
     button, a, .btn, .form-group > label, .form-check > label {
@@ -24,13 +23,43 @@ html, body {
         content: " (logout)";
     }
 
-    > nav {
-        min-height: 60px;
+    .navbar {
+        z-index: 2;
     }
 
     .navbar-toggler {
         display: block;
         margin-right: 1rem;
+    }
+
+    section {
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        h3 {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e4e8;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .card-footer {
+            border-radius: 0;
+            border: 0;
+            background: none;
+            padding: 0;
+        }
+
+        > .btn {
+            margin-right: 10px;
+        }
+    }
+
+    section:not(:first-child) {
+        margin-top: 40px;
     }
 }
 
@@ -44,14 +73,36 @@ html, body {
     z-index: 1040;
 }
 
+.AdminLayout {
+    height: 100%;
+
+    padding-top: 60px;
+    > nav {
+        background-color: #001c3d;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+    }
+
+    > main {
+        height: 100%;
+    }
+}
+
+.AdminLayout.withSidebar {
+    padding-left: 160px;
+}
+
 .AdminSidebar {
     position: fixed;
     left: 0;
-    top: 0;
-    bottom: 0;
+    width: 160px;
+    height: 100%;
+
     overflow-y: auto;
     background: #222d32;
-    width: 300px;
 
     ul {
         list-style: none;
@@ -70,6 +121,12 @@ html, body {
         padding: 12px 5px 12px 15px;
         display: block;
         color: #b8c7ce;
+    }
+
+    li > a:hover {
+        color: #fff;
+        background: #1e282c;
+        text-decoration: none;
     }
 }
 
@@ -352,6 +409,8 @@ html, body {
     > * {
         padding-right: 1rem;
         margin-bottom: 0 !important;
+        flex-grow: 1;
+        flex-basis: 0;
     }
 }
 
@@ -416,12 +475,16 @@ html, body {
 
 .errorMessage {
     z-index: 2000;
+    .modal-dialog {
+        max-width: 80%;
+    }
 }
 
-.ChartIndexPage {
+main:not(.ChartEditorPage) {
     padding: 2em;
-    flex-grow: 1;
+}
 
+.ChartIndexPage, .UsersIndexPage {
     .topRow {
         display: flex;
         align-items: center;
@@ -436,4 +499,121 @@ html, body {
             width: 500px;
         }
     }
+}
+
+.ImportPage {
+    .importer {
+        max-width: 1000px;
+    
+        input:not([type=submit]), select, textarea, button {
+            @extend .form-control;
+        }
+    
+        label {
+            display: block;
+        }
+    
+        textarea {
+            resize: none;
+        }
+    
+        .updateWarning {
+            margin-top: 20px;
+            margin-bottom: 0;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    
+        select.chooseDataset {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+    
+    .validation {
+        margin-top: 20px;
+    }
+    
+    .editVariable {
+        .variableProps {
+            display: inline-flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+    
+        .variableProps > label {
+            margin-right: 10px;
+            line-height: normal;
+        }
+    
+        .name, .description {
+            width: 100%;
+        }
+    }
+    
+    .editSource {
+        label {
+            display: block;
+        }
+    }
+    
+    .editSourceDescription {
+        display: flex;
+        flex-direction: row;
+    
+        .description {
+            margin: 10px;
+        }
+    
+        .description textarea {
+            height: calc(100% - 20px);
+        }
+    
+        .preview {
+            margin: 10px;
+            width: 50%;
+        }
+    
+        .preview > div {
+            padding: 10px;
+            background: white;
+        }
+    }
+    
+    .importProgress {
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 20px;
+    
+        .success {
+            color: #00a65a;
+        }
+    
+        .error {
+            color: #dd4b39;
+        }
+    
+        .progressInner {
+            overflow: auto;
+            margin: 10px;
+        }
+    }    
+}
+
+.VariableEditPage {
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
 }

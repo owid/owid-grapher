@@ -10,6 +10,8 @@ interface DownloadTabProps {
     chart: ChartConfig
 }
 
+declare var Blob: any
+
 @observer
 export default class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get targetWidth() { return this.props.chart.idealBounds.width }
@@ -81,7 +83,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
             }
             img.src = this.svgDataUri
         }
-        reader.readAsDataURL(this.svgBlob)
+        reader.readAsDataURL(this.svgBlob as Blob)
     }
 
     @computed get fallbackPngUrl() {

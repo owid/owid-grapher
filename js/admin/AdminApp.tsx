@@ -3,27 +3,19 @@ import Admin from './Admin'
 import ChartEditorPage from './ChartEditorPage'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
-import { EditorFAQ } from './EditorFAQ'
 import ChartIndexPage from './ChartIndexPage'
-import AdminSidebar from './AdminSidebar'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import UsersIndexPage from './UsersIndexPage'
+import DatasetsIndexPage from './DatasetsIndexPage'
+import UserEditPage from './UserEditPage'
+import VariableEditPage from './VariableEditPage'
+import VariablesIndexPage from './VariablesIndexPage'
+import DatasetEditPage from './DatasetEditPage'
+import SourceEditPage from './SourceEditPage'
+import ImportPage from './ImportPage'
+import NotFoundPage from './NotFoundPage'
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import Link from './Link'
 import { LoadingBlocker, Modal } from './Forms'
-
-@observer
-class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base!: HTMLDivElement
-    @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
-        if (e.target === this.base)
-            this.props.onDismiss()
-    }
-
-    render() {
-        return <div className="FixedOverlay" onClick={this.onClick}>
-            {this.props.children}
-        </div>
-    }
-}
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -53,62 +45,32 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 
 @observer
 export default class AdminApp extends React.Component<{ admin: Admin }> {
-    @observable isFAQ: boolean = false
-    @observable isSidebar: boolean = false
-
-    @action.bound onToggleFAQ() {
-        this.isFAQ = !this.isFAQ
-    }
-
-    @action.bound onToggleSidebar() {
-        this.isSidebar = !this.isSidebar
-    }
-
     getChildContext() {
         return { admin: this.props.admin }
     }
 
     render() {
         const {admin} = this.props
-        const {isFAQ, isSidebar} = this
 
         return <Router basename={admin.basePath}>
             <div className="AdminApp">
-                <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">
-                    <button className="navbar-toggler" type="button" onClick={this.onToggleSidebar}>
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
-                    <Link className="navbar-brand" to="/">owid-grapher</Link>
-                    <ul className="navbar-nav">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/charts/create" native>
-                                <i className="fa fa-plus"/> New chart
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" onClick={this.onToggleFAQ}>
-                                FAQ
-                            </a>
-                        </li>
-                    </ul>
-                    <ul className="navbar-nav ml-auto">
-                        <li className="nav-item">
-                            <Link className="nav-link logout" to="/logout" native>
-                                {admin.username}
-                            </Link>
-                        </li>
-                    </ul>
-                    {/* This lets the public frontend know to show edit links and such */}
-                    <iframe src="https://ourworldindata.org/identifyadmin" style={{display: 'none'}}/>
-                </nav>
-                {isFAQ && <EditorFAQ onClose={this.onToggleFAQ}/>}
                 <AdminErrorMessage admin={admin}/>
                 <AdminLoader admin={admin}/>
-                {isSidebar && <FixedOverlay onDismiss={this.onToggleSidebar}><AdminSidebar/></FixedOverlay>}
                 <Switch>
-                    <Route path="/charts/create" component={ChartEditorPage}/>
-                    <Route path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
-                    <Route path="/" component={ChartIndexPage}/>
+                    <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
+                    <Route exact path="/charts/create" component={ChartEditorPage}/>
+                    <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
+                    <Route exact path="/charts" component={ChartIndexPage}/>
+                    <Route exact path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
+                    <Route exact path="/users" component={UsersIndexPage}/>
+                    <Route exact path="/import" component={ImportPage}/>
+                    <Route exact path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
+                    <Route exact path="/variables" component={VariablesIndexPage}/>
+                    <Route exact path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
+                    <Route exact path="/datasets" component={DatasetsIndexPage}/>
+                    <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
+                    <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
+                    <Route component={NotFoundPage}/>
                 </Switch>
             </div>
         </Router>

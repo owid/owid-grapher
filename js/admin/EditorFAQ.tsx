@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Modal } from './Forms'
 
-export class EditorFAQ extends React.Component<{ onClose: () => void }> {
+export default class EditorFAQ extends React.Component<{ onClose: () => void }> {
     render() {
         return <Modal onClose={this.props.onClose} className="EditorFAQ">
             <div className="modal-header">
@@ -15,7 +15,9 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                 <h6>What do the little icons mean?</h6>
                 <p>If you see the <i className="fa fa-link"/> link icon, it means a field is currently linked to the database and has its default value. By changing that field you break the link <i className="fa fa-unlink"/> and set manual input for this particular chart.</p>
                 <h6>When are charts updated?</h6>
-                <p>The version of the chart you see in the editor is the "canonical" version that reflects the current data. When published, charts are bundled together in a static build process and sent to Netlify for distribution around the world. This process may take a few minutes. You can see the build history and status in <a href="https://owid.slack.com/messages/changelog/">#changelog</a>.</p>
+                <p>The version of the chart you see in the editor is always the most current version. When published, charts are bundled together in a static build process and sent to Netlify for distribution around the world. This means it may take a few minutes for the live version to be updated.</p>
+                <p>The public version of a chart is not (currently) updated automatically when new data is uploaded. You may need to click "update chart" to have data changes reflected publicly.</p>
+                <p>You can check the publication status and history in the <a href="https://owid.slack.com/messages/changelog/">#changelog</a> channel.</p>
                 <h6>How much data can I put in one chart?</h6>
                 <p>The fewer variables the better. To allow for fast interactivity, the grapher preloads <strong>all</strong> the data for each variable added to a chart, including every year and entity. If you have 10+ big variables on one chart it may be a little slow to load.</p>
                 <p>Similarly, if you select many entities or have very long subtitles the chart will become visually cluttered. Make sure there's enough room for the chart to work well in the mobile preview, and if in doubt make two smaller charts rather than one big one.</p>

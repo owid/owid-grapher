@@ -3,7 +3,7 @@ import { first, last, sortBy, find } from './Util'
 import * as React from 'react'
 import Bounds from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
-import { observable, computed, autorun, autorunAsync, action } from 'mobx'
+import { observable, computed, autorun, action } from 'mobx'
 import { observer } from 'mobx-react'
 
 interface TimelineProps {
@@ -60,15 +60,15 @@ export default class Timeline extends React.Component<TimelineProps> {
             }
         })
 
-        autorunAsync(() => {
+        autorun(() => {
             if (this.props.onInputChange)
                 this.props.onInputChange({ startYear: this.startYear, endYear: this.endYear })
-        })
+        }, { delay: 0 })
 
-        autorunAsync(() => {
+        autorun(() => {
             if (this.props.onTargetChange)
                 this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
-        })
+        }, { delay: 0 })
     }
 
     @computed get years(): number[] {

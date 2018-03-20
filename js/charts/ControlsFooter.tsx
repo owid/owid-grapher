@@ -38,6 +38,10 @@ class ShareMenu extends React.Component<ShareMenuProps> {
         return this.props.chart.data.currentTitle
     }
 
+    @computed get isDisabled(): boolean {
+        return !this.props.chart.props.slug
+    }
+
     @computed get editUrl(): string | undefined {
         return Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/charts/${this.props.chart.props.id}/edit` : undefined
     }
@@ -87,9 +91,9 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     }
 
     render() {
-        const { editUrl, twitterHref, facebookHref } = this
+        const { editUrl, twitterHref, facebookHref, isDisabled } = this
 
-        return <div className="shareMenu" onClick={(evt) => evt.stopPropagation()}>
+        return <div className={"shareMenu" + (isDisabled ? " disabled" : "")} onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <i className="fa fa-twitter" /> Twitter
@@ -263,11 +267,11 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
         const timeline = hasTimeline && <TimelineControl chart={chart}/>
 
         const extraControls = hasExtraControls && <div className="extraControls">
-            {chart.data.canAddData && <button onClick={this.onDataSelect}>
+            {chart.data.canAddData && <button type="button" onClick={this.onDataSelect}>
                 {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
             </button>}
 
-            {chart.data.canChangeEntity && <button onClick={this.onDataSelect}>
+            {chart.data.canChangeEntity && <button type="button" onClick={this.onDataSelect}>
                 <i className="fa fa-exchange" /> Change {chart.entityType}
             </button>}
 

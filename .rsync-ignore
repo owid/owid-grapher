@@ -7,7 +7,9 @@ storage/framework/sessions/*
 storage/framework/cache/*
 public/uploads
 public/exports
+grapher_admin/static/build
 data
 .awcache
 public
 .git
+dist
