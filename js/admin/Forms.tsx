@@ -59,7 +59,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
