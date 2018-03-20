@@ -82,8 +82,6 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
                         </a>
                     </li>
                 </ul>
-                {/* This lets the public frontend know to show edit links and such */}
-                <iframe src="https://ourworldindata.org/identifyadmin" style={{display: 'none'}}/>
             </nav>
             {isSidebar && <AdminSidebar onDismiss={this.onToggleSidebar}/>}
             {this.props.children}
