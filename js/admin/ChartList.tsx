@@ -72,7 +72,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
             </td>}
             <td style={{"min-width": "120px"}}>{showChartType(chart)}</td>
             <td>{chart.internalNotes}</td>
-            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.lastEditedBy}</span>}</td>
+            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.publishedBy}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
             <td>
                 <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>

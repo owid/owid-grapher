@@ -146,6 +146,8 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             }
         }
 
+        console.log(newConfig.isPublished, existingConfig && existingConfig.isPublished)
+
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
             // Newly published, set publication info
             await t.execute(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
