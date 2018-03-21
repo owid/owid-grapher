@@ -93,9 +93,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <li className="breadcrumb-item"><Link to={`/datasets/${variable.datasetId}`}>{variable.datasetName}</Link></li>
                 <li className="breadcrumb-item active">{variable.name}</li>
             </ol>
-            <form onSubmit={e => { e.preventDefault(); this.save() }}>
-                <div className="row">
-                    <div className="col">
+            <div className="row">
+                <div className="col">
+                    <form onSubmit={e => { e.preventDefault(); this.save() }}>
                         <section>
                             <h3>Variable metadata</h3>
                             {isBulkImport ?
@@ -122,44 +122,44 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             </FieldsRow>
                         </section>
                         <input type="submit" className="btn btn-success" value="Update variable"/>
-                    </div>
-                    {this.chart && <div className="col">
-                        <div className="topbar">
-                            <h3>Preview</h3>
-                            <Link className="btn btn-secondary" to={`/charts/create/${encodeURIComponent(JSON.stringify(this.chartConfig))}`}>Edit as new chart</Link>
-                        </div>
-                        <ChartFigureView chart={this.chart}/>
-                    </div>}
+                    </form>
                 </div>
-                <section>
-                    <h3>Source</h3>
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Source</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><Link to={`/sources/${variable.source.id}`}>{variable.source.name}</Link></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-                <section>
-                    <h3>Charts</h3>
-                    <ChartList charts={variable.charts}/>
-                </section>
-                <section>
-                    <h3>Danger zone</h3>
-                    <p>
-                        Delete this variable and all data it contains. If there are any charts using this data, you must delete them individually first.
-                    </p>
-                    <div className="card-footer">
-                        <button className="btn btn-danger" onClick={() => this.delete()}>Delete variable</button>
+                {this.chart && <div className="col">
+                    <div className="topbar">
+                        <h3>Preview</h3>
+                        <Link className="btn btn-secondary" to={`/charts/create/${encodeURIComponent(JSON.stringify(this.chartConfig))}`}>Edit as new chart</Link>
                     </div>
-                </section>
-            </form>
+                    <ChartFigureView chart={this.chart}/>
+                </div>}
+            </div>
+            <section>
+                <h3>Source</h3>
+                <table className="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><Link to={`/sources/${variable.source.id}`}>{variable.source.name}</Link></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section>
+                <h3>Charts</h3>
+                <ChartList charts={variable.charts}/>
+            </section>
+            {!isBulkImport && <section>
+                <h3>Danger zone</h3>
+                <p>
+                    Delete this variable and all data it contains. If there are any charts using this data, you must delete them individually first.
+                </p>
+                <div className="card-footer">
+                    <button className="btn btn-danger" onClick={() => this.delete()}>Delete variable</button>
+                </div>
+            </section>}
         </main>
     }
 

@@ -81,15 +81,15 @@ async function expectChartById(chartId: any): Promise<ChartConfigProps> {
 }
 
 async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
-    return await db.transaction(async () => {
+    return await db.transaction(async t => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
         async function isSlugUsedInRedirect() {
-            const rows = await db.query(`SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
+            const rows = await t.query(`SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
             return rows.length > 0
         }
 
         async function isSlugUsedInOtherChart() {
-            const rows = await db.query(`SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
+            const rows = await t.query(`SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
             return rows.length > 0
         }
 
@@ -102,7 +102,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
                 throw new JsonError(`This chart slug is in use by another published chart: ${newConfig.slug}`)
             } else if (existingConfig && existingConfig.isPublished) {
                 // Changing slug of an existing chart, create redirect
-                await db.query(`INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`, [existingConfig.id, existingConfig.slug])
+                await t.execute(`INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`, [existingConfig.id, existingConfig.slug])
             }
         }
 
@@ -116,12 +116,12 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
         if (existingConfig) {
-            await db.query(
+            await t.query(
                 `UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ?`,
                 [JSON.stringify(newConfig), now, now, user.name, chartId]
             )
         } else {
-            const result = await db.query(
+            const result = await t.execute(
                 `INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`,
                 [[JSON.stringify(newConfig), now, now, now, user.name, false]]
             )
@@ -130,25 +130,25 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 
         // Remove any old dimensions and store the new ones
         // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-        await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [chartId])
+        await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [chartId])
         for (let i = 0; i < newConfig.dimensions.length; i++) {
             const dim = newConfig.dimensions[i]
-            await db.query(`INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`, [[chartId, dim.variableId, dim.property, i]])
+            await t.execute(`INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`, [[chartId, dim.variableId, dim.property, i]])
 
             if (dim.saveToVariable) {
-                const display = JSON.parse((await db.query(`SELECT display FROM variables WHERE id=?`, [dim.variableId]))[0].display)
+                const display = JSON.parse((await t.query(`SELECT display FROM variables WHERE id=?`, [dim.variableId]))[0].display)
 
                 for (const key in dim.display) {
                     display[key] = (dim as any)[key]
                 }
 
-                await db.query(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
+                await t.execute(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
             }
         }
 
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
             // Newly published, set publication info
-            await db.query(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
+            await t.execute(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
             await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
         } else if (!newConfig.isPublished && existingConfig && existingConfig.isPublished) {
             await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
@@ -164,7 +164,7 @@ api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
         SELECT ${Chart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
-    `, [limit]) as any[]
+    `, [limit])
 
     return {
         charts: charts
@@ -176,7 +176,7 @@ api.get('/charts/:chartId.config.json', async (req: Request, res: Response) => {
 })
 
 api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`) as any[]
+    const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`) as { namespace: string }[]
 
     return {
         namespaces: rows.map(row => row.namespace)
@@ -224,7 +224,7 @@ api.get('/data/variables/:variableStr.json', async (req: Request, res: Response)
 api.post('/charts/:chartId/star', async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
 
-    db.query(`UPDATE charts SET starred=(charts.id=?)`, [chart.id])
+    await db.execute(`UPDATE charts SET starred=(charts.id=?)`, [chart.id])
     await triggerStaticBuild(res.locals.user, `Setting front page chart to ${chart.slug}`)
 
     return { success: true }
@@ -246,10 +246,10 @@ api.put('/charts/:chartId', async (req: Request, res: Response) => {
 api.delete('/charts/:chartId', async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
 
-    await db.transaction(async () => {
-        await db.query(`DELETE FROM chart_dimensions WHERE chartId=?`, [chart.id])
-        await db.query(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [chart.id])
-        await db.query(`DELETE FROM charts WHERE id=?`, [chart.id])
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [chart.id])
+        await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [chart.id])
+        await t.execute(`DELETE FROM charts WHERE id=?`, [chart.id])
     })
 
     if (chart.isPublished)
@@ -286,9 +286,9 @@ api.delete('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
-    await db.transaction(async () => {
-        await db.query(`DELETE FROM user_invitations WHERE user_id=?`, req.params.userId)
-        await db.query(`DELETE FROM users WHERE id=?`, req.params.userId)
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM user_invitations WHERE user_id=?`, req.params.userId)
+        await t.execute(`DELETE FROM users WHERE id=?`, req.params.userId)
     })
 
     return { success: true }
@@ -299,7 +299,7 @@ api.put('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
-    await db.query(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
+    await db.execute(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
     return { success: true }
 })
 
@@ -381,16 +381,25 @@ api.put('/variables/:variableId', async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
     const variable = (req.body as { variable: VariableSingleMeta }).variable
 
-    await db.query(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
+    await db.execute(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
         [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variableId])
     return { success: true }
 })
 
 api.delete('/variables/:variableId', async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
-    await db.transaction(async () => {
-        await db.query(`DELETE d FROM data_values AS d WHERE d.variableId=?`, [variableId])
-        await db.query(`DELETE FROM variables WHERE id=?`, [variableId])
+
+    const variable = await db.get(`SELECT datasets.namespace FROM variables JOIN datasets ON variables.datasetId=datasets.id WHERE variables.id=?`, [variableId])
+
+    if (!variable) {
+        throw new JsonError(`No variable by id ${variableId}`, 404)
+    } else if (variable.namespace !== 'owid') {
+        throw new JsonError(`Cannot delete bulk import variable`, 400)
+    }
+
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM data_values WHERE variableId=?`, [variableId])
+        await t.execute(`DELETE FROM variables WHERE id=?`, [variableId])
     })
 
     return { success: true }
@@ -464,17 +473,17 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 api.put('/datasets/:datasetId', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
     const dataset = (req.body as { dataset: any }).dataset
-    await db.query(`UPDATE datasets SET name=?, description=?, subcategoryId=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, datasetId])
+    await db.execute(`UPDATE datasets SET name=?, description=?, subcategoryId=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, datasetId])
     return { success: true }
 })
 
 api.delete('/datasets/:datasetId', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
-    await db.transaction(async () => {
-        await db.query(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
-        await db.query(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
-        await db.query(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
-        await db.query(`DELETE FROM datasets WHERE id=?`, [datasetId])
+    await db.transaction(async t => {
+        await t.execute(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
+        await t.execute(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
+        await t.execute(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
+        await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
 
     return { success: true }
@@ -496,7 +505,7 @@ api.get('/sources/:sourceId.json', async (req: Request) => {
 api.put('/sources/:sourceId', async (req: Request) => {
     const sourceId = expectInt(req.params.sourceId)
     const source = (req.body as { source: any }).source
-    await db.query(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
+    await db.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
     return { success: true }
 })
 

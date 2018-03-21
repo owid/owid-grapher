@@ -156,7 +156,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <h3>Charts</h3>
                 <ChartList charts={dataset.charts}/>
             </section>
-            <section>
+            {!isBulkImport && <section>
                 <h3>Danger zone</h3>
                 <p>
                     Delete this dataset and all variables it contains. If there are any charts using this data, you must delete them individually first.
@@ -164,7 +164,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <div className="card-footer">
                     <button className="btn btn-danger" onClick={() => this.delete()}>Delete dataset</button>
                 </div>
-            </section>
+            </section>}
         </main>
     }
 }

@@ -14,44 +14,71 @@ export function connect() {
     })
 }
 
-export function transaction<T>(callback: () => Promise<T>): Promise<T> {
+export function getConnection(): Promise<mysql.PoolConnection> {
     return new Promise((resolve, reject) => {
         pool.getConnection((poolerr, conn) => {
             if (poolerr) {
                 reject(poolerr)
-                return
+            } else {
+                resolve(conn)
             }
-
-            conn.beginTransaction(err => {
-                if (err) {
-                    reject(err)
-                    conn.release()
-                    return
-                }
-
-                callback().then((...args: any[]) => {
-                    conn.commit(err2 => {
-                        if (err2) {
-                            conn.rollback(() => {
-                                reject(err2)
-                                conn.release()
-                            })
-                        }
-                        resolve(...args)
-                        conn.release()
-                    })
-                }).catch((err2) => {
-                    conn.rollback(() => {
-                        reject(err2)
-                        conn.release()
-                    })
-                })
-            })
         })
     })
 }
 
+class TransactionContext {
+    conn: mysql.PoolConnection
+    constructor(conn: mysql.PoolConnection) {
+        this.conn = conn
+    }
+
+    execute(queryStr: string, params?: any[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.conn.query(queryStr, params, (err, rows) => {
+                if (err) return reject(err)
+                resolve(rows)
+            })
+        })
+    }
+
+    query(queryStr: string, params?: any[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.conn.query(queryStr, params, (err, rows) => {
+                if (err) return reject(err)
+                resolve(rows)
+            })
+        })
+    }
+}
+
+export async function transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
+    const conn = await getConnection()
+    const t = new TransactionContext(conn)
+
+    try {
+        await t.execute("START TRANSACTION")
+        const result = await callback(t)
+        await t.execute("COMMIT")
+        return result
+    } catch (err) {
+        await t.execute("ROLLBACK")
+        throw err
+    } finally {
+        t.conn.release()
+    }
+}
+
 export function query(queryStr: string, params?: any[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+        pool.query(queryStr, params, (err, rows) => {
+            if (err) return reject(err)
+            resolve(rows)
+        })
+    })
+}
+
+// For operations that modify data (TODO: handling to check query isn't used for this)
+export function execute(queryStr: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
         pool.query(queryStr, params, (err, rows) => {
             if (err) return reject(err)
@@ -67,5 +94,3 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 export function end() {
     pool.end()
 }
-
-
