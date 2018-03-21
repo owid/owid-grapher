@@ -47,7 +47,7 @@ class FunctionalRouter {
 
 const api = new FunctionalRouter()
 
-// Trigger incremental rebuild of static charts and data
+// Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     const email = shellEscape(user.email)
     const name = shellEscape(user.fullName)

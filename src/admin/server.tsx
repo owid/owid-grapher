@@ -2,6 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import { uniq } from 'lodash'
 const cookieParser = require('cookie-parser')
+const errorToSlack = require('express-error-slack').default
 
 import * as db from '../db'
 import AdminSPA from './AdminSPA'
@@ -9,7 +10,7 @@ import LoginPage from './LoginPage'
 import {authMiddleware, loginSubmit} from './authentication'
 import api from './api'
 import {renderToHtmlPage} from './serverUtil'
-import {NODE_SERVER_PORT, BUILD_GRAPHER_URL} from '../settings'
+import {NODE_SERVER_PORT, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -35,6 +36,11 @@ app.use('/admin/api', api.router)
 app.get('*', (req, res) => {
     res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.name}/>))
 })
+
+// Send errors to slack
+if (SLACK_ERRORS_WEBHOOK_URL) {
+    app.use(errorToSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
+}
 
 const HOST = 'localhost'
 app.listen(NODE_SERVER_PORT, HOST, () => {

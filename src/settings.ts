@@ -22,6 +22,7 @@ interface Settings {
     SECRET_KEY: string
     SESSION_COOKIE_AGE: number
     NODE_SERVER_PORT: number
+    SLACK_ERRORS_WEBHOOK_URL: string
 }
 
 const env: Settings = (process.env as any)

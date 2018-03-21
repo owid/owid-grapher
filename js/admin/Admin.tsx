@@ -42,14 +42,7 @@ export default class Admin {
 
     // Make a request with no error or response handling
     async rawRequest(path: string, data: Json, method: HTTPMethod) {
-        let targetPath = path
-
-        // Tack params on the end if it's a GET request
-        if (method === "GET" && !_.isEmpty(data)) {
-            targetPath += queryParamsToStr(data)
-        }
-
-        return fetch(this.url(targetPath), {
+        return fetch(this.url(path), {
             method: method,
             credentials: 'same-origin',
             headers: {
@@ -65,12 +58,18 @@ export default class Admin {
     async requestJSON(path: string, data: Json, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
         const onFailure = opts.onFailure || 'show'
 
+        let targetPath = path
+        // Tack params on the end if it's a GET request
+        if (method === "GET" && !_.isEmpty(data)) {
+            targetPath += queryParamsToStr(data)
+        }
+
         let response: Response|undefined
         let text: string|undefined
         let json: Json
 
         try {
-            const request = this.rawRequest(path, data, method)
+            const request = this.rawRequest(targetPath, data, method)
             this.currentRequests.push(request)
 
             response = await request
@@ -79,13 +78,13 @@ export default class Admin {
             json = JSON.parse(text)
             if (json.error) {
                 if (onFailure === 'show') {
-                    this.errorMessage = { title: `Failed to ${method} ${path} (${response.status})`, content: json.error.message }
+                    this.errorMessage = { title: `Failed to ${method} ${targetPath} (${response.status})`, content: json.error.message }
                 } else if (onFailure !== 'continue') {
                     throw json.error
                 }
             }
         } catch (err) {
-            this.errorMessage = { title: `Failed to ${method} ${path}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
+            this.errorMessage = { title: `Failed to ${method} ${targetPath}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
             throw this.errorMessage
         } finally {
             this.currentRequests.pop()

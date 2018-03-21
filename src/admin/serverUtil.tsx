@@ -5,10 +5,10 @@ import {quote} from 'shell-quote'
 
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
-    code: number
-    constructor(message: string, code?: number) {
+    status: number
+    constructor(message: string, status?: number) {
         super(message)
-        this.code = code || 400
+        this.status = status || 400
     }
 }
 
