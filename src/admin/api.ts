@@ -386,6 +386,16 @@ api.put('/variables/:variableId', async (req: Request) => {
     return { success: true }
 })
 
+api.delete('/variables/:variableId', async (req: Request) => {
+    const variableId = expectInt(req.params.variableId)
+    await db.transaction(async () => {
+        await db.query(`DELETE d FROM data_values AS d WHERE d.variableId=?`, [variableId])
+        await db.query(`DELETE FROM variables WHERE id=?`, [variableId])
+    })
+
+    return { success: true }
+})
+
 api.get('/datasets.json', async req => {
     const rows = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt

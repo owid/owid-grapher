@@ -2,7 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
-import {Prompt} from 'react-router-dom'
+import {Prompt, Redirect} from 'react-router-dom'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
@@ -50,11 +50,13 @@ class VariableEditable {
 @observer
 class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable newVariable!: VariableEditable
+    @observable isDeleted: boolean = false
 
     // Store the original dataset to determine when it is modified
     componentWillMount() { this.componentWillReceiveProps() }
     componentWillReceiveProps() {
         this.newVariable = new VariableEditable(this.props.variable)
+        this.isDeleted = false
     }
 
     context!: { admin: Admin }
@@ -64,10 +66,25 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         return JSON.stringify(this.newVariable) !== JSON.stringify(new VariableEditable(this.props.variable))
     }
 
+    async delete() {
+        const {variable} = this.props
+        if (!window.confirm(`Really delete the variable ${variable.name}? This action cannot be undone!`))
+            return
+
+        const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, {}, "DELETE")
+
+        if (json.success) {
+            this.isDeleted = true
+        }
+    }
+
     render() {
         const {variable} = this.props
         const {newVariable} = this
         const isBulkImport = variable.datasetNamespace !== 'owid'
+
+        if (this.isDeleted)
+            return <Redirect to={`/datasets/${variable.datasetId}`}/>
 
         return <main className="VariableEditPage">
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
@@ -132,6 +149,15 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <section>
                     <h3>Charts</h3>
                     <ChartList charts={variable.charts}/>
+                </section>
+                <section>
+                    <h3>Danger zone</h3>
+                    <p>
+                        Delete this variable and all data it contains. If there are any charts using this data, you must delete them individually first.
+                    </p>
+                    <div className="card-footer">
+                        <button className="btn btn-danger" onClick={() => this.delete()}>Delete variable</button>
+                    </div>
                 </section>
             </form>
         </main>
