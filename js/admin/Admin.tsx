@@ -12,7 +12,7 @@ type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export default class Admin {
-    @observable errorMessage?: { title: string, content: string, isFatal?: true }
+    @observable errorMessage?: { title: string, content: string, isFatal?: boolean }
     grapherRoot: string
     basePath: string
     username: string
@@ -78,7 +78,7 @@ export default class Admin {
             json = JSON.parse(text)
             if (json.error) {
                 if (onFailure === 'show') {
-                    this.errorMessage = { title: `Failed to ${method} ${targetPath} (${response.status})`, content: json.error.message }
+                    this.errorMessage = { title: `Failed to ${method} ${targetPath} (${response.status})`, content: json.error.message, isFatal: response.status !== 404 }
                 } else if (onFailure !== 'continue') {
                     throw json.error
                 }

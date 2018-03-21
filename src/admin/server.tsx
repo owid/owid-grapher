@@ -42,6 +42,12 @@ if (SLACK_ERRORS_WEBHOOK_URL) {
     app.use(errorToSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
 }
 
+// Give full error messages in production
+app.use(async (err: any, req: any, res: any, next: any) => {
+    res.status(err.status||500)
+    res.send({ error: { message: err.stack, status: err.status||500 } })
+})
+
 const HOST = 'localhost'
 app.listen(NODE_SERVER_PORT, HOST, () => {
     console.log(`Express started on ${HOST}:${NODE_SERVER_PORT}`)

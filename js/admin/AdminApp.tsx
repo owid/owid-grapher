@@ -30,7 +30,9 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
                     {error.isFatal && <p>Please screenshot this error message and report it in <a href="https://owid.slack.com/messages/tiny-tech-problems/">#tiny-tech-problems</a></p>}
                 </div>
             </div>
-            <div className="modal-body" dangerouslySetInnerHTML={{__html: error.content}}/>
+            <div className="modal-body">
+                <pre dangerouslySetInnerHTML={{__html: error.content}}/>
+            </div>
         </Modal> : null
     }
 }
