@@ -97,6 +97,7 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
     }
 
     @action.bound onAddAfter() {
+        console.log("???")
         const { mapConfig, index } = this.props
         const { colorSchemeValues, customNumericColors } = mapConfig.props
         const currentValue = colorSchemeValues[index]

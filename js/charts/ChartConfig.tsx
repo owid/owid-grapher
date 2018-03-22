@@ -139,7 +139,7 @@ export class ChartConfigProps {
     @observable.ref hideLinesOutsideTolerance?: true = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
-    @observable.struct excludedEntities?: number[] = undefined
+    @observable excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
     @observable.ref version: number = 1

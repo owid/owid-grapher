@@ -80,7 +80,6 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
     base!: HTMLDivElement
     @observable.ref isAddingVariable: boolean = false
-    @observable.struct unassignedVariables: Variable[] = []
 
     render() {
         const { props } = this
