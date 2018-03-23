@@ -40,10 +40,6 @@ export class ChartBaker {
     async bakeAssets() {
         const {pathRoot} = this.props
 
-        let commonsJs = `${BUILD_ASSETS_URL}/commons.js`
-        let commonsCss = `${BUILD_ASSETS_URL}/commons.css`
-        let chartsJs = `${BUILD_ASSETS_URL}/charts.js`
-
         if (ENV === "production") {
             const buildDir = `grapher_admin/static/build`
 
@@ -61,13 +57,9 @@ export class ChartBaker {
                 fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
                 this.stage(outPath)
             }
-
-            commonsJs = `${BUILD_ASSETS_URL}/commons.js?v=${manifest['commons.js']}`
-            commonsCss = `${BUILD_ASSETS_URL}/commons.css?v=${manifest['commons.css']}`
-            chartsJs = `${BUILD_ASSETS_URL}/charts.js?v=${manifest['charts.js']}`
         }
 
-        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot, commonsJs, commonsCss, chartsJs))
+        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot))
         this.stage(`${this.baseDir}/embedCharts.js`)
     }
 

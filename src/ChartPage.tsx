@@ -1,4 +1,4 @@
-import {BUILD_GRAPHER_URL, BUILD_ASSETS_URL} from './settings'
+import {BUILD_GRAPHER_URL} from './settings'
 
 import * as React from 'react'
 import * as path from 'path'
@@ -6,6 +6,7 @@ import * as urljoin from 'url-join'
 import * as _ from 'lodash'
 const md5 = require('md5')
 
+import { webpack } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 
 // HACK (Mispy): Typescript bindings don't support crossorigin attribute on link as of 14 Mar 2018
@@ -86,7 +87,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                     figure { display: none !important; }
                 `}</style>
             </noscript>
-            <link rel="stylesheet" href={`${BUILD_ASSETS_URL}/commons.css`}/>
+            <link rel="stylesheet" href={webpack("commons.css")}/>
             <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
         </head>
         <body className="singleChart">
@@ -96,8 +97,8 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
-            <script src={`${BUILD_ASSETS_URL}/commons.js`}/>
-            <script src={`${BUILD_ASSETS_URL}/charts.js`}/>
+            <script src={webpack("commons.js")}/>
+            <script src={webpack("charts.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>

@@ -1,6 +1,22 @@
-import { BUILD_GRAPHER_URL } from './settings'
+import { ENV, BASE_DIR, BUILD_GRAPHER_URL, BUILD_ASSETS_URL } from './settings'
+import * as fs from 'fs-extra'
+import * as path from 'path'
 
-export function embedSnippet(basePath: string, commonsJs: string, commonsCss: string, chartsJs: string): string {
+let manifest: {[key: string]: string}
+export function webpack(assetName: string) {
+    if (ENV === 'production') {
+        if (!manifest) {
+            const manifestPath = path.join(BASE_DIR, 'grapher_admin/static/build/manifest.json')
+            manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
+        }
+
+        return `${BUILD_ASSETS_URL}/${assetName}?v=${manifest[assetName]}`
+    } else {
+        return `${BUILD_ASSETS_URL}/${assetName}`
+    }
+}
+
+export function embedSnippet(basePath: string): string {
     return `
         window.App = {};
         window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };
@@ -8,7 +24,7 @@ export function embedSnippet(basePath: string, commonsJs: string, commonsCss: st
         var link = document.createElement('link');
         link.type = 'text/css';
         link.rel = 'stylesheet';
-        link.href = '${commonsCss}';
+        link.href = '${webpack('commons.css')}';
         document.head.appendChild(link);
 
         var hasPolyfill = false;
@@ -31,13 +47,13 @@ export function embedSnippet(basePath: string, commonsJs: string, commonsCss: st
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${commonsJs}';
+        script.src = '${webpack('commons.js')}';
         document.head.appendChild(script);
 
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${chartsJs}';
+        script.src = '${webpack('charts.js')}';
         document.head.appendChild(script);
     `
 }
