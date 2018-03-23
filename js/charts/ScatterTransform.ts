@@ -32,7 +32,7 @@ export default class ScatterTransform implements IChartTransform {
             return "Missing X axis variable"
         else if (isEmpty(this.possibleEntities))
             return "No entities with data for both X and Y"
-        else if (isEmpty(this.timelineYears))
+        else if (isEmpty(this.possibleDataYears))
             return "No years with data for both X and Y"
         else if (isEmpty(this.currentData))
             return "No matching data"
@@ -124,13 +124,18 @@ export default class ScatterTransform implements IChartTransform {
 
     // The years for which we intend to calculate output data
     @computed get yearsToCalculate(): number[] {
+        return this.possibleDataYears
+
+        // XXX: Causes issues here https://ourworldindata.org/grapher/fish-consumption-vs-gdp-per-capita
         if (!this.chart.props.hideTimeline) {
             return this.possibleDataYears
         } else {
             // If there's no timeline, we only need to calculate data for the displayed range
-            const minYear = defaultTo(this.chart.timeDomain[0], -Infinity)
-            const maxYear = defaultTo(this.chart.timeDomain[1], Infinity)
-            return this.possibleDataYears.filter(y => y >= minYear && y <= maxYear)
+            const minPossibleYear = this.possibleDataYears[0]
+            const maxPossibleYear = this.possibleDataYears[this.possibleDataYears.length-1]
+            const startYear = defaultTo(this.chart.timeDomain[0], minPossibleYear)
+            const endYear = defaultTo(this.chart.timeDomain[1], maxPossibleYear)
+            return this.possibleDataYears.filter(y => y >= startYear && y <= endYear)
         }
     }
 

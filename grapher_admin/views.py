@@ -92,15 +92,17 @@ def test_all(request):
     else:
         test_compare = 0
 
-    charts_per_page = 5
+    charts_per_page = 20
 
     query = Chart.objects.filter(config__isPublished=True).order_by('-created_at')
 
     if test_type and test_type != 'map':
-        if test_type == "stackedarea":
+        if test_type == "stacked":
             query = query.filter(config__type="StackedArea")
-        if test_type == "scatter":
+        elif test_type == "scatter":
             query = query.filter(config__type="ScatterPlot")
+        elif test_type == "line":
+            query = query.filter(config__type="LineChart")
         else:
             query = query.filter(config__type=test_type)
 
