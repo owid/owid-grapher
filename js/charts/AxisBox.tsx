@@ -203,8 +203,8 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
         return <g className="AxisBoxView">
             <HorizontalAxisView bounds={bounds} axis={xAxis} onScaleTypeChange={onXScaleChange} />
             <VerticalAxisView bounds={bounds} axis={yAxis} onScaleTypeChange={onYScaleChange} />
-            <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />
-            <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />
+            {!yScale.hideGridlines && <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />}
+            {!xScale.hideGridlines && <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />}
         </g>
     }
 }

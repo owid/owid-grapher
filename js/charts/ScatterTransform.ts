@@ -110,8 +110,10 @@ export default class ScatterTransform implements IChartTransform {
     }
 
     @computed get timelineYears(): number[] {
-        const yDimensionYears = this.yDimension ? this.yDimension.variable.yearsUniq : []
-        const xDimensionYears = this.xDimension ? this.xDimension.variable.yearsUniq : []
+        const yDimensionYears = this.yDimension ? this.yDimension.yearsUniq : []
+        const xDimensionYears = this.xDimension ? this.xDimension.yearsUniq : []
+
+        console.log(yDimensionYears, xDimensionYears, intersection(yDimensionYears, xDimensionYears))
 
         if (this.xOverrideYear !== undefined)
             return yDimensionYears

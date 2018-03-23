@@ -13,7 +13,8 @@ interface AxisSpec {
     domain: [number, number]
     scaleType: ScaleType
     scaleTypeOptions: ScaleType[],
-    hideFractionalTicks?: boolean
+    hideFractionalTicks?: boolean,
+    hideGridlines?: boolean
 }
 
 export default AxisSpec

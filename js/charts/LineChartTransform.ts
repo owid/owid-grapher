@@ -133,7 +133,8 @@ export default class LineChartTransform implements IChartTransform {
             domain: xDomain,
             scaleType: 'linear',
             scaleTypeOptions: ['linear'],
-            hideFractionalTicks: true
+            hideFractionalTicks: true,
+            hideGridlines: true
         }
     }
 

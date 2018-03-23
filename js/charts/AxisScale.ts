@@ -27,22 +27,25 @@ export default class AxisScale {
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
     @observable hideFractionalTicks: boolean
+    @observable hideGridlines: boolean
 
     constructor({ scaleType = 'linear',
                   scaleTypeOptions = ['linear'],
                   tickFormat = (d => d.toString()),
                   domain = [0, 0],
                   range = [0, 0],
-                  hideFractionalTicks = false }:
+                  hideFractionalTicks = false,
+                  hideGridlines = false }:
                 { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
                   tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number],
-                  hideFractionalTicks?: boolean }) {
+                  hideFractionalTicks?: boolean, hideGridlines?: boolean }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
         this.domain = domain
         this.range = range
         this.hideFractionalTicks = hideFractionalTicks
+        this.hideGridlines = hideGridlines
     }
 
     @computed get d3_scaleConstructor(): any {
