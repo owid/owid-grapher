@@ -196,8 +196,13 @@ export function domainExtent(numValues: number[], scaleType: 'linear' | 'log'): 
     const filterValues = scaleType === 'log' ? numValues.filter(v => v > 0) : numValues
     const [minValue, maxValue] = extent(filterValues)
 
-    if (isFinite(minValue) && isFinite(maxValue) && minValue !== maxValue) {
-        return [minValue, maxValue] as [number, number]
+    if (minValue !== undefined && maxValue !== undefined && isFinite(minValue) && isFinite(maxValue)) {
+        if (minValue !== maxValue) {
+            return [minValue, maxValue]
+        } else {
+            // Only one value, make up a reasonable default
+            return scaleType === 'log' ? [minValue/10, minValue*10] : [minValue-1, maxValue+1]
+        }
     } else {
         return scaleType === 'log' ? [1, 100] : [-1, 1]
     }
