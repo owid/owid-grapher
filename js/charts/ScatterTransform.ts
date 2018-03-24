@@ -127,7 +127,7 @@ export default class ScatterTransform implements IChartTransform {
         return this.possibleDataYears
 
         // XXX: Causes issues here https://ourworldindata.org/grapher/fish-consumption-vs-gdp-per-capita
-        if (!this.chart.props.hideTimeline) {
+        /*if (!this.chart.props.hideTimeline) {
             return this.possibleDataYears
         } else {
             // If there's no timeline, we only need to calculate data for the displayed range
@@ -136,7 +136,7 @@ export default class ScatterTransform implements IChartTransform {
             const startYear = defaultTo(this.chart.timeDomain[0], minPossibleYear)
             const endYear = defaultTo(this.chart.timeDomain[1], maxPossibleYear)
             return this.possibleDataYears.filter(y => y >= startYear && y <= endYear)
-        }
+        }*/
     }
 
     /*@computed get minTimelineYear(): number {
