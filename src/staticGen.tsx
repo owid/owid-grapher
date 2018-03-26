@@ -16,7 +16,7 @@ export function webpack(assetName: string) {
     }
 }
 
-export function embedSnippet(basePath: string): string {
+export function embedSnippet(): string {
     return `
         window.App = {};
         window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };

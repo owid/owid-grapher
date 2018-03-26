@@ -1,4 +1,4 @@
-import {BUILD_GRAPHER_URL} from './settings'
+import {BUILD_GRAPHER_URL, BUILD_GRAPHER_PATH} from './settings'
 
 import * as React from 'react'
 import * as path from 'path'
@@ -16,13 +16,13 @@ declare module 'react' {
    }
 }
 
-export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, chart: ChartConfigProps }) => {
-    const {chart, canonicalRoot, pathRoot} = props
+export const ChartPage = (props: { chart: ChartConfigProps }) => {
+    const {chart} = props
 
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
-    const canonicalUrl = urljoin(canonicalRoot, pathRoot, chart.slug as string)
-    const imageUrl = urljoin(canonicalRoot, pathRoot, "exports", `${chart.slug}.png?v=${chart.version}`)
+    const canonicalUrl = urljoin(BUILD_GRAPHER_URL, chart.slug as string)
+    const imageUrl = urljoin(BUILD_GRAPHER_URL, "exports", `${chart.slug}.png?v=${chart.version}`)
 
     const style = `
         html, body {
@@ -54,7 +54,7 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
             window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
-            figure.innerHTML = "<img src=\\"${pathRoot}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
+            figure.innerHTML = "<img src=\\"${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
         }
     `
@@ -88,12 +88,12 @@ export const ChartPage = (props: { canonicalRoot: string, pathRoot: string, char
                 `}</style>
             </noscript>
             <link rel="stylesheet" href={webpack("commons.css")}/>
-            <link rel="preload" href={`${pathRoot}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
+            <link rel="preload" href={`${BUILD_GRAPHER_PATH}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
         </head>
         <body className="singleChart">
-            <figure data-grapher-src={`${pathRoot}/${chart.slug}`}/>
+            <figure data-grapher-src={`${BUILD_GRAPHER_PATH}/${chart.slug}`}/>
             <noscript id="fallback">
-                <img src={`${pathRoot}/exports/${chart.slug}.svg`}/>
+                <img src={`${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg`}/>
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>

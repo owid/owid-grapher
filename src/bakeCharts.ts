@@ -6,8 +6,6 @@ const argv = parseArgs(process.argv.slice(2))
 
 async function main(email: string, name: string, message: string) {
     const baker = new ChartBaker({
-        canonicalRoot: 'https://ourworldindata.org',
-        pathRoot: '/grapher',
         repoDir: path.join(__dirname, `../../public`)
     })
 

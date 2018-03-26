@@ -42,7 +42,6 @@ async function getChartsBySlug(db: DatabaseConnection) {
     return chartsBySlug
 }
 
-
 async function main(chartUrls: string[], outDir: string) {
     const db = createConnection({ database: DB_NAME })
     try {

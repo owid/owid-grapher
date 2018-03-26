@@ -15,11 +15,9 @@ import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
 import * as db from './db'
 
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH } from './settings'
 
 export interface ChartBakerProps {
-    canonicalRoot: string
-    pathRoot: string
     repoDir: string
 }
 
@@ -32,14 +30,12 @@ export class ChartBaker {
 
     constructor(props: ChartBakerProps) {
         this.props = props
-        this.baseDir = path.join(this.props.repoDir, this.props.pathRoot)
+        this.baseDir = path.join(this.props.repoDir, BUILD_GRAPHER_PATH)
         fs.mkdirpSync(this.baseDir)
         db.connect()
     }
 
     async bakeAssets() {
-        const {pathRoot} = this.props
-
         if (ENV === "production") {
             const buildDir = `grapher_admin/static/build`
 
@@ -59,7 +55,7 @@ export class ChartBaker {
             }
         }
 
-        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet(pathRoot))
+        await fs.writeFile(`${this.baseDir}/embedCharts.js`, embedSnippet())
         this.stage(`${this.baseDir}/embedCharts.js`)
     }
 
@@ -73,7 +69,7 @@ export class ChartBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${this.baseDir}/${chart.slug}.html`
-        await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage canonicalRoot={this.props.canonicalRoot} pathRoot={this.props.pathRoot} chart={chart}/>))
+        await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage chart={chart}/>))
         this.stage(outPath)
     }
 
@@ -124,13 +120,13 @@ export class ChartBaker {
     }
 
     async bakeRedirects() {
-        const {pathRoot, repoDir} = this.props
+        const {repoDir} = this.props
         const redirects = []
 
         // Redirect /grapher/latest
         const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
         for (const row of latestRows) {
-            redirects.push(`${pathRoot}/latest ${pathRoot}/${JSON.parse(row.slug)} 302`)
+            redirects.push(`${BUILD_GRAPHER_PATH}/latest ${BUILD_GRAPHER_PATH}/${JSON.parse(row.slug)} 302`)
         }
 
         // Redirect old slugs to new slugs
@@ -142,7 +138,7 @@ export class ChartBaker {
         for (const row of rows) {
             const trueSlug = JSON.parse(row.trueSlug)
             if (row.slug !== trueSlug) {
-                redirects.push(`${pathRoot}/${row.slug} ${pathRoot}/${trueSlug} 302`)
+                redirects.push(`${BUILD_GRAPHER_PATH}/${row.slug} ${BUILD_GRAPHER_PATH}/${trueSlug} 302`)
             }
         }
 
@@ -151,19 +147,19 @@ export class ChartBaker {
     }
 
     async bakeHeaders() {
-        const {pathRoot, repoDir} = this.props
+        const {repoDir} = this.props
 
-        const headers = `${pathRoot}/data/variables/*
+        const headers = `${BUILD_GRAPHER_PATH}/data/variables/*
   Cache-Control: public, max-age=31556926
   Access-Control-Allow-Origin: *
 
-${pathRoot}/assets/*
+${BUILD_GRAPHER_PATH}/assets/*
   Cache-Control: public, max-age=31556926
 
-${pathRoot}/exports/*
+${BUILD_GRAPHER_PATH}/exports/*
   Cache-Control: public, max-age=31556926
 
-${pathRoot}/*
+${BUILD_GRAPHER_PATH}/*
   Access-Control-Allow-Origin: *
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)
