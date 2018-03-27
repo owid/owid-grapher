@@ -15,7 +15,7 @@ import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
 import * as db from './db'
 
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH } from './settings'
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
 
 export interface ChartBakerProps {
     repoDir: string
@@ -209,8 +209,11 @@ ${BUILD_GRAPHER_PATH}/*
         await this.bakeCharts()
     }
 
-    exec(cmd: string) {
-        console.log(cmd)
+    exec(cmd: string, message?: string) {
+        if (message)
+            console.log(message)
+        else
+            console.log(cmd)
         shell.exec(cmd)
     }
 
@@ -221,8 +224,14 @@ ${BUILD_GRAPHER_PATH}/*
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         const {repoDir} = this.props
+
+        if (fs.existsSync(path.join(repoDir, "netlify.toml"))) {
+            // Deploy directly to Netlify (faster than using the github hook)
+            this.exec(`cd ${repoDir} && netlifyctl deploy -b .`)
+        }
+
         for (const files of chunk(this.stagedFiles, 100)) {
-            this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`)
+            this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`, `Staging ${files.length} files`)
         }
         if (authorEmail && authorName && commitMsg) {
             this.exec(`cd ${repoDir} && git commit -m '${commitMsg}' --author='${authorName} <${authorEmail}>' && git push origin master`)

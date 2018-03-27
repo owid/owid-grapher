@@ -86,7 +86,6 @@ interface ScatterRenderSeries {
 interface ScatterLabel {
     text: string
     fontSize: number
-    pos: Vector2
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean
@@ -95,21 +94,39 @@ interface ScatterLabel {
     isEnd?: boolean
 }
 
+// When there's only a single point in a group (e.g. single year mode)
+@observer
+class ScatterGroupSingle extends React.Component<{ group: ScatterRenderSeries, isLayerMode?: boolean, isConnected?: boolean }> {
+    render() {
+        const {group, isLayerMode, isConnected} = this.props
+        const value = first(group.values) as ScatterRenderValue
+        const color = (group.isFocus || !isLayerMode) ? group.color : "#e2e2e2"
+
+        const isLabelled = group.allLabels.some(label => !label.isHidden)
+        const size = (!group.isFocus && isConnected) ? 1 + value.size / 16 : value.size
+        const cx = value.position.x.toFixed(2)
+        const cy = value.position.y.toFixed(2)
+        const stroke = isLabelled ? (isLayerMode ? "#999" : "#333") : "#fff"
+
+        return <g key={group.displayKey} className={group.displayKey}>
+            {group.isFocus && <circle cx={cx} cy={cy} fill="none" stroke={color} r={(size + 3).toFixed(2)} />}
+            <circle cx={cx} cy={cy} r={size.toFixed(2)} fill={color} opacity={0.8} stroke={stroke} stroke-width={0.7}/>
+        </g>
+    }
+}
+
 @observer
 class ScatterBackgroundLine extends React.Component<{ group: ScatterRenderSeries, isLayerMode: boolean, isConnected: boolean }> {
     render() {
         const {group, isLayerMode, isConnected} = this.props
 
-        const firstValue = first(group.values) as ScatterRenderValue
-        const color = !isLayerMode ? group.color : "#e2e2e2"
-
         if (group.values.length === 1) {
-            const size = isConnected ? 1 + firstValue.size / 16 : firstValue.size
-            return <g key={group.displayKey} className={group.displayKey}>
-                <circle cx={firstValue.position.x.toFixed(2)} cy={firstValue.position.y.toFixed(2)} r={size.toFixed(2)} fill={color} opacity={0.8} />
-            </g>
+            return <ScatterGroupSingle group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>
         } else {
+            const firstValue = first(group.values) as ScatterRenderValue
             const lastValue = last(group.values) as ScatterRenderValue
+            const color = !isLayerMode ? group.color : "#e2e2e2"
+
             let rotation = Vector2.angle(group.offsetVector, Vector2.up)
             if (group.offsetVector.x < 0) rotation = -rotation
 
@@ -271,7 +288,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return {
             text: firstValue.time.y.toString(),
             fontSize: fontSize,
-            pos: firstValue.position,
             bounds: bounds,
             series: series,
             isStart: true
@@ -313,7 +329,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             return {
                 text: v.time.y.toString(),
                 fontSize: fontSize,
-                pos: v.position,
                 bounds: bounds,
                 series: series,
                 isMid: true
@@ -324,6 +339,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // Make the end label (entity label) for a series. Will be pushed
     // slightly out based on the direction of the series if multiple values
     // are present
+    // This is also the one label in the case of a single point
     makeEndLabel(series: ScatterRenderSeries) {
         const { isSubtleForeground, labelFontFamily } = this
 
@@ -342,17 +358,18 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length === 1 ? lastValue.size + 1 : 5))
 
         let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: fontSize, fontFamily: labelFontFamily })
+
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({ x: labelBounds.x - labelBounds.width })
         if (labelPos.y > lastPos.y)
             labelBounds = labelBounds.extend({ y: labelBounds.y + labelBounds.height / 2 })
+
 
         return {
             text: series.text,
             fontSize: fontSize,
             bounds: labelBounds,
             series: series,
-            pos: labelPos,
             isEnd: true
         }
     }
@@ -482,7 +499,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     renderBackgroundLabels() {
         const { backgroundGroups, isLayerMode } = this
-        return <g className="backgroundLabels" fill={!isLayerMode ? "#666" : "#aaa"}>
+        return <g className="backgroundLabels" fill={!isLayerMode ? "#333" : "#aaa"}>
             {backgroundGroups.map(series => {
                 return series.allLabels.map(l =>
                     !l.isHidden && <text key={series.displayKey + '-endLabel'}
@@ -507,15 +524,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size * 0.05
 
             if (series.values.length === 1) {
-                const v = series.values[0]
-                if (series.isFocus) {
-                    return <g key={series.displayKey}>
-                        <circle cx={v.position.x.toFixed(2)} cy={v.position.y.toFixed(2)} fill="none" stroke={series.color} r={(series.size + 2).toFixed(2)} />
-                        <circle cx={v.position.x.toFixed(2)} cy={v.position.y.toFixed(2)} fill={series.color} r={series.size.toFixed(2)} />
-                    </g>
-                } else {
-                    return <circle key={series.displayKey} cx={v.position.x} cy={v.position.y} fill={series.color} r={series.size} />
-                }
+                return <ScatterGroupSingle group={series}/>
             } else {
                 const firstValue = series.values[0]
                 return <g key={series.displayKey} className={series.displayKey}>

@@ -58,7 +58,7 @@ async function main(chartUrls: string[], outDir: string) {
                 const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
                 chart.isLocalExport = true
                 const {width, height} = chart.idealBounds
-                const outPath = `${outDir}/${slug}${queryStr ? "-"+md5(queryStr) : ""}_v${jsonConfig.version}_${width}x${height}.svg`
+                const outPath = `${outDir}/${slug}${queryStr ? "-"+(md5(queryStr) as string) : ""}_v${jsonConfig.version}_${width}x${height}.svg`
                 console.log(outPath)
 
                 if (!fs.existsSync(outPath)) {
