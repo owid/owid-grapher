@@ -1,3 +1,4 @@
+import { labelsByRegion } from './WorldRegions';
 import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
@@ -122,6 +123,11 @@ export default class ChartData {
                     text = text + ", " + entityStr
                 }
             }
+
+            // Wording is weird on various charts if we do this
+            /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
+                text = text + ` in ${labelsByRegion[chart.map.props.projection]}`
+            }*/
 
             if (minYear !== null) {
                 const timeFrom = formatYear(minYear)

@@ -54,10 +54,6 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         // Filter out Antarctica
         geoData = geoData.filter((feature: any) => feature.id !== "ATA")
 
-        // Filter out anything not in the region selection
-        if (this.projection !== "World")
-            geoData = geoData.filter((feature: any) => worldRegionByMapEntity[feature.id] === this.projection)
-
         return geoData
     }
 
@@ -134,55 +130,67 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             return false
     }
 
-    @computed get matrixTransform() {
-        const { bounds, projection, geoBounds } = this
-
+    // Viewport for each projection, defined by center and width+height in fractional coordinates
+    @computed get viewport() {
         const viewports = {
             "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Europe": { x: 0.3, y: 0.7, width: 0.7, height: 0.7 },
-            "Africa": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "NorthAmerica": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "SouthAmerica": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Asia": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Oceania": { x: 0.565, y: 0.5, width: 1, height: 1 },
-/*            "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+            "Europe": { x: 0.5, y: 0.22, width: 0.2, height: 0.2 },
+            "Africa": { x: 0.49, y: 0.70, width: 0.21, height: 0.38 },
             "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
             "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
-            "Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
-            "Oceania": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
-            "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 }*/
+            "Asia": { x: 0.75, y: 0.45, width: 0.3, height: 0.5 },
+            "Oceania": { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
         }
 
-        const viewport = viewports[projection]
+        return viewports[this.projection]
+    }
 
-        // Calculate our reference dimensions. All of these values are independent of the current
+    // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
+    @computed get viewportScale() {
+        const {bounds, viewport, geoBounds} = this
+        const viewportWidth = viewport.width * geoBounds.width
+        const viewportHeight = viewport.height * geoBounds.height
+        return Math.min(bounds.width / viewportWidth, bounds.height / viewportHeight)
+    }
+
+    @computed get matrixTransform() {
+        const { bounds, projection, geoBounds, viewport, viewportScale } = this
+
+        // Calculate our reference dimensions. These values are independent of the current
         // map translation and scaling.
         const mapX = geoBounds.x + 1
         const mapY = geoBounds.y + 1
-        const viewportWidth = viewport.width * geoBounds.width
-        const viewportHeight = viewport.height * geoBounds.height
-
-        // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
-        const scale = Math.min(bounds.width / viewportWidth, bounds.height / viewportHeight)
 
         // Work out how to center the map, accounting for the new scaling we've worked out
-        const newWidth = geoBounds.width * scale
-        const newHeight = geoBounds.height * scale
+        const newWidth = geoBounds.width * viewportScale
+        const newHeight = geoBounds.height * viewportScale
         const boundsCenterX = bounds.left + bounds.width / 2
         const boundsCenterY = bounds.top + bounds.height / 2
-        const newCenterX = mapX + (scale - 1) * geoBounds.x + viewport.x * newWidth
-        const newCenterY = mapY + (scale - 1) * geoBounds.y + viewport.y * newHeight
+        const newCenterX = mapX + (viewportScale - 1) * geoBounds.x + viewport.x * newWidth
+        const newCenterY = mapY + (viewportScale - 1) * geoBounds.y + viewport.y * newHeight
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
-        const matrixStr = `matrix(${scale},0,0,${scale},${newOffsetX},${newOffsetY})`
+        const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
         return matrixStr
     }
 
     render() {
-        const { uid, bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform } = this
+        const { uid, bounds, choroplethData, defaultFill, geoData, pathData, matrixTransform, projection, viewportScale } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
+
+        const nonRegionFeatures = []
+        const noDataFeatures = []
+        const dataFeatures = []
+        for (const feature of geoData) {
+            if (projection !== "World" && worldRegionByMapEntity[feature.id as string] !== projection)
+                nonRegionFeatures.push(feature)
+            else if (!choroplethData[feature.id as string])
+                noDataFeatures.push(feature)
+            else
+                dataFeatures.push(feature)
+        }
 
         return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`}>
             <defs>
@@ -191,22 +199,30 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 </clipPath>
             </defs>
             <g className="subunits" transform={matrixTransform}>
-                {geoData.filter(d => !choroplethData[d.id as string]).map(d => {
-                    const isFocus = this.hasFocus(d)
-                    const stroke = isFocus ? focusColor : "#333"
-                    return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
-                })}
+                {nonRegionFeatures.length && <g className="nonRegionFeatures">
+                    {nonRegionFeatures.map(d => {
+                        return <path key={d.id} d={pathData[d.id as string]} strokeWidth={0.3/viewportScale} stroke={"#ccc"} fill={"#efefef"}/>
+                    })}
+                </g>}
 
-                {sortBy(geoData.filter(d => choroplethData[d.id as string]).map(d => {
+                {noDataFeatures.length && <g className="noDataFeatures">
+                    {noDataFeatures.map(d => {
+                        const isFocus = this.hasFocus(d)
+                        const stroke = isFocus ? focusColor : "#333"
+                        return <path key={d.id} d={pathData[d.id as string]} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
+                    })}
+                </g>}
+
+                {sortBy(dataFeatures.map(d => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id as string]
                     const stroke = isFocus ? focusColor : "#333"
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
+                        <path key={d.id} d={pathData[d.id as string]} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
                     ]
-                }), p => p[0].props['stroke-width'])}
+                }), p => p[0].props['strokeWidth'])}
             </g>
             {/*<text className="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders

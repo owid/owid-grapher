@@ -34,7 +34,6 @@ const worldRegionByEntity: {[key: string]: string} = {
     "Bonaire Sint Eustatius and Saba": "NorthAmerica",
     "Bosnia and Herzegovina": "Europe",
     "Botswana": "Africa",
-    "Bouvet Island": "Antarctica",
     "Brazil": "SouthAmerica",
     "British Indian Ocean Territory": "Asia",
     "British Virgin Islands": "NorthAmerica",
@@ -87,7 +86,6 @@ const worldRegionByEntity: {[key: string]: string} = {
     "France": "Europe",
     "French Guiana": "SouthAmerica",
     "French Polynesia": "Oceania",
-    "French Southern Territories": "Antarctica",
     "Gabon": "Africa",
     "Gambia": "Africa",
     "Georgia": "Asia",
@@ -106,7 +104,6 @@ const worldRegionByEntity: {[key: string]: string} = {
     "Guyana": "SouthAmerica",
     "Haiti": "NorthAmerica",
     "Hanover": "Europe",
-    "Heard Island and McDonald Islands": "Antarctica",
     "Hesse Electoral": "Europe",
     "Hesse Grand Ducal": "Europe",
     "Honduras": "NorthAmerica",
@@ -292,7 +289,7 @@ for (const entity in worldRegionByEntity) {
     worldRegionByMapEntity[entityNameForMap(entity)] = worldRegionByEntity[entity]
 }
 
-export const worldRegions = ['World'].concat(uniq(values(worldRegionByEntity)))
+export const worldRegions = ['World'].concat(uniq(values(worldRegionByMapEntity)))
 
 export const labelsByRegion: {[key: string]: string} = {
     'World': 'World',
