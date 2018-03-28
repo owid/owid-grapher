@@ -124,9 +124,10 @@ export default class ChartData {
                 }
             }
 
-            // Wording is weird on various charts if we do this
+            // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
             /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
-                text = text + ` in ${labelsByRegion[chart.map.props.projection]}`
+                const label = labelsByRegion[chart.map.props.projection]
+                text = text + ` in ${label}`
             }*/
 
             if (minYear !== null) {

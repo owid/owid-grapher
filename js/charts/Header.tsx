@@ -78,7 +78,7 @@ export default class Header {
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
-        let fontScale = 1.5
+        let fontScale = 1.4
         while (true) {
             title = new TextWrap({ maxWidth: maxWidth, fontSize: fontScale*props.chart.baseFontSize, text: titleText, lineHeight: 1 })
             if (fontScale <= 1.2 || title.lines.length <= 1)
