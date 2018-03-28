@@ -1,13 +1,15 @@
-import { map, min, max, each, identity, sortBy, guid } from './Util'
-import Bounds from './Bounds'
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import * as topojson from 'topojson'
+
+import { map, min, max, each, identity, sortBy, guid } from './Util'
+import Bounds from './Bounds'
 import MapProjections from './MapProjections'
 import MapProjection from './MapProjection'
 import MapTopology from './MapTopology'
 import Vector2 from './Vector2'
+import { worldRegionByMapEntity } from './WorldRegions'
 
 export interface ChoroplethDatum {
     entity: string
@@ -45,8 +47,18 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return guid()
     }
 
+    // Get the underlying geographical topology elements we're going to display
     @computed get geoData(): GeoFeature[] {
-        return (topojson.feature(MapTopology, MapTopology.objects.world) as any).features.filter((feature: any) => feature.id !== "ATA")
+        let geoData = (topojson.feature(MapTopology, MapTopology.objects.world) as any).features
+
+        // Filter out Antarctica
+        geoData = geoData.filter((feature: any) => feature.id !== "ATA")
+
+        // Filter out anything not in the region selection
+        if (this.projection !== "World")
+            geoData = geoData.filter((feature: any) => worldRegionByMapEntity[feature.id] === this.projection)
+
+        return geoData
     }
 
     @computed.struct get projection(): MapProjection {
@@ -127,12 +139,18 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
         const viewports = {
             "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
+            "Europe": { x: 0.3, y: 0.7, width: 0.7, height: 0.7 },
+            "Africa": { x: 0.565, y: 0.5, width: 1, height: 1 },
+            "NorthAmerica": { x: 0.565, y: 0.5, width: 1, height: 1 },
+            "SouthAmerica": { x: 0.565, y: 0.5, width: 1, height: 1 },
+            "Asia": { x: 0.565, y: 0.5, width: 1, height: 1 },
+            "Oceania": { x: 0.565, y: 0.5, width: 1, height: 1 },
+/*            "Africa": { x: 0.48, y: 0.70, width: 0.21, height: 0.38 },
             "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
             "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
             "Asia": { x: 0.49, y: 0.52, width: 0.22, height: 0.38 },
-            "Australia": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
-            "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 },
+            "Oceania": { x: 0.51, y: 0.77, width: 0.1, height: 0.12 },
+            "Europe": { x: 0.54, y: 0.54, width: 0.05, height: 0.15 }*/
         }
 
         const viewport = viewports[projection]
@@ -173,20 +191,20 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 </clipPath>
             </defs>
             <g className="subunits" transform={matrixTransform}>
-                {map(geoData.filter(d => !choroplethData[d.id as string]), d => {
+                {geoData.filter(d => !choroplethData[d.id as string]).map(d => {
                     const isFocus = this.hasFocus(d)
                     const stroke = isFocus ? focusColor : "#333"
                     return <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
                 })}
 
-                {sortBy(map(geoData.filter(d => choroplethData[d.id as string]), (d) => {
+                {sortBy(geoData.filter(d => choroplethData[d.id as string]).map(d => {
                     const isFocus = this.hasFocus(d)
                     const datum = choroplethData[d.id as string]
                     const stroke = isFocus ? focusColor : "#333"
                     const fill = datum ? datum.color : defaultFill
 
                     return [
-                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.5} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
+                        <path key={d.id} d={pathData[d.id as string]} stroke-width={isFocus ? focusStrokeWidth : 0.3} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
                     ]
                 }), p => p[0].props['stroke-width'])}
             </g>

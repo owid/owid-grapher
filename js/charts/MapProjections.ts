@@ -1,28 +1,32 @@
-import { geoPath, GeoPath, geoConicConformal } from 'd3-geo'
+import { geoPath, GeoPath, geoConicConformal, geoAzimuthalEqualArea, GeoProjection } from 'd3-geo'
 import { computed } from 'mobx'
-const { geoRobinson } = require('d3-geo-projection')
+const { geoRobinson, geoPatterson } = require('d3-geo-projection')
+
+const SCALE = 150
 
 class MapProjections {
     [key: string]: GeoPath<any, any>
 
     @computed get World(): GeoPath<any, any> {
-        const projection = geoRobinson()
+        const projection = geoRobinson().scale(SCALE) as GeoProjection
         const path = geoPath().projection(projection)
         return path
     }
 
     @computed get Africa(): GeoPath<any, any> {
         //empiric
-        const projection = geoConicConformal()
+        const projection = geoRobinson()
+        const path = geoPath().projection(projection)
+        return path
+        /*const projection = geoConicConformal()
             .rotate([-25, 0])
             .center([0, 0])
             .parallels([30, -20])
         const path = geoPath().projection(projection)
-        return path
+        return path*/
     }
 
     @computed get NorthAmerica(): GeoPath<any, any> {
-        //empiric
         const projection = geoConicConformal()
             .rotate([98, 0])
             .center([0, 38])
@@ -32,37 +36,36 @@ class MapProjections {
     }
 
     @computed get SouthAmerica(): GeoPath<any, any> {
-        //empiric
-        const projection = geoConicConformal()
-            .rotate([68, 0])
-            .center([0, -14])
-            .parallels([10, -30])
+        const projection = geoRobinson()
         const path = geoPath().projection(projection)
         return path
     }
 
+    // From http://bl.ocks.org/dhoboy/ff8448ace9d5d567390a
     @computed get Asia(): GeoPath<any, any> {
-        //empiric
-        const projection = geoConicConformal()
-            .rotate([-105, 0])
-            .center([0, 37])
-            .parallels([10, 60])
+        const projection = geoPatterson()
+            .center([58,54])
+            .scale(SCALE)
+            .translate([0,0])
+            .precision(.1)
         const path = geoPath().projection(projection)
         return path
     }
 
     @computed get Europe(): GeoPath<any, any> {
+        const projection = geoAzimuthalEqualArea().scale(SCALE).translate([262, 1187]).clipAngle(180 - 1e-3).precision(1)
+        const path = geoPath().projection(projection)
+        return path
         //empiric
-        const projection = geoConicConformal()
+       /*const projection = geoConicConformal()
             .rotate([-15, 0])
             .center([0, 55])
             .parallels([60, 40])
         const path = geoPath().projection(projection)
-        return path
+        return path*/
     }
 
-    @computed get Australia(): GeoPath<any, any> {
-        //empiric
+    @computed get Oceania(): GeoPath<any, any> {
         const projection = geoConicConformal()
             .rotate([-135, 0])
             .center([0, -20])

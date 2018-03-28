@@ -32,7 +32,6 @@ export class MapConfigProps {
     // Allow hiding categories from the legend
     @observable.ref customHiddenCategories: { [key: string]: true } = {}
     @observable.ref projection: MapProjection = 'World'
-    @observable.ref defaultProjection: MapProjection = 'World'
 
     @observable.ref legendDescription?: string = undefined
     @observable.ref binStepSize?: number = undefined

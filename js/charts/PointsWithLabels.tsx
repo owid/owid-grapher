@@ -364,7 +364,6 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (labelPos.y > lastPos.y)
             labelBounds = labelBounds.extend({ y: labelBounds.y + labelBounds.height / 2 })
 
-
         return {
             text: series.text,
             fontSize: fontSize,

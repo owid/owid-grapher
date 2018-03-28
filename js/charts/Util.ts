@@ -44,7 +44,7 @@ export function makeSafeForCSS(name: string) {
     })
 }
 
-// Transform entity name to match counterpart in world.ids.json
+// Transform entity name to match counterpart in MapTopology
 // Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
 // Also removes non-ascii characters which may break datamaps
 export function entityNameForMap(name: string) {

@@ -346,11 +346,39 @@ figure[data-grapher-src]:empty:after {
     .datasource-additional p {
         margin-top: 0.3em;
     }
+
+    /* Settings Menu
+    --------------------------------------------- */
+
+    .SettingsMenu {
+        position: absolute;
+        right: 1em;
+        bottom: 1em;
+        text-align: left;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+        padding: 0.8em 1em;
+        padding-bottom: 0.5em;
+        width: 15em;
+        z-index: 2;
+    }
+
+    .SettingsMenu h2 {
+        font-size: 1em;
+    }
     
+    .SettingsMenu label {
+        display: block;
+        font-size: 0.8em;
+        margin-bottom: 0.2em;
+    }
+
+
     /* Share Menu
     --------------------------------------------- */
     
-    .shareMenu {
+    .ShareMenu {
         position: absolute;
         right: 1em;
         bottom: 1em;
@@ -363,18 +391,18 @@ figure[data-grapher-src]:empty:after {
         z-index: 2;
     }
 
-    .shareMenu.disabled a {
+    .ShareMenu.disabled a {
         pointer-events: none;
         opacity: 0.3;
     }
 
-    .shareMenu h2 {
+    .ShareMenu h2 {
         padding: 0.8em 1em;
         margin: 0;
         font-size: 1em;
     }
     
-    .shareMenu .btn {
+    .ShareMenu .btn {
         display: block;
         padding: 1em 1.5em;
         padding-right: 3em;
@@ -383,7 +411,7 @@ figure[data-grapher-src]:empty:after {
         text-decoration: none;
     }
     
-    .shareMenu .btn > i {
+    .ShareMenu .btn > i {
         background-color: #333;
         color: white;
         text-align: center;
@@ -396,18 +424,18 @@ figure[data-grapher-src]:empty:after {
         position: relative;
     }
     
-    .shareMenu .btn:hover {
+    .ShareMenu .btn:hover {
         text-decoration: none;
         background-color: #eee;
     }
     
-    .shareMenu section.share a {
+    .ShareMenu section.share a {
         display: block;
         text-align: left;
     }
     
     
-    .shareMenu textarea {
+    .ShareMenu textarea {
         width: 30em;
         height: 20em;
         font-size: 0.8em;
@@ -635,7 +663,7 @@ figure[data-grapher-src]:empty:after {
     padding: 0;
 }
 
-.chart.mobile .shareMenu .btn-embed {
+.chart.mobile .ShareMenu .btn-embed {
     display: none;
 }
 

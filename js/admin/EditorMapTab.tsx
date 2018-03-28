@@ -29,8 +29,8 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
                 <h2>Add some variables on data tab first</h2>
             </section>
 
-        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Australia']
-        const labels = ['World', 'Africa', 'North America', 'South America', 'Asia', 'Europe', 'Australia']
+        const projections = ['World', 'Africa', 'NorthAmerica', 'SouthAmerica', 'Asia', 'Europe', 'Oceania']
+        const labels = ['World', 'Africa', 'North America', 'South America', 'Asia', 'Europe', 'Oceania']
 
         return <Section name="Map">
             <NumericSelectField label="Variable" value={mapConfig.variableId as number} options={filledDimensions.map(d => d.variableId)} optionLabels={filledDimensions.map(d => d.displayName)} onValue={this.onVariableId} />

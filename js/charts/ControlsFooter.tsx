@@ -1,13 +1,15 @@
-import { extend, keys } from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import * as Cookies from 'js-cookie'
+
 import ChartConfig from './ChartConfig'
 import { getQueryParams } from './Util'
 import ChartView from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
 import HTMLTimeline from './HTMLTimeline'
+import { extend, keys } from './Util'
+import { worldRegions, labelsByRegion } from './WorldRegions'
 
 declare const Global: { rootUrl: string }
 
@@ -26,14 +28,8 @@ class EmbedMenu extends React.Component<{ embedUrl: string }> {
     }
 }
 
-interface ShareMenuProps {
-    chart: ChartConfig,
-    chartView: any,
-    onDismiss: () => void
-}
-
 @observer
-class ShareMenu extends React.Component<ShareMenuProps> {
+class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, onDismiss: () => void }> {
     @computed get title(): string {
         return this.props.chart.data.currentTitle
     }
@@ -93,7 +89,7 @@ class ShareMenu extends React.Component<ShareMenuProps> {
     render() {
         const { editUrl, twitterHref, facebookHref, isDisabled } = this
 
-        return <div className={"shareMenu" + (isDisabled ? " disabled" : "")} onClick={(evt) => evt.stopPropagation()}>
+        return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={(evt) => evt.stopPropagation()}>
             <h2>Share</h2>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <i className="fa fa-twitter" /> Twitter
@@ -107,6 +103,43 @@ class ShareMenu extends React.Component<ShareMenuProps> {
             {editUrl && <a className="btn" target="_blank" title="Edit chart" href={editUrl}>
                 <i className="fa fa-edit" /> Edit
             </a>}
+        </div>
+    }
+}
+
+@observer
+class SettingsMenu extends React.Component<{ chart: ChartConfig, onDismiss: () => void }> {
+    @action.bound onClickOutside() {
+        this.props.onDismiss()
+    }
+
+    componentDidMount() {
+        setTimeout(() => {
+            window.addEventListener('click', this.onClickOutside)
+        }, 50)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('click', this.onClickOutside)
+    }
+
+    @action.bound onProjectionChange(e: React.FormEvent<HTMLSelectElement>) {
+        this.props.chart.map.props.projection = (e.currentTarget.value as any)
+    }
+
+    render() {
+        const {chart} = this.props
+
+        return <div className="SettingsMenu" onClick={(evt) => evt.stopPropagation()}>
+            <h2>Settings</h2>
+            {chart.props.tab === 'map' &&  <div className="form-field">
+                <label>World Region</label>
+                <select value={chart.map.props.projection} onChange={this.onProjectionChange}>
+                    {worldRegions.map(region =>
+                        <option value={region}>{labelsByRegion[region]}</option>
+                    )}
+                </select>
+            </div>}
         </div>
     }
 }
@@ -203,6 +236,7 @@ export class ControlsFooter {
     }
 
     @observable isShareMenuActive: boolean = false
+    @observable isSettingsMenuActive: boolean = false
 
     @computed get addDataTerm() {
         const { chart } = this.props
@@ -214,9 +248,13 @@ export class ControlsFooter {
         return (chart.tab === 'map' && chart.map.data.hasTimeline) || (chart.tab === 'chart' && chart.isScatter && chart.scatter.hasTimeline)
     }
 
-    @computed get hasExtraControls(): boolean {
+    @computed get hasInlineControls(): boolean {
         const {chart} = this.props
         return chart.tab === 'chart' && (chart.data.canAddData || chart.isScatter || chart.data.canChangeEntity || (chart.isStackedArea && chart.stackedArea.canToggleRelative))
+    }
+
+    @computed get hasSettingsMenu(): boolean {
+        return this.props.chart.tab === 'map'
     }
 
     @computed get hasSpace(): boolean {
@@ -226,7 +264,7 @@ export class ControlsFooter {
     @computed get numLines(): number {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
-        if (this.hasExtraControls) numLines += 1
+        if (this.hasInlineControls) numLines += 1
         if (this.hasSpace && numLines > 1) numLines -= 1
         return numLines
     }
@@ -242,13 +280,17 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
         this.props.controlsFooter.isShareMenuActive = !this.props.controlsFooter.isShareMenuActive
     }
 
+    @action.bound onSettingsMenu() {
+        this.props.controlsFooter.isSettingsMenuActive = !this.props.controlsFooter.isSettingsMenuActive
+    }
+
     @action.bound onDataSelect() {
         this.props.controlsFooter.props.chartView.isSelectingData = true
     }
 
     render() {
         const { props } = this
-        const {isShareMenuActive, hasTimeline, hasExtraControls, addDataTerm, hasSpace} = props.controlsFooter
+        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, addDataTerm, hasSpace} = props.controlsFooter
         const {chart, chartView} = props.controlsFooter.props
 
         const tabs = <nav className="tabs">
@@ -259,14 +301,21 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
                 <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
                     <a><i className="fa fa-download" /></a>
                 </li>
-                <li className="clickable icon"><a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt" /></a></li>
-                {chartView.isEmbed && <li className="clickable icon"><a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a></li>}
+                <li className="clickable icon">
+                    <a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a>
+                </li>
+                {hasSettingsMenu && <li className="clickable icon">
+                    <a title="Settings" onClick={this.onSettingsMenu}><i className="fa fa-cog"/></a>
+                </li>}
+                {chartView.isEmbed && <li className="clickable icon">
+                    <a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a>
+                </li>}
             </ul>
         </nav>
 
         const timeline = hasTimeline && <TimelineControl chart={chart}/>
 
-        const extraControls = hasExtraControls && <div className="extraControls">
+        const extraControls = hasInlineControls && <div className="extraControls">
             {chart.data.canAddData && <button type="button" onClick={this.onDataSelect}>
                 {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
             </button>}
@@ -281,15 +330,15 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
         </div>
 
         return <div className="ControlsFooter" style={{ height: props.controlsFooter.height }}>
-            {hasTimeline && (hasExtraControls || !hasSpace) && <div className="footerRowSingle">
+            {hasTimeline && (hasInlineControls || !hasSpace) && <div className="footerRowSingle">
                 {timeline}
             </div>}
-            {hasExtraControls && !hasSpace && <div className="footerRowSingle">
+            {hasInlineControls && !hasSpace && <div className="footerRowSingle">
                 {extraControls}
             </div>}
             {hasSpace && <div className="footerRowMulti">
                 <div>
-                    {hasExtraControls ? extraControls : timeline}
+                    {hasInlineControls ? extraControls : timeline}
                 </div>
                 {tabs}
             </div>}
@@ -297,7 +346,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
                 {tabs}
             </div>}
             {isShareMenuActive && <ShareMenu chartView={chartView} chart={chart} onDismiss={this.onShareMenu} />}
+            {isSettingsMenuActive && <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu}/>}
         </div>
     }
 }
-
