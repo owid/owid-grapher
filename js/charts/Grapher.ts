@@ -15,7 +15,6 @@ function readConfigFromHTML(html: string): any {
     return m ? JSON.parse(m[1]) : undefined
 }
 
-
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
 export function shouldProgressiveEmbed() {

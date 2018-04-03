@@ -53,8 +53,8 @@ export async function authMiddleware(req: express.Request, res: express.Response
         res.locals.session = session
         res.locals.user = user
         return next()
-    //} else if (req.path === "/admin/login") {
-    //    return next()
+    } else if (!req.path.startsWith('/admin') || req.path === "/admin/login") {
+        return next()
     } else {
         return res.redirect(`/grapher/admin/login?next=${req.path}`)
     }
