@@ -9,6 +9,7 @@ import AdminSPA from './AdminSPA'
 import LoginPage from './LoginPage'
 import {authMiddleware, loginSubmit} from './authentication'
 import api from './api'
+import devServer from './devServer'
 import {renderToHtmlPage} from './serverUtil'
 import {NODE_SERVER_PORT, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
@@ -31,6 +32,7 @@ db.connect()
 })*/
 
 app.use('/admin/api', api.router)
+app.use('/grapher', devServer)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {

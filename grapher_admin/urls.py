@@ -17,7 +17,6 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
-from grapher_admin import glue_views
 from country_name_tool import views as countrytool_views
 from importer import views as importer_views
 from django.views.static import serve
@@ -71,7 +70,4 @@ urlpatterns = [
     # Redirect other urls to node
     url(r'^grapher/admin/?$', admin_views.redirect_404, name="redirect404"),
     url(r'^grapher/admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),
-
-    # Development urls to serve static build locally
-    url(r'^grapher/(?P<path>.+)/?$', glue_views.servestatic, name="servestatic"),
 ]

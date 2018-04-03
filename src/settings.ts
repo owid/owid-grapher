@@ -27,12 +27,14 @@ interface Settings {
 
     // These settings are inferred from other settings
     BUILD_GRAPHER_PATH: string
+    BUILD_DIR: string
 }
 
 const env: Settings = (process.env as any)
 
 env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? "production" : "development"
 env.BASE_DIR = path.join(__dirname, "../../")
+env.BUILD_DIR = path.join(env.BASE_DIR, "public")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 
 const url = parseUrl(env.BUILD_GRAPHER_URL)
