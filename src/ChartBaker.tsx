@@ -44,14 +44,11 @@ export class ChartBaker {
             await fs.mkdirp(path.join(this.baseDir, 'assets'))
 
             for (const key in manifest) {
-                let outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
-                if (key === "charts.js" || key === "commons.css" || key === "commons.js")
-                    outPath = path.join(this.baseDir, `assets/${key}`) // We'll handle the fingerprinting for these separately
-                else if (key.match(/.js$/) || key.match(/.css$/))
-                    continue // Not interested in the admin js/css
-
-                fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
-                this.stage(outPath)
+                if (key === "charts.js" || key === "commons.css" || key === "commons.js") {
+                    const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+                    fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
+                    this.stage(outPath)
+                }
             }
         }
 

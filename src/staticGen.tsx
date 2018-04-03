@@ -10,7 +10,7 @@ export function webpack(assetName: string) {
             manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         }
 
-        return `${BUILD_ASSETS_URL}/${assetName}?v=${manifest[assetName]}`
+        return `${BUILD_ASSETS_URL}/${manifest[assetName]}`
     } else {
         return `${BUILD_ASSETS_URL}/${assetName}`
     }

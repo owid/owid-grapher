@@ -56,6 +56,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         } catch (err) {
             figure.innerHTML = "<img src=\\"${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
+            throw err;
         }
     `
 
