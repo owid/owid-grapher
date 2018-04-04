@@ -108,7 +108,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     @computed get axisBox() {
         const that = this
         return new AxisBox({
-            get bounds() { return that.bounds.padRight(10).padRight(that.legend ? that.legend.width : 0) },
+            get bounds() { return that.bounds.padRight(that.legend ? that.legend.width : 0) },
             get fontSize() { return that.chart.baseFontSize },
             get yAxis() { return that.transform.yAxis },
             get xAxis() { return that.transform.xAxis }

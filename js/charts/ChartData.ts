@@ -1,4 +1,4 @@
-import { labelsByRegion } from './WorldRegions';
+import { labelsByRegion } from './WorldRegions'
 import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
