@@ -34,7 +34,9 @@
         "strict-type-predicates": true,
         "no-for-in-array": true,
         "eofline": false,
-        "no-unused-variable": true
+        "no-unused-variable": true,
+        "no-return-await": true,
+        "await-promise": true
     },
     "rulesDirectory": []
 }

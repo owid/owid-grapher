@@ -4,6 +4,9 @@ import {Router} from 'express'
 import * as React from 'react'
 
 import {renderToHtmlPage} from './serverUtil'
+import {chartToSVG} from '../svgPngExport'
+import Chart from '../models/Chart'
+import Variable from '../models/Variable'
 import * as db from '../db'
 
 const testPages = Router()
@@ -108,6 +111,12 @@ testPages.get('/previews', async (req, res) => {
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<PreviewTestPage charts={charts}/>))
+})
+
+testPages.get('/:slug.svg', async (req, res) => {
+    const chart = await Chart.getBySlug(req.params.slug)
+    const vardata = await chart.getVariableData()
+    res.send(await chartToSVG(chart.config, vardata))
 })
 
 export default testPages

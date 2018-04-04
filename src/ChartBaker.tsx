@@ -100,13 +100,12 @@ export class ChartBaker {
         // Always bake the html for every chart; it's cheap to do so
         await Promise.all([this.bakeChartPage(chart)])
 
-        // Static images are expensive to make and not super important, so we keep the old ones if we can
         try {
             await fs.mkdirp(`${this.baseDir}/exports/`)
             const svgPath = `${this.baseDir}/exports/${chart.slug}.svg`
             const pngPath = `${this.baseDir}/exports/${chart.slug}.png`
-            if (!fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
-                const vardata = await fs.readFile(vardataPath, 'utf8')
+            if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+                const vardata = JSON.parse(await fs.readFile(vardataPath, 'utf8'))
                 await bakeImageExports(`${this.baseDir}/exports`, chart, vardata)
                 this.stage(svgPath)
                 this.stage(pngPath)

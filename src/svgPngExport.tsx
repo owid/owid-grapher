@@ -14,6 +14,13 @@ require('module-alias').addAliases({
 
 import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
 
+export async function chartToSVG(jsonConfig: ChartConfigProps, vardata: any): Promise<string> {
+    const chart = new ChartConfig(jsonConfig)
+    chart.isLocalExport = true
+    chart.vardata.receiveData(vardata)
+    return chart.staticSVG
+}
+
 export async function bakeImageExports(outDir: string, jsonConfig: ChartConfigProps, vardata: any) {
     const chart = new ChartConfig(jsonConfig)
     chart.isLocalExport = true
