@@ -1,5 +1,7 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
+import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
+
 import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'
 import * as React from 'react'
@@ -15,8 +17,6 @@ import {ChartPage} from './ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { getVariableData } from './models/Variable'
 import { renderToHtmlPage } from './admin/serverUtil'
-
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
 
 export interface ChartBakerProps {
     repoDir: string
