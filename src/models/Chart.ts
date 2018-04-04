@@ -39,6 +39,6 @@ export default class Chart {
 
     async getVariableData(): Promise<any> {
         const variableIds = _.uniq(this.config.dimensions.map(d => d.variableId))
-        return await getVariableData(variableIds)
+        return getVariableData(variableIds)
     }
 }
