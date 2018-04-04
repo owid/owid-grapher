@@ -1,19 +1,20 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import { embedSnippet } from './staticGen'
-import { ChartConfigProps } from '../js/charts/ChartConfig'
 import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'
 import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
-import { getVariableData } from './models/Variable'
-import {ChartPage} from './ChartPage'
 import * as path from 'path'
 import * as glob from 'glob'
 import * as shell from 'shelljs'
-import { bakeImageExports } from './svgPngExport'
 const md5 = require('md5')
+
 import * as db from './db'
+import { embedSnippet } from './staticGen'
+import { ChartConfigProps } from '../js/charts/ChartConfig'
+import {ChartPage} from './ChartPage'
+import { bakeImageExports } from './svgPngExport'
+import { getVariableData } from './models/Variable'
+import { renderToHtmlPage } from './admin/serverUtil'
 
 import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
 
@@ -66,7 +67,7 @@ export class ChartBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${this.baseDir}/${chart.slug}.html`
-        await fs.writeFile(outPath, ReactDOMServer.renderToStaticMarkup(<ChartPage chart={chart}/>))
+        await fs.writeFile(outPath, renderToHtmlPage(<ChartPage chart={chart}/>))
         this.stage(outPath)
     }
 
@@ -98,7 +99,7 @@ export class ChartBaker {
         }
 
         // Always bake the html for every chart; it's cheap to do so
-        await Promise.all([this.bakeChartPage(chart)])
+        await this.bakeChartPage(chart)
 
         try {
             await fs.mkdirp(`${this.baseDir}/exports/`)
