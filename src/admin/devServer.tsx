@@ -4,8 +4,10 @@ import {Express, Router, Response} from 'express'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import * as minimatch from 'minimatch'
+import * as urljoin from 'url-join'
+import * as querystring from 'querystring'
 
-import {BUILD_DIR} from '../settings'
+import {ENV, BUILD_GRAPHER_URL, BUILD_DIR} from '../settings'
 
 const devServer = Router()
 
@@ -53,6 +55,12 @@ async function serveFile(res: Response, targetPath: string) {
 }
 
 devServer.get('/*', async (req, res) => {
+    if (ENV === "production") {
+        // No dev server in production, redirect to static build
+        res.redirect(urljoin(BUILD_GRAPHER_URL, req.path) + (req.query ? `?${querystring.stringify(req.query)}` : ''))
+        return
+    }
+
     const redirects = await getRedirects()
     const headerRules = await getHeaderRules()
 

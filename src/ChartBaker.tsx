@@ -77,7 +77,7 @@ export class ChartBaker {
         const htmlPath = `${baseDir}/${chart.slug}.html`
         let isSameVersion = false
         try {
-            // If the chart is the same version, we can potentially skip baking the data (which is by far the slowest part)
+            // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
             const html = await fs.readFile(htmlPath, 'utf8')
             const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
             if (match) {
