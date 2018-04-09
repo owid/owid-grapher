@@ -291,12 +291,11 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return focusMarks.map(mark => {
             const markerX1 = x+5
             const markerX2 = x+leftPadding-5
-            const markerX1Mid = markerX1+5
-            const markerX2Mid = markerX2-5
+            const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
             const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
-                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerX1Mid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerX1Mid} y1={mark.origBounds.centerY} x2={markerX2Mid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerX2Mid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
                 <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
                 {mark.mark.textWrap.render(mark.bounds.x, mark.bounds.y, { fill: mark.mark.item.color })}
             </g>
