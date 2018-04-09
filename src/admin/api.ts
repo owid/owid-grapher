@@ -81,7 +81,7 @@ async function expectChartById(chartId: any): Promise<ChartConfigProps> {
 }
 
 async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
-    return await db.transaction(async t => {
+    return db.transaction(async t => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
         async function isSlugUsedInRedirect() {
             const rows = await t.query(`SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
@@ -89,10 +89,11 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         }
 
         async function isSlugUsedInOtherChart() {
-            const rows = await t.query(`SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
+            const rows = await t.query(`SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`, [existingConfig ? existingConfig.id : undefined, newConfig.slug])
             return rows.length > 0
         }
 
+        // When a chart is published, or when the slug of a published chart changes, check for conflicts
         if (newConfig.isPublished && (!existingConfig || newConfig.slug !== existingConfig.slug)) {
             if (!isValidSlug(newConfig.slug)) {
                 throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
@@ -174,7 +175,7 @@ api.get('/charts.json', async (req: Request, res: Response) => {
 })
 
 api.get('/charts/:chartId.config.json', async (req: Request, res: Response) => {
-    return await expectChartById(req.params.chartId)
+    return expectChartById(req.params.chartId)
 })
 
 api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
@@ -219,7 +220,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
 
 api.get('/data/variables/:variableStr.json', async (req: Request, res: Response) => {
     const variableIds: number[] = req.params.variableStr.split("+").map((v: string) => parseInt(v))
-    return await getVariableData(variableIds)
+    return getVariableData(variableIds)
 })
 
 // Mark a chart for display on the front page
