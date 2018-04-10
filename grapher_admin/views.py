@@ -103,6 +103,8 @@ def test_all(request):
             query = query.filter(config__type="ScatterPlot")
         elif test_type == "line":
             query = query.filter(config__type="LineChart")
+        elif test_type == "bar":
+            query = query.filter(config__type="DiscreteBar")
         else:
             query = query.filter(config__type=test_type)
 

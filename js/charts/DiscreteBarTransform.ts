@@ -94,7 +94,7 @@ export default class DiscreteBarTransform implements IChartTransform {
 
         const data = sortBy(values(dataByKey), d => d.value)
 
-        const colorScheme = chart.baseColorScheme && ColorSchemes[chart.baseColorScheme]
+        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : ColorSchemes["PuBu"]
         const colors = colorScheme ? colorScheme.getColors(data.length) : []
         if (chart.props.invertColorScheme)
             colors.reverse()
