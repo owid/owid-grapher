@@ -22,7 +22,8 @@ export interface HeightedLegendItem {
     key: string,
     label: string,
     color: string,
-    yValue: number
+    yValue: number,
+    yRange?: [number, number]
 }
 
 interface HeightedLegendMark {
@@ -97,18 +98,18 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
         const markerX1 = x+5
         const markerX2 = x+legend.leftPadding-5
         const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
+        const lineColor = isFocus ? "#666" : "#ccc"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
             {needsLines && <g className="indicator">
-                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
+                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
+                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
             </g>}
             <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
             {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ccc" })}
         </g>
     }
 }
-
 
 @observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
@@ -139,7 +140,11 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 groupPosition: 0,
                 groupSize: 0
             }
+
+        // Sort by the original data y value rather than the visual position
+        // I forget why this is important but it resolves some edge case
         }), m => m.y)
+
     }
 
     // Each mark starts at target height. When a conflict is detected, the lower label is pushed down a bit.
@@ -155,7 +160,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 const isOverlap = m1.bounds.intersects(m2.bounds)
                 if (isOverlap) {
                     const overlapHeight = (m1.bounds.y + m1.bounds.height) - m2.bounds.y
-                    const newBounds = m2.bounds.extend({ y: m2.bounds.y + overlapHeight })
+                    const newBounds = m2.bounds.extend({ y: m2.bounds.y + overlapHeight + 2 })
 
                     // Don't push off the edge of the chart
                     if (newBounds.bottom > yScale.rangeMax) {
@@ -209,7 +214,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 const isOverlap = m1.bounds.intersects(m2.bounds)
                 if (isOverlap) {
                     const overlapHeight = (m2.bounds.y + m2.bounds.height) - m1.bounds.y
-                    const newBounds = m2.bounds.extend({ y: m2.bounds.y - overlapHeight })
+                    const newBounds = m2.bounds.extend({ y: m2.bounds.y - overlapHeight - 2 })
 
                     // Don't push off the edge of the chart
                     if (newBounds.top < yScale.rangeMin) {
