@@ -30,6 +30,14 @@ interface HeightedLegendMark {
     textWrap: TextWrap
     width: number
     height: number
+}
+
+interface PlacedMark {
+    mark: HeightedLegendMark
+    origBounds: Bounds
+    bounds: Bounds
+    isOverlap: boolean
+    repositions: number
     groupPosition: number
     groupSize: number
 }
@@ -38,7 +46,7 @@ export default class HeightedLegend {
     props: HeightedLegendProps
 
     @computed get fontSize(): number { return 0.75*this.props.fontSize }
-    @computed get leftPadding(): number { return 40 }
+    @computed get leftPadding(): number { return 35 }
     @computed get maxWidth() { return defaultTo(this.props.maxWidth, Infinity) }
 
     @computed.struct get marks(): HeightedLegendMark[] {
@@ -82,6 +90,27 @@ export interface HeightedLegendViewProps {
 }
 
 @observer
+class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: HeightedLegend, isFocus?: boolean, needsLines?: boolean, onMouseOver: () => void, onClick: () => void }> {
+    render() {
+        const {mark, legend, isFocus, needsLines, onMouseOver, onClick} = this.props
+        const x = mark.origBounds.x
+        const markerX1 = x+5
+        const markerX2 = x+legend.leftPadding-5
+        const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
+        return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
+            {needsLines && <g className="indicator">
+                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+            </g>}
+            <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
+            {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ccc" })}
+        </g>
+    }
+}
+
+
+@observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
     @computed get onMouseOver(): any { return defaultTo(this.props.onMouseOver, noop) }
     @computed get onMouseLeave(): any { return defaultTo(this.props.onMouseLeave, noop) }
@@ -92,20 +121,13 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed get initialMarks() {
+    @computed get initialMarks(): PlacedMark[] {
         const { legend, x, yScale } = this.props
 
         return sortBy(legend.marks.map(m => {
             const y = yScale.place(m.item.yValue)
 
-            // Don't let them go off the edge
-            /*if (y+m.height > yScale.rangeMax) {
-                y = yScale.rangeMax-m.height
-            } else if (y < yScale.rangeMin) {
-                y = yScale.rangeMin
-            }*/
-
-            const bounds = new Bounds(x+legend.leftPadding, y - m.height / 2, m.width, m.height)
+            const bounds = new Bounds(x, y - m.height / 2, m.width, m.height)
 
             return {
                 mark: m,
@@ -267,41 +289,28 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return this.placedMarks.filter(m => m.isOverlap || !m.bounds.equals(m.origBounds)).length
     }
 
+    // Does this placement need line markers or is the position of the labels already clear?
+    @computed get needsLines(): boolean {
+        return this.placedMarks.some(mark => mark.groupSize > 1)
+    }
+
     renderBackground() {
         const { x, legend } = this.props
-        const { backgroundMarks, isFocusMode } = this
+        const { backgroundMarks, needsLines } = this
 
-        return backgroundMarks.map(mark => {
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
-                {/* Invisible rectangle for better mouseover area */}
-                <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
-                {mark.mark.textWrap.render(mark.bounds.x, mark.bounds.y, { fill: isFocusMode ? "#ccc" : "#eee" })}
-            </g>
-
-            return result
-        })
+        return backgroundMarks.map(mark =>
+            <PlacedMarkView mark={mark} legend={legend} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+        )
     }
 
     // All labels are focused by default, moved to background when mouseover of other label
     renderFocus() {
-        const { x, legend } = this.props
-        const { leftPadding } = legend
-        const { focusMarks } = this
+        const { legend } = this.props
+        const { focusMarks, needsLines } = this
 
-        return focusMarks.map(mark => {
-            const markerX1 = x+5
-            const markerX2 = x+leftPadding-5
-            const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
-                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
-                <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
-                {mark.mark.textWrap.render(mark.bounds.x, mark.bounds.y, { fill: mark.mark.item.color })}
-            </g>
-
-            return result
-        })
+        return focusMarks.map(mark =>
+            <PlacedMarkView mark={mark} legend={legend} isFocus={true} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+        )
     }
 
     render() {
