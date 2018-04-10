@@ -26,31 +26,43 @@ export interface HeightedLegendItem {
 }
 
 interface HeightedLegendMark {
-    item: HeightedLegendItem,
-    textWrap: TextWrap,
-    width: number,
+    item: HeightedLegendItem
+    textWrap: TextWrap
+    width: number
     height: number
+}
+
+interface PlacedMark {
+    mark: HeightedLegendMark
+    origBounds: Bounds
+    bounds: Bounds
+    isOverlap: boolean
+    repositions: number
+    groupPosition: number
+    groupSize: number
 }
 
 export default class HeightedLegend {
     props: HeightedLegendProps
 
-    @computed get fontSize(): number { return 0.8*this.props.fontSize }
-    @computed get rectSize(): number { return 10 }
-    @computed get rectPadding(): number { return 5 }
+    @computed get fontSize(): number { return 0.75*this.props.fontSize }
+    @computed get leftPadding(): number { return 35 }
     @computed get maxWidth() { return defaultTo(this.props.maxWidth, Infinity) }
 
     @computed.struct get marks(): HeightedLegendMark[] {
-        const { fontSize, rectSize, rectPadding, maxWidth } = this
-        const maxTextWidth = maxWidth - rectSize - rectPadding
+        const { fontSize, leftPadding, maxWidth } = this
+        const maxTextWidth = maxWidth - leftPadding
 
         return this.props.items.map(item => {
             const textWrap = new TextWrap({ text: item.label, maxWidth: maxTextWidth, fontSize: fontSize })
             return {
                 item: item,
                 textWrap: textWrap,
-                width: rectSize + rectPadding + textWrap.width,
-                height: Math.max(textWrap.height, rectSize / 4)
+                width: leftPadding + textWrap.width,
+                height: textWrap.height,
+                repositions: 0,
+                groupPosition: 0,
+                groupSize: 0
             }
         })
     }
@@ -78,6 +90,27 @@ export interface HeightedLegendViewProps {
 }
 
 @observer
+class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: HeightedLegend, isFocus?: boolean, needsLines?: boolean, onMouseOver: () => void, onClick: () => void }> {
+    render() {
+        const {mark, legend, isFocus, needsLines, onMouseOver, onClick} = this.props
+        const x = mark.origBounds.x
+        const markerX1 = x+5
+        const markerX2 = x+legend.leftPadding-5
+        const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
+        return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
+            {needsLines && <g className="indicator">
+                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke="#999" strokeWidth={0.7}/>
+            </g>}
+            <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
+            {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ccc" })}
+        </g>
+    }
+}
+
+
+@observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
     @computed get onMouseOver(): any { return defaultTo(this.props.onMouseOver, noop) }
     @computed get onMouseLeave(): any { return defaultTo(this.props.onMouseLeave, noop) }
@@ -88,18 +121,11 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed get initialMarks() {
+    @computed get initialMarks(): PlacedMark[] {
         const { legend, x, yScale } = this.props
 
         return sortBy(legend.marks.map(m => {
             const y = yScale.place(m.item.yValue)
-
-            // Don't let them go off the edge
-            /*if (y+m.height > yScale.rangeMax) {
-                y = yScale.rangeMax-m.height
-            } else if (y < yScale.rangeMin) {
-                y = yScale.rangeMin
-            }*/
 
             const bounds = new Bounds(x, y - m.height / 2, m.width, m.height)
 
@@ -108,7 +134,10 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 y: y,
                 origBounds: bounds,
                 bounds: bounds,
-                isOverlap: false
+                isOverlap: false,
+                repositions: 0,
+                groupPosition: 0,
+                groupSize: 0
             }
         }), m => m.y)
     }
@@ -133,8 +162,30 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                         m2.isOverlap = true
                     } else {
                         m2.bounds = newBounds
+                        m2.repositions += 1
                     }
                 }
+            }
+        }
+
+        // Group adjacent marks together for placing positional indicators
+        const groups = []
+        let currentGroup = []
+        for (const mark of marks) {
+            if (currentGroup.length && mark.repositions === 0) {
+                groups.push(currentGroup)
+                currentGroup = []
+            }
+            currentGroup.push(mark)
+        }
+        if (currentGroup.length)
+            groups.push(currentGroup)
+
+        for (const group of groups) {
+            const middleIndex = Math.floor(group.length/2)
+            for (const mark of group) {
+                mark.groupPosition = group.indexOf(mark)-middleIndex
+                mark.groupSize = group.length
             }
         }
 
@@ -165,8 +216,30 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                         m2.isOverlap = true
                     } else {
                         m2.bounds = newBounds
+                        m2.repositions -= 1
                     }
                 }
+            }
+        }
+
+        // Group adjacent marks together for placing positional indicators
+        const groups = []
+        let currentGroup = []
+        for (const mark of marks) {
+            if (currentGroup.length && mark.repositions === 0) {
+                groups.push(currentGroup)
+                currentGroup = []
+            }
+            currentGroup.push(mark)
+        }
+        if (currentGroup.length)
+            groups.push(currentGroup)
+
+        for (const group of groups) {
+            const middleIndex = Math.floor(group.length/2)
+            for (const mark of group) {
+                mark.groupPosition = group.indexOf(mark)-middleIndex
+                mark.groupSize = group.length
             }
         }
 
@@ -216,36 +289,28 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         return this.placedMarks.filter(m => m.isOverlap || !m.bounds.equals(m.origBounds)).length
     }
 
-    renderBackground() {
-        const { x, legend } = this.props
-        const { rectSize, rectPadding } = legend
-        const { backgroundMarks, isFocusMode } = this
-
-        return backgroundMarks.map(mark => {
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
-                <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
-                <rect x={x} y={mark.bounds.centerY - rectSize / 8} width={rectSize} height={rectSize / 4} fill={isFocusMode ? "#ccc" : mark.mark.item.color} />
-                {mark.mark.textWrap.render(x + rectSize + rectPadding, mark.bounds.y, { fill: isFocusMode ? "#ccc" : "#eee" })}
-            </g>
-
-            return result
-        })
+    // Does this placement need line markers or is the position of the labels already clear?
+    @computed get needsLines(): boolean {
+        return this.placedMarks.some(mark => mark.groupSize > 1)
     }
 
-    renderFocus() {
+    renderBackground() {
         const { x, legend } = this.props
-        const { rectSize, rectPadding } = legend
-        const { focusMarks } = this
+        const { backgroundMarks, needsLines } = this
 
-        return focusMarks.map(mark => {
-            const result = <g className="legendMark" onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}>
-                <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0} />
-                <rect x={x} y={mark.bounds.centerY - rectSize / 8} width={rectSize} height={rectSize / 4} fill={mark.mark.item.color} />
-                {mark.mark.textWrap.render(x + rectSize + rectPadding, mark.bounds.y, { fill: "#333" })}
-            </g>
+        return backgroundMarks.map(mark =>
+            <PlacedMarkView mark={mark} legend={legend} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+        )
+    }
 
-            return result
-        })
+    // All labels are focused by default, moved to background when mouseover of other label
+    renderFocus() {
+        const { legend } = this.props
+        const { focusMarks, needsLines } = this
+
+        return focusMarks.map(mark =>
+            <PlacedMarkView mark={mark} legend={legend} isFocus={true} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+        )
     }
 
     render() {
