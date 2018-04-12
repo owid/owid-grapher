@@ -144,7 +144,6 @@ export default class StackedAreaTransform implements IChartTransform {
         return groupedData
     }
 
-
     @computed get timelineYears(): number[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
         return this.groupedData[0].values.map(v => v.x)
@@ -202,6 +201,9 @@ export default class StackedAreaTransform implements IChartTransform {
 
         for (const series of stackedData) {
             series.values = series.values.filter(v => v.x >= startYear && v.x <= endYear)
+            for (const value of series.values) {
+                value.origY = value.y
+            }
         }
 
         for (let i = 1; i < stackedData.length; i++) {

@@ -69,7 +69,7 @@ export default class LineChartTransform implements IChartTransform {
                     seriesByKey.set(datakey, series)
                 }
 
-                series.values.push({ x: year, y: value, time: year, gapYearsToNext: 0 })
+                series.values.push({ x: year, y: value, time: year })
             }
 
             chartData = chartData.concat([...Array.from(seriesByKey.values())])

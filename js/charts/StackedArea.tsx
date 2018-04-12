@@ -17,6 +17,7 @@ import {rgb} from 'd3-color'
 export interface StackedAreaValue {
     x: number,
     y: number,
+    origY?: number,
     time: number,
     isFake?: true
 }
@@ -195,18 +196,19 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                 <tr>
                     <td><strong>{refValue.x}</strong></td>
                     <td>
+                        {/* Total */}
                         {!transform.isRelative && !someMissing && <span>
                             <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
                         </span>}
                     </td>
                 </tr>
-                {reverse(clone(transform.groupedData)).map(series => {
+                {reverse(clone(transform.stackedData)).map(series => {
                     const value = series.values[hoverIndex]
                     return <tr>
                         <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
                             <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
                         </td>
-                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.y)}</td>
+                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY)}</td>
                     </tr>
                 })}
             </table>

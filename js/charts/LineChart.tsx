@@ -26,8 +26,7 @@ import { easeLinear } from 'd3-ease'
 export interface LineChartValue {
     x: number,
     y: number,
-    time: number,
-    gapYearsToNext: number
+    time: number
 }
 
 export interface LineChartSeries {
