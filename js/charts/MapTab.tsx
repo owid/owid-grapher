@@ -2,7 +2,7 @@ import * as React from 'react'
 import Bounds from './Bounds'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChoroplethMap, { ChoroplethData, GeoFeature, MapBracket, MapEntity } from './ChoroplethMap'
+import ChoroplethMap, { ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity } from './ChoroplethMap'
 import MapLegend, { MapLegendView } from './MapLegend'
 import { getRelativeMouse } from './Util'
 import Header from './Header'
@@ -30,9 +30,10 @@ interface MapWithLegendProps {
 
 @observer
 class MapWithLegend extends React.Component<MapWithLegendProps> {
-    @observable focusEntity: any = null
+    @observable focusEntity?: any
     @observable.ref tooltip: React.ReactNode | null = null
     @observable focusBracket: MapBracket
+    @observable tooltipTarget?: { x: number, y: number, featureId: string }
 
     context!: { chartView: ChartView, chart: ChartConfig }
 
@@ -43,25 +44,13 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const { chart } = this.context
 
         const mouse = getRelativeMouse(this.base, ev)
-        if (datum) {
-            const specifyYear = datum.year !== this.props.inputYear
-
-            this.tooltip = <Tooltip x={mouse.x} y={mouse.y} style={{ textAlign: "center" }}>
-                <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{datum.entity}</h3>
-                <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
-                    <span>{chart.map.data.formatTooltipValue(datum.value)}</span><br />
-                    {specifyYear && <div>
-                        in<br />
-                        <span>{datum.year}</span>
-                    </div>}
-                </p>
-            </Tooltip>
-        }
+        if (d.id !== undefined)
+            this.tooltipTarget = { x: mouse.x, y: mouse.y, featureId: d.id as string }
     }
 
     @action.bound onMapMouseLeave() {
-        this.focusEntity = null
-        this.tooltip = null
+        this.focusEntity = undefined
+        this.tooltipTarget = undefined
     }
 
     @action.bound onClick(d: GeoFeature) {
@@ -110,6 +99,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         })
     }
 
+    @computed get tooltipDatum(): ChoroplethDatum|undefined {
+        return this.tooltipTarget ? this.props.choroplethData[this.tooltipTarget.featureId] : undefined
+    }
+
     componentDidMount() {
         select(this.base).selectAll("path")
             .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill") })
@@ -122,15 +115,22 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     render() {
-        const { choroplethData, projection, defaultFill } = this.props
-        const { bounds, years, inputYear } = this.props
-        const { focusBracket, focusEntity, mapLegend, tooltip } = this
+        const { choroplethData, projection, defaultFill, bounds, years, inputYear } = this.props
+        const { focusBracket, focusEntity, mapLegend, tooltipTarget, tooltipDatum } = this
+
         return <g className="mapTab">
-            {/*<rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height-timelineHeight} fill="#ecf6fc"/>*/}
             <ChoroplethMap bounds={bounds.padBottom(mapLegend.height + 15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity} />
             <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} />
-            {/*<Timeline bounds={this.props.bounds} fontSize={this.context.chart.baseFontSize} onTargetChange={this.onTargetChange} years={years} startYear={inputYear} endYear={inputYear} singleYearMode={true}/>*/}
-            {tooltip}
+            {tooltipTarget && tooltipDatum && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
+                <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{tooltipDatum.entity}</h3>
+                <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
+                    <span>{this.context.chart.map.data.formatTooltipValue(tooltipDatum.value)}</span><br />
+                    {tooltipDatum.year !== inputYear && <div>
+                        in<br />
+                        <span>{tooltipDatum.year}</span>
+                    </div>}
+                </p>
+            </Tooltip>}
         </g>
     }
 }

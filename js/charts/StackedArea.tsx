@@ -208,7 +208,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
                         <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
                             <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
                         </td>
-                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY)}</td>
+                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number)}</td>
                     </tr>
                 })}
             </table>
