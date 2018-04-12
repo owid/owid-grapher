@@ -17,7 +17,8 @@ export interface MapDataValue {
 
 export interface NumericBinProps {
     isFirst: boolean
-    isOpenEnded: boolean
+    isOpenLeft: boolean
+    isOpenRight: boolean
     min: number
     max: number
     label?: string
@@ -34,10 +35,16 @@ export class NumericBin {
     @computed get min() { return this.props.min }
     @computed get max() { return this.props.max }
     @computed get color() { return this.props.color }
-    @computed get minText() { return this.props.format(this.props.min) }
+    @computed get minText() {
+        const str = this.props.format(this.props.min)
+        if (this.props.isOpenLeft)
+            return `<${str}`
+        else
+            return str
+    }
     @computed get maxText() {
         const str = this.props.format(this.props.max)
-        if (this.props.isOpenEnded)
+        if (this.props.isOpenRight)
             return `>${str}`
         else
             return str
@@ -49,7 +56,9 @@ export class NumericBin {
     contains(d: MapDataValue | null): boolean {
         if (!d)
             return false
-        else if (this.props.isOpenEnded)
+        else if (this.props.isOpenLeft)
+            return d.value <= this.max
+        else if (this.props.isOpenRight)
             return d.value > this.min
         else if (this.props.isFirst)
             return d.value >= this.min && d.value <= this.max
@@ -303,7 +312,7 @@ export default class MapData {
             const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ isFirst: i === 0, isOpenEnded: i === bucketMaximums.length-1 && maxValue < dimension.maxValue, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
+            legendData.push(new NumericBin({ isFirst: i === 0, isOpenLeft: i === 0 && minValue > dimension.minValue, isOpenRight: i === bucketMaximums.length-1 && maxValue < dimension.maxValue, min: minValue, max: maxValue, color: color, label: label, format: dimension ? dimension.formatValueShort : () => "" }))
             minValue = maxValue
         }
 
