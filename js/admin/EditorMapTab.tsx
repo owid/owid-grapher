@@ -178,7 +178,6 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
         if (!dimension) return null
 
         return <div>
-            <BindAutoFloat field="colorSchemeMinValue" store={mapConfig.props} auto={0} label="Minimum value"/>
             <EditableList className="ColorSchemeEditor">
                 {mapConfig.data.legendData.map((bin, index) => {
                     if (bin instanceof NumericBin) {
@@ -225,8 +224,9 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             <FieldsRow>
                 <Toggle label="Automatic classification" value={!mapConfig.props.isManualBuckets} onValue={this.onAutomatic} />
             </FieldsRow>
-            {mapConfig.props.isManualBuckets && <ColorSchemeEditor map={mapConfig} />}
+            <BindAutoFloat field="colorSchemeMinValue" store={mapConfig.props} label="Minimum value" auto={mapConfig.data.autoMinBinValue}/>
             {!mapConfig.props.isManualBuckets && <BindAutoFloat label="Step size" field="binStepSize" store={mapConfig.props} auto={mapConfig.data.binStepSizeDefault}/>}
+            {mapConfig.props.isManualBuckets && <ColorSchemeEditor map={mapConfig} />}
         </Section>
     }
 }

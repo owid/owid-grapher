@@ -249,39 +249,32 @@ export default class MapData {
         return labels
     }
 
-    @computed get minBinValue(): number {
-        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : Math.min(0, this.minPossibleValue)
-    }
-
-    // In automatic mode, if no step size is specified, we calculate one that will encompass
-    // the full range of the data
-    @computed get binStepSizeDefault(): number {
+    // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
+    @computed get commonValues(): number[] {
         const {sortedNumericValues} = this
-        if (!sortedNumericValues.length) return 10
-
-        const {numAutoBins, minBinValue} = this
-
+        if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) as number
-        console.log(deviation)
+        return sortedNumericValues.filter(d => Math.abs(d-sampleMean) <= sampleDeviation*2)
+    }
 
-        const excludeOutliers = sortedNumericValues.filter(d => Math.abs(d-sampleMean) <= sampleDeviation*2)
-        console.log(sampleMean, sampleDeviation, sortedNumericValues.map(d => Math.abs(d-sampleMean)))
-        const minValue = excludeOutliers[0]
-        const maxValue = excludeOutliers[excludeOutliers.length-1]
+    @computed get autoMinBinValue(): number {
+        const minValue = Math.min(0, this.commonValues[0])
+        const magnitude = Math.floor(Math.log(minValue) / Math.log(10))
+        return Math.min(0, round(minValue, -magnitude))
+    }
 
-        const rangeSize = maxValue - minValue
-        const stepSizeInitial = rangeSize/numAutoBins
+    @computed get minBinValue(): number {
+        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : this.autoMinBinValue
+    }
+
+    @computed get binStepSizeDefault(): number {
+        const {numAutoBins, minBinValue, commonValues} = this
+        if (!commonValues.length) return 10
+
+        const stepSizeInitial = (commonValues[commonValues.length-1]-minBinValue)/numAutoBins
         const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
-        const stepSize = round(stepSizeInitial, -stepMagnitude)
-        return stepSize
-
-        /*const median95 = sortedNumericValues[Math.floor(sortedNumericValues.length*0.95)]
-        const stepSizeInitial = (median95-minBinValue)/numAutoBins
-        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
-        const stepSize = round(stepSizeInitial, -stepMagnitude)
-
-        return stepSize*/
+        return round(stepSizeInitial, -stepMagnitude)
     }
 
     @computed get binStepSize(): number {
