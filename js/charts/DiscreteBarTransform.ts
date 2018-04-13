@@ -84,7 +84,7 @@ export default class DiscreteBarTransform implements IChartTransform {
                     value: +dimension.values[i],
                     year: year,
                     label: chart.data.formatKey(datakey),
-                    color: "#F2585B",
+                    color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
 
@@ -94,7 +94,7 @@ export default class DiscreteBarTransform implements IChartTransform {
 
         const data = sortBy(values(dataByKey), d => d.value)
 
-        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : ColorSchemes["PuBu"]
+        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
         const colors = colorScheme ? colorScheme.getColors(data.length) : []
         if (chart.props.invertColorScheme)
             colors.reverse()

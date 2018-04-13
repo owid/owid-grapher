@@ -251,11 +251,15 @@ export default class MapData {
         return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : 0
     }
 
+    // In automatic mode, if no step size is specified, we calculate one that will encompass
+    // the full range of the data
     @computed get binStepSizeDefault(): number {
         const {sortedNumericValues} = this
         if (!sortedNumericValues.length) return 10
 
         const {numAutoBins, minBinValue} = this
+
+//        const rangeSize = sortedNumericValues[sortedNumericValues.length-1] - sortedNumericValues[0]
 
         const median95 = sortedNumericValues[Math.floor(sortedNumericValues.length*0.95)]
         const stepSizeInitial = (median95-minBinValue)/numAutoBins
