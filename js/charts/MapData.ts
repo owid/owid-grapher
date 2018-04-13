@@ -1,5 +1,7 @@
 import { uniq, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy, isNumber, sortBy } from './Util'
 import { computed, autorun, runInAction, reaction, toJS, IReactionDisposer } from 'mobx'
+import { mean, deviation } from 'd3-array'
+
 import ChartConfig from './ChartConfig'
 import { defaultTo, isString, last, findClosest } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
@@ -248,7 +250,7 @@ export default class MapData {
     }
 
     @computed get minBinValue(): number {
-        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : 0
+        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : Math.min(0, this.minPossibleValue)
     }
 
     // In automatic mode, if no step size is specified, we calculate one that will encompass
@@ -259,14 +261,27 @@ export default class MapData {
 
         const {numAutoBins, minBinValue} = this
 
-//        const rangeSize = sortedNumericValues[sortedNumericValues.length-1] - sortedNumericValues[0]
+        const sampleMean = mean(sortedNumericValues) as number
+        const sampleDeviation = deviation(sortedNumericValues) as number
+        console.log(deviation)
 
-        const median95 = sortedNumericValues[Math.floor(sortedNumericValues.length*0.95)]
+        const excludeOutliers = sortedNumericValues.filter(d => Math.abs(d-sampleMean) <= sampleDeviation*2)
+        console.log(sampleMean, sampleDeviation, sortedNumericValues.map(d => Math.abs(d-sampleMean)))
+        const minValue = excludeOutliers[0]
+        const maxValue = excludeOutliers[excludeOutliers.length-1]
+
+        const rangeSize = maxValue - minValue
+        const stepSizeInitial = rangeSize/numAutoBins
+        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
+        const stepSize = round(stepSizeInitial, -stepMagnitude)
+        return stepSize
+
+        /*const median95 = sortedNumericValues[Math.floor(sortedNumericValues.length*0.95)]
         const stepSizeInitial = (median95-minBinValue)/numAutoBins
         const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
         const stepSize = round(stepSizeInitial, -stepMagnitude)
 
-        return stepSize
+        return stepSize*/
     }
 
     @computed get binStepSize(): number {

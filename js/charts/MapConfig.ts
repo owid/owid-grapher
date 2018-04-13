@@ -15,7 +15,7 @@ export class MapConfigProps {
     // Key for a colorbrewer scheme, may then be further customized
     @observable.ref baseColorScheme?: string
     // Minimum value shown on map legend
-    @observable.ref colorSchemeMinValue?: number = 0
+    @observable.ref colorSchemeMinValue?: number
     @observable colorSchemeValues: number[] = []
     @observable colorSchemeLabels: (string | undefined)[] = []
     @observable.ref isManualBuckets?: true = undefined
