@@ -4,7 +4,7 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChoroplethMap, { ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity } from './ChoroplethMap'
 import MapLegend, { MapLegendView } from './MapLegend'
-import { getRelativeMouse } from './Util'
+import { getRelativeMouse, formatYear } from './Util'
 import Header from './Header'
 import SourcesFooter from './SourcesFooter'
 import ChartConfig from './ChartConfig'
@@ -127,7 +127,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     <span>{this.context.chart.map.data.formatTooltipValue(tooltipDatum.value)}</span><br />
                     {tooltipDatum.year !== inputYear && <div>
                         in<br />
-                        <span>{tooltipDatum.year}</span>
+                        <span>{formatYear(tooltipDatum.year)}</span>
                     </div>}
                 </p>
             </Tooltip>}

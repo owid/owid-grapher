@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {sortBy, reverse, clone, last, guid, pointsToPath} from './Util'
+import {sortBy, reverse, clone, last, guid, pointsToPath, formatYear} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -194,7 +194,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
         return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tr>
-                    <td><strong>{refValue.x}</strong></td>
+                    <td><strong>{formatYear(refValue.x)}</strong></td>
                     <td>
                         {/* Total */}
                         {!transform.isRelative && !someMissing && <span>
