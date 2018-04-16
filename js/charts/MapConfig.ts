@@ -68,7 +68,7 @@ export default class MapConfig {
 
     @computed get baseColorScheme() { return defaultTo(this.props.baseColorScheme, "BuGn") }
     @computed get noDataColor() {
-        return defaultTo(this.customCategoryColors['No data'], "#adacac")
+        return defaultTo(this.customCategoryColors['No data'], "#eee")
     }
 
     @computed get data() {
