@@ -201,14 +201,14 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             <g className="subunits" transform={matrixTransform}>
                 {nonRegionFeatures.length && <g className="nonRegionFeatures">
                     {nonRegionFeatures.map(d => {
-                        return <path key={d.id} d={pathData[d.id as string]} strokeWidth={0.3/viewportScale} stroke={"#ccc"} fill={"#fff"}/>
+                        return <path key={d.id} d={pathData[d.id as string]} strokeWidth={0.3/viewportScale} stroke={"#aaa"} fill={"#fff"}/>
                     })}
                 </g>}
 
                 {noDataFeatures.length && <g className="noDataFeatures">
                     {noDataFeatures.map(d => {
                         const isFocus = this.hasFocus(d)
-                        const stroke = isFocus ? focusColor : "#ccc"
+                        const stroke = isFocus ? focusColor : "#aaa"
                         return <path key={d.id} d={pathData[d.id as string]} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d)} />
                     })}
                 </g>}
