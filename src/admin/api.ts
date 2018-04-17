@@ -102,7 +102,8 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             } else if (await isSlugUsedInOtherChart()) {
                 throw new JsonError(`This chart slug is in use by another published chart: ${newConfig.slug}`)
             } else if (existingConfig && existingConfig.isPublished) {
-                // Changing slug of an existing chart, create redirect
+                // Changing slug of an existing chart, delete any old redirect and create new one
+                await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`, [existingConfig.id, existingConfig.slug])
                 await t.execute(`INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`, [existingConfig.id, existingConfig.slug])
             }
         }
