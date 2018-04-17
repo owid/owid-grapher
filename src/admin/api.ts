@@ -155,6 +155,8 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             await t.execute(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
             await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
         } else if (!newConfig.isPublished && existingConfig && existingConfig.isPublished) {
+            // Unpublishing chart, delete any existing redirects to it
+            await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id = ?`, [existingConfig.id])
             await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
         } else if (newConfig.isPublished) {
             await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
