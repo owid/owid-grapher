@@ -38,7 +38,9 @@ module.exports = (env, argv) => {
         },
         output: {
             path: path.join(__dirname, "grapher_admin/static/build"),
-            filename: (isProduction ? "[name].bundle.[chunkhash].js" : "[name].js")
+            // Seems to be an occasional bug with [chunkhash] causing charts js file to load wrong thing from commons
+            // So using build hash for now
+            filename: (isProduction ? "[name].bundle.[hash].js" : "[name].js")
         },
           resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
@@ -78,7 +80,7 @@ module.exports = (env, argv) => {
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new ExtractTextPlugin(isProduction ? '[name].bundle.[chunkhash].css' : '[name].css'),
+            new ExtractTextPlugin(isProduction ? '[name].bundle.[contenthash].css' : '[name].css'),
             new ManifestPlugin(),
         ],
         devServer: {
