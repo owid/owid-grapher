@@ -515,4 +515,31 @@ api.put('/sources/:sourceId', async (req: Request) => {
     return { success: true }
 })
 
+// Get a list of redirects that map old slugs to charts
+api.get('/redirects.json', async (req: Request, res: Response) => {
+    const redirects = await db.query(`
+        SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
+        FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
+        ORDER BY r.id DESC`)
+
+    return {
+        redirects: redirects
+    }
+})
+
+api.delete('/redirects/:id', async (req: Request, res: Response) => {
+    const id = expectInt(req.params.id)
+
+    const redirect = await db.get(`SELECT * FROM chart_slug_redirects WHERE id = ?`, [id])
+
+    if (!redirect) {
+        throw new JsonError(`No redirect found for id ${id}`, 404)
+    }
+
+    await db.execute(`DELETE FROM chart_slug_redirects WHERE id=?`, [id])
+    await triggerStaticBuild(res.locals.user, `Deleting redirect from ${redirect.slug}`)
+
+    return { success: true }
+})
+
 export default api

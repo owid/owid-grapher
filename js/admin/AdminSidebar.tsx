@@ -7,6 +7,7 @@ export default function AdminSidebar(props: { onDismiss: () => void }) {
         <ul className="sidebar-menu">
             <li className="header">CHARTS</li>
             <li><Link to="/charts"><i className="fa fa-bar-chart"></i> Charts</Link></li>
+            <li><Link to="/redirects"><i className="fa fa-arrow-right"></i> Redirects</Link></li>
             <li className="header">DATA</li>
             <li><a href="/grapher/admin/import"><i className="fa fa-upload"></i> Import CSV</a></li>
             <li><Link to="/datasets"><i className="fa fa-table"></i> Datasets</Link></li>
