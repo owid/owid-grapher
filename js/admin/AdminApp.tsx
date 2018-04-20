@@ -60,7 +60,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                 <AdminErrorMessage admin={admin}/>
                 <AdminLoader admin={admin}/>
                 <Switch>
-                    <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(decodeURIComponent(match.params.config))}/>}/>
+                    <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(atob(match.params.config))}/>}/>
                     <Route exact path="/charts/create" component={ChartEditorPage}/>
                     <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
                     <Route exact path="/charts" component={ChartIndexPage}/>
