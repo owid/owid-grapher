@@ -38,4 +38,8 @@ export default class EditorFeatures {
     @computed get relativeModeToggle() {
         return this.chart.isStackedArea || (this.chart.isScatter && this.chart.scatter.hasTimeline)
     }
+
+    @computed get comparisonLine() {
+        return this.chart.isLineChart || this.chart.isScatter
+    }
 }

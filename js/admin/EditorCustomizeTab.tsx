@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { computed, action } from 'mobx'
+import { observable, computed, action, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
+import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString } from './Forms'
+import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, TextField } from './Forms'
 import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
 import { debounce, keysOf } from '../charts/Util'
 
@@ -80,6 +81,34 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
+class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
+    @observable comparisonLine: ComparisonLineConfig = { label: undefined, yEquals: undefined }
+
+    @action.bound onToggleComparisonLine(value: boolean) {
+        if (value)
+            this.props.editor.chart.props.comparisonLine = this.comparisonLine
+        else
+            this.props.editor.chart.props.comparisonLine = undefined
+    }
+
+    save() {
+        this.props.editor.chart.props.comparisonLine = toJS(this.comparisonLine)
+    }
+
+    render() {
+        const {comparisonLine} = this.props.editor.chart
+        return <Section name="Comparison line">
+            <p>Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
+            <Toggle label="Enable comparison line" value={!!comparisonLine} onValue={this.onToggleComparisonLine}/>
+            {comparisonLine !== undefined && <div>
+                <TextField label="y=" placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { this.comparisonLine.yEquals = value||undefined; this.save() })}/>
+                <TextField label="Label" value={comparisonLine.label} onValue={action((value: string) => { this.comparisonLine.label = value||undefined; this.save() })}/>
+            </div>}
+        </Section>
+    }
+}
+
+@observer
 export default class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
     @computed get xAxis() { return this.props.editor.chart.xAxis.props }
     @computed get yAxis() { return this.props.editor.chart.yAxis.props }
@@ -117,6 +146,7 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
                 </FieldsRow>
                 {features.entityType && <BindAutoString label="Entity name" field="entityType" store={chart.props} auto="country"/>}
             </Section>}
+            {features.comparisonLine && <ComparisonLineSection editor={this.props.editor}/>}
         </div>
     }
 }

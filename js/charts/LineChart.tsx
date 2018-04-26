@@ -9,19 +9,21 @@ import * as React from 'react'
 import { last, guid } from './Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
+import { select } from 'd3-selection'
+import { easeLinear } from 'd3-ease'
+
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import AxisBox from './AxisBox'
 import StandardAxisBoxView from './StandardAxisBoxView'
 import Lines from './Lines'
 import HeightedLegend, { HeightedLegendView } from './HeightedLegend'
+import ComparisonLine from './ComparisonLine'
 import { HoverTarget } from './Lines'
 import Tooltip from './Tooltip'
 import DataKey from './DataKey'
 import NoData from './NoData'
 import { formatYear } from './Util'
-import { select } from 'd3-selection'
-import { easeLinear } from 'd3-ease'
 
 export interface LineChartValue {
     x: number,
@@ -161,6 +163,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
+                {chart.comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={chart.comparisonLine} />}
                 {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>
