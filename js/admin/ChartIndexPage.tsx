@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
-const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 
 import Admin from './Admin'

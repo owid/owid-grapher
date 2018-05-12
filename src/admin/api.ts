@@ -5,6 +5,7 @@ import {spawn} from 'child_process'
 import * as path from 'path'
 
 import * as db from '../db'
+import * as wpdb from '../articles/wpdb'
 import {BASE_DIR, DB_NAME} from '../settings'
 import {JsonError, expectInt, isValidSlug, shellEscape} from './serverUtil'
 import Chart from '../models/Chart'
@@ -540,6 +541,23 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
     await triggerStaticBuild(res.locals.user, `Deleting redirect from ${redirect.slug}`)
 
     return { success: true }
+})
+
+api.get('/posts.json', async req => {
+    const rows = await wpdb.query(`
+        SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
+        FROM wp_posts 
+        WHERE (post_type='post' OR post_type='page') 
+            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft') 
+        ORDER BY post_modified DESC`)
+    
+    const authorship = await wpdb.getAuthorship()
+
+    for (const post of rows) {
+        post.authors = authorship.get(post.id)||[]
+    }
+
+    return { posts: rows }
 })
 
 export default api

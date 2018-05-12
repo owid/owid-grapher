@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser')
 const errorToSlack = require('express-error-slack').default
 
 import * as db from '../db'
+import * as wpdb from '../articles/wpdb'
 import AdminSPA from './AdminSPA'
 import LoginPage from './LoginPage'
 import {authMiddleware, loginSubmit} from './authentication'
@@ -27,6 +28,7 @@ app.use(authMiddleware)
 //app.use(express.urlencoded())
 
 db.connect()
+wpdb.connect()
 
 /*app.get('/admin/login', (req, res) => {
     res.send(renderToHtmlPage(<LoginPage/>))

@@ -25,6 +25,9 @@ interface Settings {
     SLACK_ERRORS_WEBHOOK_URL: string
     SESSION_COOKIE_AGE: number
 
+    WORDPRESS_DB_NAME: string
+    WORDPRESS_DIR: string
+    
     // These settings are inferred from other settings
     BUILD_GRAPHER_PATH: string
     BUILD_DIR: string

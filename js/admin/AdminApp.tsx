@@ -12,6 +12,7 @@ import VariablesIndexPage from './VariablesIndexPage'
 import DatasetEditPage from './DatasetEditPage'
 import SourceEditPage from './SourceEditPage'
 import RedirectsIndexPage from './RedirectsIndexPage'
+import PostsIndexPage from './PostsIndexPage'
 import ImportPage from './ImportPage'
 import NotFoundPage from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
@@ -73,6 +74,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route exact path="/datasets" component={DatasetsIndexPage}/>
                     <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
                     <Route exact path="/redirects" component={RedirectsIndexPage}/>
+                    <Route exact path="/pages" component={PostsIndexPage}/>
                     <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
                     <Route component={NotFoundPage}/>
                 </Switch>
