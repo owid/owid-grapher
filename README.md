@@ -26,6 +26,8 @@ Now copy `.env.example` to `.env` and fill in your database details in that file
 
 Run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
+You will also want to run a static build for the initial charts: `node dist/src/bakeCharts.js`. `bakeCharts.js` will be compiled from the TypeScript by `yarn dev`, which may take a few moments. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
+
 ## Architecture notes
 
 owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written using [PEP 484 type hints](https://www.python.org/dev/peps/pep-0484/) and [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
