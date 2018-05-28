@@ -12,7 +12,7 @@ import * as React from 'react'
 import { scaleLinear, scaleLog, scaleOrdinal, ScaleLinear, ScaleLogarithmic, ScaleOrdinal } from 'd3-scale'
 import { extent } from 'd3-array'
 import { select } from 'd3-selection'
-import { every, uniq, first, sortBy, extend, max, isEmpty, throttle } from './Util'
+import { every, uniq, first, sortBy, extend, max, isEmpty, throttle, intersection, includes } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 
@@ -145,14 +145,15 @@ export interface LabelledSlopesProps {
     yScaleTypeOptions: ScaleType[]
     onScaleTypeChange: (scaleType: ScaleType) => void,
     fontSize: number
+    focusKeys: any
+    onMouseOver: (slopeProps: SlopeProps) => void
+    onMouseLeave: () => void
 }
 
 @observer
 export default class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     base: SVGElement
     svg: SVGElement
-
-    @observable focusKey?: string
 
     @computed get data(): SlopeChartSeries[] {
         return this.props.data
@@ -164,6 +165,10 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
     @computed get bounds(): Bounds {
         return this.props.bounds
+    }
+
+    @computed get focusKeys(): string[] {
+        return intersection(this.props.focusKeys || [], this.data.map(g => g.key))
     }
 
     @computed get isPortrait(): boolean {
@@ -294,12 +299,12 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeProps[] {
-        const { focusKey } = this
+        const { focusKeys } = this
         let slopeData = this.labelAccountedSlopeData
 
         slopeData = slopeData.map(slope => {
             return extend({}, slope, {
-                isFocused: slope.key === focusKey,
+                isFocused: includes(focusKeys, slope.key)
             })
         })
 
@@ -355,14 +360,15 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         const mouse = getRelativeMouse(this.base, ev)
 
         requestAnimationFrame(() => {
-            if (!this.props.bounds.contains(mouse))
-                this.focusKey = undefined
-            else {
+            if (this.props.bounds.contains(mouse)) {
                 const slope = sortBy(this.slopeData, s => {
                     const distToLine = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
                     return distToLine
                 })[0]
-                this.focusKey = slope.key
+
+                if (slope && this.props.onMouseOver) {
+                    this.props.onMouseOver(slope)
+                }
             }
         })
     }
@@ -380,7 +386,6 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
-
         const onMouseMove = throttle(this.onMouseMove, 100)
 
         return <g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
