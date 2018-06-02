@@ -317,7 +317,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
 
         const extraControls = hasInlineControls && <div className="extraControls">
             {chart.data.canAddData && <button type="button" onClick={this.onDataSelect}>
-                {chart.isScatter ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
+                {(chart.isScatter || chart.isSlopeChart) ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
             </button>}
 
             {chart.data.canChangeEntity && <button type="button" onClick={this.onDataSelect}>

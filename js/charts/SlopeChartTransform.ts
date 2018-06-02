@@ -138,9 +138,12 @@ export default class SlopeChartTransform implements IChartTransform {
         const maxYear = Math.min(xDomain[1] || Infinity, last(longestRange))
 
         data = data.mergeBy('entity', (rows: Observations, entity: string) => {
+            const dataKey = chart.data.keyFor(entity, 0)
+
             return {
                 label: entityKey[entity].name,
-                key: makeSafeForCSS(entityKey[entity].name),
+                key: dataKey,
+                // key: makeSafeForCSS(entityKey[entity].name),
                 color: colorDim ? colorScale(rows.first(colorDim.variable.id)) : "#000",
                 size: sizeDim ? rows.first(sizeDim.variable.id) : 1,
                 values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year === minYear || d.year === maxYear)).mergeBy('year').map((d: any) => {

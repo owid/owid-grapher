@@ -331,7 +331,7 @@ export default class ChartData {
     }
 
     @computed get canAddData(): boolean {
-        return this.chart.addCountryMode === "add-country" && this.availableKeys.length > 1 && !this.chart.isSlopeChart
+        return this.chart.addCountryMode === "add-country" && this.availableKeys.length > 1
     }
 
     @computed get canChangeEntity(): boolean {
