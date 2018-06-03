@@ -12,7 +12,7 @@ import * as React from 'react'
 import { scaleLinear, scaleLog, scaleOrdinal, ScaleLinear, ScaleLogarithmic, ScaleOrdinal } from 'd3-scale'
 import { extent } from 'd3-array'
 import { select } from 'd3-selection'
-import { every, uniq, first, sortBy, extend, max, isEmpty, throttle, intersection, includes } from './Util'
+import { every, uniq, first, sortBy, extend, max, isEmpty, throttle, intersection, includes, filter } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 
@@ -91,6 +91,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 
 export interface SlopeProps {
     key: string
+    isLayerMode: boolean
     x1: number
     y1: number
     x2: number
@@ -116,10 +117,21 @@ export interface SlopeProps {
 class Slope extends React.Component<SlopeProps> {
     line: SVGElement
 
+    @computed get isInBackground() : Boolean {
+        const { isLayerMode, isHovered, isFocused } = this.props
+
+        if (!isLayerMode)
+            return false
+
+        return !(isHovered || isFocused)
+    }
+
     render() {
-        const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused, isHovered } = this.props
-        const lineColor = color //'#89C9CF'
-        const labelColor = '#333'
+        const { key, x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused, isHovered } = this.props
+        const { isInBackground } = this
+
+        const lineColor = isInBackground ? '#e2e2e2' : color //'#89C9CF'
+        const labelColor = isInBackground ? '#aaa' : '#333'
         const opacity = isHovered ? 1 : (isFocused ? 0.7 : 0.5)
         const lineStrokeWidth = isHovered ? size * 2 : (isFocused ? 1.5 * size : size)
 
@@ -133,7 +145,7 @@ class Slope extends React.Component<SlopeProps> {
             <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={lineStrokeWidth} opacity={opacity} />
             <circle cx={x2} cy={y2} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
             {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{rightValueStr}</Text>}
-            {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: 'labelColor', fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
+            {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
         </g>
     }
 }
@@ -176,6 +188,12 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
     @computed get hoverKeys(): string[] {
         return intersection(this.props.hoverKeys || [], this.data.map(g => g.key))
+    }
+
+    // Layered mode occurs when any entity on the chart is hovered or focused
+    // Then, a special "foreground" set of entities is rendered over the background
+    @computed get isLayerMode() {
+        return this.focusKeys.length > 0 || this.hoverKeys.length > 0
     }
 
     @computed get isPortrait(): boolean {
@@ -304,6 +322,15 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         })
     }
 
+    @computed get backgroundGroups(): SlopeProps[] {
+        return filter(this.slopeData, group => !(group.isHovered || group.isFocused))
+    }
+
+    @computed get foregroundGroups(): SlopeProps[] {
+        return filter(this.slopeData, group => !!(group.isHovered || group.isFocused))
+    }
+
+
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeProps[] {
         const { focusKeys, hoverKeys } = this
@@ -389,6 +416,19 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         // Nice little intro animation
         select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
     }
+
+    renderBackgroundGroups() {
+        const { backgroundGroups, isLayerMode } = this
+
+        return backgroundGroups.map(slope => <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} /> )
+    }
+
+    renderForegroundGroups() {
+        const { foregroundGroups, isLayerMode } = this
+
+        return foregroundGroups.map(slope => <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} /> )
+    }
+
     render() {
         const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange, fontSize } = this.props
         const { bounds, slopeData, isPortrait, xDomain, yScale } = this
@@ -415,9 +455,8 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
             <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
             <g className="slopes">
-                {slopeData.map(slope => {
-                    return <Slope key={slope.key} {...slope} />
-                })}
+                {this.renderBackgroundGroups()}
+                {this.renderForegroundGroups()}
             </g>
         </g>
     }
