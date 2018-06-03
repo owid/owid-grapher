@@ -46,7 +46,6 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
     }
 
     @action.bound onLegendMouseOver(color: string) {
-        this.hoverKey = undefined
         this.hoverColor = color
     }
 
@@ -68,7 +67,7 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys(): string[] {
+    @computed.struct get hoverKeys(): string[] {
         const { hoverColor, hoverKey, transform } = this
 
         const hoverKeys = hoverColor === undefined ? [] : uniq(transform.data.filter(g => g.color === hoverColor).map(g => g.key))

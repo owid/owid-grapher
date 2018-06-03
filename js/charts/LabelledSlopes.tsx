@@ -395,10 +395,20 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         return slopeData
     }
 
+    mouseFrame?: number
+    @action.bound onMouseLeave() {
+
+        if (this.mouseFrame !== undefined)
+            cancelAnimationFrame(this.mouseFrame)
+
+        if (this.props.onMouseLeave)
+            this.props.onMouseLeave()
+    }
+
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>) {
         const mouse = getRelativeMouse(this.base, ev)
 
-        requestAnimationFrame(() => {
+        this.mouseFrame = requestAnimationFrame(() => {
             if (this.props.bounds.contains(mouse)) {
                 const slope = sortBy(this.slopeData, s => {
                     const distToLine = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
@@ -440,7 +450,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         const [y1, y2] = yScale.range()
         const onMouseMove = throttle(this.onMouseMove, 100)
 
-        return <g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
+        return <g className="LabelledSlopes" >
             <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
             <g className="gridlines">
                 {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
@@ -454,7 +464,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
             <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
             <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
-            <g className="slopes">
+            <g className="slopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave}>
                 {this.renderBackgroundGroups()}
                 {this.renderForegroundGroups()}
             </g>
