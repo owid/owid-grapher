@@ -101,6 +101,12 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
     }
 
+    // correction is to account for the space taken by the legend
+    @computed get innerBounds() {
+        const { sidebarWidth } = this
+        return this.props.bounds.padRight(sidebarWidth + 20)
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage} />
@@ -108,10 +114,10 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         const { bounds, chart } = this.props
         const { yAxis } = chart
         const { data } = this.transform
-        const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth } = this
+        const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth, innerBounds } = this
 
         return <g>
-            <LabelledSlopes bounds={bounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave}  />
+            <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave}  />
             <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} focusColors={focusColors} activeColors={activeColors} />
         </g>
     }
