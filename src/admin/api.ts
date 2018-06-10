@@ -3,6 +3,7 @@ import {Express, Router} from 'express'
 import * as _ from 'lodash'
 import {spawn} from 'child_process'
 import * as path from 'path'
+import * as querystring from 'querystring'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
@@ -12,6 +13,7 @@ import OldChart, {Chart} from '../model/Chart'
 import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
+import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -187,6 +189,27 @@ api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
 
     return {
         namespaces: rows.map(row => row.namespace)
+    }
+})
+
+api.get('/countries.json', async (req: Request, res: Response) => {
+    let rows = []
+
+    let input = req.query.input
+    let output = req.query.output
+
+    if (input == CountryNameFormat.NonStandardCountryName && output == CountryNameFormat.OurWorldInDataName) {
+        rows = await db.query(`SELECT country_name as input, owid_country as output FROM country_name_tool_countryname`)
+    }
+    else {
+        let input_column = CountryDefByKey[input].column_name
+        let output_column = CountryDefByKey[output].column_name
+
+        rows = await db.query(`SELECT ` + input_column + ` as input, ` + output_column + ` as output FROM country_name_tool_countrydata`, [input_column, output_column])
+    }
+
+    return {
+        countries: rows
     }
 })
 

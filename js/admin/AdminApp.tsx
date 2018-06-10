@@ -6,6 +6,7 @@ import {observer} from 'mobx-react'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
 import DatasetsIndexPage from './DatasetsIndexPage'
+import CountryStandardizerPage from './CountryStandardizerPage'
 import UserEditPage from './UserEditPage'
 import VariableEditPage from './VariableEditPage'
 import VariablesIndexPage from './VariablesIndexPage'
@@ -73,6 +74,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route exact path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
                     <Route exact path="/datasets" component={DatasetsIndexPage}/>
                     <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
+                    <Route exact path="/country_standardizer" component={CountryStandardizerPage} />
                     <Route exact path="/redirects" component={RedirectsIndexPage}/>
                     <Route exact path="/pages" component={PostsIndexPage}/>
                     <Route exact path="/test" component={TestIndexPage}/>
