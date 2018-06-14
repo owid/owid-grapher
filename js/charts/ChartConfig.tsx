@@ -10,6 +10,7 @@ import ChartData from './ChartData'
 import DimensionWithData from './DimensionWithData'
 import MapConfig, { MapConfigProps } from './MapConfig'
 import URLBinder from "./URLBinder"
+import StackedBarTransform from './StackedBarTransform'
 import DiscreteBarTransform from './DiscreteBarTransform'
 import StackedAreaTransform from './StackedAreaTransform'
 import LineChartTransform from "./LineChartTransform"
@@ -356,12 +357,14 @@ export default class ChartConfig {
     @computed get isStackedArea() { return this.props.type === ChartType.StackedArea }
     @computed get isSlopeChart() { return this.props.type === ChartType.SlopeChart }
     @computed get isDiscreteBar() { return this.props.type === ChartType.DiscreteBar }
+    @computed get isStackedBar() { return this.props.type === ChartType.StackedBar }
 
     @computed get lineChart() { return new LineChartTransform(this) }
     @computed get scatter() { return new ScatterTransform(this) }
     @computed get stackedArea() { return new StackedAreaTransform(this) }
     @computed get slopeChart() { return new SlopeChartTransform(this) }
     @computed get discreteBar() { return new DiscreteBarTransform(this) }
+    @computed get stackedBar() { return new StackedBarTransform(this) }
     @computed get map() { return new MapConfig(this) }
 
     @computed get activeTransform(): IChartTransform {
@@ -375,6 +378,8 @@ export default class ChartConfig {
             return this.slopeChart
         else if (this.isDiscreteBar)
             return this.discreteBar
+        else if (this.isStackedBar)
+            return this.stackedBar
         else
             throw new Error("No transform found")
     }

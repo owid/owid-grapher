@@ -11,6 +11,7 @@ import LineChart from './LineChart'
 import ChartView from './ChartView'
 import StackedArea from './StackedArea'
 import DiscreteBarChart from './DiscreteBarChart'
+import StackedBarChart from './StackedBarChart'
 
 @observer
 export default class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
@@ -46,6 +47,8 @@ export default class ChartTab extends React.Component<{ chart: ChartConfig, char
             return <StackedArea bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
         else if (chart.isDiscreteBar)
             return <DiscreteBarChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
+        else if (chart.isStackedBar)
+            return <StackedBarChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
         else
             return null
     }
