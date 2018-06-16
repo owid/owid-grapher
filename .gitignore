@@ -19,3 +19,4 @@ dist
 public
 grapher_admin/static/build
 .netlify
+*.swp
