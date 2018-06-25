@@ -49,8 +49,6 @@ DATASETS_REPO_EMAIL=os.environ['DATASETS_REPO_EMAIL']
 
 DATASETS_TMP_LOCATION=os.environ['DATASETS_TMP_LOCATION']
 
-NETLIFY_ACCESS_TOKEN=os.environ['NETLIFY_ACCESS_TOKEN']
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
