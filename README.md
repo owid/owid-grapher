@@ -12,7 +12,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-The grapher is a Python + JavaScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 9.3+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
+The grapher is currently a Python + JavaScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 9.3+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
 
 Running `pip install -r requirements.txt` and `yarn install` in the repo root will grab the remaining dependencies.
 
@@ -30,7 +30,7 @@ You will also want to run a static build for the initial charts: `node dist/src/
 
 ## Architecture notes
 
-owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written using [PEP 484 type hints](https://www.python.org/dev/peps/pep-0484/) and [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+owid-grapher is heavily based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
 
 ## About
 

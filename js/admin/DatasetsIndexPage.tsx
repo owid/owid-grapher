@@ -37,13 +37,13 @@ class DatasetRow extends React.Component<{ dataset: DatasetIndexMeta, highlight:
         const {admin} = this.context
 
         return <tr>
-            <td>{dataset.namespace}</td>
+            <td>{highlight(dataset.namespace)}</td>
             <td>
                 <Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
             <td>{dataset.description}</td>
-            <td>{dataset.categoryName}</td>
-            <td>{dataset.subcategoryName}</td>
+            <td>{highlight(dataset.categoryName)}</td>
+            <td>{highlight(dataset.subcategoryName)}</td>
             <td>{timeago.format(dataset.createdAt)}</td>
             <td>{timeago.format(dataset.updatedAt)}</td>
         </tr>
@@ -63,7 +63,7 @@ export default class DatasetsIndexPage extends React.Component {
         for (const dataset of this.datasets) {
             searchIndex.push({
                 dataset: dataset,
-                term: fuzzysort.prepare(dataset.name)
+                term: fuzzysort.prepare(dataset.name + " " + dataset.categoryName + " " + dataset.subcategoryName + " " + dataset.namespace)
             })
         }
 
