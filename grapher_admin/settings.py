@@ -35,8 +35,6 @@ ALLOWED_HOSTS=os.environ['DJANGO_ALLOWED_HOSTS'].split(",")
 BASE_URL=os.environ['DJANGO_BASE_URL']
 WEBPACK_DEV_URL=os.environ['WEBPACK_DEV_URL']
 
-LOG_FILE_LOCATION=os.environ['LOG_FILE_LOCATION']
-WDI_FETCHER_LOG_FILE_LOCATION=os.environ['WDI_FETCHER_LOG_FILE_LOCATION']
 
 SLACK_LOGGING_ENABLED=(os.environ['SLACK_LOGGING_ENABLED'] == "1")
 SLACK_TOKEN=os.environ['SLACK_TOKEN']
@@ -51,6 +49,9 @@ DATASETS_TMP_LOCATION=os.environ['DATASETS_TMP_LOCATION']
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+LOG_FILE_LOCATION=os.path.join(BASE_DIR, 'logs', 'owid_errors.log')
+WDI_FETCHER_LOG_FILE_LOCATION=os.path.join(BASE_DIR, 'logs', 'wdi_fetcher.log')
 
 
 # Quick-start development settings - unsuitable for production
