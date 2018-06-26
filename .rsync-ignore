@@ -13,3 +13,4 @@ data
 public
 .git
 dist
+logs
