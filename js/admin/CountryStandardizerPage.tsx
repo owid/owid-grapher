@@ -61,7 +61,8 @@ class CSV {
         let countries = rows.slice(1).map((row:string[]) => row[countryColumnIndex] as string )
 
         // for fuzzy-sort
-        let targetValues = Object.keys(mapCountriesInputToOutput).map(key => fuzzysort.prepare(mapCountriesInputToOutput[key]))
+        let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
+        targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
         countries.map((country:string) => {
             let outputCountry = mapCountriesInputToOutput[country]
@@ -72,7 +73,7 @@ class CSV {
             }
             let entry:CountryEntry = {
                 originalName: country,
-                standardizedName: mapCountriesInputToOutput[country],
+                standardizedName: mapCountriesInputToOutput[country] || undefined,
                 approximatedMatches: approximatedMatches,
                 selectedMatch: "",
                 customName: ""
@@ -91,7 +92,7 @@ interface FuzzyMatch {
 
 export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
     originalName: string
-    standardizedName: string
+    standardizedName: string|undefined
     approximatedMatches: FuzzyMatch[]
     selectedMatch: string|undefined
     customName: string|undefined
@@ -109,6 +110,9 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
     @computed get isMatched(): boolean {
         const { entry } = this.props
 
+        if (entry.standardizedName === null) {
+            console.log(entry)
+        }
         if (entry.standardizedName !== undefined && entry.standardizedName.length > 0) {
             return true
         }

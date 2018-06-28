@@ -198,14 +198,23 @@ api.get('/countries.json', async (req: Request, res: Response) => {
     let input = req.query.input
     let output = req.query.output
 
-    if (input == CountryNameFormat.NonStandardCountryName && output == CountryNameFormat.OurWorldInDataName) {
-        rows = await db.query(`SELECT country_name as input, owid_country as output FROM country_name_tool_countryname`)
+    if (input == CountryNameFormat.NonStandardCountryName) {
+        let output_column = CountryDefByKey[output].column_name
+
+        rows = await db.query(`
+            SELECT country_name as input, ` + output_column + ` as output
+            FROM country_name_tool_countryname ccn
+            LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
+            LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
     }
     else {
         let input_column = CountryDefByKey[input].column_name
         let output_column = CountryDefByKey[output].column_name
 
-        rows = await db.query(`SELECT ` + input_column + ` as input, ` + output_column + ` as output FROM country_name_tool_countrydata`, [input_column, output_column])
+        rows = await db.query(
+            `SELECT ` + input_column + ` as input, ` + output_column + ` as output
+            FROM country_name_tool_countrydata ccd
+            LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
     }
 
     return {
