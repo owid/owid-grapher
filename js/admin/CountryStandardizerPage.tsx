@@ -170,6 +170,13 @@ export default class CountryStandardizerPage extends React.Component {
     @observable csv: CSV = new CSV()
     @observable showAllRows: boolean = false
 
+    @computed get shouldSaveSelection():boolean {
+        if (this.inputFormat == CountryNameFormat.NonStandardCountryName && this.outputFormat == CountryNameFormat.OurWorldInDataName) {
+            return true
+        }
+        return false
+    }
+
     @action.bound onInputFormat(format: string) {
         this.inputFormat = format
         this.fetchCountryMap(this.inputFormat, this.outputFormat)
@@ -224,6 +231,15 @@ export default class CountryStandardizerPage extends React.Component {
     csvFilename(): string {
         const { csv } = this
         return csv.filename.replace(".csv", "_country_standardized.csv")
+    }
+
+    downloadTooltip(): string {
+        const { shouldSaveSelection } = this
+
+        if (shouldSaveSelection) {
+            return "Downloading will save any custom selection for future ease"
+        }
+        return ""
     }
 
     outputCSV() {
@@ -281,12 +297,16 @@ export default class CountryStandardizerPage extends React.Component {
 
     // IE11 compatibility
     @action.bound onDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        const { shouldSaveSelection } = this
 
         if (window.navigator.msSaveBlob) {
             window.navigator.msSaveBlob(this.outputCSV(), this.csvFilename())
             ev.preventDefault()
         }
-        this.onSave()
+
+        if (shouldSaveSelection) {
+            this.onSave()
+        }
     }
 
     @action.bound onToggleRows() {
@@ -343,7 +363,7 @@ export default class CountryStandardizerPage extends React.Component {
                     <div className="topbar">
                         <input type="file" onChange={this.onChooseCSV} accept=".csv" />
                         {showDownloadOption ?
-                            <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload}><i className="fa fa-download"></i> {this.csvFilename()}</a>
+                            <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip()}><i className="fa fa-download"></i> {this.csvFilename()}</a>
                             : <div></div>
                         }
                     </div>
