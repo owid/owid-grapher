@@ -222,6 +222,36 @@ api.get('/countries.json', async (req: Request, res: Response) => {
     }
 })
 
+api.post('/countries', async (req: Request, res: Response) => {
+    const countries = req.body.countries
+
+    let mapOwidNameToId:any = {}
+    let owidRows = []
+
+    // find owid ID
+    let owid_names = Object.keys(countries).map(key => countries[key])
+    owidRows = await db.query(
+        `SELECT id, owid_name
+        FROM country_name_tool_countrydata
+        WHERE owid_name in (?)
+        `, [owid_names])
+    for (const row of owidRows) {
+        mapOwidNameToId[row.owid_name] = row.id
+    }
+
+    // insert one by one (ideally do a bulk insert)
+    for (const country of Object.keys(countries)) {
+        const owid_name = countries[country]
+
+        console.log("adding " + country + ", " + mapOwidNameToId[owid_name] + ", " + owid_name)
+        await db.execute(
+            `INSERT INTO country_name_tool_countryname (country_name, owid_country)
+            VALUES (?, ?)`, [country, mapOwidNameToId[owid_name]])
+    }
+
+    return { success: true }
+})
+
 api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(

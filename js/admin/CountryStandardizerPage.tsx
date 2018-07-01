@@ -62,6 +62,7 @@ class CSV {
 
         // for fuzzy-sort
         let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
+        targetValues = targetValues.map(key => mapCountriesInputToOutput[key])
         targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
         countries.map((country:string) => {
@@ -164,7 +165,7 @@ export default class CountryStandardizerPage extends React.Component {
     fileUploader!: HTMLInputElement
 
     @observable countryList: CountryEntry[] = []
-    @observable inputFormat: string = CountryNameFormat.OurWorldInDataName
+    @observable inputFormat: string = CountryNameFormat.NonStandardCountryName
     @observable outputFormat: string = CountryNameFormat.OurWorldInDataName
     @observable csv: CSV = new CSV()
     @observable showAllRows: boolean = false
@@ -285,10 +286,33 @@ export default class CountryStandardizerPage extends React.Component {
             window.navigator.msSaveBlob(this.outputCSV(), this.csvFilename())
             ev.preventDefault()
         }
+        this.onSave()
     }
 
     @action.bound onToggleRows() {
         this.showAllRows = !this.showAllRows
+    }
+
+    @action.bound async onSave() {
+        const { csv } = this
+
+        let countries:any = {}
+        let needToSave:boolean = false
+
+        csv.countryEntriesMap.forEach((entry, key) => {
+            // ignore if there was a user entered a new name
+            if (entry.customName !== undefined && entry.customName.length > 0) {
+            }
+            // prioritize user selected name
+            else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+                needToSave = true
+                countries[entry.originalName] = entry.selectedMatch
+            }
+        })
+
+        if (needToSave) {
+            await this.context.admin.requestJSON(`/api/countries`, { countries: countries}, 'POST')
+        }
     }
 
     render() {
@@ -314,7 +338,7 @@ export default class CountryStandardizerPage extends React.Component {
         return <AdminLayout title="CountryStandardizer">
             <main className="CountryStandardizerPage">
                 <section style={{ paddingBottom: "1.5em" }}>
-                    <SelectField label="Input Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onInputFormat} options={CountryNameFormatDefs.map(def => def.key)} optionLabels={CountryNameFormatDefs.map(def => def.label)}/>
+                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={CountryNameFormatDefs.map(def => def.key)} optionLabels={CountryNameFormatDefs.map(def => def.label)}/>
                     <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)}/>
                     <div className="topbar">
                         <input type="file" onChange={this.onChooseCSV} accept=".csv" />
@@ -323,9 +347,9 @@ export default class CountryStandardizerPage extends React.Component {
                             : <div></div>
                         }
                     </div>
-                    <FieldsRow>
+                    <div className="topbar">
                         <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
-                    </FieldsRow>
+                    </div>
                 </section>
                 <div>
                     <table className="table table-bordered">
