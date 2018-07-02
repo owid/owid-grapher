@@ -1,14 +1,12 @@
 import Admin from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
+import {observable, computed, action, runInAction} from 'mobx'
 
-import { Modal, LoadingBlocker, TextField } from './Forms'
+import { Modal } from './Forms'
 import Link from './Link'
-import AdminSidebar from './AdminSidebar'
 import AdminLayout from './AdminLayout'
 
-import { uniq } from '../charts/Util'
 
 interface UserIndexMeta {
     id: number

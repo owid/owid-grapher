@@ -5,8 +5,8 @@
  *
  */
 
-import { observable, computed, reaction, action, runInAction, when, IReactionDisposer } from 'mobx'
-import { extend, toString, uniq } from '../charts/Util'
+import { observable, computed, runInAction, when } from 'mobx'
+import { extend } from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 import EditorFeatures from './EditorFeatures'
 import Admin from './Admin'

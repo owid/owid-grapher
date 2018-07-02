@@ -7,12 +7,11 @@ import {Prompt, Redirect} from 'react-router-dom'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { LoadingBlocker, TextField, BindString, BindFloat, Toggle, FieldsRow } from './Forms'
+import {BindString, BindFloat, FieldsRow } from './Forms'
 import { VariableDisplaySettings } from '../charts/VariableData'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import ChartList, { ChartListItem } from './ChartList'
-import Bounds from '../charts/Bounds'
 
 interface VariablePageData {
     id: number

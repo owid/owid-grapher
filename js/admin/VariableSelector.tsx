@@ -5,7 +5,6 @@ import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
-import FuzzySearch from '../charts/FuzzySearch'
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
 const fuzzysort = require('fuzzysort')
 

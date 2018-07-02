@@ -6,7 +6,7 @@ import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeDefs, ChartTypeType } from '../charts/ChartType'
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
-import ChartEditor, { Variable } from './ChartEditor'
+import ChartEditor from './ChartEditor'
 import VariableSelector from './VariableSelector'
 import DimensionCard from './DimensionCard'
 

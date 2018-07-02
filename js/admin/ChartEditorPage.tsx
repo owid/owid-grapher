@@ -17,7 +17,7 @@ import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
 import SaveButtons from './SaveButtons'
-import { Modal, LoadingBlocker } from './Forms'
+import { LoadingBlocker } from './Forms'
 import AdminLayout from './AdminLayout'
 
 @observer

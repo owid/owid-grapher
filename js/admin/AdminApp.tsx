@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Admin from './Admin'
 import ChartEditorPage from './ChartEditorPage'
-import {observable, action} from 'mobx'
+import {action} from 'mobx'
 import {observer} from 'mobx-react'
 import ChartIndexPage from './ChartIndexPage'
 import UsersIndexPage from './UsersIndexPage'
@@ -16,7 +16,6 @@ import PostsIndexPage from './PostsIndexPage'
 import ImportPage from './ImportPage'
 import NotFoundPage from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
-import Link from './Link'
 import { LoadingBlocker, Modal } from './Forms'
 
 @observer

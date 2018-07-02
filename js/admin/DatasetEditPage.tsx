@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
+import { observable, computed, runInAction } from 'mobx'
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
@@ -8,10 +8,7 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { LoadingBlocker, TextField, BindString, Toggle, FieldsRow, NumericSelectField } from './Forms'
-import ChartConfig from '../charts/ChartConfig'
-import ChartFigureView from '../charts/ChartFigureView'
-import Bounds from '../charts/Bounds'
+import { BindString } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import VariableList, { VariableListItem } from './VariableList'
 

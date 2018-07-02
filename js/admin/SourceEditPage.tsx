@@ -1,18 +1,12 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
-import * as _ from 'lodash'
-import {Prompt, Redirect} from 'react-router-dom'
+import {observable, computed, action, runInAction} from 'mobx'
+import {Prompt} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import Link from './Link'
-import { LoadingBlocker, TextField, BindString, Toggle, FieldsRow } from './Forms'
-import ChartConfig from '../charts/ChartConfig'
-import ChartFigureView from '../charts/ChartFigureView'
-import Bounds from '../charts/Bounds'
-import ChartList, { ChartListItem } from './ChartList'
+import { BindString } from './Forms'
 import VariableList, { VariableListItem } from './VariableList'
 
 interface SourcePageData {

@@ -1,7 +1,6 @@
 // TODO upgrade this
 
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { map, uniqBy, filter, keys, groupBy, isEmpty, difference, find, clone } from '../charts/Util'
 import { observable, computed, action, autorun, reaction } from 'mobx'
 import { observer } from 'mobx-react'

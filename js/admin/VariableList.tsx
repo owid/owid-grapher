@@ -1,13 +1,8 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 const timeago = require('timeago.js')()
-const fuzzysort = require("fuzzysort")
-import * as _ from 'lodash'
 
 import Admin from './Admin'
-import AdminLayout from './AdminLayout'
-import { Modal, LoadingBlocker, SearchField, FieldsRow } from './Forms'
 import Link from './Link'
 
 export interface VariableListItem {
