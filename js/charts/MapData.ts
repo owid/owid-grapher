@@ -154,6 +154,17 @@ export default class MapData {
         return keyBy(entities)
     }
 
+    // Reverse lookup of map ids => data entities
+    @computed get mapToDataEntities(): { [id: string]: string } {
+        if (!this.dimension) return {}
+
+        const entities: { [id: string]: string } = {}
+        for (const entity of this.dimension.variable.entitiesUniq) {
+            entities[entityNameForMap(entity)] = entity
+        }
+        return entities
+    }
+
     // Filter data to what can be display on the map (across all years)
     @computed get mappableData() {
         const {dimension} = this

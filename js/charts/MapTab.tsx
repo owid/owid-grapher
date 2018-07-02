@@ -17,6 +17,8 @@ import NoData from './NoData'
 import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
 
+// TODO refactor to use transform pattern, bit too much info for a pure component
+
 interface MapWithLegendProps {
     bounds: Bounds,
     choroplethData: ChoroplethData,
@@ -25,7 +27,8 @@ interface MapWithLegendProps {
     legendData: MapLegendBin[],
     legendTitle: string,
     projection: MapProjection,
-    defaultFill: string
+    defaultFill: string,
+    mapToDataEntities: { [id: string]: string }
 }
 
 @observer
@@ -56,11 +59,12 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const { chartView, chart } = this.context
 
         if (chartView.isMobile || !chart.hasChartTab) return
-        const datum = this.props.choroplethData[d.id as string]
+        const entity = this.props.mapToDataEntities[d.id as string]
+        const datakeys = chart.data.availableKeysByEntity.get(entity)
 
-        if (datum) {
+        if (datakeys && datakeys.length) {
             chart.tab = 'chart'
-            chart.data.selectedKeys = chart.data.availableKeysByEntity.get(datum.entity) || []
+            chart.data.selectedKeys = datakeys
         }
     }
 
@@ -114,17 +118,17 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     render() {
-        const { choroplethData, projection, defaultFill, bounds, years, inputYear } = this.props
+        const { choroplethData, projection, defaultFill, bounds, inputYear, mapToDataEntities } = this.props
         const { focusBracket, focusEntity, mapLegend, tooltipTarget, tooltipDatum } = this
 
         return <g className="mapTab">
             <ChoroplethMap bounds={bounds.padBottom(mapLegend.height + 15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity} />
             <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} />
-            {tooltipTarget && tooltipDatum && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
-                <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{tooltipDatum.entity}</h3>
+            {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
+                <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{mapToDataEntities[tooltipTarget.featureId] || tooltipTarget.featureId.replace(/_/g, " ")}</h3>
                 <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
-                    <span>{this.context.chart.map.data.formatTooltipValue(tooltipDatum.value)}</span><br />
-                    {tooltipDatum.year !== inputYear && <div>
+                    <span>{tooltipDatum ? this.context.chart.map.data.formatTooltipValue(tooltipDatum.value) : `No data for ${inputYear}`}</span><br />
+                    {tooltipDatum && tooltipDatum.year !== inputYear && <div>
                         in<br />
                         <span>{formatYear(tooltipDatum.year)}</span>
                     </div>}
@@ -178,6 +182,7 @@ export default class MapTab extends React.Component<MapTabProps> {
                 legendTitle={map.data.legendTitle}
                 projection={map.projection}
                 defaultFill={map.noDataColor}
+                mapToDataEntities={map.data.mapToDataEntities}
             />
             {footer.render(bounds.x, bounds.bottom - footer.height)}
         </g>
