@@ -1,10 +1,6 @@
 node_modules
 env
 tmp
-storage/logs/*
-storage/debugbar/*
-storage/framework/sessions/*
-storage/framework/cache/*
 public/uploads
 public/exports
 grapher_admin/static/build
@@ -13,4 +9,4 @@ data
 public
 .git
 dist
-logs
+logs/*
