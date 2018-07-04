@@ -35,6 +35,9 @@ export default class StackedBarTransform implements IChartTransform {
     @computed get primaryDimension(): DimensionWithData | undefined {
         return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
+    @computed get colorDimension(): DimensionWithData | undefined {
+        return find(this.chart.data.filledDimensions, d => d.property === 'color')
+    }
 
     @computed get targetYear(): number {
         const maxYear = this.chart.timeDomain[1]
@@ -49,11 +52,11 @@ export default class StackedBarTransform implements IChartTransform {
     }
 
     @computed get timelineYears(): number[] {
-        const years = this.primaryDimension.yearsUniq
+        const years = this.primaryDimension.yearsUniq || []
 
         // TODO find a better way to space out the bars
         const spacingInYears = 10
-        let filteredYears = []
+        const filteredYears = []
 
         for (let i = 0; i < years.length; i += spacingInYears) {
             filteredYears.push(years[i])
@@ -68,7 +71,6 @@ export default class StackedBarTransform implements IChartTransform {
     @computed get maxTimelineYear(): number {
         return defaultTo(max(this.timelineYears), 2000)
     }
-
 
     @computed get startYear(): number {
         const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
@@ -97,6 +99,20 @@ export default class StackedBarTransform implements IChartTransform {
     @computed get colorScheme() {
         const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
         return colorScheme !== undefined ? colorScheme : ColorSchemes["stackedAreaDefault"] as ColorScheme
+    }
+
+    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
+        const { stackedData } = this
+
+        const colors: string[] = []
+        const labels: string[] = []
+        stackedData.forEach((series, i) => {
+            colors.push(series.color)
+            labels.push(series.label)
+        })
+
+        const colorScale = scaleOrdinal(colors).domain(labels)
+        return colorScale
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
@@ -194,6 +210,7 @@ export default class StackedBarTransform implements IChartTransform {
                 if (!series) {
                     series = {
                         key: datakey,
+                        label: chart.data.formatKey(datakey),
                         values: [],
                         color: "#fff" // temp
                     }
@@ -214,7 +231,7 @@ export default class StackedBarTransform implements IChartTransform {
                 const expectedYear = timelineYears[i]
 
                 if (value === undefined || value.x > timelineYears[i]) {
-                    let fakeY = 0
+                    const fakeY = 0
                     series.values.splice(i, 0, { x: expectedYear, y: fakeY, yOffset: 0, isFake: true })
                 }
                 i += 1
@@ -225,11 +242,10 @@ export default class StackedBarTransform implements IChartTransform {
         const baseColors = this.colorScheme.getColors(groupedData.length)
         if (chart.props.invertColorScheme)
             baseColors.reverse()
-        const colorScale = scaleOrdinal(baseColors)
-        groupedData.forEach(series => {
-            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
+        groupedData.forEach((series, index) => {
+            series.color = chart.data.keyColors[series.key] || baseColors[index]
         })
 
-        return groupedData;
+        return groupedData
     }
 }
