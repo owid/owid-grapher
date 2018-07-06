@@ -22,12 +22,12 @@ Exports from the live OWID database are published here and can be used for testi
 
 | File | Description | Size |
 | --- | --- | --- |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata, everything except data_values | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_metadata.sql.gz?color=lightgrey) |
-| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by a published visualization | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_chartdata.sql.gz?color=lightgrey) |
+| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata, everything except data_values | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_metadata.sql.gz?color=blue) |
+| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_chartdata.sql.gz?color=blue) |
 
 This sequence of commands will create a database, then download and import all OWID charts and their data:
 
-```
+```bash
 mysql -e "CREATE DATABASE owid;"
 curl -Lo /tmp/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
 gunzip < /tmp/owid_metadata.sql.gz | mysql -D owid
@@ -35,7 +35,7 @@ curl -Lo /tmp/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartd
 gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
 ```
 
-Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:jaiden@ourworldindata.org).
+Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:jaiden@ourworldindata.org).
 
 Once you have your database ready, run `yarn dev` and head to `localhost:8000`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
