@@ -1,7 +1,6 @@
 import * as React from 'react'
-import webpack from './webpack'
 
-export default function LoginPage(props: { errorMessage?: string }) {
+export default function LoginPage(props: { next?: string, errorMessage?: string }) {
     const style = `
         html, body {
             height: 100%;
@@ -29,7 +28,7 @@ export default function LoginPage(props: { errorMessage?: string }) {
             <style>{style}</style>
         </head>
         <body>
-            <form method="POST" action="/grapher/admin/login">
+            <form method="POST">
                 <h1>owid-admin</h1>
                 <div className="form-group">
                     <label>Email address</label>
@@ -39,6 +38,7 @@ export default function LoginPage(props: { errorMessage?: string }) {
                     <label>Password</label>
                     <input name="password" type="password" className="form-control" placeholder="Password" required/>
                 </div>
+                <input type="hidden" name="next" value={props.next}/>
                 {props.errorMessage && <div className="alert alert-danger">{props.errorMessage}</div>}
                 <p>Having trouble logging in? Go to <a href="https://owid.slack.com/messages/tiny-tech-problems/">#tiny-tech-problems</a>.</p>
                 <button type="submit" className="btn btn-primary">Login</button>

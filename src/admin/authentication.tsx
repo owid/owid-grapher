@@ -3,7 +3,7 @@ import * as express from 'express'
 import * as crypto from 'crypto'
 import * as randomstring from 'randomstring'
 
-// Backwards compatibility
+// For backwards compatibility, we reimplement Django authentication and session code a bit
 const hashers = require('node-django-hashers')
 
 import * as db from '../db'
@@ -36,6 +36,9 @@ export async function authMiddleware(req: express.Request, res: express.Response
 
     const sessionid = req.cookies['sessionid']
     if (sessionid) {
+        // Expire old sessions
+        await db.execute("DELETE FROM django_session WHERE expire_date < NOW()")
+
         const rows = await db.query(`SELECT * FROM django_session WHERE session_key = ?`, [sessionid])
         if (rows.length) {
             const sessionData = Buffer.from(rows[0].session_data, 'base64').toString('utf8')
@@ -56,19 +59,25 @@ export async function authMiddleware(req: express.Request, res: express.Response
     } else if (!req.path.startsWith('/admin') || req.path === "/admin/login") {
         return next()
     } else {
-        // TODO node-ify this
-        return res.redirect(`/grapher/admin/login?next=${req.path}`)
+        return res.redirect(`/admin/login?next=${req.path}`)
     }
 }
 
 export async function logout(req: Request, res: Response) {
     if (res.locals.user)
         await db.query(`DELETE FROM django_session WHERE session_key = ?`, [res.locals.session.id])
+
+    res.redirect('/admin')
 }
 
-// Not actually using this for now, django server still handles it
+function saltedHmac(salt: string, value: string): string {
+    const hmac = crypto.createHmac('sha1', salt+SECRET_KEY)
+    hmac.update(value)
+    return hmac.digest('hex')
+}
+
 async function tryLogin(email: string, password: string): Promise<Session> {
-    const user = await db.get(`SELECT password FROM users WHERE email=?`, [email])
+    const user = await db.get(`SELECT id, password FROM users WHERE email=?`, [email])
     if (!user) {
         throw new Error("No such user")
     }
@@ -77,20 +86,18 @@ async function tryLogin(email: string, password: string): Promise<Session> {
     if (h.verify(password, user.password)) {
         const sessionId = randomstring.generate()
 
-        const hmac = crypto.createHmac('sha256', SECRET_KEY)
-        hmac.update(password)
-        const sessionData = {
+        const sessionJson = JSON.stringify({
             _auth_user_id: user.id,
             _auth_user_backend: "django.contrib.auth.backends.ModelBackend",
-            _auth_user_hash: hmac.digest('hex')
-        }
-        const sessionHash = JSON.stringify(sessionData)
-        const sessionDataStr = `${sessionHash}:${sessionData}`
+            _auth_user_hash: saltedHmac("django.contrib.auth.models.AbstractBaseUser.get_session_auth_hash", password)
+        })
+        const sessionHash = saltedHmac("django.contrib.sessions.SessionStore", sessionJson)
+        const sessionData = Buffer.from(`${sessionHash}:${sessionJson}`).toString('base64')
 
         const now = new Date()
         const expiryDate = new Date(now.getTime() + (1000*SESSION_COOKIE_AGE))
 
-        db.query(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionDataStr, expiryDate])
+        db.query(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
 
         return { id: sessionId, expiryDate: expiryDate }
     } else {
@@ -100,10 +107,10 @@ async function tryLogin(email: string, password: string): Promise<Session> {
 
 export async function loginSubmit(req: Request, res: Response) {
     try {
-        const session = await tryLogin(req.body.email, req.body.password)
+        const session = await tryLogin(req.body.username, req.body.password)
         res.cookie("sessionid", session.id)
-        res.send(renderToHtmlPage(<LoginPage errorMessage={"Success!"}/>))
+        res.redirect(req.query.next||"/admin")
     } catch (err) {
-        res.status(400).send(renderToHtmlPage(<LoginPage errorMessage={err.message}/>))
+        res.status(400).send(renderToHtmlPage(<LoginPage next={req.query.next} errorMessage={err.message}/>))
     }
 }

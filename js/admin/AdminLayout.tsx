@@ -77,7 +77,7 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
                 </ul>
                 <ul className="navbar-nav ml-auto">
                     <li className="nav-item">
-                        <a className="nav-link logout" href="/grapher/admin/logout">
+                        <a className="nav-link logout" href="/admin/logout">
                             {admin.username}
                         </a>
                     </li>
