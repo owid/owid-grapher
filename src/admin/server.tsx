@@ -1,6 +1,6 @@
 import * as express from 'express'
 require('express-async-errors')
-import { uniq } from 'lodash'
+import * as parseUrl from 'url-parse'
 const cookieParser = require('cookie-parser')
 const errorToSlack = require('express-error-slack').default
 
@@ -13,7 +13,7 @@ import api from './api'
 import devServer from './devServer'
 import testPages from './testPages'
 import {renderToHtmlPage} from './serverUtil'
-import {NODE_SERVER_PORT, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
+import {NODE_BASE_URL, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -62,7 +62,8 @@ app.use(async (err: any, req: any, res: any, next: any) => {
     res.send({ error: { message: err.stack, status: err.status||500 } })
 })
 
-const HOST = 'localhost'
-app.listen(NODE_SERVER_PORT, HOST, () => {
-    console.log(`Express started on ${HOST}:${NODE_SERVER_PORT}`)
+const {hostname, port} = parseUrl(NODE_BASE_URL)
+
+app.listen(parseInt(port), hostname, () => {
+    console.log(`Express started on ${hostname}:${port}`)
 })

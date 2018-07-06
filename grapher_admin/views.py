@@ -1238,4 +1238,4 @@ def treeview_datasets(request: HttpRequest):
                                                                        })
 
 def redirect_404(request: HttpRequest, path: str = ""):
-    return HttpResponseRedirect('/admin/' + path)
+    return HttpResponseRedirect(settings.NODE_BASE_URL + '/admin/' + path)

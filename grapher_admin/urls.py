@@ -68,6 +68,7 @@ urlpatterns = [
     url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
 
     # Redirect other urls to node
+    url(r'^admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),
     url(r'^grapher/admin/?$', admin_views.redirect_404, name="redirect404"),
     url(r'^grapher/admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),
 ]
