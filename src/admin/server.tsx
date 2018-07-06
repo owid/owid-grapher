@@ -13,7 +13,7 @@ import api from './api'
 import devServer from './devServer'
 import testPages from './testPages'
 import {renderToHtmlPage} from './serverUtil'
-import {NODE_BASE_URL, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
+import {NODE_SERVER_PORT, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -33,14 +33,10 @@ db.connect()
 wpdb.connect()
 
 app.get('/admin/logout', logout)
-
 app.post('/admin/login', loginSubmit)
-
 app.get('/admin/login', (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next}/>))
 })
-
-
 
 app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
@@ -62,8 +58,6 @@ app.use(async (err: any, req: any, res: any, next: any) => {
     res.send({ error: { message: err.stack, status: err.status||500 } })
 })
 
-const {hostname, port} = parseUrl(NODE_BASE_URL)
-
-app.listen(parseInt(port), hostname, () => {
-    console.log(`Express started on ${hostname}:${port}`)
+app.listen(NODE_SERVER_PORT, "localhost", () => {
+    console.log(`Express started on localhost:${NODE_SERVER_PORT}`)
 })
