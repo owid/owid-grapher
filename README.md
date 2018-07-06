@@ -37,9 +37,13 @@ gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
 
 Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:jaiden@ourworldindata.org).
 
-Once you have your database ready, run `yarn dev` and head to `localhost:3030`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+## Development server
 
-You may also want to run a static build for the initial charts: `node dist/src/bakeCharts.js`. `bakeCharts.js` will be compiled from the TypeScript by `yarn dev`, which may take a few moments. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
+`cp .env.example .env` and populate `.env` with your database details. Then run `yarn setup` to do an initial compilation.
+
+Finally, run `yarn dev` and head to `localhost:3030`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+
+You may (optionally) want to run a static build, which produces the public chart urls: `node dist/src/bakeCharts.js`. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
 
 ## Architecture notes
 
