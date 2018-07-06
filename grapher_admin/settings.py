@@ -34,7 +34,7 @@ EMAIL_USE_TLS=(os.environ['EMAIL_USE_TLS'] == "1")
 ALLOWED_HOSTS=os.environ['DJANGO_ALLOWED_HOSTS'].split(",")
 BASE_URL=os.environ['DJANGO_BASE_URL']
 WEBPACK_DEV_URL=os.environ['WEBPACK_DEV_URL']
-NODE_BASE_URL=os.environ['NODE_BASE_URL']
+NODE_BASE_URL=os.environ.get('NODE_BASE_URL', "")
 
 
 SLACK_LOGGING_ENABLED=(os.environ['SLACK_LOGGING_ENABLED'] == "1")
