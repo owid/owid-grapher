@@ -59,13 +59,17 @@ Exports from the live OWID database are published here and can be used for testi
 
 | File | Description | Size |
 | --- | --- | --- |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata, everything except data_values | http://img.badgesize.io/http://files.ourworldindata.org/owid_metadata.sql.gz | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_metadata.sql.gz) |
+| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata, everything except data_values | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_metadata.sql.gz) |
 | [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by a published visualization | ![](http://img.badgesize.io/http://files.ourworldindata.org/owid_chartdata.sql.gz) |
 
-Running these commands will download and import a local copy of all OWID charts and their data:
+This sequence of commands will create a database, then download and import all OWID charts and their data:
 
 ```
-curl -o /tmp/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
+mysql -e "CREATE DATABASE owid;"
+curl -Lo /tmp/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
+gunzip < /tmp/owid_metadata.sql.gz | mysql -D owid
+curl -Lo /tmp/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
+gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
 ```
 
 Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:jaiden@ourworldindata.org).
