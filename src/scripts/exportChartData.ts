@@ -10,8 +10,8 @@ import * as fs from 'fs-extra'
 async function dataExport() {
     db.connect()
 
-    const tmpFile = "/tmp/owid_datavalues.sql"
-    const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_datavalues.sql`)
+    const tmpFile = "/tmp/owid_chartdata.sql"
+    const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_chartdata.sql`)
 
     const variableIds = (await db.query("SELECT DISTINCT variableId FROM chart_dimensions")).map((row: any) => row.variableId)
 
