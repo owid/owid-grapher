@@ -7,7 +7,7 @@ import * as randomstring from 'randomstring'
 const hashers = require('node-django-hashers')
 
 import * as db from '../db'
-import { SECRET_KEY, SESSION_COOKIE_AGE } from '../settings'
+import { SECRET_KEY, SESSION_COOKIE_AGE, DJANGO_BASE_URL } from '../settings'
 import { renderToHtmlPage } from './serverUtil'
 import LoginPage from './LoginPage'
 
@@ -56,7 +56,8 @@ export async function authMiddleware(req: express.Request, res: express.Response
     } else if (!req.path.startsWith('/admin') || req.path === "/admin/login") {
         return next()
     } else {
-        return res.redirect(`/grapher/admin/login?next=${req.path}`)
+        // TODO node-ify this
+        return res.redirect(`${DJANGO_BASE_URL}/admin/login?next=${req.path}`)
     }
 }
 
