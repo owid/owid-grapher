@@ -1,17 +1,12 @@
 import * as React from 'react'
-import { select } from 'd3-selection'
 import { includes, intersection, sortBy, some, min, max, guid, uniq } from './Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
-import StandardAxisBoxView from './StandardAxisBoxView'
 import Bounds from './Bounds'
 import AxisBox from './AxisBox'
 import AxisScale from './AxisScale'
-import Color from './Color'
-import HorizontalAxis, { HorizontalAxisView } from './HorizontalAxis'
 import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
-import { AxisGridLines } from './AxisBox'
 import NoData from './NoData'
 import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
 import Tooltip from './Tooltip'
@@ -31,24 +26,14 @@ export interface StackedBarSeries {
     color: string
 }
 
-interface SeriesProps extends React.SVGAttributes<SVGGElement> {
-    axisBox: AxisBox
-    data: StackedBarSeries
-    xScale: AxisScale
-    yScale: AxisScale
-    isFocused: boolean
-    isHovered: boolean
-    onBarMouseOver: (bar: StackedBarValue) => void
-    onBarMouseLeave: () => void
-}
-
 interface BarProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedBarValue
     color: string
     opacity: number
-    xScale: AxisScale
     yScale: AxisScale
-    axisBox: AxisBox
+    xOffset: number|undefined
+    barWidth: number
+    barSpacing: number
     onBarMouseOver: (bar: StackedBarValue) => void
     onBarMouseLeave: () => void
 }
@@ -57,11 +42,6 @@ interface BarProps extends React.SVGAttributes<SVGGElement> {
 export class BarRenderer extends React.Component<BarProps> {
     base!: SVGGElement
     @observable mouseOver: boolean = false
-
-    @computed get xPos() {
-        const { bar, xScale } = this.props
-        return xScale.place(bar.x)
-    }
 
     @computed get yPos() {
         const { bar, yScale } = this.props
@@ -73,10 +53,6 @@ export class BarRenderer extends React.Component<BarProps> {
         const { yPos } = this
 
         return yScale.place(bar.yOffset) - yPos
-    }
-
-    @computed get barWidth() {
-        return 30
     }
 
     @computed get trueOpacity() {
@@ -97,33 +73,13 @@ export class BarRenderer extends React.Component<BarProps> {
     }
 
     render() {
-        const { bar, color, opacity, xScale, yScale, axisBox } = this.props
-        const { xPos, yPos, barHeight, barWidth, trueOpacity } = this
+        const { bar, color, opacity, xOffset, yScale, barWidth } = this.props
+        const { yPos, barHeight, trueOpacity } = this
 
         return <g className="Bar">
-            <rect x={xPos} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
+            <rect x={xOffset} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
         </g>
     }
-}
-
-@observer
-export class SeriesRenderer extends React.Component<SeriesProps> {
-    base!: SVGGElement
-
-    render() {
-        const { axisBox, data, xScale, yScale, isFocused, isHovered, onBarMouseOver, onBarMouseLeave } = this.props
-        const { color } = data
-
-        const opacity = isHovered ? 1 : (isFocused ? 0.75 : 0.25)
-
-        console.log(data.key + " using opacity " + opacity)
-        return <g className="SeriesBar">
-            { data.values.map(barValue => {
-                return <BarRenderer bar={barValue} color={color} opacity={opacity} xScale={xScale} yScale={yScale} axisBox={axisBox} onBarMouseOver={onBarMouseOver} onBarMouseLeave={onBarMouseLeave} />
-            })}
-        </g>
-    }
-
 }
 
 @observer
@@ -147,10 +103,6 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return 0.85*this.props.chart.baseFontSize
     }
 
-    @computed get barFontSize() {
-        return 0.75*this.props.chart.baseFontSize
-    }
-
     // Account for the width of the legend
     // @computed get legendWidth() {
     //     const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
@@ -166,10 +118,24 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return this.chart.stackedBar.barValueFormat
     }
 
+    @computed get barWidth() {
+        const { transform, axisBox } = this
+        return 0.8 * axisBox.innerBounds.width / transform.xValues.length
+    }
+
+    @computed get barSpacing() {
+        const { transform, axisBox } = this
+        return (axisBox.innerBounds.width / transform.xValues.length) - this.barWidth
+    }
+
+    @computed get barFontSize() {
+        return 0.75*this.props.chart.baseFontSize
+    }
+
     @computed get axisBox(): AxisBox {
         const {bounds, transform, chart, sidebarWidth } = this
-        const {xAxis, yAxis} = transform
-        return new AxisBox({bounds: bounds.padRight(sidebarWidth + 20), fontSize: chart.baseFontSize, xAxis, yAxis})
+        const {xAxisSpec, yAxisSpec} = transform
+        return new AxisBox({bounds: bounds.padRight(sidebarWidth + 20), fontSize: chart.baseFontSize, xAxis: xAxisSpec, yAxis: yAxisSpec})
     }
 
     @computed get yRange() {
@@ -197,6 +163,15 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return new AxisScale(yAxis).extend({
             domain: yDomainDefault,
             range: this.yRange
+        })
+    }
+
+    @computed get yAxis() {
+        const that = this
+        return new VerticalAxis({
+            get scale() { return that.yScale },
+            get fontSize() { return that.chart.baseFontSize },
+            get labelText() { return that.transform.yAxisSpec.label }
         })
     }
 
@@ -278,6 +253,20 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         </Tooltip>
     }
 
+    @computed get mapXValueToOffset() {
+        const { axisBox, transform, barWidth, barSpacing } = this
+
+        const xValueToOffset = new Map<number, number>()
+        let xOffset = axisBox.innerBounds.left + barWidth / 2
+
+        transform.xValues.forEach(x => {
+            xValueToOffset.set(x, xOffset)
+            xOffset += barWidth + barSpacing
+        })
+
+        return xValueToOffset
+    }
+
     @action.bound onLegendMouseOver(color: string) {
         this.hoverColor = color
     }
@@ -302,21 +291,36 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { chart, axisBox, bounds, renderUid, xScale, yScale, legend, sidebarWidth, focusColors, activeColors, tooltip } = this
-        const { stackedData } = this.transform
+        const { chart, axisBox, bounds, yScale, legend, sidebarWidth, focusColors, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
+        const { stackedData, xValues } = this.transform
+        const { innerBounds } = axisBox
 
         return <g className="StackedBarChart">
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
-            <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
+            <VerticalAxisView bounds={bounds} axis={yAxis} />
+
+            <line x1={innerBounds.left} y1={innerBounds.bottom} x2={innerBounds.right} y2={innerBounds.bottom} stroke="#ccc" />
+            <line x1={innerBounds.left} y1={innerBounds.top} x2={innerBounds.left} y2={innerBounds.bottom} stroke="#ccc" />
+
+            {xValues.map(x => {
+                const xPos = mapXValueToOffset.get(x)
+                return <text x={xPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="start" fontSize={this.barFontSize}>{x}</text>
+            })}
 
             {stackedData.map(series => {
                 const isFocused: boolean = includes(this.focusKeys, series.key)
                 const isHovered: boolean = includes(this.hoverKeys, series.key)
+                const opacity = isHovered ? 1 : (isFocused ? 0.75 : 0.25)
 
-                return <SeriesRenderer axisBox={axisBox} data={series} xScale={xScale} yScale={yScale} isFocused={isFocused} isHovered={isHovered} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} />
+                const seriesRenderers = []
+                seriesRenderers.push(series.values.map(bar => {
+                    const xPos = mapXValueToOffset.get(bar.x)
+                    return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={opacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
+                }))
+                return seriesRenderers
             })}
 
-            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors}  />
+            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
             {tooltip}
         </g>
     }

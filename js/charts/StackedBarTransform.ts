@@ -1,6 +1,6 @@
 import { computed } from 'mobx'
 import { scaleOrdinal } from 'd3-scale'
-import { includes, identity, extend, some, isEmpty, cloneDeep, find, sortBy, sortedUniq, min, max, values, defaultTo, findClosest, formatYear } from './Util'
+import { includes, identity, extend, some, isEmpty, cloneDeep, find, sortBy, sortedUniq, min, max, values, defaultTo, findClosest, formatYear, uniq } from './Util'
 import ChartConfig from './ChartConfig'
 import { StackedBarValue, StackedBarSeries } from './StackedBarChart'
 import AxisSpec from './AxisSpec'
@@ -107,12 +107,6 @@ export default class StackedBarTransform implements IChartTransform {
         return colorScale
     }
 
-    @computed get allStackedValues(): StackedBarValue[] {
-        const allValues: StackedBarValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
-    }
-
     // @computed get yFormatTooltip(): (d: number) => string {
     //     return !this.yDimension ? this.yAxis.tickFormat : this.yDimension.formatValueLong
     // }
@@ -125,7 +119,8 @@ export default class StackedBarTransform implements IChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed get xAxis(): AxisSpec {
+    // TODO: Make XAxis generic
+    @computed get xAxisSpec(): AxisSpec {
         const { chart, xDomainDefault } = this
         return extend(
             chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
@@ -149,7 +144,7 @@ export default class StackedBarTransform implements IChartTransform {
         return find(this.chart.data.filledDimensions, d => d.property === 'y')
     }
 
-    @computed get yAxis(): AxisSpec {
+    @computed get yAxisSpec(): AxisSpec {
         const { chart, yDomainDefault, yDimensionFirst } = this
         const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : identity
 
@@ -160,6 +155,16 @@ export default class StackedBarTransform implements IChartTransform {
                 tickFormat: tickFormat
             }
         ) as AxisSpec
+    }
+
+    @computed get allStackedValues(): StackedBarValue[] {
+        const allValues: StackedBarValue[] = []
+        this.stackedData.forEach(series => allValues.push(...series.values))
+        return allValues
+    }
+
+    @computed get xValues(): number[] {
+        return uniq(this.allStackedValues.map(bar => bar.x))
     }
 
     // Apply time filtering and stacking
