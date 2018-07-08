@@ -52,16 +52,8 @@ export default class StackedBarTransform implements IChartTransform {
     }
 
     @computed get timelineYears(): number[] {
-        const years = this.primaryDimension.yearsUniq || []
-
-        // TODO find a better way to space out the bars
-        const spacingInYears = 10
-        const filteredYears = []
-
-        for (let i = 0; i < years.length; i += spacingInYears) {
-            filteredYears.push(years[i])
-        }
-        return filteredYears
+        if (this.primaryDimension === undefined) return []
+        return this.primaryDimension.yearsUniq
     }
 
     @computed get minTimelineYear(): number {
@@ -245,6 +237,8 @@ export default class StackedBarTransform implements IChartTransform {
                 const expectedYear = timelineYears[i]
 
                 if (value === undefined || value.x > timelineYears[i]) {
+                    console.log("series " + series.key + " needs fake bar for " + expectedYear)
+
                     const fakeY = 0
                     series.values.splice(i, 0, { x: expectedYear, y: fakeY, yOffset: 0, isFake: true, label: series.label })
                 }
