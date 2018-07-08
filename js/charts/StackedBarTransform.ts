@@ -121,6 +121,14 @@ export default class StackedBarTransform implements IChartTransform {
         return allValues
     }
 
+    // @computed get yFormatTooltip(): (d: number) => string {
+    //     return !this.yDimension ? this.yAxis.tickFormat : this.yDimension.formatValueLong
+    // }
+
+    // @computed get xFormatTooltip(): (d: number) => string {
+    //     return !this.xDimension ? this.xAxis.tickFormat : this.xDimension.formatValueLong
+    // }
+
     @computed get xDomainDefault(): [number, number] {
         return [this.startYear, this.endYear]
     }
@@ -216,7 +224,13 @@ export default class StackedBarTransform implements IChartTransform {
                     }
                     seriesByKey.set(datakey, series)
                 }
-                series.values.push({ x: year, y: value, yOffset: 0, isFake: false })
+                series.values.push({
+                    x: year,
+                    y: value,
+                    yOffset: 0,
+                    isFake: false,
+                    label: series.label
+                })
             }
 
             groupedData = groupedData.concat([...Array.from(seriesByKey.values())])
@@ -232,7 +246,7 @@ export default class StackedBarTransform implements IChartTransform {
 
                 if (value === undefined || value.x > timelineYears[i]) {
                     const fakeY = 0
-                    series.values.splice(i, 0, { x: expectedYear, y: fakeY, yOffset: 0, isFake: true })
+                    series.values.splice(i, 0, { x: expectedYear, y: fakeY, yOffset: 0, isFake: true, label: series.label })
                 }
                 i += 1
             }
