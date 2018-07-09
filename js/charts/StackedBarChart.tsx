@@ -236,19 +236,21 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
     }
 
     @computed get tooltip() {
-        const { hoverBar, xScale, yScale } = this
+        const { hoverBar, yScale, mapXValueToOffset, barWidth, barValueFormat } = this
         if (hoverBar === undefined) return
 
-        const xPos = xScale.place(hoverBar.x) + 32
+        const xPos = mapXValueToOffset.get(hoverBar.x)
+        if (xPos === undefined) return
+
         const yPos = yScale.place(hoverBar.yOffset + hoverBar.y)
+
         console.log(hoverBar.label + ", " + hoverBar.x + " is on tooltip")
 
-        return <Tooltip x={xPos} y={yPos} style={{ textAlign: "center" }}>
+        return <Tooltip x={xPos + barWidth} y={yPos} style={{ textAlign: "center" }}>
             <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{hoverBar.label}</h3>
-            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
-                <span>{hoverBar.x}</span><br />
-                in<br />
-                <span>{hoverBar.y}</span>
+            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em", textAlign: "left" }}>
+                <span>X Axis: {hoverBar.x}</span><br />
+                <span>Y Axis: {barValueFormat(hoverBar)}</span>
             </p>
         </Tooltip>
     }
