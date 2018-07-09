@@ -1,0 +1,25 @@
+{
+    "name": "default",
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "username": "root",
+    "password": "",
+    "database": "owid",
+    "synchronize": true,
+    "logging": false,
+    "entities": [
+      "src/models/*.js"
+    ],
+    "subscribers": [
+      "src/subscriber/*.js"
+    ],
+    "migrations": [
+      "src/migration/*.js"
+    ],
+    "cli": {
+      "entitiesDir": "src/models",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+    }
+  }

@@ -4,6 +4,18 @@ import * as db from '../db'
 import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 
+
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm";
+
+@Entity("charts")
+export class TestChart extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id!: number
+
+    @Column({ type: 'json' })
+    config: any
+}
+
 export default class Chart {
     static listFields = `
         charts.id,

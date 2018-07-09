@@ -1,8 +1,8 @@
 import * as express from 'express'
 require('express-async-errors')
-import * as parseUrl from 'url-parse'
 const cookieParser = require('cookie-parser')
 const errorToSlack = require('express-error-slack').default
+import "reflect-metadata"
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'

@@ -7,8 +7,24 @@ import * as settings from '../settings'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 
+import {createConnection} from "typeorm";
+import {TestChart} from '../models/Chart'
+
 async function dataExport() {
-    db.connect()
+    const connection = await createConnection({
+        type: "mysql",
+        host: "localhost",
+        port: 3306,
+        username: "root",
+        password: "",
+        database: "owid",
+        entities: [TestChart]
+    })
+
+    console.log(await TestChart.find())
+
+    connection.close()
+/*    db.connect()
 
     const tmpFile = "/tmp/owid_chartdata.sql"
     const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_chartdata.sql`)
@@ -29,7 +45,7 @@ async function dataExport() {
 
     await fs.move(tmpFile, outputPath, { overwrite: true })
 
-    db.end()
+    db.end()*/
 }
 
 dataExport()
