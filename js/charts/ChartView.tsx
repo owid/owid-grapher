@@ -187,8 +187,6 @@ export default class ChartView extends React.Component<ChartViewProps> {
     renderReady() {
         const { svgBounds, chart } = this
 
-        console.log(this.hasBeenVisible)
-
         return [
             this.hasBeenVisible && this.renderSVG(),
             <ControlsFooterView controlsFooter={this.controlsFooter} />,
@@ -239,9 +237,10 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     componentDidUpdate() {
-        if (this.chart.data.isReady && !this.hasFadedIn) {
+        if (this.chart.data.isReady && this.hasBeenVisible && !this.hasFadedIn) {
             select(this.base).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
+        } else {
             this.checkVisibility()
         }
     }
