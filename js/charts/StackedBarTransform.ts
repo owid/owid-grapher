@@ -184,6 +184,20 @@ export default class StackedBarTransform implements IChartTransform {
             }
         }
 
+        // if the total height of any stacked column is 0, remove it
+        const keyIndicesToRemove: number[] = []
+        const lastSeries = stackedData[stackedData.length - 1]
+        lastSeries.values.forEach((bar, index) => {
+            if ((bar.yOffset + bar.y) === 0) {
+                keyIndicesToRemove.push(index)
+            }
+        })
+        for (let i=keyIndicesToRemove.length - 1; i >= 0; i--) {
+            stackedData.forEach(series => {
+                series.values.splice(keyIndicesToRemove[i], 1)
+            })
+        }
+
         return stackedData
     }
 
