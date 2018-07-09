@@ -110,10 +110,9 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
-    @observable.ref htmlNode!: HTMLDivElement
-    @observable.ref svgNode!: SVGSVGElement
     base!: HTMLDivElement
     hasFadedIn: boolean = false
+    @observable hasBeenVisible: boolean = false
 
     @computed get classNames(): string {
         const classNames = [
@@ -180,7 +179,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             "-webkit-font-smoothing": "antialiased"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height} ref={(e: SVGSVGElement) => this.svgNode = e}>
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height}>
             {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
@@ -188,8 +187,10 @@ export default class ChartView extends React.Component<ChartViewProps> {
     renderReady() {
         const { svgBounds, chart } = this
 
+        console.log(this.hasBeenVisible)
+
         return [
-            this.renderSVG(),
+            this.hasBeenVisible && this.renderSVG(),
             <ControlsFooterView controlsFooter={this.controlsFooter} />,
             this.renderOverlayTab(svgBounds),
             this.popups,
@@ -212,15 +213,36 @@ export default class ChartView extends React.Component<ChartViewProps> {
         }
     }
 
+    // Chart should only render SVG when it's on the screen
+    @action.bound checkVisibility() {
+        function checkVisible(elm: any) {
+            if (!elm.getBoundingClientRect)
+                return false
+            var rect = elm.getBoundingClientRect();
+            var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+            return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+          }
+
+          if (!this.hasBeenVisible && checkVisible(this.base)) {
+              this.hasBeenVisible = true
+          }
+    }
+
     componentDidMount() {
-        this.htmlNode = this.base
         window.chartView = this
+
+        window.addEventListener('scroll', this.checkVisibility)
+    }
+
+    componentDidUnmount() {
+        window.removeEventListener('scroll', this.checkVisibility)
     }
 
     componentDidUpdate() {
         if (this.chart.data.isReady && !this.hasFadedIn) {
             select(this.base).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
+            this.checkVisibility()
         }
     }
 }
