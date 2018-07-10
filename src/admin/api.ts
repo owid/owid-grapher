@@ -195,24 +195,23 @@ api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
 api.get('/countries.json', async (req: Request, res: Response) => {
     let rows = []
 
-    let input = req.query.input
-    let output = req.query.output
+    const input = req.query.input
+    const output = req.query.output
 
-    if (input == CountryNameFormat.NonStandardCountryName) {
-        let output_column = CountryDefByKey[output].column_name
+    if (input === CountryNameFormat.NonStandardCountryName) {
+        const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(`
-            SELECT country_name as input, ` + output_column + ` as output
+            SELECT country_name as input, ` + outputColumn + ` as output
             FROM country_name_tool_countryname ccn
             LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
-    }
-    else {
-        let input_column = CountryDefByKey[input].column_name
-        let output_column = CountryDefByKey[output].column_name
+    } else {
+        const inputColumn = CountryDefByKey[input].column_name
+        const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(
-            `SELECT ` + input_column + ` as input, ` + output_column + ` as output
+            `SELECT ` + inputColumn + ` as input, ` + outputColumn + ` as output
             FROM country_name_tool_countrydata ccd
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
     }
@@ -225,28 +224,28 @@ api.get('/countries.json', async (req: Request, res: Response) => {
 api.post('/countries', async (req: Request, res: Response) => {
     const countries = req.body.countries
 
-    let mapOwidNameToId:any = {}
+    const mapOwidNameToId: any = {}
     let owidRows = []
 
     // find owid ID
-    let owid_names = Object.keys(countries).map(key => countries[key])
+    const owidNames = Object.keys(countries).map(key => countries[key])
     owidRows = await db.query(
         `SELECT id, owid_name
         FROM country_name_tool_countrydata
         WHERE owid_name in (?)
-        `, [owid_names])
+        `, [owidNames])
     for (const row of owidRows) {
         mapOwidNameToId[row.owid_name] = row.id
     }
 
     // insert one by one (ideally do a bulk insert)
     for (const country of Object.keys(countries)) {
-        const owid_name = countries[country]
+        const owidName = countries[country]
 
-        console.log("adding " + country + ", " + mapOwidNameToId[owid_name] + ", " + owid_name)
+        console.log("adding " + country + ", " + mapOwidNameToId[owidName] + ", " + owidName)
         await db.execute(
             `INSERT INTO country_name_tool_countryname (country_name, owid_country)
-            VALUES (?, ?)`, [country, mapOwidNameToId[owid_name]])
+            VALUES (?, ?)`, [country, mapOwidNameToId[owidName]])
     }
 
     return { success: true }
@@ -608,9 +607,9 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
 api.get('/posts.json', async req => {
     const rows = await wpdb.query(`
         SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
-        FROM wp_posts 
-        WHERE (post_type='post' OR post_type='page') 
-            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft') 
+        FROM wp_posts
+        WHERE (post_type='post' OR post_type='page')
+            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
         ORDER BY post_modified DESC`)
 
     const authorship = await wpdb.getAuthorship()

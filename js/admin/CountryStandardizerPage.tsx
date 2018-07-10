@@ -8,16 +8,14 @@ import * as _ from 'lodash'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { LoadingBlocker, FieldsRow, SelectField } from './Forms'
-import { sortedUniq, keyBy } from '../charts/Util'
-import Link from './Link'
+import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs } from '../standardizer/CountryNameFormat'
 
 class CSV {
     @observable filename: string = ""
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
-    @observable mapCountriesInputToOutput: { [key:string]: string }
+    @observable mapCountriesInputToOutput: { [key: string]: string }
 
     constructor() {
         this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -27,10 +25,10 @@ class CSV {
 
     @computed get countryColumnIndex() {
         const { rows } = this
-        if (rows.length == 0) {
+        if (rows.length === 0) {
             return -1
         }
-        return rows[0].findIndex((column_name:string) => column_name.toLowerCase() == "country")
+        return rows[0].findIndex((columnName: string) => columnName.toLowerCase() === "country")
     }
 
     @computed get showDownloadOption() {
@@ -41,7 +39,7 @@ class CSV {
         return false
     }
 
-    @action.bound onFileUpload(filename:string, rows: string[][]) {
+    @action.bound onFileUpload(filename: string, rows: string[][]) {
         this.filename = filename
         this.rows = rows
         this.parseCSV()
@@ -57,22 +55,22 @@ class CSV {
 
         const { rows, countryColumnIndex, mapCountriesInputToOutput } = this
 
-        let entriesByCountry = new Map<string, CountryEntry>()
-        let countries = rows.slice(1).map((row:string[]) => row[countryColumnIndex] as string )
+        const entriesByCountry = new Map<string, CountryEntry>()
+        const countries = rows.slice(1).map((row: string[]) => row[countryColumnIndex] as string )
 
         // for fuzzy-sort
         let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
         targetValues = targetValues.map(key => mapCountriesInputToOutput[key])
         targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
-        countries.map((country:string) => {
-            let outputCountry = mapCountriesInputToOutput[country]
-            let approximatedMatches:FuzzyMatch[] = []
+        countries.map((country: string) => {
+            const outputCountry = mapCountriesInputToOutput[country]
+            let approximatedMatches: FuzzyMatch[] = []
 
             if (outputCountry === undefined) {
                 approximatedMatches = fuzzysort.go(country, targetValues)
             }
-            let entry:CountryEntry = {
+            const entry: CountryEntry = {
                 originalName: country,
                 standardizedName: mapCountriesInputToOutput[country] || undefined,
                 approximatedMatches: approximatedMatches,
@@ -88,7 +86,7 @@ class CSV {
 }
 
 interface FuzzyMatch {
-    [key:string]: any
+    [key: string]: any
 }
 
 export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
@@ -98,7 +96,6 @@ export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> 
     selectedMatch: string|undefined
     customName: string|undefined
 }
-
 
 @observer
 export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, onUpdate: Function } > {
@@ -138,7 +135,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
     @action.bound onEntrySelected(selectedName: string) {
         const { entry, onUpdate } = this.props
 
-        let value = selectedName == this.defaultOption() ? undefined : selectedName
+        const value = selectedName === this.defaultOption() ? undefined : selectedName
         onUpdate(selectedName, entry.originalName, false)
     }
 
@@ -170,8 +167,8 @@ export default class CountryStandardizerPage extends React.Component {
     @observable csv: CSV = new CSV()
     @observable showAllRows: boolean = false
 
-    @computed get shouldSaveSelection():boolean {
-        if (this.inputFormat == CountryNameFormat.NonStandardCountryName && this.outputFormat == CountryNameFormat.OurWorldInDataName) {
+    @computed get shouldSaveSelection(): boolean {
+        if (this.inputFormat === CountryNameFormat.NonStandardCountryName && this.outputFormat === CountryNameFormat.OurWorldInDataName) {
             return true
         }
         return false
@@ -215,8 +212,8 @@ export default class CountryStandardizerPage extends React.Component {
         const { admin }  = this.context
         const results = await admin.getJSON(`/api/countries.json?input=` + inputFormat + `&output=` + outputFormat)
 
-        let countryMap: { [key:string]: string} = {}
-        results.countries.forEach((countryFormat:any) => {
+        const countryMap: { [key: string]: string} = {}
+        results.countries.forEach((countryFormat: any) => {
             countryMap[countryFormat.input] = countryFormat.output
         })
         runInAction(() => {
@@ -250,30 +247,27 @@ export default class CountryStandardizerPage extends React.Component {
 
         const columnName = this.outputFormat
         const columnIndex = csv.countryColumnIndex + 1
-        let sRows:any[] = []
+        const sRows: any[] = []
 
         // add a new column with the output country name
         csv.rows.forEach((row, rowIndex) => {
-            let columnValue:string = ""
+            let columnValue: string = ""
 
-            if (rowIndex == 0) {
+            if (rowIndex === 0) {
                 columnValue = columnName
-            }
-            else {
+            } else {
                 // prioritize user selected name
-                let entry = csv.countryEntriesMap.get(row[csv.countryColumnIndex]) as CountryEntry
+                const entry = csv.countryEntriesMap.get(row[csv.countryColumnIndex]) as CountryEntry
                 if (entry.customName !== undefined && entry.customName.length > 0) {
                     columnValue = entry.customName
-                }
-                else if (entry.standardizedName !== undefined) {
+                } else if (entry.standardizedName !== undefined) {
                     columnValue = entry.standardizedName
-                }
-                else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+                } else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
                     columnValue = entry.selectedMatch
                 }
             }
 
-            let newRow = row.slice(0)
+            const newRow = row.slice(0)
             newRow.splice(columnIndex, 0, columnValue)
             sRows.push(newRow)
         })
@@ -284,13 +278,12 @@ export default class CountryStandardizerPage extends React.Component {
     @action.bound onUpdateRow(value: string, inputCountry: string, isCustom: boolean) {
         const { csv } = this
 
-        let entry = csv.countryEntriesMap.get(inputCountry) as CountryEntry
+        const entry = csv.countryEntriesMap.get(inputCountry) as CountryEntry
         console.log("updating " + inputCountry + " with " + value)
 
         if (isCustom) {
             entry.customName = value === undefined ? "" : value
-        }
-        else {
+        } else {
             entry.selectedMatch = value
         }
     }
@@ -316,15 +309,14 @@ export default class CountryStandardizerPage extends React.Component {
     @action.bound async onSave() {
         const { csv } = this
 
-        let countries:any = {}
-        let needToSave:boolean = false
+        const countries: any = {}
+        let needToSave: boolean = false
 
         csv.countryEntriesMap.forEach((entry, key) => {
             // ignore if there was a user entered a new name
             if (entry.customName !== undefined && entry.customName.length > 0) {
-            }
-            // prioritize user selected name
-            else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+                console.log("not saving custom-name for entry " + entry.originalName)
+            } else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
                 needToSave = true
                 countries[entry.originalName] = entry.selectedMatch
             }
@@ -339,17 +331,16 @@ export default class CountryStandardizerPage extends React.Component {
         const { csv } = this
         const { showDownloadOption } = csv
 
-        let allowedInputFormats = CountryNameFormatDefs.filter(c => c.use_as_input)
-        let allowedOutputFormats = CountryNameFormatDefs.filter(c => c.use_as_output)
+        const allowedInputFormats = CountryNameFormatDefs.filter(c => c.use_as_input)
+        const allowedOutputFormats = CountryNameFormatDefs.filter(c => c.use_as_output)
 
-        let countries:string[] = []
+        const countries: string[] = []
 
         if (csv !== undefined) {
             csv.countryEntriesMap.forEach((countryEntry, country) => {
                 if (this.showAllRows) {
                     countries.push(country)
-                }
-                else if (countryEntry.standardizedName === undefined) {
+                } else if (countryEntry.standardizedName === undefined) {
                     countries.push(country)
                 }
             })
