@@ -84,7 +84,6 @@
     "mobx-react": "^5.2.3",
     "module-alias": "^2.0.3",
     "mysql": "^2.15.0",
-    "netlify-cli": "^1.2.2",
     "node-django-hashers": "^1.0.9",
     "node-sass": "^4.7.2",
     "nodemon": "^1.12.5",
