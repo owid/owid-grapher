@@ -5,7 +5,7 @@ import * as React from 'react'
 
 import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
-import Chart from '../models/Chart'
+import Chart from '../model/Chart'
 import * as db from '../db'
 
 const testPages = Router()

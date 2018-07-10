@@ -15,7 +15,7 @@ import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
 import {ChartPage} from './ChartPage'
 import { bakeImageExports } from './svgPngExport'
-import { getVariableData } from './models/Variable'
+import { getVariableData } from './model/Variable'
 import { renderToHtmlPage } from './admin/serverUtil'
 
 export interface ChartBakerProps {

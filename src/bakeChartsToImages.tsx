@@ -4,7 +4,7 @@ import {createConnection, DatabaseConnection} from './database'
 import {DB_NAME} from './settings'
 import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
-import { getVariableData } from './models/Variable'
+import { getVariableData } from './model/Variable'
 import * as fs from 'fs-extra'
 import * as filenamify from 'filenamify'
 const md5 = require('md5')

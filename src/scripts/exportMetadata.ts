@@ -7,7 +7,7 @@ import * as fs from 'fs-extra'
 import * as path from 'path'
 
 async function dataExport() {
-    db.connect()
+    await db.connect()
 
     const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_metadata.sql`)
 

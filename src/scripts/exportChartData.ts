@@ -8,22 +8,13 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 
 import {createConnection} from "typeorm";
-import {TestChart} from '../models/Chart'
+import {TestChart} from '../model/Chart'
 
 async function dataExport() {
-    const connection = await createConnection({
-        type: "mysql",
-        host: "localhost",
-        port: 3306,
-        username: "root",
-        password: "",
-        database: "owid",
-        entities: [TestChart]
-    })
-
+    await db.connect()
     console.log(await TestChart.find())
 
-    connection.close()
+    await db.end()
 /*    db.connect()
 
     const tmpFile = "/tmp/owid_chartdata.sql"

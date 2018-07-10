@@ -8,9 +8,9 @@ import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
 import {BASE_DIR, DB_NAME} from '../settings'
 import {JsonError, expectInt, isValidSlug, shellEscape} from './serverUtil'
-import Chart from '../models/Chart'
+import Chart from '../model/Chart'
 import {Request, Response, CurrentUser} from './authentication'
-import {getVariableData} from '../models/Variable'
+import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 
 // Little wrapper to automatically send returned objects as JSON, makes
