@@ -14,7 +14,7 @@ interface Settings {
     DB_USER: string
     DB_PASS: string
     DB_HOST: string
-    DB_PORT: string
+    DB_PORT: number
     ENV: 'production'|'development'
     WEBPACK_DEV_URL: string
     BUILD_GRAPHER_URL: string
@@ -43,6 +43,8 @@ env.BUILD_DIR = path.join(env.BASE_DIR, "public")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030
 env.NODE_BASE_URL = env.NODE_BASE_URL || `http://localhost:${env.NODE_SERVER_PORT}`
+
+env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
 
 const url = parseUrl(env.BUILD_GRAPHER_URL)
 env.BUILD_GRAPHER_PATH = url.pathname
