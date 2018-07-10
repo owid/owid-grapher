@@ -64,7 +64,7 @@ class CSV {
         targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
         countries.map((country: string) => {
-            const outputCountry = mapCountriesInputToOutput[country]
+            const outputCountry = mapCountriesInputToOutput[country.toLowerCase()]
             let approximatedMatches: FuzzyMatch[] = []
 
             if (outputCountry === undefined) {
@@ -72,7 +72,7 @@ class CSV {
             }
             const entry: CountryEntry = {
                 originalName: country,
-                standardizedName: mapCountriesInputToOutput[country] || undefined,
+                standardizedName: outputCountry || undefined,
                 approximatedMatches: approximatedMatches,
                 selectedMatch: "",
                 customName: ""
@@ -214,7 +214,7 @@ export default class CountryStandardizerPage extends React.Component {
 
         const countryMap: { [key: string]: string} = {}
         results.countries.forEach((countryFormat: any) => {
-            countryMap[countryFormat.input] = countryFormat.output
+            countryMap[countryFormat.input.toLowerCase()] = countryFormat.output
         })
         runInAction(() => {
             this.csv.onFormatChange(countryMap)
