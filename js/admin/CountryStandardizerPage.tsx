@@ -9,7 +9,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
-import CountryNameFormat, { CountryNameFormatDefs } from '../standardizer/CountryNameFormat'
+import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 
 class CSV {
     @observable filename: string = ""
@@ -245,7 +245,7 @@ export default class CountryStandardizerPage extends React.Component {
         if (csv === undefined)
             return null
 
-        const columnName = this.outputFormat
+        const columnName = CountryDefByKey[this.outputFormat].label
         const columnIndex = csv.countryColumnIndex + 1
         const sRows: any[] = []
 
@@ -349,7 +349,7 @@ export default class CountryStandardizerPage extends React.Component {
         return <AdminLayout title="CountryStandardizer">
             <main className="CountryStandardizerPage">
                 <section style={{ paddingBottom: "1.5em" }}>
-                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={CountryNameFormatDefs.map(def => def.key)} optionLabels={CountryNameFormatDefs.map(def => def.label)}/>
+                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)}/>
                     <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)}/>
                     <div className="topbar">
                         <input type="file" onChange={this.onChooseCSV} accept=".csv" />
