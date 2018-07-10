@@ -198,8 +198,8 @@ class DataPreview extends React.Component<{ csv: CSV }> {
         const { rowOffset, visibleRows, numRows } = this
         const height = 50
 
-        return <div style={{ height: height * visibleRows, 'overflow-y': 'scroll' }} onScroll={this.onScroll as any}>
-            <div style={{ height: height * numRows, 'padding-top': height * rowOffset }}>
+        return <div style={{ height: height * visibleRows, overflowY: 'scroll' }} onScroll={this.onScroll as any}>
+            <div style={{ height: height * numRows, paddingTop: height * rowOffset }}>
                 <table className="table" style={{ background: 'white' }}>
                     {map(rows.slice(rowOffset, rowOffset + visibleRows), (row, i) =>
                         <tr>
@@ -440,7 +440,7 @@ class ImportProgressModal extends React.Component<{ dataset: Dataset }> {
                     <p className="success"><i className="fa fa-check" /> Preparing import for {dataset.years.length} values...</p>
                     {dataset.importError && <p className="error"><i className="fa fa-times" /> Error: {dataset.importError}</p>}
                     {dataset.importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
-                    {!dataset.importSuccess && !dataset.importError && <div style={{ 'text-align': 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
+                    {!dataset.importSuccess && !dataset.importError && <div style={{ textAlign: 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
                 </div>
                 {dataset.importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
                 {dataset.importError && <a className="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}

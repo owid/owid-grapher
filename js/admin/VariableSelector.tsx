@@ -134,16 +134,16 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                             <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
                             <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} autofocus/>
                         </FieldsRow>
-                        <div style={{ height: numVisibleRows * rowHeight, 'overflow-y': 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
-                            <div style={{ height: numTotalRows * rowHeight, 'padding-top': rowHeight * rowOffset }}>
+                        <div style={{ height: numVisibleRows * rowHeight, overflowY: 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
+                            <div style={{ height: numTotalRows * rowHeight, paddingTop: rowHeight * rowOffset }}>
                                 <ul>
                                     {searchResultRows.slice(rowOffset, rowOffset + numVisibleRows).map(d => {
                                         if (isString(d)) {
-                                            return <li key={d} style={{ 'min-width': '100%' }}>
+                                            return <li key={d} style={{ minWidth: '100%' }}>
                                                 <h5>{highlight(d)}</h5>
                                             </li>
                                         } else {
-                                            return d.map(v => <li key={v.id} style={{ 'min-width': '50%' }}>
+                                            return d.map(v => <li key={v.id} style={{ minWidth: '50%' }}>
                                                 <Toggle value={false} onValue={() => this.selectVariable(v)} label={highlight(v.name)}/>
                                             </li>)
                                         }
