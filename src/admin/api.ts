@@ -8,7 +8,7 @@ import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
 import {BASE_DIR, DB_NAME} from '../settings'
 import {JsonError, expectInt, isValidSlug, shellEscape} from './serverUtil'
-import Chart from '../model/Chart'
+import OldChart, {Chart} from '../model/Chart'
 import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
@@ -170,7 +170,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
-        SELECT ${Chart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
+        SELECT ${OldChart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
     `, [limit])
 
     return {
@@ -372,7 +372,7 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     variable.source = await db.get(`SELECT id, name FROM sources AS s WHERE id = ?`, variable.sourceId)
 
     const charts = await db.query(`
-        SELECT ${Chart.listFields}
+        SELECT ${OldChart.listFields}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         WHERE cd.variableId = ?
@@ -456,7 +456,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     dataset.sources = sources
 
     const charts = await db.query(`
-        SELECT ${Chart.listFields}
+        SELECT ${OldChart.listFields}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
@@ -550,7 +550,7 @@ api.get('/posts.json', async req => {
         WHERE (post_type='post' OR post_type='page') 
             AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft') 
         ORDER BY post_modified DESC`)
-    
+
     const authorship = await wpdb.getAuthorship()
 
     for (const post of rows) {

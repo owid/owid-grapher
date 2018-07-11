@@ -18,6 +18,7 @@ export default function AdminSidebar(props: { onDismiss: () => void }) {
             <li><Link to="/users/"><i className="fa fa-users"></i> Users</Link></li>
             <li><Link to="/redirects"><i className="fa fa-arrow-right"></i> Redirects</Link></li>
             <li><a href="/grapher/admin/categories/"><i className="fa fa-folder"></i> Categories</a></li>
+            <li><Link to="/test"><i className="fa fa-eye"/> Test</Link></li>
         </ul>
     </aside>
 }

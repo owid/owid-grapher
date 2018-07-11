@@ -5,10 +5,10 @@ import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 
 
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm"
 
 @Entity("charts")
-export class TestChart extends BaseEntity {
+export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
 
@@ -16,7 +16,8 @@ export class TestChart extends BaseEntity {
     config: any
 }
 
-export default class Chart {
+// TODO integrate this old logic with typeorm
+export default class OldChart {
     static listFields = `
         charts.id,
         JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.title")) AS title,
@@ -34,9 +35,9 @@ export default class Chart {
         charts.published_by AS publishedBy
     `
 
-    static async getBySlug(slug: string): Promise<Chart> {
+    static async getBySlug(slug: string): Promise<OldChart> {
         const row = await db.get(`SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`, [slug])
-        return new Chart(row.id, JSON.parse(row.config))
+        return new OldChart(row.id, JSON.parse(row.config))
     }
 
     id: number

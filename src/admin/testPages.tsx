@@ -5,12 +5,17 @@ import * as React from 'react'
 
 import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
-import Chart from '../model/Chart'
+import OldChart, {Chart} from '../model/Chart'
 import * as db from '../db'
+import {NODE_BASE_URL} from '../settings'
+import {expectInt} from './serverUtil'
+import * as querystring from 'querystring'
+import * as _ from 'lodash'
+import * as url from 'url'
 
 const testPages = Router()
 
-function EmbedTestPage(props: { charts: any[] }) {
+function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slugs: string[] }) {
     const style = `
         html, body {
             height: 100%;
@@ -50,22 +55,50 @@ function EmbedTestPage(props: { charts: any[] }) {
             <style dangerouslySetInnerHTML={{__html: style}}/>
         </head>
         <body>
-            {props.charts.map(chart =>
+            <div className="row">
+                <h3>ourworldindata.org</h3>
+                <h3>{NODE_BASE_URL}</h3>
+            </div>
+            {props.slugs.map(slug =>
                 <div className="row">
-                    <iframe src={`https://ourworldindata.org/grapher/${chart.slug}`}/>
-                    <figure data-grapher-src={`/grapher/${chart.slug}`}/>
+                    <iframe src={`https://ourworldindata.org/grapher/${slug}`}/>
+                    <figure data-grapher-src={`/grapher/${slug}`}/>
                 </div>
             )}
+            <nav className="pagination">
+                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>} {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
+            </nav>
             <script src="/grapher/embedCharts.js"/>
         </body>
     </html>
 }
 
-testPages.get('/charts', async (req, res) => {
-    const rows = await db.query(`SELECT config FROM charts LIMIT 20`)
-    const charts = rows.map((row: any) => JSON.parse(row.config))
+testPages.get('/embeds', async (req, res) => {
+    const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
+    let query = Chart.createQueryBuilder().limit(numPerPage).offset(numPerPage*page)
 
-    res.send(renderToHtmlPage(<EmbedTestPage charts={charts}/>))
+    if (req.query.type) {
+        if (req.query.type === "ChoroplethMap")
+            query = query.where(`config->"$.hasMapTab" IS TRUE`)
+        else
+            query = query.where(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
+    }
+
+    let slugs = (await query.getMany()).map(c => c.config.slug) as string[]
+
+    if (req.query.type === "ChoroplethMap") {
+        slugs = slugs.map(slug => slug + "?tab=map")
+    } else if (req.query.type) {
+        slugs = slugs.map(slug => slug + "?tab=chart")
+    }
+
+    const count = await query.getCount()
+    const numPages = Math.ceil(count/numPerPage)
+
+    const prevPageUrl = page > 1 ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page-1 })) : undefined
+    const nextPageUrl = page < numPages ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page+1 })) : undefined
+
+    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} slugs={slugs}/>))
 })
 
 function PreviewTestPage(props: { charts: any[] }) {
@@ -113,7 +146,7 @@ testPages.get('/previews', async (req, res) => {
 })
 
 testPages.get('/:slug.svg', async (req, res) => {
-    const chart = await Chart.getBySlug(req.params.slug)
+    const chart = await OldChart.getBySlug(req.params.slug)
     const vardata = await chart.getVariableData()
     res.send(await chartToSVG(chart.config, vardata))
 })

@@ -7,15 +7,8 @@ import * as settings from '../settings'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 
-import {createConnection} from "typeorm";
-import {TestChart} from '../model/Chart'
-
 async function dataExport() {
-    await db.connect()
-    console.log(await TestChart.find())
-
-    await db.end()
-/*    db.connect()
+    db.connect()
 
     const tmpFile = "/tmp/owid_chartdata.sql"
     const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_chartdata.sql`)
@@ -36,7 +29,7 @@ async function dataExport() {
 
     await fs.move(tmpFile, outputPath, { overwrite: true })
 
-    db.end()*/
+    db.end()
 }
 
 dataExport()

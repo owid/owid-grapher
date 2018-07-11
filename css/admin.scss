@@ -621,3 +621,31 @@ main:not(.ChartEditorPage) {
     justify-content: space-between;
     margin-bottom: 1em;
 }
+
+.TestEmbedsPage {
+    figure, iframe {
+        border: 0;
+        width: 914px;
+        height: 400px;
+    }
+
+    .row {
+        padding: 10px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    h3 {
+        width: 50%;
+        text-align: center;
+        margin: 0;
+    }
+
+    nav.pagination {
+        width: 100%;
+        text-align: center;
+    }
+}
