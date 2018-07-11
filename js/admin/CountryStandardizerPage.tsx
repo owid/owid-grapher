@@ -12,12 +12,14 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
+import { csv } from '../../node_modules/@types/d3'
 
 class CSV {
     @observable filename: string = ""
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
     @observable mapCountriesInputToOutput: { [key: string]: string }
+    @observable autoMatchedCount: number = 0
 
     constructor() {
         this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -39,6 +41,10 @@ class CSV {
             return true
         }
         return false
+    }
+
+    @computed get numCountries() {
+        return this.rows.length - 1
     }
 
     @action.bound onFileUpload(filename: string, rows: string[][]) {
@@ -65,13 +71,18 @@ class CSV {
         targetValues = targetValues.map(key => mapCountriesInputToOutput[key])
         targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
+        let autoMatched = 0
+
         countries.map((country: string) => {
             const outputCountry = mapCountriesInputToOutput[country.toLowerCase()]
             let approximatedMatches: FuzzyMatch[] = []
 
             if (outputCountry === undefined) {
                 approximatedMatches = fuzzysort.go(country, targetValues)
+            } else {
+                autoMatched += 1
             }
+
             const entry: CountryEntry = {
                 originalName: country,
                 standardizedName: outputCountry || undefined,
@@ -83,6 +94,7 @@ class CSV {
         })
 
         this.countryEntriesMap = entriesByCountry
+        this.autoMatchedCount = autoMatched
     }
 
 }
@@ -362,6 +374,10 @@ export default class CountryStandardizerPage extends React.Component {
                     </div>
                     <div className="topbar">
                         <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
+                        { showDownloadOption ?
+                            <span>{csv.autoMatchedCount === csv.numCountries ?  "All rows auto-matched" : csv.autoMatchedCount + "/" + csv.numCountries + " rows auto-matched" }</span>
+                            : <div></div>
+                        }
                     </div>
                 </section>
                 <div>
