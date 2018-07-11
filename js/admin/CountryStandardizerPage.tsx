@@ -4,6 +4,8 @@ import {observable, computed, action, runInAction, reaction, IReactionDisposer} 
 import * as parse from 'csv-parse'
 
 const fuzzysort = require("fuzzysort")
+const unidecode = require("unidecode")
+
 import * as _ from 'lodash'
 
 import Admin from './Admin'
@@ -56,7 +58,7 @@ class CSV {
         const { rows, countryColumnIndex, mapCountriesInputToOutput } = this
 
         const entriesByCountry = new Map<string, CountryEntry>()
-        const countries = rows.slice(1).map((row: string[]) => row[countryColumnIndex] as string )
+        const countries = rows.slice(1).map((row: string[]) => unidecode(row[countryColumnIndex] as string))
 
         // for fuzzy-sort
         let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
@@ -257,7 +259,7 @@ export default class CountryStandardizerPage extends React.Component {
                 columnValue = columnName
             } else {
                 // prioritize user selected name
-                const entry = csv.countryEntriesMap.get(row[csv.countryColumnIndex]) as CountryEntry
+                const entry = csv.countryEntriesMap.get(unidecode(row[csv.countryColumnIndex] as string)) as CountryEntry
                 if (entry.customName !== undefined && entry.customName.length > 0) {
                     columnValue = entry.customName
                 } else if (entry.standardizedName !== undefined) {

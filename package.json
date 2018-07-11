@@ -116,6 +116,7 @@
     "tslint-loader": "^3.6.0",
     "typeorm": "^0.2.7",
     "typescript": "^2.9.1",
+    "unidecode": "^0.1.8",
     "url-join": "^2.0.2",
     "url-loader": "^1.0.1",
     "url-parse": "^1.2.0",
