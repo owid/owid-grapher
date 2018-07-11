@@ -18,7 +18,6 @@ from django.conf import settings
 from django.conf.urls import url, include
 from grapher_admin import views as admin_views
 from country_name_tool import views as countrytool_views
-from importer import views as importer_views
 from django.views.static import serve
 from django.contrib.auth.views import logout
 
@@ -56,16 +55,6 @@ urlpatterns = [
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),
     url(r'^grapher/admin/logout/?$', logout, {'next_page': "/admin"}, name="logout"),
     url(r'^grapher/admin/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
-    url(r'^grapher/wdi/WDI_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servewdicountryinfo'),
-
-    url(r'^grapher/edstats/EDSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveedstatscountryinfo'),
-    url(r'^grapher/genderstats/GENDERSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servegenderstatscountryinfo'),
-    url(r'^grapher/hnpstats/HNPSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpstatscountryinfo'),
-    url(r'^grapher/findex/FINDEX_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servefindexcountryinfo'),
-    url(r'^grapher/bbsc/BBSC_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servebbsccountryinfo'),
-    url(r'^grapher/povstats/POVSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servepovstatscountryinfo'),
-    url(r'^grapher/hnpqstats/HNPQSTATS_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='servehnpqstatscountryinfo'),
-    url(r'^grapher/aspire/ASPIRE_Country_info.xls$', importer_views.serve_wb_country_info_xls, name='serveaspirecountryinfo'),
 
     # Redirect other urls to node
     url(r'^admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),

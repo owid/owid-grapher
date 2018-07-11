@@ -15,7 +15,8 @@
         "lib": ["dom", "es6", "esnext.asynciterable"],
         "plugins": [
             { "name": "tslint-language-service" }
-        ]
+        ],
+        "keyofStringsOnly": true
     },
     "exclude": ["node_modules", "public"]
 }

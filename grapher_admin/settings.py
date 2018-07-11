@@ -83,7 +83,6 @@ INSTALLED_APPS = [
     'django_slack',
     'crispy_forms',
     'grapher_admin',
-    'importer',
     'country_name_tool',
     'django_extensions'
 ]

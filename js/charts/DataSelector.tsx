@@ -8,6 +8,12 @@ import { DataKeyInfo } from './ChartData'
 import ChartView from './ChartView'
 import FuzzySearch from './FuzzySearch'
 
+// Metadata reflection hack - Mispy
+declare const global: any
+if (typeof(global) !== "undefined") {
+    global.MouseEvent = {}
+}
+
 @observer
 export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string

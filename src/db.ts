@@ -9,7 +9,7 @@ let pool: mysql.Pool
 let connection: Connection
 
 export async function connect() {
-    pool = await mysql.createPool({
+    pool = mysql.createPool({
         host: 'localhost',
         user: 'root',
         database: settings.DB_NAME
@@ -105,6 +105,6 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 }
 
 export async function end() {
-    await pool.end()
+    pool.end()
     await connection.close()
 }
