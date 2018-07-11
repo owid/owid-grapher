@@ -47,7 +47,6 @@ urlpatterns = [
     url(r'^grapher/admin/standardize/instructions/?', countrytool_views.serve_instructions, name="countrytoolinstructions"),
     url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
 
-    url(r'^grapher/admin/testall', admin_views.test_all, name="testall"),
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),    
 
