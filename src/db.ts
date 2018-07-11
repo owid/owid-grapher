@@ -24,7 +24,6 @@ export async function connect() {
         database: "owid",
         entities: [__dirname + '/model/*.js']
     })
-        
 }
 
 export function getConnection(): Promise<mysql.PoolConnection> {
@@ -105,6 +104,8 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 }
 
 export async function end() {
-    pool.end()
-    await connection.close()
+    if (pool)
+        pool.end()
+    if (connection)
+        await connection.close()
 }

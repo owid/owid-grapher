@@ -80,7 +80,7 @@ module.exports = (env, argv) => {
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new ExtractTextPlugin(isProduction ? '[name].bundle.[contenthash].css' : '[name].css'),
+            new ExtractTextPlugin(isProduction ? '[name].bundle.[hash].css' : '[name].css'),
             new ManifestPlugin(),
         ],
         devServer: {

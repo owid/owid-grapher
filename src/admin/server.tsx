@@ -1,7 +1,7 @@
 import * as express from 'express'
 require('express-async-errors')
 const cookieParser = require('cookie-parser')
-const errorToSlack = require('express-error-slack').default
+const errorToSlack = require('express-error-slack')
 import "reflect-metadata"
 
 import * as db from '../db'
