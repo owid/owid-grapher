@@ -7,7 +7,7 @@ import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
 import OldChart, {Chart} from '../model/Chart'
 import * as db from '../db'
-import {NODE_BASE_URL} from '../settings'
+import {ENV, NODE_BASE_URL} from '../settings'
 import {expectInt} from './serverUtil'
 import * as querystring from 'querystring'
 import * as _ from 'lodash'
@@ -57,12 +57,12 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
         <body>
             <div className="row">
                 <h3>ourworldindata.org</h3>
-                <h3>{NODE_BASE_URL}</h3>
+                {ENV === 'development' && <h3>{NODE_BASE_URL}</h3>}
             </div>
             {props.slugs.map(slug =>
                 <div className="row">
                     <iframe src={`https://ourworldindata.org/grapher/${slug}`}/>
-                    <figure data-grapher-src={`/grapher/${slug}`}/>
+                    {ENV === 'development' && <figure data-grapher-src={`/grapher/${slug}`}/>}
                 </div>
             )}
             <nav className="pagination">
