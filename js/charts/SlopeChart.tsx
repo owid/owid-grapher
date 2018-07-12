@@ -53,6 +53,21 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         this.hoverColor = undefined
     }
 
+    // When the color legend is clicked, toggle selection fo all associated keys
+    @action.bound onLegendClick() {
+        const {chart, hoverColor} = this
+        if (chart.addCountryMode === 'disabled' || hoverColor === undefined)
+            return
+
+        const {transform} = this
+        const keysToToggle = transform.data.filter(g => g.color === hoverColor).map(g => g.key)
+        const allKeysActive = intersection(keysToToggle, chart.data.selectedKeys).length === keysToToggle.length
+        if (allKeysActive)
+            chart.data.selectedKeys = without(chart.data.selectedKeys, ...keysToToggle)
+        else
+            chart.data.selectedKeys = uniq(chart.data.selectedKeys.concat(keysToToggle))
+    }
+
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
         const {legendColors, transform, chart} = this
@@ -118,7 +133,7 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 
         return <g>
             <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave}  />
-            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} focusColors={focusColors} activeColors={activeColors} />
+            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
         </g>
     }
 }

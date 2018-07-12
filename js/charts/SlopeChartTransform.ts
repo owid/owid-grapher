@@ -124,7 +124,7 @@ export default class SlopeChartTransform implements IChartTransform {
     @computed get data(): SlopeChartSeries[] {
         if (!this.yDimension) return []
 
-        const { variableData, sizeDim, yDimension, xDomain, colorDim, colorScale } = this
+        const { variableData, sizeDim, yDimension, xDomain, colorDim, colorScale, chart } = this
         let data = variableData
         const entityKey = this.chart.vardata.entityMetaByKey
 
