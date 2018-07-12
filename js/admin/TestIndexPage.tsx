@@ -21,6 +21,7 @@ export default class TestIndexPage extends React.Component {
                     <li><Link native to="/test/embeds">All Charts</Link></li>
                     <li><Link native to="/test/embeds?type=ChoroplethMap">Choropleth Map</Link></li>
                     <li><Link native to="/test/embeds?type=LineChart">Line Chart</Link></li>
+                    <li><Link native to="/test/embeds?type=SlopeChart">Slope Chart</Link></li>
                     <li><Link native to="/test/embeds?type=DiscreteBar">Discrete Bar</Link></li>
                     <li><Link native to="/test/embeds?type=ScatterPlot">Scatter Plot</Link></li>
                     <li><Link native to="/test/embeds?type=StackedArea">Stacked Area</Link></li>
