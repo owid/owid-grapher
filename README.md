@@ -18,7 +18,7 @@ Running `pip install -r requirements.txt` and `yarn install` in the repo root wi
 
 ## Database setup
 
-Exports from the live OWID database are published here and can be used for testing:
+Daily exports from the live OWID database are published here and can be used for testing:
 
 | File | Description | Size |
 | --- | --- | --- |
