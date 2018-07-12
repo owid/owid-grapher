@@ -4,18 +4,15 @@ import * as db from '../db'
 import * as shell from 'shelljs'
 import * as _ from 'lodash'
 import * as settings from '../settings'
-import * as path from 'path'
-import * as fs from 'fs-extra'
 
 async function dataExport() {
-    db.connect()
+    await db.connect()
 
     const tmpFile = "/tmp/owid_chartdata.sql"
-    const outputPath = path.join(settings.BASE_DIR, `fixtures/owid_chartdata.sql`)
 
     const variableIds = (await db.query("SELECT DISTINCT variableId FROM chart_dimensions")).map((row: any) => row.variableId)
 
-    console.log(`Exporting data for ${variableIds.length} variables to ${outputPath}`)
+    console.log(`Exporting data for ${variableIds.length} variables to ${tmpFile}`)
 
     shell.exec(`rm -f ${tmpFile}`)
 
@@ -27,9 +24,7 @@ async function dataExport() {
         console.log(count)
     }
 
-    await fs.move(tmpFile, outputPath, { overwrite: true })
-
-    db.end()
+    await db.end()
 }
 
 dataExport()
