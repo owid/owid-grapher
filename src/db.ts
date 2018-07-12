@@ -1,28 +1,28 @@
 import * as mysql from 'mysql'
-import * as settings from './settings'
-import * as path from 'path'
 
-import {DB_NAME, DB_USER, DB_PASS} from './settings'
+import {DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT} from './settings'
 import {Connection, createConnection} from "typeorm"
+
+import {Chart} from './model/Chart'
 
 let pool: mysql.Pool
 let connection: Connection
 
 export async function connect() {
     pool = mysql.createPool({
-        host: 'localhost',
-        user: 'root',
-        database: settings.DB_NAME
+        host: DB_HOST,
+        user: DB_USER,
+        database: DB_NAME
     })
 
     connection = await createConnection({
         type: "mysql",
-        host: "localhost",
-        port: 3306,
-        username: "root",
-        password: "",
-        database: "owid",
-        entities: [__dirname + '/model/*.js']
+        host: DB_HOST,
+        port: DB_PORT,
+        username: DB_USER,
+        password: DB_PASS,
+        database: DB_NAME,
+        entities: [Chart]
     })
 }
 
