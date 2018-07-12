@@ -2,14 +2,13 @@ import * as React from 'react'
 import * as express from 'express'
 import * as crypto from 'crypto'
 import * as randomstring from 'randomstring'
+import {Router} from 'express'
 
 // For backwards compatibility, we reimplement Django authentication and session code a bit
 const hashers = require('node-django-hashers')
 
 import * as db from '../db'
 import { SECRET_KEY, SESSION_COOKIE_AGE } from '../settings'
-import { renderToHtmlPage } from './serverUtil'
-import LoginPage from './LoginPage'
 
 export interface CurrentUser {
     id: number
@@ -56,18 +55,11 @@ export async function authMiddleware(req: express.Request, res: express.Response
         res.locals.session = session
         res.locals.user = user
         return next()
-    } else if (!req.path.startsWith('/admin') || req.path === "/admin/login") {
+    } else if (!req.path.startsWith('/admin') || req.path === "/admin/login" || req.path === "/admin/register") {
         return next()
     } else {
         return res.redirect(`/admin/login?next=${req.path}`)
     }
-}
-
-export async function logout(req: Request, res: Response) {
-    if (res.locals.user)
-        await db.query(`DELETE FROM django_session WHERE session_key = ?`, [res.locals.session.id])
-
-    res.redirect('/admin')
 }
 
 function saltedHmac(salt: string, value: string): string {
@@ -76,14 +68,14 @@ function saltedHmac(salt: string, value: string): string {
     return hmac.digest('hex')
 }
 
-async function tryLogin(email: string, password: string): Promise<Session> {
+export async function tryLogin(email: string, password: string): Promise<Session> {
     const user = await db.get(`SELECT id, password FROM users WHERE email=?`, [email])
     if (!user) {
         throw new Error("No such user")
     }
 
     const h = new hashers.BCryptPasswordHasher()
-    if (h.verify(password, user.password)) {
+    if (await h.verify(password, user.password)) {
         const sessionId = randomstring.generate()
 
         const sessionJson = JSON.stringify({
@@ -97,20 +89,10 @@ async function tryLogin(email: string, password: string): Promise<Session> {
         const now = new Date()
         const expiryDate = new Date(now.getTime() + (1000*SESSION_COOKIE_AGE))
 
-        db.query(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
+        await db.execute(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
 
         return { id: sessionId, expiryDate: expiryDate }
     } else {
         throw new Error("Invalid password")
-    }
-}
-
-export async function loginSubmit(req: Request, res: Response) {
-    try {
-        const session = await tryLogin(req.body.username, req.body.password)
-        res.cookie("sessionid", session.id)
-        res.redirect(req.query.next||"/admin")
-    } catch (err) {
-        res.status(400).send(renderToHtmlPage(<LoginPage next={req.query.next} errorMessage={err.message}/>))
     }
 }

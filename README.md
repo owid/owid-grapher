@@ -12,7 +12,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-The grapher is currently a Python + JavaScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 9.3+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
+The grapher is currently a Python + TypeScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 9.3+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
 
 Running `pip install -r requirements.txt` and `yarn install` in the repo root will grab the remaining dependencies.
 

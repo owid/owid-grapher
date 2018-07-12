@@ -7,8 +7,7 @@ import "reflect-metadata"
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
 import AdminSPA from './AdminSPA'
-import LoginPage from './LoginPage'
-import {authMiddleware, loginSubmit, logout} from './authentication'
+import {authMiddleware} from './authentication'
 import api from './api'
 import devServer from './devServer'
 import testPages from './testPages'
@@ -25,19 +24,13 @@ app.use(cookieParser())
 
 app.use(express.urlencoded({ extended: true }))
 
-// Require authentication for all requests
+// Require authentication for all requests by default
 app.use(authMiddleware)
 
 //app.use(express.urlencoded())
 
 db.connect()
 wpdb.connect()
-
-app.get('/admin/logout', logout)
-app.post('/admin/login', loginSubmit)
-app.get('/admin/login', (req, res) => {
-    res.send(renderToHtmlPage(<LoginPage next={req.query.next}/>))
-})
 
 app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)

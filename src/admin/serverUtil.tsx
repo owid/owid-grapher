@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import * as _ from 'lodash'
 import {quote} from 'shell-quote'
+import * as urljoin from 'url-join'
+import * as settings from '../settings'
 
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
@@ -17,6 +19,13 @@ export function expectInt(value: any): number {
     const num = parseInt(value)
     if (isNaN(num))
         throw new JsonError(`Expected integer value, not '${value}'`, 400)
+    return num
+}
+
+export function tryInt(value: any, defaultNum: number): number {
+    const num = parseInt(value)
+    if (isNaN(num))
+        return defaultNum
     return num
 }
 
@@ -44,4 +53,8 @@ export function csvEscape(value: any): string {
 
 export function csvRow(arr: string[]): string {
     return arr.map(x => csvEscape(x)).join(",")+"\n"
+}
+
+export function absoluteUrl(path: string): string {
+    return urljoin(settings.NODE_BASE_URL, path)
 }

@@ -4,12 +4,15 @@ import * as _ from 'lodash'
 import {spawn} from 'child_process'
 import * as path from 'path'
 import * as querystring from 'querystring'
+import {getConnection} from 'typeorm'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
 import {BASE_DIR, DB_NAME} from '../settings'
-import {JsonError, expectInt, isValidSlug, shellEscape} from './serverUtil'
+import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from './serverUtil'
+import {sendMail} from '../mail'
 import OldChart, {Chart} from '../model/Chart'
+import UserInvitation from '../model/UserInvitation'
 import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
@@ -376,7 +379,33 @@ api.post('/users/invite', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
-    // TODO
+    const {email} = req.body
+
+    await getConnection().transaction(async manager => {
+        // Remove any previous invites for this email address to avoid duplicate accounts
+        const repo = manager.getRepository(UserInvitation)
+        await repo.createQueryBuilder().where(`email = :email`, {email}).delete().execute()
+
+        const invite = new UserInvitation()
+        invite.email = email
+        invite.code = UserInvitation.makeInviteCode()
+        invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        invite.created_at = new Date()
+        invite.updated_at = new Date()
+        invite.user_id = res.locals.user.id
+        await repo.save(invite)
+
+        const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
+
+        await sendMail({
+            from: "no-reply@ourworldindata.org",
+            to: email,
+            subject: "Invitation to join owid-admin",
+            text: `Hi, please follow this link to register on owid-admin: ${inviteLink}`
+        })
+    })
+
+    return { success: true }
 })
 
 api.get('/variables.json', async req => {

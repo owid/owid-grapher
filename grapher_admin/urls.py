@@ -44,7 +44,6 @@ urlpatterns = [
     url(r'^grapher/admin/standardize/update/?$', countrytool_views.country_tool_update, name="countrytoolupdate"),
     url(r'^grapher/admin/standardize/csv/(?P<filename>[^/]+)$', countrytool_views.servecsv, name="servecsv"),
     url(r'^grapher/admin/standardize/instructions/?', countrytool_views.serve_instructions, name="countrytoolinstructions"),
-    url(r'^grapher/admin/invite/?$', admin_views.invite_user, name="inviteuser"),
 
     url(r'^grapher/admin/testsome', admin_views.testsome, name="testsome"),
     url(r'^grapher/admin/import.json$', admin_views.importdata, name="importdatajson"),    
@@ -52,7 +51,6 @@ urlpatterns = [
     ### Public
     url(r'^grapher/admin/login/?$', admin_views.custom_login, name='login'),
     url(r'^grapher/admin/logout/?$', logout, {'next_page': "/admin"}, name="logout"),
-    url(r'^grapher/admin/invitation/(?P<code>[\w]+)$', admin_views.register_by_invite, name="registerbyinvite"),
 
     # Redirect other urls to node
     url(r'^admin/(?P<path>.+)/?$', admin_views.redirect_404, name="redirect404"),

@@ -29,7 +29,13 @@ interface Settings {
     WORDPRESS_DB_NAME: string
     WORDPRESS_DIR: string
     DJANGO_BASE_URL: string
-    
+
+    EMAIL_HOST: string
+    EMAIL_PORT: number
+    EMAIL_HOST_USER: string
+    EMAIL_HOST_PASSWORD: string
+    EMAIL_USE_TLS: boolean
+
     // These settings are inferred from other settings
     BUILD_GRAPHER_PATH: string
     BUILD_DIR: string
@@ -45,6 +51,9 @@ env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_
 env.NODE_BASE_URL = env.NODE_BASE_URL || `http://localhost:${env.NODE_SERVER_PORT}`
 
 env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
+
+env.EMAIL_PORT = env.EMAIL_PORT ? parseInt(env.EMAIL_PORT as any) : 443
+env.EMAIL_USE_TLS = !!env.EMAIL_USE_TLS
 
 const url = parseUrl(env.BUILD_GRAPHER_URL)
 env.BUILD_GRAPHER_PATH = url.pathname

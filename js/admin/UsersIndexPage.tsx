@@ -19,16 +19,28 @@ interface UserIndexMeta {
 
 const timeago = require('timeago.js')()
 
+@observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
     context!: { admin: Admin }
+    emailInput: HTMLInputElement|null = null
 
     @observable email: string = ""
-    @observable username: string = ""
+    @observable inviteSuccess: boolean = false
 
     async submit() {
-        if (this.email && this.username) {
-            await this.context.admin.requestJSON("/api/users/invite", { email: this.email, username: this.username }, "POST")
+        runInAction(() => this.inviteSuccess = false)
+        if (this.email) {
+            const resp = await this.context.admin.requestJSON("/api/users/invite", { email: this.email }, "POST")
+            console.log(resp)
+            if (resp.success) {
+                runInAction(() => this.inviteSuccess = true)
+            }
         }
+    }
+
+    componentDidMount() {
+        if (this.emailInput)
+            this.emailInput.focus()
     }
 
     render() {
@@ -40,21 +52,19 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                 <div className="modal-body">
                     <div className="form-group">
                         <label>Email address to invite</label>
-                        <input type="email" className="form-control" onInput={e => this.email = e.currentTarget.value} required/>
-                    </div>
-                    <div className="form-group">
-                        <label>Username of invited user</label>
-                        <input type="text" className="form-control" onInput={e => this.username = e.currentTarget.value} required/>
+                        <input type="email" className="form-control" onInput={e => this.email = e.currentTarget.value} required ref={e => this.emailInput = e}/>
                     </div>
                 </div>
                 <div className="modal-footer">
                     <input type="submit" className="btn btn-primary">Send invite</input>
                 </div>
+                {this.inviteSuccess && <div className="alert alert-success" role="alert">
+                    Invite sent!
+                </div>}
             </form>
         </Modal>
     }
 }
-
 
 @observer
 export default class UsersIndexPage extends React.Component {
@@ -80,8 +90,7 @@ export default class UsersIndexPage extends React.Component {
                 {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
                 <div className="topbar">
                     <h2>Users</h2>
-                    <a href="/grapher/admin/invite" className="btn btn-primary">Invite a user</a>
-                    {/*<button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>*/}
+                    <button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>
                 </div>
                 <table className="table table-bordered">
                     <tr>

@@ -1,9 +1,20 @@
-/*import {Table, Column, Model} from 'sequelize-typescript'
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm"
+const hashers = require('node-django-hashers')
 
-@Table({ tableName: 'users' })
-export default class User extends Model<User> {
-    @Column name!: string
-    @Column email!: string
-    @Column({ field: 'full_name' }) fullName!: string
-    @Column({ field: 'is_active' }) isActive!: boolean
-}*/
+@Entity("users")
+export default class User extends BaseEntity {
+    @PrimaryGeneratedColumn() id!: number
+    @Column() name!: string
+    @Column() email!: string
+    @Column({ name: 'password' }) cryptedPassword!: string
+    @Column({ name: 'full_name' }) fullName!: string
+    @Column({ name: 'is_active' }) isActive: boolean = true
+    @Column({ name: 'is_superuser' }) isSuperuser: boolean = false
+    @Column() created_at!: Date
+    @Column() updated_at!: Date
+
+    async setPassword(password: string) {
+        const h = new hashers.BCryptPasswordHasher()
+        this.cryptedPassword = await h.encode(password)
+    }
+}
