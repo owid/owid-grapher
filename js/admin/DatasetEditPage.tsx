@@ -111,7 +111,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
             <section>
                 <h1>{dataset.name}</h1>
                 <p>Last updated {timeago.format(dataset.updatedAt)}</p>
-                <Link native to={`/../grapher/admin/datasets/${dataset.id}.csv`} className="btn btn-primary">
+                <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>
                 <Link native to={`/../grapher/admin/datasets/history/${dataset.id}`} className="btn btn-secondary">

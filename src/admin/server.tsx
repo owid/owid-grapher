@@ -12,6 +12,7 @@ import {authMiddleware, loginSubmit, logout} from './authentication'
 import api from './api'
 import devServer from './devServer'
 import testPages from './testPages'
+import adminViews from './adminViews'
 import {renderToHtmlPage} from './serverUtil'
 import {NODE_SERVER_PORT, BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
@@ -42,6 +43,8 @@ app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
 app.use('/grapher', devServer)
 
+app.use('/admin', adminViews)
+
 // Default route: single page admin app
 app.get('*', (req, res) => {
     res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.name}/>))
@@ -53,9 +56,14 @@ if (SLACK_ERRORS_WEBHOOK_URL) {
 }
 
 // Give full error messages in production
-app.use(async (err: any, req: any, res: any, next: any) => {
-    res.status(err.status||500)
-    res.send({ error: { message: err.stack, status: err.status||500 } })
+app.use(async (err: any, req: any, res: express.Response, next: any) => {
+    if (!res.headersSent) {
+        res.status(err.status||500)
+        res.send({ error: { message: err.stack, status: err.status||500 } })
+    } else {
+        res.write(JSON.stringify({ error: { message: err.stack, status: err.status||500 } }))
+        res.end()
+    }
 })
 
 app.listen(NODE_SERVER_PORT, "localhost", () => {

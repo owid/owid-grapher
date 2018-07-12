@@ -33,3 +33,15 @@ export function isValidSlug(slug: any) {
 export function shellEscape(s: string) {
     return quote([s])
 }
+
+export function csvEscape(value: any): string {
+    const valueStr = _.toString(value)
+    if (_.includes(valueStr, ","))
+        return `"${value.replace(/\"/g, "\"\"")}"`
+    else
+        return value
+}
+
+export function csvRow(arr: string[]): string {
+    return arr.map(x => csvEscape(x)).join(",")+"\n"
+}

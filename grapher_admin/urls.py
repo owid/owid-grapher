@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^grapher/admin/import/?$', admin_views.importdata, name="importdata"),
     url(r'^grapher/admin/import/variables$', admin_views.store_import_data, name="storeimportdata"),  # data import post requests
     url(r'^grapher/admin/datasets_treeview/?$', admin_views.treeview_datasets, name="treeviewdatasets"),
-    url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)\.csv$', admin_views.dataset_csv, name="datasetcsv"),
     url(r'^grapher/admin/datasets/(?P<datasetid>[\w]+)\.json$', admin_views.dataset_json, name="datasetjson"),
     url(r'^grapher/admin/datasets/history/all$', admin_views.all_dataset_history, name="alldatasethistory"),
     url(r'^grapher/admin/datasets/history/(?P<datasetid>[\w]+)$', admin_views.show_dataset_history, name="datasethistory"),
