@@ -1,18 +1,15 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
+import {observable, computed, action, runInAction} from 'mobx'
 import * as parse from 'csv-parse'
 
 const fuzzysort = require("fuzzysort")
 const unidecode = require("unidecode")
 
-import * as _ from 'lodash'
-
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
-import { csv } from '../../node_modules/@types/d3'
 
 class CSV {
     @observable filename: string = ""
