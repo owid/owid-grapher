@@ -225,6 +225,7 @@ export default class CountryStandardizerPage extends React.Component {
 
         const countryMap: { [key: string]: string} = {}
         results.countries.forEach((countryFormat: any) => {
+            if (countryFormat.input === null) return
             countryMap[countryFormat.input.toLowerCase()] = countryFormat.output
         })
         runInAction(() => {
@@ -383,8 +384,8 @@ export default class CountryStandardizerPage extends React.Component {
                             <tr>
                                 <th>Original Name</th>
                                 <th>Standardized Name</th>
-                                <th>Potential Candidates</th>
-                                <th>Custom Name</th>
+                                <th>Potential Candidates (select below)</th>
+                                <th>Or enter a Custom Name</th>
                             </tr>
                         </thead>
                         <tbody>
