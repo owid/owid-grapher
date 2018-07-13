@@ -74,7 +74,7 @@ class CSV {
             const outputCountry = mapCountriesInputToOutput[country.toLowerCase()]
             let approximatedMatches: FuzzyMatch[] = []
 
-            if (outputCountry === undefined) {
+            if (outputCountry === undefined || outputCountry === null) {
                 approximatedMatches = fuzzysort.go(country, targetValues)
             } else {
                 autoMatched += 1
@@ -122,13 +122,13 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
         if (entry.standardizedName === null) {
             console.log(entry)
         }
-        if (entry.standardizedName !== undefined && entry.standardizedName.length > 0) {
+        if (entry.standardizedName !== undefined && ((typeof(entry.standardizedName) === "number") || (entry.standardizedName.length > 0))) {
             return true
         }
-        if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+        if (entry.selectedMatch !== undefined && ((typeof(entry.selectedMatch) === "number") || (entry.selectedMatch.length > 0))) {
             return true
         }
-        if (entry.customName !== undefined && entry.customName.length > 0) {
+        if (entry.customName !== undefined && ((typeof(entry.customName) === "number") || (entry.customName.length > 0))) {
             return true
         }
         return false
@@ -219,7 +219,6 @@ export default class CountryStandardizerPage extends React.Component {
         if (inputFormat === undefined || outputFormat === undefined)
             return
 
-        console.log("fetch input -> output country mapping")
         const { admin }  = this.context
         const results = await admin.getJSON(`/api/countries.json?input=` + inputFormat + `&output=` + outputFormat)
 
