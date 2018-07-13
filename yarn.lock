@@ -56,7 +56,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/csv-parse@^1.1.9":
+"@types/csv-parse@^1.1.11":
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/@types/csv-parse/-/csv-parse-1.1.11.tgz#47d68b5579e66aa0d55af9dbae76f1d2ff836f1d"
   dependencies:

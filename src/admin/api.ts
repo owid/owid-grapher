@@ -650,4 +650,27 @@ api.get('/posts.json', async req => {
     return { posts: rows }
 })
 
+// TODO Data needed for ImportPage
+api.get('/importData.json', async req => {
+    return {}
+})
+
+api.post('/importValidate', async req => {
+    const entities: string[] = req.body.entities
+
+    // https://stackoverflow.com/questions/440615/best-way-to-check-that-a-list-of-items-exists-in-an-sql-database-column
+    return db.transaction(async t => {
+        await t.execute(`CREATE TEMPORARY TABLE entitiesToCheck (name VARCHAR(255))`)
+        await t.execute(`INSERT INTO entitiesToCheck VALUES ${Array(entities.length).fill("(?)").join(",")}`, entities)
+
+        const rows = await t.query(`
+            SELECT ec.name FROM entitiesToCheck ec LEFT OUTER JOIN entities e ON ec.name = e.name WHERE e.name IS NULL
+        `)
+
+        await t.execute(`DROP TEMPORARY TABLE entitiesToCheck`)
+
+        return { unknownEntities: rows.map((e: any) => e.name) }
+    })
+})
+
 export default api
