@@ -363,10 +363,10 @@ export default class CountryStandardizerPage extends React.Component {
                     <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)}/>
                     <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)}/>
                     <div className="topbar">
-                        <input type="file" onChange={this.onChooseCSV} accept=".csv" />
+                        <input type="file" onChange={this.onChooseCSV} accept=".csv" data-buttonText="Your label here." data-input="false" data-classIcon="icon-plus" />
                         {showDownloadOption ?
-                            <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip()}><i className="fa fa-download"></i> {this.csvFilename()}</a>
-                            : <div></div>
+                            <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip()}><i className="fa fa-download"></i> Download {this.csvFilename()}</a>
+                            : <button className="btn btn-secondary" disabled><i className="fa fa-download"></i> No file to download (upload a CSV to start)</button>
                         }
                     </div>
                     <div className="topbar">
