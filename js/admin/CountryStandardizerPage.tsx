@@ -17,6 +17,7 @@ class CSV {
     @observable countryEntriesMap: Map<string, CountryEntry>
     @observable mapCountriesInputToOutput: { [key: string]: string }
     @observable autoMatchedCount: number = 0
+    @observable parseError: string|undefined
 
     constructor() {
         this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -33,8 +34,8 @@ class CSV {
     }
 
     @computed get showDownloadOption() {
-        const { rows } = this
-        if (rows.length > 0) {
+        const { rows, validationError } = this
+        if (rows.length > 0 && validationError === null) {
             return true
         }
         return false
@@ -44,9 +45,47 @@ class CSV {
         return this.rows.length - 1
     }
 
-    @action.bound onFileUpload(filename: string, rows: string[][]) {
+    @computed get validationError() {
+        const { parseError } = this
+        if (parseError !== undefined) {
+            return "Could not parse file (error: " + parseError + "). Check if it is a valid CSV file."
+        }
+
+        const { rows, countryColumnIndex } = this
+        if (rows.length === 0) return null
+
+        if (countryColumnIndex < 0) {
+            return "Could not find a column name with the header 'Country'"
+        }
+
+        return null
+    }
+
+    @computed get displayMatchStatus() {
+        const { autoMatchedCount, numCountries, showDownloadOption } = this
+
+        if (!showDownloadOption) return <div></div>
+
+        if (autoMatchedCount === numCountries) {
+            return <div className="alert alert-success" role="alert">
+                <strong>Status:</strong> All countries were auto-matched!
+            </div>
+        } else {
+            return <div className="alert alert-warning" role="alert">
+                <strong>Status:</strong> Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name
+            </div>
+        }
+    }
+
+    @action.bound onFileUpload(filename: string, rows: string[][], err: any) {
         this.filename = filename
-        this.rows = rows
+        if (err !== null) {
+            this.parseError = err.message
+            this.rows = []
+        } else {
+            this.parseError = undefined
+            this.rows = rows
+        }
         this.parseCSV()
     }
 
@@ -59,6 +98,12 @@ class CSV {
         console.log("parsing CSV")
 
         const { rows, countryColumnIndex, mapCountriesInputToOutput } = this
+
+        if (countryColumnIndex < 0) {
+            this.countryEntriesMap = new Map<string, CountryEntry>()
+            this.autoMatchedCount = 0
+            return
+        }
 
         const entriesByCountry = new Map<string, CountryEntry>()
         const countries = rows.slice(1).map((row: string[]) => unidecode(row[countryColumnIndex] as string))
@@ -203,8 +248,8 @@ export default class CountryStandardizerPage extends React.Component {
         reader.onload = (e) => {
             const csv = (e as any).target.result
             parse(csv, { relax_column_count: true, skip_empty_lines: true, rtrim: true },
-                (_, rows) => {
-                    this.csv.onFileUpload(file.name, rows)
+                (err, rows) => {
+                    this.csv.onFileUpload(file.name, rows, err)
                 }
             )
         }
@@ -253,7 +298,7 @@ export default class CountryStandardizerPage extends React.Component {
     outputCSV() {
         const { csv } = this
 
-        if (csv === undefined)
+        if (csv === undefined || csv.validationError !== null)
             return null
 
         const columnName = CountryDefByKey[this.outputFormat].label
@@ -340,7 +385,7 @@ export default class CountryStandardizerPage extends React.Component {
 
     render() {
         const { csv } = this
-        const { showDownloadOption } = csv
+        const { showDownloadOption, validationError } = csv
 
         const allowedInputFormats = CountryNameFormatDefs.filter(c => c.use_as_input)
         const allowedOutputFormats = CountryNameFormatDefs.filter(c => c.use_as_output)
@@ -359,7 +404,7 @@ export default class CountryStandardizerPage extends React.Component {
 
         return <AdminLayout title="CountryStandardizer">
             <main className="CountryStandardizerPage">
-                <section style={{ paddingBottom: "1.5em" }}>
+                <section>
                     <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)}/>
                     <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)}/>
                     <div className="topbar">
@@ -371,11 +416,14 @@ export default class CountryStandardizerPage extends React.Component {
                     </div>
                     <div className="topbar">
                         <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
-                        { showDownloadOption ?
-                            <span>{csv.autoMatchedCount === csv.numCountries ?  "All rows auto-matched" : csv.autoMatchedCount + "/" + csv.numCountries + " rows auto-matched" }</span>
-                            : <div></div>
-                        }
                     </div>
+                    {validationError !== null ?
+                        <div className="alert alert-danger" role="alert">
+                            <strong>CSV Error:</strong> {validationError}
+                        </div>
+                        : <div></div>
+                    }
+                    {csv.displayMatchStatus}
                 </section>
                 <div>
                     <table className="table table-bordered">
