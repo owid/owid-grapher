@@ -649,3 +649,8 @@ main:not(.ChartEditorPage) {
         text-align: center;
     }
 }
+
+// to override the default annoying blue border from bootstrap on file upload
+.custom-file-input:focus ~ .custom-file-control {
+    box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
+}

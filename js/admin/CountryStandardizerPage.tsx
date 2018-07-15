@@ -12,7 +12,7 @@ import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 
 class CSV {
-    @observable filename: string = ""
+    @observable filename: string|undefined
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
     @observable mapCountriesInputToOutput: { [key: string]: string }
@@ -59,22 +59,6 @@ class CSV {
         }
 
         return null
-    }
-
-    @computed get displayMatchStatus() {
-        const { autoMatchedCount, numCountries, showDownloadOption } = this
-
-        if (!showDownloadOption) return <div></div>
-
-        if (autoMatchedCount === numCountries) {
-            return <div className="alert alert-success" role="alert">
-                <strong>Status:</strong> All countries were auto-matched!
-            </div>
-        } else {
-            return <div className="alert alert-warning" role="alert">
-                <strong>Status:</strong> Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name
-            </div>
-        }
     }
 
     @action.bound onFileUpload(filename: string, rows: string[][], err: any) {
@@ -230,6 +214,24 @@ export default class CountryStandardizerPage extends React.Component {
         return false
     }
 
+    @computed get displayMatchStatus() {
+        const { autoMatchedCount, numCountries, showDownloadOption } = this.csv
+
+        if (!showDownloadOption) return <div></div>
+
+        const columnName = CountryDefByKey[this.outputFormat].label
+
+        if (autoMatchedCount === numCountries) {
+            return <div className="alert alert-success" role="alert">
+                <strong>Status:</strong>{" All countries were auto-matched! The CSV file you will download has a new column with the header '" + columnName  + "'." }
+            </div>
+        } else {
+            return <div className="alert alert-warning" role="alert">
+                <strong>Status:</strong> Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name
+            </div>
+        }
+    }
+
     @action.bound onInputFormat(format: string) {
         this.inputFormat = format
         this.fetchCountryMap(this.inputFormat, this.outputFormat)
@@ -283,6 +285,9 @@ export default class CountryStandardizerPage extends React.Component {
 
     csvFilename(): string {
         const { csv } = this
+
+        if (csv.filename === undefined) return ""
+
         return csv.filename.replace(".csv", "_country_standardized.csv")
     }
 
@@ -293,6 +298,15 @@ export default class CountryStandardizerPage extends React.Component {
             return "Downloading will save any custom selection for future ease"
         }
         return ""
+    }
+
+    fileUploadLabel() {
+        const { csv } = this
+
+        if (csv === undefined || csv.filename === undefined) {
+            return "Choose CSV file"
+        }
+        return csv.filename
     }
 
     outputCSV() {
@@ -383,6 +397,10 @@ export default class CountryStandardizerPage extends React.Component {
         }
     }
 
+    @action.bound onTourClick() {
+        return
+    }
+
     render() {
         const { csv } = this
         const { showDownloadOption, validationError } = csv
@@ -405,16 +423,24 @@ export default class CountryStandardizerPage extends React.Component {
         return <AdminLayout title="CountryStandardizer">
             <main className="CountryStandardizerPage">
                 <section>
-                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)}/>
-                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)}/>
+                    <h3>Country Standardizer Tool</h3>
+                    <p>Upload a CSV file with countries. Select the current input and desired output format. The tool will attempt to find a match automatically for all entries. If not, you will be able to select a similar entry or use a new name. After which, you can download the file that has a new column for your output countries.</p>
+                    <div className="form-group">
+                        <div className="custom-file">
+                            <input type="file" className="custom-file-input" id="customFile" onChange={this.onChooseCSV} />
+                            <label htmlFor="customFile" className="custom-file-control">{this.fileUploadLabel()}</label>
+                        </div>
+                        <small id="custom-file-help-block" className="text-muted form-text">
+                            Country has to be saved under a column named 'Country'
+                        </small>
+                    </div>
+                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names" data-step="1" />
+                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names" />
                     <div className="topbar">
-                        <input type="file" onChange={this.onChooseCSV} accept=".csv" data-buttonText="Your label here." data-input="false" data-classIcon="icon-plus" />
                         {showDownloadOption ?
                             <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip()}><i className="fa fa-download"></i> Download {this.csvFilename()}</a>
                             : <button className="btn btn-secondary" disabled><i className="fa fa-download"></i> No file to download (upload a CSV to start)</button>
                         }
-                    </div>
-                    <div className="topbar">
                         <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
                     </div>
                     {validationError !== null ?
@@ -423,7 +449,7 @@ export default class CountryStandardizerPage extends React.Component {
                         </div>
                         : <div></div>
                     }
-                    {csv.displayMatchStatus}
+                    {this.displayMatchStatus}
                 </section>
                 <div>
                     <table className="table table-bordered">
