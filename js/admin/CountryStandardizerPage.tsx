@@ -10,6 +10,7 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
+import { uniq } from '../charts/Util'
 
 class CSV {
     @observable filename: string|undefined
@@ -97,7 +98,7 @@ class CSV {
 
         // for fuzzy-sort
         let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
-        targetValues = targetValues.map(key => mapCountriesInputToOutput[key])
+        targetValues = uniq(targetValues.map(key => mapCountriesInputToOutput[key]))
         targetValues = targetValues.map(val => fuzzysort.prepare(val))
 
         let autoMatched = 0
