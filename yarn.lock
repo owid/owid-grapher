@@ -282,6 +282,10 @@
   dependencies:
     "@types/node" "*"
 
+"@types/fuzzyset@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@types/fuzzyset/-/fuzzyset-1.0.1.tgz#196e5fb9e3129e264cb9db2ed1a9c6071ad29a2c"
+
 "@types/geojson@*":
   version "7946.0.4"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.4.tgz#4e049756383c3f055dd8f3d24e63fb543e98eb07"
@@ -3711,6 +3715,10 @@ fstream@^1.0.0, fstream@^1.0.2:
 function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
+
+fuzzyset@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/fuzzyset/-/fuzzyset-0.0.4.tgz#e3f90e4c5e48abc2e5a7fa7ad4b16382cb6269d5"
 
 fuzzysort@^1.0.0:
   version "1.1.4"

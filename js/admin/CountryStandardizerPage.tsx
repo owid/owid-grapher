@@ -3,8 +3,8 @@ import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 import * as parse from 'csv-parse'
 
-const fuzzysort = require("fuzzysort")
 const unidecode = require("unidecode")
+const FuzzySet = require("fuzzyset")
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
@@ -96,10 +96,10 @@ class CSV {
         const entriesByCountry = new Map<string, CountryEntry>()
         const countries = rows.slice(1).map((row: string[]) => unidecode(row[countryColumnIndex] as string))
 
-        // for fuzzy-sort
+        // for fuzzy-match
         let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => typeof(mapCountriesInputToOutput[key]) === 'string')
         targetValues = uniq(targetValues.map(key => mapCountriesInputToOutput[key]))
-        targetValues = targetValues.map(val => fuzzysort.prepare(val))
+        const fuzz = FuzzySet(targetValues)
 
         let autoMatched = 0
 
@@ -109,7 +109,7 @@ class CSV {
 
             if (outputCountry === undefined || outputCountry === null) {
                 if (findSimilarCountries) {
-                    approximatedMatches = fuzzysort.go(country, targetValues)
+                    approximatedMatches = fuzz.get(country)
                 }
             } else {
                 autoMatched += 1
@@ -191,7 +191,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
                 <td><span style={{color: isMatched ? "black" : "red"}}>{ entry.originalName }</span></td>
                 <td>{ entry.standardizedName }</td>
                 <td>{ entry.approximatedMatches.length > 0 ?
-                    <SelectField value={defaultValue} onValue={this.onEntrySelected} options={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch['target']))} optionLabels={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch['target']))} /> :
+                    <SelectField value={defaultValue} onValue={this.onEntrySelected} options={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch[1]))} optionLabels={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch[1]))} /> :
                     <span>No candidates found</span> }
                 </td>
                 <td><input type="text" className="form-control" value={entry.customName} onChange={e => onUpdate(e.currentTarget.value, entry.originalName, true) } /></td>
