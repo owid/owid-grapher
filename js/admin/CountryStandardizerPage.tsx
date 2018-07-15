@@ -18,6 +18,7 @@ class CSV {
     @observable mapCountriesInputToOutput: { [key: string]: string }
     @observable autoMatchedCount: number = 0
     @observable parseError: string|undefined
+    @observable findSimilarCountries: boolean = true
 
     constructor() {
         this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -61,7 +62,7 @@ class CSV {
         return null
     }
 
-    @action.bound onFileUpload(filename: string, rows: string[][], err: any) {
+    @action.bound onFileUpload(filename: string, rows: string[][], err: any, similarityMatch: boolean) {
         this.filename = filename
         if (err !== null) {
             this.parseError = err.message
@@ -70,18 +71,20 @@ class CSV {
             this.parseError = undefined
             this.rows = rows
         }
+        this.findSimilarCountries = similarityMatch
         this.parseCSV()
     }
 
-    @action.bound onFormatChange(countryMap: any) {
+    @action.bound onFormatChange(countryMap: any, findSimilarCountries: boolean) {
         this.mapCountriesInputToOutput = countryMap
+        this.findSimilarCountries = findSimilarCountries
         this.parseCSV()
     }
 
     parseCSV() {
         console.log("parsing CSV")
 
-        const { rows, countryColumnIndex, mapCountriesInputToOutput } = this
+        const { rows, countryColumnIndex, mapCountriesInputToOutput, findSimilarCountries } = this
 
         if (countryColumnIndex < 0) {
             this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -104,7 +107,9 @@ class CSV {
             let approximatedMatches: FuzzyMatch[] = []
 
             if (outputCountry === undefined || outputCountry === null) {
-                approximatedMatches = fuzzysort.go(country, targetValues)
+                if (findSimilarCountries) {
+                    approximatedMatches = fuzzysort.go(country, targetValues)
+                }
             } else {
                 autoMatched += 1
             }
@@ -252,7 +257,7 @@ export default class CountryStandardizerPage extends React.Component {
             const csv = (e as any).target.result
             parse(csv, { relax_column_count: true, skip_empty_lines: true, rtrim: true },
                 (err, rows) => {
-                    this.csv.onFileUpload(file.name, rows, err)
+                    this.csv.onFileUpload(file.name, rows, err, this.shouldSaveSelection)
                 }
             )
         }
@@ -276,7 +281,7 @@ export default class CountryStandardizerPage extends React.Component {
             countryMap[countryFormat.input.toLowerCase()] = countryFormat.output
         })
         runInAction(() => {
-            this.csv.onFormatChange(countryMap)
+            this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
         })
     }
 
@@ -398,10 +403,6 @@ export default class CountryStandardizerPage extends React.Component {
         }
     }
 
-    @action.bound onTourClick() {
-        return
-    }
-
     render() {
         const { csv } = this
         const { showDownloadOption, validationError } = csv
@@ -435,8 +436,8 @@ export default class CountryStandardizerPage extends React.Component {
                             Country has to be saved under a column named 'Country'
                         </small>
                     </div>
-                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names" data-step="1" />
-                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names" />
+                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match." data-step="1" />
+                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar cuntries when there is no exact match." />
                     <div className="topbar">
                         {showDownloadOption ?
                             <a href={this.csvDataUri()} download={this.csvFilename()} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip()}><i className="fa fa-download"></i> Download {this.csvFilename()}</a>
