@@ -148,9 +148,6 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
     @computed get isMatched(): boolean {
         const { entry } = this.props
 
-        if (entry.standardizedName === null) {
-            console.log(entry)
-        }
         if (entry.standardizedName !== undefined && ((typeof(entry.standardizedName) === "number") || (entry.standardizedName.length > 0))) {
             return true
         }
@@ -221,15 +218,19 @@ export default class CountryStandardizerPage extends React.Component {
 
         const columnName = CountryDefByKey[this.outputFormat].label
 
+        let text = ""
+        let banner = ""
         if (autoMatchedCount === numCountries) {
-            return <div className="alert alert-success" role="alert">
-                <strong>Status:</strong>{" All countries were auto-matched! The CSV file you will download has a new column with the header '" + columnName  + "'." }
-            </div>
+            banner = "alert-success"
+            text = " All countries were auto-matched!"
         } else {
-            return <div className="alert alert-warning" role="alert">
-                <strong>Status:</strong> Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name
-            </div>
+            banner = "alert-warning"
+            text = " Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name."
         }
+        text += " The CSV file you will download has a new column with the header '" + columnName  + "'."
+        return <div className={"alert " + banner} role="alert">
+            <strong>Status:</strong>{text}
+        </div>
     }
 
     @action.bound onInputFormat(format: string) {
