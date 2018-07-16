@@ -233,7 +233,7 @@ export default class CountryStandardizerPage extends React.Component {
             banner = "alert-warning"
             text = " Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name."
         }
-        text += " The CSV file you will download has a new column with the header '" + columnName  + "'."
+        text += " The file you will download has a new column with the header '" + columnName  + "'."
         return <div className={"alert " + banner} role="alert">
             <strong>Status:</strong>{text}
         </div>
