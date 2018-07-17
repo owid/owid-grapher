@@ -35,7 +35,7 @@ export default class ScatterColorLegend {
 
         return props.scale.domain().map(value => {
             const color = props.scale(value)
-            if (props.colors.indexOf(color) === -1)
+            if (props.colors.indexOf(color) === -1 || value === undefined)
                 return null
 
             const label = new TextWrap({ maxWidth: props.maxWidth, fontSize: fontSize, text: value })
