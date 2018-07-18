@@ -344,6 +344,13 @@ export default class CountryStandardizerPage extends React.Component {
                 }
             }
 
+            // escape , in csv
+            if (columnValue.indexOf(',') > -1) {
+                columnValue = columnValue.replace(/"/g, '""')
+                columnValue = "\"" + columnValue + "\""
+            }
+            columnValue = columnValue
+
             const newRow = row.slice(0)
             newRow.splice(columnIndex, 0, columnValue)
             sRows.push(newRow)
