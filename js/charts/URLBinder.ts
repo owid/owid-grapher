@@ -77,7 +77,7 @@ export default class URLBinder {
         const { chart, origChart } = this
 
         params.tab = chart.props.tab === origChart.tab ? undefined : chart.props.tab
-        params.overlay = chart.props.overlay === origChart.overlay ? undefined : chart.props.overlay
+        //params.overlay = chart.props.overlay === origChart.overlay ? undefined : chart.props.overlay
         params.xScale = chart.props.xAxis.scaleType === origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
         params.yScale = chart.props.yAxis.scaleType === origChart.yAxis.scaleType ? undefined : chart.yAxis.scaleType
         params.stackMode = chart.props.stackMode === origChart.stackMode ? undefined : chart.props.stackMode
