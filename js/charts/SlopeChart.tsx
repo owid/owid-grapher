@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { intersection, without, uniq, getRelativeMouse } from './Util'
+import { intersection, without, uniq, includes } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
@@ -43,6 +43,18 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 
     @action.bound onSlopeMouseLeave() {
         this.hoverKey = undefined
+    }
+
+    @action.bound onSlopeClick() {
+        const { chart, hoverKey } = this
+        if (chart.addCountryMode === 'disabled' || hoverKey === undefined) {
+            console.log("hoverkey is undefined :( " + hoverKey)
+            return
+        } else {
+            console.log("hoverkey exists! " + hoverKey)
+        }
+
+        this.chart.data.toggleKey(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -132,7 +144,7 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth, innerBounds } = this
 
         return <g>
-            <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave}  />
+            <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave} onClick={this.onSlopeClick} />
             <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
         </g>
     }

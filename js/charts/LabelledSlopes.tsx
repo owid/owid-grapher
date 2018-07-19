@@ -117,7 +117,7 @@ export interface SlopeProps {
 class Slope extends React.Component<SlopeProps> {
     line: SVGElement
 
-    @computed get isInBackground() : Boolean {
+    @computed get isInBackground(): Boolean {
         const { isLayerMode, isHovered, isFocused } = this.props
 
         if (!isLayerMode)
@@ -163,6 +163,7 @@ export interface LabelledSlopesProps {
     hoverKeys: string[]
     onMouseOver: (slopeProps: SlopeProps) => void
     onMouseLeave: () => void
+    onClick: () => void
 }
 
 @observer
@@ -330,7 +331,6 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         return filter(this.slopeData, group => !!(group.isHovered || group.isFocused))
     }
 
-
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeProps[] {
         const { focusKeys, hoverKeys } = this
@@ -420,6 +420,11 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 }
             }
         })
+   }
+
+    @action.bound onClick() {
+        if (this.props.onClick)
+            this.props.onClick()
     }
 
     componentDidMount() {
@@ -464,7 +469,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
             <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
             <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
-            <g className="slopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave}>
+            <g className="slopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
                 {this.renderBackgroundGroups()}
                 {this.renderForegroundGroups()}
             </g>
