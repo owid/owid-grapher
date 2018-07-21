@@ -4,7 +4,8 @@
     "setup": "tsc",
     "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon --watch dist/src --inspect dist/src/admin/server.js\"",
     "lint": "tslint --project . -t verbose",
-    "build": "rm -rf dist && tsc && rm -rf grapher_admin/static/build && webpack -p --progress"
+    "build": "rm -rf dist && tsc && rm -rf grapher_admin/static/build && webpack -p --progress",
+    "test": "jest"
   },
   "dependencies": {
     "@types/bootstrap": "^3.3.36",
@@ -109,6 +110,7 @@
     "slugify": "^1.2.7",
     "string-pixel-width": "^1.4.0",
     "style-loader": "^0.20.3",
+    "supertest": "^3.1.0",
     "timeago.js": "^3.0.2",
     "topojson": "^3.0.2",
     "ts-loader": "^4.1.0",
@@ -127,5 +129,8 @@
     "webpack-dev-server": "^3.1.1",
     "webpack-manifest-plugin": "^2.0.0-rc.2",
     "webpack-parallel-uglify-plugin": "^1.1.0"
+  },
+  "devDependencies": {
+    "jest": "^23.4.1"
   }
 }
