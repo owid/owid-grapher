@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { sum, includes, max } from './Util'
+import { sum, includes, max, isString } from './Util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import TextWrap from './TextWrap'
@@ -35,7 +35,7 @@ export default class ScatterColorLegend {
 
         return props.scale.domain().map(value => {
             const color = props.scale(value)
-            if (props.colors.indexOf(color) === -1 || value === undefined)
+            if (props.colors.indexOf(color) === -1 || !isString(value))
                 return null
 
             const label = new TextWrap({ maxWidth: props.maxWidth, fontSize: fontSize, text: value })

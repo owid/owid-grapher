@@ -7,6 +7,7 @@ import ChartConfig from './ChartConfig'
 import LabelledSlopes, { SlopeProps } from './LabelledSlopes'
 import NoData from './NoData'
 import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
+import { isString } from 'util'
 
 @observer
 export default class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
@@ -130,8 +131,25 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
 
     // correction is to account for the space taken by the legend
     @computed get innerBounds() {
-        const { sidebarWidth } = this
-        return this.props.bounds.padRight(sidebarWidth + 20)
+        const { sidebarWidth, showLegend } = this
+
+        return showLegend ? this.props.bounds.padRight(sidebarWidth + 20) : this.props.bounds
+    }
+
+    // verify the validity of data used to show legend
+    // this is for backwards compatibility with charts that were added without legend
+    // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
+    @computed get showLegend(): boolean {
+        const { legendColors } = this
+        const { colorScale } = this.transform
+
+        return colorScale.domain().some(value => {
+            if (!isString(value)) {
+                return false
+            } else {
+                return legendColors.indexOf(colorScale(value)) > -1
+            }
+        })
     }
 
     render() {
@@ -141,11 +159,14 @@ export default class SlopeChart extends React.Component<{ bounds: Bounds, chart:
         const { bounds, chart } = this.props
         const { yAxis } = chart
         const { data } = this.transform
-        const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth, innerBounds } = this
+        const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth, innerBounds, showLegend } = this
 
         return <g>
             <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave} onClick={this.onSlopeClick} />
-            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
+            { showLegend
+                ? <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
+                : <div></div>
+            }
         </g>
     }
 }
