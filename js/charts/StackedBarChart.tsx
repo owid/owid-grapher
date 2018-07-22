@@ -283,7 +283,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { chart, axisBox, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
+        const { axisBox, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
         const { stackedData, xValues } = this.transform
         const { innerBounds } = axisBox
 
@@ -295,8 +295,8 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
             <line x1={innerBounds.left} y1={innerBounds.top} x2={innerBounds.left} y2={innerBounds.bottom} stroke="#ccc" />
 
             {xValues.map(x => {
-                const xPos = mapXValueToOffset.get(x)
-                return <text x={xPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="start" fontSize={this.barFontSize}>{x}</text>
+                const xPos = mapXValueToOffset.get(x) as number + barWidth/2
+                return <text x={xPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="middle" fontSize={this.barFontSize}>{x}</text>
             })}
 
             {stackedData.map(series => {
