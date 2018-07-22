@@ -249,7 +249,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const { axisBox, transform, barWidth, barSpacing } = this
 
         const xValueToOffset = new Map<number, number>()
-        let xOffset = axisBox.innerBounds.left + barWidth / 2
+        let xOffset = axisBox.innerBounds.left + barSpacing
 
         transform.xValues.forEach(x => {
             xValueToOffset.set(x, xOffset)
