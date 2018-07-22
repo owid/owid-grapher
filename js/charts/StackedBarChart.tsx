@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { includes, intersection, formatYear, guid, uniq } from './Util'
+import { includes, intersection, formatYear, guid, uniq, min, max, defaultTo } from './Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -85,6 +85,8 @@ export class BarRenderer extends React.Component<BarProps> {
 @observer
 export default class StackedBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base!: SVGGElement
+    readonly minBarWidth = 21
+    readonly minBarSpacing = 8
 
     // currently hovered legend color
     @observable hoverColor?: string
@@ -103,12 +105,6 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return 0.85*this.props.chart.baseFontSize
     }
 
-    // Account for the width of the legend
-    // @computed get legendWidth() {
-    //     const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
-    //     return Bounds.forText(longestLabel, { fontSize: this.legendFontSize }).width
-    // }
-
     // Account for the width of the little value labels at the end of bars
     @computed get valueFontSize() {
         return 0.75*this.props.chart.baseFontSize
@@ -120,12 +116,14 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
     @computed get barWidth() {
         const { transform, axisBox } = this
-        return 0.8 * axisBox.innerBounds.width / transform.xValues.length
+
+        const actualWidth = 0.8 * axisBox.innerBounds.width / transform.xValues.length
+        return max([actualWidth, this.minBarWidth]) || this.minBarWidth
     }
 
     @computed get barSpacing() {
         const { transform, axisBox } = this
-        return (axisBox.innerBounds.width / transform.xValues.length) - this.barWidth
+        return max([(axisBox.innerBounds.width / transform.xValues.length) - this.barWidth, this.minBarSpacing]) || this.minBarSpacing
     }
 
     @computed get barFontSize() {
@@ -136,6 +134,19 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const {bounds, transform, chart, sidebarWidth } = this
         const {xAxisSpec, yAxisSpec} = transform
         return new AxisBox({bounds: bounds.padRight(sidebarWidth + 20), fontSize: chart.baseFontSize, xAxis: xAxisSpec, yAxis: yAxisSpec})
+    }
+
+    @computed get fittedYDomain(): [number, number] {
+        const { mapXValueToOffset, transform } = this
+
+        const lastVisibleSeries = transform.stackedData[transform.stackedData.length - 1]
+        const numFittedValues = mapXValueToOffset.size
+
+        const yValues = lastVisibleSeries.values.slice(0, numFittedValues).map(d => d.yOffset + d.y)
+        return [
+            0,
+            defaultTo(max(yValues), 100)
+        ]
     }
 
     @computed get yRange() {
@@ -157,11 +168,13 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
     }
 
     @computed get yScale() {
-        const { yDomainDefault, yTickFormat } = this.transform
-        const yAxis = this.chart.yAxis.toSpec({ defaultDomain: yDomainDefault }) // XXX
+        const { yTickFormat } = this.transform
+        const { fittedYDomain, chart } = this
+
+        const yAxis = chart.yAxis.toSpec({ defaultDomain: fittedYDomain })
 
         return new AxisScale(yAxis).extend({
-            domain: yDomainDefault,
+            domain: fittedYDomain,
             range: this.yRange,
             tickFormat: yTickFormat
         })
@@ -251,11 +264,13 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const xValueToOffset = new Map<number, number>()
         let xOffset = axisBox.innerBounds.left + barSpacing
 
-        transform.xValues.forEach(x => {
-            xValueToOffset.set(x, xOffset)
-            xOffset += barWidth + barSpacing
-        })
+        for (let i=0; i < transform.xValues.length; i++) {
+            // if the bar does not fit within the bounds of the chart, break
+            if (xOffset + barWidth > axisBox.innerBounds.right) break
 
+            xValueToOffset.set(transform.xValues[i], xOffset)
+            xOffset += barWidth + barSpacing
+        }
         return xValueToOffset
     }
 
@@ -283,33 +298,46 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { axisBox, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
+        const { axisBox, renderUid, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
         const { stackedData, xValues } = this.transform
         const { innerBounds } = axisBox
 
         return <g className="StackedBarChart">
+            <defs>
+                <clipPath id={`boundsClip-${renderUid}`}>
+                    <rect x={axisBox.innerBounds.x} y={0} width={innerBounds.width} height={bounds.height*2}></rect>
+                </clipPath>
+            </defs>
+
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
             <VerticalAxisView bounds={bounds} axis={yAxis} />
 
             <line x1={innerBounds.left} y1={innerBounds.bottom} x2={innerBounds.right} y2={innerBounds.bottom} stroke="#ccc" />
             <line x1={innerBounds.left} y1={innerBounds.top} x2={innerBounds.left} y2={innerBounds.bottom} stroke="#ccc" />
 
-            {xValues.map(x => {
-                const xPos = mapXValueToOffset.get(x) as number + barWidth/2
-                return <text x={xPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="middle" fontSize={this.barFontSize}>{x}</text>
-            })}
+            <g clipPath={`url(#boundsClip-${renderUid})`}>
+                {xValues.map(x => {
+                    const xPos = mapXValueToOffset.get(x) as number
 
-            {stackedData.map(series => {
-                const isHovered: boolean = includes(this.hoverKeys, series.key)
-                const opacity = isHovered ? 1 : 0.75
+                    const labelXPos = xPos + barWidth/2 // to position the label at the middle of the bar
+                    return <text x={labelXPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="middle" fontSize={this.barFontSize}>{x}</text>
+                })}
+            </g>
 
-                const seriesRenderers = []
-                seriesRenderers.push(series.values.map(bar => {
-                    const xPos = mapXValueToOffset.get(bar.x)
-                    return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={opacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
-                }))
-                return seriesRenderers
-            })}
+            <g clipPath={`url(#boundsClip-${renderUid})`}>
+                {stackedData.map(series => {
+                    const isHovered: boolean = includes(this.hoverKeys, series.key)
+                    const opacity = isHovered ? 1 : 0.75
+
+                    const seriesRenderers = []
+                    seriesRenderers.push(series.values.map(bar => {
+                        const xPos = mapXValueToOffset.get(bar.x) as number
+
+                        return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={opacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
+                    }))
+                    return seriesRenderers
+                })}
+            </g>
 
             <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} activeColors={activeColors} />
             {tooltip}
