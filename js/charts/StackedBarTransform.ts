@@ -107,9 +107,11 @@ export default class StackedBarTransform implements IChartTransform {
         return colorScale
     }
 
-    // @computed get yFormatTooltip(): (d: number) => string {
-    //     return !this.yDimension ? this.yAxis.tickFormat : this.yDimension.formatValueLong
-    // }
+    @computed get yFormatTooltip(): (d: number) => string {
+        const { primaryDimension, yTickFormat } = this
+
+        return primaryDimension ? primaryDimension.formatValueLong : yTickFormat
+    }
 
     // @computed get xFormatTooltip(): (d: number) => string {
     //     return !this.xDimension ? this.xAxis.tickFormat : this.xDimension.formatValueLong
@@ -208,7 +210,7 @@ export default class StackedBarTransform implements IChartTransform {
 
     @computed get groupedData(): StackedBarSeries[] {
         const { chart, timelineYears } = this
-        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
+        const { filledDimensions, selectedKeysByKey } = chart.data
 
         let groupedData: StackedBarSeries[] = []
 

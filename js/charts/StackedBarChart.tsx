@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { includes, intersection, sortBy, some, min, max, guid, uniq } from './Util'
+import { includes, intersection, formatYear, guid, uniq } from './Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
@@ -189,25 +189,12 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return hoverKeys
     }
 
-    @computed get focusKeys(): string[] {
-        return this.chart.data.selectedKeys
-    }
-
-    // Colors on the legend for which every matching group is focused
-    @computed get focusColors(): string[] {
-        const {legendColors, transform, chart} = this
-        return legendColors.filter(color => {
-            const matchingKeys = transform.stackedData.filter(g => g.color === color).map(g => g.key)
-            return intersection(matchingKeys, chart.data.selectedKeys).length === matchingKeys.length
-        })
-    }
-
     @computed get activeColors(): string[] {
-        const {hoverKeys, focusKeys, transform} = this
-        const activeKeys = hoverKeys.length > 0 ? hoverKeys : focusKeys
+        const {hoverKeys, transform} = this
+        const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
 
         let colors = []
-        if (activeKeys.length === 0) // No hover or focus means they're all active by default
+        if (activeKeys.length === 0) // No hover means they're all active by default
             colors = uniq(transform.stackedData.map(g => g.color))
         else
             colors = uniq(transform.stackedData.filter(g => activeKeys.indexOf(g.key) !== -1).map(g => g.color))
@@ -244,14 +231,16 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (xPos === undefined) return
 
         const yPos = yScale.place(hoverBar.yOffset + hoverBar.y)
+        const { yFormatTooltip } = this.transform
 
         console.log(hoverBar.label + ", " + hoverBar.x + " is on tooltip")
 
         return <Tooltip x={xPos + barWidth} y={yPos} style={{ textAlign: "center" }}>
             <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{hoverBar.label}</h3>
-            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em", textAlign: "left" }}>
-                <span>X Axis: {hoverBar.x}</span><br />
-                <span>Y Axis: {barValueFormat(hoverBar)}</span>
+            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
+                <span>{yFormatTooltip(hoverBar.y)}</span><br />
+                in<br />
+                <span>{formatYear(hoverBar.x)}</span>
             </p>
         </Tooltip>
     }
@@ -294,7 +283,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { chart, axisBox, bounds, yScale, legend, sidebarWidth, focusColors, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
+        const { chart, axisBox, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
         const { stackedData, xValues } = this.transform
         const { innerBounds } = axisBox
 
@@ -311,9 +300,8 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
             })}
 
             {stackedData.map(series => {
-                const isFocused: boolean = includes(this.focusKeys, series.key)
                 const isHovered: boolean = includes(this.hoverKeys, series.key)
-                const opacity = isHovered ? 1 : (isFocused ? 0.75 : 0.25)
+                const opacity = isHovered ? 1 : 0.75
 
                 const seriesRenderers = []
                 seriesRenderers.push(series.values.map(bar => {
@@ -323,7 +311,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
                 return seriesRenderers
             })}
 
-            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
+            <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} activeColors={activeColors} />
             {tooltip}
         </g>
     }
