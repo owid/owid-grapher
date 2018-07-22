@@ -14,7 +14,7 @@ export default class EditorFeatures {
     }
 
     @computed get customYAxis() {
-        return !this.chart.isStackedArea && !this.chart.isDiscreteBar
+        return !this.chart.isStackedArea && !this.chart.isDiscreteBar && !this.chart.isStackedBar
     }
 
     @computed get customXAxis() {
