@@ -229,7 +229,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         })
     }
 
-    @computed get sidebarMaxWidth() { return this.bounds.width * 0.5 }
+    @computed get sidebarMaxWidth() { return this.bounds.width / 5 }
     @computed get sidebarMinWidth() { return 100 }
     @computed.struct get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legend } = this
@@ -317,11 +317,12 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {xValues.map(x => {
-                    const xPos = mapXValueToOffset.get(x) as number
+                    const xPos = mapXValueToOffset.get(x)
+                    if (xPos === undefined) return null
 
                     const labelXPos = xPos + barWidth/2 // to position the label at the middle of the bar
                     return <text x={labelXPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="middle" fontSize={this.barFontSize}>{x}</text>
-                })}
+                }).filter(Boolean)}
             </g>
 
             <g clipPath={`url(#boundsClip-${renderUid})`}>
@@ -332,9 +333,10 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
                     const seriesRenderers = []
                     seriesRenderers.push(series.values.map(bar => {
                         const xPos = mapXValueToOffset.get(bar.x) as number
+                        if (xPos === undefined) return null
 
                         return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={opacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
-                    }))
+                    }).filter(Boolean))
                     return seriesRenderers
                 })}
             </g>

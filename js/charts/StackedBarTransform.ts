@@ -263,7 +263,7 @@ export default class StackedBarTransform implements IChartTransform {
                 const expectedYear = timelineYears[i]
 
                 if (value === undefined || value.x > timelineYears[i]) {
-                    console.log("series " + series.key + " needs fake bar for " + expectedYear)
+                    // console.log("series " + series.key + " needs fake bar for " + expectedYear)
 
                     const fakeY = 0
                     series.values.splice(i, 0, { x: expectedYear, y: fakeY, yOffset: 0, isFake: true, label: series.label })
