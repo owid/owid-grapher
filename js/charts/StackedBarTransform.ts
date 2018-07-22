@@ -144,15 +144,20 @@ export default class StackedBarTransform implements IChartTransform {
         return find(this.chart.data.filledDimensions, d => d.property === 'y')
     }
 
+    @computed get yTickFormat() {
+        const { yDimensionFirst } = this
+
+        return yDimensionFirst ? yDimensionFirst.formatValueShort : identity
+    }
+
     @computed get yAxisSpec(): AxisSpec {
-        const { chart, yDomainDefault, yDimensionFirst } = this
-        const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : identity
+        const { chart, yDomainDefault, yDimensionFirst, yTickFormat } = this
 
         return extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
             {
                 domain: [yDomainDefault[0], yDomainDefault[1]], // Stacked chart must have its own y domain
-                tickFormat: tickFormat
+                tickFormat: yTickFormat
             }
         ) as AxisSpec
     }

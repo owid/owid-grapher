@@ -157,12 +157,13 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
     }
 
     @computed get yScale() {
-        const { yDomainDefault } = this.transform
+        const { yDomainDefault, yTickFormat } = this.transform
         const yAxis = this.chart.yAxis.toSpec({ defaultDomain: yDomainDefault }) // XXX
 
         return new AxisScale(yAxis).extend({
             domain: yDomainDefault,
-            range: this.yRange
+            range: this.yRange,
+            tickFormat: yTickFormat
         })
     }
 
