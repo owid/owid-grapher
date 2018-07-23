@@ -327,15 +327,16 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {stackedData.map(series => {
-                    const isHovered: boolean = includes(this.hoverKeys, series.key)
-                    const opacity = isHovered ? 1 : 0.75
+                    const isLegendHovered: boolean = includes(this.hoverKeys, series.key)
+                    const opacity = isLegendHovered || this.hoverKeys.length === 0 ? 0.8 : 0.2
 
                     const seriesRenderers = []
                     seriesRenderers.push(series.values.map(bar => {
                         const xPos = mapXValueToOffset.get(bar.x) as number
                         if (xPos === undefined) return null
+                        const barOpacity = bar === this.hoverBar ? 1 : opacity
 
-                        return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={opacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
+                        return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
                     }).filter(Boolean))
                     return seriesRenderers
                 })}
