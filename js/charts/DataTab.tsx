@@ -1,17 +1,9 @@
-import { toString, includes, flatten, uniq, sortBy, extend } from './Util'
+import { toString, includes, flatten, uniq, sortBy, extend, csvEscape } from './Util'
 import Bounds from './Bounds'
 import * as React from 'react'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
-
-function csvEscape(value: any): string {
-    const valueStr = toString(value)
-    if (includes(valueStr, ","))
-        return `"${value.replace(/\"/g, "\"\"")}"`
-    else
-        return value
-}
 
 // Client-side data export from chart
 @observer

@@ -289,3 +289,12 @@ export function isTouchDevice() {
 export interface Json {
     [x: string]: any
 }
+
+// Escape a function for storage in a csv cell
+export function csvEscape(value: any): string {
+    const valueStr = toString(value)
+    if (includes(valueStr, ","))
+        return `"${value.replace(/\"/g, "\"\"")}"`
+    else
+        return value
+}
