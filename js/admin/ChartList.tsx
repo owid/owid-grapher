@@ -66,7 +66,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
                 <span style={{ color: 'red' }}>Draft: </span> {searchHighlight ? searchHighlight(chart.title) : chart.title}
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
-            <td>{chart.internalNotes}</td>
+            <td>{searchHighlight ? searchHighlight(chart.internalNotes) : chart.internalNotes   }</td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.publishedBy}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
             <td>

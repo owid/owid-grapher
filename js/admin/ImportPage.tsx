@@ -77,7 +77,7 @@ class DatasetTransform {
         // Check we actually have enough data
         if (rows[0].length < 3) {
             validation.results.push({
-                class: 'error',
+                class: 'danger',
                 message: `No variables detected. CSV should have at least 3 columns.`
             })
         }
@@ -93,7 +93,7 @@ class DatasetTransform {
 
         if (invalidLines.length) {
             validation.results.push({
-                class: 'error',
+                class: 'danger',
                 message: `Invalid or missing entity/year on lines: ${invalidLines.join(', ')}`
             })
         }
@@ -112,7 +112,7 @@ class DatasetTransform {
             const count = uniqCheck[key]
             if (count > 1) {
                 validation.results.push({
-                    class: 'error',
+                    class: 'danger',
                     message: `Duplicates detected: ${count} instances of ${key}.`
                 })
             }
