@@ -10,7 +10,14 @@ async function dataExport() {
 
     const tmpFile = "/tmp/owid_chartdata.sql"
 
-    const variableIds = (await db.query("SELECT DISTINCT variableId FROM chart_dimensions")).map((row: any) => row.variableId)
+    const variablesToExportQuery = `
+        SELECT DISTINCT cd.variableId FROM chart_dimensions cd
+        JOIN variables v ON cd.variableId = v.id
+        JOIN datasets d ON v.datasetId = d.id
+        WHERE d.isPrivate IS FALSE
+    `
+
+    const variableIds = (await db.query(variablesToExportQuery)).map((row: any) => row.variableId)
 
     console.log(`Exporting data for ${variableIds.length} variables to ${tmpFile}`)
 

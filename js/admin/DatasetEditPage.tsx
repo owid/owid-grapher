@@ -8,7 +8,7 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { BindString } from './Forms'
+import { BindString, Toggle } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import VariableList, { VariableListItem } from './VariableList'
 
@@ -19,6 +19,7 @@ interface DatasetPageData {
     namespace: string
     updatedAt: string
     subcategoryId: number
+    isPrivate: boolean
 
     availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
     variables: VariableListItem[]
@@ -30,6 +31,7 @@ class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
     @observable subcategoryId: number = 0
+    @observable isPrivate: boolean = false
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
@@ -127,6 +129,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
                     <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
+                    <Toggle label="Is private" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
                     {!isBulkImport && <input type="submit" className="btn btn-success" value="Update dataset"/>}
                 </form>
             </section>
