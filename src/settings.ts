@@ -21,6 +21,7 @@ interface Settings {
     BUILD_ASSETS_URL: string
     BASE_DIR: string
     SECRET_KEY: string
+    NODE_SERVER_HOST: string
     NODE_SERVER_PORT: number
     NODE_BASE_URL: string
     SLACK_ERRORS_WEBHOOK_URL: string
@@ -47,6 +48,7 @@ env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? 
 env.BASE_DIR = path.join(__dirname, "../../")
 env.BUILD_DIR = path.join(env.BASE_DIR, "public")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
+env.NODE_SERVER_HOST = process.env.NODE_SERVER_HOST || "localhost"
 env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030
 env.NODE_BASE_URL = env.NODE_BASE_URL || `http://localhost:${env.NODE_SERVER_PORT}`
 

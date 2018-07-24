@@ -1,6 +1,6 @@
 
 // This import has side-effects to do with React import binding, keep it up here
-import {NODE_SERVER_PORT, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
+import {NODE_SERVER_PORT, NODE_SERVER_HOST, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
 import app from './app'
 const errorToSlack = require('express-error-slack')
@@ -11,8 +11,8 @@ import * as wpdb from '../articles/wpdb'
 db.connect()
 wpdb.connect()
 
-app.listen(NODE_SERVER_PORT, "localhost", () => {
-    console.log(`Express started on localhost:${NODE_SERVER_PORT}`)
+app.listen(NODE_SERVER_PORT, NODE_SERVER_HOST, () => {
+    console.log(`Express started on ${NODE_SERVER_HOST}:${NODE_SERVER_PORT}`)
 })
 
 // Send errors to slack
