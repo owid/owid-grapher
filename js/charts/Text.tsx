@@ -3,7 +3,7 @@ import Bounds from './Bounds'
 
 // The default SVG text behavior is to put the text on *top* of the specified y coordinate
 // Nothing else we do works like that though, so this wraps it to use the same spatial behavior
-// as other componets
+// as other components
 
 interface TextProps extends React.SVGProps<SVGTextElement> {
     x: number,

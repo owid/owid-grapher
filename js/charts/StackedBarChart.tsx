@@ -1,7 +1,10 @@
 import * as React from 'react'
-import { includes, intersection, formatYear, guid, uniq, min, max, defaultTo } from './Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
+import { select } from 'd3-selection'
+import {easeLinear} from 'd3-ease'
+
+import { includes, intersection, formatYear, guid, uniq, min, max, defaultTo, makeSafeForCSS } from './Util'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
 import AxisBox, { AxisGridLines } from './AxisBox'
@@ -34,7 +37,6 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     yScale: AxisScale
     xOffset: number
     barWidth: number
-    barSpacing: number
     onBarMouseOver: (bar: StackedBarValue) => void
     onBarMouseLeave: () => void
 }
@@ -77,9 +79,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
         const { bar, color, opacity, xOffset, yScale, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 
-        return <g className="Bar">
-            <rect x={xOffset} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
-        </g>
+        return <rect x={xOffset} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
     }
 }
 
@@ -295,6 +295,19 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         this.hoverBar = undefined
     }
 
+    componentDidMount() {
+        // Fancy intro animation
+
+        const base = select(this.base)
+        base.selectAll("clipPath > rect")
+            .attr("width", 0)
+            .transition()
+                .duration(800)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+    }
+
     render() {
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
@@ -306,7 +319,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return <g className="StackedBarChart">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
-                    <rect x={innerBounds.x} y={0} width={innerBounds.width} height={bounds.height*2}></rect>
+                    <rect x={innerBounds.x} y={innerBounds.y} width={innerBounds.width} height={innerBounds.height}></rect>
                 </clipPath>
             </defs>
 
@@ -325,15 +338,14 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
                     const isLegendHovered: boolean = includes(this.hoverKeys, series.key)
                     const opacity = isLegendHovered || this.hoverKeys.length === 0 ? 0.8 : 0.2
 
-                    const seriesRenderers = []
-                    seriesRenderers.push(series.values.map(bar => {
-                        const xPos = mapXValueToOffset.get(bar.x)
-                        if (xPos === undefined) return null
-                        const barOpacity = bar === this.hoverBar ? 1 : opacity
+                    return <g key={series.key} className={makeSafeForCSS(series.key)+'-segments'}>
+                        {series.values.map(bar => {
+                            const xPos = mapXValueToOffset.get(bar.x) as number
+                            const barOpacity = bar === this.hoverBar ? 1 : opacity
 
-                        return <StackedBarSegment bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
-                    }).filter(Boolean))
-                    return seriesRenderers
+                            return <StackedBarSegment bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} />
+                        })}
+                    </g>
                 })}
             </g>
 
