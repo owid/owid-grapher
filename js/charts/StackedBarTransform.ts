@@ -98,7 +98,8 @@ export default class StackedBarTransform implements IChartTransform {
 
         const colors: string[] = []
         const labels: string[] = []
-        stackedData.forEach((series, i) => {
+        // Reverse to keep legend consistent with the vertical ordering of bar stack
+        stackedData.slice().reverse().forEach((series, i) => {
             colors.push(series.color)
             labels.push(series.label)
         })

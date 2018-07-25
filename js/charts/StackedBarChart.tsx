@@ -246,7 +246,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const yPos = yScale.place(hoverBar.yOffset + hoverBar.y)
         const { yFormatTooltip } = this.transform
 
-        console.log(hoverBar.label + ", " + hoverBar.x + " is on tooltip")
+//        console.log(hoverBar.label + ", " + hoverBar.x + " is on tooltip")
 
         return <Tooltip x={xPos + barWidth} y={yPos} style={{ textAlign: "center" }}>
             <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{hoverBar.label}</h3>
