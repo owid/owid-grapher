@@ -28,7 +28,8 @@ function showChartType(chart: ChartListItem) {
         ScatterPlot: "Scatter Plot",
         StackedArea: "Stacked Area",
         DiscreteBar: "Discrete Bar",
-        SlopeChart: "Slope Chart"
+        SlopeChart: "Slope Chart",
+        StackedBar: "Stacked Bar"
     }
 
     const displayType = displayNames[chart.type] || "Unknown"
