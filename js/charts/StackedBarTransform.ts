@@ -154,7 +154,7 @@ export default class StackedBarTransform implements IChartTransform {
     }
 
     @computed get yAxisSpec(): AxisSpec {
-        const { chart, yDomainDefault, yDimensionFirst, yTickFormat } = this
+        const { chart, yDomainDefault, yTickFormat } = this
 
         return extend(
             chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),

@@ -168,8 +168,9 @@ interface AxisGridLinesProps {
 @observer
 export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     render() {
-        const { orient, bounds } = this.props
+       const { orient, bounds } = this.props
         const scale = this.props.scale.extend({ range: orient === 'left' ? bounds.yRange() : bounds.xRange() })
+
 
         return <g className="AxisGridLines">
             {scale.getTickValues().map(v => {

@@ -4,7 +4,7 @@ import { computed, action, observable, autorun, runInAction, IReactionDisposer }
 import { observer } from 'mobx-react'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import AxisBox from './AxisBox'
+import AxisBox, { AxisGridLines } from './AxisBox'
 import AxisScale from './AxisScale'
 import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
 import NoData from './NoData'
@@ -26,12 +26,12 @@ export interface StackedBarSeries {
     color: string
 }
 
-interface BarProps extends React.SVGAttributes<SVGGElement> {
+interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedBarValue
     color: string
     opacity: number
     yScale: AxisScale
-    xOffset: number|undefined
+    xOffset: number
     barWidth: number
     barSpacing: number
     onBarMouseOver: (bar: StackedBarValue) => void
@@ -39,7 +39,7 @@ interface BarProps extends React.SVGAttributes<SVGGElement> {
 }
 
 @observer
-export class BarRenderer extends React.Component<BarProps> {
+class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     base!: SVGGElement
     @observable mouseOver: boolean = false
 
@@ -105,11 +105,6 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return 0.85*this.props.chart.baseFontSize
     }
 
-    // Account for the width of the little value labels at the end of bars
-    @computed get valueFontSize() {
-        return 0.75*this.props.chart.baseFontSize
-    }
-
     @computed get barValueFormat() {
         return this.chart.stackedBar.barValueFormat
     }
@@ -133,51 +128,16 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
     @computed get axisBox(): AxisBox {
         const {bounds, transform, chart, sidebarWidth } = this
         const {xAxisSpec, yAxisSpec} = transform
-        return new AxisBox({bounds: bounds.padRight(sidebarWidth + 20), fontSize: chart.baseFontSize, xAxis: xAxisSpec, yAxis: yAxisSpec})
-    }
-
-    @computed get fittedYDomain(): [number, number] {
-        const { mapXValueToOffset, transform } = this
-
-        const lastVisibleSeries = transform.stackedData[transform.stackedData.length - 1]
-        const numFittedValues = mapXValueToOffset.size
-
-        const yValues = lastVisibleSeries.values.slice(0, numFittedValues).map(d => d.yOffset + d.y)
-        return [
-            0,
-            defaultTo(max(yValues), 100)
-        ]
-    }
-
-    @computed get yRange() {
-        const { axisBox } = this
-
-        return [axisBox.innerBounds.bottom, axisBox.innerBounds.top]
-    }
-
-    @computed get xScale() {
-        const { xDomainDefault } = this.transform
-        const { innerBounds } = this.axisBox
-
-        const xAxis = this.chart.yAxis.toSpec({ defaultDomain: xDomainDefault }) // XXX
-
-        return new AxisScale(xAxis).extend({
-            domain: xDomainDefault,
-            range: [innerBounds.left, innerBounds.right]
+        return new AxisBox({
+            bounds: bounds.padRight(sidebarWidth + 20), 
+            fontSize: chart.baseFontSize, 
+            xAxis: xAxisSpec, 
+            yAxis: yAxisSpec
         })
     }
 
     @computed get yScale() {
-        const { yTickFormat } = this.transform
-        const { fittedYDomain, chart } = this
-
-        const yAxis = chart.yAxis.toSpec({ defaultDomain: fittedYDomain })
-
-        return new AxisScale(yAxis).extend({
-            domain: fittedYDomain,
-            range: this.yRange,
-            tickFormat: yTickFormat
-        })
+        return this.axisBox.yScale
     }
 
     @computed get yAxis() {
@@ -231,13 +191,13 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
     @computed get sidebarMaxWidth() { return this.bounds.width / 5 }
     @computed get sidebarMinWidth() { return 100 }
-    @computed.struct get sidebarWidth() {
+    @computed get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legend } = this
         return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
     }
 
     @computed get tooltip() {
-        const { hoverBar, yScale, mapXValueToOffset, barWidth, barValueFormat } = this
+        const { hoverBar, yScale, mapXValueToOffset, barWidth } = this
         if (hoverBar === undefined) return
 
         const xPos = mapXValueToOffset.get(hoverBar.x)
@@ -311,9 +271,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
             <VerticalAxisView bounds={bounds} axis={yAxis} />
-
-            <line x1={innerBounds.left} y1={innerBounds.bottom} x2={innerBounds.right} y2={innerBounds.bottom} stroke="#ccc" />
-            <line x1={innerBounds.left} y1={innerBounds.top} x2={innerBounds.left} y2={innerBounds.bottom} stroke="#ccc" />
+            <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />
 
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {xValues.map(x => {
@@ -332,11 +290,11 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
 
                     const seriesRenderers = []
                     seriesRenderers.push(series.values.map(bar => {
-                        const xPos = mapXValueToOffset.get(bar.x) as number
+                        const xPos = mapXValueToOffset.get(bar.x)
                         if (xPos === undefined) return null
                         const barOpacity = bar === this.hoverBar ? 1 : opacity
 
-                        return <BarRenderer bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
+                        return <StackedBarSegment bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} barSpacing={barSpacing} />
                     }).filter(Boolean))
                     return seriesRenderers
                 })}
