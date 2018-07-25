@@ -8,6 +8,7 @@ import AxisBox, { AxisGridLines } from './AxisBox'
 import AxisScale from './AxisScale'
 import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
 import NoData from './NoData'
+import Text from './Text'
 import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
 import Tooltip from './Tooltip'
 
@@ -85,8 +86,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export default class StackedBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base!: SVGGElement
-    readonly minBarWidth = 21
-    readonly minBarSpacing = 8
+    readonly minBarSpacing = 4
 
     // currently hovered legend color
     @observable hoverColor?: string
@@ -101,8 +101,8 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return this.chart.stackedBar.failMessage
     }
 
-    @computed get legendFontSize() {
-        return 0.85*this.props.chart.baseFontSize
+    @computed get tickFontSize() {
+        return 0.9*this.props.chart.baseFontSize
     }
 
     @computed get barValueFormat() {
@@ -112,14 +112,13 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
     @computed get barWidth() {
         const { transform, axisBox } = this
 
-        const actualWidth = 0.8 * axisBox.innerBounds.width / transform.xValues.length
-        return max([actualWidth, this.minBarWidth]) || this.minBarWidth
+        return 0.8 * axisBox.innerBounds.width / transform.xValues.length
     }
 
     @computed get barSpacing() {
-        const { transform, axisBox } = this
-        return max([(axisBox.innerBounds.width / transform.xValues.length) - this.barWidth, this.minBarSpacing]) || this.minBarSpacing
+        return (this.axisBox.innerBounds.width / this.transform.xValues.length) - this.barWidth
     }
+
 
     @computed get barFontSize() {
         return 0.75*this.props.chart.baseFontSize
@@ -206,8 +205,6 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const yPos = yScale.place(hoverBar.yOffset + hoverBar.y)
         const { yFormatTooltip } = this.transform
 
-//        console.log(hoverBar.label + ", " + hoverBar.x + " is on tooltip")
-
         return <Tooltip x={xPos + barWidth} y={yPos} style={{ textAlign: "center" }}>
             <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{hoverBar.label}</h3>
             <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
@@ -225,13 +222,57 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         let xOffset = axisBox.innerBounds.left + barSpacing
 
         for (let i=0; i < transform.xValues.length; i++) {
-            // if the bar does not fit within the bounds of the chart, break
-            if (xOffset + barWidth > axisBox.innerBounds.right) break
-
             xValueToOffset.set(transform.xValues[i], xOffset)
             xOffset += barWidth + barSpacing
         }
         return xValueToOffset
+    }
+
+    // Place ticks centered beneath the bars, before doing overlap detection
+    @computed get tickPlacements() {
+        const {mapXValueToOffset, barWidth, axisBox} = this
+        const {xValues} = this.transform
+        const {xScale} = axisBox
+
+        return xValues.map(x => {
+            const text = xScale.tickFormat(x)
+            const xPos = mapXValueToOffset.get(x) as number
+
+            const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
+            return {
+                text: text,
+                bounds: bounds.extend({ x: xPos + barWidth/2 - bounds.width/2, y: axisBox.innerBounds.bottom+5 }),
+                isHidden: false
+            }
+        })
+    }
+
+    @computed get ticks() {
+        const { tickPlacements, axisBox } = this
+
+        for (let i = 0; i < tickPlacements.length; i++) {
+            for (let j = 1; j < tickPlacements.length; j++) {
+                const t1 = tickPlacements[i], t2 = tickPlacements[j]
+
+                /*if (t1.bounds.left < axisBox.innerBounds.left) {
+                    t1.isHidden = true
+                }
+
+                if (t2.bounds.right > axisBox.innerBounds.right) {
+                    t2.isHidden = true
+                }*/
+
+                if (t1 === t2 || t1.isHidden || t2.isHidden) continue
+
+                if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
+                    if (i === 0) t2.isHidden = true
+                    else if (j === tickPlacements.length - 1) t1.isHidden = true
+                    else t2.isHidden = true
+                }
+            }
+        }
+
+        return tickPlacements.filter(t => !t.isHidden)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -258,14 +299,14 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { axisBox, renderUid, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset } = this
+        const { axisBox, renderUid, bounds, yScale, legend, sidebarWidth, activeColors, tooltip, yAxis, barWidth, barSpacing, mapXValueToOffset, ticks } = this
         const { stackedData, xValues } = this.transform
         const { innerBounds } = axisBox
 
         return <g className="StackedBarChart">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
-                    <rect x={axisBox.innerBounds.x} y={0} width={innerBounds.width} height={bounds.height*2}></rect>
+                    <rect x={innerBounds.x} y={0} width={innerBounds.width} height={bounds.height*2}></rect>
                 </clipPath>
             </defs>
 
@@ -273,14 +314,10 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
             <VerticalAxisView bounds={bounds} axis={yAxis} />
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />
 
-            <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {xValues.map(x => {
-                    const xPos = mapXValueToOffset.get(x)
-                    if (xPos === undefined) return null
-
-                    const labelXPos = xPos + barWidth/2 // to position the label at the middle of the bar
-                    return <text x={labelXPos} y={bounds.bottom} fill="#666" dominant-baseline="middle" textAnchor="middle" fontSize={this.barFontSize}>{x}</text>
-                }).filter(Boolean)}
+            <g>
+                {ticks.map(tick => {
+                    return <Text x={tick.bounds.x} y={tick.bounds.y} fill="#666" fontSize={this.tickFontSize}>{tick.text}</Text>
+                })}
             </g>
 
             <g clipPath={`url(#boundsClip-${renderUid})`}>
