@@ -12,7 +12,7 @@ import * as React from 'react'
 import { scaleLinear, scaleLog, scaleOrdinal, ScaleLinear, ScaleLogarithmic, ScaleOrdinal } from 'd3-scale'
 import { extent } from 'd3-array'
 import { select } from 'd3-selection'
-import { every, uniq, first, sortBy, extend, max, isEmpty, throttle } from './Util'
+import { every, uniq, first, sortBy, extend, max, isEmpty, throttle, intersection, includes, filter } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 
@@ -91,6 +91,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 
 export interface SlopeProps {
     key: string
+    isLayerMode: boolean
     x1: number
     y1: number
     x2: number
@@ -107,6 +108,7 @@ export interface SlopeProps {
     leftLabel: TextWrap
     rightLabel: TextWrap
     isFocused: boolean
+    isHovered: boolean
     leftValueWidth: number
     rightValueWidth: number
 }
@@ -115,23 +117,35 @@ export interface SlopeProps {
 class Slope extends React.Component<SlopeProps> {
     line: SVGElement
 
+    @computed get isInBackground(): Boolean {
+        const { isLayerMode, isHovered, isFocused } = this.props
+
+        if (!isLayerMode)
+            return false
+
+        return !(isHovered || isFocused)
+    }
+
     render() {
-        const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused } = this.props
-        const lineColor = color //'#89C9CF'
-        const labelColor = '#333'
-        const opacity = isFocused ? 1 : 0.5
+        const { key, x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused, isHovered } = this.props
+        const { isInBackground } = this
+
+        const lineColor = isInBackground ? '#e2e2e2' : color //'#89C9CF'
+        const labelColor = isInBackground ? '#aaa' : '#333'
+        const opacity = isHovered ? 1 : (isFocused ? 0.7 : 0.5)
+        const lineStrokeWidth = isHovered ? size * 2 : (isFocused ? 1.5 * size : size)
 
         const leftValueLabelBounds = Bounds.forText(leftValueStr, { fontSize: labelFontSize })
         const rightValueLabelBounds = Bounds.forText(rightValueStr, { fontSize: labelFontSize })
 
         return <g className="slope">
-            {hasLeftLabel && leftLabel.render(leftLabelBounds.x + leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: isFocused ? 'bold' : undefined })}
-            {hasLeftLabel && <Text x={x1 - 8} y={y1 - leftValueLabelBounds.height / 2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused && 'bold'}>{leftValueStr}</Text>}
-            <circle cx={x1} cy={y1} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity} />
-            <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={isFocused ? 2 * size : size} opacity={opacity} />
-            <circle cx={x2} cy={y2} r={isFocused ? 4 : 2} fill={lineColor} opacity={opacity} />
-            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={isFocused && 'bold'}>{rightValueStr}</Text>}
-            {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: 'labelColor', fontWeight: isFocused ? 'bold' : undefined })}
+            {hasLeftLabel && leftLabel.render(leftLabelBounds.x + leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
+            {hasLeftLabel && <Text x={x1 - 8} y={y1 - leftValueLabelBounds.height / 2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{leftValueStr}</Text>}
+            <circle cx={x1} cy={y1} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
+            <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={lineStrokeWidth} opacity={opacity} />
+            <circle cx={x2} cy={y2} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
+            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{rightValueStr}</Text>}
+            {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
         </g>
     }
 }
@@ -145,14 +159,17 @@ export interface LabelledSlopesProps {
     yScaleTypeOptions: ScaleType[]
     onScaleTypeChange: (scaleType: ScaleType) => void,
     fontSize: number
+    focusKeys: string[]
+    hoverKeys: string[]
+    onMouseOver: (slopeProps: SlopeProps) => void
+    onMouseLeave: () => void
+    onClick: () => void
 }
 
 @observer
 export default class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     base: SVGElement
     svg: SVGElement
-
-    @observable focusKey?: string
 
     @computed get data(): SlopeChartSeries[] {
         return this.props.data
@@ -164,6 +181,20 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
     @computed get bounds(): Bounds {
         return this.props.bounds
+    }
+
+    @computed get focusKeys(): string[] {
+        return intersection(this.props.focusKeys || [], this.data.map(g => g.key))
+    }
+
+    @computed get hoverKeys(): string[] {
+        return intersection(this.props.hoverKeys || [], this.data.map(g => g.key))
+    }
+
+    // Layered mode occurs when any entity on the chart is hovered or focused
+    // Then, a special "foreground" set of entities is rendered over the background
+    @computed get isLayerMode() {
+        return this.focusKeys.length > 0 || this.hoverKeys.length > 0
     }
 
     @computed get isPortrait(): boolean {
@@ -259,7 +290,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
                 leftValueStr: leftValueStr, rightValueStr: rightValueStr,
                 leftValueWidth: leftValueWidth, rightValueWidth: rightValueWidth,
                 leftLabel: leftLabel, rightLabel: rightLabel,
-                labelFontSize: fontSize, key: series.key, isFocused: false,
+                labelFontSize: fontSize, key: series.key, isFocused: false, isHovered: false,
                 hasLeftLabel: true, hasRightLabel: true
             } as SlopeProps)
         })
@@ -292,20 +323,33 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
         })
     }
 
+    @computed get backgroundGroups(): SlopeProps[] {
+        return filter(this.slopeData, group => !(group.isHovered || group.isFocused))
+    }
+
+    @computed get foregroundGroups(): SlopeProps[] {
+        return filter(this.slopeData, group => !!(group.isHovered || group.isFocused))
+    }
+
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeProps[] {
-        const { focusKey } = this
+        const { focusKeys, hoverKeys } = this
         let slopeData = this.labelAccountedSlopeData
 
         slopeData = slopeData.map(slope => {
             return extend({}, slope, {
-                isFocused: slope.key === focusKey,
+                isFocused: includes(focusKeys, slope.key),
+                isHovered: includes(hoverKeys, slope.key)
             })
         })
 
         // How to work out which of two slopes to prioritize for labelling conflicts
         function chooseLabel(s1: SlopeProps, s2: SlopeProps) {
-            if (s1.isFocused && !s2.isFocused) // Focused slopes always have priority
+            if (s1.isHovered && !s2.isHovered) // Hovered slopes always have priority
+                return s1
+            else if (!s1.isHovered && s2.isHovered)
+                return s2
+            else if (s1.isFocused && !s2.isFocused) // Focused slopes are next in priority
                 return s1
             else if (!s1.isFocused && s2.isFocused)
                 return s2
@@ -344,33 +388,62 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             })
         })
 
-        // Order by focus and size for draw order
+        // Order by focus/hover and size for draw order
         slopeData = sortBy(slopeData, (slope) => slope.size)
-        slopeData = sortBy(slopeData, (slope) => slope.isFocused ? 1 : 0)
+        slopeData = sortBy(slopeData, (slope) => slope.isFocused || slope.isHovered ? 1 : 0)
 
         return slopeData
+    }
+
+    mouseFrame?: number
+    @action.bound onMouseLeave() {
+
+        if (this.mouseFrame !== undefined)
+            cancelAnimationFrame(this.mouseFrame)
+
+        if (this.props.onMouseLeave)
+            this.props.onMouseLeave()
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>) {
         const mouse = getRelativeMouse(this.base, ev)
 
-        requestAnimationFrame(() => {
-            if (!this.props.bounds.contains(mouse))
-                this.focusKey = undefined
-            else {
+        this.mouseFrame = requestAnimationFrame(() => {
+            if (this.props.bounds.contains(mouse)) {
                 const slope = sortBy(this.slopeData, s => {
                     const distToLine = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
                     return distToLine
                 })[0]
-                this.focusKey = slope.key
+
+                if (slope && this.props.onMouseOver) {
+                    this.props.onMouseOver(slope)
+                }
             }
         })
+   }
+
+    @action.bound onClick() {
+        if (this.props.onClick)
+            this.props.onClick()
     }
 
     componentDidMount() {
         // Nice little intro animation
         select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
     }
+
+    renderBackgroundGroups() {
+        const { backgroundGroups, isLayerMode } = this
+
+        return backgroundGroups.map(slope => <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} /> )
+    }
+
+    renderForegroundGroups() {
+        const { foregroundGroups, isLayerMode } = this
+
+        return foregroundGroups.map(slope => <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} /> )
+    }
+
     render() {
         const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange, fontSize } = this.props
         const { bounds, slopeData, isPortrait, xDomain, yScale } = this
@@ -380,10 +453,9 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
-
         const onMouseMove = throttle(this.onMouseMove, 100)
 
-        return <g className="LabelledSlopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={onMouseMove}>
+        return <g className="LabelledSlopes" >
             <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
             <g className="gridlines">
                 {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
@@ -397,10 +469,9 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
             {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
             <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
             <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
-            <g className="slopes">
-                {slopeData.map(slope => {
-                    return <Slope key={slope.key} {...slope} />
-                })}
+            <g className="slopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+                {this.renderBackgroundGroups()}
+                {this.renderForegroundGroups()}
             </g>
         </g>
     }
