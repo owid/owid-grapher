@@ -211,7 +211,7 @@ export default class StackedBarTransform implements IChartTransform {
 
     @computed get groupedData(): StackedBarSeries[] {
         const { chart, timelineYears } = this
-        const { filledDimensions, selectedKeysByKey } = chart.data
+        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
 
         let groupedData: StackedBarSeries[] = []
 
@@ -272,6 +272,9 @@ export default class StackedBarTransform implements IChartTransform {
                 i += 1
             }
         })
+
+        // Preserve order
+        groupedData = sortBy(groupedData, series => -selectedKeys.indexOf(series.key))
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
