@@ -151,7 +151,7 @@ export default class ChartData {
     }
 
     @computed get originUrl(): string {
-        let url = this.chart.props.originUrl || "ourworldindata.org"
+        let url = this.chart.props.originUrl||""
         if (!url.startsWith("http"))
            url = "https://" + url
         return url

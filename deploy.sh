@@ -62,7 +62,7 @@ then
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  # node dist/src/bakeCharts.js
+  node dist/src/bakeCharts.js
 
   # Finally, restart the admin!
   sudo service $NAME restart

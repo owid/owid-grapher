@@ -1,9 +1,19 @@
 import * as React from 'react'
-import { computed, action } from 'mobx'
+import { observable, computed, action } from 'mobx'
+import { observer } from 'mobx-react'
+import * as parseUrl from 'url-parse'
+
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
 import Bounds from './Bounds'
-import * as parseUrl from 'url-parse'
+import {getRelativeMouse} from './Util'
+import Tooltip from './Tooltip'
+
+// Metadata reflection hack - Mispy
+declare const global: any
+if (typeof(global) !== "undefined") {
+    global.MouseEvent = {}
+}
 
 interface SourcesFooterProps {
     chart: ChartConfig,
@@ -29,16 +39,20 @@ export default class SourcesFooter {
         return this.props.chart.note ? `Note: ${this.props.chart.note}` : ''
     }
 
+    @computed get ccSvg(): string {
+        return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+    }
+
     @computed get defaultLicenseSvg(): string {
-        return `<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a> • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+        return `<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a> • ${this.ccSvg}`
     }
 
     @computed get licenseSvg(): string {
         if (this.props.chart.isNativeEmbed)
-            return ""
+            return this.ccSvg
 
         const { originUrl } = this.props.chart.data
-        let licenseSvg = `*data-entry* • <a style="fill: #777;" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+        let licenseSvg = `*data-entry* • ${this.ccSvg}`
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
@@ -50,7 +64,7 @@ export default class SourcesFooter {
 
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
         } else {
-            return this.defaultLicenseSvg
+            return this.ccSvg
         }
 
         return licenseSvg
@@ -100,7 +114,36 @@ export default class SourcesFooter {
         if (this.props.chart.isMediaCard)
             return null
 
-        const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this
+        return <SourcesFooterView footer={this} targetX={targetX} targetY={targetY}/>
+    }
+}
+
+@observer
+class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX: number, targetY: number }> {
+    base!: SVGGElement
+    @observable.ref tooltipTarget?: { x: number, y: number }
+
+    @action.bound onMouseMove(e: MouseEvent) {
+        const cc = this.base.querySelector(".cclogo")
+        if (cc && cc.matches(':hover')) {
+            const mouse = getRelativeMouse(this.base, e)
+            this.tooltipTarget = { x: mouse.x, y: mouse.y }
+        } else
+            this.tooltipTarget = undefined
+    }
+
+    componentDidMount() {
+        window.addEventListener("mousemove", this.onMouseMove)
+    }
+
+    componentDidUnmount() {
+        window.removeEventListener("mousemove", this.onMouseMove)
+    }
+
+    render() {
+        const { targetX, targetY } = this.props
+        const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this.props.footer
+        const { tooltipTarget } = this
 
         return <g className="SourcesFooter" style={{ fill: "#777" }}>
             <g className="clickable" onClick={onSourcesClick} style={{ fill: "#777" }}>{sources.render(targetX, targetY)}</g>
@@ -109,6 +152,9 @@ export default class SourcesFooter {
                 ? license.render(targetX + maxWidth - license.width, targetY)
                 : license.render(targetX, targetY + sources.height + paraMargin + (note.height ? note.height + paraMargin : 0))
             }
+            {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
+                <p>Our World in Data charts are licensed under Creative Commons; you are free to share and adapt this material. Please click through to the CC BY-SA page for more information.</p>
+            </Tooltip>}
         </g>
     }
 }
