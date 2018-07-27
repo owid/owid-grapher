@@ -58,7 +58,7 @@ export default class HorizontalAxis {
         // Make sure the start and end values are present, if they're whole numbers
         if (domain[0] % 1 === 0)
             ticks = [domain[0]].concat(ticks)
-        if (domain[1] % 1 === 0)
+        if (domain[1] % 1 === 0 && this.scale.hideFractionalTicks)
             ticks = ticks.concat([domain[1]])
         return uniq(ticks)
     }
