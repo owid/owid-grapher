@@ -153,7 +153,7 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
                 : license.render(targetX, targetY + sources.height + paraMargin + (note.height ? note.height + paraMargin : 0))
             }
             {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
-                <p>Our World in Data charts are licensed under Creative Commons; you are free to share and adapt this material. Please click through to the CC BY-SA page for more information.</p>
+                <p>Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY-SA page for more information.</p>
             </Tooltip>}
         </g>
     }
