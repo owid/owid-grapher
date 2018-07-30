@@ -136,7 +136,7 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
         window.addEventListener("mousemove", this.onMouseMove)
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         window.removeEventListener("mousemove", this.onMouseMove)
     }
 
