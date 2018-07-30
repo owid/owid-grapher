@@ -49,10 +49,15 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Get the underlying geographical topology elements we're going to display
     @computed get geoData(): GeoFeature[] {
-        let geoData = (topojson.feature(MapTopology, MapTopology.objects.world) as any).features
+        let geoData: any[] = (topojson.feature(MapTopology, MapTopology.objects.world) as any).features
 
         // Filter out Antarctica
-        geoData = geoData.filter((feature: any) => feature.id !== "ATA")
+        geoData = geoData.filter(feature => feature.id !== "ATA")
+
+        // HACK (Mispy): Merge Somaliland into Somalia
+        // This should be folded into the original topojson
+        const merged = topojson.merge(MapTopology, MapTopology.objects.world.geometries.filter((d: any) => d.id === "Somalia" || d.id === "Somaliland"))
+        geoData.find(feature => feature.id === "Somalia").geometry = merged
 
         return geoData
     }
