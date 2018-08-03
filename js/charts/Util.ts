@@ -44,11 +44,10 @@ export function makeSafeForCSS(name: string) {
     })
 }
 
-// Transform entity name to match counterpart in MapTopology
-// Covers e.g. Cote d'Ivoire -> Cote_d_Ivoire
-// Also removes non-ascii characters which may break datamaps
+// Transform OWID entity name to match map topology
+// Since we standardized the map topology, this is just a placeholder
 export function entityNameForMap(name: string) {
-    return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
+    return name//return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
 export function formatYear(year: number): string {

@@ -41,7 +41,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     context!: { chartView: ChartView, chart: ChartConfig }
 
     base!: SVGGElement
-    @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent<SVGPathElement>) {
+    @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
         const datum = d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
