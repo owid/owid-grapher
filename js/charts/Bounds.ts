@@ -37,6 +37,18 @@ export default class Bounds {
         return new Bounds(x1, y1, x2 - x1, y2 - y1)
     }
 
+    // Merge a collection of bounding boxes into a single encompassing Bounds
+    static merge(boundsList: Bounds[]): Bounds {
+        let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity
+        for (const b of boundsList) {
+            x1 = Math.min(x1, b.x)
+            y1 = Math.min(y1, b.y)
+            x2 = Math.max(x2, b.x+b.width)
+            y2 = Math.max(y2, b.y+b.height)
+        }
+        return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
+    }
+
     static empty(): Bounds {
         return new Bounds(0, 0, 0, 0)
     }
@@ -115,6 +127,7 @@ export default class Bounds {
     get bottom(): number { return this.y + this.height }
     get centerX(): number { return this.x + this.width / 2 }
     get centerY(): number { return this.y + this.height / 2 }
+    get area(): number { return this.width*this.height }
 
     get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
     get topRight(): Vector2 { return new Vector2(this.right, this.top) }
