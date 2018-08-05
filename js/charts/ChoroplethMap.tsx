@@ -223,7 +223,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     @computed get smallDataFeatures(): RenderFeature[] {
-        return []//return this.dataFeatures.filter(feature => feature.bounds.area < this.smallFeatureArea)
+        return this.dataFeatures.filter(feature => feature.bounds.area < this.smallFeatureArea)
     }
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
@@ -232,11 +232,6 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const { uid, bounds, choroplethData, defaultFill, matrixTransform, viewportScale, nonProjectionFeatures, noDataFeatures, dataFeatures, smallNoDataFeatures, smallDataFeatures, smallFeatureRadius } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
-
-        for (const feature of this.projectionFeatures) {
-            if (feature.id === "Israel")
-                console.log(feature.bounds.area)
-        }
 
         return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`}>
             <defs>
