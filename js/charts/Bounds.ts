@@ -127,6 +127,7 @@ export default class Bounds {
     get bottom(): number { return this.y + this.height }
     get centerX(): number { return this.x + this.width / 2 }
     get centerY(): number { return this.y + this.height / 2 }
+    get centerPos(): Vector2 { return new Vector2(this.centerX, this.centerY) }
     get area(): number { return this.width*this.height }
 
     get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
@@ -222,6 +223,10 @@ export default class Bounds {
         return { x: this.x, y: this.y, width: this.width, height: this.height }
     }
 
+    toArray(): [[number, number], [number, number]] {
+        return [[this.left, this.top], [this.right, this.bottom]]
+    }
+
     xRange(): [number, number] {
         return [this.left, this.right]
     }
@@ -232,5 +237,20 @@ export default class Bounds {
 
     equals(bounds: Bounds) {
         return this.x === bounds.x && this.y === bounds.y && this.width === bounds.width && this.height === bounds.height
+    }
+
+    // Calculate squared distance between a given point and the closest border of the bounds
+    // If the point is within the bounds, returns 0
+    distanceToPointSq(p: Vector2) {
+        if (this.contains(p))
+            return 0
+
+        const cx = Math.max(Math.min(p.x, this.x+this.width), this.x)
+        const cy = Math.max(Math.min(p.y, this.y+this.height), this.y)
+        return (p.x-cx)*(p.x-cx) + (p.y-cy)*(p.y-cy)
+    }
+
+    distanceToPoint(p: Vector2) {
+        return Math.sqrt(this.distanceToPointSq(p))
     }
 }

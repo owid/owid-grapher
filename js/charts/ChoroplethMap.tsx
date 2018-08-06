@@ -1,15 +1,16 @@
 import * as React from 'react'
-import { computed } from 'mobx'
+import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import * as topojson from 'topojson'
 
-import { map, min, max, each, identity, sortBy, guid } from './Util'
+import { identity, sortBy, guid, getRelativeMouse, min } from './Util'
 import Bounds from './Bounds'
 import MapProjections from './MapProjections'
 import MapProjection from './MapProjection'
 import MapTopology from './MapTopology'
 import Vector2 from './Vector2'
 import { worldRegionByMapEntity } from './WorldRegions'
+
 
 export interface ChoroplethDatum {
     entity: string
@@ -45,10 +46,12 @@ interface RenderFeature {
     geo: GeoFeature
     path: string
     bounds: Bounds
+    center: Vector2
 }
 
 @observer
 export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
+    base!: SVGGElement
     subunits: any
 
     @computed get uid(): number {
@@ -82,7 +85,14 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed get geoBounds(): Bounds[] {
         return this.geoFeatures.map(d => {
             const b = this.pathGen.bounds(d)
-            return Bounds.fromCorners(Vector2.fromArray(b[0]), Vector2.fromArray(b[1]))
+
+            const bounds = Bounds.fromCorners(Vector2.fromArray(b[0]), Vector2.fromArray(b[1]))
+
+            // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
+            if (d.id === "Fiji")
+                return bounds.extend({ x: bounds.right-bounds.height, width: bounds.height })
+            else
+                return bounds
         })
     }
 
@@ -115,7 +125,8 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             id: geo.id as string,
             geo: geo,
             path: this.geoPaths[i],
-            bounds: this.geoBounds[i]
+            bounds: this.geoBounds[i],
+            center: this.geoBounds[i].centerPos
         }))
     }
 
@@ -206,34 +217,65 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return this.projectionFeatures.filter(feature => this.choroplethData[feature.id])
     }
 
-    // Anything with less area on the map than this is considered "small"
-    @computed get smallFeatureArea(): number {
-        return this.props.projection === "World" ? 40 : 5
+    // Map uses a hybrid approach to mouseover
+    // If mouse is inside an element, that is prioritized
+    // Otherwise we look for the closest center point of a feature bounds, so that we can hover
+    // very small countries without trouble
+
+    @observable hoverEnterFeature?: RenderFeature
+    @observable hoverNearbyFeature?: RenderFeature
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+        if (this.hoverEnterFeature)
+            return
+
+        const { renderFeatures } = this
+        const mouse = getRelativeMouse(this.base.querySelector('.subunits'), ev)
+
+        const featuresWithDistance = renderFeatures.map(d => {
+            return { feature: d, distance: Vector2.distance(d.center, mouse) }
+        })
+
+        const feature = sortBy(featuresWithDistance, d => d.distance)[0]
+
+        if (feature.distance < 20) {
+            if (feature.feature !== this.hoverNearbyFeature) {
+                this.hoverNearbyFeature = feature.feature
+                this.props.onHover(feature.feature.geo, ev)
+            }
+        } else {
+            this.hoverNearbyFeature = undefined
+            this.props.onHoverStop()
+        }
     }
 
-    // How big the circles should be
-    @computed get smallFeatureRadius(): number {
-        return Math.sqrt(this.smallFeatureArea/Math.PI)
+    @action.bound onMouseEnter(feature: RenderFeature, ev: React.MouseEvent<SVGElement>) {
+        this.hoverEnterFeature = feature
+        this.props.onHover(feature.geo, ev)
     }
 
-    // Find all countries below a certain minimum area, so that we can represent them as circles
-    // and ensure they are still visible
-    @computed get smallNoDataFeatures(): RenderFeature[] {
-        return []//return this.noDataFeatures.filter(feature => feature.bounds.area < this.smallFeatureArea)
+    @action.bound onMouseLeave() {
+        this.hoverEnterFeature = undefined
+        this.props.onHoverStop()
     }
 
-    @computed get smallDataFeatures(): RenderFeature[] {
-        return this.dataFeatures.filter(feature => feature.bounds.area < this.smallFeatureArea)
+    @computed get hoverFeature() {
+        return this.hoverEnterFeature || this.hoverNearbyFeature
+    }
+
+    @action.bound onClick(ev: React.MouseEvent<SVGGElement>) {
+        if (this.hoverFeature !== undefined)
+            this.props.onClick(this.hoverFeature.geo)
     }
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
     render() {
-        const { uid, bounds, choroplethData, defaultFill, matrixTransform, viewportScale, nonProjectionFeatures, noDataFeatures, dataFeatures, smallNoDataFeatures, smallDataFeatures, smallFeatureRadius } = this
+        const { uid, bounds, choroplethData, defaultFill, matrixTransform, viewportScale, nonProjectionFeatures, noDataFeatures, dataFeatures } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`}>
+        return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`} onMouseMove={this.onMouseMove} onClick={this.onClick} style={this.hoverFeature ? { cursor: "pointer" } : {}}>
+            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" opacity={0}/>
             <defs>
                 <clipPath id={`boundsClip-${uid}`}>
                     <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
@@ -250,7 +292,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     {noDataFeatures.map(d => {
                         const isFocus = this.hasFocus(d.id)
                         const stroke = isFocus ? focusColor : "#aaa"
-                        return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d.geo, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d.geo)} />
+                        return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onClick={() => this.props.onClick(d.geo)} onMouseEnter={(ev) => this.onMouseEnter(d, ev)} onMouseLeave={this.onMouseLeave}/>
                     })}
                 </g>}
 
@@ -260,28 +302,10 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     const stroke = isFocus ? focusColor : "#333"
                     const fill = datum ? datum.color : defaultFill
 
-                    return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d.geo, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d.geo)}/>
+                    return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={fill} onClick={() => this.props.onClick(d.geo)} onMouseEnter={(ev) => this.onMouseEnter(d, ev)} onMouseLeave={this.onMouseLeave}/>
                 }), p => p.props['strokeWidth'])}
 
-                {smallNoDataFeatures.length && <g className="smallNoDataFeatures">
-                    {smallNoDataFeatures.map(d => {
-                        const isFocus = this.hasFocus(d.id)
-                        const stroke = isFocus ? focusColor : "#aaa"
-
-                        return <circle key={d.id} cx={d.bounds.centerX} cy={d.bounds.centerY} r={smallFeatureRadius} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onMouseEnter={(ev) => this.props.onHover(d.geo, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d.geo)}/>
-                    })}
-                </g>}
-
-                {smallDataFeatures.length && <g className="smallDataFeatures">
-                    {sortBy(smallDataFeatures.map(d => {
-                        const isFocus = this.hasFocus(d.id)
-                        const datum = choroplethData[d.id as string]
-                        const stroke = isFocus ? focusColor : "#333"
-                        const fill = datum ? datum.color : defaultFill
-
-                        return <circle key={d.id} cx={d.bounds.centerX} cy={d.bounds.centerY} r={smallFeatureRadius} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={fill} onMouseEnter={(ev) => this.props.onHover(d.geo, ev)} onMouseLeave={this.props.onHoverStop} onClick={() => this.props.onClick(d.geo)}/>
-                    }), p => p.props['strokeWidth'])}
-                </g>}
+                {/*dataFeatures.map(d => <rect x={d.bounds.x} y={d.bounds.y} width={d.bounds.width} height={d.bounds.height} fill="none" stroke="#000"/>)*/}
             </g>
             {/*<text className="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
