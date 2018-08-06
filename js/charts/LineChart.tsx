@@ -109,7 +109,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     @computed get axisBox() {
         const that = this
         return new AxisBox({
-            get bounds() { return that.bounds.padRight(that.legend ? that.legend.width : 0) },
+            get bounds() { return that.bounds.padRight(that.legend ? that.legend.width : 20) },
             get fontSize() { return that.chart.baseFontSize },
             get yAxis() { return that.transform.yAxis },
             get xAxis() { return that.transform.xAxis }
@@ -158,7 +158,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         return <g className="LineChart">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
-                    <rect x={axisBox.innerBounds.x - 10} y={0} width={bounds.width + 10} height={bounds.height * 2}></rect>
+                    <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height * 2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
