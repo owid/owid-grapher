@@ -158,7 +158,8 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         return <g className="LineChart">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
-                    <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height * 2}></rect>
+                    {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
+                    <rect x={axisBox.innerBounds.x-10} y={0} width={bounds.width+10} height={bounds.height * 2}></rect>
                 </clipPath>
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
