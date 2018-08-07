@@ -650,9 +650,89 @@ api.get('/posts.json', async req => {
     return { posts: rows }
 })
 
+/*def importdata(request: HttpRequest):
+    datasets = Dataset.objects.filter(namespace='owid').order_by('name').values()
+    datasetlist = []
+    for each in datasets:
+        each['subcategoryId'] = each['subcategoryId_id'] # XXX
+        each['created_at'] = str(each['created_at'])
+        each['updated_at'] = str(each['updated_at'])
+        datasetlist.append(each)
+
+    vartypes = Variable.objects.values()
+    vartypeslist = []
+    for each in vartypes:
+        each['created_at'] = str(each['created_at'])
+        each['updated_at'] = str(each['updated_at'])
+        each['uploaded_at'] = str(each['uploaded_at'])
+        vartypeslist.append(each)
+    # we probably don't need SourceTemplate anymore
+    source_template = dict(Setting.objects.filter(meta_name='sourceTemplate').values().first())
+    source_template['created_at'] = str(source_template['created_at'])
+    source_template['updated_at'] = str(source_template['updated_at'])
+
+    categories = DatasetSubcategory.objects.all().select_related().filter(
+        categoryId__fetcher_autocreated=False).order_by('categoryId__pk').order_by('pk')
+    category_list = []
+    for each in categories:
+        category_list.append({'name': each.name, 'id': each.pk, 'parent': each.categoryId.name})
+    entitynames = Entity.objects.all().iterator()
+    entitynameslist = []
+    entitycodeslist = []
+    for each in entitynames:
+        entitynameslist.append(each.name)
+        entitycodeslist.append(each.code)
+    all_entitynames = entitynameslist + entitycodeslist
+
+    data = {'datasets': datasetlist, 'categories': category_list, 'varTypes': vartypeslist, 'sourceTemplate': source_template,
+            'entityNames': all_entitynames}
+
+    if '.json' in urlparse(request.get_full_path()).path:
+        return JsonResponse(data, safe=False)
+    else:
+        return render(request, 'admin.importer.html', context={'current_user': request.user.name,
+                                                               'importerdata': json.dumps(data)})*/
+
 // TODO Data needed for ImportPage
 api.get('/importData.json', async req => {
-    return {}
+    // Get all datasets from the importable namespace to match against
+    const datasets = await db.query(`SELECT * FROM datasets WHERE namespace='owid' ORDER BY name ASC`)
+
+    // Get subcategories with their parent information as a single list
+    const categories = await db.query(`
+        SELECT sc.name, sc.id, c.name AS parent from dataset_subcategories sc
+        JOIN dataset_categories c WHERE c.fetcher_autocreated IS FALSE
+        ORDER BY c.id ASC, sc.id ASC
+    `)
+
+    // Get a unique list of all entities in the database (probably this won't scale indefinitely)
+    const existingEntities = await db.query(`SELECT name FROM entities`)
+
+    return { datasets: datasets, categories: categories, existingEntities: existingEntities }
+})
+
+api.get('/importData/datasets/:datasetId.json', async req => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await db.get(`
+        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt
+        FROM datasets AS d
+        WHERE d.id = ?
+    `, [datasetId])
+
+    if (!dataset) {
+        throw new JsonError(`No dataset by id '${datasetId}'`, 404)
+    }
+
+    const variables = await db.query(`
+        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        FROM variables AS v
+        WHERE v.datasetId = ?
+    `, [datasetId])
+
+    dataset.variables = variables
+
+    return { dataset: dataset }
 })
 
 api.post('/importValidate', async req => {
