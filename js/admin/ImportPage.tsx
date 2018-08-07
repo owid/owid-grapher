@@ -7,7 +7,7 @@ import { observable, computed, action, autorun, reaction, runInAction, IReaction
 import { observer } from 'mobx-react'
 
 import * as parse from 'csv-parse'
-import { Modal } from './Forms'
+import { Modal, BindString } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 
@@ -206,37 +206,6 @@ class DataPreview extends React.Component<{ csv: CSV }> {
     }
 }
 
-@observer
-class EditName extends React.Component<{ dataset: Dataset }> {
-    @action.bound onInput(e: any) {
-        this.props.dataset.name = e.target.value
-    }
-
-    render() {
-        const { dataset } = this.props
-        return <label>
-            Name
-            <input type="text" value={dataset.name} onInput={this.onInput} placeholder="Short name for your dataset" required />
-        </label>
-    }
-}
-
-@observer
-class EditDescription extends React.Component<{ dataset: Dataset }> {
-    @action.bound onInput(e: any) {
-        this.props.dataset.description = e.target.value
-    }
-
-    render() {
-        const { dataset } = this.props
-
-        return <label>
-            Description
-            <textarea value={dataset.description} onInput={this.onInput} placeholder="Optional description for dataset" />
-        </label>
-    }
-}
-
 const EditCategory = ({ categories, dataset }: any) => {
     const categoriesByParent = groupBy(categories, (category: any) => category.parent)
 
@@ -273,7 +242,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
             <div className="variableProps">
                 <label className="name">
                     Name <br />
-                    <span className="form-section-desc explanatory-notes">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marignal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
+                    <span className="form-section-desc explanatory-notes">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marginal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
                     <input value={variable.name} onInput={e => variable.name = e.currentTarget.value} placeholder="Enter variable name" />
                 </label>
                 <label className="description">
@@ -288,22 +257,15 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
                     <input value={variable.unit} onInput={e => variable.unit = e.currentTarget.value} placeholder="e.g. % or $" /></label>
                 <label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.currentTarget.value} placeholder="e.g. Global by country" /></label>
                 <label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.currentTarget.value} placeholder="e.g. 1920-1990" /></label>
-                <label>Source
-                    <button className="clickable" onClick={this.onEditSource} style={{ position: 'relative' }}>
-                        <i className="fa fa-pencil" /> {sourceName || 'Add source'}
-                        <input type="text" value={variable.source && variable.source.name} required style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', opacity: 0 }} />
-                    </button>
-                </label>
                 <label>Action
                     <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
                         <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
-                        {map(dataset.existingVariables, v =>
+                        {dataset.existingVariables.map(v =>
                             <option value={v.id} selected={variable.overwriteId === v.id}>Overwrite {v.name}</option>
                         )}
                     </select>
                 </label>
             </div>
-            {isEditingSource && <EditSource variable={variable} dataset={dataset} onSave={() => this.isEditingSource = false} />}
         </li>
     }
 }
@@ -715,17 +677,16 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
                 <p style={{ opacity: dataset.id !== undefined ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
                 <select className="chooseDataset" onChange={this.onChooseDataset}>
                     <option selected={dataset.id === undefined}>Create new dataset</option>
-                    {map(datasets, (d) =>
+                    {datasets.map(d =>
                         <option value={d.id} selected={d.id === dataset.id}>{d.name}</option>
                     )}
                 </select>
                 <hr />
                 <h3>Dataset name and description</h3>
-                <p>The dataset name and description are for our own internal use and do not appear on the charts.<br />
-                    <span className="form-section-desc explanatory-notes">Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"</span></p>
-                <EditName dataset={dataset} />
+                <p>The dataset name and description are currently not shown on charts, but will become public in the future.</p>
+                <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
                 <hr />
-                <EditDescription dataset={dataset} />
+                <BindString field="description" store={dataset}/>
                 <hr />
                 <EditCategory dataset={dataset} categories={categories} />
                 <hr />
