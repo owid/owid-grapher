@@ -7,36 +7,17 @@ import { observable, computed, action, autorun, reaction, runInAction, IReaction
 import { observer } from 'mobx-react'
 
 import * as parse from 'csv-parse'
-import { Modal, BindString } from './Forms'
+import { Modal, BindString, NumericSelectField } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
+import { update } from '../../node_modules/@types/lodash-es';
 
 const styles = require('./Importer.css')
 
 declare const App: any
 declare const window: any
 
-class Source {
-    @observable id?: number
-    @observable name: string
-    @observable dataPublishedBy: string
-    @observable dataPublisherSource: string
-    @observable link: string
-    @observable retrievedDate: string
-    @observable additionalInfo: string
-
-    constructor({ id = undefined, name = "", dataPublishedBy = "", dataPublisherSource = "", link = "", retrievedDate = "", additionalInfo = "" } = {}) {
-        this.id = id
-        this.name = name
-        this.dataPublishedBy = dataPublishedBy
-        this.dataPublisherSource = dataPublisherSource
-        this.link = link
-        this.retrievedDate = retrievedDate
-        this.additionalInfo = additionalInfo
-    }
-}
-
-class Variable {
+class EditableVariable {
     @observable overwriteId?: number
     @observable name: string
     @observable unit: string
@@ -68,45 +49,41 @@ interface ExistingVariable {
     }
 }
 
-class Dataset {
-    static fromServer(d: any) {
-        return new Dataset({ id: d.id, name: d.name, description: d.description, subcategoryId: d.subcategoryId })
-    }
-
+class EditableDataset {
     @observable id?: number
-    @observable name: string
-    @observable description: string
+    @observable name: string = ""
+    @observable description: string = ""
     @observable subcategoryId?: number
     @observable existingVariables: ExistingVariable[] = []
-    @observable newVariables: Variable[] = []
+    @observable newVariables: EditableVariable[] = []
     @observable years: number[] = []
     @observable entities: number[] = []
     @observable entityNames: string[] = []
-    @observable importError?: string
-    @observable importRequest?: any
-    @observable importSuccess: boolean = false
 
-    constructor({ id = undefined, name = "", description = "", subcategoryId = undefined }: { id?: number, name?: string, description?: string, subcategoryId?: number } = {}) {
-        this.id = id
-        this.name = name
-        this.description = description
-        this.subcategoryId = subcategoryId
+    @observable source: {
+        name: string
+        dataPublishedBy: string
+        dataPublisherSource: string
+        link: string
+        retrievedDate: string
+        additionalInfo: string
+    } = {
+        name: "",
+        dataPublishedBy: "",
+        dataPublisherSource: "",
+        link: "",
+        retrievedDate: "",
+        additionalInfo: ""
+    }
 
-        // When a single source becomes available (either from the database or added by user) we
-        // should use it as the default for all variables without a soruce
-        reaction(
-            () => this.sources[0] && this.newVariables,
-            () => {
-                const defaultSource = this.sources[0]
-                if (!defaultSource) return
+    update(json: any) {
+        for (const key in this) {
+            if (key in json)
+                this[key] = json[key]
+        }
+    }
 
-                for (const variable of this.newVariables) {
-                    if (!variable.source)
-                        variable.source = defaultSource
-                }
-            }
-        )
-
+    constructor() {
         // Match existing to new variables
         reaction(
             () => this.newVariables && this.existingVariables,
@@ -131,40 +108,6 @@ class Dataset {
 
     @computed get isLoading() {
         return this.id && !this.existingVariables.length
-    }
-
-    @computed get sources(): Array<{ name: string, description: string }> {
-        const { newVariables, existingVariables } = this
-        const sources = map(existingVariables, v => v.source).concat(map(newVariables, v => v.source))
-        return uniqBy(filter(sources), source => source.id)
-    }
-
-    @action.bound save() {
-        const { newVariables, entityNames, entities, years } = this
-
-        const requestData = {
-            dataset: {
-                id: this.id,
-                name: this.name,
-                description: this.description,
-                subcategoryId: this.subcategoryId
-            },
-            years, entityNames, entities,
-            variables: newVariables
-        }
-
-        this.importError = undefined
-        this.importSuccess = false
-        this.importRequest = App.postJSON('/admin/import/variables', requestData).then((response: Response) => {
-            if (response.status !== 200)
-                return response.text().then(err => this.importError = err)
-            else {
-                return response.json().then(json => {
-                    this.importSuccess = true
-                    this.id = json.datasetId
-                })
-            }
-        })
     }
 }
 
@@ -206,15 +149,16 @@ class DataPreview extends React.Component<{ csv: CSV }> {
     }
 }
 
-const EditCategory = ({ categories, dataset }: any) => {
-    const categoriesByParent = groupBy(categories, (category: any) => category.parent)
+const EditCategory = (props: { dataset: EditableDataset, categories: { id: number, name: string, parent: string }[] }) => {
+    const { dataset, categories } = props
+    const categoriesByParent = groupBy(categories, (c: any) => c.parent)
 
     return <label>
         Category <span className="form-section-desc">(Currently used only for internal organization)</span>
-        <select onChange={e => dataset.subcategoryId = e.target.value} value={dataset.subcategoryId}>
+        <select onChange={e => dataset.subcategoryId = parseInt(e.target.value)} value={dataset.subcategoryId}>
             {map(categoriesByParent, (subcats, parent) =>
                 <optgroup label={parent}>
-                    {map(subcats, (category: any) =>
+                    {subcats.map((category: any) =>
                         <option value={category.id}>{category.name}</option>
                     )}
                 </optgroup>
@@ -224,7 +168,7 @@ const EditCategory = ({ categories, dataset }: any) => {
 }
 
 @observer
-class EditVariable extends React.Component<{ variable: Variable, dataset: Dataset }> {
+class EditVariable extends React.Component<{ variable: EditableVariable, dataset: EditableDataset }> {
     @observable isEditingSource: boolean = false
 
     @action.bound onEditSource(e: React.MouseEvent<HTMLButtonElement>) {
@@ -271,7 +215,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
 }
 
 @observer
-class EditVariables extends React.Component<{ dataset: Dataset }> {
+class EditVariables extends React.Component<{ dataset: EditableDataset }> {
     render() {
         const { dataset } = this.props
 
@@ -279,7 +223,7 @@ class EditVariables extends React.Component<{ dataset: Dataset }> {
             <h3>Variable names and descriptions</h3>
             <p className="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
             <ol>
-                {map(dataset.newVariables, variable =>
+                {dataset.newVariables.map(variable =>
                     <EditVariable variable={variable} dataset={dataset} />
                 )}
             </ol>
@@ -288,50 +232,16 @@ class EditVariables extends React.Component<{ dataset: Dataset }> {
 }
 
 @observer
-class EditSource extends React.Component<{ variable: Variable, dataset: Dataset, onSave: () => void }> {
-    @observable source: any = null
-
-    constructor(props: { variable: Variable }) {
-        super(props as any)
-        this.source = props.variable.source || new Source()
-    }
-
-    componentDidMount() {
-        reaction(
-            () => this.props.variable.source,
-            () => this.source = this.props.variable.source || this.source
-        )
-    }
-
-    @action.bound onChangeSource(e: any) {
-        const name = e.target.value
-        this.source = this.props.dataset.sources.filter(source => source.name === name)[0] || new Source()
-    }
-
-    @action.bound onSave(e: any) {
-        e.preventDefault()
-        this.props.variable.source = this.source
-        this.props.onSave()
-    }
-
+class EditSource extends React.Component<{ dataset: EditableDataset }> {
     render() {
         const { dataset } = this.props
-        const { source } = this
+        const { source } = dataset
 
-        return <form className={styles.editSource} onSubmit={this.onSave}>
+        return <section>
             <hr />
-            <h4>Edit source</h4>
+            <h4>Dataset source information</h4>
             <label>
-                <span>Source:</span>
-                <select onChange={this.onChangeSource}>
-                    <option selected={!source.id}>Create new</option>
-                    {map(dataset.sources, otherSource =>
-                        <option value={otherSource.name} selected={source.name === otherSource.name}>{otherSource.name}</option>
-                    )}
-                </select>
-            </label>
-            <label>
-                <span>Name:</span>
+                <span>Source Name:</span>
                 <input type="text" required value={source.name} onInput={e => source.name = e.currentTarget.value} />
             </label>
             <p className="form-section-desc">
@@ -339,69 +249,61 @@ class EditSource extends React.Component<{ variable: Variable, dataset: Dataset,
                 For institutional projects or reports, the name should be “Institution, Project (year or vintage)”. For example: U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). <br />
                 For data that we have modified extensively, the name should be "Our World In Data based on Author (year)”. For example: Our World In Data based on Atkinson (2002) and Sen (2000).
             </p>
-            <div className="editSourceDescription">
-                <label className="description">
-                    <label>
-                        <span>Data published by:</span>
-                        <input type="text" value={source.dataPublishedBy} onInput={e => source.dataPublishedBy = e.currentTarget.value} />
-                    </label>
-                    <label>
-                        <span>Data publisher's source:</span>
-                        <input type="text" value={source.dataPublisherSource} onInput={e => source.dataPublisherSource = e.currentTarget.value} />
-                    </label>
-                    <label>
-                        <span>Link:</span>
-                        <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
-                    </label>
-                    <label>
-                        <span>Retrieved:</span>
-                        <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
-                    </label>
-                    <label>
-                        <span>Additional Information:</span>
-                        <textarea rows={5} value={source.additionalInfo} onInput={e => source.additionalInfo = e.currentTarget.value}></textarea>
-                    </label>
-                </label>
-            </div>
+            <label>
+                <span>Data published by:</span>
+                <input type="text" value={source.dataPublishedBy} onInput={e => source.dataPublishedBy = e.currentTarget.value} />
+            </label>
+            <label>
+                <span>Data publisher's source:</span>
+                <input type="text" value={source.dataPublisherSource} onInput={e => source.dataPublisherSource = e.currentTarget.value} />
+            </label>
+            <label>
+                <span>Link:</span>
+                <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
+            </label>
+            <label>
+                <span>Retrieved:</span>
+                <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
+            </label>
+            <label>
+                <span>Additional Information:</span>
+                <textarea rows={5} value={source.additionalInfo} onInput={e => source.additionalInfo = e.currentTarget.value}></textarea>
+            </label>
             <p className="form-section-desc">
                 For academic papers, the first item in the description should be “Data published by: complete reference”.  This should be followed by the authors underlying sources, a link to the paper, and the date on which the paper was accessed. <br />
                 For institutional projects, the format should be similar, but detailing the corresponding project or report. <br />
                 For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br />
                 The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br />
             </p>
-            {source.id && <p className="existing-source-warning text-warning">
-                <i className="fa fa-warning"></i> You are editing an existing source. Changes may also affect other variables.
-            </p>}
-            <input type="submit" className="btn btn-success" value="Save" />
-        </form>
+        </section>
     }
 }
 
 @observer
-class ImportProgressModal extends React.Component<{ dataset: Dataset }> {
-    @action.bound onDismiss() {
-        const { dataset } = this.props
-        dataset.importRequest = null
-    }
-
+class ImportProgressModal extends React.Component<{ dataset: EditableDataset, onDismiss: () => void, importError?: string, importSuccess: boolean }> {
     render() {
-        const { dataset } = this.props
-        return <Modal onClose={this.onDismiss}>
+        const { dataset, onDismiss, importError, importSuccess } = this.props
+        return <Modal onClose={onDismiss}>
             <div className="modal-header">
                 <h4 className="modal-title">Import progress</h4>
             </div>
             <div className={styles.importProgress + " modal-body"}>
                 <div className="progressInner">
                     <p className="success"><i className="fa fa-check" /> Preparing import for {dataset.years.length} values...</p>
-                    {dataset.importError && <p className="error"><i className="fa fa-times" /> Error: {dataset.importError}</p>}
-                    {dataset.importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
-                    {!dataset.importSuccess && !dataset.importError && <div style={{ textAlign: 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
+                    {importError && <p className="error"><i className="fa fa-times" /> Error: {importError}</p>}
+                    {importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
+                    {!importSuccess && !importError && <div style={{ textAlign: 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
                 </div>
-                {dataset.importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
-                {dataset.importError && <a className="btn btn-warning" onClick={this.onDismiss}>Dismiss</a>}
+                {importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
+                {importError && <a className="btn btn-warning" onClick={onDismiss}>Dismiss</a>}
             </div>
         </Modal>
     }
+}
+
+interface ValidationResults {
+    results: { class: string, message: string }[]
+    passed: boolean
 }
 
 class CSV {
@@ -440,7 +342,7 @@ class CSV {
 
         const headingRow = rows[0]
         for (const name of headingRow.slice(2))
-            variables.push(new Variable({ name }))
+            variables.push(new EditableVariable({ name }))
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i]
@@ -467,8 +369,9 @@ class CSV {
         }
     }
 
-    @computed get validation(): any {
-        const validation: { results: Array<{ class: string, message: string }>, passed: boolean } = { results: [], passed: false }
+
+    @computed get validation(): ValidationResults {
+        const validation: ValidationResults = { results: [], passed: false }
         const { rows } = this
 
         // Check we actually have enough data
@@ -557,12 +460,12 @@ class CSV {
 }
 
 @observer
-class ValidationResults extends React.Component<{ validation: any }> {
+class ValidationView extends React.Component<{ validation: ValidationResults }> {
     render() {
         const { validation } = this.props
 
         return <section className={styles.validation}>
-            {map(validation.results, (v: any) =>
+            {validation.results.map((v: any) =>
                 <div className={`alert alert-${v.class}`}>{v.message}</div>
             )}
         </section>
@@ -601,58 +504,112 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
         return <section>
             <input type="file" onChange={this.onChooseCSV} />
             {csv && <DataPreview csv={csv} />}
-            {csv && <ValidationResults validation={csv.validation} />}
+            {csv && <ValidationView validation={csv.validation} />}
         </section>
     }
 }
 
 @observer
-class Importer extends React.Component<{ datasets: any[], categories: any[], existingEntities: string[] }> {
-    @observable csv!: CSV
-    @observable.ref dataset = new Dataset()
+class Importer extends React.Component<ImportPageData> {
+    context!: { admin: Admin }
 
-    @action.bound onChooseDataset({ target }: { target: HTMLSelectElement }) {
-        const d = this.props.datasets[target.selectedIndex - 1]
-        this.dataset = d ? Dataset.fromServer(d) : new Dataset()
-        this.fillDataset(this.dataset)
+    @observable csv?: CSV
+    @observable.ref dataset = new EditableDataset()
+    @observable existingDatasetId?: number
+
+    @observable importError?: string
+    @observable importRequest?: any
+    @observable importSuccess: boolean = false
+
+    @action.bound onChooseDataset(datasetId: number) {
+        this.existingDatasetId = datasetId === -1 ? undefined : datasetId
+        /*const d = this.props.datasets[datasetId - 1]
+        this.dataset = d ? EditableDataset.fromServer(d) : new EditableDataset()
+        this.fillDataset(this.dataset)*/
     }
 
     @action.bound onCSV(csv: CSV) {
         this.csv = csv
-        const match = filter(this.props.datasets, d => d.name === csv.basename)[0]
-        this.dataset = match ? Dataset.fromServer(match) : new Dataset()
-        this.fillDataset(this.dataset)
+
+        // Look for an existing dataset that matches this csv filename
+        const existingDataset = this.props.datasets.find(d => d.name === csv.basename)
+
+        if (existingDataset) {
+            this.existingDatasetId = existingDataset.id
+        } else {
+            this.dataset = new EditableDataset()
+            this.fillDataset(this.dataset)
+        }
     }
 
-    fillDataset(dataset: Dataset) {
+    fillDataset(dataset: EditableDataset) {
         const { csv } = this
+        if (!csv) return
+
         if (!dataset.name)
             dataset.name = csv.basename
 
-        dataset.newVariables = map(csv.data.variables, clone)
+        dataset.newVariables = csv.data.variables.map(clone)
         dataset.entityNames = csv.data.entityNames
         dataset.entities = csv.data.entities
         dataset.years = csv.data.years
+
+        if (dataset.subcategoryId === undefined)
+            dataset.subcategoryId = this.defaultSubcategoryId
     }
 
     @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        this.dataset.save()
+        this.saveDataset()
     }
 
     // Grab existing dataset info to compare against what we are importing
     async getExistingDataset() {
-        const {dataset} = this
-        if (!dataset || dataset.id === undefined) return
+        const {existingDatasetId} = this
 
-        const json = await this.context.admin.getJSON(`/api/importData/datasets/${dataset.id}.json`)
+        if (existingDatasetId) {
+            const json = await this.context.admin.getJSON(`/api/importData/datasets/${existingDatasetId}.json`)
 
-        runInAction(() => dataset.existingVariables = json.variables)
+            runInAction(() => {
+                this.dataset.update(json)
+                this.fillDataset(this.dataset)
+            })
+        }
+    }
+
+    // Commit the import!
+    saveDataset() {
+        const { newVariables, entityNames, entities, years } = this.dataset
+
+        const requestData = {
+            dataset: {
+                id: this.dataset.id,
+                name: this.dataset.name,
+                description: this.dataset.description,
+                subcategoryId: this.dataset.subcategoryId
+            },
+            years, entityNames, entities,
+            variables: newVariables
+        }
+
+        runInAction(() => {
+            this.importError = undefined
+            this.importSuccess = false
+            this.importRequest = this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then(() => {
+                runInAction(() => this.importSuccess = true)
+            })
+        })
     }
 
     disposers: IReactionDisposer[] = []
     componentDidMount() {
-        this.disposers.push(autorun(() => this.dataset && this.dataset.id !== undefined && this.getExistingDataset()))
+        this.disposers.push(autorun(() => {
+            if (this.existingDatasetId === undefined) {
+                this.fillDataset(this.dataset)
+            } else {
+                this.getExistingDataset()
+            }
+        }))
     }
 
     componentWillUnmount() {
@@ -660,13 +617,14 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
             dispose()
     }
 
-    render() {
-        const { csv, dataset } = this
-        const { datasets, categories, existingEntities } = this.props
+    @computed get defaultSubcategoryId(): number {
+        const uncategorized = this.props.categories.find(c => c.name === "Uncategorized") as { id: number, name: string }
+        return uncategorized.id
+    }
 
-        if (dataset.subcategoryId === undefined) {
-            dataset.subcategoryId = (categories.find(c => c.name === "Uncategorized") || {}).id
-        }
+    render() {
+        const { csv, dataset, existingDatasetId } = this
+        const { datasets, categories, existingEntities } = this.props
 
         return <form className={styles.importer} onSubmit={this.onSubmit}>
             <h2>Import CSV file</h2>
@@ -674,14 +632,12 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
             <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
 
             {csv && csv.isValid && <section>
-                <p style={{ opacity: dataset.id !== undefined ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
-                <select className="chooseDataset" onChange={this.onChooseDataset}>
-                    <option selected={dataset.id === undefined}>Create new dataset</option>
-                    {datasets.map(d =>
-                        <option value={d.id} selected={d.id === dataset.id}>{d.name}</option>
-                    )}
-                </select>
+                <p style={{ opacity: dataset.id !== undefined ? 1 : 0 }} className="updateWarning">Overwriting existing dataset</p>
+                <NumericSelectField value={existingDatasetId} onValue={this.onChooseDataset}
+                    options={[-1].concat(datasets.map(d => d.id))}
+                    optionLabels={["Create new dataset"].concat(datasets.map(d => d.name))}/>
                 <hr />
+
                 <h3>Dataset name and description</h3>
                 <p>The dataset name and description are currently not shown on charts, but will become public in the future.</p>
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
@@ -690,27 +646,41 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
                 <hr />
                 <EditCategory dataset={dataset} categories={categories} />
                 <hr />
+                <EditSource dataset={dataset}/>
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
                     <EditVariables dataset={dataset} />,
                     <input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"} />,
-                    dataset.importRequest && <ImportProgressModal dataset={dataset} />
+                    this.importRequest && <ImportProgressModal dataset={dataset} onDismiss={() => this.importRequest = undefined} importError={this.importError} importSuccess={this.importSuccess}/>
                 ]}
             </section>}
         </form>
     }
 }
 
+interface ImportPageData {
+    datasets: { 
+        id: number
+        name: string 
+    }[]
+    categories: {
+        id: number
+        name: string
+        parent: string
+    }[]
+    existingEntities: string[]
+}
+
 @observer
 export default class ImportPage extends React.Component {
     context!: { admin: Admin }
 
-    @observable importData?: any
+    @observable importData?: ImportPageData
 
     async getData() {
         const json = await this.context.admin.getJSON("/api/importData.json")
-        runInAction(() => this.importData = json)
+        runInAction(() => this.importData = json as ImportPageData)
     }
 
     componentDidMount() {

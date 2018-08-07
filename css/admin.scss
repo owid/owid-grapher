@@ -559,35 +559,6 @@ main:not(.ChartEditorPage) {
         }
     }
     
-    .editSource {
-        label {
-            display: block;
-        }
-    }
-    
-    .editSourceDescription {
-        display: flex;
-        flex-direction: row;
-    
-        .description {
-            margin: 10px;
-        }
-    
-        .description textarea {
-            height: calc(100% - 20px);
-        }
-    
-        .preview {
-            margin: 10px;
-            width: 50%;
-        }
-    
-        .preview > div {
-            padding: 10px;
-            background: white;
-        }
-    }
-    
     .importProgress {
         background: white;
         border: 1px solid #ccc;
