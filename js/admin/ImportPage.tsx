@@ -25,8 +25,8 @@ class Source {
     @observable retrievedDate: string
     @observable additionalInfo: string
 
-    constructor({ id = null, name = "", dataPublishedBy = "", dataPublisherSource = "", link = "", retrievedDate = "", additionalInfo = "" } = {}) {
-        this.id = id as any
+    constructor({ id = undefined, name = "", dataPublishedBy = "", dataPublisherSource = "", link = "", retrievedDate = "", additionalInfo = "" } = {}) {
+        this.id = id
         this.name = name
         this.dataPublishedBy = dataPublishedBy
         this.dataPublisherSource = dataPublisherSource
@@ -43,11 +43,11 @@ class Variable {
     @observable description: string
     @observable coverage: string
     @observable timespan: string
-    @observable source: any
+    @observable source?: any
     @observable values: string[]
 
-    constructor({ overwriteId = null, name = "", description = "", coverage = "", timespan = "", unit = "", source = null } = {}) {
-        this.overwriteId = overwriteId as any
+    constructor({ overwriteId = undefined, name = "", description = "", coverage = "", timespan = "", unit = "", source = undefined } = {}) {
+        this.overwriteId = overwriteId
         this.name = name
         this.unit = unit
         this.coverage = coverage
@@ -73,20 +73,20 @@ class Dataset {
         return new Dataset({ id: d.id, name: d.name, description: d.description, subcategoryId: d.subcategoryId })
     }
 
-    @observable id: number | null
+    @observable id?: number
     @observable name: string
     @observable description: string
-    @observable subcategoryId: number | null = null
+    @observable subcategoryId?: number
     @observable existingVariables: ExistingVariable[] = []
     @observable newVariables: Variable[] = []
     @observable years: number[] = []
     @observable entities: number[] = []
     @observable entityNames: string[] = []
-    @observable importError: string | null = null
-    @observable importRequest = null
-    @observable importSuccess = false
+    @observable importError?: string
+    @observable importRequest?: any
+    @observable importSuccess: boolean = false
 
-    constructor({ id = null, name = "", description = "", subcategoryId = null }: { id?: number, name?: string, description?: string, subcategoryId?: number } = {}) {
+    constructor({ id = undefined, name = "", description = "", subcategoryId = undefined }: { id?: number, name?: string, description?: string, subcategoryId?: number } = {}) {
         this.id = id
         this.name = name
         this.description = description
@@ -153,7 +153,7 @@ class Dataset {
             variables: newVariables
         }
 
-        this.importError = null
+        this.importError = undefined
         this.importSuccess = false
         this.importRequest = App.postJSON('/admin/import/variables', requestData).then((response: Response) => {
             if (response.status !== 200)
@@ -194,10 +194,10 @@ class DataPreview extends React.Component<{ csv: CSV }> {
         return <div style={{ height: height * visibleRows, overflowY: 'scroll' }} onScroll={this.onScroll as any}>
             <div style={{ height: height * numRows, paddingTop: height * rowOffset }}>
                 <table className="table" style={{ background: 'white' }}>
-                    {map(rows.slice(rowOffset, rowOffset + visibleRows), (row, i) =>
+                    {rows.slice(rowOffset, rowOffset + visibleRows).map((row, i) =>
                         <tr>
                             <td>{rowOffset + i + 1}</td>
-                            {map(row, cell => <td style={{ height: height }}>{cell}</td>)}
+                            {row.map(cell => <td style={{ height: height }}>{cell}</td>)}
                         </tr>
                     )}
                 </table>
@@ -296,7 +296,7 @@ class EditVariable extends React.Component<{ variable: Variable, dataset: Datase
                 </label>
                 <label>Action
                     <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
-                        <option value="" selected={variable.overwriteId == null}>Create new variable</option>
+                        <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
                         {map(dataset.existingVariables, v =>
                             <option value={v.id} selected={variable.overwriteId === v.id}>Overwrite {v.name}</option>
                         )}
@@ -609,7 +609,7 @@ class ValidationResults extends React.Component<{ validation: any }> {
 
 @observer
 class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (csv: CSV) => void }> {
-    @observable csv: CSV | null = null
+    @observable csv?: CSV
 
     @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
         const { existingEntities } = this.props
@@ -681,16 +681,16 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
     // Grab existing dataset info to compare against what we are importing
     async getExistingDataset() {
         const {dataset} = this
-        if (!dataset || dataset.id == null) return
+        if (!dataset || dataset.id === undefined) return
 
-        const json = await this.context.admin.getJSON(`/importData/datasets/${dataset.id}.json`)
+        const json = await this.context.admin.getJSON(`/api/importData/datasets/${dataset.id}.json`)
 
         runInAction(() => dataset.existingVariables = json.variables)
     }
 
     disposers: IReactionDisposer[] = []
     componentDidMount() {
-        this.disposers.push(autorun(() => this.dataset && this.dataset.id != null && this.getExistingDataset()))
+        this.disposers.push(autorun(() => this.dataset && this.dataset.id !== undefined && this.getExistingDataset()))
     }
 
     componentWillUnmount() {
@@ -702,8 +702,8 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
         const { csv, dataset } = this
         const { datasets, categories, existingEntities } = this.props
 
-        if (dataset.subcategoryId == null) {
-            dataset.subcategoryId = (find(categories, c => c.name === "Uncategorized") || {}).id
+        if (dataset.subcategoryId === undefined) {
+            dataset.subcategoryId = (categories.find(c => c.name === "Uncategorized") || {}).id
         }
 
         return <form className={styles.importer} onSubmit={this.onSubmit}>
@@ -712,9 +712,9 @@ class Importer extends React.Component<{ datasets: any[], categories: any[], exi
             <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
 
             {csv && csv.isValid && <section>
-                <p style={{ opacity: dataset.id ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
+                <p style={{ opacity: dataset.id !== undefined ? 1 : 0 }} className="updateWarning">Updating existing dataset</p>
                 <select className="chooseDataset" onChange={this.onChooseDataset}>
-                    <option selected={dataset.id == null}>Create new dataset</option>
+                    <option selected={dataset.id === undefined}>Create new dataset</option>
                     {map(datasets, (d) =>
                         <option value={d.id} selected={d.id === dataset.id}>{d.name}</option>
                     )}
