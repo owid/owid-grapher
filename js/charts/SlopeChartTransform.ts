@@ -4,8 +4,7 @@ import { computed } from 'mobx'
 import ChartConfig from './ChartConfig'
 import { defaultTo, defaultWith, findClosest } from './Util'
 import DimensionWithData from './DimensionWithData'
-import Observations from './Observations'
-import { SlopeChartSeries } from './LabelledSlopes'
+import { SlopeChartSeries, SlopeChartValue } from './LabelledSlopes'
 import { first, last, makeSafeForCSS } from './Util'
 import IChartTransform from './IChartTransform'
 import ColorSchemes from './ColorSchemes'
@@ -71,17 +70,36 @@ export default class SlopeChartTransform implements IChartTransform {
         return find(this.chart.data.filledDimensions, d => d.property === 'y')
     }
 
-    @computed get variableData(): Observations {
-        const {filledDimensions} = this.chart.data
-        const obvs: any[] = []
-        filledDimensions.forEach(v => {
-            for (let i = 0; i < v.years.length; i++) {
-                const d: any = { year: v.years[i], entity: v.entities[i] }
-                d[v.variable.id] = v.values[i]
-                obvs.push(d)
-            }
-        })
-        return new Observations(obvs)
+    // helper method to directly get the associated color value given an Entity
+    // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
+    // this returns that data in the form { Afghanistan => Asia }
+    @computed get colorByEntity(): Map<string, any> {
+        const { colorDim, colorScale }= this
+        const colorByEntity = new Map<string, any>()
+
+        if (colorDim !== undefined) {
+            colorDim.valueByEntityAndYear.forEach((yearToColorMap, entity) => {
+                const values = Array.from(yearToColorMap.values())
+                colorByEntity.set(entity, colorScale(values[0].toString()))
+            })
+        }
+        return colorByEntity
+    }
+
+    // helper method to directly get the associated size value given an Entity
+    // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
+    // this returns that data in the form { Afghanistan => 1 }
+    @computed get sizeByEntity(): Map<string, any> {
+        const { sizeDim } = this
+        const sizeByEntity = new Map<string, any>()
+
+        if (sizeDim !== undefined) {
+            sizeDim.valueByEntityAndYear.forEach((yearToSizeMap, entity) => {
+                const values = Array.from(yearToSizeMap.values())
+                sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first year
+            })
+        }
+        return sizeByEntity
     }
 
     @computed get defaultColors(): string[] {
@@ -124,37 +142,35 @@ export default class SlopeChartTransform implements IChartTransform {
     @computed get data(): SlopeChartSeries[] {
         if (!this.yDimension) return []
 
-        const { variableData, sizeDim, yDimension, xDomain, colorDim, colorScale, chart } = this
-        let data = variableData
+        const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
         const entityKey = this.chart.vardata.entityMetaByKey
 
-        // Make sure we're using time bounds that actually contain data
-        const longestRange: number[] = data.filter((d: any) => isFinite(d[yDimension.variable.id]))
-            .mergeBy('entity', (rows: Observations) => rows.pluck('year'))
-            .sortBy((d: number[]) => last(d) - first(d))
-            .last() as number[]
+        const minYear = Math.max(xDomain[0])
+        const maxYear = Math.min(xDomain[1])
 
-        const minYear = Math.max(xDomain[0] || -Infinity, first(longestRange))
-        const maxYear = Math.min(xDomain[1] || Infinity, last(longestRange))
-
-        data = data.mergeBy('entity', (rows: Observations, entity: string) => {
-            const dataKey = chart.data.keyFor(entity, 0)
-
-            return {
-                label: entityKey[entity].name,
-                key: dataKey,
-                // key: makeSafeForCSS(entityKey[entity].name),
-                color: colorDim ? colorScale(rows.first(colorDim.variable.id)) : "#000",
-                size: sizeDim ? rows.first(sizeDim.variable.id) : 1,
-                values: rows.filter((d: any) => isFinite(d[yDimension.variable.id]) && (d.year === minYear || d.year === maxYear)).mergeBy('year').map((d: any) => {
-                    return {
-                        x: d.year,
-                        y: d[yDimension.variable.id]
+        const entities = yDimension.entitiesUniq
+        let data: SlopeChartSeries[] = entities.map(entity => {
+            const slopeValues: SlopeChartValue[] = []
+            const yValues = yDimension.valueByEntityAndYear.get(entity)
+            if (yValues !== undefined) {
+                yValues.forEach((value, year) => {
+                    if (year === minYear || year === maxYear) {
+                        slopeValues.push({
+                            x: year,
+                            y: typeof value === "string" ? parseInt(value) : value
+                        })
                     }
-                }).toArray()
+                })
             }
-        }).filter((d: any) => d.values.length >= 2)
-
-        return data.toArray() as SlopeChartSeries[]
+            return {
+                key: chart.data.keyFor(entity, yDimension.index),
+                label: entityKey[entity].name,
+                color: colorByEntity.get(entity) || "#ff7f0e",
+                size: sizeByEntity.get(entity) || 1,
+                values: slopeValues
+            }
+        })
+        data = data.filter(d => d.values.length >= 2)
+        return data
     }
 }
