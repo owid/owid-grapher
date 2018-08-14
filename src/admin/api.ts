@@ -662,7 +662,7 @@ api.get('/importData.json', async req => {
     `)
 
     // Get a unique list of all entities in the database (probably this won't scale indefinitely)
-    const existingEntities = await db.query(`SELECT name FROM entities`)
+    const existingEntities = (await db.query(`SELECT name FROM entities`)).map((e: any) => e.name)
 
     return { datasets: datasets, categories: categories, existingEntities: existingEntities }
 })

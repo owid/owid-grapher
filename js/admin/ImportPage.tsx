@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { map, uniqBy, filter, keys, groupBy, isEmpty, difference, find, clone } from '../charts/Util'
+import { map, keys, groupBy, isEmpty, difference, clone } from '../charts/Util'
 import { observable, computed, action, autorun, reaction, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 
@@ -10,7 +10,6 @@ import * as parse from 'csv-parse'
 import { Modal, BindString, NumericSelectField } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { update } from '../../node_modules/@types/lodash-es';
 
 const styles = require('./Importer.css')
 
@@ -18,35 +17,31 @@ declare const App: any
 declare const window: any
 
 class EditableVariable {
-    @observable overwriteId?: number
-    @observable name: string
-    @observable unit: string
-    @observable description: string
-    @observable coverage: string
-    @observable timespan: string
-    @observable source?: any
-    @observable values: string[]
+    @observable name: string = ""
+    @observable unit: string = ""
+    @observable description: string = ""
+    @observable coverage: string = ""
+    @observable timespan: string = ""
 
-    constructor({ overwriteId = undefined, name = "", description = "", coverage = "", timespan = "", unit = "", source = undefined } = {}) {
-        this.overwriteId = overwriteId
-        this.name = name
-        this.unit = unit
-        this.coverage = coverage
-        this.timespan = timespan
-        this.description = description
-        this.source = source
-        this.values = []
-    }
+    // Existing variable to be overwritten by this one
+    @observable overwriteId?: number
+
+    @observable values: string[] = []
 }
 
 interface ExistingVariable {
     id: number
     name: string
-    source: {
-        id: number
-        name: string
-        description: string
-    }
+}
+
+interface ExistingDataset {
+    id: number
+    namespace: string
+    name: string
+    description: string
+    subcategoryId: number
+
+    variables: ExistingVariable[]
 }
 
 class EditableDataset {
@@ -83,29 +78,6 @@ class EditableDataset {
         }
     }
 
-    constructor() {
-        // Match existing to new variables
-        reaction(
-            () => this.newVariables && this.existingVariables,
-            () => {
-                if (!this.newVariables || !this.existingVariables)
-                    return
-
-                this.newVariables.forEach(variable => {
-                    const match = this.existingVariables.filter(v => v.name === variable.name)[0]
-                    if (match) {
-                        keys(match).forEach(key => {
-                            if (key === 'id')
-                                variable.overwriteId = (match as any)[key]
-                            else
-                                (variable as any)[key] = (match as any)[key]
-                        })
-                    }
-                })
-            }
-        )
-    }
-
     @computed get isLoading() {
         return this.id && !this.existingVariables.length
     }
@@ -119,12 +91,12 @@ class DataPreview extends React.Component<{ csv: CSV }> {
         return this.props.csv.rows.length
     }
 
-    @action.bound onScroll({ target }: { target: HTMLElement }) {
-        const { scrollTop, scrollHeight } = target
+    @action.bound onScroll(ev: React.UIEvent<Element>) {
+        const { scrollTop, scrollHeight } = ev.currentTarget
         const { numRows } = this
 
         const rowOffset = Math.round(scrollTop / scrollHeight * numRows)
-        target.scrollTop = Math.round(rowOffset / numRows * scrollHeight)
+        ev.currentTarget.scrollTop = Math.round(rowOffset / numRows * scrollHeight)
 
         this.rowOffset = rowOffset
     }
@@ -134,7 +106,7 @@ class DataPreview extends React.Component<{ csv: CSV }> {
         const { rowOffset, visibleRows, numRows } = this
         const height = 50
 
-        return <div style={{ height: height * visibleRows, overflowY: 'scroll' }} onScroll={this.onScroll as any}>
+        return <div style={{ height: height * visibleRows, overflowY: 'scroll' }} onScroll={this.onScroll}>
             <div style={{ height: height * numRows, paddingTop: height * rowOffset }}>
                 <table className="table" style={{ background: 'white' }}>
                     {rows.slice(rowOffset, rowOffset + visibleRows).map((row, i) =>
@@ -169,36 +141,14 @@ const EditCategory = (props: { dataset: EditableDataset, categories: { id: numbe
 
 @observer
 class EditVariable extends React.Component<{ variable: EditableVariable, dataset: EditableDataset }> {
-    @observable isEditingSource: boolean = false
-
-    @action.bound onEditSource(e: React.MouseEvent<HTMLButtonElement>) {
-        e.preventDefault()
-        this.isEditingSource = !this.isEditingSource
-    }
-
     render() {
         const { variable, dataset } = this.props
-        const { isEditingSource } = this
-
-        const sourceName = variable.source && (variable.source.id ? variable.source.name : `New: ${variable.source.name}`)
 
         return <li className={styles.editVariable}>
             <div className="variableProps">
-                <label className="name">
-                    Name <br />
-                    <span className="form-section-desc explanatory-notes">The variable name will be displayed in charts ('Sources' tab). For charts with many variables, the name will be crucial for readers to understand which sources correspond to which variables. <br /> Variable name should be of the format "Minimal variable description (Source)". For example: "Top marginal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"</span>
-                    <input value={variable.name} onInput={e => variable.name = e.currentTarget.value} placeholder="Enter variable name" />
-                </label>
-                <label className="description">
-                    Description <br />
-                    <span className="form-section-desc explanatory-notes">
-                        The variable  description will be displayed in charts (‘Sources’ tab). It will be the first row in the table explaining the variable sources.<br />
-                        Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. <br />
-                        For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”</span>
-                    <textarea rows={4} placeholder="Short description of variable" value={variable.description} onInput={e => variable.description = e.currentTarget.value} />
-                </label>
-                <label>Unit <span className="form-section-desc explanatory-notes">(is displayed in axis-labels as suffix and in the legend of the map)</span>
-                    <input value={variable.unit} onInput={e => variable.unit = e.currentTarget.value} placeholder="e.g. % or $" /></label>
+                <BindString label="Variable Name" field="name" store={variable} helpText={`Variable name should be of the format "Minimal variable description (Source)". For example: "Top marginal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"`} placeholder="Enter variable name"/>
+                <BindString field="description" store={variable} helpText={`Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”`} textarea={true} placeholder="Short description of variable"/>
+                <BindString field="unit" store={variable} placeholder="e.g. % or $" helpText="Displayed in axis labels, tooltips and map legends"/>
                 <label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.currentTarget.value} placeholder="e.g. Global by country" /></label>
                 <label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.currentTarget.value} placeholder="e.g. 1920-1990" /></label>
                 <label>Action
@@ -334,15 +284,18 @@ class CSV {
     @computed get data() {
         const { rows } = this
 
-        const variables: any[] = []
+        const variables: EditableVariable[] = []
         const entityNameCheck: any = {}
         const entityNames = []
         const entities = []
         const years = []
 
         const headingRow = rows[0]
-        for (const name of headingRow.slice(2))
-            variables.push(new EditableVariable({ name }))
+        for (const name of headingRow.slice(2)) {
+            const variable = new EditableVariable()
+            variable.name = name
+            variables.push(variable)
+        }
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i]
@@ -443,7 +396,7 @@ class CSV {
             })
         }
 
-        validation.passed = !find(validation.results, result => result.class === "error")
+        validation.passed = validation.results.every(result => result.class !== "error")
 
         return validation
     }
@@ -515,19 +468,14 @@ class Importer extends React.Component<ImportPageData> {
 
     @observable csv?: CSV
     @observable.ref dataset = new EditableDataset()
-    @observable existingDatasetId?: number
+
+    @observable existingDataset?: ExistingDataset
 
     @observable importError?: string
     @observable importRequest?: any
     @observable importSuccess: boolean = false
 
-    @action.bound onChooseDataset(datasetId: number) {
-        this.existingDatasetId = datasetId === -1 ? undefined : datasetId
-        /*const d = this.props.datasets[datasetId - 1]
-        this.dataset = d ? EditableDataset.fromServer(d) : new EditableDataset()
-        this.fillDataset(this.dataset)*/
-    }
-
+    // First step is user selecting a CSV file
     @action.bound onCSV(csv: CSV) {
         this.csv = csv
 
@@ -535,16 +483,36 @@ class Importer extends React.Component<ImportPageData> {
         const existingDataset = this.props.datasets.find(d => d.name === csv.basename)
 
         if (existingDataset) {
-            this.existingDatasetId = existingDataset.id
-        } else {
-            this.dataset = new EditableDataset()
-            this.fillDataset(this.dataset)
+            this.getExistingDataset(existingDataset.id)
         }
     }
 
-    fillDataset(dataset: EditableDataset) {
-        const { csv } = this
+    @action.bound onChooseDataset(datasetId: number) {
+        if (datasetId === -1)
+            this.existingDataset = undefined
+        else
+            this.getExistingDataset(datasetId)
+    }
+
+    // Grab existing dataset info to compare against what we are importing
+    async getExistingDataset(datasetId: number) {
+        const json = await this.context.admin.getJSON(`/api/importData/datasets/${datasetId}.json`)
+        runInAction(() => this.existingDataset = json.dataset)
+    }
+
+    // When we have the csv and have matched against an existing dataset (or decided not to), we can
+    // then initialize the dataset model for user customization
+    @action.bound initializeDataset() {
+        const {csv, existingDataset} = this
         if (!csv) return
+
+        const dataset = new EditableDataset()
+
+        if (existingDataset) {
+            dataset.name = existingDataset.name
+            dataset.description = existingDataset.description
+            dataset.existingVariables = existingDataset.variables
+        }
 
         if (!dataset.name)
             dataset.name = csv.basename
@@ -556,25 +524,28 @@ class Importer extends React.Component<ImportPageData> {
 
         if (dataset.subcategoryId === undefined)
             dataset.subcategoryId = this.defaultSubcategoryId
+
+        if (existingDataset) {
+            // Match new variables to existing variables
+            dataset.newVariables.forEach(variable => {
+                const match = dataset.existingVariables.filter(v => v.name === variable.name)[0]
+                if (match) {
+                    keys(match).forEach(key => {
+                        if (key === 'id')
+                            variable.overwriteId = (match as any)[key]
+                        else
+                            (variable as any)[key] = (match as any)[key]
+                    })
+                }
+            })
+        }
+
+        this.dataset = dataset
     }
 
     @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         this.saveDataset()
-    }
-
-    // Grab existing dataset info to compare against what we are importing
-    async getExistingDataset() {
-        const {existingDatasetId} = this
-
-        if (existingDatasetId) {
-            const json = await this.context.admin.getJSON(`/api/importData/datasets/${existingDatasetId}.json`)
-
-            runInAction(() => {
-                this.dataset.update(json)
-                this.fillDataset(this.dataset)
-            })
-        }
     }
 
     // Commit the import!
@@ -603,13 +574,10 @@ class Importer extends React.Component<ImportPageData> {
 
     disposers: IReactionDisposer[] = []
     componentDidMount() {
-        this.disposers.push(autorun(() => {
-            if (this.existingDatasetId === undefined) {
-                this.fillDataset(this.dataset)
-            } else {
-                this.getExistingDataset()
-            }
-        }))
+        this.disposers.push(reaction(
+            () => [this.csv, this.existingDataset],
+            () => this.initializeDataset()
+        ))
     }
 
     componentWillUnmount() {
@@ -623,8 +591,8 @@ class Importer extends React.Component<ImportPageData> {
     }
 
     render() {
-        const { csv, dataset, existingDatasetId } = this
-        const { datasets, categories, existingEntities } = this.props
+        const { csv, dataset, existingDataset } = this
+        const { datasets, existingEntities } = this.props
 
         return <form className={styles.importer} onSubmit={this.onSubmit}>
             <h2>Import CSV file</h2>
@@ -633,7 +601,7 @@ class Importer extends React.Component<ImportPageData> {
 
             {csv && csv.isValid && <section>
                 <p style={{ opacity: dataset.id !== undefined ? 1 : 0 }} className="updateWarning">Overwriting existing dataset</p>
-                <NumericSelectField value={existingDatasetId} onValue={this.onChooseDataset}
+                <NumericSelectField value={existingDataset ? existingDataset.id : -1} onValue={this.onChooseDataset}
                     options={[-1].concat(datasets.map(d => d.id))}
                     optionLabels={["Create new dataset"].concat(datasets.map(d => d.name))}/>
                 <hr />
@@ -642,11 +610,6 @@ class Importer extends React.Component<ImportPageData> {
                 <p>The dataset name and description are currently not shown on charts, but will become public in the future.</p>
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
                 <hr />
-                <BindString field="description" store={dataset}/>
-                <hr />
-                <EditCategory dataset={dataset} categories={categories} />
-                <hr />
-                <EditSource dataset={dataset}/>
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
