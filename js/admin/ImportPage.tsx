@@ -7,7 +7,7 @@ import { observable, computed, action, autorun, reaction, runInAction, IReaction
 import { observer } from 'mobx-react'
 
 import * as parse from 'csv-parse'
-import { Modal, BindString, NumericSelectField } from './Forms'
+import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 
@@ -145,21 +145,17 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
         const { variable, dataset } = this.props
 
         return <li className={styles.editVariable}>
-            <div className="variableProps">
-                <BindString label="Variable Name" field="name" store={variable} helpText={`Variable name should be of the format "Minimal variable description (Source)". For example: "Top marginal income tax rate (Piketty 2014)". Or "Tax revenue as share of GDP (ICTD 2016)"`} placeholder="Enter variable name"/>
-                <BindString field="description" store={variable} helpText={`Variable descriptions should be concise but clear and self-contained. They will correspond, roughly, to the information that will go in the subtitle of charts. For example: “Percentage of the population covered by health insurance (includes affiliated members of health insurance or estimation of the population having free access to health care services provided by the State)”`} textarea={true} placeholder="Short description of variable"/>
-                <BindString field="unit" store={variable} placeholder="e.g. % or $" helpText="Displayed in axis labels, tooltips and map legends"/>
-                <label>Geographic Coverage<input value={variable.coverage} onInput={e => variable.coverage = e.currentTarget.value} placeholder="e.g. Global by country" /></label>
-                <label>Time Span<input value={variable.timespan} onInput={e => variable.timespan = e.currentTarget.value} placeholder="e.g. 1920-1990" /></label>
-                <label>Action
-                    <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
-                        <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
-                        {dataset.existingVariables.map(v =>
-                            <option value={v.id} selected={variable.overwriteId === v.id}>Overwrite {v.name}</option>
-                        )}
-                    </select>
-                </label>
-            </div>
+            <FieldsRow>
+                <div>
+                    {variable.name}
+                </div>
+                <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
+                    <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
+                    {dataset.existingVariables.map(v =>
+                        <option value={v.id} selected={variable.overwriteId === v.id}>Overwrite {v.name}</option>
+                    )}
+                </select>
+            </FieldsRow>
         </li>
     }
 }
@@ -170,8 +166,8 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
         const { dataset } = this.props
 
         return <section className="form-section variables-section">
-            <h3>Variable names and descriptions</h3>
-            <p className="form-section-desc">Here you can configure the variables that will be stored for your dataset.</p>
+            <h3>Variables</h3>
+            <p className="form-section-desc">These are the variables that will be stored for your dataset.</p>
             <ol>
                 {dataset.newVariables.map(variable =>
                     <EditVariable variable={variable} dataset={dataset} />
@@ -606,10 +602,8 @@ class Importer extends React.Component<ImportPageData> {
                     optionLabels={["Create new dataset"].concat(datasets.map(d => d.name))}/>
                 <hr />
 
-                <h3>Dataset name and description</h3>
-                <p>The dataset name and description are currently not shown on charts, but will become public in the future.</p>
+                <h3>{existingDataset ? `Overwriting existing dataset` : `Creating new dataset`}</h3>
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
-                <hr />
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
