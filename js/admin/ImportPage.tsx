@@ -551,8 +551,11 @@ class Importer extends React.Component<ImportPageData> {
         runInAction(() => {
             this.importError = undefined
             this.importSuccess = false
-            this.importRequest = this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then(() => {
-                runInAction(() => this.importSuccess = true)
+            this.importRequest = this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json) => {
+                runInAction(() => {
+                    this.dataset.id = json.datasetId
+                    this.importSuccess = true
+                })
             })
         })
     }

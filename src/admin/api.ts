@@ -874,21 +874,37 @@ interface ImportPostData {
 api.post('/importDataset', async (req: Request, res: Response) => {
     return db.transaction(async t => {
         const {dataset, entities, years, variables} = req.body as ImportPostData
+        const now = new Date()
 
-        /// TODO
-        const datasetId: number = dataset.id as number
-        if (!datasetId) {
+        let datasetId: number
+        let sourceId: number
+
+        if (dataset.id) {
+            // Overwriting existing dataset
+            datasetId = dataset.id
+
+            // Use first source
+            const row = await t.query(`SELECT id FROM sources WHERE datasetId=? ORDER BY id ASC LIMIT 1`, [datasetId])
+            sourceId = row.id
+        } else {
             // Creating new dataset
+            const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, created_at, updated_at, categoryId, subcategoryId) VALUES (?)`, [row])
+            datasetId = datasetResult.insertId
+
+            // Insert default source
+            const sourceRow = [dataset.name, "{}", now, now, datasetId]
+            const sourceResult = await t.execute(`INSERT INTO sources (name, description, created_at, updated_at, datasetId) VALUES (?)`, [sourceRow])
+            sourceId = sourceResult.insertId
         }
 
         // Insert any new entities into the db
-        const now = new Date()
         const entitiesUniq = uniq(entities)
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
         await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
 
         // Map entities to entityIds
-        const entityRows = await t.execute(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
+        const entityRows = await t.query(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
         const entityIdLookup: {[key: string]: number} = {}
         for (const row of entityRows) {
             entityIdLookup[row.name] = row.id
@@ -902,11 +918,12 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
                 variableId = variable.overwriteId
             } else {
-                const variableRow = [variable.name, datasetId, now, now, now, res.locals.user.name, "", "", ""]
+                const variableRow = [variable.name, datasetId, sourceId, now, now, now, res.locals.user.name, "", "", "", 3, "{}"]
 
                 // Create a new variable
-                // TODO migrate defaults for some of these fields
-                await t.execute(`INSERT INTO variables (name, datasetId, created_at, updated_at, uploaded_at, uploaded_by, unit, coverage, timespan) VALUES ?`, [variableRow])
+                // TODO migrate to clean up these fields
+                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, created_at, updated_at, uploaded_at, uploaded_by, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
+                variableId = result.insertId
             }
 
             // Insert new data values
@@ -915,6 +932,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             })
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
+
+        return { success: true, datasetId: datasetId }
     })
 })
 
