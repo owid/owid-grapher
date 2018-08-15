@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { map, keys, groupBy, isEmpty, difference, clone } from '../charts/Util'
+import { map, keys, groupBy, isEmpty, difference, clone, uniq } from '../charts/Util'
 import { observable, computed, action, autorun, reaction, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 
@@ -52,8 +52,7 @@ class EditableDataset {
     @observable existingVariables: ExistingVariable[] = []
     @observable newVariables: EditableVariable[] = []
     @observable years: number[] = []
-    @observable entities: number[] = []
-    @observable entityNames: string[] = []
+    @observable entities: string[] = []
 
     @observable source: {
         name: string
@@ -281,8 +280,6 @@ class CSV {
         const { rows } = this
 
         const variables: EditableVariable[] = []
-        const entityNameCheck: any = {}
-        const entityNames = []
         const entities = []
         const years = []
 
@@ -295,14 +292,8 @@ class CSV {
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i]
-            const entityName = row[0], year = row[1]
+            const entity = row[0], year = row[1]
 
-            let entity = entityNameCheck[entityName]
-            if (entity === undefined) {
-                entity = entityNames.length
-                entityNames.push(entityName)
-                entityNameCheck[entityName] = entity
-            }
             entities.push(entity)
             years.push(+year)
             row.slice(2).forEach((value, j) => {
@@ -312,7 +303,6 @@ class CSV {
 
         return {
             variables: variables,
-            entityNames: entityNames,
             entities: entities,
             years: years
         }
@@ -351,8 +341,8 @@ class CSV {
         const uniqCheck: any = {}
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i]
-            const entityName = row[0], year = row[1]
-            const key = entityName + '-' + year
+            const entity = row[0], year = row[1]
+            const key = entity + '-' + year
             uniqCheck[key] = uniqCheck[key] || 0
             uniqCheck[key] += 1
         }
@@ -384,7 +374,7 @@ class CSV {
             })
 
         // Warn if we're creating novel entities
-        const newEntities = difference(this.data.entityNames, this.existingEntities)
+        const newEntities = difference(uniq(this.data.entities), this.existingEntities)
         if (newEntities.length >= 1) {
             validation.results.push({
                 class: 'warning',
@@ -514,7 +504,6 @@ class Importer extends React.Component<ImportPageData> {
             dataset.name = csv.basename
 
         dataset.newVariables = csv.data.variables.map(clone)
-        dataset.entityNames = csv.data.entityNames
         dataset.entities = csv.data.entities
         dataset.years = csv.data.years
 
@@ -546,7 +535,7 @@ class Importer extends React.Component<ImportPageData> {
 
     // Commit the import!
     saveDataset() {
-        const { newVariables, entityNames, entities, years } = this.dataset
+        const { newVariables, entities, years } = this.dataset
 
         const requestData = {
             dataset: {
@@ -555,7 +544,7 @@ class Importer extends React.Component<ImportPageData> {
                 description: this.dataset.description,
                 subcategoryId: this.dataset.subcategoryId
             },
-            years, entityNames, entities,
+            years, entities,
             variables: newVariables
         }
 

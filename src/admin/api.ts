@@ -17,6 +17,7 @@ import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
+import { uniq } from '../../js/charts/Util';
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -691,7 +692,8 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     return { dataset: dataset }
 })
 
-api.post('/importValidate', async req => {
+// Currently unused, may be useful later
+/*api.post('/importValidate', async req => {
     const entities: string[] = req.body.entities
 
     // https://stackoverflow.com/questions/440615/best-way-to-check-that-a-list-of-items-exists-in-an-sql-database-column
@@ -706,6 +708,213 @@ api.post('/importValidate', async req => {
         await t.execute(`DROP TEMPORARY TABLE entitiesToCheck`)
 
         return { unknownEntities: rows.map((e: any) => e.name) }
+    })
+})*/
+
+/*
+
+def store_import_data(request: HttpRequest):
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                data = json.loads(request.body.decode('utf-8'))
+                datasetmeta = data['dataset']
+                entities = data['entities']
+                entitynames = data['entityNames']
+                years = data['years']
+                variables = data['variables']
+
+                datasetprops = {'name': datasetmeta['name'],
+                                'description': datasetmeta['description'],
+                                'categoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).categoryId,
+                                'subcategoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
+                                }
+
+                if datasetmeta['id']:
+                    dataset = Dataset.objects.get(pk=datasetmeta['id'])
+                    dataset_old_name = dataset.name  # needed for version tracking csv export
+                    Dataset.objects.filter(pk=datasetmeta['id']).update(updated_at=timezone.now(), **datasetprops)
+                else:
+                    dataset = Dataset(**datasetprops)
+                    dataset_old_name = None
+                    dataset.save()
+
+                dataset_id = dataset.pk
+
+                codes = Entity.objects.filter(validated=True).values('name', 'code')
+
+                codes_dict = {}
+
+                for each in codes:
+                    codes_dict[each['code']] = each['name']
+
+                entitynames_list = Entity.objects.values_list('name', flat=True)
+
+                for i in range(0, len(entitynames)):
+                    name = entitynames[i]
+                    if codes_dict.get(name, 0):
+                        entitynames[i] = codes_dict[name]
+
+                entitynames_to_insert = []
+
+                for each in entitynames:
+                    if each not in entitynames_list:
+                        entitynames_to_insert.append(each)
+
+                alist = [Entity(name=val, validated=False) for val in entitynames_to_insert]
+
+                Entity.objects.bulk_create(alist)
+
+                codes = Entity.objects.values('name', 'id')
+
+                entitiy_name_to_id = {}
+
+                for each in codes:
+                    entitiy_name_to_id[each['name']] = each['id']
+
+                source_ids_by_name: Dict[str, str] = {}
+
+                for variable in variables:
+                    source_name = variable['source']['name']
+                    if source_ids_by_name.get(source_name, 0):
+                        source_id = source_ids_by_name[source_name]
+                    else:
+                        if variable['source']['id']:
+                            source_id = variable['source']['id']
+                        else:
+                            source_id = None
+                        source_desc = {
+                            'dataPublishedBy': None if not variable['source']['dataPublishedBy'] else variable['source']['dataPublishedBy'],
+                            'dataPublisherSource': None if not variable['source']['dataPublisherSource'] else variable['source']['dataPublisherSource'],
+                            'link': None if not variable['source']['link'] else variable['source']['link'],
+                            'retrievedDate': None if not variable['source']['retrievedDate'] else variable['source']['retrievedDate'],
+                            'additionalInfo': None if not variable['source']['additionalInfo'] else variable['source']['additionalInfo']
+                        }
+                        if source_id:
+                            existing_source = Source.objects.get(pk=source_id)
+                            existing_source.name = variable['source']['name']
+                            existing_source.updated_at = timezone.now()
+                            existing_source.description = json.dumps(source_desc)
+                            existing_source.save()
+                        else:
+                            new_source = Source(datasetId=dataset_id, name=source_name, description=json.dumps(source_desc))
+                            new_source.save()
+                            source_id = new_source.pk
+                            source_ids_by_name[source_name] = source_id
+
+                    values = variable['values']
+                    variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
+                                     'coverage': variable['coverage'], 'timespan': variable['timespan'],
+                                     'variableTypeId': VariableType.objects.get(pk=3),
+                                     'datasetId': Dataset.objects.get(pk=dataset_id),
+                                     'sourceId': Source.objects.get(pk=source_id),
+                                     'uploaded_at': timezone.now(),
+                                     'updated_at': timezone.now(),
+                                     'uploaded_by': request.user
+                                     }
+                    if variable['overwriteId']:
+                        Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
+                        varid = variable['overwriteId']
+                    else:
+                        varid = Variable(**variableprops)
+                        varid.save()
+                        varid = varid.pk
+                    while DataValue.objects.filter(variableId__pk=varid).first():
+                        with connection.cursor() as c:
+                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
+                                      (DataValue._meta.db_table, varid))
+                            # the LIMIT is here so that the database doesn't try to delete a large number of values at
+                            # once and becomes unresponsive
+
+                    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'
+                    data_values_tuple_list = []
+                    for i in range(0, len(years)):
+                        if values[i] == '':
+                            continue
+                        data_values_tuple_list.append((values[i], years[i],
+                                                       entitiy_name_to_id[entitynames[entities[i]]],
+                                                       varid))
+
+                        if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
+                            with connection.cursor() as dbconnection:
+                                dbconnection.executemany(insert_string, data_values_tuple_list)
+                            data_values_tuple_list = []
+
+                    if len(data_values_tuple_list):  # insert any leftover data_values
+                        with connection.cursor() as dbconnection:
+                            dbconnection.executemany(insert_string, data_values_tuple_list)
+                    with connection.cursor() as cursor:
+                        cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
+
+                write_dataset_csv(dataset.pk, datasetprops['name'],
+                                  dataset_old_name, request.user.get_full_name(), request.user.email)
+
+                return JsonResponse({'datasetId': dataset_id}, safe=False)
+        except Exception as e:
+            if len(e.args) > 1:
+                error_m = str(e.args[0]) + ' ' + str(e.args[1])
+            else:
+                error_m = e.args[0]
+            return HttpResponse(error_m, status=500)*/
+
+interface ImportPostData {
+    dataset: {
+        id?: number,
+        name: string
+    },
+    entities: string[],
+    years: number[],
+    variables: {
+        name: string,
+        overwriteId?: number,
+        values: string[]
+    }[]
+}
+
+api.post('/importDataset', async (req: Request, res: Response) => {
+    return db.transaction(async t => {
+        const {dataset, entities, years, variables} = req.body as ImportPostData
+
+        /// TODO
+        const datasetId: number = dataset.id as number
+        if (!datasetId) {
+            // Creating new dataset
+        }
+
+        // Insert any new entities into the db
+        const now = new Date()
+        const entitiesUniq = uniq(entities)
+        const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
+        await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
+
+        // Map entities to entityIds
+        const entityRows = await t.execute(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
+        const entityIdLookup: {[key: string]: number} = {}
+        for (const row of entityRows) {
+            entityIdLookup[row.name] = row.id
+        }
+
+        for (const variable of variables) {
+            let variableId: number
+            if (variable.overwriteId) {
+                // Remove any existing data values
+                await t.execute(`DELETE FROM data_values WHERE variableId=?`, [variable.overwriteId])
+
+                variableId = variable.overwriteId
+            } else {
+                const variableRow = [variable.name, datasetId, now, now, now, res.locals.user.name, "", "", ""]
+
+                // Create a new variable
+                // TODO migrate defaults for some of these fields
+                await t.execute(`INSERT INTO variables (name, datasetId, created_at, updated_at, uploaded_at, uploaded_by, unit, coverage, timespan) VALUES ?`, [variableRow])
+            }
+
+            // Insert new data values
+            const valueRows = variable.values.map((value, i) => {
+                return [value, years[i], entityIdLookup[entities[i]], variableId]
+            })
+            await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
+        }
     })
 })
 
