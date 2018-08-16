@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as express from 'express'
 import * as crypto from 'crypto'
 import * as randomstring from 'randomstring'
-import {Router} from 'express'
+import User from '../model/User'
 
 // For backwards compatibility, we reimplement Django authentication and session code a bit
 const hashers = require('node-django-hashers')
@@ -10,13 +10,7 @@ const hashers = require('node-django-hashers')
 import * as db from '../db'
 import { SECRET_KEY, SESSION_COOKIE_AGE } from '../settings'
 
-export interface CurrentUser {
-    id: number
-    name: string
-    email: string
-    fullName: string
-    isSuperuser: boolean
-}
+export type CurrentUser = User
 
 export type Request = express.Request
 
@@ -43,7 +37,7 @@ export async function authMiddleware(req: express.Request, res: express.Response
             const sessionData = Buffer.from(rows[0].session_data, 'base64').toString('utf8')
             const sessionJson = JSON.parse(sessionData.split(":").slice(1).join(":"))
 
-            user = (await db.query(`SELECT id, name, email, full_name as fullName, is_superuser as isSuperuser FROM users WHERE id = ?`, [sessionJson._auth_user_id]))[0]
+            user = await User.findOne({ id: sessionJson._auth_user_id })
             session = { id: sessionid, expiryDate: rows[0].expiry_date }
         }
     }
@@ -69,7 +63,7 @@ function saltedHmac(salt: string, value: string): string {
 }
 
 export async function tryLogin(email: string, password: string): Promise<Session> {
-    const user = await db.get(`SELECT id, password FROM users WHERE email=?`, [email])
+    const user = await User.findOne({ email: email })
     if (!user) {
         throw new Error("No such user")
     }
@@ -90,6 +84,9 @@ export async function tryLogin(email: string, password: string): Promise<Session
         const expiryDate = new Date(now.getTime() + (1000*SESSION_COOKIE_AGE))
 
         await db.execute(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
+
+        user.lastLogin = now
+        await user.save()
 
         return { id: sessionId, expiryDate: expiryDate }
     } else {

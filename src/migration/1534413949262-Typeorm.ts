@@ -7,7 +7,6 @@ export class Typeorm1534413949262 implements MigrationInterface {
         await queryRunner.query("ALTER TABLE `charts` DROP FOREIGN KEY `charts_last_edited_by_791cce39_fk_users_name`");
         await queryRunner.query("ALTER TABLE `charts` DROP FOREIGN KEY `charts_published_by_e3f4abdf_fk_users_name`");
         await queryRunner.query("ALTER TABLE `user_invitations` DROP COLUMN `user_id`");
-        await queryRunner.query("ALTER TABLE `users` DROP COLUMN `last_login`");
         await queryRunner.query("ALTER TABLE `user_invitations` DROP COLUMN `status`");
         await queryRunner.query("UPDATE users SET full_name='' WHERE full_name IS NULL");
         await queryRunner.query("ALTER TABLE `users` CHANGE `full_name` `full_name` varchar(255) NOT NULL DEFAULT ''");

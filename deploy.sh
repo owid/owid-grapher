@@ -53,7 +53,7 @@ then
   . env/bin/activate
   pip3 install -r requirements.txt
   yarn build
-  python3 manage.py migrate
+  ./node_modules/.bin/typeorm migration:run
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

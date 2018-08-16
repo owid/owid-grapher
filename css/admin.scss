@@ -542,13 +542,7 @@ main:not(.ChartEditorPage) {
         margin-top: 20px;
     }
     
-    .editVariable {
-        .variableProps {
-            display: inline-flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-        }
-    
+    .editVariable {    
         .variableProps > label {
             margin-right: 10px;
             line-height: normal;

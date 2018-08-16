@@ -58,6 +58,7 @@ adminViews.get('/register', async (req, res) => {
         res.send(renderToHtmlPage(<RegisterPage inviteEmail={invite && invite.email} errorMessage={errorMessage} body={req.query}/>))
     }
 })
+
 adminViews.post('/register', async (req, res) => {
     try {
         // Delete all expired invites before continuing
@@ -79,6 +80,7 @@ adminViews.post('/register', async (req, res) => {
             user.fullName = req.body.fullName
             user.created_at = new Date()
             user.updated_at = new Date()
+            user.lastLogin = new Date()
             await user.setPassword(req.body.password)
             await manager.getRepository(User).save(user)
 
