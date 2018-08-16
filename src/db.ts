@@ -1,23 +1,15 @@
 import * as mysql from 'mysql'
-
+import * as typeorm from 'typeorm'
 import {DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT} from './settings'
-import {Connection, createConnection} from "typeorm"
 
 import {Chart} from './model/Chart'
 import User from './model/User'
 import UserInvitation from './model/UserInvitation'
 
-let pool: mysql.Pool
-let connection: Connection
+let connection: typeorm.Connection
 
 export async function connect() {
-    pool = mysql.createPool({
-        host: DB_HOST,
-        user: DB_USER,
-        database: DB_NAME
-    })
-
-    connection = await createConnection({
+    connection = await typeorm.createConnection({
         type: "mysql",
         host: DB_HOST,
         port: DB_PORT,
@@ -28,77 +20,35 @@ export async function connect() {
     })
 }
 
-export function getConnection(): Promise<mysql.PoolConnection> {
-    return new Promise((resolve, reject) => {
-        pool.getConnection((poolerr, conn) => {
-            if (poolerr) {
-                reject(poolerr)
-            } else {
-                resolve(conn)
-            }
-        })
-    })
-}
-
 class TransactionContext {
-    conn: mysql.PoolConnection
-    constructor(conn: mysql.PoolConnection) {
-        this.conn = conn
+    manager: typeorm.EntityManager
+    constructor(manager: typeorm.EntityManager) {
+        this.manager = manager
     }
 
     execute(queryStr: string, params?: any[]): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.conn.query(queryStr, params, (err, rows) => {
-                if (err) return reject(err)
-                resolve(rows)
-            })
-        })
+        return this.manager.query(params ? mysql.format(queryStr, params) : queryStr)
     }
 
     query(queryStr: string, params?: any[]): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.conn.query(queryStr, params, (err, rows) => {
-                if (err) return reject(err)
-                resolve(rows)
-            })
-        })
+        return this.manager.query(params ? mysql.format(queryStr, params) : queryStr)
     }
 }
 
 export async function transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
-    const conn = await getConnection()
-    const t = new TransactionContext(conn)
-
-    try {
-        await t.execute("START TRANSACTION")
-        const result = await callback(t)
-        await t.execute("COMMIT")
-        return result
-    } catch (err) {
-        await t.execute("ROLLBACK")
-        throw err
-    } finally {
-        t.conn.release()
-    }
+    return typeorm.getConnection().transaction(async manager => {
+        const t = new TransactionContext(manager)
+        await callback(t)
+    })
 }
 
-export function query(queryStr: string, params?: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-        pool.query(queryStr, params, (err, rows) => {
-            if (err) return reject(err)
-            resolve(rows)
-        })
-    })
+export async function query(queryStr: string, params?: any[]): Promise<any> {
+    return typeorm.getConnection().query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
 // For operations that modify data (TODO: handling to check query isn't used for this)
-export function execute(queryStr: string, params?: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-        pool.query(queryStr, params, (err, rows) => {
-            if (err) return reject(err)
-            resolve(rows)
-        })
-    })
+export async function execute(queryStr: string, params?: any[]): Promise<any> {
+    return typeorm.getConnection().query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
 export async function get(queryStr: string, params?: any[]): Promise<any> {
@@ -106,8 +56,6 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 }
 
 export async function end() {
-    if (pool)
-        pool.end()
     if (connection)
         await connection.close()
 }

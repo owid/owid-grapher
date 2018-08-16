@@ -33,7 +33,6 @@ export class ChartBaker {
         this.props = props
         this.baseDir = path.join(this.props.repoDir, BUILD_GRAPHER_PATH)
         fs.mkdirpSync(this.baseDir)
-        db.connect()
     }
 
     async bakeAssets() {

@@ -1,19 +1,27 @@
 import * as _ from 'lodash'
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
 
 import * as db from '../db'
 import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
-
-
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm"
+import User from './User'
 
 @Entity("charts")
 export class Chart extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id!: number
+    @PrimaryGeneratedColumn() id!: number
+    @Column({ type: 'json' }) config: any
+    @Column({ name: 'last_edited_at' }) lastEditedAt!: Date
+    @Column({ name: 'last_edited_by', nullable: true }) lastEditedByUserId!: string
+    @Column({ name: 'published_at', nullable: true }) publishedAt!: Date
+    @Column({ name: 'published_by', nullable: true }) publishedByUserId!: string
+    @Column({ name: 'created_at' }) createdAt!: Date
+    @Column({ name: 'updated_at' }) updatedAt!: Date
+    @Column() starred!: boolean
 
-    @Column({ type: 'json' })
-    config: any
+    @ManyToOne(type => User, user => user.lastEditedCharts) @JoinColumn({ name: 'last_edited_by', referencedColumnName: 'name' })
+    lastEditedByUser!: User
+    @ManyToOne(type => User, user => user.publishedCharts) @JoinColumn({ name: 'published_by', referencedColumnName: 'name' })
+    publishedByUser!: User
 }
 
 // TODO integrate this old logic with typeorm

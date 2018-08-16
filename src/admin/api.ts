@@ -17,7 +17,6 @@ import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
-import { uniq } from '../../js/charts/Util';
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -359,7 +358,6 @@ api.delete('/users/:userId', async (req: Request, res: Response) => {
     }
 
     await db.transaction(async t => {
-        await t.execute(`DELETE FROM user_invitations WHERE user_id=?`, req.params.userId)
         await t.execute(`DELETE FROM users WHERE id=?`, req.params.userId)
     })
 
@@ -393,7 +391,6 @@ api.post('/users/invite', async (req: Request, res: Response) => {
         invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         invite.created_at = new Date()
         invite.updated_at = new Date()
-        invite.user_id = res.locals.user.id
         await repo.save(invite)
 
         const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
@@ -899,7 +896,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         }
 
         // Insert any new entities into the db
-        const entitiesUniq = uniq(entities)
+        const entitiesUniq = _.uniq(entities)
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
         await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
 

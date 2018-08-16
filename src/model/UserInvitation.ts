@@ -15,8 +15,4 @@ export default class UserInvitation extends BaseEntity {
     // Hack - some weirdness going on with default values and typeorm
     @Column() created_at!: Date
     @Column() updated_at!: Date
-
-    // Deprecated
-    @Column() status: string = "pending"
-    @Column() user_id!: number
 }

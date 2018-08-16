@@ -1,4 +1,5 @@
 import {ChartBaker} from './ChartBaker'
+import * as db from './db'
 import * as parseArgs from 'minimist'
 import * as os from 'os'
 import * as path from 'path'
@@ -10,6 +11,7 @@ async function main(email: string, name: string, message: string) {
     })
 
     try {
+        await db.connect()
         await baker.bakeAll()
         await baker.deploy(message || "Automated update", email, name)
     } catch (err) {
