@@ -45,6 +45,12 @@ Finally, run `yarn dev` and head to `localhost:3030`. If everything is going to 
 
 You may (optionally) want to run a static build, which produces the public chart urls: `node dist/src/bakeCharts.js`. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
 
+## Migrations
+
+If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `typeorm migration:run`. To access this CLI tool install typeorm globally using `npm i -g typeorm` or use the repository executable at `./node_modules/.bin/typeorm`.
+
 ## Architecture notes
 
 owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+
+The OWID tech stack has evolved over time as we have found really optimal ways of solving particular problems. We're now happy with the combination of React + Mobx + TypeScript + node and expect to be using these core tools for the foreseeable future. The MySQL database and data structure however is much older and we're interested in exploring alternatives that might allow us to work with large amounts of data more quickly and with more flexibility.
