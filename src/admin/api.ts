@@ -874,21 +874,26 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         const now = new Date()
 
         let datasetId: number
-        let sourceId: number
-
         if (dataset.id) {
-            // Overwriting existing dataset
+            // Updating existing dataset
             datasetId = dataset.id
-
-            // Use first source
-            const row = await t.query(`SELECT id FROM sources WHERE datasetId=? ORDER BY id ASC LIMIT 1`, [datasetId])
-            sourceId = row.id
         } else {
             // Creating new dataset
             const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
             const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, created_at, updated_at, categoryId, subcategoryId) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
+        }
 
+        // Find or create the dataset source
+        // TODO probalby merge source info into dataset table
+        let sourceId: number|undefined
+        if (datasetId) {
+            // Use first source (if any)
+            const rows = await t.query(`SELECT id FROM sources WHERE datasetId=? ORDER BY id ASC LIMIT 1`, [datasetId])
+            sourceId = rows[0].id
+        }
+
+        if (!sourceId) {
             // Insert default source
             const sourceRow = [dataset.name, "{}", now, now, datasetId]
             const sourceResult = await t.execute(`INSERT INTO sources (name, description, created_at, updated_at, datasetId) VALUES (?)`, [sourceRow])

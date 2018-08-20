@@ -1,4 +1,3 @@
-import Admin from './Admin'
 import Link from './Link'
 import * as React from 'react'
 
@@ -15,6 +14,7 @@ export default function AdminSidebar(props: { onDismiss: () => void }) {
             <li><a href="/grapher/admin/standardize"><i className="fa fa-flag"></i> Country name tool</a></li>
             <li><a href="/grapher/admin/datasets/history/all"><i className="fa fa-history"></i> Version history</a></li>
             <li><Link to="/standardize"><i className="fa fa-globe"></i> Country tool (BETA)</Link></li>
+            <li><Link to="/import"><i className="fa fa-upload"></i> Import CSV (BETA)</Link></li>
             <li className="header">SETTINGS</li>
             <li><Link to="/users/"><i className="fa fa-users"></i> Users</Link></li>
             <li><Link to="/redirects"><i className="fa fa-arrow-right"></i> Redirects</Link></li>

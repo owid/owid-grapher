@@ -1,14 +1,21 @@
-/*import {Table, Column, Model} from 'sequelize-typescript'
-
-@Table({ tableName: 'variables' })
-export default class Variable extends Model<Variable> {
-    @Column name!: string
-    @Column unit!: string
-    @Column description!: string
-}*/
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
+import * as _ from 'lodash'
 
 import * as db from '../db'
-import * as _ from 'lodash'
+import { Dataset } from './Dataset'
+
+
+@Entity("variables")
+export class Variable extends BaseEntity {
+    @PrimaryGeneratedColumn() id!: number
+    @Column({ nullable: false }) name!: string
+    @Column({ nullable: false, default: "" }) unit!: string
+    @Column() description!: string
+    @Column({ nullable: false }) columnOrder!: number
+
+    @ManyToOne(type => Dataset, dataset => dataset.variables) @JoinColumn({ name: 'datasetId' })
+    dataset!: Dataset
+}
 
 export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: any = { variables: {}, entityKey: {} }

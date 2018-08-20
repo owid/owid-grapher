@@ -539,7 +539,7 @@ class Importer extends React.Component<ImportPageData> {
 
         const requestData = {
             dataset: {
-                id: this.dataset.id,
+                id: this.existingDataset ? this.existingDataset.id : undefined,
                 name: this.dataset.name,
                 description: this.dataset.description,
                 subcategoryId: this.dataset.subcategoryId
@@ -594,13 +594,13 @@ class Importer extends React.Component<ImportPageData> {
                     optionLabels={["Create new dataset"].concat(datasets.map(d => d.name))}/>
                 <hr />
 
-                <h3>{existingDataset ? `Overwriting existing dataset` : `Creating new dataset`}</h3>
+                <h3>{existingDataset ? `Updating existing dataset` : `Creating new dataset`}</h3>
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
                     <EditVariables dataset={dataset} />,
-                    <input type="submit" className="btn btn-success" value={dataset.id ? "Update dataset" : "Create dataset"} />,
+                    <input type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />,
                     this.importRequest && <ImportProgressModal dataset={dataset} onDismiss={() => this.importRequest = undefined} importError={this.importError} importSuccess={this.importSuccess}/>
                 ]}
             </section>}

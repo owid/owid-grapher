@@ -573,6 +573,9 @@ main:not(.ChartEditorPage) {
         }
     }
     
+    section:not(:first-child) {
+        margin-top: 0;
+    }
 }
 
 .VariableEditPage {

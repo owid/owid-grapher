@@ -3,6 +3,8 @@ import * as typeorm from 'typeorm'
 import {DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT} from './settings'
 
 import {Chart} from './model/Chart'
+import {Dataset} from './model/Dataset'
+import {Variable} from './model/Variable'
 import User from './model/User'
 import UserInvitation from './model/UserInvitation'
 
@@ -16,8 +18,10 @@ export async function connect() {
         username: DB_USER,
         password: DB_PASS,
         database: DB_NAME,
-        entities: [Chart, User, UserInvitation]
+        entities: [Chart, User, UserInvitation, Dataset, Variable]
     })
+
+    return connection
 }
 
 class TransactionContext {
