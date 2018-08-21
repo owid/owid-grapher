@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "setup": "tsc",
-    "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon --watch dist/src --inspect dist/src/admin/server.js\"",
+    "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"python3 manage.py runserver 0.0.0.0:8000\" \"nodemon -r source-map-support/register --watch dist/src --inspect dist/src/admin/server.js\"",
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && rm -rf grapher_admin/static/build && webpack -p --progress",
     "test": "jest",
@@ -134,6 +134,7 @@
     "webpack-parallel-uglify-plugin": "^1.1.0"
   },
   "devDependencies": {
-    "jest": "^23.4.1"
+    "jest": "^23.4.1",
+    "source-map-support": "^0.5.9"
   }
 }
