@@ -12,7 +12,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-The grapher is currently a Python + TypeScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 9.3+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
+The grapher is currently a Python + TypeScript hybrid project, using [Django](https://www.djangoproject.com/) and [webpack](https://webpack.github.io/). You will need: [MySQL](https://www.mysql.com/), [Python 3.6+](https://www.python.org/downloads/), [Node 10.9+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
 
 Running `pip install -r requirements.txt` and `yarn install` in the repo root will grab the remaining dependencies.
 
@@ -48,6 +48,10 @@ You may (optionally) want to run a static build, which produces the public chart
 ## Migrations
 
 If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `typeorm migration:run`. To access this CLI tool install typeorm globally using `npm i -g typeorm` or use the repository executable at `./node_modules/.bin/typeorm`.
+
+## Development console
+
+You can run `yarn c` to get a node REPL with the database connection opened and models preloaded into the context. Then you can e.g. inspect all charts: `await Chart.find()`. Note that this depends on the `--experimental-repl-await` option introduced in node 10.
 
 ## Architecture notes
 
