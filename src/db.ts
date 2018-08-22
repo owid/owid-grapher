@@ -27,7 +27,7 @@ class TransactionContext {
 export async function transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
     return typeorm.getConnection().transaction(async manager => {
         const t = new TransactionContext(manager)
-        await callback(t)
+        return await callback(t)
     })
 }
 
