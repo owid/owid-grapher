@@ -317,7 +317,7 @@ export default class CountryStandardizerPage extends React.Component {
 
         const columnName = CountryDefByKey[this.outputFormat].label
         const columnIndex = csv.countryColumnIndex + 1
-        const sRows: string[] = []
+        const outputRows: string[][] = []
 
         // add a new column with the output country name
         csv.rows.forEach((row, rowIndex) => {
@@ -341,11 +341,12 @@ export default class CountryStandardizerPage extends React.Component {
             }
 
             const newRow = row.slice(0)
-            newRow.splice(columnIndex, 0, csvEscape(columnValue))
-            sRows.push(newRow.join(","))
+            newRow.splice(columnIndex, 0, columnValue)
+            outputRows.push(newRow)
         })
 
-        return new Blob([sRows.join("\n")], { type: "text/csv" })
+        const strRows = outputRows.map(row => row.map(val => csvEscape(val)).join(","))
+        return new Blob([strRows.join("\n")], { type: "text/csv" })
     }
 
     @action.bound onUpdateRow(value: string, inputCountry: string, isCustom: boolean) {
