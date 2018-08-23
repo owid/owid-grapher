@@ -5,6 +5,7 @@ import * as ReactDOM from 'react-dom'
 import { map, keys, groupBy, isEmpty, difference, clone, uniq } from '../charts/Util'
 import { observable, computed, action, autorun, reaction, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
+import { Redirect } from 'react-router-dom'
 
 import * as parse from 'csv-parse'
 import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
@@ -224,28 +225,6 @@ class EditSource extends React.Component<{ dataset: EditableDataset }> {
     }
 }
 
-@observer
-class ImportProgressModal extends React.Component<{ dataset: EditableDataset, onDismiss: () => void, importError?: string, importSuccess: boolean }> {
-    render() {
-        const { dataset, onDismiss, importError, importSuccess } = this.props
-        return <Modal onClose={onDismiss}>
-            <div className="modal-header">
-                <h4 className="modal-title">Import progress</h4>
-            </div>
-            <div className={styles.importProgress + " modal-body"}>
-                <div className="progressInner">
-                    <p className="success"><i className="fa fa-check" /> Preparing import for {dataset.years.length} values...</p>
-                    {importError && <p className="error"><i className="fa fa-times" /> Error: {importError}</p>}
-                    {importSuccess && <p className="success"><i className="fa fa-check" /> Import successful!</p>}
-                    {!importSuccess && !importError && <div style={{ textAlign: 'center' }}><i className="fa fa-spin fa-spinner" /></div>}
-                </div>
-                {importSuccess && <a className="btn btn-success" href={App.url(`/admin/datasets/${dataset.id}`)}>Done</a>}
-                {importError && <a className="btn btn-warning" onClick={onDismiss}>Dismiss</a>}
-            </div>
-        </Modal>
-    }
-}
-
 interface ValidationResults {
     results: { class: string, message: string }[]
     passed: boolean
@@ -456,10 +435,7 @@ class Importer extends React.Component<ImportPageData> {
     @observable.ref dataset = new EditableDataset()
 
     @observable existingDataset?: ExistingDataset
-
-    @observable importError?: string
-    @observable importRequest?: any
-    @observable importSuccess: boolean = false
+    @observable postImportDatasetId?: number
 
     // First step is user selecting a CSV file
     @action.bound onCSV(csv: CSV) {
@@ -547,15 +523,9 @@ class Importer extends React.Component<ImportPageData> {
             years, entities,
             variables: newVariables
         }
-
-        runInAction(() => {
-            this.importError = undefined
-            this.importSuccess = false
-            this.importRequest = this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json) => {
-                runInAction(() => {
-                    this.dataset.id = json.datasetId
-                    this.importSuccess = true
-                })
+        this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json) => {
+            runInAction(() => {
+                this.postImportDatasetId = json.datasetId
             })
         })
     }
@@ -600,9 +570,9 @@ class Importer extends React.Component<ImportPageData> {
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
                     <EditVariables dataset={dataset} />,
-                    <input type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />,
-                    this.importRequest && <ImportProgressModal dataset={dataset} onDismiss={() => this.importRequest = undefined} importError={this.importError} importSuccess={this.importSuccess}/>
+                    <input type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />
                 ]}
+                {this.postImportDatasetId && <Redirect to={`/datasets/${this.postImportDatasetId}`}/>}
             </section>}
         </form>
     }

@@ -885,12 +885,13 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         }
 
         // Find or create the dataset source
-        // TODO probalby merge source info into dataset table
+        // TODO probably merge source info into dataset table
         let sourceId: number|undefined
         if (datasetId) {
             // Use first source (if any)
             const rows = await t.query(`SELECT id FROM sources WHERE datasetId=? ORDER BY id ASC LIMIT 1`, [datasetId])
-            sourceId = rows[0].id
+            if (rows[0])
+                sourceId = rows[0].id
         }
 
         if (!sourceId) {
@@ -929,9 +930,9 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             }
 
             // Insert new data values
-            const valueRows = variable.values.map((value, i) => {
-                return [value, years[i], entityIdLookup[entities[i]], variableId]
-            })
+            const valueRows = variable.values.map((value, i) =>
+                [value, years[i], entityIdLookup[entities[i]], variableId]
+            )
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
 
