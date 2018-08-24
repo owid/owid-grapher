@@ -652,17 +652,10 @@ api.get('/importData.json', async req => {
     // Get all datasets from the importable namespace to match against
     const datasets = await db.query(`SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`)
 
-    // Get subcategories with their parent information as a single list
-    const categories = await db.query(`
-        SELECT sc.name, sc.id, c.name AS parent from dataset_subcategories sc
-        JOIN dataset_categories c WHERE c.fetcher_autocreated IS FALSE
-        ORDER BY c.id ASC, sc.id ASC
-    `)
-
     // Get a unique list of all entities in the database (probably this won't scale indefinitely)
     const existingEntities = (await db.query(`SELECT name FROM entities`)).map((e: any) => e.name)
 
-    return { datasets: datasets, categories: categories, existingEntities: existingEntities }
+    return { datasets: datasets, existingEntities: existingEntities }
 })
 
 api.get('/importData/datasets/:datasetId.json', async req => {
@@ -902,7 +895,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         }
 
         // Insert any new entities into the db
-        const entitiesUniq = _.uniq(entities)
+        const entitiesUniq = _.uniq(entities) 
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
         await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
 
