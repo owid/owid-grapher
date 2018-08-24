@@ -1,11 +1,5 @@
-@import "../../css/libs/bootstrap.css";
-
 .importer {
 	max-width: 1000px;
-
-	& input:not([type=submit]), select, textarea, button {
-		@extend .form-control;
-	}
 
 	& label {
 		display: block;
