@@ -96,20 +96,21 @@ class CSV {
         const entriesByCountry = new Map<string, CountryEntry>()
         const countries = rows.slice(1).map((row: string[]) => unidecode(row[countryColumnIndex] as string))
 
-        // for fuzzy-match
-        let targetValues = Object.keys(mapCountriesInputToOutput).filter(key => mapCountriesInputToOutput[key] !== undefined)
-        targetValues = uniq(targetValues.map(key => mapCountriesInputToOutput[key]))
-        const fuzz = FuzzySet(targetValues)
+        // for fuzzy-match, use the input and output values as target to improve matching potential
+        const inputCountries = Object.keys(mapCountriesInputToOutput).filter(key => mapCountriesInputToOutput[key] !== undefined)
+        const outputCountries = inputCountries.map(key => mapCountriesInputToOutput[key])
+        const fuzz = FuzzySet(inputCountries.concat(outputCountries))
 
         let autoMatched = 0
 
         countries.map((country: string) => {
             const outputCountry = mapCountriesInputToOutput[country.toLowerCase()]
-            let approximatedMatches: FuzzyMatch[] = []
+            let approximatedMatches: string[] = []
 
             if (outputCountry === undefined) {
                 if (findSimilarCountries) {
-                    approximatedMatches = fuzz.get(country)
+                    approximatedMatches = fuzz.get(country).map((fuzzyMatch: any[]) => mapCountriesInputToOutput[fuzzyMatch[1]] || fuzzyMatch[1])
+                    approximatedMatches = approximatedMatches.filter(key => key !== undefined)
                 }
             } else {
                 autoMatched += 1
@@ -131,14 +132,10 @@ class CSV {
 
 }
 
-interface FuzzyMatch {
-    [key: string]: any
-}
-
 export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
     originalName: string
     standardizedName?: string
-    approximatedMatches: FuzzyMatch[]
+    approximatedMatches: string[]
     selectedMatch?: string
     customName?: string
 }
@@ -184,7 +181,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
             <td><span style={{color: isMatched ? "black" : "red"}}>{ entry.originalName }</span></td>
             <td>{ entry.standardizedName }</td>
             <td>{ entry.approximatedMatches.length > 0 ?
-                <SelectField value={defaultValue} onValue={this.onEntrySelected} options={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch[1]))} optionLabels={[defaultOption].concat(entry.approximatedMatches.map(fuzzyMatch => fuzzyMatch[1]))} /> :
+                <SelectField value={defaultValue} onValue={this.onEntrySelected} options={[defaultOption].concat(entry.approximatedMatches)} optionLabels={[defaultOption].concat(entry.approximatedMatches)} /> :
                 <span>No candidates found</span> }
             </td>
             <td><input type="text" className="form-control" value={entry.customName} onChange={e => onUpdate(e.currentTarget.value, entry.originalName, true) } /></td>
@@ -402,7 +399,7 @@ export default class CountryStandardizerPage extends React.Component {
     }
 
     @computed get entriesToShow(): CountryEntry[] {
-        if (this.csv === undefined) 
+        if (this.csv === undefined)
             return []
 
         const countries: CountryEntry[] = []
@@ -465,7 +462,7 @@ export default class CountryStandardizerPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {entriesToShow.map(entry => 
+                            {entriesToShow.map(entry =>
                                 <CountryEntryRowRenderer entry={entry} onUpdate={this.onUpdateRow}/>
                             )}
                         </tbody>
