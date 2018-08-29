@@ -528,10 +528,14 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy, v.display
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
+
+    for (const v of variables) {
+        v.display = JSON.parse(v.display)
+    }
 
     dataset.variables = variables
 

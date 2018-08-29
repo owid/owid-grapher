@@ -1,16 +1,121 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import { observable, computed, runInAction } from 'mobx'
+import { observable, computed, runInAction, autorun, IReactionDisposer } from 'mobx'
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
+import { VariableDisplaySettings } from '../charts/VariableData'
+
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { BindString, Toggle } from './Forms'
+import { BindString, Toggle, BindFloat, FieldsRow } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
-import VariableList, { VariableListItem } from './VariableList'
+import ChartConfig from '../charts/ChartConfig'
+import ChartFigureView from '../charts/ChartFigureView'
+
+class VariableEditable {
+    @observable name: string = ""
+    @observable unit: string = ""
+    @observable shortUnit: string = ""
+    @observable description: string = ""
+    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+
+    constructor(json: any) {
+        for (const key in this) {
+            if (key === "display")
+                _.extend(this.display, json.display)
+            else
+                this[key] = json[key]
+        }
+    }
+}
+
+@observer
+class VariableEditRow extends React.Component<{ variable: VariableEditListItem }> {
+    context!: { admin: Admin }
+    @observable.ref chart?: ChartConfig
+    @observable newVariable!: VariableEditable
+
+    componentWillMount() { this.componentWillReceiveProps() }
+    componentWillReceiveProps() {
+        this.newVariable = new VariableEditable(this.props.variable)
+    }
+
+    async save() {
+        const {variable} = this.props
+        const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, { variable: this.newVariable }, "PUT")
+
+        if (json.success) {
+            runInAction(() => {
+                Object.assign(this.props.variable, this.newVariable)
+            })
+        }
+    }
+
+    @computed get chartConfig() {
+        return {
+            yAxis: { min: 0 },
+            map: { variableId: this.props.variable.id },
+            tab: "map",
+            hasMapTab: true,
+            dimensions: [{
+                property: 'y',
+                variableId: this.props.variable.id,
+                display: _.clone(this.newVariable.display)
+            }]
+        }
+    }
+
+    dispose!: IReactionDisposer
+    componentDidMount() {
+        this.chart = new ChartConfig(this.chartConfig as any)
+
+        this.dispose = autorun(() => {
+            if (this.chart && this.chartConfig) {
+                this.chart.update(this.chartConfig)
+            }
+        })
+    }
+
+    componentDidUnmount() {
+        this.dispose()
+    }
+
+    render() {
+        const {variable} = this.props
+        const {newVariable} = this
+        const {admin} = this.context
+
+        return <div className="VariableEditRow row">
+            <div className="col">
+                <form onSubmit={e => { e.preventDefault(); this.save() }}>
+                    <section>
+                        <BindString label="Name" field="name" store={newVariable} helpText="The full name of the variable e.g. Top marginal income tax rate (Piketty 2014)"/>
+                        <BindString label="Display name" field="name" store={newVariable.display} helpText="How the variable should be named on charts"/>
+                        <FieldsRow>
+                            <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
+                            <BindString label="Short (axis) unit" field="shortUnit" store={newVariable.display}/>
+                        </FieldsRow>
+                        <FieldsRow>
+                            <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={newVariable.display} helpText={`A negative number here will round integers`}/>
+                            <BindFloat label="Unit conversion factor" field="conversionFactor" store={newVariable.display} helpText={`Multiply all values by this amount`}/>
+                        </FieldsRow>
+                    </section>
+                    <input type="submit" className="btn btn-success" value="Update variable"/>
+                </form>
+            </div>
+            {this.chart && <div className="col">
+                <div className="topbar">
+                    <h3></h3>
+                    <Link className="btn btn-secondary" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
+                </div>
+                <ChartFigureView chart={this.chart}/>
+            </div>}
+        </div>
+    }
+}
 
 interface SourceInfo {
     id: number
@@ -20,6 +125,15 @@ interface SourceInfo {
     link: string
     retrievedDate: string
     additionalInfo: string
+}
+
+interface VariableEditListItem {
+    id: number
+    name: string
+    unit: string
+    shortUnit: string
+    description: string
+    display: VariableDisplaySettings
 }
 
 interface DatasetPageData {
@@ -32,10 +146,9 @@ interface DatasetPageData {
     isPrivate: boolean
 
     availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
-    variables: VariableListItem[]
+    variables: VariableEditListItem[]
     charts: ChartListItem[]
     source: SourceInfo
-//    sources: { id: number, name: string }[]
 }
 
 class DatasetEditable {
@@ -45,6 +158,7 @@ class DatasetEditable {
     @observable isPrivate: boolean = false
 
     @observable source: SourceInfo = {
+        id: -1,
         name: "",
         dataPublishedBy: "",
         dataPublisherSource: "",
@@ -105,7 +219,9 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         const json = await this.context.admin.requestJSON(`/api/datasets/${dataset.id}`, { dataset: this.newDataset }, "PUT")
 
         if (json.success) {
-            Object.assign(this.props.dataset, this.newDataset)
+            runInAction(() => {
+                Object.assign(this.props.dataset, this.newDataset)
+            })
         }
     }
 
@@ -147,23 +263,32 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     {isBulkImport ?
                         <p>This dataset came from an automated import, so we can't change the original metadata manually.</p>
                     : <p>The core metadata for the dataset. It's important to keep this in a standardized style across datasets.</p>}
-                    <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
-                    <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
-                    <BindString field="name" store={newDataset.source} label="Source Name" disabled={isBulkImport} helpText={`Source name displayed on charts using this dataset. For academic papers, the name of the source should be "Authors (year)" e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be "Institution, Project (year or vintage)" e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be "Our World in Data based on Author (year)" e.g. Our World in Data based on Atkinson (2002) and Sen (2000).`}/>
+                    <div className="row">
+                        <div className="col">
+                            <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
+                            <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
+                            <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
+                            <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
+                            <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
+                            <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
+                        </div>
 
-                    <BindString field="dataPublishedBy" store={newDataset.source} label="Data published by" disabled={isBulkImport} helpText={`For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.`}/>
-                    <BindString field="dataPublisherSource" store={newDataset.source} label="Data publisher's source" disabled={isBulkImport} helpText={`Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should be relegated to the field “Additional information".`}/>
-                    <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
-                    <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
-                    <BindString field="additionalInfo" store={newDataset.source} label="Additional information" textarea disabled={isBulkImport}/>
-                    <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
-                    <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
+                        <div className="col">
+                            <BindString field="name" store={newDataset.source} label="Source Name" disabled={isBulkImport} helpText={`Source name displayed on charts using this dataset. For academic papers, the name of the source should be "Authors (year)" e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be "Institution, Project (year or vintage)" e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be "Our World in Data based on Author (year)" e.g. Our World in Data based on Atkinson (2002) and Sen (2000).`}/>
+
+                            <BindString field="dataPublishedBy" store={newDataset.source} label="Data published by" disabled={isBulkImport} helpText={`For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.`}/>
+                            <BindString field="dataPublisherSource" store={newDataset.source} label="Data publisher's source" disabled={isBulkImport} helpText={`Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should be relegated to the field "Additional information".`}/>
+                            <BindString field="additionalInfo" store={newDataset.source} label="Additional information" textarea disabled={isBulkImport}/>
+                        </div>
+                    </div>
                     {!isBulkImport && <input type="submit" className="btn btn-success" value="Update dataset"/>}
                 </form>
             </section>
             <section>
                 <h3>Variables</h3>
-                <VariableList variables={dataset.variables}/>
+                {dataset.variables.map(variable =>
+                    <VariableEditRow variable={variable}/>
+                )}
             </section>
             {/*<section>
                 <h3>Sources</h3>

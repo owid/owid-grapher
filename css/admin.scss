@@ -635,6 +635,17 @@ main:not(.ChartEditorPage) {
     }
 }
 
+.VariableEditRow {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
 // to override the default annoying blue border from bootstrap on file upload
 .custom-file-input:focus ~ .custom-file-control {
     box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
