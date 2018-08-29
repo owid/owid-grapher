@@ -12,6 +12,16 @@ import { BindString, Toggle } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import VariableList, { VariableListItem } from './VariableList'
 
+interface SourceInfo {
+    id: number
+    name: string
+    dataPublishedBy: string
+    dataPublisherSource: string
+    link: string
+    retrievedDate: string
+    additionalInfo: string
+}
+
 interface DatasetPageData {
     id: number
     name: string
@@ -24,6 +34,7 @@ interface DatasetPageData {
     availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
+    source: SourceInfo
 //    sources: { id: number, name: string }[]
 }
 
@@ -33,14 +44,7 @@ class DatasetEditable {
     @observable subcategoryId: number = 0
     @observable isPrivate: boolean = false
 
-    @observable source: {
-        name: string
-        dataPublishedBy: string
-        dataPublisherSource: string
-        link: string
-        retrievedDate: string
-        additionalInfo: string
-    } = {
+    @observable source: SourceInfo = {
         name: "",
         dataPublishedBy: "",
         dataPublisherSource: "",

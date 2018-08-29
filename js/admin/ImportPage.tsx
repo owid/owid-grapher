@@ -40,7 +40,6 @@ interface ExistingDataset {
     namespace: string
     name: string
     description: string
-    subcategoryId: number
 
     variables: ExistingVariable[]
 }
@@ -49,7 +48,6 @@ class EditableDataset {
     @observable id?: number
     @observable name: string = ""
     @observable description: string = ""
-    @observable subcategoryId?: number
     @observable existingVariables: ExistingVariable[] = []
     @observable newVariables: EditableVariable[] = []
     @observable years: number[] = []
@@ -119,24 +117,6 @@ class DataPreview extends React.Component<{ csv: CSV }> {
             </div>
         </div>
     }
-}
-
-const EditCategory = (props: { dataset: EditableDataset, categories: { id: number, name: string, parent: string }[] }) => {
-    const { dataset, categories } = props
-    const categoriesByParent = groupBy(categories, (c: any) => c.parent)
-
-    return <label>
-        Category <span className="form-section-desc">(Currently used only for internal organization)</span>
-        <select onChange={e => dataset.subcategoryId = parseInt(e.target.value)} value={dataset.subcategoryId}>
-            {map(categoriesByParent, (subcats, parent) =>
-                <optgroup label={parent}>
-                    {subcats.map((category: any) =>
-                        <option value={category.id}>{category.name}</option>
-                    )}
-                </optgroup>
-            )}
-        </select>
-    </label>
 }
 
 @observer
@@ -476,15 +456,12 @@ class Importer extends React.Component<ImportPageData> {
             dataset.existingVariables = existingDataset.variables
         }
 
-        if (!dataset.name)
+       if (!dataset.name)
             dataset.name = csv.basename
 
         dataset.newVariables = csv.data.variables.map(clone)
         dataset.entities = csv.data.entities
         dataset.years = csv.data.years
-
-        if (dataset.subcategoryId === undefined)
-            dataset.subcategoryId = this.defaultSubcategoryId
 
         if (existingDataset) {
             // Match new variables to existing variables
@@ -517,8 +494,7 @@ class Importer extends React.Component<ImportPageData> {
             dataset: {
                 id: this.existingDataset ? this.existingDataset.id : undefined,
                 name: this.dataset.name,
-                description: this.dataset.description,
-                subcategoryId: this.dataset.subcategoryId
+                description: this.dataset.description
             },
             years, entities,
             variables: newVariables
@@ -541,11 +517,6 @@ class Importer extends React.Component<ImportPageData> {
     componentWillUnmount() {
         for (const dispose of this.disposers)
             dispose()
-    }
-
-    @computed get defaultSubcategoryId(): number {
-        const uncategorized = this.props.categories.find(c => c.name === "Uncategorized") as { id: number, name: string }
-        return uncategorized.id
     }
 
     render() {

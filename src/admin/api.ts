@@ -542,6 +542,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     `, [datasetId])
 
     dataset.source = JSON.parse(sources[0].description)
+    dataset.source.id = sources[0].id
     dataset.source.name = sources[0].name
 
     const charts = await db.query(`
@@ -568,9 +569,17 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
 api.put('/datasets/:datasetId', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
-    const dataset = (req.body as { dataset: any }).dataset
-    await db.execute(`UPDATE datasets SET name=?, description=?, subcategoryId=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, dataset.isPrivate, datasetId])
-    return { success: true }
+
+    return db.transaction(async t => {
+        const dataset = (req.body as { dataset: any }).dataset
+        await t.execute(`UPDATE datasets SET name=?, description=?, subcategoryId=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, dataset.isPrivate, datasetId])
+
+        const source = dataset.source
+        const description = _.omit(source, ['name', 'id'])
+        await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(description), source.id])
+
+        return { success: true }
+    })
 })
 
 api.delete('/datasets/:datasetId', async (req: Request) => {
