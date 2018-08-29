@@ -60,13 +60,13 @@ then
   mv $FINAL_TARGET $OLD_REPO_BACKUP || true
   mv $TMP_NEW $FINAL_TARGET
 
+  # Restart the admin!
+  sudo service $NAME restart
+  sudo service $NAME-node restart
+
   # Static build to update the public frontend code
   cd $FINAL_TARGET
   node dist/src/bakeCharts.js
-
-  # Finally, restart the admin!
-  sudo service $NAME restart
-  sudo service $NAME-node restart
 EOF
 fi
 
