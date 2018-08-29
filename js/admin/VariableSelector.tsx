@@ -132,7 +132,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                     <div className="searchResults">
                         <FieldsRow>
                             <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
-                            <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} autofocus/>
+                            <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} onEscape={this.onDismiss} autofocus/>
                         </FieldsRow>
                         <div style={{ height: numVisibleRows * rowHeight, overflowY: 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
                             <div style={{ height: numTotalRows * rowHeight, paddingTop: rowHeight * rowOffset }}>

@@ -40,8 +40,10 @@ export class TextField extends React.Component<TextFieldProps> {
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key === "Enter" && this.props.onEnter) {
             this.props.onEnter()
+            ev.preventDefault()
         } else if (ev.key === "Escape" && this.props.onEscape) {
             this.props.onEscape()
+            ev.preventDefault()
         }
     }
 
