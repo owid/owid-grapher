@@ -1,5 +1,8 @@
 import * as React from 'react'
+import * as _ from 'lodash'
+
 import webpack from './webpack'
+import * as settings from '../settings'
 
 export default function AdminSPA(props: { rootUrl: string, username: string }) {
     const script = `
@@ -7,7 +10,7 @@ export default function AdminSPA(props: { rootUrl: string, username: string }) {
         Global.rootUrl = "${props.rootUrl}"
         window.App = {}
         App.isEditor = true
-        window.admin = new Admin(Global.rootUrl, "${props.username}")
+        window.admin = new Admin(Global.rootUrl, "${props.username}", ${JSON.stringify(_.pick(settings, ["ENV"]))})
         admin.start(document.querySelector("#app"))
     `
     return <html lang="en">

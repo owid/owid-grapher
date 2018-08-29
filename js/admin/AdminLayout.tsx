@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {observable, action} from 'mobx'
+import {observable, action, computed} from 'mobx'
 import {observer} from 'mobx-react'
 
 import Link from './Link'
@@ -47,9 +47,20 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
             document.title = this.props.title + " - owid-admin"
     }
 
+    @computed get environmentSpan() {
+        const {admin} = this.context
+        if (admin.settings.ENV === "development" ) {
+            return <span className="dev">dev</span>
+        } else if (window.location.origin === "https://owid.cloud") {
+            return <span className="live">live</span>
+        } else {
+            return <span className="test">test</span>
+        }
+    }
+
     render() {
         const {admin} = this.context
-        const {isFAQ, isSidebar} = this
+        const {isFAQ, isSidebar, environmentSpan} = this
 
         return <div className={"AdminLayout" + (isSidebar ? " withSidebar" : "")}>
             {isFAQ && <EditorFAQ onClose={this.onToggleFAQ}/>}
@@ -57,7 +68,7 @@ export default class AdminLayout extends React.Component<{ noSidebar?: boolean, 
                 <button className="navbar-toggler" type="button" onClick={this.onToggleSidebar}>
                     <span className="navbar-toggler-icon"></span>
                 </button>
-                <Link className="navbar-brand" to="/">owid-admin</Link>
+                <Link className="navbar-brand" to="/">owid-admin {environmentSpan}</Link>
                 <ul className="navbar-nav">
                     <li className="nav-item">
                         <Link className="nav-link" to="/charts/create">

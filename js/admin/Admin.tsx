@@ -9,6 +9,10 @@ import { Json, queryParamsToStr } from '../charts/Util'
 
 type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
 
+interface ClientSettings {
+    ENV: 'development'|'production'
+}
+
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export default class Admin {
@@ -16,10 +20,12 @@ export default class Admin {
     grapherRoot: string
     basePath: string
     username: string
-    constructor(rootUrl: string, username: string) {
+    settings: ClientSettings
+    constructor(rootUrl: string, username: string, settings: ClientSettings) {
         this.grapherRoot = rootUrl
         this.basePath = "/admin"
         this.username = username
+        this.settings = settings
     }
 
     @observable currentRequests: Promise<any>[] = []

@@ -36,6 +36,22 @@ html, body {
         margin-right: 1rem;
     }
 
+    .navbar span.dev {
+        color: orange;
+        font-size: 0.8em;
+    }
+
+    .navbar span.live {
+        color: lightgreen;
+        font-size: 0.8em;
+    }
+
+    .navbar span.test {
+        color: lightpink;
+        font-size: 0.8em;
+    }
+
+
     section {
         h1 {
             font-size: 26px;
