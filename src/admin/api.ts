@@ -536,12 +536,13 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     dataset.variables = variables
 
     const sources = await db.query(`
-        SELECT s.id, s.name
+        SELECT s.id, s.name, s.description
         FROM sources AS s
         WHERE s.datasetId = ?
     `, [datasetId])
 
-    dataset.sources = sources
+    dataset.source = JSON.parse(sources[0].description)
+    dataset.source.name = sources[0].name
 
     const charts = await db.query(`
         SELECT ${OldChart.listFields}

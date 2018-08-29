@@ -24,7 +24,7 @@ interface DatasetPageData {
     availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
-    sources: { id: number, name: string }[]
+//    sources: { id: number, name: string }[]
 }
 
 class DatasetEditable {
@@ -32,6 +32,22 @@ class DatasetEditable {
     @observable description: string = ""
     @observable subcategoryId: number = 0
     @observable isPrivate: boolean = false
+
+    @observable source: {
+        name: string
+        dataPublishedBy: string
+        dataPublisherSource: string
+        link: string
+        retrievedDate: string
+        additionalInfo: string
+    } = {
+        name: "",
+        dataPublishedBy: "",
+        dataPublisherSource: "",
+        link: "",
+        retrievedDate: "",
+        additionalInfo: ""
+    }
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
@@ -59,6 +75,7 @@ class EditCategory extends React.Component<{ newDataset: DatasetEditable, availa
                     </optgroup>
                 )}
             </select>
+            <small className="form-text text-muted">Currently used for internal organization</small>
         </div>
     }
 }
@@ -126,10 +143,17 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     {isBulkImport ?
                         <p>This dataset came from an automated import, so we can't change the original metadata manually.</p>
                     : <p>The core metadata for the dataset. It's important to keep this in a standardized style across datasets.</p>}
-                    <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this collection of variables, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
+                    <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
                     <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
+                    <BindString field="name" store={newDataset.source} label="Source Name" disabled={isBulkImport} helpText={`Source name displayed on charts using this dataset. For academic papers, the name of the source should be "Authors (year)" e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be "Institution, Project (year or vintage)" e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be "Our World in Data based on Author (year)" e.g. Our World in Data based on Atkinson (2002) and Sen (2000).`}/>
+
+                    <BindString field="dataPublishedBy" store={newDataset.source} label="Data published by" disabled={isBulkImport} helpText={`For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.`}/>
+                    <BindString field="dataPublisherSource" store={newDataset.source} label="Data publisher's source" disabled={isBulkImport} helpText={`Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should be relegated to the field “Additional information".`}/>
+                    <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
+                    <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
+                    <BindString field="additionalInfo" store={newDataset.source} label="Additional information" textarea disabled={isBulkImport}/>
                     <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
-                    <Toggle label="Is private" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
+                    <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
                     {!isBulkImport && <input type="submit" className="btn btn-success" value="Update dataset"/>}
                 </form>
             </section>
@@ -137,21 +161,21 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <h3>Variables</h3>
                 <VariableList variables={dataset.variables}/>
             </section>
-            <section>
+            {/*<section>
                 <h3>Sources</h3>
                 <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Source</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {dataset.sources.map(source => <tr>
-                        <td><Link to={`/sources/${source.id}`}>{source.name}</Link></td>
-                    </tr>)}
-                </tbody>
-            </table>
-            </section>
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {dataset.sources.map(source => <tr>
+                            <td><Link to={`/sources/${source.id}`}>{source.name}</Link></td>
+                        </tr>)}
+                    </tbody>
+                </table>
+            </section>*/}
             <section>
                 <h3>Charts</h3>
                 <ChartList charts={dataset.charts}/>
