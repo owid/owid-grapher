@@ -1,11 +1,14 @@
 import * as React from 'react'
-import { includes, sample, sampleSize } from '../charts/Util'
 import { observable, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
+
+import { includes, sample, sampleSize } from '../charts/Util'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeDefs, ChartTypeType } from '../charts/ChartType'
-import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
 import DimensionWithData from '../charts/DimensionWithData'
+import ChartDimension from '../charts/ChartDimension'
+
+import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
 import ChartEditor from './ChartEditor'
 import VariableSelector from './VariableSelector'
 import DimensionCard from './DimensionCard'
@@ -93,7 +96,20 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 export default class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onChartType(value: string) { this.props.editor.chart.props.type = (value as ChartTypeType) }
+    @action.bound onChartType(value: string) {
+        const {chart} = this.props.editor
+        chart.props.type = (value as ChartTypeType)
+
+
+        // Give scatterplots and slope charts a default color and size dimension if they don't have one
+        if ((chart.isScatter || chart.isSlopeChart) && !chart.props.dimensions.find(d => d.property === "color")) {
+            chart.props.dimensions = chart.props.dimensions.concat(new ChartDimension({ variableId: 123, property: "color" }))
+        }
+
+        if ((chart.isScatter || chart.isSlopeChart) && !chart.props.dimensions.find(d => d.property === "color")) {
+            chart.props.dimensions = chart.props.dimensions.concat(new ChartDimension({ variableId: 72, property: "size" }))
+        }
+    }
 
     render() {
         const { editor } = this.props

@@ -291,15 +291,6 @@ export default class ChartConfig {
                 validDimensions = uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property === slot.property && a.property === b.property)
         })
 
-        // Give scatterplots and slope charts a default color and size dimension if they don't have one
-        if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: "color" })) {
-            validDimensions = validDimensions.concat(new ChartDimension({ variableId: 123, property: "color" }))
-        }
-
-        if ((this.isScatter || this.isSlopeChart) && !find(dimensions, { property: "size" })) {
-            validDimensions = validDimensions.concat(new ChartDimension({ variableId: 72, property: "size" }))
-        }
-
         return validDimensions
     }
 
