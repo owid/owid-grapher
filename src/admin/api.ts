@@ -17,6 +17,7 @@ import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
+import {Dataset} from '../model/Dataset'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner

@@ -58,3 +58,6 @@ export function csvRow(arr: string[]): string {
 export function absoluteUrl(path: string): string {
     return urljoin(settings.NODE_BASE_URL, path)
 }
+
+const slugify = require('slugify')
+export { slugify }

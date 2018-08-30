@@ -2,13 +2,15 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne
 import { Writable } from "stream"
 
 import User from './User'
+import { Source } from './Source'
 import { Variable } from './Variable'
-import { csvRow } from '../admin/serverUtil'
+import { csvRow, slugify } from '../admin/serverUtil'
 import * as db from '../db'
 
 @Entity("datasets")
 export class Dataset extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
+    @Column({ nullable: false }) name!: string
     @Column({ nullable: false, default: "owid" }) namespace!: string
     @Column({ nullable: false, default: "" }) description!: string
     @Column({ name: 'created_at' }) createdAt!: Date
@@ -20,13 +22,16 @@ export class Dataset extends BaseEntity {
     @OneToMany(type => Variable, variable => variable.dataset)
     variables!: Variable[]
 
+    @OneToMany(type => Source, source => source.dataset)
+    sources!: Source[]
+
     @ManyToOne(type => User, user => user.createdDatasets)
     createdByUser!: User
 
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable) {
         const csvHeader = ["Entity", "Year"]
-        const variables = await db.query(`SELECT name FROM variables v WHERE v.datasetId=? ORDER BY v.id ASC`, [datasetId])
+        const variables = await db.query(`SELECT name FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`, [datasetId])
         for (const variable of variables) {
             csvHeader.push(variable.name)
         }
@@ -64,5 +69,37 @@ export class Dataset extends BaseEntity {
         let csv = ""
         await Dataset.writeCSV(this.id, { write: (s: string) => csv += s, end: () => null } as any)
         return csv
+    }
+
+    get slug() {
+        return this.name//return slugify(this.name)
+    }
+
+    // Return object representing datapackage.json for this dataset
+    async toDatapackage(): Promise<any> {
+        const initialFields = [
+            { name: "Entity", type: "string" },
+            { name: "Year", type: "year" }
+        ]
+
+        const dataPackage = {
+            name: this.slug,
+            title: this.name,
+            description: this.description,
+            sources: [this.sources.map(s => s.toDatapackage())],
+            resources: [{
+                path: `${this.slug}.csv`,
+                schema: {
+                    fields: initialFields.concat(this.variables.map(v => ({
+                        name: v.name,
+                        type: "any",
+                        description: v.description,
+                        owidDisplaySettings: v.display
+                    })))
+                }
+            }]
+        }
+
+        return dataPackage
     }
 }
