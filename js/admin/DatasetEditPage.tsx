@@ -102,16 +102,14 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem }
                             <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={newVariable.display} helpText={`A negative number here will round integers`}/>
                             <BindFloat label="Unit conversion factor" field="conversionFactor" store={newVariable.display} helpText={`Multiply all values by this amount`}/>
                         </FieldsRow>
+                        <BindString label="Description" field="description" store={newVariable} helpText="Any further useful information about this variable" textarea/>
                     </section>
                     <input type="submit" className="btn btn-success" value="Update variable"/>
                 </form>
             </div>
             {this.chart && <div className="col">
-                <div className="topbar">
-                    <h3></h3>
-                    <Link className="btn btn-secondary" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
-                </div>
                 <ChartFigureView chart={this.chart}/>
+                <Link className="btn btn-secondary pull-right" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
             </div>}
         </div>
     }

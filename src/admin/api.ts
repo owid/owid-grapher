@@ -476,8 +476,8 @@ api.put('/variables/:variableId', async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
     const variable = (req.body as { variable: VariableSingleMeta }).variable
 
-    await db.execute(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
-        [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variableId])
+    await db.execute(`UPDATE variables SET name=?, description=?, updated_at=?, display=? WHERE id = ?`,
+        [variable.name, variable.description, new Date(), JSON.stringify(variable.display), variableId])
     return { success: true }
 })
 
@@ -528,7 +528,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy, v.display
+        SELECT v.id, v.name, v.description, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy, v.display
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
