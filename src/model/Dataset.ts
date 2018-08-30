@@ -1,7 +1,10 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne} from "typeorm"
+import { Writable } from "stream"
 
 import User from './User'
 import { Variable } from './Variable'
+import { csvRow } from '../admin/serverUtil'
+import * as db from '../db'
 
 @Entity("datasets")
 export class Dataset extends BaseEntity {
@@ -19,4 +22,47 @@ export class Dataset extends BaseEntity {
 
     @ManyToOne(type => User, user => user.createdDatasets)
     createdByUser!: User
+
+    // Export dataset variables to CSV (not including metadata)
+    static async writeCSV(datasetId: number, stream: Writable) {
+        const csvHeader = ["Entity", "Year"]
+        const variables = await db.query(`SELECT name FROM variables v WHERE v.datasetId=? ORDER BY v.id ASC`, [datasetId])
+        for (const variable of variables) {
+            csvHeader.push(variable.name)
+        }
+
+        stream.write(csvRow(csvHeader))
+
+        const data = await db.query(`
+            SELECT e.name AS entity, dv.year, dv.value FROM data_values dv
+            JOIN variables v ON v.id=dv.variableId
+            JOIN datasets d ON v.datasetId=d.id
+            JOIN entities e ON dv.entityId=e.id
+            WHERE d.id=?
+            ORDER BY e.name ASC, dv.year ASC, dv.variableId ASC`, [datasetId])
+
+        let row: string[] = []
+        for (const datum of data) {
+            if (datum.entity !== row[0] || datum.year !== row[1]) {
+                // New row
+                if (row.length) {
+                    stream.write(csvRow(row))
+                }
+                row = [datum.entity, datum.year]
+            }
+
+            row.push(datum.value)
+        }
+
+        // Final row
+        stream.write(csvRow(row))
+
+        stream.end()
+    }
+
+    async toCSV(): Promise<string> {
+        let csv = ""
+        await Dataset.writeCSV(this.id, { write: (s: string) => csv += s, end: () => null } as any)
+        return csv
+    }
 }
