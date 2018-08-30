@@ -4,8 +4,9 @@ import { Dataset } from './Dataset'
 @Entity("sources")
 export class Source extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ nullable: false }) name!: string
-    @Column({ nullable: false, default: "{}", type: 'json' }) description!: any
+    @Column() datasetId!: number
+    @Column() name!: string
+    @Column({ default: "{}", type: 'json' }) description!: any
 
     @ManyToOne(type => Dataset, dataset => dataset.variables) @JoinColumn({ name: 'datasetId' })
     dataset!: Dataset

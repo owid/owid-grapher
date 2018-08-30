@@ -4,20 +4,20 @@ import { Writable } from "stream"
 import User from './User'
 import { Source } from './Source'
 import { Variable } from './Variable'
-import { csvRow, slugify } from '../admin/serverUtil'
+import { csvRow, slugify, filenamify } from '../admin/serverUtil'
 import * as db from '../db'
 
 @Entity("datasets")
 export class Dataset extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ nullable: false }) name!: string
-    @Column({ nullable: false, default: "owid" }) namespace!: string
-    @Column({ nullable: false, default: "" }) description!: string
+    @Column() name!: string
+    @Column({ default: "owid" }) namespace!: string
+    @Column({ default: "" }) description!: string
     @Column({ name: 'created_at' }) createdAt!: Date
     @Column({ name: 'updated_at' }) updatedAt!: Date
     @Column() categoryId!: number
     @Column() subcategoryId!: number
-    @Column({ nullable: false, default: false }) isPrivate!: boolean
+    @Column({ default: false }) isPrivate!: boolean
 
     @OneToMany(type => Variable, variable => variable.dataset)
     variables!: Variable[]
@@ -71,26 +71,35 @@ export class Dataset extends BaseEntity {
         return csv
     }
 
+    get filename() {
+        return filenamify(this.name)
+    }
+
     get slug() {
-        return this.name//return slugify(this.name)
+        return slugify(this.name)
     }
 
     // Return object representing datapackage.json for this dataset
     async toDatapackage(): Promise<any> {
+        // XXX
+        const sources = await Source.find({ datasetId: this.id })
+        const variables = await Variable.find({ datasetId: this.id })
+
         const initialFields = [
             { name: "Entity", type: "string" },
             { name: "Year", type: "year" }
         ]
 
         const dataPackage = {
-            name: this.slug,
+            name: this.name,
             title: this.name,
+            id: this.id,
             description: this.description,
-            sources: [this.sources.map(s => s.toDatapackage())],
+            sources: sources.map(s => s.toDatapackage()),
             resources: [{
-                path: `${this.slug}.csv`,
+                path: `${this.name}.csv`,
                 schema: {
-                    fields: initialFields.concat(this.variables.map(v => ({
+                    fields: initialFields.concat(variables.map(v => ({
                         name: v.name,
                         type: "any",
                         description: v.description,
