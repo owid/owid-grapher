@@ -10,7 +10,7 @@ import { bind } from 'decko'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 
-import { extend, pick, capitalize } from '../charts/Util'
+import { extend, pick, capitalize, trim } from '../charts/Util'
 import Colorpicker from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
@@ -61,7 +61,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(trim(e.currentTarget.value))} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
