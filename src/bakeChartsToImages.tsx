@@ -1,12 +1,10 @@
 import * as _ from 'lodash'
 import * as parseUrl from 'url-parse'
-import {createConnection, DatabaseConnection} from './database'
-import {DB_NAME} from './settings'
+import * as db from './db'
 import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from './model/Variable'
 import * as fs from 'fs-extra'
-import * as filenamify from 'filenamify'
 const md5 = require('md5')
 
 declare var global: any
@@ -21,7 +19,7 @@ require('module-alias').addAliases({
 
 import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
 
-async function getChartsBySlug(db: DatabaseConnection) {
+async function getChartsBySlug() {
     const chartsBySlug: Map<string, ChartConfigProps> = new Map()
     const chartsById = new Map()
 
@@ -43,10 +41,10 @@ async function getChartsBySlug(db: DatabaseConnection) {
 }
 
 async function main(chartUrls: string[], outDir: string) {
-    const db = createConnection({ database: DB_NAME })
+    await db.connect()
     try {
         await fs.mkdirp(outDir)
-        const chartsBySlug = await getChartsBySlug(db)
+        const chartsBySlug = await getChartsBySlug()
 
         for (const urlStr of chartUrls) {
             const url = parseUrl(urlStr)
