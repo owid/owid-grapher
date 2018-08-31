@@ -1,13 +1,15 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne} from "typeorm"
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinTable, Unique} from "typeorm"
 import { Writable } from "stream"
 
 import User from './User'
 import { Source } from './Source'
 import { Variable } from './Variable'
+import Tag from './Tag'
 import { csvRow, slugify, filenamify } from '../admin/serverUtil'
 import * as db from '../db'
 
 @Entity("datasets")
+@Unique(["name", "namespace"])
 export class Dataset extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() name!: string
@@ -27,6 +29,10 @@ export class Dataset extends BaseEntity {
 
     @ManyToOne(type => User, user => user.createdDatasets)
     createdByUser!: User
+
+    @ManyToMany(type => Tag)
+    @JoinTable()
+    tags!: Tag[]
 
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable) {

@@ -631,6 +631,18 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
     }
 })
 
+api.get('/tags.json', async (req: Request, res: Response) => {
+    const tags = await db.query(`
+        SELECT t.id, t.name, t.categoryId AS parentId, p.name AS parentName
+        FROM tags t JOIN dataset_categories p ON t.categoryId=p.id
+        WHERE p.fetcher_autocreated IS FALSE
+    `)
+
+    return {
+        tags: tags
+    }
+})
+
 api.delete('/redirects/:id', async (req: Request, res: Response) => {
     const id = expectInt(req.params.id)
 

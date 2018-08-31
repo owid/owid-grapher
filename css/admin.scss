@@ -650,3 +650,10 @@ main:not(.ChartEditorPage) {
 .custom-file-input:focus ~ .custom-file-control {
     box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
 }
+
+.CategoriesIndexPage {
+    .badge {
+        font-size: 0.8em;
+        margin-right: 0.5em;
+    }
+}
