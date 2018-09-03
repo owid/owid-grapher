@@ -657,3 +657,18 @@ main:not(.ChartEditorPage) {
         margin-right: 0.5em;
     }
 }
+
+.TagBadge {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    background-color: #eee;
+    color: #333;
+    margin-right: 5px;
+    margin-bottom: 5px;
+
+    &:hover {
+        color: #333;
+    }
+}

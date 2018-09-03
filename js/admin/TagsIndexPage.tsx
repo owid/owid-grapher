@@ -7,12 +7,10 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { FieldsRow } from './Forms'
 import Link from './Link'
+import TagBadge, { Tag } from './TagBadge'
 
 interface TagListItem {
     id: number
-    slug: string
-    chartId: number
-    chartSlug: string
     name: string
     parentName: string
 }
@@ -43,7 +41,7 @@ export default class CategoriesIndexPage extends React.Component {
                                 {parent.name}
                             </h4>
                             {parent.tags.map(tag =>
-                                <Link to={`/tags/${tag.id}`}><span className="badge badge-secondary">{tag.name}</span></Link>
+                                <TagBadge tag={tag as Tag}/>
                             )}
                             <button className="btn btn-default">+ New Tag</button>
                         </section>

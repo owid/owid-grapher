@@ -502,24 +502,33 @@ api.delete('/variables/:variableId', async (req: Request) => {
 })
 
 api.get('/datasets.json', async req => {
-    const rows = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt
+    const datasets = await db.query(`
+        SELECT d.id, d.namespace, d.name, d.description, d.created_at AS createdAt, d.updated_at AS updatedAt
         FROM datasets AS d
-        LEFT JOIN dataset_categories AS c ON c.id=d.categoryId
-        LEFT JOIN tags AS sc ON sc.id=d.subcategoryId
         ORDER BY d.created_at DESC
     `)
+
+    const tags = await db.query(`
+        SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+        JOIN tags t ON dt.tagId = t.id
+    `)
+
+    const tagsByDatasetId = _.groupBy(tags, t => t.datasetId)
+
+    for (const dataset of datasets) {
+        dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+    }
     /*LEFT JOIN variables AS v ON v.datasetId=d.id
     GROUP BY d.id*/
 
-    return { datasets: rows }
+    return { datasets: datasets }
 })
 
 api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt, d.isPrivate
+        SELECT d.id, d.namespace, d.name, d.description, d.updated_at AS updatedAt, d.isPrivate
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -639,6 +648,25 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         WHERE t.id = ?
     `, [tagId])
 
+    const datasets = await db.query(`
+        SELECT d.id, d.namespace, d.name, d.description, d.created_at AS createdAt,d.updated_at AS updatedAt
+        FROM datasets d
+        JOIN dataset_tags dt ON dt.datasetId = d.id
+        WHERE dt.tagId = ?
+    `, [tagId])
+    tag.datasets = datasets
+
+    const datasetTags = await db.query(`
+        SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+        JOIN tags t ON dt.tagId = t.id
+    `)
+
+    const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
+
+    for (const dataset of tag.datasets) {
+        dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+    }
+
     return {
         tag: tag
     }
@@ -650,7 +678,6 @@ api.put('/tags/:tagId', async (req: Request) => {
     await db.execute(`UPDATE tags SET name=?, updated_at=? WHERE id=?`, [tag.name, new Date(), tagId])
     return { success: true }
 })
-
 
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`

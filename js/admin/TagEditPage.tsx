@@ -7,12 +7,13 @@ const timeago = require('timeago.js')()
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { BindString } from './Forms'
-import VariableList, { VariableListItem } from './VariableList'
+import DatasetList, { DatasetListItem } from './DatasetList'
 
 interface TagPageData {
     id: number
     name: string
     updatedAt: string
+    datasets: DatasetListItem[]
 }
 
 class TagEditable {
@@ -70,10 +71,10 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <input type="submit" className="btn btn-success" value="Update tag"/>
                 </form>
             </section>
-            {/*<section>
-                <h3>Variables</h3>
-                <VariableList variables={tag.variables}/>
-            </section>*/}
+            <section>
+                <h3>Datasets</h3>
+                <DatasetList datasets={tag.datasets}/>
+            </section>
         </main>
     }
 }
