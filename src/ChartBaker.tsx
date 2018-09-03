@@ -37,7 +37,7 @@ export class ChartBaker {
 
     async bakeAssets() {
         if (ENV === "production") {
-            const buildDir = `grapher_admin/static/build`
+            const buildDir = `dist/webpack`
 
             const manifest = JSON.parse(await fs.readFile(`${buildDir}/manifest.json`, 'utf8'))
 

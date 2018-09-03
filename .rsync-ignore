@@ -4,7 +4,6 @@ env
 tmp
 public/uploads
 public/exports
-grapher_admin/static/build
 data
 .awcache
 public

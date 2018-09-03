@@ -4,7 +4,7 @@
     "setup": "tsc",
     "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"nodemon -r source-map-support/register --watch dist/src --inspect dist/src/admin/server.js\"",
     "lint": "tslint --project . -t verbose",
-    "build": "rm -rf dist && tsc && rm -rf grapher_admin/static/build && webpack -p --progress",
+    "build": "rm -rf dist && tsc && webpack -p --progress",
     "test": "jest",
     "c": "node --experimental-repl-await ./dist/src/console.js"
   },

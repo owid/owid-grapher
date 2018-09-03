@@ -6,7 +6,7 @@ let manifest: {[key: string]: string}
 export function webpack(assetName: string) {
     if (ENV === 'production') {
         if (!manifest) {
-            const manifestPath = path.join(BASE_DIR, 'grapher_admin/static/build/manifest.json')
+            const manifestPath = path.join(BASE_DIR, 'dist/webpack/manifest.json')
             manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         }
 

@@ -43,15 +43,12 @@ then
 
   # Link in all the persistent stuff that needs to stay around between versions
   ln -sf $FINAL_DATA/.env $TMP_NEW/.env
-  ln -sf $FINAL_DATA/env $TMP_NEW/env
   ln -sf $FINAL_DATA/public $TMP_NEW/public
   ln -sf $FINAL_DATA/data $TMP_NEW/data
 
   # Install dependencies, build assets and migrate
   cd $TMP_NEW
   yarn install --production
-  . env/bin/activate
-  pip3 install -r requirements.txt
   yarn build
   ./node_modules/.bin/typeorm migration:run
 
@@ -61,7 +58,6 @@ then
   mv $TMP_NEW $FINAL_TARGET
 
   # Restart the admin!
-  sudo service $NAME restart
   sudo service $NAME-node restart
 
   # Static build to update the public frontend code

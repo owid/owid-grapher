@@ -13,7 +13,6 @@ module.exports = (env, argv) => {
         entry: {
             charts: "./js/charts.entry.ts",
             admin: "./js/admin.entry.ts",
-            oldadmin: "./js/oldadmin.entry.ts"
         },
         optimization: {
             splitChunks: {
@@ -37,7 +36,7 @@ module.exports = (env, argv) => {
             ]
         },
         output: {
-            path: path.join(__dirname, "grapher_admin/static/build"),
+            path: path.join(__dirname, "dist/webpack"),
             // Seems to be an occasional bug with [chunkhash] causing charts js file to load wrong thing from commons
             // So using build hash for now
             filename: (isProduction ? "[name].bundle.[hash].js" : "[name].js")
@@ -49,7 +48,6 @@ module.exports = (env, argv) => {
                 'react-dom': 'preact-compat',
             },
             modules: [
-                path.join(__dirname, "css/libs"),
                 path.join(__dirname, "node_modules"),
             ],
         },
@@ -65,7 +63,7 @@ module.exports = (env, argv) => {
                 },
                 {
                     test: /\.css$/,
-                    loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'postcss-loader'] })
+                    loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]'] })
                 },
                 {
                     test: /\.scss$/,

@@ -1,6 +1,4 @@
-language: python
-python:
-  - 3.6
+language: node_js
 services:
   - mysql
 addons:
@@ -16,7 +14,8 @@ before_script:
   - mysql -e 'CREATE DATABASE test_grapher;'
   - mkdir tmp
 script:
-  - python manage.py test
+  - yarn test
+cache: yarn
 notifications:
   email:
     - jaiden@mispy.me

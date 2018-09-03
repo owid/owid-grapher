@@ -30,6 +30,7 @@ app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
 app.use('/grapher', devServer)
 
+app.use('/admin/build', express.static('dist/webpack'))
 app.use('/admin', adminViews)
 
 // Default route: single page admin app
