@@ -15,8 +15,8 @@ export class Dataset extends BaseEntity {
     @Column() name!: string
     @Column({ default: "owid" }) namespace!: string
     @Column({ default: "" }) description!: string
-    @Column({ name: 'created_at' }) createdAt!: Date
-    @Column({ name: 'updated_at' }) updatedAt!: Date
+    @Column() createdAt!: Date
+    @Column() updatedAt!: Date
     @Column() categoryId!: number
     @Column() subcategoryId!: number
     @Column({ default: false }) isPrivate!: boolean

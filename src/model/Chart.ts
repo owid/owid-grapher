@@ -10,12 +10,12 @@ import User from './User'
 export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ type: 'json' }) config: any
-    @Column({ name: 'last_edited_at' }) lastEditedAt!: Date
-    @Column({ name: 'last_edited_by', nullable: true }) lastEditedByUserId!: string
-    @Column({ name: 'published_at', nullable: true }) publishedAt!: Date
-    @Column({ name: 'published_by', nullable: true }) publishedByUserId!: string
-    @Column({ name: 'created_at' }) createdAt!: Date
-    @Column({ name: 'updated_at' }) updatedAt!: Date
+    @Column() lastEditedAt!: Date
+    @Column({ nullable: true }) lastEditedByUserId!: string
+    @Column({ nullable: true }) publishedAt!: Date
+    @Column({ nullable: true }) publishedByUserId!: string
+    @Column() createdAt!: Date
+    @Column() updatedAt!: Date
     @Column() starred!: boolean
 
     @ManyToOne(type => User, user => user.lastEditedCharts) @JoinColumn({ name: 'last_edited_by', referencedColumnName: 'name' })
@@ -37,10 +37,10 @@ export default class OldChart {
         JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
         JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
         charts.starred AS isStarred,
-        charts.last_edited_at AS lastEditedAt,
-        charts.last_edited_by AS lastEditedBy,
-        charts.published_at AS publishedAt,
-        charts.published_by AS publishedBy
+        charts.lastEditedAt AS lastEditedAt,
+        charts.lastEditedBy AS lastEditedBy,
+        charts.publishedAt AS publishedAt,
+        charts.publishedBy AS publishedBy
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {

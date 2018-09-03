@@ -126,12 +126,12 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         let chartId = existingConfig && existingConfig.id
         if (existingConfig) {
             await t.query(
-                `UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ?`,
+                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedBy=? WHERE id = ?`,
                 [JSON.stringify(newConfig), now, now, user.name, chartId]
             )
         } else {
             const result = await t.execute(
-                `INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`,
+                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedBy, starred) VALUES (?)`,
                 [[JSON.stringify(newConfig), now, now, now, user.name, false]]
             )
             chartId = result.insertId
@@ -176,7 +176,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
-        SELECT ${OldChart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
+        SELECT ${OldChart.listFields} FROM charts ORDER BY lastEditedAt DESC LIMIT ?
     `, [limit])
 
     return {
@@ -260,7 +260,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const rows = await db.query(
         `SELECT v.name, v.id, d.name as datasetName, d.namespace
          FROM variables as v JOIN datasets as d ON v.datasetId = d.id
-         WHERE namespace=? ORDER BY d.updated_at DESC`, [req.params.namespace])
+         WHERE namespace=? ORDER BY d.updatedAt DESC`, [req.params.namespace])
 
     let dataset: { name: string, namespace: string, variables: { id: number, name: string }[] }|undefined
     for (const row of rows) {
@@ -340,12 +340,12 @@ export interface UserIndexMeta {
 }
 
 api.get('/users.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users`)
+    const rows = await db.query(`SELECT id, email, full_name as fullName, name, createdAt, updatedAt, is_active as isActive FROM users`)
     return { users: rows as UserIndexMeta[] }
 })
 
 api.get('/users/:userId.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
+    const rows = await db.query(`SELECT id, email, full_name as fullName, name, createdAt, updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
 
     if (rows.length)
         return { user: rows[0] as UserIndexMeta }
@@ -390,8 +390,8 @@ api.post('/users/invite', async (req: Request, res: Response) => {
         invite.email = email
         invite.code = UserInvitation.makeInviteCode()
         invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        invite.created_at = new Date()
-        invite.updated_at = new Date()
+        invite.createdAt = new Date()
+        invite.updatedAt = new Date()
         await repo.save(invite)
 
         const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
@@ -477,7 +477,7 @@ api.put('/variables/:variableId', async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
     const variable = (req.body as { variable: VariableSingleMeta }).variable
 
-    await db.execute(`UPDATE variables SET name=?, description=?, updated_at=?, display=? WHERE id = ?`,
+    await db.execute(`UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
         [variable.name, variable.description, new Date(), JSON.stringify(variable.display), variableId])
     return { success: true }
 })
@@ -503,9 +503,9 @@ api.delete('/variables/:variableId', async (req: Request) => {
 
 api.get('/datasets.json', async req => {
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.created_at AS createdAt, d.updated_at AS updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt
         FROM datasets AS d
-        ORDER BY d.created_at DESC
+        ORDER BY d.createdAt DESC
     `)
 
     const tags = await db.query(`
@@ -528,7 +528,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.updated_at AS updatedAt, d.isPrivate
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -611,7 +611,7 @@ api.delete('/datasets/:datasetId', async (req: Request) => {
 api.get('/sources/:sourceId.json', async (req: Request) => {
     const sourceId = expectInt(req.params.sourceId)
     const source = await db.get(`
-        SELECT s.id, s.name, s.description, s.created_at AS createdAt, s.updated_at AS updatedAt, d.namespace AS namespace
+        SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
         JOIN datasets AS d ON d.id=s.datasetId
         WHERE s.id=?`, [sourceId])
@@ -643,13 +643,13 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
     const tag = await db.get(`
-        SELECT t.id, t.name, t.updated_at AS updatedAt, t.categoryId AS parentId, p.name AS parentName
+        SELECT t.id, t.name, t.updatedAt, t.categoryId AS parentId, p.name AS parentName
         FROM tags t JOIN dataset_categories p ON t.categoryId=p.id
         WHERE t.id = ?
     `, [tagId])
 
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.created_at AS createdAt,d.updated_at AS updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt,d.updatedAt
         FROM datasets d
         JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId = ?
@@ -675,7 +675,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
 api.put('/tags/:tagId', async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
-    await db.execute(`UPDATE tags SET name=?, updated_at=? WHERE id=?`, [tag.name, new Date(), tagId])
+    await db.execute(`UPDATE tags SET name=?, updatedAt=? WHERE id=?`, [tag.name, new Date(), tagId])
     return { success: true }
 })
 
@@ -743,7 +743,7 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updatedAt
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -782,152 +782,6 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     })
 })*/
 
-/*
-
-def store_import_data(request: HttpRequest):
-    if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                data = json.loads(request.body.decode('utf-8'))
-                datasetmeta = data['dataset']
-                entities = data['entities']
-                entitynames = data['entityNames']
-                years = data['years']
-                variables = data['variables']
-
-                datasetprops = {'name': datasetmeta['name'],
-                                'description': datasetmeta['description'],
-                                'categoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).categoryId,
-                                'subcategoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
-                                }
-
-                if datasetmeta['id']:
-                    dataset = Dataset.objects.get(pk=datasetmeta['id'])
-                    dataset_old_name = dataset.name  # needed for version tracking csv export
-                    Dataset.objects.filter(pk=datasetmeta['id']).update(updated_at=timezone.now(), **datasetprops)
-                else:
-                    dataset = Dataset(**datasetprops)
-                    dataset_old_name = None
-                    dataset.save()
-
-                dataset_id = dataset.pk
-
-                codes = Entity.objects.filter(validated=True).values('name', 'code')
-
-                codes_dict = {}
-
-                for each in codes:
-                    codes_dict[each['code']] = each['name']
-
-                entitynames_list = Entity.objects.values_list('name', flat=True)
-
-                for i in range(0, len(entitynames)):
-                    name = entitynames[i]
-                    if codes_dict.get(name, 0):
-                        entitynames[i] = codes_dict[name]
-
-                entitynames_to_insert = []
-
-                for each in entitynames:
-                    if each not in entitynames_list:
-                        entitynames_to_insert.append(each)
-
-                alist = [Entity(name=val, validated=False) for val in entitynames_to_insert]
-
-                Entity.objects.bulk_create(alist)
-
-                codes = Entity.objects.values('name', 'id')
-
-                entitiy_name_to_id = {}
-
-                for each in codes:
-                    entitiy_name_to_id[each['name']] = each['id']
-
-                source_ids_by_name: Dict[str, str] = {}
-
-                for variable in variables:
-                    source_name = variable['source']['name']
-                    if source_ids_by_name.get(source_name, 0):
-                        source_id = source_ids_by_name[source_name]
-                    else:
-                        if variable['source']['id']:
-                            source_id = variable['source']['id']
-                        else:
-                            source_id = None
-                        source_desc = {
-                            'dataPublishedBy': None if not variable['source']['dataPublishedBy'] else variable['source']['dataPublishedBy'],
-                            'dataPublisherSource': None if not variable['source']['dataPublisherSource'] else variable['source']['dataPublisherSource'],
-                            'link': None if not variable['source']['link'] else variable['source']['link'],
-                            'retrievedDate': None if not variable['source']['retrievedDate'] else variable['source']['retrievedDate'],
-                            'additionalInfo': None if not variable['source']['additionalInfo'] else variable['source']['additionalInfo']
-                        }
-                        if source_id:
-                            existing_source = Source.objects.get(pk=source_id)
-                            existing_source.name = variable['source']['name']
-                            existing_source.updated_at = timezone.now()
-                            existing_source.description = json.dumps(source_desc)
-                            existing_source.save()
-                        else:
-                            new_source = Source(datasetId=dataset_id, name=source_name, description=json.dumps(source_desc))
-                            new_source.save()
-                            source_id = new_source.pk
-                            source_ids_by_name[source_name] = source_id
-
-                    values = variable['values']
-                    variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
-                                     'coverage': variable['coverage'], 'timespan': variable['timespan'],
-                                     'variableTypeId': VariableType.objects.get(pk=3),
-                                     'datasetId': Dataset.objects.get(pk=dataset_id),
-                                     'sourceId': Source.objects.get(pk=source_id),
-                                     'uploaded_at': timezone.now(),
-                                     'updated_at': timezone.now(),
-                                     'uploaded_by': request.user
-                                     }
-                    if variable['overwriteId']:
-                        Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
-                        varid = variable['overwriteId']
-                    else:
-                        varid = Variable(**variableprops)
-                        varid.save()
-                        varid = varid.pk
-                    while DataValue.objects.filter(variableId__pk=varid).first():
-                        with connection.cursor() as c:
-                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
-                                      (DataValue._meta.db_table, varid))
-                            # the LIMIT is here so that the database doesn't try to delete a large number of values at
-                            # once and becomes unresponsive
-
-                    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'
-                    data_values_tuple_list = []
-                    for i in range(0, len(years)):
-                        if values[i] == '':
-                            continue
-                        data_values_tuple_list.append((values[i], years[i],
-                                                       entitiy_name_to_id[entitynames[entities[i]]],
-                                                       varid))
-
-                        if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
-                            with connection.cursor() as dbconnection:
-                                dbconnection.executemany(insert_string, data_values_tuple_list)
-                            data_values_tuple_list = []
-
-                    if len(data_values_tuple_list):  # insert any leftover data_values
-                        with connection.cursor() as dbconnection:
-                            dbconnection.executemany(insert_string, data_values_tuple_list)
-                    with connection.cursor() as cursor:
-                        cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
-
-                write_dataset_csv(dataset.pk, datasetprops['name'],
-                                  dataset_old_name, request.user.get_full_name(), request.user.email)
-
-                return JsonResponse({'datasetId': dataset_id}, safe=False)
-        except Exception as e:
-            if len(e.args) > 1:
-                error_m = str(e.args[0]) + ' ' + str(e.args[1])
-            else:
-                error_m = e.args[0]
-            return HttpResponse(error_m, status=500)*/
-
 interface ImportPostData {
     dataset: {
         id?: number,
@@ -954,7 +808,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         } else {
             // Creating new dataset
             const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, created_at, updated_at, categoryId, subcategoryId) VALUES (?)`, [row])
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, categoryId, subcategoryId) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
         }
 
@@ -971,14 +825,14 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         if (!sourceId) {
             // Insert default source
             const sourceRow = [dataset.name, "{}", now, now, datasetId]
-            const sourceResult = await t.execute(`INSERT INTO sources (name, description, created_at, updated_at, datasetId) VALUES (?)`, [sourceRow])
+            const sourceResult = await t.execute(`INSERT INTO sources (name, description, createdAt, updatedAt, datasetId) VALUES (?)`, [sourceRow])
             sourceId = sourceResult.insertId
         }
 
         // Insert any new entities into the db
         const entitiesUniq = _.uniq(entities) 
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
-        await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
+        await t.execute(`INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`, [importEntityRows])
 
         // Map entities to entityIds
         const entityRows = await t.query(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
@@ -999,7 +853,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
                 // Create a new variable
                 // TODO migrate to clean up these fields
-                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, created_at, updated_at, uploaded_at, uploaded_by, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
+                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, uploaded_at, uploaded_by, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
                 variableId = result.insertId
             }
 

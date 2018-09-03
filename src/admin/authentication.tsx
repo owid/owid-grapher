@@ -30,9 +30,9 @@ export async function authMiddleware(req: express.Request, res: express.Response
     const sessionid = req.cookies['sessionid']
     if (sessionid) {
         // Expire old sessions
-        await db.execute("DELETE FROM django_session WHERE expire_date < NOW()")
+        await db.execute("DELETE FROM sessions WHERE expire_date < NOW()")
 
-        const rows = await db.query(`SELECT * FROM django_session WHERE session_key = ?`, [sessionid])
+        const rows = await db.query(`SELECT * FROM sessions WHERE session_key = ?`, [sessionid])
         if (rows.length) {
             const sessionData = Buffer.from(rows[0].session_data, 'base64').toString('utf8')
             const sessionJson = JSON.parse(sessionData.split(":").slice(1).join(":"))
@@ -83,7 +83,7 @@ export async function tryLogin(email: string, password: string): Promise<Session
         const now = new Date()
         const expiryDate = new Date(now.getTime() + (1000*SESSION_COOKIE_AGE))
 
-        await db.execute(`INSERT INTO django_session (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
+        await db.execute(`INSERT INTO sessions (session_key, session_data, expire_date) VALUES (?, ?, ?)`, [sessionId, sessionData, expiryDate])
 
         user.lastLogin = now
         await user.save()

@@ -79,8 +79,8 @@ adminViews.post('/register', async (req, res) => {
             user.email = req.body.email
             user.name = req.body.username
             user.fullName = req.body.fullName
-            user.created_at = new Date()
-            user.updated_at = new Date()
+            user.createdAt = new Date()
+            user.updatedAt = new Date()
             user.lastLogin = new Date()
             await user.setPassword(req.body.password)
             await manager.getRepository(User).save(user)

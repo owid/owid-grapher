@@ -22,7 +22,7 @@ export class FieldsRow extends React.Component<{}> {
     }
 }
 
-export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
+export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -33,6 +33,7 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     disabled?: boolean
     helpText?: string
     autofocus?: boolean
+    required?: boolean
     softCharacterLimit?: number
 }
 

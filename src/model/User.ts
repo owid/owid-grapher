@@ -12,8 +12,8 @@ export default class User extends BaseEntity {
     @Column({ name: 'full_name', default: "" }) fullName!: string
     @Column({ name: 'is_active', default: true }) isActive!: boolean
     @Column({ name: 'is_superuser', default: false }) isSuperuser!: boolean
-    @Column() created_at!: Date
-    @Column() updated_at!: Date
+    @Column() createdAt!: Date
+    @Column() updatedAt!: Date
     @Column({ name: 'last_login' }) lastLogin!: Date
 
     @OneToMany(type => Chart, chart => chart.lastEditedByUser)
