@@ -5,12 +5,9 @@ const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import FuzzySearch from '../charts/FuzzySearch'
-
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { Modal, LoadingBlocker, SearchField, FieldsRow } from './Forms'
-import Link from './Link'
+import { SearchField, FieldsRow } from './Forms'
 
 interface PostIndexMeta {
     id: number

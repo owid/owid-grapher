@@ -57,7 +57,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'required'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}

@@ -679,6 +679,12 @@ api.put('/tags/:tagId', async (req: Request) => {
     return { success: true }
 })
 
+api.post('/tags/new', async (req: Request) => {
+    const tag = (req.body as { tag: any }).tag
+    const result = await db.execute(`INSERT INTO tags (categoryId, name) VALUES (?, ?)`, [tag.parentId, tag.name])
+    return { success: true, tagId: result.insertId }
+})
+
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`
         SELECT t.id, t.name, t.categoryId AS parentId, p.name AS parentName

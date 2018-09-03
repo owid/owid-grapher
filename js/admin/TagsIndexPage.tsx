@@ -2,28 +2,87 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 import * as _ from 'lodash'
+import { Redirect } from 'react-router-dom'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { FieldsRow } from './Forms'
-import Link from './Link'
+import { FieldsRow, Modal, TextField } from './Forms'
 import TagBadge, { Tag } from './TagBadge'
 
 interface TagListItem {
     id: number
     name: string
+    parentId: number
     parentName: string
 }
 
 @observer
-export default class CategoriesIndexPage extends React.Component {
+class AddTagModal extends React.Component<{ parentId: number, onClose: () => void }> {
+    context!: { admin: Admin }
+    emailInput: HTMLInputElement|null = null
+
+    @observable tagName: string = ""
+    @observable newTagId?: number
+
+    @computed get tag() {
+        if (!this.tagName) return undefined
+
+        return {
+            parentId: this.props.parentId,
+            name: this.tagName
+        }
+    }
+
+    async submit() {
+        if (this.tag) {
+            const resp = await this.context.admin.requestJSON("/api/tags/new", { tag: this.tag }, "POST")
+            if (resp.success) {
+                this.newTagId = resp.tagId
+            }
+        }
+    }
+
+    componentDidMount() {
+        if (this.emailInput)
+            this.emailInput.focus()
+    }
+
+    @action.bound onTagName(tagName: string) {
+        this.tagName = tagName
+    }
+
+    render() {
+        return <Modal onClose={this.props.onClose}>
+            <form onSubmit={e => { e.preventDefault(); this.submit() } }>
+                <div className="modal-header">
+                    <h5 className="modal-title">Add tag</h5>
+                </div>
+                <div className="modal-body">
+                    <TextField label="Tag to add" value={this.tagName} onValue={this.onTagName} required/>
+                </div>
+                <div className="modal-footer">
+                    <input type="submit" className="btn btn-primary">Send invite</input>
+                </div>
+            </form>
+            {this.newTagId !== undefined && <Redirect to={`/tags/${this.newTagId}`}/>}
+        </Modal>
+    }
+}
+
+@observer
+export default class TagsIndexPage extends React.Component {
     context!: { admin: Admin }
 
     @observable tags: TagListItem[] = []
+    @observable addTagParentId?: number
 
-    @computed get parentCategories(): { name: string, tags: TagListItem[] }[] {
+    @computed get parentCategories(): { id: number, name: string, tags: TagListItem[] }[] {
         const tagsByParent = _.groupBy(this.tags, c => c.parentName)
-        return _.map(tagsByParent, (tags, parentName) => ({ name: parentName, tags: tags }))
+        return _.map(tagsByParent, (tags, parentName) => ({ id: tags[0].parentId, name: parentName, tags: tags }))
+    }
+
+    @action.bound onNewTag(parentId: number) {
+        this.addTagParentId = parentId
     }
 
     render() {
@@ -43,11 +102,12 @@ export default class CategoriesIndexPage extends React.Component {
                             {parent.tags.map(tag =>
                                 <TagBadge tag={tag as Tag}/>
                             )}
-                            <button className="btn btn-default">+ New Tag</button>
+                            <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Tag</button>
                         </section>
                     )}
                 </div>
             </main>
+            {this.addTagParentId !== undefined && <AddTagModal parentId={this.addTagParentId} onClose={action(() => this.addTagParentId = undefined)}/>}
         </AdminLayout>
     }
 
