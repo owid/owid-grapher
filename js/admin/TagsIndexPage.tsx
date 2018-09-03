@@ -18,25 +18,6 @@ interface TagListItem {
 }
 
 @observer
-class RedirectRow extends React.Component<{ redirect: TagListItem, onDelete: (redirect: TagListItem) => void }> {
-    context!: { admin: Admin }
-
-    render() {
-        const {redirect} = this.props
-
-        return <tr>
-            <td>
-                {redirect.slug}
-            </td>
-            <td><Link to={`/charts/${redirect.chartId}/edit`}>{redirect.chartSlug}</Link></td>
-            <td>
-                <button className="btn btn-danger" onClick={() => this.props.onDelete(redirect)}>Delete</button>
-            </td>
-        </tr>
-    }
-}
-
-@observer
 export default class CategoriesIndexPage extends React.Component {
     context!: { admin: Admin }
 
@@ -62,7 +43,7 @@ export default class CategoriesIndexPage extends React.Component {
                                 {parent.name}
                             </h4>
                             {parent.tags.map(tag =>
-                                <span className="badge badge-secondary">{tag.name}</span>
+                                <Link to={`/tags/${tag.id}`}><span className="badge badge-secondary">{tag.name}</span></Link>
                             )}
                             <button className="btn btn-default">+ New Tag</button>
                         </section>

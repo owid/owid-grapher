@@ -506,7 +506,7 @@ api.get('/datasets.json', async req => {
         SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt
         FROM datasets AS d
         LEFT JOIN dataset_categories AS c ON c.id=d.categoryId
-        LEFT JOIN dataset_subcategories AS sc ON sc.id=d.subcategoryId
+        LEFT JOIN tags AS sc ON sc.id=d.subcategoryId
         ORDER BY d.created_at DESC
     `)
     /*LEFT JOIN variables AS v ON v.datasetId=d.id
@@ -563,7 +563,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     const availableCategories = await db.query(`
         SELECT sc.id, sc.name, c.name AS parentName, c.fetcher_autocreated AS isAutocreated
-        FROM dataset_subcategories AS sc
+        FROM tags AS sc
         JOIN dataset_categories AS c ON sc.categoryId=c.id
     `)
 
@@ -630,6 +630,27 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
         redirects: redirects
     }
 })
+
+api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
+    const tagId = expectInt(req.params.tagId)
+    const tag = await db.get(`
+        SELECT t.id, t.name, t.updated_at AS updatedAt, t.categoryId AS parentId, p.name AS parentName
+        FROM tags t JOIN dataset_categories p ON t.categoryId=p.id
+        WHERE t.id = ?
+    `, [tagId])
+
+    return {
+        tag: tag
+    }
+})
+
+api.put('/tags/:tagId', async (req: Request) => {
+    const tagId = expectInt(req.params.tagId)
+    const tag = (req.body as { tag: any }).tag
+    await db.execute(`UPDATE tags SET name=?, updated_at=? WHERE id=?`, [tag.name, new Date(), tagId])
+    return { success: true }
+})
+
 
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`
