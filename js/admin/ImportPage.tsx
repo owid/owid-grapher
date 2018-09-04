@@ -338,7 +338,7 @@ class CSV {
             })
         }
 
-        validation.passed = validation.results.every(result => result.class !== "error")
+        validation.passed = validation.results.every(result => result.class !== "danger")
 
         return validation
     }
