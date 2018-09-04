@@ -7,7 +7,6 @@ import { Modal } from './Forms'
 import Link from './Link'
 import AdminLayout from './AdminLayout'
 
-
 interface UserIndexMeta {
     id: number
     name: string
@@ -124,7 +123,6 @@ export default class UsersIndexPage extends React.Component {
         const {admin} = this.context
 
         const json = await admin.getJSON("/api/users.json") as { users: UserIndexMeta[] }
-
 
         runInAction(() => {
             this.users = json.users

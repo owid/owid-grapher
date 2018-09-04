@@ -206,7 +206,7 @@ api.get('/countries.json', async (req: Request, res: Response) => {
         const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(`
-            SELECT country_name as input, ` + outputColumn + ` as output
+            SELECT country_name as input, ${outputColumn} as output
             FROM country_name_tool_countryname ccn
             LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
@@ -215,7 +215,7 @@ api.get('/countries.json', async (req: Request, res: Response) => {
         const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(
-            `SELECT ` + inputColumn + ` as input, ` + outputColumn + ` as output
+            `SELECT ${inputColumn} as input, ${outputColumn} as output
             FROM country_name_tool_countrydata ccd
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
     }
@@ -246,7 +246,8 @@ api.post('/countries', async (req: Request, res: Response) => {
     for (const country of Object.keys(countries)) {
         const owidName = countries[country]
 
-        console.log("adding " + country + ", " + mapOwidNameToId[owidName] + ", " + owidName)
+        console.log(`adding ${country}, ${mapOwidNameToId[owidName]}, ${owidName}`)
+
         await db.execute(
             `INSERT INTO country_name_tool_countryname (country_name, owid_country)
             VALUES (?, ?)`, [country, mapOwidNameToId[owidName]])
@@ -853,7 +854,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         }
 
         // Insert any new entities into the db
-        const entitiesUniq = _.uniq(entities) 
+        const entitiesUniq = _.uniq(entities)
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
         await t.execute(`INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`, [importEntityRows])
 

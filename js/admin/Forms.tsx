@@ -289,7 +289,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
             {props.label && <label>{props.label}</label>}
             <div className="input-group mb-2 mb-sm-0">
                 <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
-                <div className="input-group-addon" onClick={_ => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
+                <div className="input-group-addon" onClick={() => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
             </div>
@@ -361,7 +361,6 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
         return <AutoTextField {...textFieldProps}/>
     }
 }
-
 
 export interface FloatFieldProps {
     label?: string

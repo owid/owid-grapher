@@ -5,7 +5,6 @@ import * as db from '../db'
 import { Dataset } from './Dataset'
 import { VariableDisplaySettings } from "../../js/charts/VariableData"
 
-
 @Entity("variables")
 export class Variable extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
@@ -67,7 +66,6 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         const variable = data.variables[row.variableId]
         variable.years.push(row.year)
         variable.entities.push(row.entityId)
-
 
         const asNumber = parseFloat(row.value)
         if (!isNaN(asNumber))

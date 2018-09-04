@@ -522,7 +522,7 @@ main:not(.ChartEditorPage) {
 }
 
 .ImportPage {
-    .importer {
+    .Importer {
         max-width: 1000px;
     
         input:not([type=submit]), select, textarea, button {
@@ -554,11 +554,11 @@ main:not(.ChartEditorPage) {
         }
     }
     
-    .validation {
+    .ValidationView {
         margin-top: 20px;
     }
     
-    .editVariable {    
+    .EditVariable {    
         .variableProps > label {
             margin-right: 10px;
             line-height: normal;

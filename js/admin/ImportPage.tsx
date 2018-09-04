@@ -12,8 +12,6 @@ import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 
-const styles = require('./Importer.css')
-
 declare const App: any
 declare const window: any
 
@@ -124,7 +122,7 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
     render() {
         const { variable, dataset } = this.props
 
-        return <li className={styles.editVariable}>
+        return <li className="EditVariable">
             <FieldsRow>
                 <div>
                     {variable.name}
@@ -267,7 +265,6 @@ class CSV {
         }
     }
 
-
     @computed get validation(): ValidationResults {
         const validation: ValidationResults = { results: [], passed: false }
         const { rows } = this
@@ -322,7 +319,7 @@ class CSV {
             const row = rows[i]
             for (let j = 2; j < row.length; j++) {
                 if (row[j] !== '' && (isNaN(parseFloat(row[j])) || !row[j].match(/^[0-9.-]+$/)))
-                    nonNumeric.push(i + 1 + " `" + row[j] + "`")
+                    nonNumeric.push(`${i + 1} '${row[j]}'`)
             }
         }
 
@@ -362,7 +359,7 @@ class ValidationView extends React.Component<{ validation: ValidationResults }> 
     render() {
         const { validation } = this.props
 
-        return <section className={styles.validation}>
+        return <section className="ValidationView">
             {validation.results.map((v: any) =>
                 <div className={`alert alert-${v.class}`}>{v.message}</div>
             )}
@@ -456,7 +453,7 @@ class Importer extends React.Component<ImportPageData> {
             dataset.existingVariables = existingDataset.variables
         }
 
-       if (!dataset.name)
+        if (!dataset.name)
             dataset.name = csv.basename
 
         dataset.newVariables = csv.data.variables.map(clone)
@@ -523,7 +520,7 @@ class Importer extends React.Component<ImportPageData> {
         const { csv, dataset, existingDataset } = this
         const { datasets, existingEntities } = this.props
 
-        return <form className={styles.importer} onSubmit={this.onSubmit}>
+        return <form className="Importer" onSubmit={this.onSubmit}>
             <h2>Import CSV file</h2>
             <p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred. <span className="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a></span></p>
             <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
@@ -550,9 +547,9 @@ class Importer extends React.Component<ImportPageData> {
 }
 
 interface ImportPageData {
-    datasets: { 
+    datasets: {
         id: number
-        name: string 
+        name: string
     }[]
     categories: {
         id: number
@@ -585,4 +582,3 @@ export default class ImportPage extends React.Component {
         </AdminLayout>
     }
 }
-
