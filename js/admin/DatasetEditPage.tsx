@@ -14,7 +14,7 @@ import { BindString, Toggle, BindFloat, FieldsRow } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
-import TagBadge from './TagBadge';
+import TagBadge from './TagBadge'
 
 class VariableEditable {
     @observable name: string = ""
@@ -185,13 +185,17 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
         }
     }
 
+    @action.bound removeTag(tagId: number) {
+        this.props.newDataset.tags = this.props.newDataset.tags.filter(t => t.id !== tagId)
+    }
+
     render() {
         const {newDataset, availableTags, isBulkImport} = this.props
         const tagsByParent = _.groupBy(availableTags, c => c.parentName)
 
         return <div className="form-group">
             <label>Tags</label>
-            <div>{newDataset.tags.map(tag => <TagBadge tag={tag}/>)}</div>
+            <div>{newDataset.tags.map(tag => <TagBadge tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
             <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
                 <option value="" disabled selected>Add tag</option>
                 {_.map(tagsByParent, (tags, parentName) =>
