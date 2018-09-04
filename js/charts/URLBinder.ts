@@ -43,7 +43,7 @@ export default class URLBinder {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
 
-        if (!chart.isNode && !chart.isEmbed) {
+        if (chart.isSinglePage) {
             // Only work with the actual url if we're not an embed
             this.populateFromURL(getQueryParams())
 
