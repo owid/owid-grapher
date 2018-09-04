@@ -594,7 +594,11 @@ api.put('/datasets/:datasetId', async (req: Request) => {
 
     return db.transaction(async t => {
         const dataset = (req.body as { dataset: any }).dataset
-        await t.execute(`UPDATE datasets SET name=?, description=?, subcategoryId=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, dataset.isPrivate, datasetId])
+        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.isPrivate, datasetId])
+
+        const tagRows = dataset.tags.map((tag: any) => [tag.id, datasetId])
+        await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+        await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
 
         const source = dataset.source
         const description = _.omit(source, ['name', 'id'])
@@ -762,7 +766,7 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -827,7 +831,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         } else {
             // Creating new dataset
             const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, categoryId, subcategoryId) VALUES (?)`, [row])
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
         }
 

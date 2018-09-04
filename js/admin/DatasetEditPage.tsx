@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import { observable, computed, runInAction, autorun, IReactionDisposer } from 'mobx'
+import { observable, computed, runInAction, autorun, action, IReactionDisposer } from 'mobx'
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
@@ -14,6 +14,7 @@ import { BindString, Toggle, BindFloat, FieldsRow } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
+import TagBadge from './TagBadge';
 
 class VariableEditable {
     @observable name: string = ""
@@ -140,10 +141,10 @@ interface DatasetPageData {
     description: string
     namespace: string
     updatedAt: string
-    subcategoryId: number
     isPrivate: boolean
 
-    availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[]
+    availableTags: { id: number, name: string, parentName: string }[]
+    tags: { id: number, name: string }[]
     variables: VariableEditListItem[]
     charts: ChartListItem[]
     source: SourceInfo
@@ -152,7 +153,6 @@ interface DatasetPageData {
 class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
-    @observable subcategoryId: number = 0
     @observable isPrivate: boolean = false
 
     @observable source: SourceInfo = {
@@ -165,6 +165,8 @@ class DatasetEditable {
         additionalInfo: ""
     }
 
+    @observable tags: { id: number, name: string }[] = []
+
     constructor(json: DatasetPageData) {
         for (const key in this) {
             if (key in json)
@@ -174,24 +176,33 @@ class DatasetEditable {
 }
 
 @observer
-class EditCategory extends React.Component<{ newDataset: DatasetEditable, availableCategories: { id: number, name: string, parentName: string, isAutocreated: boolean }[], isBulkImport: boolean }> {
+class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, availableTags: { id: number, name: string, parentName: string }[], isBulkImport: boolean }> {
+
+    @action.bound addTag(tagId: number) {
+        const tag = this.props.availableTags.find(t => t.id === tagId)
+        if (tag && !this.props.newDataset.tags.find(existingTag => existingTag.id === tag.id)) {
+            this.props.newDataset.tags.push({ id: tag.id, name: tag.name })
+        }
+    }
+
     render() {
-        const {availableCategories, newDataset, isBulkImport} = this.props
-        const categories = availableCategories.filter(c => isBulkImport || !c.isAutocreated)
-        const categoriesByParent = _.groupBy(categories, c => c.parentName)
+        const {newDataset, availableTags, isBulkImport} = this.props
+        const tagsByParent = _.groupBy(availableTags, c => c.parentName)
 
         return <div className="form-group">
-            <label>Category</label>
-            <select className="form-control" onChange={e => newDataset.subcategoryId = parseInt(e.target.value)} value={newDataset.subcategoryId} disabled={isBulkImport}>
-                {_.map(categoriesByParent, (subcats, parentName) =>
+            <label>Tags</label>
+            <div>{newDataset.tags.map(tag => <TagBadge tag={tag}/>)}</div>
+            <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
+                <option value="" disabled selected>Add tag</option>
+                {_.map(tagsByParent, (tags, parentName) =>
                     <optgroup label={parentName}>
-                        {_.map(subcats, category =>
-                            <option value={category.id}>{category.name}</option>
+                        {tags.map(tag =>
+                            <option value={tag.id}>{tag.name}</option>
                         )}
                     </optgroup>
                 )}
             </select>
-            <small className="form-text text-muted">Currently used for internal organization</small>
+            {/*<small className="form-text text-muted">Currently used for internal organization</small>*/}
         </div>
     }
 }
@@ -267,7 +278,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
                             <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
                             <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
-                            <EditCategory newDataset={newDataset} availableCategories={dataset.availableCategories} isBulkImport={isBulkImport}/>
+                            <DatasetTagEditor newDataset={newDataset} availableTags={dataset.availableTags} isBulkImport={isBulkImport}/>
                             <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
                         </div>
 
