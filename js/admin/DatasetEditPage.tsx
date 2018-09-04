@@ -71,7 +71,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem }
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new ChartConfig(this.chartConfig as any)
+        this.chart = new ChartConfig(this.chartConfig as any, { isEmbed: true })
 
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {
