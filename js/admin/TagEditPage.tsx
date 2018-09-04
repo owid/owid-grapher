@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
-import {Prompt} from 'react-router-dom'
+import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
 import Admin from './Admin'
@@ -55,6 +55,19 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
+    async deleteTag() {
+        const {tag} = this.props
+
+        if (!window.confirm(`Really delete the tag ${tag.name}? This action cannot be undone!`))
+            return
+
+        const json = await this.context.admin.requestJSON(`/api/tags/${tag.id}/delete`, {}, "DELETE")
+
+        if (json.success) {
+            runInAction(() => this.isDeleted = true)
+        }
+    }
+
     render() {
         const {tag} = this.props
         const {newtag} = this
@@ -68,13 +81,14 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <BindString field="name" store={newtag} label="Name"/>
-                    <input type="submit" className="btn btn-success" value="Update tag"/>
+                    <input type="submit" className="btn btn-success" value="Update tag"/> <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete tag</button>
                 </form>
             </section>
             <section>
                 <h3>Datasets</h3>
                 <DatasetList datasets={tag.datasets}/>
             </section>
+            {this.isDeleted && <Redirect to={`/tags`}/>}
         </main>
     }
 }

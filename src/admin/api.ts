@@ -570,13 +570,21 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     dataset.charts = charts
 
-    const availableCategories = await db.query(`
-        SELECT sc.id, sc.name, c.name AS parentName, c.fetcher_autocreated AS isAutocreated
-        FROM tags AS sc
-        JOIN dataset_categories AS c ON sc.categoryId=c.id
-    `)
+    const tags = await db.query(`
+        SELECT t.id, t.name
+        FROM tags t
+        JOIN dataset_tags dt ON dt.tagId = t.id
+        WHERE dt.datasetId = ?
+    `, [datasetId])
+    dataset.tags = tags
 
-    dataset.availableCategories = availableCategories
+    const availableTags = await db.query(`
+        SELECT t.id, t.name, c.name AS parentName
+        FROM tags AS t
+        JOIN dataset_categories AS c ON t.categoryId=c.id
+        WHERE c.fetcher_autocreated IS FALSE
+    `)
+    dataset.availableTags = availableTags
 
     return { dataset: dataset }
 })
@@ -681,7 +689,8 @@ api.put('/tags/:tagId', async (req: Request) => {
 
 api.post('/tags/new', async (req: Request) => {
     const tag = (req.body as { tag: any }).tag
-    const result = await db.execute(`INSERT INTO tags (categoryId, name) VALUES (?, ?)`, [tag.parentId, tag.name])
+    const now = new Date()
+    const result = await db.execute(`INSERT INTO tags (categoryId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`, [tag.parentId, tag.name, now, now])
     return { success: true, tagId: result.insertId }
 })
 
@@ -695,6 +704,16 @@ api.get('/tags.json', async (req: Request, res: Response) => {
     return {
         tags: tags
     }
+})
+
+api.delete('/tags/:tagId/delete', async (req: Request, res: Response) => {
+    const tagId = expectInt(req.params.tagId)
+
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])
+    })
+
+    return { success: true }
 })
 
 api.delete('/redirects/:id', async (req: Request, res: Response) => {

@@ -19,7 +19,6 @@ interface TagListItem {
 @observer
 class AddTagModal extends React.Component<{ parentId: number, onClose: () => void }> {
     context!: { admin: Admin }
-    emailInput: HTMLInputElement|null = null
 
     @observable tagName: string = ""
     @observable newTagId?: number
@@ -42,11 +41,6 @@ class AddTagModal extends React.Component<{ parentId: number, onClose: () => voi
         }
     }
 
-    componentDidMount() {
-        if (this.emailInput)
-            this.emailInput.focus()
-    }
-
     @action.bound onTagName(tagName: string) {
         this.tagName = tagName
     }
@@ -58,7 +52,7 @@ class AddTagModal extends React.Component<{ parentId: number, onClose: () => voi
                     <h5 className="modal-title">Add tag</h5>
                 </div>
                 <div className="modal-body">
-                    <TextField label="Tag to add" value={this.tagName} onValue={this.onTagName} required/>
+                    <TextField label="Tag to add" value={this.tagName} onValue={this.onTagName} autofocus required/>
                 </div>
                 <div className="modal-footer">
                     <input type="submit" className="btn btn-primary">Send invite</input>
