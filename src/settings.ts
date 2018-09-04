@@ -41,6 +41,7 @@ interface Settings {
     GIT_DATASETS_DIR: string
     GIT_DEFAULT_USERNAME: string
     GIT_DEFAULT_EMAIL: string
+    GITHUB_USERNAME: string
     TMP_DIR: string
 
     // These settings are inferred from other settings
@@ -59,6 +60,8 @@ env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_
 env.NODE_BASE_URL = env.NODE_BASE_URL || `http://${env.NODE_SERVER_HOST}:${env.NODE_SERVER_PORT}`
 env.TMP_DIR = "/tmp"
 env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
+
+env.GITHUB_USERNAME = env.GITHUB_USERNAME || "owid-test"
 
 env.EMAIL_PORT = env.EMAIL_PORT ? parseInt(env.EMAIL_PORT as any) : 443
 env.EMAIL_USE_TLS = !!env.EMAIL_USE_TLS

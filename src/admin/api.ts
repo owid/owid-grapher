@@ -18,6 +18,7 @@ import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 import {Dataset} from '../model/Dataset'
+import { syncDatasetToGitRepo } from '../gitDataExport'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -590,20 +591,25 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     return { dataset: dataset }
 })
 
-api.put('/datasets/:datasetId', async (req: Request) => {
+api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset)
+        throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
     return db.transaction(async t => {
-        const dataset = (req.body as { dataset: any }).dataset
-        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.isPrivate, datasetId])
+        const newDataset = (req.body as { dataset: any }).dataset
+        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, datasetId])
 
-        const tagRows = dataset.tags.map((tag: any) => [tag.id, datasetId])
+        const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
         await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
         await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
 
-        const source = dataset.source
+        const source = newDataset.source
         const description = _.omit(source, ['name', 'id'])
         await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(description), source.id])
+
+        await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
         return { success: true }
     })
@@ -826,9 +832,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         const now = new Date()
 
         let datasetId: number
+        let oldDatasetName: string|undefined
         if (dataset.id) {
             // Updating existing dataset
             datasetId = dataset.id
+            oldDatasetName = (await t.query(`SELECT name FROM datasets WHERE id = ?`, [datasetId]))[0].name
         } else {
             // Creating new dataset
             const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
@@ -887,6 +895,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             )
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
+
+        await syncDatasetToGitRepo(datasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
         return { success: true, datasetId: datasetId }
     })

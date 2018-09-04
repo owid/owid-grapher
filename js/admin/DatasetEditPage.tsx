@@ -250,12 +250,16 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         }
     }
 
+    @computed get gitHistoryUrl() {
+        return `https://github.com/owid-test/datasets/commits/master/${encodeURIComponent(this.props.dataset.name)}`
+    }
+
     render() {
         if (this.isDeleted)
             return <Redirect to="/datasets"/>
 
         const {dataset} = this.props
-        const {newDataset} = this
+        const {newDataset, gitHistoryUrl} = this
         const isBulkImport = dataset.namespace !== 'owid'
 
         return <main className="DatasetEditPage">
@@ -266,9 +270,9 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>
-                <Link native to={`/../grapher/admin/datasets/history/${dataset.id}`} className="btn btn-secondary">
-                    <i className="fa fa-history"/> Version history
-                </Link>
+                <a href={gitHistoryUrl} target="_blank" className="btn btn-secondary">
+                    <i className="fa fa-github"/> GitHub History
+                </a>
             </section>
             <section>
                 <h3>Dataset metadata</h3>

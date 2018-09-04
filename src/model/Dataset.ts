@@ -17,8 +17,6 @@ export class Dataset extends BaseEntity {
     @Column({ default: "" }) description!: string
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
-    @Column() categoryId!: number
-    @Column() subcategoryId!: number
     @Column({ default: false }) isPrivate!: boolean
 
     @OneToMany(type => Variable, variable => variable.dataset)
