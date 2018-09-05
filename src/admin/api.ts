@@ -700,7 +700,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     tag.charts = charts
 
     // Tags for those charts
-    if (tag.charts.length) {
+    /*if (tag.charts.length) {
         const chartTags = await db.query(`
             SELECT DISTINCT cd.chartId, t.id, t.name FROM dataset_tags dt
             JOIN tags t ON dt.tagId = t.id
@@ -712,7 +712,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         for (const chart of tag.charts) {
             chart.tags = tagsByChartId[chart.id].map(t => _.omit(t, 'chartId'))
         }
-    }
+    }*/
 
     return {
         tag: tag

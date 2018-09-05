@@ -34,9 +34,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
     @observable isDeleted: boolean = false
 
     // Store the original tag to determine when it is modified
-    componentWillMount() { this.componentWillReceiveProps() }
-    componentWillReceiveProps() {
-        this.newtag = new TagEditable(this.props.tag)
+    componentWillMount() { this.componentWillReceiveProps(this.props) }
+    componentWillReceiveProps(nextProps: any) {
+        this.newtag = new TagEditable(nextProps.tag)
         this.isDeleted = false
     }
 
@@ -112,15 +112,14 @@ export default class TagEditPage extends React.Component<{ tagId: number }> {
     }
 
     async getData(tagId: number) {
-        console.log(this.props.tagId)
-        const json = await this.context.admin.getJSON(`/api/tags/${this.props.tagId}.json`)
+        console.log(tagId)
+        const json = await this.context.admin.getJSON(`/api/tags/${tagId}.json`)
         runInAction(() => {
             this.tag = json.tag as TagPageData
         })
     }
 
     componentDidMount() {
-        console.log(this.props.tagId)
         this.getData(this.props.tagId)
     }
     componentWillReceiveProps(nextProps: any) {

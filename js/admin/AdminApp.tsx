@@ -59,8 +59,6 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
     render() {
         const {admin} = this.props
 
-        console.log("render")
-
         return <Router basename={admin.basePath}>
             <div className="AdminApp">
                 <AdminErrorMessage admin={admin}/>
