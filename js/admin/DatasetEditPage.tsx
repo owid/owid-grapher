@@ -34,7 +34,7 @@ class VariableEditable {
 }
 
 @observer
-class VariableEditRow extends React.Component<{ variable: VariableEditListItem }> {
+class VariableEditRow extends React.Component<{ variable: VariableEditListItem, isBulkImport: boolean }> {
     context!: { admin: Admin }
     @observable.ref chart?: ChartConfig
     @observable newVariable!: VariableEditable
@@ -190,6 +190,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
     }
 
     @action.bound removeTag(tagId: number) {
+        if (this.props.isBulkImport) return
         this.props.newDataset.tags = this.props.newDataset.tags.filter(t => t.id !== tagId)
     }
 

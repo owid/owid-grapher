@@ -667,6 +667,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         WHERE t.id = ?
     `, [tagId])
 
+    // Datasets tagged with this tag
     const datasets = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt
         FROM datasets d
@@ -676,15 +677,41 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     `, [tagId])
     tag.datasets = datasets
 
+    // The other tags for those datasets
     const datasetTags = await db.query(`
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
-    `)
-
+        WHERE dt.datasetId IN (?)
+    `, [tag.datasets.map((d: any) => d.id)])
     const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
-
     for (const dataset of tag.datasets) {
         dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+    }
+
+    // Charts using datasets under this tag
+    const charts = await db.query(`
+        SELECT ${OldChart.listFields} FROM charts
+        JOIN chart_dimensions cd ON cd.chartId=charts.id
+        JOIN variables v ON v.id=cd.variableId
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN dataset_tags dt ON dt.datasetId=d.id
+        WHERE dt.tagId = ?
+    `, [tagId])
+    tag.charts = charts
+
+    // Tags for those charts
+    if (tag.charts.length) {
+        const chartTags = await db.query(`
+            SELECT DISTINCT cd.chartId, t.id, t.name FROM dataset_tags dt
+            JOIN tags t ON dt.tagId = t.id
+            JOIN variables v ON v.datasetId=dt.datasetId
+            JOIN chart_dimensions cd ON cd.variableId=v.id
+            WHERE cd.chartId IN (?)
+        `, [tag.charts.map((c: any) => c.id)])
+        const tagsByChartId = _.groupBy(chartTags, t => t.chartId)
+        for (const chart of tag.charts) {
+            chart.tags = tagsByChartId[chart.id].map(t => _.omit(t, 'chartId'))
+        }
     }
 
     return {

@@ -37,10 +37,10 @@ export default class OldChart {
         JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
         JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
         charts.starred AS isStarred,
-        charts.lastEditedAt AS lastEditedAt,
-        charts.lastEditedBy AS lastEditedBy,
-        charts.publishedAt AS publishedAt,
-        charts.publishedBy AS publishedBy
+        charts.lastEditedAt,
+        charts.lastEditedBy,
+        charts.publishedAt,
+        charts.publishedBy
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {

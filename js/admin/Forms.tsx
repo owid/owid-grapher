@@ -180,6 +180,7 @@ export interface ToggleProps {
     label: string|JSX.Element
     value: boolean
     onValue: (value: boolean) => void
+    disabled?: boolean
 }
 
 export class Toggle extends React.Component<ToggleProps> {

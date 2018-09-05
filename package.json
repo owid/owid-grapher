@@ -1,5 +1,6 @@
 {
   "private": true,
+  "version": "2.0.0",
   "scripts": {
     "setup": "tsc",
     "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"nodemon -r source-map-support/register --watch dist/src --inspect dist/src/admin/server.js\"",

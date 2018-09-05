@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
+import {observable, computed, action, runInAction, autorun, IReactionDisposer, reaction} from 'mobx'
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
@@ -8,12 +8,14 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { BindString } from './Forms'
 import DatasetList, { DatasetListItem } from './DatasetList'
+import ChartList, { ChartListItem } from './ChartList'
 
 interface TagPageData {
     id: number
     name: string
     updatedAt: string
     datasets: DatasetListItem[]
+    charts: ChartListItem[]
 }
 
 class TagEditable {
@@ -88,6 +90,11 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 <h3>Datasets</h3>
                 <DatasetList datasets={tag.datasets}/>
             </section>
+
+            <section>
+                <h3>Charts</h3>
+                <ChartList charts={tag.charts}/>
+            </section>
             {this.isDeleted && <Redirect to={`/tags`}/>}
         </main>
     }
@@ -104,15 +111,19 @@ export default class TagEditPage extends React.Component<{ tagId: number }> {
         </AdminLayout>
     }
 
-    async getData() {
+    async getData(tagId: number) {
+        console.log(this.props.tagId)
         const json = await this.context.admin.getJSON(`/api/tags/${this.props.tagId}.json`)
         runInAction(() => {
             this.tag = json.tag as TagPageData
         })
     }
 
-    componentDidMount() { this.componentWillReceiveProps() }
-    componentWillReceiveProps() {
-        this.getData()
+    componentDidMount() {
+        console.log(this.props.tagId)
+        this.getData(this.props.tagId)
+    }
+    componentWillReceiveProps(nextProps: any) {
+        this.getData(nextProps.tagId)
     }
 }
