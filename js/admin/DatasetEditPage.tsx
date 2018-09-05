@@ -85,7 +85,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem }
     }
 
     render() {
-        const {variable} = this.props
+        const {variable, isBulkImport} = this.props
         const {newVariable} = this
         const {admin} = this.context
 
@@ -93,7 +93,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem }
             <div className="col">
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <section>
-                        <BindString label="Name" field="name" store={newVariable} helpText="The full name of the variable e.g. Top marginal income tax rate (Piketty 2014)"/>
+                        <BindString label="Name" field="name" store={newVariable} helpText="The full name of the variable e.g. Top marginal income tax rate (Piketty 2014)" disabled={isBulkImport}/>
                         <BindString label="Display name" field="name" store={newVariable.display} helpText="How the variable should be named on charts"/>
                         <FieldsRow>
                             <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
@@ -274,9 +274,9 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>
-                <a href={gitHistoryUrl} target="_blank" className="btn btn-secondary">
+                {!isBulkImport && <a href={gitHistoryUrl} target="_blank" className="btn btn-secondary">
                     <i className="fa fa-github"/> GitHub History
-                </a>
+                </a>}
             </section>
             <section>
                 <h3>Dataset metadata</h3>
@@ -291,7 +291,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
                             <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
                             <DatasetTagEditor newDataset={newDataset} availableTags={dataset.availableTags} isBulkImport={isBulkImport}/>
-                            <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v}/>
+                            <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v} disabled={isBulkImport}/>
                         </div>
 
                         <div className="col">
@@ -308,7 +308,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
             <section>
                 <h3>Variables</h3>
                 {dataset.variables.map(variable =>
-                    <VariableEditRow variable={variable}/>
+                    <VariableEditRow variable={variable} isBulkImport={isBulkImport}/>
                 )}
             </section>
             {/*<section>

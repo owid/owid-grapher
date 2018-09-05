@@ -177,31 +177,22 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
 }
 
 export interface ToggleProps {
-    label: string|JSX.Element,
-    value: boolean,
+    label: string|JSX.Element
+    value: boolean
     onValue: (value: boolean) => void
 }
 
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const { props } = this
-        /*return <div className="mdc-form-field">
-
-        </div>*/
+        const passthroughProps = pick(props, ['title', 'disabled']) as any
 
         return <div className="form-check">
             <label className="form-check-label">
-                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)}/>
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)} {...passthroughProps}/>
                 {props.label}
             </label>
         </div>
-        /* return <FormField>
-           <Checkbox checked={props.value} onChange={/> <label>{props.label}</label>
-       </FormField>
-       return <label className="Toggle clickable">
-           <input type="checkbox" checked={props.value}  />
-           {" " + props.label}
-       </label>*/
     }
 }
 
