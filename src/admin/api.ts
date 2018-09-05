@@ -177,7 +177,10 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
-        SELECT ${OldChart.listFields} FROM charts ORDER BY lastEditedAt DESC LIMIT ?
+        SELECT ${OldChart.listFields} FROM charts
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        ORDER BY charts.lastEditedAt DESC LIMIT ?
     `, [limit])
 
     return {
@@ -470,7 +473,9 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const charts = await db.query(`
         SELECT ${OldChart.listFields}
         FROM charts
-        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        JOIN chart_dimensions cd ON cd.chartId = charts.id
         WHERE cd.variableId = ?
         GROUP BY charts.id
     `, [variableId])
@@ -575,6 +580,8 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         WHERE v.datasetId = ?
         GROUP BY charts.id
     `, [datasetId])
@@ -705,6 +712,8 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         JOIN variables v ON v.id=cd.variableId
         JOIN datasets d ON d.id=v.datasetId
         JOIN dataset_tags dt ON dt.datasetId=d.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         WHERE dt.tagId = ?
         GROUP BY charts.id
         ORDER BY charts.updatedAt DESC

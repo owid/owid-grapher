@@ -39,8 +39,10 @@ export default class OldChart {
         charts.starred AS isStarred,
         charts.lastEditedAt,
         charts.lastEditedByUserId,
+        lastEditedByUser.fullName AS lastEditedBy,
         charts.publishedAt,
-        charts.publishedByUserId
+        charts.publishedByUserId,
+        publishedByUser.fullName AS publishedBy
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {
