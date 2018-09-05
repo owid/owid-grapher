@@ -169,8 +169,12 @@ class DatasetEditable {
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
-            if (key in json)
-                this[key] = (json as any)[key]
+            if (key in json) {
+                if (key === "tags")
+                    this.tags = _.clone(json.tags)
+                else
+                    this[key] = (json as any)[key]
+            }
         }
     }
 }

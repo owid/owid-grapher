@@ -668,10 +668,11 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     `, [tagId])
 
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt,d.updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt
         FROM datasets d
         JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId = ?
+        ORDER BY d.updatedAt DESC
     `, [tagId])
     tag.datasets = datasets
 
