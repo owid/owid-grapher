@@ -14,7 +14,7 @@ interface UserIndexMeta {
     createdAt: Date
     updatedAt: Date
     isActive: boolean
-    lastLogin: Date
+    lastSeen: Date
 }
 
 @observer
