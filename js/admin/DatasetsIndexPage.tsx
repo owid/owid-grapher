@@ -17,26 +17,6 @@ interface Searchable {
 }
 
 @observer
-class DatasetRow extends React.Component<{ dataset: DatasetListItem, highlight: (text: string) => any }> {
-    context!: { admin: Admin }
-
-    render() {
-        const {dataset, highlight} = this.props
-        const {admin} = this.context
-
-        return <tr>
-            <td>{highlight(dataset.namespace)}</td>
-            <td>
-                <Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
-            </td>
-            <td>{dataset.description}</td>
-            <td>{timeago.format(dataset.createdAt)}</td>
-            <td>{timeago.format(dataset.updatedAt)}</td>
-        </tr>
-    }
-}
-
-@observer
 export default class DatasetsIndexPage extends React.Component {
     context!: { admin: Admin }
 

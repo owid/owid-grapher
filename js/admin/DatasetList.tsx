@@ -11,8 +11,10 @@ export interface DatasetListItem {
     name: string
     namespace: string
     description: string
-    createdAt: Date
-    updatedAt: Date
+    dataEditedAt: Date
+    dataEditedByUserName: string
+    metadataEditedAt: Date
+    metadataEditedByUserName: string
     tags: Tag[]
 }
 
@@ -30,8 +32,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
             </td>
             <td>{dataset.description}</td>
             <td>{dataset.tags.map(tag => <TagBadge tag={tag} searchHighlight={searchHighlight}/>)}</td>
-            <td>{timeago.format(dataset.createdAt)}</td>
-            <td>{timeago.format(dataset.updatedAt)}</td>
+            <td>{timeago.format(dataset.dataEditedAt)} by {dataset.dataEditedByUserName}</td>
         </tr>
     }
 }
@@ -49,8 +50,7 @@ export default class DatasetList extends React.Component<{ datasets: DatasetList
                     <th>Dataset</th>
                     <th>Description</th>
                     <th>Tags</th>
-                    <th>Created</th>
-                    <th>Updated</th>
+                    <th>Uploaded</th>
                 </tr>
             </thead>
             <tbody>

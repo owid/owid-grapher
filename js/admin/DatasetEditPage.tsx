@@ -140,8 +140,15 @@ interface DatasetPageData {
     name: string
     description: string
     namespace: string
-    updatedAt: string
     isPrivate: boolean
+
+    dataEditedAt: Date
+    dataEditedByUserId: number
+    dataEditedByUserName: string
+
+    metadataEditedAt: Date
+    metadataEditedByUserId: number
+    metadataEditedByUserName: string
 
     availableTags: { id: number, name: string, parentName: string }[]
     tags: { id: number, name: string }[]
@@ -271,7 +278,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
                 <h1>{dataset.name}</h1>
-                <p>Last updated {timeago.format(dataset.updatedAt)}</p>
+                <p>Uploaded {timeago.format(dataset.dataEditedAt)} by {dataset.dataEditedByUserName}</p>
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>

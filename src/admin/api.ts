@@ -1,9 +1,8 @@
 import * as express from 'express'
-import {Express, Router} from 'express'
+import {Router} from 'express'
 import * as _ from 'lodash'
 import {spawn} from 'child_process'
 import * as path from 'path'
-import * as querystring from 'querystring'
 import {getConnection} from 'typeorm'
 
 import * as db from '../db'
@@ -505,9 +504,11 @@ api.delete('/variables/:variableId', async (req: Request) => {
 
 api.get('/datasets.json', async req => {
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt
-        FROM datasets AS d
-        ORDER BY d.createdAt DESC
+        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.name AS dataEditedByUserName, d.metadataEditedAt, mu.name AS metadataEditedByUserName
+        FROM datasets d
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN users mu ON mu.id=d.metadataEditedByUserId
+        ORDER BY d.dataEditedAt DESC
     `)
 
     const tags = await db.query(`
@@ -530,8 +531,10 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.name AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.name AS metadataEditedByUserName
         FROM datasets AS d
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN users mu ON mu.id=d.metadataEditedByUserId
         WHERE d.id = ?
     `, [datasetId])
 
@@ -599,7 +602,7 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
     return db.transaction(async t => {
         const newDataset = (req.body as { dataset: any }).dataset
-        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, datasetId])
+        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, new Date(), res.locals.user.id, datasetId])
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
         await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
@@ -669,11 +672,12 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
 
     // Datasets tagged with this tag
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.name AS dataEditedByUserName
         FROM datasets d
+        JOIN users du ON du.id=d.dataEditedByUserId
         JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId = ?
-        ORDER BY d.updatedAt DESC
+        ORDER BY d.dataEditedAt DESC
     `, [tagId])
     tag.datasets = datasets
 
@@ -696,6 +700,8 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         JOIN datasets d ON d.id=v.datasetId
         JOIN dataset_tags dt ON dt.datasetId=d.id
         WHERE dt.tagId = ?
+        GROUP BY charts.id
+        ORDER BY charts.updatedAt DESC
     `, [tagId])
     tag.charts = charts
 
@@ -855,6 +861,7 @@ interface ImportPostData {
 }
 
 api.post('/importDataset', async (req: Request, res: Response) => {
+    const userId = res.locals.user.id
     return db.transaction(async t => {
         const {dataset, entities, years, variables} = req.body as ImportPostData
         const now = new Date()
@@ -865,10 +872,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             // Updating existing dataset
             datasetId = dataset.id
             oldDatasetName = (await t.query(`SELECT name FROM datasets WHERE id = ?`, [datasetId]))[0].name
+            await t.execute(`UPDATE datasets SET dataEditedAt=?, dataEditedByUserId=? WHERE id=?`, [now, userId, datasetId])
         } else {
             // Creating new dataset
-            const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt) VALUES (?)`, [row])
+            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId]
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
         }
 
