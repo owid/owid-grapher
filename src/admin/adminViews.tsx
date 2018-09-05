@@ -77,7 +77,6 @@ adminViews.post('/register', async (req, res) => {
         await getConnection().transaction(async manager => {
             const user = new User()
             user.email = req.body.email
-            user.name = req.body.username
             user.fullName = req.body.fullName
             user.createdAt = new Date()
             user.updatedAt = new Date()

@@ -11,16 +11,16 @@ export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ type: 'json' }) config: any
     @Column() lastEditedAt!: Date
-    @Column({ nullable: true }) lastEditedByUserId!: string
+    @Column({ nullable: true }) lastEditedByUserId!: number
     @Column({ nullable: true }) publishedAt!: Date
-    @Column({ nullable: true }) publishedByUserId!: string
+    @Column({ nullable: true }) publishedByUserId!: number
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
     @Column() starred!: boolean
 
-    @ManyToOne(type => User, user => user.lastEditedCharts) @JoinColumn({ name: 'last_edited_by', referencedColumnName: 'name' })
+    @ManyToOne(type => User, user => user.lastEditedCharts)
     lastEditedByUser!: User
-    @ManyToOne(type => User, user => user.publishedCharts) @JoinColumn({ name: 'published_by', referencedColumnName: 'name' })
+    @ManyToOne(type => User, user => user.publishedCharts)
     publishedByUser!: User
 }
 
@@ -38,9 +38,9 @@ export default class OldChart {
         JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
         charts.starred AS isStarred,
         charts.lastEditedAt,
-        charts.lastEditedBy,
+        charts.lastEditedByUserId,
         charts.publishedAt,
-        charts.publishedBy
+        charts.publishedByUserId
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {

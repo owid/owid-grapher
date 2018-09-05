@@ -35,7 +35,7 @@ app.use('/admin', adminViews)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.name}/>))
+    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.fullName}/>))
 })
 
 // Give full error messages, including in production

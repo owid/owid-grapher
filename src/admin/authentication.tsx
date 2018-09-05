@@ -9,6 +9,7 @@ const hashers = require('node-django-hashers')
 
 import * as db from '../db'
 import { SECRET_KEY, SESSION_COOKIE_AGE } from '../settings'
+import { JsonError } from './serverUtil';
 
 export type CurrentUser = User
 
@@ -38,7 +39,13 @@ export async function authMiddleware(req: express.Request, res: express.Response
             const sessionJson = JSON.parse(sessionData.split(":").slice(1).join(":"))
 
             user = await User.findOne({ id: sessionJson._auth_user_id })
+            if (!user)
+                throw new JsonError("Invalid session (no such user)", 500)
             session = { id: sessionid, expiryDate: rows[0].expiry_date }
+
+            // Don't await this
+            user.lastSeen = new Date()
+            user.save()
         }
     }
 
@@ -70,6 +77,8 @@ export async function tryLogin(email: string, password: string): Promise<Session
 
     const h = new hashers.BCryptPasswordHasher()
     if (await h.verify(password, user.password)) {
+        // Login successful
+
         const sessionId = randomstring.generate()
 
         const sessionJson = JSON.stringify({

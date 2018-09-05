@@ -17,6 +17,7 @@ import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 import {Dataset} from '../model/Dataset'
+import User from '../model/User'
 import { syncDatasetToGitRepo } from '../gitDataExport'
 
 // Little wrapper to automatically send returned objects as JSON, makes
@@ -126,13 +127,13 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         let chartId = existingConfig && existingConfig.id
         if (existingConfig) {
             await t.query(
-                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedBy=? WHERE id = ?`,
-                [JSON.stringify(newConfig), now, now, user.name, chartId]
+                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
+                [JSON.stringify(newConfig), now, now, user.id, chartId]
             )
         } else {
             const result = await t.execute(
-                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedBy, starred) VALUES (?)`,
-                [[JSON.stringify(newConfig), now, now, now, user.name, false]]
+                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
+                [[JSON.stringify(newConfig), now, now, now, user.id, false]]
             )
             chartId = result.insertId
         }
@@ -159,7 +160,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
             // Newly published, set publication info
-            await t.execute(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
+            await t.execute(`UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `, [now, user.id, chartId])
             await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
         } else if (!newConfig.isPublished && existingConfig && existingConfig.isPublished) {
             // Unpublishing chart, delete any existing redirects to it
@@ -341,17 +342,11 @@ export interface UserIndexMeta {
 }
 
 api.get('/users.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, createdAt, updatedAt, is_active as isActive FROM users`)
-    return { users: rows as UserIndexMeta[] }
+    return { users: await User.find({ order: { lastSeen: "DESC" } })}
 })
 
 api.get('/users/:userId.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, createdAt, updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
-
-    if (rows.length)
-        return { user: rows[0] as UserIndexMeta }
-    else
-        throw new JsonError("No such user", 404)
+    return { user: await User.findOne(req.params.userId)}
 })
 
 api.delete('/users/:userId', async (req: Request, res: Response) => {
@@ -359,8 +354,9 @@ api.delete('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
+    const userId = expectInt(req.params.userId)
     await db.transaction(async t => {
-        await t.execute(`DELETE FROM users WHERE id=?`, req.params.userId)
+        await t.execute(`DELETE FROM users WHERE id=?`, [userId])
     })
 
     return { success: true }
@@ -371,7 +367,14 @@ api.put('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
-    await db.execute(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
+    const user = await User.findOne(req.params.userId)
+    if (!user)
+        throw new JsonError("No such user", 404)
+
+    user.fullName = req.body.fullName
+    user.isActive = req.body.isActive
+    await user.save()
+
     return { success: true }
 })
 
@@ -413,10 +416,12 @@ api.get('/variables.json', async req => {
     const searchStr = req.query.search
 
     const query = `
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name, d.dataEditedAt AS uploadedAt, u.fullName AS uploadedBy
         FROM variables AS v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
         ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY v.uploaded_at DESC
+        ORDER BY d.dataEditedAt DESC
         LIMIT ?
     `
 
@@ -446,10 +451,11 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const variableId = expectInt(req.params.variableId)
 
     const variable = await db.get(`
-        SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
+        SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables AS v
-        JOIN datasets AS d ON d.id = v.datasetId
+        FROM variables v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
         WHERE v.id = ?
     `, [variableId])
 
@@ -504,7 +510,7 @@ api.delete('/variables/:variableId', async (req: Request) => {
 
 api.get('/datasets.json', async req => {
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.name AS dataEditedByUserName, d.metadataEditedAt, mu.name AS metadataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -531,7 +537,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.name AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.name AS metadataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -543,7 +549,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name, v.description, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy, v.display
+        SELECT v.id, v.name, v.description, v.display
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
@@ -672,7 +678,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
 
     // Datasets tagged with this tag
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.name AS dataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN dataset_tags dt ON dt.datasetId = d.id
@@ -817,7 +823,7 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
@@ -917,11 +923,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
                 variableId = variable.overwriteId
             } else {
-                const variableRow = [variable.name, datasetId, sourceId, now, now, now, res.locals.user.name, "", "", "", 3, "{}"]
+                const variableRow = [variable.name, datasetId, sourceId, now, now, "", "", "", 3, "{}"]
 
                 // Create a new variable
                 // TODO migrate to clean up these fields
-                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, uploaded_at, uploaded_by, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
+                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
                 variableId = result.insertId
             }
 

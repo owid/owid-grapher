@@ -448,6 +448,7 @@ export class LoadingBlocker extends React.Component<{}> {
     }
 }
 
+@observer
 export class Pagination extends React.Component<{ totalItems: number, perPage: number }> {
     render() {
         const {totalItems, perPage} = this.props
@@ -462,5 +463,15 @@ export class Pagination extends React.Component<{ totalItems: number, perPage: n
             </ul>
         </nav>
 
+    }
+}
+
+
+const timeago = require('timeago.js')()
+
+@observer
+export class Timeago extends React.Component<{ time: Date }> {
+    render() {
+        return this.props.time ? timeago.format(this.props.time) : ""
     }
 }
