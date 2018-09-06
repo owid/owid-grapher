@@ -83,7 +83,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <BindString field="name" store={newtag} label="Name"/>
-                    <input type="submit" className="btn btn-success" value="Update tag"/> <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete tag</button>
+                    <input type="submit" className="btn btn-success" value="Update category"/> <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>
                 </form>
             </section>
             <section>

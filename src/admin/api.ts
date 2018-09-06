@@ -179,7 +179,7 @@ api.get('/charts.json', async (req: Request, res: Response) => {
     const charts = await db.query(`
         SELECT ${OldChart.listFields} FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         ORDER BY charts.lastEditedAt DESC LIMIT ?
     `, [limit])
 
@@ -474,7 +474,7 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
         SELECT ${OldChart.listFields}
         FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         JOIN chart_dimensions cd ON cd.chartId = charts.id
         WHERE cd.variableId = ?
         GROUP BY charts.id
@@ -517,8 +517,8 @@ api.get('/datasets.json', async req => {
     const datasets = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName
         FROM datasets d
-        LEFT JOIN users du ON du.id=d.dataEditedByUserId
-        LEFT JOIN users mu ON mu.id=d.metadataEditedByUserId
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN users mu ON mu.id=d.metadataEditedByUserId
         ORDER BY d.dataEditedAt DESC
     `)
 
@@ -579,7 +579,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         WHERE v.datasetId = ?
         GROUP BY charts.id
     `, [datasetId])
@@ -694,7 +694,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         JOIN datasets d ON d.id=v.datasetId
         JOIN dataset_tags dt ON dt.datasetId=d.id
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         WHERE dt.tagId = ?
         GROUP BY charts.id
         ORDER BY charts.updatedAt DESC
