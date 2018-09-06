@@ -7,7 +7,7 @@ import * as minimatch from 'minimatch'
 import * as urljoin from 'url-join'
 import * as querystring from 'querystring'
 
-import {ENV, BUILD_GRAPHER_URL, BUILD_DIR, DJANGO_BASE_URL} from '../settings'
+import {ENV, BUILD_GRAPHER_URL, BUILD_DIR} from '../settings'
 
 const devServer = Router()
 
@@ -53,11 +53,6 @@ async function getHeaderRules(): Promise<HeaderRule[]> {
 async function serveFile(res: Response, targetPath: string) {
     res.sendFile(targetPath)
 }
-
-// Temporary glue redirect to Django for pages we haven't ported yet
-devServer.get('/admin/*', async (req, res) => {
-    res.redirect(urljoin(DJANGO_BASE_URL, req.path))
-})
 
 devServer.get('/*', async (req, res) => {
     if (ENV === "production") {

@@ -6,13 +6,13 @@ import * as settings from '../settings'
 
 export default function AdminSPA(props: { rootUrl: string, username: string }) {
     const script = `
-        window.Global = {}
-        Global.rootUrl = "${props.rootUrl}"
+        window.Global = { rootUrl: "${props.rootUrl}" }
         window.App = {}
         App.isEditor = true
         window.admin = new Admin(Global.rootUrl, "${props.username}", ${JSON.stringify(_.pick(settings, ["ENV"]))})
         admin.start(document.querySelector("#app"))
-    `
+`
+
     return <html lang="en">
         <head>
             <title>owid-admin</title>

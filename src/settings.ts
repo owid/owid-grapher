@@ -29,7 +29,6 @@ interface Settings {
 
     WORDPRESS_DB_NAME: string
     WORDPRESS_DIR: string
-    DJANGO_BASE_URL: string
 
     EMAIL_HOST: string
     EMAIL_PORT: number

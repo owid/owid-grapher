@@ -642,26 +642,6 @@ api.delete('/datasets/:datasetId', async (req: Request) => {
     return { success: true }
 })
 
-api.get('/sources/:sourceId.json', async (req: Request) => {
-    const sourceId = expectInt(req.params.sourceId)
-    const source = await db.get(`
-        SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
-        FROM sources AS s
-        JOIN datasets AS d ON d.id=s.datasetId
-        WHERE s.id=?`, [sourceId])
-    source.description = JSON.parse(source.description)
-    source.variables = await db.query(`SELECT id, name, uploaded_at AS uploadedAt FROM variables WHERE variables.sourceId=?`, [sourceId])
-
-    return { source: source }
-})
-
-api.put('/sources/:sourceId', async (req: Request) => {
-    const sourceId = expectInt(req.params.sourceId)
-    const source = (req.body as { source: any }).source
-    await db.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
-    return { success: true }
-})
-
 // Get a list of redirects that map old slugs to charts
 api.get('/redirects.json', async (req: Request, res: Response) => {
     const redirects = await db.query(`
