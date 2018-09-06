@@ -92,6 +92,7 @@ export class Dataset extends BaseEntity {
         // XXX
         const sources = await Source.find({ datasetId: this.id })
         const variables = await Variable.find({ datasetId: this.id })
+        const tags = await db.query(`SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`, [this.id])
 
         const initialFields = [
             { name: "Entity", type: "string" },
@@ -104,6 +105,7 @@ export class Dataset extends BaseEntity {
             id: this.id,
             description: this.description,
             sources: sources.map(s => s.toDatapackage()),
+            owidTags: tags.map((t: any) => t.name),
             resources: [{
                 path: `${this.name}.csv`,
                 schema: {

@@ -164,7 +164,7 @@ ${BUILD_GRAPHER_PATH}/*
 
     async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
         const {baseDir, props} = this
-        const rows = await db.query(`SELECT id, config, updated_at FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
+        const rows = await db.query(`SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
 
         const newSlugs = []
         let requests = []

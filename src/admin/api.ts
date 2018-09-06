@@ -526,11 +526,9 @@ api.get('/datasets.json', async req => {
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
-
     const tagsByDatasetId = _.groupBy(tags, t => t.datasetId)
-
     for (const dataset of datasets) {
-        dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+        dataset.tags = (tagsByDatasetId[dataset.id]||[]).map(t => _.omit(t, 'datasetId'))
     }
     /*LEFT JOIN variables AS v ON v.datasetId=d.id
     GROUP BY d.id*/
@@ -619,13 +617,14 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
         await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
-        await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
+        if (tagRows.length)
+            await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
 
         const source = newDataset.source
         const description = _.omit(source, ['name', 'id'])
         await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(description), source.id])
 
-        await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+        await syncDatasetToGitRepo(datasetId, { transaction: t, oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
         return { success: true }
     })
@@ -695,14 +694,16 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     tag.datasets = datasets
 
     // The other tags for those datasets
-    const datasetTags = await db.query(`
-        SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
-        JOIN tags t ON dt.tagId = t.id
-        WHERE dt.datasetId IN (?)
-    `, [tag.datasets.map((d: any) => d.id)])
-    const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
-    for (const dataset of tag.datasets) {
-        dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+    if (tag.datasets.length) {
+        const datasetTags = await db.query(`
+            SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+            JOIN tags t ON dt.tagId = t.id
+            WHERE dt.datasetId IN (?)
+        `, [tag.datasets.map((d: any) => d.id)])
+        const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
+        for (const dataset of tag.datasets) {
+            dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+        }
     }
 
     // Charts using datasets under this tag
@@ -877,22 +878,30 @@ interface ImportPostData {
 
 api.post('/importDataset', async (req: Request, res: Response) => {
     const userId = res.locals.user.id
-    return db.transaction(async t => {
-        const {dataset, entities, years, variables} = req.body as ImportPostData
+    const {dataset, entities, years, variables} = req.body as ImportPostData
+
+    let oldDatasetName: string|undefined
+    if (dataset.id) {
+        oldDatasetName = (await db.query(`SELECT name FROM datasets WHERE id = ?`, [dataset.id]))[0].name
+    }
+
+    const newDatasetId = await db.transaction(async t => {
         const now = new Date()
 
         let datasetId: number
-        let oldDatasetName: string|undefined
+
         if (dataset.id) {
             // Updating existing dataset
             datasetId = dataset.id
-            oldDatasetName = (await t.query(`SELECT name FROM datasets WHERE id = ?`, [datasetId]))[0].name
             await t.execute(`UPDATE datasets SET dataEditedAt=?, dataEditedByUserId=? WHERE id=?`, [now, userId, datasetId])
         } else {
             // Creating new dataset
             const row = [dataset.name, "owid", "", now, now, now, userId, now, userId]
             const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
+
+            // Add default tag
+            await t.execute(`INSERT INTO dataset_tags (datasetId, tagId) VALUES (?,?)`, [datasetId, 375])
         }
 
         // Find or create the dataset source
@@ -924,6 +933,16 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             entityIdLookup[row.name] = row.id
         }
 
+        // Remove all existing variables not matched by overwriteId
+        const existingVariables = await t.query(`SELECT id FROM variables v WHERE v.datasetId=?`, [datasetId])
+        const removingVariables = existingVariables.filter((v: any) => !variables.some(v2 => v2.overwriteId = v.overwriteId))
+        const removingVariableIds = removingVariables.map((v: any) => v.id) as number[]
+        if (removingVariableIds.length) {
+            await t.execute(`DELETE FROM data_values WHERE variableId IN (?)`, [removingVariableIds])
+            await t.execute(`DELETE FROM variables WHERE id IN (?)`, [removingVariableIds])
+        }
+
+        // Overwrite old variables and insert new variables
         for (const variable of variables) {
             let variableId: number
             if (variable.overwriteId) {
@@ -932,11 +951,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
                 variableId = variable.overwriteId
             } else {
-                const variableRow = [variable.name, datasetId, sourceId, now, now, "", "", "", 3, "{}"]
+                const variableRow = [variable.name, datasetId, sourceId, now, now, "", "", "", "{}"]
 
                 // Create a new variable
                 // TODO migrate to clean up these fields
-                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
+                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, unit, coverage, timespan, display) VALUES (?)`, [variableRow])
                 variableId = result.insertId
             }
 
@@ -947,10 +966,12 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
 
-        await syncDatasetToGitRepo(datasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+        await syncDatasetToGitRepo(datasetId, { transaction: t, oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
-        return { success: true, datasetId: datasetId }
+        return datasetId
     })
+
+    return { success: true, datasetId: newDatasetId }
 })
 
 export default api

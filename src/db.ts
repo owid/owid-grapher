@@ -9,7 +9,7 @@ export async function connect() {
     return connection
 }
 
-class TransactionContext {
+export class TransactionContext {
     manager: typeorm.EntityManager
     constructor(manager: typeorm.EntityManager) {
         this.manager = manager

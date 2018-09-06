@@ -140,6 +140,17 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
 
 @observer
 class EditVariables extends React.Component<{ dataset: EditableDataset }> {
+    @computed get deletingVariables() {
+        const {dataset} = this.props
+        const deletingVariables: ExistingVariable[] = []
+        for (const variable of dataset.existingVariables) {
+            if (!dataset.newVariables.some(v => v.overwriteId === variable.id)) {
+                deletingVariables.push(variable)
+            }
+        }
+        return deletingVariables
+    }
+
     render() {
         const { dataset } = this.props
 
@@ -151,54 +162,9 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
                     <EditVariable variable={variable} dataset={dataset} />
                 )}
             </ol>
-        </section>
-    }
-}
-
-@observer
-class EditSource extends React.Component<{ dataset: EditableDataset }> {
-    render() {
-        const { dataset } = this.props
-        const { source } = dataset
-
-        return <section>
-            <hr />
-            <h4>Dataset source information</h4>
-            <label>
-                <span>Source Name:</span>
-                <input type="text" required value={source.name} onInput={e => source.name = e.currentTarget.value} />
-            </label>
-            <p className="form-section-desc">
-                The source name will be displayed in charts (at the bottom of the ‘Chart’ and ‘Map’ tabs). For academic papers, the name of the source should be “Authors (year)”. For example Arroyo-Abad and Lindert (2016). <br />
-                For institutional projects or reports, the name should be “Institution, Project (year or vintage)”. For example: U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). <br />
-                For data that we have modified extensively, the name should be "Our World In Data based on Author (year)”. For example: Our World In Data based on Atkinson (2002) and Sen (2000).
-            </p>
-            <label>
-                <span>Data published by:</span>
-                <input type="text" value={source.dataPublishedBy} onInput={e => source.dataPublishedBy = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Data publisher's source:</span>
-                <input type="text" value={source.dataPublisherSource} onInput={e => source.dataPublisherSource = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Link:</span>
-                <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Retrieved:</span>
-                <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Additional Information:</span>
-                <textarea rows={5} value={source.additionalInfo} onInput={e => source.additionalInfo = e.currentTarget.value}></textarea>
-            </label>
-            <p className="form-section-desc">
-                For academic papers, the first item in the description should be “Data published by: complete reference”.  This should be followed by the authors underlying sources, a link to the paper, and the date on which the paper was accessed. <br />
-                For institutional projects, the format should be similar, but detailing the corresponding project or report. <br />
-                For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br />
-                The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br />
-            </p>
+            {this.deletingVariables.length > 0 && <div className="alert alert-danger">
+                Some existing variables are not selected to overwrite and will be deleted: {this.deletingVariables.map(v => v.name).join(",")}
+            </div>}
         </section>
     }
 }
