@@ -85,7 +85,7 @@ export default class TagsIndexPage extends React.Component {
         return <AdminLayout title="Tags">
             <main className="TagsIndexPage">
                 <FieldsRow>
-                    <span>Showing {this.tags.length} tags</span>
+                    <span>Showing {this.tags.length} categories</span>
                 </FieldsRow>
                 <div className="cardHolder">
                     {parentCategories.map(parent =>
@@ -96,7 +96,7 @@ export default class TagsIndexPage extends React.Component {
                             {parent.tags.map(tag =>
                                 <TagBadge tag={tag as Tag}/>
                             )}
-                            <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Tag</button>
+                            <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Category</button>
                         </section>
                     )}
                 </div>

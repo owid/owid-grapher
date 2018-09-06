@@ -49,7 +49,7 @@ export default class DatasetList extends React.Component<{ datasets: DatasetList
                     <th>Dataspace</th>
                     <th>Dataset</th>
                     <th>Description</th>
-                    <th>Tags</th>
+                    <th>Categories</th>
                     <th>Uploaded</th>
                 </tr>
             </thead>

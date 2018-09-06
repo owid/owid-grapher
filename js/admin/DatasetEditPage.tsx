@@ -206,10 +206,10 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
         const tagsByParent = _.groupBy(availableTags, c => c.parentName)
 
         return <div className="form-group">
-            <label>Tags</label>
+            <label>Categories</label>
             <div>{newDataset.tags.map(tag => <TagBadge tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
             <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
-                <option value="" disabled selected>Add tag</option>
+                <option value="" disabled selected>Add category</option>
                 {_.map(tagsByParent, (tags, parentName) =>
                     <optgroup label={parentName}>
                         {tags.map(tag =>
@@ -263,7 +263,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     }
 
     @computed get gitHistoryUrl() {
-        return `https://github.com/owid-test/datasets/commits/master/${encodeURIComponent(this.props.dataset.name)}`
+        return `https://github.com/owid-test/datasets/tree/master/${encodeURIComponent(this.props.dataset.name)}`
     }
 
     render() {
@@ -283,7 +283,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <i className="fa fa-download"/> Download CSV
                 </Link>
                 {!isBulkImport && <a href={gitHistoryUrl} target="_blank" className="btn btn-secondary">
-                    <i className="fa fa-github"/> GitHub History
+                    <i className="fa fa-github"/> View on GitHub
                 </a>}
             </section>
             <section>

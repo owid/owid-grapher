@@ -77,7 +77,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         return <main className="TagEditPage">
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
-                <h1>Tag: {tag.name}</h1>
+                <h1>Category: {tag.name}</h1>
                 <p>Last updated {timeago.format(tag.updatedAt)}</p>
             </section>
             <section>
@@ -112,7 +112,6 @@ export default class TagEditPage extends React.Component<{ tagId: number }> {
     }
 
     async getData(tagId: number) {
-        console.log(tagId)
         const json = await this.context.admin.getJSON(`/api/tags/${tagId}.json`)
         runInAction(() => {
             this.tag = json.tag as TagPageData

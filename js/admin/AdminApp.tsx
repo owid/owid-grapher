@@ -78,8 +78,8 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
                     <Route exact path="/standardize" component={CountryStandardizerPage} />
                     <Route exact path="/redirects" component={RedirectsIndexPage}/>
-                    <Route exact path="/tags/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
-                    <Route exact path="/tags" component={TagsIndexPage}/>
+                    <Route exact path="/categories/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
+                    <Route exact path="/categories" component={TagsIndexPage}/>
                     <Route exact path="/pages" component={PostsIndexPage}/>
                     <Route exact path="/test" component={TestIndexPage}/>
                     <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
