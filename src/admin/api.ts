@@ -4,6 +4,7 @@ import * as _ from 'lodash'
 import {spawn} from 'child_process'
 import * as path from 'path'
 import {getConnection} from 'typeorm'
+import * as bodyParser from 'body-parser'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
@@ -551,6 +552,10 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
         throw new JsonError(`No dataset by id '${datasetId}'`, 404)
     }
 
+    const zipFile = await db.get(`SELECT filename FROM dataset_files WHERE datasetId=?`, [datasetId])
+    if (zipFile)
+        dataset.zipFile = zipFile
+
     const variables = await db.query(`
         SELECT v.id, v.name, v.description, v.display
         FROM variables AS v
@@ -628,6 +633,16 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
         return { success: true }
     })
+})
+
+api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "application/zip", limit: "50mb" }), async (req: Request, res: Response) => {
+    const datasetId = expectInt(req.params.datasetId)
+ 
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [datasetId])
+        await t.execute("INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)", [datasetId, 'additional-material.zip', req.body])
+    })
+    res.send({ success: true })
 })
 
 api.delete('/datasets/:datasetId', async (req: Request) => {

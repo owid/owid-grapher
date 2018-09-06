@@ -105,4 +105,14 @@ adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
     return Dataset.writeCSV(datasetId, res)
 })
 
+adminViews.get('/datasets/:datasetId/downloadZip', async (req, res) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const datasetName = (await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])).name
+    res.setHeader('Content-Disposition', `attachment; filename='additional-material.zip'`)
+
+    const file = await db.get(`SELECT filename, file FROM dataset_files WHERE datasetId=?`, [datasetId])
+    res.send(file.file)
+})
+
 export default adminViews

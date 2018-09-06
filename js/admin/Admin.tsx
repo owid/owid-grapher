@@ -47,27 +47,31 @@ export default class Admin {
     }
 
     // Make a request with no error or response handling
-    async rawRequest(path: string, data: Json, method: HTTPMethod) {
+    async rawRequest(path: string, data: string|File, method: HTTPMethod) {
+        const headers: any = {}
+        const isFile = data instanceof File
+        if (!isFile) {
+            headers['Content-Type'] = 'application/json'
+        }
+        headers['Accept'] = 'application/json'
+
         return fetch(this.url(path), {
             method: method,
             credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: method !== 'GET' ? JSON.stringify(data) : undefined
+            headers: headers,
+            body: method !== 'GET' ? data : undefined
         })
     }
 
-    // Make a request and expect JSON in response
+    // Make a request and expect JSON
     // If we can't retrieve and parse JSON, it is treated as a fatal/unexpected error
-    async requestJSON(path: string, data: Json, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
+    async requestJSON(path: string, data: Json|File, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
         const onFailure = opts.onFailure || 'show'
 
         let targetPath = path
         // Tack params on the end if it's a GET request
         if (method === "GET" && !_.isEmpty(data)) {
-            targetPath += queryParamsToStr(data)
+            targetPath += queryParamsToStr(data as Json)
         }
 
         let response: Response|undefined
@@ -75,7 +79,7 @@ export default class Admin {
         let json: Json
 
         try {
-            const request = this.rawRequest(targetPath, data, method)
+            const request = this.rawRequest(targetPath, data instanceof File ? data : JSON.stringify(data), method)
             this.currentRequests.push(request)
 
             response = await request

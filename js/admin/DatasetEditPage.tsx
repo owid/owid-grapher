@@ -155,6 +155,7 @@ interface DatasetPageData {
     variables: VariableEditListItem[]
     charts: ChartListItem[]
     source: SourceInfo
+    zipFile?: { filename: string }
 }
 
 class DatasetEditable {
@@ -225,6 +226,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
 @observer
 class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
+    context!: { admin: Admin }
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
@@ -266,12 +268,37 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         return `https://github.com/owid-test/datasets/tree/master/${encodeURIComponent(this.props.dataset.name)}`
     }
 
+    @computed get zipFileUrl() {
+        return "/"
+    }
+
+    async uploadZip(file: File) {
+        const json = await this.context.admin.requestJSON(`/api/datasets/${this.props.dataset.id}/uploadZip`, file, "PUT")
+        if (json.success) {
+            this.props.dataset.zipFile = { filename: file.name }
+        }
+    }
+
+    @action.bound onChooseZip(ev: { target: HTMLInputElement }) {
+        if (!ev.target.files) return
+
+        const file = ev.target.files[0]
+        this.uploadZip(file)
+    }
+
+    @action.bound startChooseZip() {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.addEventListener('change', this.onChooseZip as any)
+        input.click()
+    }
+
     render() {
         if (this.isDeleted)
             return <Redirect to="/datasets"/>
 
         const {dataset} = this.props
-        const {newDataset, gitHistoryUrl} = this
+        const {newDataset} = this
         const isBulkImport = dataset.namespace !== 'owid'
 
         return <main className="DatasetEditPage">
@@ -282,9 +309,15 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>
-                {!isBulkImport && <a href={gitHistoryUrl} target="_blank" className="btn btn-secondary">
+                {!isBulkImport && <a href={this.gitHistoryUrl} target="_blank" className="btn btn-secondary">
                     <i className="fa fa-github"/> View on GitHub
                 </a>}
+                {dataset.zipFile && <Link native to={`/datasets/${dataset.id}/downloadZip`} className="btn btn-secondary">
+                    <i className="fa fa-download"/> additional-material.zip
+                </Link>}
+                {!isBulkImport && <button className="btn btn-secondary" onClick={this.startChooseZip}>
+                    <i className="fa fa-upload"/> Upload Zip
+                </button>}
             </section>
             <section>
                 <h3>Dataset metadata</h3>
