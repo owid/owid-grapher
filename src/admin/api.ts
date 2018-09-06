@@ -517,8 +517,8 @@ api.get('/datasets.json', async req => {
     const datasets = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName
         FROM datasets d
-        JOIN users du ON du.id=d.dataEditedByUserId
-        JOIN users mu ON mu.id=d.metadataEditedByUserId
+        LEFT JOIN users du ON du.id=d.dataEditedByUserId
+        LEFT JOIN users mu ON mu.id=d.metadataEditedByUserId
         ORDER BY d.dataEditedAt DESC
     `)
 
