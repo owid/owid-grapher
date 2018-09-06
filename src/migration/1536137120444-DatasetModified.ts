@@ -29,4 +29,5 @@ export class DatasetModified1536137120444 implements MigrationInterface {
 
     public async down(queryRunner: QueryRunner): Promise<any> {
         throw new Error()
-    }}
+    }
+}

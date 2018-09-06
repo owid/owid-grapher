@@ -454,7 +454,7 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const variableId = expectInt(req.params.variableId)
 
     const variable = await db.get(`
-        SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
         FROM variables v
         JOIN datasets d ON d.id=v.datasetId

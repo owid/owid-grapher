@@ -23,7 +23,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: any = { variables: {}, entityKey: {} }
 
     const variableQuery = db.query(`
-        SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
+        SELECT v.*, v.shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
             JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
@@ -41,7 +41,6 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     const variables = await variableQuery
 
     for (const row of variables) {
-        row.shortUnit = row.short_unit; delete row.short_unit
         row.display = JSON.parse(row.display)
         const sourceDescription = JSON.parse(row.s_description); delete row.s_description
         row.source = {
