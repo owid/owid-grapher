@@ -29,7 +29,7 @@ export default class DatasetsIndexPage extends React.Component {
         for (const dataset of this.datasets) {
             searchIndex.push({
                 dataset: dataset,
-                term: fuzzysort.prepare(dataset.name + " " + dataset.tags.map(t => t.name).join(" ") + " " + dataset.namespace)
+                term: fuzzysort.prepare(dataset.name + " " + dataset.tags.map(t => t.name).join(" ") + " " + dataset.namespace + " " + dataset.dataEditedByUserName)
             })
         }
 

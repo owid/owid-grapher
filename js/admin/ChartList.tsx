@@ -1,9 +1,11 @@
-import Admin from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import { action, runInAction } from 'mobx'
-import Link from './Link'
 const timeago = require('timeago.js')()
+import * as _ from 'lodash'
+
+import Admin from './Admin'
+import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
 
 export interface ChartListItem {
@@ -57,6 +59,8 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
         const {chart, searchHighlight} = this.props
         const {admin} = this.context
 
+        const highlight = searchHighlight || _.identity
+
         return <tr>
             <td>
                 <a title="Show this chart on the front page of the website." onClick={_ => this.props.onStar(chart)}>
@@ -64,20 +68,20 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
                 </a>
             </td>
             {chart.isPublished ? <td>
-                <a href={`${admin.grapherRoot}/${chart.slug}`}>{searchHighlight ? searchHighlight(chart.title) : chart.title}</a>
+                <a href={`${admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
             </td> : <td>
-                <span style={{ color: 'red' }}>Draft: </span> {searchHighlight ? searchHighlight(chart.title) : chart.title}
+                <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
-            <td>{searchHighlight ? searchHighlight(chart.internalNotes) : chart.internalNotes   }</td>
+            <td>{highlight(chart.internalNotes)}</td>
             <td>{chart.tags && chart.tags.map(t => <TagBadge tag={t}/>)}</td>
-            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {chart.publishedBy}</span>}</td>
-            <td>{timeago.format(chart.lastEditedAt)} by {chart.lastEditedBy}</td>
+            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
+            <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
             <td>
                 <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
             </td>
             <td>
-                <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>
+                <button className="btn btn-danger" onClick={() => this.props.onDelete(chart)}>Delete</button>
             </td>
         </tr>
     }

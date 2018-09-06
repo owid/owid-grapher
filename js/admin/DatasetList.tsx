@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 const timeago = require('timeago.js')()
+import * as _ from 'lodash'
 
 import Admin from './Admin'
 import Link from './Link'
@@ -25,14 +26,16 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
     render() {
         const {dataset, searchHighlight} = this.props
 
+        const highlight = searchHighlight || _.identity
+
         return <tr>
             <td>{dataset.namespace}</td>
             <td>
-                <Link to={`/datasets/${dataset.id}`}>{searchHighlight ? searchHighlight(dataset.name) : dataset.name}</Link>
+                <Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
             <td>{dataset.description}</td>
             <td>{dataset.tags.map(tag => <TagBadge tag={tag} searchHighlight={searchHighlight}/>)}</td>
-            <td>{timeago.format(dataset.dataEditedAt)} by {dataset.dataEditedByUserName}</td>
+            <td>{timeago.format(dataset.dataEditedAt)} by {highlight(dataset.dataEditedByUserName)}</td>
         </tr>
     }
 }
