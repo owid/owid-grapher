@@ -82,7 +82,7 @@ export default class TagsIndexPage extends React.Component {
     render() {
         const {parentCategories} = this
 
-        return <AdminLayout title="Tags">
+        return <AdminLayout title="Categories">
             <main className="TagsIndexPage">
                 <FieldsRow>
                     <span>Showing {this.tags.length} categories</span>

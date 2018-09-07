@@ -891,8 +891,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             await t.execute(`UPDATE datasets SET dataEditedAt=?, dataEditedByUserId=? WHERE id=?`, [now, userId, datasetId])
         } else {
             // Creating new dataset
-            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId]
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId) VALUES (?)`, [row])
+            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId, userId]
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
 
             // Add default tag
