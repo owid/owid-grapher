@@ -265,7 +265,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     }
 
     @computed get gitHistoryUrl() {
-        return `https://github.com/owid-test/datasets/tree/master/${encodeURIComponent(this.props.dataset.name)}`
+        return `https://github.com/${this.context.admin.settings.GITHUB_USERNAME}/datasets/tree/master/${encodeURIComponent(this.props.dataset.name)}`
     }
 
     @computed get zipFileUrl() {

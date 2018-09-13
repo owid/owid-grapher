@@ -18,7 +18,6 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
 
     render() {
         const {variable, searchHighlight} = this.props
-        const {admin} = this.context
 
         return <tr>
             <td>

@@ -37,7 +37,6 @@ interface Settings {
     EMAIL_USE_TLS: boolean
 
     // Where we store data exports in the form of git repos
-    GIT_DATASETS_DIR: string
     GIT_DEFAULT_USERNAME: string
     GIT_DEFAULT_EMAIL: string
     GITHUB_USERNAME: string
@@ -46,6 +45,7 @@ interface Settings {
     // These settings are inferred from other settings
     BUILD_GRAPHER_PATH: string
     BUILD_DIR: string
+    GIT_DATASETS_DIR: string
 }
 
 const env: Settings = (process.env as any)
@@ -53,6 +53,7 @@ const env: Settings = (process.env as any)
 env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? "production" : "development"
 env.BASE_DIR = path.join(__dirname, "../../")
 env.BUILD_DIR = path.join(env.BASE_DIR, "public")
+env.GIT_DATASETS_DIR = path.join(env.BASE_DIR, "datasetsExport")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 env.NODE_SERVER_HOST = process.env.NODE_SERVER_HOST || "localhost"
 env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030

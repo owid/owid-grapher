@@ -11,6 +11,7 @@ type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
 
 interface ClientSettings {
     ENV: 'development'|'production'
+    GITHUB_USERNAME: string
 }
 
 // Entry point for the grapher admin

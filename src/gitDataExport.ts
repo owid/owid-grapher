@@ -56,5 +56,5 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
     }
 
     const commitMsg = isNew ? `Adding ${dataset.filename}` : `Updating ${dataset.filename}`
-    exec(`cd ${repoDir} && git commit -m "${commitMsg}" --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>"`)
+    exec(`cd ${repoDir} && git commit -m "${commitMsg}" --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`)
 }

@@ -9,7 +9,7 @@ export default function AdminSPA(props: { rootUrl: string, username: string }) {
         window.Global = { rootUrl: "${props.rootUrl}" }
         window.App = {}
         App.isEditor = true
-        window.admin = new Admin(Global.rootUrl, "${props.username}", ${JSON.stringify(_.pick(settings, ["ENV"]))})
+        window.admin = new Admin(Global.rootUrl, "${props.username}", ${JSON.stringify(_.pick(settings, ["ENV", "GITHUB_USERNAME"]))})
         admin.start(document.querySelector("#app"))
 `
 
