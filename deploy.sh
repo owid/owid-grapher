@@ -43,8 +43,10 @@ then
 
   # Link in all the persistent stuff that needs to stay around between versions
   ln -sf $FINAL_DATA/.env $TMP_NEW/.env
+  mkdir -p $FINAL_DATA/public
   ln -sf $FINAL_DATA/public $TMP_NEW/public
-  ln -sf $FINAL_DATA/data $TMP_NEW/data
+  mkdir -p $FINAL_DATA/datasetsExport
+  ln -sf $FINAL_DATA/datasetsExport $TMP_NEW/datasetsExport
 
   # Install dependencies, build assets and migrate
   cd $TMP_NEW

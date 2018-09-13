@@ -2,11 +2,10 @@ node_modules
 env
 .env
 tmp
-public/uploads
-public/exports
 data
 .awcache
 public
 .git
 dist
 logs/*
+datasetsExport
