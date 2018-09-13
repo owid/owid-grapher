@@ -19,7 +19,7 @@ import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 import {Dataset} from '../model/Dataset'
 import User from '../model/User'
-import { syncDatasetToGitRepo } from '../gitDataExport'
+import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -616,7 +616,7 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
     if (!dataset)
         throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    return db.transaction(async t => {
+    await db.transaction(async t => {
         const newDataset = (req.body as { dataset: any }).dataset
         await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, new Date(), res.locals.user.id, datasetId])
 
@@ -628,11 +628,12 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
         const source = newDataset.source
         const description = _.omit(source, ['name', 'id'])
         await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(description), source.id])
-
-        await syncDatasetToGitRepo(datasetId, { transaction: t, oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
-
-        return { success: true }
     })
+
+    // Note: not currently in transaction
+    await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+
+    return { success: true }
 })
 
 api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "application/zip", limit: "50mb" }), async (req: Request, res: Response) => {
@@ -645,14 +646,21 @@ api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "applica
     res.send({ success: true })
 })
 
-api.delete('/datasets/:datasetId', async (req: Request) => {
+api.delete('/datasets/:datasetId', async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset)
+        throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
     await db.transaction(async t => {
         await t.execute(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
+
+    await removeDatasetFromGitRepo(dataset.name, dataset.namespace, { commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
     return { success: true }
 })
@@ -961,10 +969,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
 
-        await syncDatasetToGitRepo(datasetId, { transaction: t, oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
-
         return datasetId
     })
+
+    // Note: not currently in transaction
+    await syncDatasetToGitRepo(newDatasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
     return { success: true, datasetId: newDatasetId }
 })

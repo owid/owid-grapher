@@ -1,6 +1,8 @@
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as shell from 'shelljs'
+import {quote} from 'shell-quote'
+import * as util from 'util'
 
 import { JsonError } from './admin/serverUtil'
 import { Dataset } from './model/Dataset'
@@ -11,19 +13,33 @@ async function datasetToReadme(dataset: Dataset): Promise<string> {
     return `# ${dataset.name}\n\n${dataset.description}`
 }
 
+function exec(cmd: string, args: string[]) {
+    const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
+    console.log(formatCmd)
+    shell.exec(formatCmd)
+}
+
+export async function removeDatasetFromGitRepo(datasetName: string, namespace: string, options: { commitName?: string, commitEmail?: string } = {}) {
+    const {commitName, commitEmail } = options
+
+    const repoDir = path.join(GIT_DATASETS_DIR, namespace)
+
+    if (!fs.existsSync(path.join(repoDir, '.git'))) {
+        return
+    }
+
+    exec(`cd %s && rm -rf %s && git add -A %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, `${repoDir}/${datasetName}`, `${repoDir}/${datasetName}`, `Removing ${datasetName}`])
+}
+
 export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string } = {}) {
     const { oldDatasetName, commitName, commitEmail } = options
-
-    const exec = (cmd: string) => {
-        console.log(cmd)
-        shell.exec(cmd)
-    }
 
     const datasetRepo = options.transaction ? options.transaction.manager.getRepository(Dataset) : Dataset.getRepository()
 
     const dataset = await datasetRepo.findOne({ id: datasetId }, { relations: ['variables'] })
-    if (!dataset)
+    if (!dataset) {
         throw new JsonError(`No such dataset ${datasetId}`, 404)
+    }
 
     // Not doing bulk imports for now
     if (dataset.namespace !== 'owid')
@@ -34,7 +50,7 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
 
     if (!fs.existsSync(path.join(repoDir, '.git'))) {
         await fs.mkdirp(repoDir)
-        exec(`cd ${repoDir} && git init && git config user.name "${GIT_DEFAULT_USERNAME}" && git config user.email "${GIT_DEFAULT_EMAIL}"`)
+        exec(`cd %s && git init && git config user.name %s && git config user.email %s`, [repoDir, GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL])
     }
 
     // Output dataset to temporary directory
@@ -49,12 +65,12 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
 
     const finalDatasetDir = path.join(repoDir, dataset.filename)
     const isNew = !fs.existsSync(finalDatasetDir)
-    exec(`cd ${repoDir} && rm -rf "${finalDatasetDir}" && mv "${tmpDatasetDir}" "${finalDatasetDir}" && git add -A "${finalDatasetDir}"`)
+    exec(`cd %s && rm -rf %s && mv %s %s && git add -A %s`, [repoDir, finalDatasetDir, tmpDatasetDir, finalDatasetDir, finalDatasetDir])
 
     if (oldDatasetName && oldDatasetName !== dataset.filename) {
-        exec(`cd ${repoDir} && rm -rf "${repoDir}/${oldDatasetName}" && git add -A "${repoDir}/${oldDatasetName}"`)
+        exec(`cd %s && rm -rf %s && git add -A %s`, [repoDir, `${repoDir}/${oldDatasetName}`, `${repoDir}/${oldDatasetName}`])
     }
 
     const commitMsg = isNew ? `Adding ${dataset.filename}` : `Updating ${dataset.filename}`
-    exec(`cd ${repoDir} && git commit -m "${commitMsg}" --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`)
+    exec(`cd %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, commitMsg])
 }

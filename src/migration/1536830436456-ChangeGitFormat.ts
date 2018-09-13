@@ -23,5 +23,6 @@ export class ChangeGitFormat1536830436456 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<any> {
+        throw new Error()
     }
 }
