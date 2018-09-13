@@ -15,6 +15,7 @@ import ChartList, { ChartListItem } from './ChartList'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import TagBadge from './TagBadge'
+import VariableList, { VariableListItem } from './VariableList'
 
 class VariableEditable {
     @observable name: string = ""
@@ -85,9 +86,8 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
     }
 
     render() {
-        const {variable, isBulkImport} = this.props
+        const {isBulkImport} = this.props
         const {newVariable} = this
-        const {admin} = this.context
 
         return <div className="VariableEditRow row">
             <div className="col">
@@ -348,9 +348,12 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
             </section>
             <section>
                 <h3>Variables</h3>
-                {dataset.variables.map(variable =>
-                    <VariableEditRow variable={variable} isBulkImport={isBulkImport}/>
-                )}
+                {dataset.variables.length >= 12
+                    ? <VariableList variables={dataset.variables as VariableListItem[]}/>
+                    : dataset.variables.map(variable =>
+                        <VariableEditRow variable={variable} isBulkImport={isBulkImport}/>
+                    )
+                }
             </section>
             {/*<section>
                 <h3>Sources</h3>
