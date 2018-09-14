@@ -70,9 +70,29 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
         }
     }
 
+    @action.bound chartIsReady(chart: ChartConfig) {
+        // XXX refactor this with EditorBasicTab
+        if (_.isEmpty(chart.map.data.choroplethData)) {
+            chart.tab = "chart"
+            if (chart.isScatter || chart.isSlopeChart) {
+                chart.data.selectedKeys = []
+            } else if (chart.data.primaryDimensions.length > 1) {
+                const entity = _.includes(chart.data.availableEntities, "World") ? "World" : _.sample(chart.data.availableEntities)
+                chart.data.selectedKeys = chart.data.availableKeys.filter(key => chart.data.lookupKey(key).entity === entity)
+                chart.props.addCountryMode = 'change-country'
+            } else {
+                chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
+                chart.props.addCountryMode = 'add-country'
+            }
+        }
+    }
+
     dispose!: IReactionDisposer
+    dispose2!: IReactionDisposer
     componentDidMount() {
         this.chart = new ChartConfig(this.chartConfig as any, { isEmbed: true })
+
+        this.dispose2 = autorun(() => this.chart && this.chart.data.isReady && this.chartIsReady(this.chart))
 
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {

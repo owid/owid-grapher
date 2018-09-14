@@ -28,7 +28,7 @@ class FunctionalRouter {
     constructor() {
         this.router = Router()
         // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-        this.router.use(express.json())
+        this.router.use(express.json({ limit: '50mb' }))
     }
 
     wrap(callback: (req: Request, res: Response) => Promise<any>) {
