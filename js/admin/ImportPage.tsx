@@ -220,7 +220,8 @@ class CSV {
             entities.push(entity)
             years.push(+year)
             row.slice(2).forEach((value, j) => {
-                variables[j].values.push(value)
+                if (value !== "")
+                    variables[j].values.push(value)
             })
         }
 

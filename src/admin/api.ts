@@ -492,6 +492,7 @@ api.put('/variables/:variableId', async (req: Request) => {
 
     await db.execute(`UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
         [variable.name, variable.description, new Date(), JSON.stringify(variable.display), variableId])
+
     return { success: true }
 })
 

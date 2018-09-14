@@ -46,6 +46,7 @@ class VariableEditable {
     }
 }
 
+// XXX refactor with DatasetEditPage
 @observer
 class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable newVariable!: VariableEditable

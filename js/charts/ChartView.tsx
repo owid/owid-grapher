@@ -232,7 +232,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener('scroll', this.checkVisibility)
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         window.removeEventListener('scroll', this.checkVisibility)
     }
 

@@ -34,6 +34,7 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     helpText?: string
     autofocus?: boolean
     required?: boolean
+    rows?: number
     softCharacterLimit?: number
 }
 
@@ -77,7 +78,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText', 'rows'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
@@ -292,7 +293,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean }> {
+export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean, rows?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }

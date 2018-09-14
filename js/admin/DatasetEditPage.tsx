@@ -328,7 +328,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <div className="row">
                         <div className="col">
                             <BindString field="name" store={newDataset} label="Name" disabled={isBulkImport} helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"/>
-                            <BindString field="description" store={newDataset} label="Description" textarea disabled={isBulkImport}/>
+                            <BindString field="additionalInfo" store={newDataset.source} label="Description" textarea disabled={isBulkImport} helpText="Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like." rows={10}/>
                             <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
                             <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
                             <DatasetTagEditor newDataset={newDataset} availableTags={dataset.availableTags} isBulkImport={isBulkImport}/>
@@ -340,8 +340,8 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 
                             <BindString field="dataPublishedBy" store={newDataset.source} label="Data published by" disabled={isBulkImport} helpText={`For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.`}/>
                             <BindString field="dataPublisherSource" store={newDataset.source} label="Data publisher's source" disabled={isBulkImport} helpText={`Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should be relegated to the field "Additional information".`}/>
-                            <BindString field="additionalInfo" store={newDataset.source} label="Additional information" textarea disabled={isBulkImport}/>
-                        </div>
+                            <BindString field="description" store={newDataset} label="Internal notes" textarea disabled={isBulkImport}/>
+                       </div>
                     </div>
                     {!isBulkImport && <input type="submit" className="btn btn-success" value="Update dataset"/>}
                 </form>

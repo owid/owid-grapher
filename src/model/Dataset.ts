@@ -39,7 +39,7 @@ export class Dataset extends BaseEntity {
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable) {
         const csvHeader = ["Entity", "Year"]
-        const variables = await db.query(`SELECT name FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`, [datasetId])
+        const variables = await db.query(`SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`, [datasetId])
         for (const variable of variables) {
             csvHeader.push(variable.name)
         }
@@ -47,12 +47,12 @@ export class Dataset extends BaseEntity {
         stream.write(csvRow(csvHeader))
 
         const data = await db.query(`
-            SELECT e.name AS entity, dv.year, dv.value FROM data_values dv
+            SELECT e.name AS entity, dv.year, dv.value, dv.variableId FROM data_values dv
             JOIN variables v ON v.id=dv.variableId
             JOIN datasets d ON v.datasetId=d.id
             JOIN entities e ON dv.entityId=e.id
             WHERE d.id=?
-            ORDER BY e.name ASC, dv.year ASC, dv.variableId ASC`, [datasetId])
+            ORDER BY e.name ASC, dv.year ASC, v.columnOrder ASC, dv.variableId ASC`, [datasetId])
 
         let row: string[] = []
         for (const datum of data) {
@@ -62,6 +62,11 @@ export class Dataset extends BaseEntity {
                     stream.write(csvRow(row))
                 }
                 row = [datum.entity, datum.year]
+            }
+
+            // Handle missing data values
+            while (datum.variableId !== variables[row.length-2].id) {
+                row.push("")
             }
 
             row.push(datum.value)
@@ -103,7 +108,7 @@ export class Dataset extends BaseEntity {
             name: this.name,
             title: this.name,
             id: this.id,
-            description: this.description,
+            description: sources[0].description.additionalInfo,
             sources: sources.map(s => s.toDatapackage()),
             owidTags: tags.map((t: any) => t.name),
             resources: [{

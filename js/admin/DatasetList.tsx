@@ -33,7 +33,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
             <td>
                 <Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
-            <td>{dataset.description}</td>
+            <td>{highlight(dataset.description)}</td>
             <td>{dataset.tags.map(tag => <TagBadge tag={tag} searchHighlight={searchHighlight}/>)}</td>
             <td>{timeago.format(dataset.dataEditedAt)} by {highlight(dataset.dataEditedByUserName)}</td>
         </tr>
@@ -51,7 +51,7 @@ export default class DatasetList extends React.Component<{ datasets: DatasetList
                 <tr>
                     <th>Dataspace</th>
                     <th>Dataset</th>
-                    <th>Description</th>
+                    <th>Notes</th>
                     <th>Categories</th>
                     <th>Uploaded</th>
                 </tr>
