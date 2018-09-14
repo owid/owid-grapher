@@ -7,7 +7,8 @@
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && webpack -p --progress",
     "test": "jest",
-    "c": "node --experimental-repl-await ./dist/src/console.js"
+    "c": "node --experimental-repl-await ./dist/src/console.js",
+    "serve": "node-pm dist/src/admin/server.js"
   },
   "dependencies": {
     "@types/body-parser": "^1.17.0",
@@ -94,6 +95,7 @@
     "module-alias": "^2.0.3",
     "mysql": "^2.15.0",
     "node-django-hashers": "^1.0.9",
+    "node-pm": "^0.11.9",
     "node-sass": "^4.7.2",
     "nodemailer": "^4.6.7",
     "nodemon": "^1.12.5",
