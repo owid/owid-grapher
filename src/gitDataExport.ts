@@ -6,11 +6,13 @@ import * as util from 'util'
 
 import { JsonError } from './admin/serverUtil'
 import { Dataset } from './model/Dataset'
+import { Source } from './model/Source'
 import { GIT_DATASETS_DIR, GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, TMP_DIR } from './settings'
 import * as db from './db'
 
 async function datasetToReadme(dataset: Dataset): Promise<string> {
-    return `# ${dataset.name}\n\n${dataset.description}`
+    const source = await Source.findOne({ datasetId: dataset.id })
+    return `# ${dataset.name}\n\n${(source && source.description && source.description.additionalInfo)||""}`
 }
 
 function exec(cmd: string, args: string[]) {
