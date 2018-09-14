@@ -230,6 +230,9 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
+    // HACK (Mispy): Force variable refresh when dataset metadata is updated
+    @observable timesUpdated: number = 0
+
     // Store the original dataset to determine when it is modified
     componentWillMount() { this.componentWillReceiveProps() }
     componentWillReceiveProps() {
@@ -248,6 +251,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         if (json.success) {
             runInAction(() => {
                 Object.assign(this.props.dataset, this.newDataset)
+                this.timesUpdated += 1
             })
         }
     }
@@ -298,7 +302,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
             return <Redirect to="/datasets"/>
 
         const {dataset} = this.props
-        const {newDataset} = this
+        const {newDataset, timesUpdated} = this
         const isBulkImport = dataset.namespace !== 'owid'
 
         return <main className="DatasetEditPage">
@@ -351,7 +355,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 {dataset.variables.length >= 12
                     ? <VariableList variables={dataset.variables as VariableListItem[]}/>
                     : dataset.variables.map(variable =>
-                        <VariableEditRow variable={variable} isBulkImport={isBulkImport}/>
+                        <VariableEditRow key={timesUpdated} variable={variable} isBulkImport={isBulkImport}/>
                     )
                 }
             </section>
