@@ -62,7 +62,7 @@ env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
 
 env.GITHUB_USERNAME = env.GITHUB_USERNAME || "owid-test"
 env.GIT_DEFAULT_USERNAME = env.GIT_DEFAULT_USERNAME || "Our World in Data"
-env.GIT_DEFAULT_EMAIL = env.GIT_DEFAULT_EMAIL || "contact@ourworldindata.org"
+env.GIT_DEFAULT_EMAIL = env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org"
 env.TMP_DIR = "/tmp"
 
 env.EMAIL_PORT = env.EMAIL_PORT ? parseInt(env.EMAIL_PORT as any) : 443
