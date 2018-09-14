@@ -7,7 +7,7 @@ async function main() {
     await db.connect()
     for (const dataset of await Dataset.find({ namespace: 'owid' })) {
         if (!dataset.isPrivate)
-            await syncDatasetToGitRepo(dataset.id)
+            await syncDatasetToGitRepo(dataset.id, { commitOnly: true })
     }
     await db.end()
 }

@@ -31,8 +31,8 @@ export async function removeDatasetFromGitRepo(datasetName: string, namespace: s
     exec(`cd %s && rm -rf %s && git add -A %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, `${repoDir}/${datasetName}`, `${repoDir}/${datasetName}`, `Removing ${datasetName}`])
 }
 
-export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string } = {}) {
-    const { oldDatasetName, commitName, commitEmail } = options
+export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string, commitOnly?: boolean } = {}) {
+    const { oldDatasetName, commitName, commitEmail, commitOnly } = options
 
     const datasetRepo = options.transaction ? options.transaction.manager.getRepository(Dataset) : Dataset.getRepository()
 
@@ -72,5 +72,5 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
     }
 
     const commitMsg = isNew ? `Adding ${dataset.filename}` : `Updating ${dataset.filename}`
-    exec(`cd %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, commitMsg])
+    exec(`cd %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>"${commitOnly ? "" : " && git push"}`, [repoDir, commitMsg])
 }
