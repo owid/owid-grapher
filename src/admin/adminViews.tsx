@@ -104,7 +104,7 @@ adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename='${filenamify(datasetName)}.csv'`)
 
     const csvHeader = ["Entity", "Year"]
-    const variables = await db.query(`SELECT name FROM variables v WHERE v.datasetId=? ORDER BY v.id ASC`, [datasetId])
+    const variables = await db.query(`SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.id ASC`, [datasetId])
     for (const variable of variables) {
         csvHeader.push(variable.name)
     }
@@ -112,7 +112,7 @@ adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
     res.write(csvRow(csvHeader))
 
     const data = await db.query(`
-        SELECT e.name AS entity, dv.year, dv.value FROM data_values dv
+        SELECT e.name AS entity, dv.year, dv.value, dv.variableId FROM data_values dv
         JOIN variables v ON v.id=dv.variableId
         JOIN datasets d ON v.datasetId=d.id
         JOIN entities e ON dv.entityId=e.id
@@ -127,6 +127,11 @@ adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
                 res.write(csvRow(row))
             }
             row = [datum.entity, datum.year]
+        }
+
+        // Missing data values == blank cells
+        while (datum.variableId !== variables[row.length-2].id) {
+            row.push("")
         }
 
         row.push(datum.value)
