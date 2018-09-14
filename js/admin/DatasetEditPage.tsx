@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import { observable, computed, runInAction, autorun, action, IReactionDisposer } from 'mobx'
+import { observable, computed, runInAction, autorun, action, IReactionDisposer, when } from 'mobx'
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
@@ -73,7 +73,8 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
     @action.bound chartIsReady(chart: ChartConfig) {
         // XXX refactor this with EditorBasicTab
         if (_.isEmpty(chart.map.data.choroplethData)) {
-            chart.tab = "chart"
+            chart.props.tab = "chart"
+            chart.props.hasMapTab = false
             if (chart.isScatter || chart.isSlopeChart) {
                 chart.data.selectedKeys = []
             } else if (chart.data.primaryDimensions.length > 1) {
@@ -92,11 +93,13 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
     componentDidMount() {
         this.chart = new ChartConfig(this.chartConfig as any, { isEmbed: true })
 
-        this.dispose2 = autorun(() => this.chart && this.chart.data.isReady && this.chartIsReady(this.chart))
+        this.dispose2 = when(() => this.chart !== undefined && this.chart.data.isReady, () => this.chartIsReady(this.chart as ChartConfig))
 
         this.dispose = autorun(() => {
-            if (this.chart && this.chartConfig) {
-                this.chart.update(this.chartConfig)
+            const chart = this.chart
+            const display = _.clone(this.newVariable.display)
+            if (chart) {
+                runInAction(() => chart.props.dimensions[0].display = display)
             }
         })
     }
