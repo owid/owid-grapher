@@ -642,8 +642,9 @@ api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "applica
  
     await db.transaction(async t => {
         await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [datasetId])
-        await t.execute("INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)", [datasetId, 'additional-material.zip', req.body])
+        await t.execute(`INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)`, [datasetId, 'additional-material.zip', req.body])
     })
+
     res.send({ success: true })
 })
 

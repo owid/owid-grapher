@@ -348,7 +348,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <i className="fa fa-download"/> additional-material.zip
                 </Link>}
                 {!isBulkImport && <button className="btn btn-secondary" onClick={this.startChooseZip}>
-                    <i className="fa fa-upload"/> Upload Zip
+                    <i className="fa fa-upload"/> {dataset.zipFile ? "Overwrite Zip" : "Upload Zip"}
                 </button>}
             </section>
             <section>

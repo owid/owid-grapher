@@ -9,6 +9,19 @@ export async function connect() {
     return connection
 }
 
+function cleanup() {
+    connection.close().then(() => {
+        console.log("Database connection closed")
+        process.exit(0)
+    }).catch((err) => {
+        console.error(err)
+        process.exit(1)
+    })
+}
+
+process.on('SIGINT', cleanup)
+process.on('SIGTERM', cleanup)
+
 export class TransactionContext {
     manager: typeorm.EntityManager
     constructor(manager: typeorm.EntityManager) {
