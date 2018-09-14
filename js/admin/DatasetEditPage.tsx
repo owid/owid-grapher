@@ -45,6 +45,10 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
         this.newVariable = new VariableEditable(this.props.variable)
     }
 
+    @computed get isModified(): boolean {
+        return JSON.stringify(this.newVariable) !== JSON.stringify(new VariableEditable(this.props.variable))
+    }
+
     async save() {
         const {variable} = this.props
         const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, { variable: this.newVariable }, "PUT")
@@ -113,6 +117,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
         const {newVariable} = this
 
         return <div className="VariableEditRow row">
+            <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <div className="col">
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <section>
