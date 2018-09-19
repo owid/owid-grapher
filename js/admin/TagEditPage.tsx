@@ -83,7 +83,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <BindString field="name" store={newtag} label="Name"/>
-                    <input type="submit" className="btn btn-success" value="Update category"/> <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>
+                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                 </form>
             </section>
             <section>
@@ -95,7 +95,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 <h3>Charts</h3>
                 <ChartList charts={tag.charts}/>
             </section>
-            {this.isDeleted && <Redirect to={`/tags`}/>}
+            {this.isDeleted && <Redirect to={`/categories`}/>}
         </main>
     }
 }

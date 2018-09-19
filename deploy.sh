@@ -60,7 +60,7 @@ then
   mv $TMP_NEW $FINAL_TARGET
 
   # Restart the admin!
-  sudo service $NAME-node restart
+  sudo service $NAME restart
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET

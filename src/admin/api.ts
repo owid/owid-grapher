@@ -569,10 +569,13 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     dataset.variables = variables
 
+    // Currently for backwards compatibility datasets can still have multiple sources
+    // but the UI presents only a single item of source metadata, we use the first source
     const sources = await db.query(`
         SELECT s.id, s.name, s.description
         FROM sources AS s
         WHERE s.datasetId = ?
+        ORDER BY s.id ASC
     `, [datasetId])
 
     dataset.source = JSON.parse(sources[0].description)

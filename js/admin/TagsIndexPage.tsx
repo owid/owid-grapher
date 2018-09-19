@@ -58,7 +58,7 @@ class AddTagModal extends React.Component<{ parentId: number, onClose: () => voi
                     <input type="submit" className="btn btn-primary">Send invite</input>
                 </div>
             </form>
-            {this.newTagId !== undefined && <Redirect to={`/tags/${this.newTagId}`}/>}
+            {this.newTagId !== undefined && <Redirect to={`/categories/${this.newTagId}`}/>}
         </Modal>
     }
 }
