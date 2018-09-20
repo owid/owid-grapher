@@ -30,7 +30,7 @@ export async function removeDatasetFromGitRepo(datasetName: string, namespace: s
         return
     }
 
-    exec(`cd %s && rm -rf %s && git add -A %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, `${repoDir}/${datasetName}`, `${repoDir}/${datasetName}`, `Removing ${datasetName}`])
+    exec(`cd %s && rm -rf %s && git add -A %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, `${repoDir}/datasets/${datasetName}`, `${repoDir}/datasets/${datasetName}`, `Removing ${datasetName}`])
 }
 
 export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string, commitOnly?: boolean } = {}) {
@@ -70,7 +70,10 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
         fs.writeFile(path.join(tmpDatasetDir, `README.md`), await datasetToReadme(dataset))
     ])
 
-    const finalDatasetDir = path.join(repoDir, dataset.filename)
+    const datasetsDir = path.join(repoDir, "datasets")
+    await fs.mkdirp(datasetsDir)
+
+    const finalDatasetDir = path.join(datasetsDir, dataset.filename)
     const isNew = !fs.existsSync(finalDatasetDir)
     exec(`cd %s && rm -rf %s && mv %s %s && git add -A %s`, [repoDir, finalDatasetDir, tmpDatasetDir, finalDatasetDir, finalDatasetDir])
 

@@ -8,7 +8,7 @@ import {quote} from 'shell-quote'
 
 export class ChangeGitFormat1536830436456 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
-        function exec(cmd: string) {
+       /* function exec(cmd: string) {
             console.log(cmd)
             shell.exec(cmd)
         }
@@ -19,7 +19,7 @@ export class ChangeGitFormat1536830436456 implements MigrationInterface {
             await fs.mkdirp(path.join(repoDir, datasetName))
             exec(`cd ${quote([repoDir])} && git mv ${quote([datasetName+".csv"])} ${quote([datasetName])} && git mv ${quote([datasetName+".json"])} ${quote([datasetName + "/datapackage.json"])}`)
         }
-        exec(`cd ${quote([repoDir])} && git commit -m "Restructuring export repo"`)
+        exec(`cd ${quote([repoDir])} && git commit -m "Restructuring export repo"`)*/
     }
 
     public async down(queryRunner: QueryRunner): Promise<any> {

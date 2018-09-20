@@ -100,7 +100,7 @@ adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const datasetName = (await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])).name
-    res.attachment(filenamify(datasetName))
+    res.attachment(filenamify(datasetName)+".csv")
 
     return Dataset.writeCSV(datasetId, res)
 })

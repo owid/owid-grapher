@@ -44,6 +44,11 @@ export class Dataset extends BaseEntity {
             csvHeader.push(variable.name)
         }
 
+        const columnIndexByVariableId: {[key: number]: number} = {}
+        for (const variable of variables) {
+            columnIndexByVariableId[variable.id] = csvHeader.indexOf(variable.name)
+        }
+
         stream.write(csvRow(csvHeader))
 
         const data = await db.query(`
@@ -62,14 +67,12 @@ export class Dataset extends BaseEntity {
                     stream.write(csvRow(row))
                 }
                 row = [datum.entity, datum.year]
+                for (const variable of variables) {
+                    row.push("")
+                }
             }
 
-            // Handle missing data values
-            while (datum.variableId !== variables[row.length-2].id) {
-                row.push("")
-            }
-
-            row.push(datum.value)
+            row[columnIndexByVariableId[datum.variableId]] = datum.value
         }
 
         // Final row
