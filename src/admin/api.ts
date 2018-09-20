@@ -421,7 +421,7 @@ api.get('/variables.json', async req => {
     const searchStr = req.query.search
 
     const query = `
-        SELECT v.id, v.name, d.dataEditedAt AS uploadedAt, u.fullName AS uploadedBy
+        SELECT v.id, v.name, d.id AS datasetId, d.name AS datasetName, d.isPrivate AS isPrivate, d.dataEditedAt AS uploadedAt, u.fullName AS uploadedBy
         FROM variables AS v
         JOIN datasets d ON d.id=v.datasetId
         JOIN users u ON u.id=d.dataEditedByUserId

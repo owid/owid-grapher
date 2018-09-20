@@ -24,6 +24,7 @@ export interface Dataset {
     name: string
     namespace: string
     variables: Variable[]
+    isPrivate: boolean
 }
 
 // This contains the dataset/variable metadata for the entire database

@@ -10,6 +10,7 @@ export interface VariableListItem {
     name: string
     uploadedAt?: Date
     uploadedBy?: string
+    isPrivate?: boolean
 }
 
 @observer
@@ -21,7 +22,7 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
 
         return <tr>
             <td>
-                <Link to={`/variables/${variable.id}`}>{searchHighlight ? searchHighlight(variable.name) : variable.name}</Link>
+                {variable.isPrivate ? <span className="text-secondary">Unpublished: </span> : ""}<Link to={`/variables/${variable.id}`}>{searchHighlight ? searchHighlight(variable.name) : variable.name}</Link>
             </td>
             {variable.uploadedAt && <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "Bulk import"}</td>}
         </tr>
