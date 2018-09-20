@@ -43,6 +43,11 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
         throw new JsonError(`No such dataset ${datasetId}`, 404)
     }
 
+    if (dataset.isPrivate) {
+        // Private dataset doesn't go in git repo
+        return removeDatasetFromGitRepo(oldDatasetName||dataset.name, dataset.namespace, options)
+    }
+
     // Not doing bulk imports for now
     if (dataset.namespace !== 'owid')
         return

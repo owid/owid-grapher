@@ -517,7 +517,7 @@ api.delete('/variables/:variableId', async (req: Request) => {
 
 api.get('/datasets.json', async req => {
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -542,7 +542,7 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -604,10 +604,10 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
     dataset.tags = tags
 
     const availableTags = await db.query(`
-        SELECT t.id, t.name, c.name AS parentName
+        SELECT t.id, t.name, p.name AS parentName
         FROM tags AS t
-        JOIN dataset_categories AS c ON t.categoryId=c.id
-        WHERE c.fetcher_autocreated IS FALSE
+        JOIN tags AS p ON t.parentId=p.id
+        WHERE p.isBulkImport IS FALSE
     `)
     dataset.availableTags = availableTags
 
@@ -685,14 +685,14 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
     const tag = await db.get(`
-        SELECT t.id, t.name, t.updatedAt, t.categoryId AS parentId, p.name AS parentName
-        FROM tags t JOIN dataset_categories p ON t.categoryId=p.id
+        SELECT t.id, t.name, t.updatedAt, t.parentId, p.name AS parentName
+        FROM tags t JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `, [tagId])
 
     // Datasets tagged with this tag
     const datasets = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.isPrivate
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN dataset_tags dt ON dt.datasetId = d.id
@@ -759,15 +759,15 @@ api.put('/tags/:tagId', async (req: Request) => {
 api.post('/tags/new', async (req: Request) => {
     const tag = (req.body as { tag: any }).tag
     const now = new Date()
-    const result = await db.execute(`INSERT INTO tags (categoryId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`, [tag.parentId, tag.name, now, now])
+    const result = await db.execute(`INSERT INTO tags (parentId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`, [tag.parentId, tag.name, now, now])
     return { success: true, tagId: result.insertId }
 })
 
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`
-        SELECT t.id, t.name, t.categoryId AS parentId, p.name AS parentName
-        FROM tags t JOIN dataset_categories p ON t.categoryId=p.id
-        WHERE p.fetcher_autocreated IS FALSE
+        SELECT t.id, t.name, t.parentId, p.name AS parentName
+        FROM tags t JOIN tags p ON t.parentId=p.id
+        WHERE p.isBulkImport IS FALSE
     `)
 
     return {
@@ -904,8 +904,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             await t.execute(`UPDATE datasets SET dataEditedAt=?, dataEditedByUserId=? WHERE id=?`, [now, userId, datasetId])
         } else {
             // Creating new dataset
-            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId, userId]
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId) VALUES (?)`, [row])
+            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId, userId, true]
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId, isPrivate) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
 
             // Add default tag
@@ -977,8 +977,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         return datasetId
     })
 
-    // Note: not currently in transaction
-    await syncDatasetToGitRepo(newDatasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+    // Don't sync to git repo on import-- dataset is initially private
+    //await syncDatasetToGitRepo(newDatasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
     return { success: true, datasetId: newDatasetId }
 })

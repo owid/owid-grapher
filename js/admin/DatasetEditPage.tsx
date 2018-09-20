@@ -341,7 +341,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
                     <i className="fa fa-download"/> Download CSV
                 </Link>
-                {!isBulkImport && <a href={this.gitHistoryUrl} target="_blank" className="btn btn-secondary">
+                {!isBulkImport && !dataset.isPrivate && <a href={this.gitHistoryUrl} target="_blank" className="btn btn-secondary">
                     <i className="fa fa-github"/> View on GitHub
                 </a>}
                 {dataset.zipFile && <Link native to={`/datasets/${dataset.id}/downloadZip`} className="btn btn-secondary">
@@ -364,7 +364,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
                             <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
                             <DatasetTagEditor newDataset={newDataset} availableTags={dataset.availableTags} isBulkImport={isBulkImport}/>
-                            <Toggle label="Is private (exclude from bulk exports)" value={newDataset.isPrivate} onValue={v => newDataset.isPrivate = v} disabled={isBulkImport}/>
+                            <Toggle label="Is publishable (tick when confident about quality of dataset)" value={!newDataset.isPrivate} onValue={v => newDataset.isPrivate = !v} disabled={isBulkImport}/>
                         </div>
 
                         <div className="col">
@@ -383,25 +383,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 {dataset.variables.length >= 12
                     ? <VariableList variables={dataset.variables as VariableListItem[]}/>
                     : dataset.variables.map(variable =>
-                        <VariableEditRow key={timesUpdated} variable={variable} isBulkImport={isBulkImport}/>
+                        <VariableEditRow key={`${variable.id}-${timesUpdated}`} variable={variable} isBulkImport={isBulkImport}/>
                     )
                 }
             </section>
-            {/*<section>
-                <h3>Sources</h3>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {dataset.sources.map(source => <tr>
-                            <td><Link to={`/sources/${source.id}`}>{source.name}</Link></td>
-                        </tr>)}
-                    </tbody>
-                </table>
-            </section>*/}
             <section>
                 <h3>Charts</h3>
                 <ChartList charts={dataset.charts}/>
