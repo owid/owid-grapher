@@ -1,8 +1,9 @@
 import * as React from 'react'
+import * as _ from 'lodash'
 import { groupBy, each, isString, sortBy } from '../charts/Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartEditor from './ChartEditor'
+import ChartEditor, { Dataset } from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
@@ -61,6 +62,10 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         }
     }
 
+    @computed get datasetsByName(): _.Dictionary<Dataset> {
+        return _.keyBy(this.datasets, d => d.name)
+    }
+
     @computed get availableVariables(): Variable[] {
         const variables: Variable[] = []
         this.datasets.forEach(dataset => {
@@ -112,7 +117,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     render() {
         const { slot } = this.props
         const { database } = this.props.editor
-        const { currentNamespace, searchInput, chosenVariables } = this
+        const { currentNamespace, searchInput, chosenVariables, datasetsByName } = this
         const { rowHeight, rowOffset, numVisibleRows, numTotalRows, searchResultRows } = this
 
         const highlight = (text: string) => {
@@ -139,8 +144,9 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                                 <ul>
                                     {searchResultRows.slice(rowOffset, rowOffset + numVisibleRows).map(d => {
                                         if (isString(d)) {
-                                            return <li key={d} style={{ minWidth: '100%' }}>
-                                                <h5>{highlight(d)}</h5>
+                                            const dataset = datasetsByName[d]
+                                            return <li key={dataset.name} style={{ minWidth: '100%' }}>
+                                                <h5>{highlight(dataset.name)}{dataset.isPrivate ? <span className="text-danger"> (unpublished)</span> : ""}</h5>
                                             </li>
                                         } else {
                                             return d.map(v => <li key={v.id} style={{ minWidth: '50%' }}>

@@ -264,11 +264,11 @@ api.post('/countries', async (req: Request, res: Response) => {
 api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(
-        `SELECT v.name, v.id, d.name as datasetName, d.namespace
+        `SELECT v.name, v.id, d.name as datasetName, d.namespace, d.isPrivate
          FROM variables as v JOIN datasets as d ON v.datasetId = d.id
          WHERE namespace=? ORDER BY d.updatedAt DESC`, [req.params.namespace])
 
-    let dataset: { name: string, namespace: string, variables: { id: number, name: string }[] }|undefined
+    let dataset: { name: string, namespace: string, isPrivate: boolean, variables: { id: number, name: string }[] }|undefined
     for (const row of rows) {
         if (!dataset || row.datasetName !== dataset.name) {
             if (dataset)
@@ -277,6 +277,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
             dataset = {
                 name: row.datasetName,
                 namespace: row.namespace,
+                isPrivate: row.isPrivate,
                 variables: []
             }
         }

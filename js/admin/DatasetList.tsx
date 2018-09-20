@@ -32,7 +32,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
         return <tr>
             <td>{dataset.namespace}</td>
             <td>
-            {dataset.isPrivate ? <span className="text-secondary">Private: </span> : ""}<Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
+            {dataset.isPrivate ? <span className="text-secondary">Unpublished: </span> : ""}<Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
             <td>{highlight(dataset.description)}</td>
             <td>{dataset.tags.map(tag => <TagBadge tag={tag} searchHighlight={searchHighlight}/>)}</td>
