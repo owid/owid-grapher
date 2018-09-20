@@ -222,12 +222,18 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
         const tag = this.props.availableTags.find(t => t.id === tagId)
         if (tag && !this.props.newDataset.tags.find(existingTag => existingTag.id === tag.id)) {
             this.props.newDataset.tags.push({ id: tag.id, name: tag.name })
+            this.props.newDataset.tags = this.props.newDataset.tags.filter(t => t.name !== "Uncategorized")
         }
+
     }
 
     @action.bound removeTag(tagId: number) {
-        if (this.props.isBulkImport) return
-        this.props.newDataset.tags = this.props.newDataset.tags.filter(t => t.id !== tagId)
+        const {isBulkImport, newDataset} = this.props
+        if (isBulkImport) return
+        newDataset.tags = newDataset.tags.filter(t => t.id !== tagId)
+        if (newDataset.tags.length === 0) {
+            newDataset.tags.push(this.props.availableTags.find(t => t.name === "Uncategorized") as any)
+        }
     }
 
     render() {

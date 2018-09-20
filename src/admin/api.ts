@@ -687,8 +687,8 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
     const tag = await db.get(`
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.name AS parentName
-        FROM tags t JOIN tags p ON t.parentId=p.id
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId
+        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `, [tagId])
 
@@ -731,6 +731,13 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     `, [tagId])
     tag.charts = charts
 
+    // Subcategories
+    const subcategories = await db.query(`
+        SELECT t.id, t.name FROM tags t
+        WHERE t.parentId = ?
+    `, [tag.id])
+    tag.subcategories = subcategories
+
     // Possible parents to choose from
     const possibleParents = await db.query(`
         SELECT t.id, t.name FROM tags t
@@ -759,9 +766,9 @@ api.post('/tags/new', async (req: Request) => {
 
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`
-        SELECT t.id, t.name, t.parentId
+        SELECT t.id, t.name, t.parentId, t.specialType
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
-        WHERE p.isBulkImport IS FALSE AND t.isBulkImport IS FALSE
+        WHERE t.isBulkImport IS FALSE AND (t.parentId IS NULL OR p.isBulkImport IS FALSE)
         ORDER BY t.name ASC
     `)
 

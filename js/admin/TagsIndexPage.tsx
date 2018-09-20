@@ -13,12 +13,11 @@ interface TagListItem {
     id: number
     name: string
     parentId: number
-    parentName: string
     specialType?: string
 }
 
 @observer
-class AddTagModal extends React.Component<{ parentId: number, onClose: () => void }> {
+class AddTagModal extends React.Component<{ parentId?: number, onClose: () => void }> {
     context!: { admin: Admin }
 
     @observable tagName: string = ""
@@ -50,10 +49,10 @@ class AddTagModal extends React.Component<{ parentId: number, onClose: () => voi
         return <Modal onClose={this.props.onClose}>
             <form onSubmit={e => { e.preventDefault(); this.submit() } }>
                 <div className="modal-header">
-                    <h5 className="modal-title">Add tag</h5>
+                    <h5 className="modal-title">Add category</h5>
                 </div>
                 <div className="modal-body">
-                    <TextField label="Tag to add" value={this.tagName} onValue={this.onTagName} autofocus required/>
+                    <TextField label="Category Name" value={this.tagName} onValue={this.onTagName} autofocus required/>
                 </div>
                 <div className="modal-footer">
                     <input type="submit" className="btn btn-primary">Send invite</input>
@@ -68,16 +67,28 @@ class AddTagModal extends React.Component<{ parentId: number, onClose: () => voi
 export default class TagsIndexPage extends React.Component {
     context!: { admin: Admin }
 
-    @observable tags: TagListItem[] = []
+    @observable categories: TagListItem[] = []
+    @observable isAddingTag: boolean = false
     @observable addTagParentId?: number
 
-    @computed get parentCategories(): { id: number, name: string, tags: TagListItem[] }[] {
-        const tagsByParent = _.groupBy(this.tags, c => c.parentName)
-        return _.map(tagsByParent, (tags, parentName) => ({ id: tags[0].parentId, name: parentName, tags: tags }))
+    @computed get categoriesById(): _.Dictionary<TagListItem> {
+        return _.keyBy(this.categories, t => t.id)
     }
 
-    @action.bound onNewTag(parentId: number) {
+    @computed get parentCategories(): { id: number, name: string, specialType?: string, children: TagListItem[] }[] {
+        const parentCategories = this.categories.filter(c => !c.parentId).map(c => ({
+            id: c.id,
+            name: c.name,
+            specialType: c.specialType,
+            children: this.categories.filter(c2 => c2.parentId === c.id)
+        }))
+
+        return parentCategories
+    }
+
+    @action.bound onNewTag(parentId?: number) {
         this.addTagParentId = parentId
+        this.isAddingTag = true
     }
 
     render() {
@@ -86,17 +97,24 @@ export default class TagsIndexPage extends React.Component {
         return <AdminLayout title="Categories">
             <main className="TagsIndexPage">
                 <FieldsRow>
-                    <span>Showing {this.tags.length} categories</span>
+                    <span>Showing {this.categories.length} categories</span>
                 </FieldsRow>
                 <p>Categories are a way of organizing data. Each dataset can be assigned to any number of categories. A category may be a subcategory of another category.</p>
                 <div className="cardHolder">
+                    <section>
+                        <h4>Top-Level Categories</h4>
+                        {parentCategories.map(parent =>
+                            <TagBadge tag={parent as Tag}/>
+                        )}
+                        <button className="btn btn-default" onClick={() => this.onNewTag()}>+ New Category</button>
+                    </section>
                     {parentCategories.map(parent =>
                         <section>
                             <h4>
                                 {parent.name}
                             </h4>
                             {parent.specialType === "systemParent" && <p>These are special categories that are assigned automatically.</p>}
-                            {parent.tags.map(tag =>
+                            {parent.children.map(tag =>
                                 <TagBadge tag={tag as Tag}/>
                             )}
                             <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Category</button>
@@ -104,14 +122,14 @@ export default class TagsIndexPage extends React.Component {
                     )}
                 </div>
             </main>
-            {this.addTagParentId !== undefined && <AddTagModal parentId={this.addTagParentId} onClose={action(() => this.addTagParentId = undefined)}/>}
+            {this.isAddingTag && <AddTagModal parentId={this.addTagParentId} onClose={action(() => this.isAddingTag = false)}/>}
         </AdminLayout>
     }
 
     async getData() {
         const json = await this.context.admin.getJSON("/api/tags.json")
         runInAction(() => {
-            this.tags = json.tags
+            this.categories = json.tags
         })
     }
 

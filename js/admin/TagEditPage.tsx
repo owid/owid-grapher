@@ -6,18 +6,21 @@ const timeago = require('timeago.js')()
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { BindString, NumericSelectField } from './Forms'
+import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import DatasetList, { DatasetListItem } from './DatasetList'
 import ChartList, { ChartListItem } from './ChartList'
+import TagBadge, { Tag } from './TagBadge'
 
 interface TagPageData {
     id: number
+    parentId?: number
     name: string
     specialType?: string
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    possibleParents: { id: number, name: string }[]
+    subcategories: Tag[]
+    possibleParents: Tag[]
 }
 
 class TagEditable {
@@ -63,7 +66,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
     async deleteTag() {
         const {tag} = this.props
 
-        if (!window.confirm(`Really delete the tag ${tag.name}? This action cannot be undone!`))
+        if (!window.confirm(`Really delete the category ${tag.name}? This action cannot be undone!`))
             return
 
         const json = await this.context.admin.requestJSON(`/api/tags/${tag.id}/delete`, {}, "DELETE")
@@ -81,6 +84,11 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
+    @computed get parentTag() {
+        const {parentId} = this.props.tag
+        return parentId ? this.props.tag.possibleParents.find(c => c.id === parentId) : undefined
+    }
+
     render() {
         const {tag} = this.props
         const {newtag} = this
@@ -94,10 +102,23 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <BindString field="name" store={newtag} label="Name" helpText="Category names should ideally be unique across the database and able to be understood without context"/>
-                    <NumericSelectField label="Parent Category" value={newtag.parentId||-1} options={[-1].concat(tag.possibleParents.map(p => p.id))} optionLabels={["None"].concat(tag.possibleParents.map(p => p.name))} onValue={this.onChooseParent}/>
-                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                    <FieldsRow>
+                        <NumericSelectField label="Parent Category" value={newtag.parentId||-1} options={[-1].concat(tag.possibleParents.map(p => p.id))} optionLabels={["None"].concat(tag.possibleParents.map(p => p.name))} onValue={this.onChooseParent}/>
+                        <div>
+                            <br/>
+                            {this.parentTag && <TagBadge tag={this.parentTag as Tag}/>}
+                        </div>
+                    </FieldsRow>
+ 
+                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                 </form>
             </section>
+            {tag.subcategories.length > 0 && <section>
+                <h3>Subcategories</h3>
+                {tag.subcategories.map(c =>
+                    <TagBadge tag={c as Tag}/>
+                )}
+            </section>}
             <section>
                 <h3>Datasets</h3>
                 <DatasetList datasets={tag.datasets}/>
