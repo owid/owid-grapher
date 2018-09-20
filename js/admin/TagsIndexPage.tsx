@@ -14,6 +14,7 @@ interface TagListItem {
     name: string
     parentId: number
     parentName: string
+    specialType?: string
 }
 
 @observer
@@ -87,12 +88,14 @@ export default class TagsIndexPage extends React.Component {
                 <FieldsRow>
                     <span>Showing {this.tags.length} categories</span>
                 </FieldsRow>
+                <p>Categories are a way of organizing data. Each dataset can be assigned to any number of categories. A category may be a subcategory of another category.</p>
                 <div className="cardHolder">
                     {parentCategories.map(parent =>
                         <section>
                             <h4>
                                 {parent.name}
                             </h4>
+                            {parent.specialType === "systemParent" && <p>These are special categories that are assigned automatically.</p>}
                             {parent.tags.map(tag =>
                                 <TagBadge tag={tag as Tag}/>
                             )}

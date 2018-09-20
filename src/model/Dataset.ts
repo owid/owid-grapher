@@ -4,7 +4,7 @@ import { Writable } from "stream"
 import User from './User'
 import { Source } from './Source'
 import { Variable } from './Variable'
-import Tag from './Tag'
+import { Tag } from './Tag'
 import { csvRow, slugify, filenamify } from '../admin/serverUtil'
 import * as db from '../db'
 

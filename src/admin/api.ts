@@ -18,6 +18,7 @@ import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 import {Dataset} from '../model/Dataset'
+import {Tag} from '../model/Tag'
 import User from '../model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
 
@@ -686,7 +687,7 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
     const tag = await db.get(`
-        SELECT t.id, t.name, t.updatedAt, t.parentId, p.name AS parentName
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.name AS parentName
         FROM tags t JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `, [tagId])
@@ -730,20 +731,12 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     `, [tagId])
     tag.charts = charts
 
-    // Tags for those charts
-    /*if (tag.charts.length) {
-        const chartTags = await db.query(`
-            SELECT DISTINCT cd.chartId, t.id, t.name FROM dataset_tags dt
-            JOIN tags t ON dt.tagId = t.id
-            JOIN variables v ON v.datasetId=dt.datasetId
-            JOIN chart_dimensions cd ON cd.variableId=v.id
-            WHERE cd.chartId IN (?)
-        `, [tag.charts.map((c: any) => c.id)])
-        const tagsByChartId = _.groupBy(chartTags, t => t.chartId)
-        for (const chart of tag.charts) {
-            chart.tags = tagsByChartId[chart.id].map(t => _.omit(t, 'chartId'))
-        }
-    }*/
+    // Possible parents to choose from
+    const possibleParents = await db.query(`
+        SELECT t.id, t.name FROM tags t
+        WHERE t.parentId IS NULL AND t.isBulkImport IS FALSE
+    `)
+    tag.possibleParents = possibleParents
 
     return {
         tag: tag
@@ -753,7 +746,7 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
 api.put('/tags/:tagId', async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
-    await db.execute(`UPDATE tags SET name=?, updatedAt=? WHERE id=?`, [tag.name, new Date(), tagId])
+    await db.execute(`UPDATE tags SET name=?, updatedAt=?, parentId=? WHERE id=?`, [tag.name, new Date(), tag.parentId, tagId])
     return { success: true }
 })
 
@@ -766,9 +759,10 @@ api.post('/tags/new', async (req: Request) => {
 
 api.get('/tags.json', async (req: Request, res: Response) => {
     const tags = await db.query(`
-        SELECT t.id, t.name, t.parentId, p.name AS parentName
-        FROM tags t JOIN tags p ON t.parentId=p.id
-        WHERE p.isBulkImport IS FALSE
+        SELECT t.id, t.name, t.parentId
+        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
+        WHERE p.isBulkImport IS FALSE AND t.isBulkImport IS FALSE
+        ORDER BY t.name ASC
     `)
 
     return {
@@ -778,6 +772,10 @@ api.get('/tags.json', async (req: Request, res: Response) => {
 
 api.delete('/tags/:tagId/delete', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
+
+    const tag = Tag.findOne({ id: tagId })
+
+    if (tag)
 
     await db.transaction(async t => {
         await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])

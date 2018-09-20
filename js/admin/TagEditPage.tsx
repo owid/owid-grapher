@@ -6,20 +6,23 @@ const timeago = require('timeago.js')()
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { BindString } from './Forms'
+import { BindString, NumericSelectField } from './Forms'
 import DatasetList, { DatasetListItem } from './DatasetList'
 import ChartList, { ChartListItem } from './ChartList'
 
 interface TagPageData {
     id: number
     name: string
+    specialType?: string
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
+    possibleParents: { id: number, name: string }[]
 }
 
 class TagEditable {
     @observable name: string = ""
+    @observable parentId?: number
 
     constructor(json: TagPageData) {
         for (const key in this) {
@@ -70,6 +73,14 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
+    @action.bound onChooseParent(parentId: number) {
+        if (parentId === -1) {
+            this.newtag.parentId = undefined
+        } else {
+            this.newtag.parentId = parentId
+        }
+    }
+
     render() {
         const {tag} = this.props
         const {newtag} = this
@@ -82,8 +93,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             </section>
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
-                    <BindString field="name" store={newtag} label="Name"/>
-                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                    <BindString field="name" store={newtag} label="Name" helpText="Category names should ideally be unique across the database and able to be understood without context"/>
+                    <NumericSelectField label="Parent Category" value={newtag.parentId||-1} options={[-1].concat(tag.possibleParents.map(p => p.id))} optionLabels={["None"].concat(tag.possibleParents.map(p => p.name))} onValue={this.onChooseParent}/>
+                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                 </form>
             </section>
             <section>

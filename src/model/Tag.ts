@@ -3,11 +3,12 @@ import { Dataset } from './Dataset'
 
 @Entity("tag")
 @Unique(["name", "categoryId"])
-export default class Tag extends BaseEntity {
+export class Tag extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
 
     @Column() name!: string
     @Column() categoryId!: number
+    @Column() type!: string
 
     @ManyToMany(type => Dataset)
     datasets!: Dataset[]
