@@ -687,7 +687,7 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
     const tag = await db.get(`
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `, [tagId])

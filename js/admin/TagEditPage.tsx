@@ -21,6 +21,7 @@ interface TagPageData {
     charts: ChartListItem[]
     subcategories: Tag[]
     possibleParents: Tag[]
+    isBulkImport: boolean
 }
 
 class TagEditable {
@@ -101,16 +102,18 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             </section>
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
-                    <BindString field="name" store={newtag} label="Name" helpText="Category names should ideally be unique across the database and able to be understood without context"/>
-                    <FieldsRow>
+                    <BindString disabled={tag.isBulkImport} field="name" store={newtag} label="Name" helpText="Category names should ideally be unique across the database and able to be understood without context"/>
+                    {!tag.isBulkImport && <FieldsRow>
                         <NumericSelectField label="Parent Category" value={newtag.parentId||-1} options={[-1].concat(tag.possibleParents.map(p => p.id))} optionLabels={["None"].concat(tag.possibleParents.map(p => p.name))} onValue={this.onChooseParent}/>
                         <div>
                             <br/>
                             {this.parentTag && <TagBadge tag={this.parentTag as Tag}/>}
                         </div>
-                    </FieldsRow>
+                    </FieldsRow>}
  
-                    <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                    {!tag.isBulkImport && <div>
+                        <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                    </div>}
                 </form>
             </section>
             {tag.subcategories.length > 0 && <section>
