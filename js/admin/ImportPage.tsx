@@ -499,6 +499,7 @@ class Importer extends React.Component<ImportPageData> {
                 <hr />
 
                 <h3>{existingDataset ? `Updating existing dataset` : `Creating new dataset`}</h3>
+                {!existingDataset && <p>Your data will be validated and stored in the database for visualization. After creating the dataset, please fill out the metadata fields and then mark the dataset as "publishable" if it should be reused by others.</p>}
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
