@@ -4,7 +4,7 @@ import * as shell from 'shelljs'
 import {quote} from 'shell-quote'
 import * as util from 'util'
 
-import { JsonError } from './admin/serverUtil'
+import { JsonError, filenamify } from './admin/serverUtil'
 import { Dataset } from './model/Dataset'
 import { Source } from './model/Source'
 import { GIT_DATASETS_DIR, GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, TMP_DIR } from './settings'
@@ -35,6 +35,8 @@ export async function removeDatasetFromGitRepo(datasetName: string, namespace: s
 
 export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string, commitOnly?: boolean } = {}) {
     const { oldDatasetName, commitName, commitEmail, commitOnly } = options
+
+    const oldDatasetFilename = oldDatasetName ? filenamify(oldDatasetName) : undefined
 
     const datasetRepo = options.transaction ? options.transaction.manager.getRepository(Dataset) : Dataset.getRepository()
 
@@ -77,8 +79,9 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
     const isNew = !fs.existsSync(finalDatasetDir)
     exec(`cd %s && rm -rf %s && mv %s %s && git add -A %s`, [repoDir, finalDatasetDir, tmpDatasetDir, finalDatasetDir, finalDatasetDir])
 
-    if (oldDatasetName && oldDatasetName !== dataset.filename) {
-        exec(`cd %s && rm -rf %s && git add -A %s`, [repoDir, `${repoDir}/${oldDatasetName}`, `${repoDir}/${oldDatasetName}`])
+    if (oldDatasetFilename && oldDatasetFilename !== dataset.filename) {
+        const oldDatasetDir = path.join(datasetsDir, oldDatasetFilename)
+        exec(`cd %s && rm -rf %s && git add -A %s`, [repoDir, oldDatasetDir, oldDatasetDir])
     }
 
     const commitMsg = isNew ? `Adding ${dataset.filename}` : `Updating ${dataset.filename}`

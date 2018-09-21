@@ -3,6 +3,7 @@ import {observer} from 'mobx-react'
 import { observable, computed, runInAction, autorun, action, IReactionDisposer, when } from 'mobx'
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
+import * as filenamify from 'filenamify'
 const timeago = require('timeago.js')()
 
 import { VariableDisplaySettings } from '../charts/VariableData'
@@ -303,7 +304,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     }
 
     @computed get gitHistoryUrl() {
-        return `https://github.com/${this.context.admin.settings.GITHUB_USERNAME}/owid-datasets/tree/master/datasets/${encodeURIComponent(this.props.dataset.name)}`
+        return `https://github.com/${this.context.admin.settings.GITHUB_USERNAME}/owid-datasets/tree/master/datasets/${encodeURIComponent(filenamify(this.props.dataset.name))}`
     }
 
     @computed get zipFileUrl() {
