@@ -304,9 +304,9 @@ export class BindString<T extends {[field: string]: any}, K extends keyof T> ext
         const {field, store, label, textarea, ...rest} = props
         const value = props.store[props.field] as string|undefined
         if (textarea)
-            return <TextAreaField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+            return <TextAreaField label={label === undefined ? capitalize(field) : label} value={value||""} onValue={this.onValue} {...rest}/>
         else
-            return <TextField label={label||capitalize(field)} value={value||""} onValue={this.onValue} {...rest}/>
+            return <TextField label={label === undefined ? capitalize(field) : label} value={value||""} onValue={this.onValue} {...rest}/>
         }
 }
 

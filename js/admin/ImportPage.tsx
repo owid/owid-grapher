@@ -124,9 +124,7 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
 
         return <li className="EditVariable">
             <FieldsRow>
-                <div>
-                    {variable.name}
-                </div>
+                <BindString store={variable} field="name" label=""/>
                 <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
                     <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
                     {dataset.existingVariables.map(v =>
@@ -175,8 +173,9 @@ interface ValidationResults {
 }
 
 class CSV {
-    static transformSingleLayout(rows: string[][]) {
-        const newRows = [['Entity', 'Year', (this as any).basename]]
+    static transformSingleLayout(rows: string[][], filename: string) {
+        const basename = (filename.match(/(.*?)(.csv)?$/) || [])[1]
+        const newRows = [['Entity', 'Year', basename]]
 
         for (let i = 1; i < rows.length; i++) {
             const entity = rows[i][0]
@@ -351,7 +350,7 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
                     // TODO error handling
                     //console.log("Error?", err)
                     if (rows[0][0].toLowerCase() === 'year')
-                        rows = CSV.transformSingleLayout(rows)
+                        rows = CSV.transformSingleLayout(rows, file.name)
                     this.csv = new CSV({ filename: file.name, rows, existingEntities } as any)
                     this.props.onCSV(this.csv as any)
                 }

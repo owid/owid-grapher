@@ -370,7 +370,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <BindString field="link" store={newDataset.source} label="Link" disabled={isBulkImport} helpText="Link to the publication from which we retrieved this data"/>
                             <BindString field="retrievedDate" store={newDataset.source} label="Retrieved" disabled={isBulkImport} helpText="Date when this data was obtained by us"/>
                             <DatasetTagEditor newDataset={newDataset} availableTags={dataset.availableTags} isBulkImport={isBulkImport}/>
-                            <Toggle label="Is publishable (tick when confident about quality of dataset)" value={!newDataset.isPrivate} onValue={v => newDataset.isPrivate = !v} disabled={isBulkImport}/>
+                            <Toggle label="Is publishable (include in exported OWID collection)" value={!newDataset.isPrivate} onValue={v => newDataset.isPrivate = !v} disabled={isBulkImport}/>
                         </div>
 
                         <div className="col">
