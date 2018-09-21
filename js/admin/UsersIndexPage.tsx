@@ -3,10 +3,9 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 
-import { Modal } from './Forms'
+import { Modal, Timeago } from './Forms'
 import Link from './Link'
 import AdminLayout from './AdminLayout'
-
 
 interface UserIndexMeta {
     id: number
@@ -15,9 +14,8 @@ interface UserIndexMeta {
     createdAt: Date
     updatedAt: Date
     isActive: boolean
+    lastSeen: Date
 }
-
-const timeago = require('timeago.js')()
 
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
@@ -73,7 +71,7 @@ export default class UsersIndexPage extends React.Component {
     @observable isInviteModal: boolean = false
 
     @action.bound async onDelete(user: UserIndexMeta) {
-        if (!window.confirm(`Delete the user ${user.name}? This action cannot be undone!`))
+        if (!window.confirm(`Delete the user ${user.fullName}? This action cannot be undone!`))
             return
 
         const json = await this.context.admin.requestJSON(`/api/users/${user.id}`, {}, "DELETE")
@@ -94,8 +92,8 @@ export default class UsersIndexPage extends React.Component {
                 </div>
                 <table className="table table-bordered">
                     <tr>
-                        <th>Username</th>
-                        <th>Full Name</th>
+                        <th>Name</th>
+                        <th>Last Seen</th>
                         <th>Joined</th>
                         <th>Status</th>
                         <th></th>
@@ -103,9 +101,9 @@ export default class UsersIndexPage extends React.Component {
                     </tr>
                     {users.map(user =>
                         <tr>
-                            <td>{user.name}</td>
                             <td>{user.fullName}</td>
-                            <td>{timeago.format(user.createdAt)}</td>
+                            <td><Timeago time={user.lastSeen}/></td>
+                            <td><Timeago time={user.createdAt}/></td>
                             <td>{user.isActive ? 'active' : 'inactive'}</td>
                             <td>
                                 <Link to={`/users/${user.id}`} className="btn btn-primary">Edit</Link>
@@ -124,7 +122,6 @@ export default class UsersIndexPage extends React.Component {
         const {admin} = this.context
 
         const json = await admin.getJSON("/api/users.json") as { users: UserIndexMeta[] }
-
 
         runInAction(() => {
             this.users = json.users

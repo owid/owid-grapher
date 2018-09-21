@@ -9,50 +9,18 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
 import Link from './Link'
-
-interface DatasetIndexMeta {
-    id: number
-    name: string
-    namespace: string
-    description: string
-    categoryName: string
-    subcategoryName: string
-    createdAt: Date
-    updatedAt: Date
-}
+import DatasetList, {DatasetListItem} from './DatasetList'
 
 interface Searchable {
-    dataset: DatasetIndexMeta
+    dataset: DatasetListItem
     term: string
-}
-
-@observer
-class DatasetRow extends React.Component<{ dataset: DatasetIndexMeta, highlight: (text: string) => any }> {
-    context!: { admin: Admin }
-
-    render() {
-        const {dataset, highlight} = this.props
-        const {admin} = this.context
-
-        return <tr>
-            <td>{highlight(dataset.namespace)}</td>
-            <td>
-                <Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
-            </td>
-            <td>{dataset.description}</td>
-            <td>{highlight(dataset.categoryName)}</td>
-            <td>{highlight(dataset.subcategoryName)}</td>
-            <td>{timeago.format(dataset.createdAt)}</td>
-            <td>{timeago.format(dataset.updatedAt)}</td>
-        </tr>
-    }
 }
 
 @observer
 export default class DatasetsIndexPage extends React.Component {
     context!: { admin: Admin }
 
-    @observable datasets: DatasetIndexMeta[] = []
+    @observable datasets: DatasetListItem[] = []
     @observable maxVisibleRows = 50
     @observable searchInput?: string
 
@@ -61,14 +29,14 @@ export default class DatasetsIndexPage extends React.Component {
         for (const dataset of this.datasets) {
             searchIndex.push({
                 dataset: dataset,
-                term: fuzzysort.prepare(dataset.name + " " + dataset.categoryName + " " + dataset.subcategoryName + " " + dataset.namespace)
+                term: fuzzysort.prepare(dataset.name + " " + dataset.tags.map(t => t.name).join(" ") + " " + dataset.namespace + " " + dataset.dataEditedByUserName + " " + dataset.description)
             })
         }
 
         return searchIndex
     }
 
-    @computed get datasetsToShow(): DatasetIndexMeta[] {
+    @computed get datasetsToShow(): DatasetListItem[] {
         const {searchInput, searchIndex, maxVisibleRows} = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
@@ -114,22 +82,7 @@ export default class DatasetsIndexPage extends React.Component {
                     <span>Showing {datasetsToShow.length} of {numTotalRows} datasets</span>
                     <SearchField placeholder="Search all datasets..." value={searchInput} onValue={this.onSearchInput} autofocus/>
                 </FieldsRow>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Dataspace</th>
-                            <th>Dataset</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Subcategory</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                        </tr>
-                    </thead>
-                        <tbody>
-                        {datasetsToShow.map(dataset => <DatasetRow dataset={dataset} highlight={highlight}/>)}
-                    </tbody>
-                </table>
+                <DatasetList datasets={datasetsToShow} searchHighlight={highlight}/>
                 {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more datasets...</button>}
             </main>
         </AdminLayout>

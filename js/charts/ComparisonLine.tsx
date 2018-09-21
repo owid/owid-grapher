@@ -62,7 +62,6 @@ export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, 
         const midPoint = linePoints[Math.floor(linePoints.length/2)]
         const p1 = linePoints[0]
         const p2 = linePoints[linePoints.length-1]
-        console.log(linePoints)
         const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI
         const bounds = Bounds.forText(label)
         return { x: midPoint.x, y: midPoint.y, bounds: bounds, angle: angle, text: label }

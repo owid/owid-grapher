@@ -36,10 +36,6 @@ export default function RegisterPage(props: { inviteEmail?: string, errorMessage
                     <input name="email" type="email" className="form-control" placeholder="Email" required value={props.body.email||props.inviteEmail}/>
                 </div>
                 <div className="form-group">
-                    <label>Username</label>
-                    <input name="username" className="form-control" placeholder="Username" required value={props.body.username}/>
-                </div>
-                <div className="form-group">
                     <label>Name</label>
                     <input name="fullName" className="form-control" placeholder="Full name" required value={props.body.fullName}/>
                 </div>

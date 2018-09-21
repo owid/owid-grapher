@@ -6,15 +6,15 @@ const hashers = require('node-django-hashers')
 @Entity("users")
 export default class User extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ unique: true }) name!: string
     @Column({ unique: true }) email!: string
     @Column({ length: 128 }) password!: string
-    @Column({ name: 'full_name', default: "" }) fullName!: string
-    @Column({ name: 'is_active', default: true }) isActive!: boolean
-    @Column({ name: 'is_superuser', default: false }) isSuperuser!: boolean
-    @Column() created_at!: Date
-    @Column() updated_at!: Date
-    @Column({ name: 'last_login' }) lastLogin!: Date
+    @Column({ default: "" }) fullName!: string
+    @Column({ default: true }) isActive!: boolean
+    @Column({ default: false }) isSuperuser!: boolean
+    @Column() createdAt!: Date
+    @Column() updatedAt!: Date
+    @Column() lastLogin!: Date
+    @Column() lastSeen!: Date
 
     @OneToMany(type => Chart, chart => chart.lastEditedByUser)
     lastEditedCharts!: Chart[]
@@ -24,7 +24,6 @@ export default class User extends BaseEntity {
 
     @OneToMany(type => Dataset, dataset => dataset.createdByUser)
     createdDatasets!: Dataset[]
-
 
     async setPassword(password: string) {
         const h = new hashers.BCryptPasswordHasher()

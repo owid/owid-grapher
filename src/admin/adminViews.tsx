@@ -9,6 +9,7 @@ import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from './serverUt
 import {tryLogin} from './authentication'
 import LoginPage from './LoginPage'
 import RegisterPage from './RegisterPage'
+import {Dataset} from '../model/Dataset'
 
 import User from '../model/User'
 import UserInvitation from '../model/UserInvitation'
@@ -76,10 +77,9 @@ adminViews.post('/register', async (req, res) => {
         await getConnection().transaction(async manager => {
             const user = new User()
             user.email = req.body.email
-            user.name = req.body.username
             user.fullName = req.body.fullName
-            user.created_at = new Date()
-            user.updated_at = new Date()
+            user.createdAt = new Date()
+            user.updatedAt = new Date()
             user.lastLogin = new Date()
             await user.setPassword(req.body.password)
             await manager.getRepository(User).save(user)
@@ -96,51 +96,23 @@ adminViews.post('/register', async (req, res) => {
     }
 })
 
-
 adminViews.get('/datasets/:datasetId.csv', async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const datasetName = (await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])).name
-    res.setHeader('Content-Disposition', `attachment; filename='${filenamify(datasetName)}.csv'`)
+    res.attachment(filenamify(datasetName)+".csv")
 
-    const csvHeader = ["Entity", "Year"]
-    const variables = await db.query(`SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.id ASC`, [datasetId])
-    for (const variable of variables) {
-        csvHeader.push(variable.name)
-    }
+    return Dataset.writeCSV(datasetId, res)
+})
 
-    res.write(csvRow(csvHeader))
+adminViews.get('/datasets/:datasetId/downloadZip', async (req, res) => {
+    const datasetId = expectInt(req.params.datasetId)
 
-    const data = await db.query(`
-        SELECT e.name AS entity, dv.year, dv.value, dv.variableId FROM data_values dv
-        JOIN variables v ON v.id=dv.variableId
-        JOIN datasets d ON v.datasetId=d.id
-        JOIN entities e ON dv.entityId=e.id
-        WHERE d.id=?
-        ORDER BY e.name ASC, dv.year ASC, dv.variableId ASC`, [datasetId])
+    const datasetName = (await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])).name
+    res.attachment("additional-material.zip")
 
-    let row: string[] = []
-    for (const datum of data) {
-        if (datum.entity !== row[0] || datum.year !== row[1]) {
-            // New row
-            if (row.length) {
-                res.write(csvRow(row))
-            }
-            row = [datum.entity, datum.year]
-        }
-
-        // Missing data values == blank cells
-        while (datum.variableId !== variables[row.length-2].id) {
-            row.push("")
-        }
-
-        row.push(datum.value)
-    }
-
-    // Final row
-    res.write(csvRow(row))
-
-    res.end()
+    const file = await db.get(`SELECT filename, file FROM dataset_files WHERE datasetId=?`, [datasetId])
+    res.send(file.file)
 })
 
 export default adminViews

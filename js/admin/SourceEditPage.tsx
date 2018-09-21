@@ -75,7 +75,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
         const {newSource} = this
         const isBulkImport = source.namespace !== 'owid'
 
-        return <main className="DatasetEditPage">
+        return <main className="SourceEditPage">
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
                 <h1>Source: {source.name}</h1>

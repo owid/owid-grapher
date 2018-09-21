@@ -1,13 +1,12 @@
 import * as repl from 'repl'
+import * as typeorm from 'typeorm'
 import * as db from './db'
 
 // Return value of prepareConsole is used as global namespace for `yarn c`
 export async function prepareConsole(): Promise<any> {
     const connection = await db.connect()
 
-    const consoleVars: {[key: string]: any} = {
-        db: db
-    }
+    const consoleVars: {[key: string]: any} = { typeorm, db }
 
     // Expose all typeorm models
     for (const meta of connection.entityMetadatas) {

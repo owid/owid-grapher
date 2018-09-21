@@ -3,15 +3,17 @@ import * as _ from 'lodash'
 
 import * as db from '../db'
 import { Dataset } from './Dataset'
-
+import { VariableDisplaySettings } from "../../js/charts/VariableData"
 
 @Entity("variables")
 export class Variable extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ nullable: false }) name!: string
-    @Column({ nullable: false, default: "" }) unit!: string
+    @Column() datasetId!: number
+    @Column() name!: string
+    @Column({ default: "" }) unit!: string
     @Column() description!: string
-    @Column({ nullable: false }) columnOrder!: number
+    @Column() columnOrder!: number
+    @Column({ default: "{}", type: 'json' }) display!: VariableDisplaySettings
 
     @ManyToOne(type => Dataset, dataset => dataset.variables) @JoinColumn({ name: 'datasetId' })
     dataset!: Dataset
@@ -21,7 +23,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: any = { variables: {}, entityKey: {} }
 
     const variableQuery = db.query(`
-        SELECT v.*, v.short_unit as shortUnit, d.name as datasetName, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
+        SELECT v.*, v.shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
             JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
@@ -39,7 +41,6 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     const variables = await variableQuery
 
     for (const row of variables) {
-        row.shortUnit = row.short_unit; delete row.short_unit
         row.display = JSON.parse(row.display)
         const sourceDescription = JSON.parse(row.s_description); delete row.s_description
         row.source = {
@@ -64,7 +65,6 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         const variable = data.variables[row.variableId]
         variable.years.push(row.year)
         variable.entities.push(row.entityId)
-
 
         const asNumber = parseFloat(row.value)
         if (!isNaN(asNumber))

@@ -29,9 +29,15 @@ html, body {
 
     .navbar {
         z-index: 2;
+        font-size: 0.95rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.15rem;
     }
 
     .navbar-toggler {
+        padding: 0.2rem 0.5rem;
         display: block;
         margin-right: 1rem;
     }
@@ -96,14 +102,14 @@ html, body {
 .AdminLayout {
     height: 100%;
 
-    padding-top: 60px;
+    padding-top: 45px;
     > nav {
         background-color: #001c3d;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: 60px;
+        height: 45px;
     }
 
     > main {
@@ -522,7 +528,7 @@ main:not(.ChartEditorPage) {
 }
 
 .ImportPage {
-    .importer {
+    .Importer {
         max-width: 1000px;
     
         input:not([type=submit]), select, textarea, button {
@@ -554,11 +560,11 @@ main:not(.ChartEditorPage) {
         }
     }
     
-    .validation {
+    .ValidationView {
         margin-top: 20px;
     }
     
-    .editVariable {    
+    .EditVariable {    
         .variableProps > label {
             margin-right: 10px;
             line-height: normal;
@@ -635,7 +641,41 @@ main:not(.ChartEditorPage) {
     }
 }
 
+.VariableEditRow {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
 // to override the default annoying blue border from bootstrap on file upload
 .custom-file-input:focus ~ .custom-file-control {
     box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
+}
+
+.CategoriesIndexPage {
+    .badge {
+        font-size: 0.8em;
+        margin-right: 0.5em;
+    }
+}
+
+.TagBadge {
+    display: inline-block;
+    padding: 6px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    background-color: #eee;
+    color: #333;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+
+    &:hover {
+        color: #333;
+    }
 }

@@ -8,8 +8,9 @@ import Link from './Link'
 export interface VariableListItem {
     id: number
     name: string
-    uploadedAt: Date
-    uploadedBy: string
+    uploadedAt?: Date
+    uploadedBy?: string
+    isPrivate?: boolean
 }
 
 @observer
@@ -18,13 +19,12 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
 
     render() {
         const {variable, searchHighlight} = this.props
-        const {admin} = this.context
 
         return <tr>
             <td>
-                <Link to={`/variables/${variable.id}`}>{searchHighlight ? searchHighlight(variable.name) : variable.name}</Link>
+                {variable.isPrivate ? <span className="text-secondary">Unpublished: </span> : ""}<Link to={`/variables/${variable.id}`}>{searchHighlight ? searchHighlight(variable.name) : variable.name}</Link>
             </td>
-            <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "Bulk import"}</td>
+            {variable.uploadedAt && <td>{timeago.format(variable.uploadedAt)} by {variable.uploadedBy ? variable.uploadedBy : "Bulk import"}</td>}
         </tr>
     }
 }
@@ -39,7 +39,7 @@ export default class VariableList extends React.Component<{ variables: VariableL
             <thead>
                 <tr>
                     <th>Variable</th>
-                    <th>Uploaded</th>
+                    {props.variables.some(v => v.uploadedAt !== undefined) && <th>Uploaded</th>}
                 </tr>
             </thead>
                 <tbody>

@@ -13,6 +13,8 @@ import VariablesIndexPage from './VariablesIndexPage'
 import DatasetEditPage from './DatasetEditPage'
 import SourceEditPage from './SourceEditPage'
 import RedirectsIndexPage from './RedirectsIndexPage'
+import TagEditPage from './TagEditPage'
+import TagsIndexPage from './TagsIndexPage'
 import PostsIndexPage from './PostsIndexPage'
 import TestIndexPage from './TestIndexPage'
 import ImportPage from './ImportPage'
@@ -76,6 +78,8 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
                     <Route exact path="/standardize" component={CountryStandardizerPage} />
                     <Route exact path="/redirects" component={RedirectsIndexPage}/>
+                    <Route exact path="/categories/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
+                    <Route exact path="/categories" component={TagsIndexPage}/>
                     <Route exact path="/pages" component={PostsIndexPage}/>
                     <Route exact path="/test" component={TestIndexPage}/>
                     <Route exact path="/" render={() => <Redirect to="/charts"/>}/>

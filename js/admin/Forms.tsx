@@ -10,7 +10,7 @@ import { bind } from 'decko'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 
-import { extend, pick, capitalize } from '../charts/Util'
+import { extend, pick, capitalize, trim } from '../charts/Util'
 import Colorpicker from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
@@ -22,7 +22,7 @@ export class FieldsRow extends React.Component<{}> {
     }
 }
 
-export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
+export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -33,6 +33,8 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLLabelElement> {
     disabled?: boolean
     helpText?: string
     autofocus?: boolean
+    required?: boolean
+    rows?: number
     softCharacterLimit?: number
 }
 
@@ -57,11 +59,11 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'required'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(trim(e.currentTarget.value))} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -76,7 +78,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText', 'rows'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
@@ -176,31 +178,23 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
 }
 
 export interface ToggleProps {
-    label: string|JSX.Element,
-    value: boolean,
+    label: string|JSX.Element
+    value: boolean
     onValue: (value: boolean) => void
+    disabled?: boolean
 }
 
 export class Toggle extends React.Component<ToggleProps> {
     render() {
         const { props } = this
-        /*return <div className="mdc-form-field">
-
-        </div>*/
+        const passthroughProps = pick(props, ['title', 'disabled']) as any
 
         return <div className="form-check">
             <label className="form-check-label">
-                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)}/>
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)} {...passthroughProps}/>
                 {props.label}
             </label>
         </div>
-        /* return <FormField>
-           <Checkbox checked={props.value} onChange={/> <label>{props.label}</label>
-       </FormField>
-       return <label className="Toggle clickable">
-           <input type="checkbox" checked={props.value}  />
-           {" " + props.label}
-       </label>*/
     }
 }
 
@@ -288,7 +282,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
             {props.label && <label>{props.label}</label>}
             <div className="input-group mb-2 mb-sm-0">
                 <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
-                <div className="input-group-addon" onClick={_ => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
+                <div className="input-group-addon" onClick={() => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
             </div>
@@ -299,7 +293,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean }> {
+export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean, rows?: number }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value||undefined
     }
@@ -360,7 +354,6 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
         return <AutoTextField {...textFieldProps}/>
     }
 }
-
 
 export interface FloatFieldProps {
     label?: string
@@ -456,6 +449,7 @@ export class LoadingBlocker extends React.Component<{}> {
     }
 }
 
+@observer
 export class Pagination extends React.Component<{ totalItems: number, perPage: number }> {
     render() {
         const {totalItems, perPage} = this.props
@@ -470,5 +464,15 @@ export class Pagination extends React.Component<{ totalItems: number, perPage: n
             </ul>
         </nav>
 
+    }
+}
+
+
+const timeago = require('timeago.js')()
+
+@observer
+export class Timeago extends React.Component<{ time: Date }> {
+    render() {
+        return this.props.time ? timeago.format(this.props.time) : ""
     }
 }

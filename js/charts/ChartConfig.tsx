@@ -187,6 +187,10 @@ export default class ChartConfig {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
     }
 
+    @computed get isSinglePage(): boolean {
+        return !this.isNode && !this.isEmbed
+    }
+
     constructor(props?: ChartConfigProps, options: { isEmbed?: boolean, isMediaCard?: boolean, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard

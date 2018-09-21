@@ -46,6 +46,7 @@ class VariableEditable {
     }
 }
 
+// XXX refactor with DatasetEditPage
 @observer
 class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable newVariable!: VariableEditable
@@ -101,15 +102,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 <p>This variable came from an automated import, so we can't change the original metadata manually.</p>
                             : <p>The core metadata for the variable. It's important to keep this consistent.</p>}
                             <BindString field="name" store={newVariable} label="Variable Name" disabled={isBulkImport}/>
-                            <FieldsRow>
-                                <BindString field="unit" store={newVariable} label="Unit of measurement" disabled={isBulkImport}/>
-                                <BindString field="shortUnit" store={newVariable} label="Short (axis) unit" disabled={isBulkImport}/>
-                            </FieldsRow>
-                            <BindString field="description" store={newVariable} label="Description" textarea disabled={isBulkImport}/>
-                        </section>
-                        <section>
-                            <h3>Display settings</h3>
-                            <p>These settings tell the grapher how to display the variable. They can also be changed in the chart editor.</p>
                             <BindString label="Display name" field="name" store={newVariable.display}/>
                             <FieldsRow>
                                 <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
@@ -119,6 +111,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={newVariable.display} helpText={`A negative number here will round integers`}/>
                                 <BindFloat label="Unit conversion factor" field="conversionFactor" store={newVariable.display} helpText={`Multiply all values by this amount`}/>
                             </FieldsRow>
+                            <BindString field="description" store={newVariable} label="Description" textarea disabled={isBulkImport}/>
                         </section>
                         <input type="submit" className="btn btn-success" value="Update variable"/>
                     </form>
@@ -132,33 +125,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 </div>}
             </div>
             <section>
-                <h3>Source</h3>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><Link to={`/sources/${variable.source.id}`}>{variable.source.name}</Link></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-            <section>
                 <h3>Charts</h3>
                 <ChartList charts={variable.charts}/>
             </section>
-            {!isBulkImport && <section>
-                <h3>Danger zone</h3>
-                <p>
-                    Delete this variable and all data it contains. If there are any charts using this data, you must delete them individually first.
-                </p>
-                <div className="card-footer">
-                    <button className="btn btn-danger" onClick={() => this.delete()}>Delete variable</button>
-                </div>
-            </section>}
         </main>
     }
 

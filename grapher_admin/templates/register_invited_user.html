@@ -1,8 +1,0 @@
-{% extends 'base/base_admin_no_sidebar.html' %}
-{% load crispy_forms_tags %}
-{% block title %}Create Account{% endblock %}
-
-{% block content %}
-    {% csrf_token %}
-    {% crispy form %}
-{% endblock %}

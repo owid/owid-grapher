@@ -1,10 +1,10 @@
 import * as express from 'express'
-import {Express, Router} from 'express'
+import {Router} from 'express'
 import * as _ from 'lodash'
 import {spawn} from 'child_process'
 import * as path from 'path'
-import * as querystring from 'querystring'
 import {getConnection} from 'typeorm'
+import * as bodyParser from 'body-parser'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
@@ -17,6 +17,10 @@ import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
 import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
+import {Dataset} from '../model/Dataset'
+import {Tag} from '../model/Tag'
+import User from '../model/User'
+import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -25,7 +29,7 @@ class FunctionalRouter {
     constructor() {
         this.router = Router()
         // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-        this.router.use(express.json())
+        this.router.use(express.json({ limit: '50mb' }))
     }
 
     wrap(callback: (req: Request, res: Response) => Promise<any>) {
@@ -125,13 +129,13 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         let chartId = existingConfig && existingConfig.id
         if (existingConfig) {
             await t.query(
-                `UPDATE charts SET config=?, updated_at=?, last_edited_at=?, last_edited_by=? WHERE id = ?`,
-                [JSON.stringify(newConfig), now, now, user.name, chartId]
+                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
+                [JSON.stringify(newConfig), now, now, user.id, chartId]
             )
         } else {
             const result = await t.execute(
-                `INSERT INTO charts (config, created_at, updated_at, last_edited_at, last_edited_by, starred) VALUES (?)`,
-                [[JSON.stringify(newConfig), now, now, now, user.name, false]]
+                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
+                [[JSON.stringify(newConfig), now, now, now, user.id, false]]
             )
             chartId = result.insertId
         }
@@ -158,7 +162,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
             // Newly published, set publication info
-            await t.execute(`UPDATE charts SET published_at=?, published_by=? WHERE id = ? `, [now, user.name, chartId])
+            await t.execute(`UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `, [now, user.id, chartId])
             await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
         } else if (!newConfig.isPublished && existingConfig && existingConfig.isPublished) {
             // Unpublishing chart, delete any existing redirects to it
@@ -175,7 +179,10 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 api.get('/charts.json', async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
     const charts = await db.query(`
-        SELECT ${OldChart.listFields} FROM charts ORDER BY last_edited_at DESC LIMIT ?
+        SELECT ${OldChart.listFields} FROM charts
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        ORDER BY charts.lastEditedAt DESC LIMIT ?
     `, [limit])
 
     return {
@@ -205,7 +212,7 @@ api.get('/countries.json', async (req: Request, res: Response) => {
         const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(`
-            SELECT country_name as input, ` + outputColumn + ` as output
+            SELECT country_name as input, ${outputColumn} as output
             FROM country_name_tool_countryname ccn
             LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
@@ -214,7 +221,7 @@ api.get('/countries.json', async (req: Request, res: Response) => {
         const outputColumn = CountryDefByKey[output].column_name
 
         rows = await db.query(
-            `SELECT ` + inputColumn + ` as input, ` + outputColumn + ` as output
+            `SELECT ${inputColumn} as input, ${outputColumn} as output
             FROM country_name_tool_countrydata ccd
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
     }
@@ -245,7 +252,8 @@ api.post('/countries', async (req: Request, res: Response) => {
     for (const country of Object.keys(countries)) {
         const owidName = countries[country]
 
-        console.log("adding " + country + ", " + mapOwidNameToId[owidName] + ", " + owidName)
+        console.log(`adding ${country}, ${mapOwidNameToId[owidName]}, ${owidName}`)
+
         await db.execute(
             `INSERT INTO country_name_tool_countryname (country_name, owid_country)
             VALUES (?, ?)`, [country, mapOwidNameToId[owidName]])
@@ -257,11 +265,11 @@ api.post('/countries', async (req: Request, res: Response) => {
 api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
     const datasets = []
     const rows = await db.query(
-        `SELECT v.name, v.id, d.name as datasetName, d.namespace
+        `SELECT v.name, v.id, d.name as datasetName, d.namespace, d.isPrivate
          FROM variables as v JOIN datasets as d ON v.datasetId = d.id
-         WHERE namespace=? ORDER BY d.updated_at DESC`, [req.params.namespace])
+         WHERE namespace=? ORDER BY d.updatedAt DESC`, [req.params.namespace])
 
-    let dataset: { name: string, namespace: string, variables: { id: number, name: string }[] }|undefined
+    let dataset: { name: string, namespace: string, isPrivate: boolean, variables: { id: number, name: string }[] }|undefined
     for (const row of rows) {
         if (!dataset || row.datasetName !== dataset.name) {
             if (dataset)
@@ -270,6 +278,7 @@ api.get('/editorData/:namespace.json', async (req: Request, res: Response) => {
             dataset = {
                 name: row.datasetName,
                 namespace: row.namespace,
+                isPrivate: row.isPrivate,
                 variables: []
             }
         }
@@ -339,17 +348,11 @@ export interface UserIndexMeta {
 }
 
 api.get('/users.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users`)
-    return { users: rows as UserIndexMeta[] }
+    return { users: await User.find({ order: { lastSeen: "DESC" } })}
 })
 
 api.get('/users/:userId.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT id, email, full_name as fullName, name, created_at as createdAt, updated_at as updatedAt, is_active as isActive FROM users WHERE id=?`, [req.params.userId])
-
-    if (rows.length)
-        return { user: rows[0] as UserIndexMeta }
-    else
-        throw new JsonError("No such user", 404)
+    return { user: await User.findOne(req.params.userId)}
 })
 
 api.delete('/users/:userId', async (req: Request, res: Response) => {
@@ -357,8 +360,9 @@ api.delete('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
+    const userId = expectInt(req.params.userId)
     await db.transaction(async t => {
-        await t.execute(`DELETE FROM users WHERE id=?`, req.params.userId)
+        await t.execute(`DELETE FROM users WHERE id=?`, [userId])
     })
 
     return { success: true }
@@ -369,7 +373,14 @@ api.put('/users/:userId', async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
     }
 
-    await db.execute(`UPDATE users SET full_name=?, is_active=? WHERE id=?`, [req.body.fullName, req.body.isActive, req.params.userId])
+    const user = await User.findOne(req.params.userId)
+    if (!user)
+        throw new JsonError("No such user", 404)
+
+    user.fullName = req.body.fullName
+    user.isActive = req.body.isActive
+    await user.save()
+
     return { success: true }
 })
 
@@ -389,8 +400,8 @@ api.post('/users/invite', async (req: Request, res: Response) => {
         invite.email = email
         invite.code = UserInvitation.makeInviteCode()
         invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        invite.created_at = new Date()
-        invite.updated_at = new Date()
+        invite.createdAt = new Date()
+        invite.updatedAt = new Date()
         await repo.save(invite)
 
         const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
@@ -411,10 +422,12 @@ api.get('/variables.json', async req => {
     const searchStr = req.query.search
 
     const query = `
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name, d.id AS datasetId, d.name AS datasetName, d.isPrivate AS isPrivate, d.dataEditedAt AS uploadedAt, u.fullName AS uploadedBy
         FROM variables AS v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
         ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY v.uploaded_at DESC
+        ORDER BY d.dataEditedAt DESC
         LIMIT ?
     `
 
@@ -444,10 +457,11 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const variableId = expectInt(req.params.variableId)
 
     const variable = await db.get(`
-        SELECT v.id, v.name, v.unit, v.short_unit AS shortUnit, v.description, v.sourceId, v.uploaded_by AS uploadedBy,
+        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables AS v
-        JOIN datasets AS d ON d.id = v.datasetId
+        FROM variables v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
         WHERE v.id = ?
     `, [variableId])
 
@@ -462,7 +476,9 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
     const charts = await db.query(`
         SELECT ${OldChart.listFields}
         FROM charts
-        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        JOIN chart_dimensions cd ON cd.chartId = charts.id
         WHERE cd.variableId = ?
         GROUP BY charts.id
     `, [variableId])
@@ -476,8 +492,9 @@ api.put('/variables/:variableId', async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
     const variable = (req.body as { variable: VariableSingleMeta }).variable
 
-    await db.execute(`UPDATE variables SET name=?, unit=?, short_unit=?, description=?, updated_at=?, display=? WHERE id = ?`,
-        [variable.name, variable.unit, variable.shortUnit, variable.description, new Date(), JSON.stringify(variable.display), variableId])
+    await db.execute(`UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
+        [variable.name, variable.description, new Date(), JSON.stringify(variable.display), variableId])
+
     return { success: true }
 })
 
@@ -501,25 +518,36 @@ api.delete('/variables/:variableId', async (req: Request) => {
 })
 
 api.get('/datasets.json', async req => {
-    const rows = await db.query(`
-        SELECT d.id, d.namespace, d.name, d.description, c.name AS categoryName, sc.name AS subcategoryName, d.created_at AS createdAt, d.updated_at AS updatedAt
-        FROM datasets AS d
-        LEFT JOIN dataset_categories AS c ON c.id=d.categoryId
-        LEFT JOIN dataset_subcategories AS sc ON sc.id=d.subcategoryId
-        ORDER BY d.created_at DESC
+    const datasets = await db.query(`
+        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName, d.isPrivate
+        FROM datasets d
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN users mu ON mu.id=d.metadataEditedByUserId
+        ORDER BY d.dataEditedAt DESC
     `)
+
+    const tags = await db.query(`
+        SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+        JOIN tags t ON dt.tagId = t.id
+    `)
+    const tagsByDatasetId = _.groupBy(tags, t => t.datasetId)
+    for (const dataset of datasets) {
+        dataset.tags = (tagsByDatasetId[dataset.id]||[]).map(t => _.omit(t, 'datasetId'))
+    }
     /*LEFT JOIN variables AS v ON v.datasetId=d.id
     GROUP BY d.id*/
 
-    return { datasets: rows }
+    return { datasets: datasets }
 })
 
 api.get('/datasets/:datasetId.json', async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt, d.isPrivate
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets AS d
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN users mu ON mu.id=d.metadataEditedByUserId
         WHERE d.id = ?
     `, [datasetId])
 
@@ -527,53 +555,111 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
         throw new JsonError(`No dataset by id '${datasetId}'`, 404)
     }
 
+    const zipFile = await db.get(`SELECT filename FROM dataset_files WHERE datasetId=?`, [datasetId])
+    if (zipFile)
+        dataset.zipFile = zipFile
+
     const variables = await db.query(`
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name, v.description, v.display
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
 
+    for (const v of variables) {
+        v.display = JSON.parse(v.display)
+    }
+
     dataset.variables = variables
 
+    // Currently for backwards compatibility datasets can still have multiple sources
+    // but the UI presents only a single item of source metadata, we use the first source
     const sources = await db.query(`
-        SELECT s.id, s.name
+        SELECT s.id, s.name, s.description
         FROM sources AS s
         WHERE s.datasetId = ?
+        ORDER BY s.id ASC
     `, [datasetId])
 
-    dataset.sources = sources
+    dataset.source = JSON.parse(sources[0].description)
+    dataset.source.id = sources[0].id
+    dataset.source.name = sources[0].name
 
     const charts = await db.query(`
         SELECT ${OldChart.listFields}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         WHERE v.datasetId = ?
         GROUP BY charts.id
     `, [datasetId])
 
     dataset.charts = charts
 
-    const availableCategories = await db.query(`
-        SELECT sc.id, sc.name, c.name AS parentName, c.fetcher_autocreated AS isAutocreated
-        FROM dataset_subcategories AS sc
-        JOIN dataset_categories AS c ON sc.categoryId=c.id
-    `)
+    const tags = await db.query(`
+        SELECT t.id, t.name
+        FROM tags t
+        JOIN dataset_tags dt ON dt.tagId = t.id
+        WHERE dt.datasetId = ?
+    `, [datasetId])
+    dataset.tags = tags
 
-    dataset.availableCategories = availableCategories
+    const availableTags = await db.query(`
+        SELECT t.id, t.name, p.name AS parentName
+        FROM tags AS t
+        JOIN tags AS p ON t.parentId=p.id
+        WHERE p.isBulkImport IS FALSE
+    `)
+    dataset.availableTags = availableTags
 
     return { dataset: dataset }
 })
 
-api.put('/datasets/:datasetId', async (req: Request) => {
+api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
-    const dataset = (req.body as { dataset: any }).dataset
-    await db.execute(`UPDATE datasets SET name=?, description=?, subcategoryId=?, isPrivate=? WHERE id=?`, [dataset.name, dataset.description, dataset.subcategoryId, dataset.isPrivate, datasetId])
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset)
+        throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    await db.transaction(async t => {
+        const newDataset = (req.body as { dataset: any }).dataset
+        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, new Date(), res.locals.user.id, datasetId])
+
+        const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
+        await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+        if (tagRows.length)
+            await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
+
+        const source = newDataset.source
+        const description = _.omit(source, ['name', 'id'])
+        await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(description), source.id])
+    })
+
+    // Note: not currently in transaction
+    await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+
     return { success: true }
 })
 
-api.delete('/datasets/:datasetId', async (req: Request) => {
+api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "application/zip", limit: "50mb" }), async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
+ 
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [datasetId])
+        await t.execute(`INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)`, [datasetId, 'additional-material.zip', req.body])
+    })
+
+    res.send({ success: true })
+})
+
+api.delete('/datasets/:datasetId', async (req: Request, res: Response) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset)
+        throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
     await db.transaction(async t => {
         await t.execute(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
@@ -581,26 +667,8 @@ api.delete('/datasets/:datasetId', async (req: Request) => {
         await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
 
-    return { success: true }
-})
+    await removeDatasetFromGitRepo(dataset.name, dataset.namespace, { commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
 
-api.get('/sources/:sourceId.json', async (req: Request) => {
-    const sourceId = expectInt(req.params.sourceId)
-    const source = await db.get(`
-        SELECT s.id, s.name, s.description, s.created_at AS createdAt, s.updated_at AS updatedAt, d.namespace AS namespace
-        FROM sources AS s
-        JOIN datasets AS d ON d.id=s.datasetId
-        WHERE s.id=?`, [sourceId])
-    source.description = JSON.parse(source.description)
-    source.variables = await db.query(`SELECT id, name, uploaded_at AS uploadedAt FROM variables WHERE variables.sourceId=?`, [sourceId])
-
-    return { source: source }
-})
-
-api.put('/sources/:sourceId', async (req: Request) => {
-    const sourceId = expectInt(req.params.sourceId)
-    const source = (req.body as { source: any }).source
-    await db.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
     return { success: true }
 })
 
@@ -614,6 +682,113 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
     return {
         redirects: redirects
     }
+})
+
+api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
+    const tagId = expectInt(req.params.tagId)
+    const tag = await db.get(`
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
+        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
+        WHERE t.id = ?
+    `, [tagId])
+
+    // Datasets tagged with this tag
+    const datasets = await db.query(`
+        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.isPrivate
+        FROM datasets d
+        JOIN users du ON du.id=d.dataEditedByUserId
+        JOIN dataset_tags dt ON dt.datasetId = d.id
+        WHERE dt.tagId = ?
+        ORDER BY d.dataEditedAt DESC
+    `, [tagId])
+    tag.datasets = datasets
+
+    // The other tags for those datasets
+    if (tag.datasets.length) {
+        const datasetTags = await db.query(`
+            SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+            JOIN tags t ON dt.tagId = t.id
+            WHERE dt.datasetId IN (?)
+        `, [tag.datasets.map((d: any) => d.id)])
+        const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
+        for (const dataset of tag.datasets) {
+            dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+        }
+    }
+
+    // Charts using datasets under this tag
+    const charts = await db.query(`
+        SELECT ${OldChart.listFields} FROM charts
+        JOIN chart_dimensions cd ON cd.chartId=charts.id
+        JOIN variables v ON v.id=cd.variableId
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN dataset_tags dt ON dt.datasetId=d.id
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        WHERE dt.tagId = ?
+        GROUP BY charts.id
+        ORDER BY charts.updatedAt DESC
+    `, [tagId])
+    tag.charts = charts
+
+    // Subcategories
+    const subcategories = await db.query(`
+        SELECT t.id, t.name FROM tags t
+        WHERE t.parentId = ?
+    `, [tag.id])
+    tag.subcategories = subcategories
+
+    // Possible parents to choose from
+    const possibleParents = await db.query(`
+        SELECT t.id, t.name FROM tags t
+        WHERE t.parentId IS NULL AND t.isBulkImport IS FALSE
+    `)
+    tag.possibleParents = possibleParents
+
+    return {
+        tag: tag
+    }
+})
+
+api.put('/tags/:tagId', async (req: Request) => {
+    const tagId = expectInt(req.params.tagId)
+    const tag = (req.body as { tag: any }).tag
+    await db.execute(`UPDATE tags SET name=?, updatedAt=?, parentId=? WHERE id=?`, [tag.name, new Date(), tag.parentId, tagId])
+    return { success: true }
+})
+
+api.post('/tags/new', async (req: Request) => {
+    const tag = (req.body as { tag: any }).tag
+    const now = new Date()
+    const result = await db.execute(`INSERT INTO tags (parentId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`, [tag.parentId, tag.name, now, now])
+    return { success: true, tagId: result.insertId }
+})
+
+api.get('/tags.json', async (req: Request, res: Response) => {
+    const tags = await db.query(`
+        SELECT t.id, t.name, t.parentId, t.specialType
+        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
+        WHERE t.isBulkImport IS FALSE AND (t.parentId IS NULL OR p.isBulkImport IS FALSE)
+        ORDER BY t.name ASC
+    `)
+
+    return {
+        tags: tags
+    }
+})
+
+api.delete('/tags/:tagId/delete', async (req: Request, res: Response) => {
+    const tagId = expectInt(req.params.tagId)
+
+    const tag = Tag.findOne({ id: tagId })
+
+    if (tag)
+
+    await db.transaction(async t => {
+        await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])
+    })
+
+    return { success: true }
 })
 
 api.delete('/redirects/:id', async (req: Request, res: Response) => {
@@ -662,7 +837,7 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(`
-        SELECT d.id, d.namespace, d.name, d.description, d.subcategoryId, d.updated_at AS updatedAt
+        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt
         FROM datasets AS d
         WHERE d.id = ?
     `, [datasetId])
@@ -672,7 +847,7 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     }
 
     const variables = await db.query(`
-        SELECT v.id, v.name, v.uploaded_at AS uploadedAt, v.uploaded_by AS uploadedBy
+        SELECT v.id, v.name
         FROM variables AS v
         WHERE v.datasetId = ?
     `, [datasetId])
@@ -701,152 +876,6 @@ api.get('/importData/datasets/:datasetId.json', async req => {
     })
 })*/
 
-/*
-
-def store_import_data(request: HttpRequest):
-    if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                data = json.loads(request.body.decode('utf-8'))
-                datasetmeta = data['dataset']
-                entities = data['entities']
-                entitynames = data['entityNames']
-                years = data['years']
-                variables = data['variables']
-
-                datasetprops = {'name': datasetmeta['name'],
-                                'description': datasetmeta['description'],
-                                'categoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId']).categoryId,
-                                'subcategoryId': DatasetSubcategory.objects.get(pk=datasetmeta['subcategoryId'])
-                                }
-
-                if datasetmeta['id']:
-                    dataset = Dataset.objects.get(pk=datasetmeta['id'])
-                    dataset_old_name = dataset.name  # needed for version tracking csv export
-                    Dataset.objects.filter(pk=datasetmeta['id']).update(updated_at=timezone.now(), **datasetprops)
-                else:
-                    dataset = Dataset(**datasetprops)
-                    dataset_old_name = None
-                    dataset.save()
-
-                dataset_id = dataset.pk
-
-                codes = Entity.objects.filter(validated=True).values('name', 'code')
-
-                codes_dict = {}
-
-                for each in codes:
-                    codes_dict[each['code']] = each['name']
-
-                entitynames_list = Entity.objects.values_list('name', flat=True)
-
-                for i in range(0, len(entitynames)):
-                    name = entitynames[i]
-                    if codes_dict.get(name, 0):
-                        entitynames[i] = codes_dict[name]
-
-                entitynames_to_insert = []
-
-                for each in entitynames:
-                    if each not in entitynames_list:
-                        entitynames_to_insert.append(each)
-
-                alist = [Entity(name=val, validated=False) for val in entitynames_to_insert]
-
-                Entity.objects.bulk_create(alist)
-
-                codes = Entity.objects.values('name', 'id')
-
-                entitiy_name_to_id = {}
-
-                for each in codes:
-                    entitiy_name_to_id[each['name']] = each['id']
-
-                source_ids_by_name: Dict[str, str] = {}
-
-                for variable in variables:
-                    source_name = variable['source']['name']
-                    if source_ids_by_name.get(source_name, 0):
-                        source_id = source_ids_by_name[source_name]
-                    else:
-                        if variable['source']['id']:
-                            source_id = variable['source']['id']
-                        else:
-                            source_id = None
-                        source_desc = {
-                            'dataPublishedBy': None if not variable['source']['dataPublishedBy'] else variable['source']['dataPublishedBy'],
-                            'dataPublisherSource': None if not variable['source']['dataPublisherSource'] else variable['source']['dataPublisherSource'],
-                            'link': None if not variable['source']['link'] else variable['source']['link'],
-                            'retrievedDate': None if not variable['source']['retrievedDate'] else variable['source']['retrievedDate'],
-                            'additionalInfo': None if not variable['source']['additionalInfo'] else variable['source']['additionalInfo']
-                        }
-                        if source_id:
-                            existing_source = Source.objects.get(pk=source_id)
-                            existing_source.name = variable['source']['name']
-                            existing_source.updated_at = timezone.now()
-                            existing_source.description = json.dumps(source_desc)
-                            existing_source.save()
-                        else:
-                            new_source = Source(datasetId=dataset_id, name=source_name, description=json.dumps(source_desc))
-                            new_source.save()
-                            source_id = new_source.pk
-                            source_ids_by_name[source_name] = source_id
-
-                    values = variable['values']
-                    variableprops = {'name': variable['name'], 'description': variable['description'], 'unit': variable['unit'],
-                                     'coverage': variable['coverage'], 'timespan': variable['timespan'],
-                                     'variableTypeId': VariableType.objects.get(pk=3),
-                                     'datasetId': Dataset.objects.get(pk=dataset_id),
-                                     'sourceId': Source.objects.get(pk=source_id),
-                                     'uploaded_at': timezone.now(),
-                                     'updated_at': timezone.now(),
-                                     'uploaded_by': request.user
-                                     }
-                    if variable['overwriteId']:
-                        Variable.objects.filter(pk=variable['overwriteId']).update(**variableprops)
-                        varid = variable['overwriteId']
-                    else:
-                        varid = Variable(**variableprops)
-                        varid.save()
-                        varid = varid.pk
-                    while DataValue.objects.filter(variableId__pk=varid).first():
-                        with connection.cursor() as c:
-                            c.execute('DELETE FROM %s WHERE variableId = %s LIMIT 10000;' %
-                                      (DataValue._meta.db_table, varid))
-                            # the LIMIT is here so that the database doesn't try to delete a large number of values at
-                            # once and becomes unresponsive
-
-                    insert_string = 'INSERT into data_values (value, year, entityId, variableId) VALUES (%s, %s, %s, %s)'
-                    data_values_tuple_list = []
-                    for i in range(0, len(years)):
-                        if values[i] == '':
-                            continue
-                        data_values_tuple_list.append((values[i], years[i],
-                                                       entitiy_name_to_id[entitynames[entities[i]]],
-                                                       varid))
-
-                        if len(data_values_tuple_list) > 3000:  # insert when the length of the list goes over 3000
-                            with connection.cursor() as dbconnection:
-                                dbconnection.executemany(insert_string, data_values_tuple_list)
-                            data_values_tuple_list = []
-
-                    if len(data_values_tuple_list):  # insert any leftover data_values
-                        with connection.cursor() as dbconnection:
-                            dbconnection.executemany(insert_string, data_values_tuple_list)
-                    with connection.cursor() as cursor:
-                        cursor.execute("DELETE FROM sources WHERE sources.id NOT IN (SELECT variables.sourceId FROM variables)")
-
-                write_dataset_csv(dataset.pk, datasetprops['name'],
-                                  dataset_old_name, request.user.get_full_name(), request.user.email)
-
-                return JsonResponse({'datasetId': dataset_id}, safe=False)
-        except Exception as e:
-            if len(e.args) > 1:
-                error_m = str(e.args[0]) + ' ' + str(e.args[1])
-            else:
-                error_m = e.args[0]
-            return HttpResponse(error_m, status=500)*/
-
 interface ImportPostData {
     dataset: {
         id?: number,
@@ -862,19 +891,31 @@ interface ImportPostData {
 }
 
 api.post('/importDataset', async (req: Request, res: Response) => {
-    return db.transaction(async t => {
-        const {dataset, entities, years, variables} = req.body as ImportPostData
+    const userId = res.locals.user.id
+    const {dataset, entities, years, variables} = req.body as ImportPostData
+
+    let oldDatasetName: string|undefined
+    if (dataset.id) {
+        oldDatasetName = (await db.query(`SELECT name FROM datasets WHERE id = ?`, [dataset.id]))[0].name
+    }
+
+    const newDatasetId = await db.transaction(async t => {
         const now = new Date()
 
         let datasetId: number
+
         if (dataset.id) {
             // Updating existing dataset
             datasetId = dataset.id
+            await t.execute(`UPDATE datasets SET dataEditedAt=?, dataEditedByUserId=? WHERE id=?`, [now, userId, datasetId])
         } else {
             // Creating new dataset
-            const row = [dataset.name, "owid", "", now, now, 19, 375] // Initially uncategorized
-            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, created_at, updated_at, categoryId, subcategoryId) VALUES (?)`, [row])
+            const row = [dataset.name, "owid", "", now, now, now, userId, now, userId, userId, true]
+            const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId, isPrivate) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
+
+            // Add default tag
+            await t.execute(`INSERT INTO dataset_tags (datasetId, tagId) VALUES (?,?)`, [datasetId, 375])
         }
 
         // Find or create the dataset source
@@ -890,14 +931,14 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         if (!sourceId) {
             // Insert default source
             const sourceRow = [dataset.name, "{}", now, now, datasetId]
-            const sourceResult = await t.execute(`INSERT INTO sources (name, description, created_at, updated_at, datasetId) VALUES (?)`, [sourceRow])
+            const sourceResult = await t.execute(`INSERT INTO sources (name, description, createdAt, updatedAt, datasetId) VALUES (?)`, [sourceRow])
             sourceId = sourceResult.insertId
         }
 
         // Insert any new entities into the db
-        const entitiesUniq = _.uniq(entities) 
+        const entitiesUniq = _.uniq(entities)
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
-        await t.execute(`INSERT IGNORE entities (name, validated, created_at, updated_at, displayName) VALUES ?`, [importEntityRows])
+        await t.execute(`INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`, [importEntityRows])
 
         // Map entities to entityIds
         const entityRows = await t.query(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
@@ -906,6 +947,16 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             entityIdLookup[row.name] = row.id
         }
 
+        // Remove all existing variables not matched by overwriteId
+        const existingVariables = await t.query(`SELECT id FROM variables v WHERE v.datasetId=?`, [datasetId])
+        const removingVariables = existingVariables.filter((v: any) => !variables.some(v2 => v2.overwriteId = v.overwriteId))
+        const removingVariableIds = removingVariables.map((v: any) => v.id) as number[]
+        if (removingVariableIds.length) {
+            await t.execute(`DELETE FROM data_values WHERE variableId IN (?)`, [removingVariableIds])
+            await t.execute(`DELETE FROM variables WHERE id IN (?)`, [removingVariableIds])
+        }
+
+        // Overwrite old variables and insert new variables
         for (const variable of variables) {
             let variableId: number
             if (variable.overwriteId) {
@@ -914,11 +965,11 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
                 variableId = variable.overwriteId
             } else {
-                const variableRow = [variable.name, datasetId, sourceId, now, now, now, res.locals.user.name, "", "", "", 3, "{}"]
+                const variableRow = [variable.name, datasetId, sourceId, now, now, "", "", "", "{}"]
 
                 // Create a new variable
                 // TODO migrate to clean up these fields
-                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, created_at, updated_at, uploaded_at, uploaded_by, unit, coverage, timespan, variableTypeId, display) VALUES (?)`, [variableRow])
+                const result = await t.execute(`INSERT INTO variables (name, datasetId, sourceId, createdAt, updatedAt, unit, coverage, timespan, display) VALUES (?)`, [variableRow])
                 variableId = result.insertId
             }
 
@@ -929,8 +980,13 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
 
-        return { success: true, datasetId: datasetId }
+        return datasetId
     })
+
+    // Don't sync to git repo on import-- dataset is initially private
+    //await syncDatasetToGitRepo(newDatasetId, { oldDatasetName: oldDatasetName, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+
+    return { success: true, datasetId: newDatasetId }
 })
 
 export default api

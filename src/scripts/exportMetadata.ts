@@ -18,7 +18,7 @@ async function dataExport() {
     shell.exec(`sed -i -e "s/bcrypt[^']*//g" /tmp/owid_metadata.sql`)
 
     // Add default admin user
-    await fs.appendFile("/tmp/owid_metadata.sql", "INSERT INTO users (`password`, `is_superuser`, `email`, `name`, `created_at`, `updated_at`, `is_active`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'admin', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n")
+    await fs.appendFile("/tmp/owid_metadata.sql", "INSERT INTO users (`password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n")
 
     await db.end()
 }

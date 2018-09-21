@@ -75,7 +75,7 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
 
 testPages.get('/embeds', async (req, res) => {
     const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
-    let query = Chart.createQueryBuilder().limit(numPerPage).offset(numPerPage*(page-1)).orderBy("updated_at", "DESC")
+    let query = Chart.createQueryBuilder().limit(numPerPage).offset(numPerPage*(page-1)).orderBy("lastEditedAt", "DESC")
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap")

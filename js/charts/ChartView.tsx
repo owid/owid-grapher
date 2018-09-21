@@ -216,14 +216,14 @@ export default class ChartView extends React.Component<ChartViewProps> {
         function checkVisible(elm: any) {
             if (!elm.getBoundingClientRect)
                 return false
-            var rect = elm.getBoundingClientRect();
-            var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
-            return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
-          }
+            const rect = elm.getBoundingClientRect()
+            const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight)
+            return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
+        }
 
-          if (!this.hasBeenVisible && checkVisible(this.base)) {
-              this.hasBeenVisible = true
-          }
+        if (!this.hasBeenVisible && checkVisible(this.base)) {
+            this.hasBeenVisible = true
+        }
     }
 
     componentDidMount() {

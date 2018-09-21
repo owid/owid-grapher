@@ -12,8 +12,6 @@ import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 
-const styles = require('./Importer.css')
-
 declare const App: any
 declare const window: any
 
@@ -40,7 +38,6 @@ interface ExistingDataset {
     namespace: string
     name: string
     description: string
-    subcategoryId: number
 
     variables: ExistingVariable[]
 }
@@ -49,7 +46,6 @@ class EditableDataset {
     @observable id?: number
     @observable name: string = ""
     @observable description: string = ""
-    @observable subcategoryId?: number
     @observable existingVariables: ExistingVariable[] = []
     @observable newVariables: EditableVariable[] = []
     @observable years: number[] = []
@@ -121,30 +117,12 @@ class DataPreview extends React.Component<{ csv: CSV }> {
     }
 }
 
-const EditCategory = (props: { dataset: EditableDataset, categories: { id: number, name: string, parent: string }[] }) => {
-    const { dataset, categories } = props
-    const categoriesByParent = groupBy(categories, (c: any) => c.parent)
-
-    return <label>
-        Category <span className="form-section-desc">(Currently used only for internal organization)</span>
-        <select onChange={e => dataset.subcategoryId = parseInt(e.target.value)} value={dataset.subcategoryId}>
-            {map(categoriesByParent, (subcats, parent) =>
-                <optgroup label={parent}>
-                    {subcats.map((category: any) =>
-                        <option value={category.id}>{category.name}</option>
-                    )}
-                </optgroup>
-            )}
-        </select>
-    </label>
-}
-
 @observer
 class EditVariable extends React.Component<{ variable: EditableVariable, dataset: EditableDataset }> {
     render() {
         const { variable, dataset } = this.props
 
-        return <li className={styles.editVariable}>
+        return <li className="EditVariable">
             <FieldsRow>
                 <div>
                     {variable.name}
@@ -162,6 +140,17 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
 
 @observer
 class EditVariables extends React.Component<{ dataset: EditableDataset }> {
+    @computed get deletingVariables() {
+        const {dataset} = this.props
+        const deletingVariables: ExistingVariable[] = []
+        for (const variable of dataset.existingVariables) {
+            if (!dataset.newVariables.some(v => v.overwriteId === variable.id)) {
+                deletingVariables.push(variable)
+            }
+        }
+        return deletingVariables
+    }
+
     render() {
         const { dataset } = this.props
 
@@ -173,54 +162,9 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
                     <EditVariable variable={variable} dataset={dataset} />
                 )}
             </ol>
-        </section>
-    }
-}
-
-@observer
-class EditSource extends React.Component<{ dataset: EditableDataset }> {
-    render() {
-        const { dataset } = this.props
-        const { source } = dataset
-
-        return <section>
-            <hr />
-            <h4>Dataset source information</h4>
-            <label>
-                <span>Source Name:</span>
-                <input type="text" required value={source.name} onInput={e => source.name = e.currentTarget.value} />
-            </label>
-            <p className="form-section-desc">
-                The source name will be displayed in charts (at the bottom of the ‘Chart’ and ‘Map’ tabs). For academic papers, the name of the source should be “Authors (year)”. For example Arroyo-Abad and Lindert (2016). <br />
-                For institutional projects or reports, the name should be “Institution, Project (year or vintage)”. For example: U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). <br />
-                For data that we have modified extensively, the name should be "Our World In Data based on Author (year)”. For example: Our World In Data based on Atkinson (2002) and Sen (2000).
-            </p>
-            <label>
-                <span>Data published by:</span>
-                <input type="text" value={source.dataPublishedBy} onInput={e => source.dataPublishedBy = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Data publisher's source:</span>
-                <input type="text" value={source.dataPublisherSource} onInput={e => source.dataPublisherSource = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Link:</span>
-                <input type="text" value={source.link} onInput={e => source.link = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Retrieved:</span>
-                <input type="text" value={source.retrievedDate} onInput={e => source.retrievedDate = e.currentTarget.value} />
-            </label>
-            <label>
-                <span>Additional Information:</span>
-                <textarea rows={5} value={source.additionalInfo} onInput={e => source.additionalInfo = e.currentTarget.value}></textarea>
-            </label>
-            <p className="form-section-desc">
-                For academic papers, the first item in the description should be “Data published by: complete reference”.  This should be followed by the authors underlying sources, a link to the paper, and the date on which the paper was accessed. <br />
-                For institutional projects, the format should be similar, but detailing the corresponding project or report. <br />
-                For data that we have modified extensively in order to change the meaning of the data, we should list OWID as publisher, and provide the name of the person in charge of the calculation.<br />
-                The field “Data publisher’s source” should give basic pointers (e.g. surveys data). Anything longer than a line should be relegated to the field “Additional information”. <br />
-            </p>
+            {this.deletingVariables.length > 0 && <div className="alert alert-danger">
+                Some existing variables are not selected to overwrite and will be deleted: {this.deletingVariables.map(v => v.name).join(",")}
+            </div>}
         </section>
     }
 }
@@ -276,7 +220,8 @@ class CSV {
             entities.push(entity)
             years.push(+year)
             row.slice(2).forEach((value, j) => {
-                variables[j].values.push(value)
+                if (value !== "")
+                    variables[j].values.push(value)
             })
         }
 
@@ -286,7 +231,6 @@ class CSV {
             years: years
         }
     }
-
 
     @computed get validation(): ValidationResults {
         const validation: ValidationResults = { results: [], passed: false }
@@ -342,7 +286,7 @@ class CSV {
             const row = rows[i]
             for (let j = 2; j < row.length; j++) {
                 if (row[j] !== '' && (isNaN(parseFloat(row[j])) || !row[j].match(/^[0-9.-]+$/)))
-                    nonNumeric.push(i + 1 + " `" + row[j] + "`")
+                    nonNumeric.push(`${i + 1} '${row[j]}'`)
             }
         }
 
@@ -361,7 +305,7 @@ class CSV {
             })
         }
 
-        validation.passed = validation.results.every(result => result.class !== "error")
+        validation.passed = validation.results.every(result => result.class !== "danger")
 
         return validation
     }
@@ -382,7 +326,7 @@ class ValidationView extends React.Component<{ validation: ValidationResults }> 
     render() {
         const { validation } = this.props
 
-        return <section className={styles.validation}>
+        return <section className="ValidationView">
             {validation.results.map((v: any) =>
                 <div className={`alert alert-${v.class}`}>{v.message}</div>
             )}
@@ -483,9 +427,6 @@ class Importer extends React.Component<ImportPageData> {
         dataset.entities = csv.data.entities
         dataset.years = csv.data.years
 
-        if (dataset.subcategoryId === undefined)
-            dataset.subcategoryId = this.defaultSubcategoryId
-
         if (existingDataset) {
             // Match new variables to existing variables
             dataset.newVariables.forEach(variable => {
@@ -517,8 +458,7 @@ class Importer extends React.Component<ImportPageData> {
             dataset: {
                 id: this.existingDataset ? this.existingDataset.id : undefined,
                 name: this.dataset.name,
-                description: this.dataset.description,
-                subcategoryId: this.dataset.subcategoryId
+                description: this.dataset.description
             },
             years, entities,
             variables: newVariables
@@ -543,18 +483,13 @@ class Importer extends React.Component<ImportPageData> {
             dispose()
     }
 
-    @computed get defaultSubcategoryId(): number {
-        const uncategorized = this.props.categories.find(c => c.name === "Uncategorized") as { id: number, name: string }
-        return uncategorized.id
-    }
-
     render() {
         const { csv, dataset, existingDataset } = this
         const { datasets, existingEntities } = this.props
 
-        return <form className={styles.importer} onSubmit={this.onSubmit}>
+        return <form className="Importer" onSubmit={this.onSubmit}>
             <h2>Import CSV file</h2>
-            <p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. The multivar layout is preferred. <span className="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a></span></p>
+            <p>Examples of valid layouts: <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_single-var.png">single variable</a>, <a href="http://ourworldindata.org/wp-content/uploads/2016/02/ourworldindata_multi-var.png">multiple variables</a>. <span className="form-section-desc">CSV files only: <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">csv file format guide</a>. Maximum file size: 10MB </span></p>
             <CSVSelector onCSV={this.onCSV} existingEntities={existingEntities} />
 
             {csv && csv.isValid && <section>
@@ -579,9 +514,9 @@ class Importer extends React.Component<ImportPageData> {
 }
 
 interface ImportPageData {
-    datasets: { 
+    datasets: {
         id: number
-        name: string 
+        name: string
     }[]
     categories: {
         id: number
@@ -614,4 +549,3 @@ export default class ImportPage extends React.Component {
         </AdminLayout>
     }
 }
-

@@ -29,7 +29,6 @@ interface Settings {
 
     WORDPRESS_DB_NAME: string
     WORDPRESS_DIR: string
-    DJANGO_BASE_URL: string
 
     EMAIL_HOST: string
     EMAIL_PORT: number
@@ -37,22 +36,34 @@ interface Settings {
     EMAIL_HOST_PASSWORD: string
     EMAIL_USE_TLS: boolean
 
+    // Where we store data exports in the form of git repos
+    GIT_DEFAULT_USERNAME: string
+    GIT_DEFAULT_EMAIL: string
+    GITHUB_USERNAME: string
+    TMP_DIR: string
+
     // These settings are inferred from other settings
     BUILD_GRAPHER_PATH: string
     BUILD_DIR: string
+    GIT_DATASETS_DIR: string
 }
 
 const env: Settings = (process.env as any)
 
 env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? "production" : "development"
-env.BASE_DIR = path.join(__dirname, "../../")
-env.BUILD_DIR = path.join(env.BASE_DIR, "public")
+env.BASE_DIR = env.BASE_DIR || path.join(__dirname, "../../")
+env.BUILD_DIR = env.BUILD_DIR || path.join(env.BASE_DIR, "public")
+env.GIT_DATASETS_DIR = env.GIT_DATASETS_DIR || path.join(env.BASE_DIR, "datasetsExport")
 env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
 env.NODE_SERVER_HOST = process.env.NODE_SERVER_HOST || "localhost"
 env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030
 env.NODE_BASE_URL = env.NODE_BASE_URL || `http://${env.NODE_SERVER_HOST}:${env.NODE_SERVER_PORT}`
-
 env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
+
+env.GITHUB_USERNAME = env.GITHUB_USERNAME || "owid-test"
+env.GIT_DEFAULT_USERNAME = env.GIT_DEFAULT_USERNAME || "Our World in Data"
+env.GIT_DEFAULT_EMAIL = env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org"
+env.TMP_DIR = "/tmp"
 
 env.EMAIL_PORT = env.EMAIL_PORT ? parseInt(env.EMAIL_PORT as any) : 443
 env.EMAIL_USE_TLS = !!env.EMAIL_USE_TLS
