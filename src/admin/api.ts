@@ -949,7 +949,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
 
         // Remove all existing variables not matched by overwriteId
         const existingVariables = await t.query(`SELECT id FROM variables v WHERE v.datasetId=?`, [datasetId])
-        const removingVariables = existingVariables.filter((v: any) => !variables.some(v2 => v2.overwriteId = v.overwriteId))
+        const removingVariables = existingVariables.filter((v: any) => !variables.some(v2 => v2.overwriteId === v.id))
         const removingVariableIds = removingVariables.map((v: any) => v.id) as number[]
         if (removingVariableIds.length) {
             await t.execute(`DELETE FROM data_values WHERE variableId IN (?)`, [removingVariableIds])
