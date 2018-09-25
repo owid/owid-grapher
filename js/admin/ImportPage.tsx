@@ -336,6 +336,7 @@ class ValidationView extends React.Component<{ validation: ValidationResults }> 
 @observer
 class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (csv: CSV) => void }> {
     @observable csv?: CSV
+    fileInput?: HTMLInputElement
 
     @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
         const { existingEntities } = this.props
@@ -363,10 +364,15 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
         const { csv } = this
 
         return <section>
-            <input type="file" onChange={this.onChooseCSV} />
+            <input type="file" onChange={this.onChooseCSV} ref={e => this.fileInput = e as HTMLInputElement}/>
             {csv && <DataPreview csv={csv} />}
             {csv && <ValidationView validation={csv.validation} />}
         </section>
+    }
+
+    componentDidMount() {
+        if (this.fileInput)
+            this.fileInput.value = ""
     }
 }
 
