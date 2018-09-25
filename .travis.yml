@@ -14,7 +14,7 @@ sudo: required
 before_script:
   - cp .env.travis .env
   - mysql -e 'CREATE DATABASE test_grapher;'
-  - mkdir tmp
+  - tsc  
 script:
   - yarn test
 cache: yarn
