@@ -943,6 +943,7 @@ api.post('/importDataset', async (req: Request, res: Response) => {
         // Map entities to entityIds
         const entityRows = await t.query(`SELECT id, name FROM entities WHERE name IN (?)`, [entitiesUniq])
         const entityIdLookup: {[key: string]: number} = {}
+        console.log(_.difference(_.keys(entityIdLookup), entitiesUniq))
         for (const row of entityRows) {
             entityIdLookup[row.name] = row.id
         }
