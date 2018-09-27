@@ -974,11 +974,15 @@ api.post('/importDataset', async (req: Request, res: Response) => {
                 variableId = result.insertId
             }
 
-            // Insert new data values
-            const valueRows = variable.values.map((value, i) =>
-                [value, years[i], entityIdLookup[entities[i]], variableId]
-            )
+            const valueRows = []
+            for (let i = 0; i < variable.values.length; i++) {
+                const value = variable.values[i]
+                if (value !== "") {
+                    valueRows.push([value, years[i], entityIdLookup[entities[i]], variableId])
+                }
+            }
             await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
+
         }
 
         return datasetId
