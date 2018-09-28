@@ -9,3 +9,4 @@ public
 dist
 logs/*
 datasetsExport
+tmp

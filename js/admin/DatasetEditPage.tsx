@@ -122,7 +122,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
             <div className="col">
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     <section>
-                        <BindString label="Name" field="name" store={newVariable} helpText="The full name of the variable e.g. Top marginal income tax rate (Piketty 2014)" disabled={isBulkImport}/>
+                        <BindString label="Name" field="name" store={newVariable} helpText="The full name of the variable e.g. Top marginal income tax rate" disabled={isBulkImport}/>
                         <BindString label="Display name" field="name" store={newVariable.display} helpText="How the variable should be named on charts"/>
                         <FieldsRow>
                             <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
