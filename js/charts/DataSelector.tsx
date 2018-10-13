@@ -22,6 +22,11 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
 
     @computed get availableData(): DataKeyInfo[] {
         const { chart } = this.props
+
+        const selectableKeys = chart.activeTransform.selectableKeys
+        if (selectableKeys !== undefined) {
+            return selectableKeys.map(key => chart.data.lookupKey(key))
+        }
         return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
     }
 

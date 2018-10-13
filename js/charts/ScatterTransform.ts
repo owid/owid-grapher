@@ -9,6 +9,8 @@ import AxisSpec from './AxisSpec'
 import { formatValue, domainExtent, findClosest } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import IChartTransform from './IChartTransform'
+import { DataKeyInfo } from './ChartData'
+import DataKey from './DataKey'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -87,6 +89,16 @@ export default class ScatterTransform implements IChartTransform {
         const yEntities = this.yDimension ? this.yDimension.variable.entitiesUniq : []
         const xEntities = this.xDimension ? this.xDimension.variable.entitiesUniq : []
         return intersection(yEntities, xEntities)
+    }
+
+    @computed get selectableKeys(): string[] {
+        const { currentData } = this
+
+        const keyData: string[] = []
+        currentData.forEach(series => {
+            keyData.push(series.key)
+        })
+        return keyData
     }
 
     @computed get excludedEntities(): string[] {
