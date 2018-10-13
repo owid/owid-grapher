@@ -9,8 +9,6 @@ import AxisSpec from './AxisSpec'
 import { formatValue, domainExtent, findClosest } from './Util'
 import ColorSchemes, { ColorScheme } from './ColorSchemes'
 import IChartTransform from './IChartTransform'
-import { DataKeyInfo } from './ChartData'
-import DataKey from './DataKey'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
