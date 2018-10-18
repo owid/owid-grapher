@@ -89,6 +89,16 @@ export default class ScatterTransform implements IChartTransform {
         return intersection(yEntities, xEntities)
     }
 
+    @computed get selectableKeys(): string[] {
+        const { currentData } = this
+
+        const keyData: string[] = []
+        currentData.forEach(series => {
+            keyData.push(series.key)
+        })
+        return keyData
+    }
+
     @computed get excludedEntities(): string[] {
         const entityIds = this.chart.props.excludedEntities || []
         return entityIds.map(id => {

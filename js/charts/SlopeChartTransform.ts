@@ -139,6 +139,16 @@ export default class SlopeChartTransform implements IChartTransform {
         return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
     }
 
+    @computed get selectableKeys(): string[] {
+        const { data } = this
+
+        const keyData: string[] = []
+        data.forEach(series => {
+            keyData.push(series.key)
+        })
+        return keyData
+    }
+
     @computed get data(): SlopeChartSeries[] {
         if (!this.yDimension) return []
 
