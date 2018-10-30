@@ -11,8 +11,7 @@ export default class UserInvitation extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() code!: string
     @Column() email!: string
-    @Column({ name: 'valid_till' }) validTill!: Date
-    // Hack - some weirdness going on with default values and typeorm
+    @Column() validTill!: Date
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
 }
