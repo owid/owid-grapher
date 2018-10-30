@@ -31,7 +31,7 @@ adminViews.post('/login', async (req, res) => {
 
 adminViews.get('/logout', async (req, res) => {
     if (res.locals.user)
-        await db.query(`DELETE FROM django_session WHERE session_key = ?`, [res.locals.session.id])
+        await db.query(`DELETE FROM sessions WHERE session_key = ?`, [res.locals.session.id])
 
     res.redirect('/admin')
 })
