@@ -11,8 +11,8 @@ async function dataExport() {
     console.log(`Exporting database structure and metadata to /tmp/owid_metadata.sql...`)
 
     // Dump all tables including schema but exclude the rows of data_values
-    shell.exec(`mysqldump ${settings.DB_NAME} --ignore-table=${settings.DB_NAME}.django_session --ignore-table=${settings.DB_NAME}.user_invitations --ignore-table=${settings.DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
-    shell.exec(`mysqldump --no-data ${settings.DB_NAME} django_session user_invitations data_values >> /tmp/owid_metadata.sql`)
+    shell.exec(`mysqldump ${settings.DB_NAME} --ignore-table=${settings.DB_NAME}.sessions --ignore-table=${settings.DB_NAME}.user_invitations --ignore-table=${settings.DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
+    shell.exec(`mysqldump --no-data ${settings.DB_NAME} sessions user_invitations data_values >> /tmp/owid_metadata.sql`)
 
     // Strip passwords
     shell.exec(`sed -i -e "s/bcrypt[^']*//g" /tmp/owid_metadata.sql`)
