@@ -624,7 +624,7 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
     await db.transaction(async t => {
         const newDataset = (req.body as { dataset: any }).dataset
-        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`, [newDataset.name, newDataset.description, newDataset.isPrivate, new Date(), res.locals.user.id, datasetId])
+        await t.execute(`UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`, [newDataset.name, newDataset.description||"", newDataset.isPrivate, new Date(), res.locals.user.id, datasetId])
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
         await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
