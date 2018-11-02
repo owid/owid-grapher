@@ -7,7 +7,6 @@ import * as fs from 'fs-extra'
 import * as React from 'react'
 import * as path from 'path'
 import * as glob from 'glob'
-import * as shell from 'shelljs'
 const md5 = require('md5')
 
 import * as db from './db'
@@ -16,7 +15,7 @@ import { ChartConfigProps } from '../js/charts/ChartConfig'
 import {ChartPage} from './ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { getVariableData } from './model/Variable'
-import { renderToHtmlPage } from './admin/serverUtil'
+import { renderToHtmlPage, exec } from './admin/serverUtil'
 
 export interface ChartBakerProps {
     repoDir: string
@@ -205,12 +204,12 @@ ${BUILD_GRAPHER_PATH}/*
         await this.bakeCharts()
     }
 
-    exec(cmd: string, message?: string) {
+    async exec(cmd: string, message?: string) {
         if (message)
             console.log(message)
         else
             console.log(cmd)
-        shell.exec(cmd)
+        await exec(cmd)
     }
 
     stage(targetPath: string) {
@@ -223,16 +222,16 @@ ${BUILD_GRAPHER_PATH}/*
 
         if (fs.existsSync(path.join(repoDir, "netlify.toml"))) {
             // Deploy directly to Netlify (faster than using the github hook)
-            this.exec(`cd ${repoDir} && netlifyctl deploy -b .`)
+            await this.exec(`cd ${repoDir} && netlifyctl deploy -b .`)
         }
 
         for (const files of chunk(this.stagedFiles, 100)) {
-            this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`, `Staging ${files.length} files`)
+            await this.exec(`cd ${repoDir} && git add -A ${files.join(" ")}`, `Staging ${files.length} files`)
         }
         if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${repoDir} && git commit -m '${commitMsg}' --author='${authorName} <${authorEmail}>' && git push origin master`)
+            await this.exec(`cd ${repoDir} && git commit -m '${commitMsg}' --author='${authorName} <${authorEmail}>' && git push origin master`)
         } else {
-            this.exec(`cd ${repoDir} && git commit -m "${commitMsg}" && git push origin master`)
+            await this.exec(`cd ${repoDir} && git commit -m "${commitMsg}" && git push origin master`)
         }
     }
 
