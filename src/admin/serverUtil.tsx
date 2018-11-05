@@ -4,6 +4,26 @@ import * as _ from 'lodash'
 import {quote} from 'shell-quote'
 import * as urljoin from 'url-join'
 import * as settings from '../settings'
+import * as util from 'util'
+import { exec as childExec } from 'child_process'
+
+export const promisifiedExec = util.promisify(childExec)
+
+export async function exec(command: string): Promise<{ stdout: string, stderr: string }> {
+    return await promisifiedExec(command);
+}
+
+export async function tryExec(command: string): Promise<{ stdout: string, stderr: string, error?: any }> {
+    try {
+        return await exec(command);
+    } catch (error) {
+        return {
+            error,
+            stdout: error.stdout,
+            stderr: error.stderr
+        };
+    }
+}
 
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
