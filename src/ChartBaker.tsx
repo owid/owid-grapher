@@ -220,6 +220,9 @@ ${BUILD_GRAPHER_PATH}/*
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         const {repoDir} = this.props
 
+        // Ensure there is a git repo in repoDir
+        await this.exec(`cd ${repoDir} && git init`)
+
         if (fs.existsSync(path.join(repoDir, "netlify.toml"))) {
             // Deploy directly to Netlify (faster than using the github hook)
             await this.exec(`cd ${repoDir} && netlifyctl deploy -b .`)
