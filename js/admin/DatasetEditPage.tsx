@@ -111,6 +111,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
 
     componentDidUnmount() {
         this.dispose()
+        this.dispose2()
     }
 
     render() {
