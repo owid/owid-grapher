@@ -3,12 +3,12 @@
 export type ChartTypeType = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "SlopeChart" | "StackedBar"
 
 export default class ChartType {
-    static LineChart = "LineChart"
-    static ScatterPlot = "ScatterPlot"
-    static StackedArea = "StackedArea"
-    static DiscreteBar = "DiscreteBar"
-    static SlopeChart = "SlopeChart"
-    static StackedBar = "StackedBar"
+    static LineChart: ChartTypeType = "LineChart"
+    static ScatterPlot: ChartTypeType = "ScatterPlot"
+    static StackedArea: ChartTypeType = "StackedArea"
+    static DiscreteBar: ChartTypeType = "DiscreteBar"
+    static SlopeChart: ChartTypeType = "SlopeChart"
+    static StackedBar: ChartTypeType = "StackedBar"
 }
 
 export const ChartTypeDefs = [
