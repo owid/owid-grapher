@@ -15,6 +15,7 @@ import { BindString, Toggle, BindFloat, FieldsRow } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
+import ChartType from '../charts/ChartType'
 import TagBadge from './TagBadge'
 import VariableList, { VariableListItem } from './VariableList'
 
@@ -87,8 +88,13 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
                 chart.data.selectedKeys = chart.data.availableKeys.filter(key => chart.data.lookupKey(key).entity === entity)
                 chart.props.addCountryMode = 'change-country'
             } else {
-                chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
                 chart.props.addCountryMode = 'add-country'
+                if (chart.data.filledDimensions[0].yearsUniq.length === 1) {
+                    chart.props.type = ChartType.DiscreteBar
+                    chart.data.selectedKeys = chart.data.availableKeys.length > 15 ? _.sampleSize(chart.data.availableKeys, 8) : chart.data.availableKeys
+                } else {
+                    chart.data.selectedKeys = chart.data.availableKeys.length > 10 ? _.sampleSize(chart.data.availableKeys, 3) : chart.data.availableKeys
+                }
             }
         }
     }
@@ -111,6 +117,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
 
     componentDidUnmount() {
         this.dispose()
+        this.dispose2()
     }
 
     render() {
