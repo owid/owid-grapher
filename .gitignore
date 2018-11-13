@@ -16,3 +16,4 @@ public
 .netlify
 *.swp
 datasetsExport
+.DS_Store

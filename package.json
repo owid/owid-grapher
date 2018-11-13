@@ -54,7 +54,7 @@
     "body-parser": "^1.18.3",
     "bootstrap": "^4.1.2",
     "colorbrewer": "^1.0.0",
-    "concurrently": "^3.4.0",
+    "concurrently": "^4.0.1",
     "cookie-parser": "^1.4.3",
     "css-loader": "^0.26.1",
     "csv-parse": "^1.2.0",
