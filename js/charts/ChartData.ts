@@ -311,7 +311,7 @@ export default class ChartData {
                 if (isSingleVariable) {
                     label = entity
                 } else if (isSingleEntity) {
-                    label = `${dim.displayName}`
+                    label = `${dim.displayName || variable.name}`
                 }
 
                 keyData.set(key, {
