@@ -9,13 +9,14 @@ import {includes, capitalize} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 
 import Admin from './Admin'
-import ChartEditor, {EditorDatabase} from './ChartEditor'
+import ChartEditor, {EditorDatabase, Log} from './ChartEditor'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
 import EditorTextTab from './EditorTextTab'
 import EditorCustomizeTab from './EditorCustomizeTab'
 import EditorScatterTab from './EditorScatterTab'
 import EditorMapTab from './EditorMapTab'
+import EditorHistoryTab from './EditorHistoryTab'
 import SaveButtons from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import AdminLayout from './AdminLayout'
@@ -52,6 +53,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
+    @observable.ref logs?: Log[]
     context!: { admin: Admin }
 
     async fetchChart() {
@@ -67,6 +69,13 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
         runInAction(() => this.database = new EditorDatabase(json))
     }
 
+    async fetchLogs() {
+        const { chartId } = this.props
+        const { admin } = this.context
+        const json = chartId === undefined ? [] : await admin.getJSON(`/api/charts/${chartId}.logs.json`)
+        runInAction(() => this.logs = json.logs)
+    }
+
     @computed get editor(): ChartEditor|undefined {
         if (this.chart === undefined || this.database === undefined) {
             return undefined
@@ -75,7 +84,8 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
             return new ChartEditor({
                 get admin() { return that.context.admin },
                 get chart() { return that.chart as ChartConfig },
-                get database() { return that.database as EditorDatabase }
+                get database() { return that.database as EditorDatabase },
+                get logs() { return that.logs as Log[] }
             })
         }
     }
@@ -83,6 +93,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     @action.bound refresh() {
         this.fetchChart()
         this.fetchData()
+        this.fetchLogs()
     }
 
     dispose!: IReactionDisposer
@@ -142,6 +153,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
                     {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
                     {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
                     {editor.tab === 'map' && <EditorMapTab editor={editor} />}
+                    {editor.tab === 'history' && <EditorHistoryTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
             </form>,
