@@ -1,10 +1,11 @@
 import * as _ from 'lodash'
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany, JoinColumn} from "typeorm"
 
 import * as db from '../db'
 import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 import User from './User'
+import { ChartLog } from './ChartLog'
 
 @Entity("charts")
 export class Chart extends BaseEntity {
@@ -22,6 +23,8 @@ export class Chart extends BaseEntity {
     lastEditedByUser!: User
     @ManyToOne(type => User, user => user.publishedCharts)
     publishedByUser!: User
+    @OneToMany(type => ChartLog, log => log.chart)
+    logs!: ChartLog[]
 }
 
 // TODO integrate this old logic with typeorm
