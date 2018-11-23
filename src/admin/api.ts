@@ -86,7 +86,8 @@ async function getLogsByChartId(chartId: number): Promise<ChartLog[]> {
         FROM chart_logs l
         LEFT JOIN users u on u.id = userId
         WHERE chartId = ?
-        ORDER BY l.id DESC`, [chartId]))
+        ORDER BY l.id DESC
+        LIMIT 50`, [chartId]))
     return logs
 }
 
