@@ -40,7 +40,7 @@ export class LogRenderer extends React.Component<{ log: Log, applyConfig: (confi
 
     render() {
         const { configToShow, title, truncate } = this
-        const log = this.props.log
+        const { log } = this.props
 
         return <div>
             <Section name={title}>
