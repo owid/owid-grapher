@@ -28,6 +28,8 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         html, body {
             height: 100%;
             margin: 0;
+            background-color: #f1f1f1;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         figure, iframe {
