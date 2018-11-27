@@ -87,13 +87,26 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 
 testPages.get('/embeds', async (req, res) => {
     const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
-    let query = Chart.createQueryBuilder().limit(numPerPage).offset(numPerPage*(page-1)).orderBy("lastEditedAt", "DESC")
+    let query = Chart.createQueryBuilder("charts").limit(numPerPage).offset(numPerPage*(page-1)).orderBy("id", "ASC")
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap")
             query = query.where(`config->"$.hasMapTab" IS TRUE`)
         else
             query = query.where(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
+    }
+
+    if (req.query.namespace) {
+        query.andWhere(`
+            EXISTS(
+                SELECT *
+                FROM datasets
+                INNER JOIN variables ON variables.datasetId = datasets.id
+                INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE datasets.namespace = :namespace
+                AND chart_dimensions.chartId = charts.id
+            )
+        `, { namespace: req.query.namespace })
     }
 
     let slugs = (await query.getMany()).map(c => c.config.slug) as string[]
