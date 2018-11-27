@@ -15,7 +15,15 @@ import * as url from 'url'
 
 const testPages = Router()
 
-function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slugs: string[] }) {
+interface EmbedTestPageProps {
+    prevPageUrl?: string,
+    nextPageUrl?: string,
+    currentPage?: number,
+    totalPages?: number,
+    slugs: string[]
+}
+
+function EmbedTestPage(props: EmbedTestPageProps) {
     const style = `
         html, body {
             height: 100%;
@@ -66,7 +74,11 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
                 </div>
             )}
             <nav className="pagination">
-                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>} {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
+                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>}
+                {" "}
+                {props.currentPage != null && props.totalPages != null && `Page ${props.currentPage} of ${props.totalPages}`}
+                {" "}
+                {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
             </nav>
             <script src="/grapher/embedCharts.js"/>
         </body>
@@ -98,7 +110,7 @@ testPages.get('/embeds', async (req, res) => {
     const prevPageUrl = page > 1 ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page-1 })) : undefined
     const nextPageUrl = page < numPages ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page+1 })) : undefined
 
-    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} slugs={slugs}/>))
+    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} slugs={slugs} currentPage={page} totalPages={numPages} />))
 })
 
 function PreviewTestPage(props: { charts: any[] }) {
