@@ -7,7 +7,7 @@ import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
 import OldChart, {Chart} from '../model/Chart'
 import * as db from '../db'
-import {ENV, NODE_BASE_URL} from '../settings'
+import {NODE_BASE_URL, BUILD_GRAPHER_URL} from '../settings'
 import {expectInt} from './serverUtil'
 import * as querystring from 'querystring'
 import * as _ from 'lodash'
@@ -96,7 +96,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                     <div className="chart-id">{chart.id}</div>
                     <div className="side-by-side">
                         <iframe src={`https://ourworldindata.org/grapher/${chart.slug}`}/>
-                        {!IS_LIVE && <figure data-grapher-src={`/grapher/${chart.slug}`}/>}
+                        {!IS_LIVE && <figure data-grapher-src={`${BUILD_GRAPHER_URL}/${chart.slug}`}/>}
                     </div>
                 </div>
             )}
