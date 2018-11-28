@@ -17,12 +17,17 @@ const IS_LIVE = NODE_BASE_URL === "https://owid.cloud"
 
 const testPages = Router()
 
+interface ChartItem {
+    id: number,
+    slug: string
+}
+
 interface EmbedTestPageProps {
     prevPageUrl?: string,
     nextPageUrl?: string,
     currentPage?: number,
     totalPages?: number,
-    slugs: string[]
+    charts: ChartItem[]
 }
 
 function EmbedTestPage(props: EmbedTestPageProps) {
@@ -36,13 +41,18 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 
         figure, iframe {
             border: 0;
-            width: 914px;
-            height: 400px;
+            flex: 1;
+            height: 450px;
+            margin: 10px;
         }
 
         .row {
             padding: 10px;
             margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -58,6 +68,14 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         nav.pagination {
             width: 100%;
             text-align: center;
+            padding: 15px;
+        }
+
+        .chart-id {
+            font-size: 18px;
+            font-weight: bold;
+            padding-top: 10px;
+            text-align: center;
         }
     `
     return <html>
@@ -68,13 +86,18 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         </head>
         <body>
             <div className="row">
-                <h3>ourworldindata.org</h3>
-                {!IS_LIVE && <h3>{NODE_BASE_URL}</h3>}
+                <div className="side-by-side">
+                    <h3>ourworldindata.org</h3>
+                    {!IS_LIVE && <h3>{NODE_BASE_URL}</h3>}
+                </div>
             </div>
-            {props.slugs.map(slug =>
+            {props.charts.map(chart =>
                 <div className="row">
-                    <iframe src={`https://ourworldindata.org/grapher/${slug}`}/>
-                    {!IS_LIVE && <figure data-grapher-src={`/grapher/${slug}`}/>}
+                    <div className="chart-id">{chart.id}</div>
+                    <div className="side-by-side">
+                        <iframe src={`https://ourworldindata.org/grapher/${chart.slug}`}/>
+                        {!IS_LIVE && <figure data-grapher-src={`/grapher/${chart.slug}`}/>}
+                    </div>
                 </div>
             )}
             <nav className="pagination">
@@ -113,12 +136,12 @@ testPages.get('/embeds', async (req, res) => {
         `, { namespace: req.query.namespace })
     }
 
-    let slugs = (await query.getMany()).map(c => c.config.slug) as string[]
+    const charts: ChartItem[] = (await query.getMany()).map(c => ({ id: c.id, slug: c.config.slug }))
 
     if (req.query.type === "ChoroplethMap") {
-        slugs = slugs.map(slug => slug + "?tab=map")
+        charts.forEach(c => c.slug += '?tab=map')
     } else if (req.query.type) {
-        slugs = slugs.map(slug => slug + "?tab=chart")
+        charts.forEach(c => c.slug += '?tab=chart')
     }
 
     const count = await query.getCount()
@@ -127,7 +150,7 @@ testPages.get('/embeds', async (req, res) => {
     const prevPageUrl = page > 1 ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page-1 })) : undefined
     const nextPageUrl = page < numPages ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page+1 })) : undefined
 
-    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} slugs={slugs} currentPage={page} totalPages={numPages} />))
+    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} charts={charts} currentPage={page} totalPages={numPages} />))
 })
 
 function PreviewTestPage(props: { charts: any[] }) {
