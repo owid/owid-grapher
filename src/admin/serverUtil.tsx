@@ -10,18 +10,18 @@ import { exec as childExec } from 'child_process'
 export const promisifiedExec = util.promisify(childExec)
 
 export async function exec(command: string): Promise<{ stdout: string, stderr: string }> {
-    return await promisifiedExec(command);
+    return promisifiedExec(command, { maxBuffer: 1024 * 1024 * 10 })
 }
 
 export async function tryExec(command: string): Promise<{ stdout: string, stderr: string, error?: any }> {
     try {
-        return await exec(command);
+        return await exec(command)
     } catch (error) {
         return {
             error,
             stdout: error.stdout,
             stderr: error.stderr
-        };
+        }
     }
 }
 
