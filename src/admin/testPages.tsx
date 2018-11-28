@@ -13,6 +13,8 @@ import * as querystring from 'querystring'
 import * as _ from 'lodash'
 import * as url from 'url'
 
+const IS_LIVE = NODE_BASE_URL === "https://owid.cloud"
+
 const testPages = Router()
 
 interface EmbedTestPageProps {
@@ -67,12 +69,12 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         <body>
             <div className="row">
                 <h3>ourworldindata.org</h3>
-                {ENV === 'development' && <h3>{NODE_BASE_URL}</h3>}
+                {!IS_LIVE && <h3>{NODE_BASE_URL}</h3>}
             </div>
             {props.slugs.map(slug =>
                 <div className="row">
                     <iframe src={`https://ourworldindata.org/grapher/${slug}`}/>
-                    {ENV === 'development' && <figure data-grapher-src={`/grapher/${slug}`}/>}
+                    {!IS_LIVE && <figure data-grapher-src={`/grapher/${slug}`}/>}
                 </div>
             )}
             <nav className="pagination">
