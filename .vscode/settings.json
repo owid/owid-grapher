@@ -3,6 +3,7 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
+    "files.insertFinalNewline": false,
     "tslint.autoFixOnSave": true,
     "search.exclude": {
         "public": true,
