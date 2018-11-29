@@ -7,30 +7,52 @@ import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
 import OldChart, {Chart} from '../model/Chart'
 import * as db from '../db'
-import {ENV, NODE_BASE_URL} from '../settings'
+import {NODE_BASE_URL, BUILD_GRAPHER_URL} from '../settings'
 import {expectInt} from './serverUtil'
 import * as querystring from 'querystring'
 import * as _ from 'lodash'
 import * as url from 'url'
 
+const IS_LIVE = NODE_BASE_URL === "https://owid.cloud"
+
 const testPages = Router()
 
-function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slugs: string[] }) {
+interface ChartItem {
+    id: number,
+    slug: string
+}
+
+interface EmbedTestPageProps {
+    prevPageUrl?: string,
+    nextPageUrl?: string,
+    currentPage?: number,
+    totalPages?: number,
+    charts: ChartItem[]
+}
+
+function EmbedTestPage(props: EmbedTestPageProps) {
     const style = `
         html, body {
             height: 100%;
             margin: 0;
+            background-color: #f1f1f1;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         figure, iframe {
             border: 0;
-            width: 914px;
-            height: 400px;
+            flex: 1;
+            height: 450px;
+            margin: 10px;
         }
 
         .row {
             padding: 10px;
             margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -46,6 +68,14 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
         nav.pagination {
             width: 100%;
             text-align: center;
+            padding: 15px;
+        }
+
+        .chart-id {
+            font-size: 18px;
+            font-weight: bold;
+            padding-top: 10px;
+            text-align: center;
         }
     `
     return <html>
@@ -56,17 +86,26 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
         </head>
         <body>
             <div className="row">
-                <h3>ourworldindata.org</h3>
-                {ENV === 'development' && <h3>{NODE_BASE_URL}</h3>}
+                <div className="side-by-side">
+                    <h3>ourworldindata.org</h3>
+                    {!IS_LIVE && <h3>{NODE_BASE_URL}</h3>}
+                </div>
             </div>
-            {props.slugs.map(slug =>
+            {props.charts.map(chart =>
                 <div className="row">
-                    <iframe src={`https://ourworldindata.org/grapher/${slug}`}/>
-                    {ENV === 'development' && <figure data-grapher-src={`/grapher/${slug}`}/>}
+                    <div className="chart-id">{chart.id}</div>
+                    <div className="side-by-side">
+                        <iframe src={`https://ourworldindata.org/grapher/${chart.slug}`}/>
+                        {!IS_LIVE && <figure data-grapher-src={`${BUILD_GRAPHER_URL}/${chart.slug}`}/>}
+                    </div>
                 </div>
             )}
             <nav className="pagination">
-                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>} {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
+                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>}
+                {" "}
+                {props.currentPage != null && props.totalPages != null && `Page ${props.currentPage} of ${props.totalPages}`}
+                {" "}
+                {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
             </nav>
             <script src="/grapher/embedCharts.js"/>
         </body>
@@ -75,7 +114,7 @@ function EmbedTestPage(props: { prevPageUrl?: string, nextPageUrl?: string, slug
 
 testPages.get('/embeds', async (req, res) => {
     const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
-    let query = Chart.createQueryBuilder().limit(numPerPage).offset(numPerPage*(page-1)).orderBy("lastEditedAt", "DESC")
+    let query = Chart.createQueryBuilder("charts").limit(numPerPage).offset(numPerPage*(page-1)).orderBy("id", "ASC")
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap")
@@ -84,12 +123,25 @@ testPages.get('/embeds', async (req, res) => {
             query = query.where(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
     }
 
-    let slugs = (await query.getMany()).map(c => c.config.slug) as string[]
+    if (req.query.namespace) {
+        query.andWhere(`
+            EXISTS(
+                SELECT *
+                FROM datasets
+                INNER JOIN variables ON variables.datasetId = datasets.id
+                INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE datasets.namespace = :namespace
+                AND chart_dimensions.chartId = charts.id
+            )
+        `, { namespace: req.query.namespace })
+    }
+
+    const charts: ChartItem[] = (await query.getMany()).map(c => ({ id: c.id, slug: c.config.slug }))
 
     if (req.query.type === "ChoroplethMap") {
-        slugs = slugs.map(slug => slug + "?tab=map")
+        charts.forEach(c => c.slug += '?tab=map')
     } else if (req.query.type) {
-        slugs = slugs.map(slug => slug + "?tab=chart")
+        charts.forEach(c => c.slug += '?tab=chart')
     }
 
     const count = await query.getCount()
@@ -98,7 +150,7 @@ testPages.get('/embeds', async (req, res) => {
     const prevPageUrl = page > 1 ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page-1 })) : undefined
     const nextPageUrl = page < numPages ? (url.parse(req.originalUrl).pathname as string) + "?" + querystring.stringify(_.extend({}, req.query, { page: page+1 })) : undefined
 
-    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} slugs={slugs}/>))
+    res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} charts={charts} currentPage={page} totalPages={numPages} />))
 })
 
 function PreviewTestPage(props: { charts: any[] }) {
