@@ -47,6 +47,8 @@ export class ChartBaker {
                     const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
                     fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
                     this.stage(outPath)
+                } else if (key.match(/.js$/) || key.match(/.css$/)) {
+                    continue // Not interested in the admin js/css, but keep the fonts and such
                 }
             }
         }
