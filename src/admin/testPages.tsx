@@ -116,11 +116,24 @@ testPages.get('/embeds', async (req, res) => {
     const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
     let query = Chart.createQueryBuilder("charts").limit(numPerPage).offset(numPerPage*(page-1)).orderBy("id", "ASC")
 
+    let tab = req.query.tab
+
     if (req.query.type) {
-        if (req.query.type === "ChoroplethMap")
+        if (req.query.type === "ChoroplethMap") {
             query = query.where(`config->"$.hasMapTab" IS TRUE`)
-        else
+            tab = tab || "map"
+        } else {
             query = query.where(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
+            tab = tab || "chart"
+        }
+    }
+
+    if (tab) {
+        if (tab === "map") {
+            query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
+        } else if (tab === "chart") {
+            query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
+        }
     }
 
     if (req.query.namespace) {
@@ -138,10 +151,8 @@ testPages.get('/embeds', async (req, res) => {
 
     const charts: ChartItem[] = (await query.getMany()).map(c => ({ id: c.id, slug: c.config.slug }))
 
-    if (req.query.type === "ChoroplethMap") {
-        charts.forEach(c => c.slug += '?tab=map')
-    } else if (req.query.type) {
-        charts.forEach(c => c.slug += '?tab=chart')
+    if (tab) {
+        charts.forEach(c => c.slug += `?tab=${tab}`)
     }
 
     const count = await query.getCount()
