@@ -115,6 +115,7 @@
     "save-svg-as-png": "^1.2.0",
     "sharp": "^0.18.4",
     "shell-quote": "^1.6.1",
+    "shelljs": "^0.8.3",
     "slugify": "^1.2.7",
     "string-pixel-width": "^1.4.0",
     "style-loader": "^0.20.3",

@@ -6,22 +6,19 @@ import * as urljoin from 'url-join'
 import * as settings from '../settings'
 import * as util from 'util'
 import { exec as childExec } from 'child_process'
+import * as shell from 'shelljs'
 
-export const promisifiedExec = util.promisify(childExec)
+export const promisifiedExec = util.promisify(shell.exec)
 
-export async function exec(command: string): Promise<{ stdout: string, stderr: string }> {
-    return promisifiedExec(command, { maxBuffer: 1024 * 1024 * 10 })
+export async function exec(command: string): Promise<string> {
+    return promisifiedExec(command)
 }
 
-export async function tryExec(command: string): Promise<{ stdout: string, stderr: string, error?: any }> {
+export async function tryExec(command: string): Promise<string> {
     try {
         return await exec(command)
     } catch (error) {
-        return {
-            error,
-            stdout: error.stdout,
-            stderr: error.stderr
-        }
+        return error
     }
 }
 
