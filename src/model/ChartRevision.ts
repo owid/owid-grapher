@@ -4,8 +4,8 @@ import * as db from '../db'
 import { Chart } from './Chart'
 import User from './User'
 
-@Entity("chart_logs")
-export class ChartLog extends BaseEntity {
+@Entity("chart_revisions")
+export class ChartRevision extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() chartId!: number
     @Column({ type: 'json' }) config: any
@@ -19,18 +19,4 @@ export class ChartLog extends BaseEntity {
 
     @ManyToOne(type => Chart, chart => chart.logs)
     chart!: Chart
-
-}
-
-export function createChartLog(chartId: number|undefined, userId: number, config: any) {
-    if (chartId === undefined) return
-
-    const log = new ChartLog()
-    log.chartId = chartId
-    log.userId = userId
-    log.config = config
-    // TODO: the orm needs to support this but it does not :(
-    log.createdAt = new Date()
-    log.updatedAt = new Date()
-    log.save()
 }

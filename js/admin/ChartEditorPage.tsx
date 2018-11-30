@@ -53,7 +53,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
-    @observable.ref logs?: Log[]
+    @observable logs?: Log[]
     context!: { admin: Admin }
 
     async fetchChart() {
@@ -153,7 +153,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
                     {editor.tab === 'customize' && <EditorCustomizeTab editor={editor} />}
                     {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
                     {editor.tab === 'map' && <EditorMapTab editor={editor} />}
-                    {editor.tab === 'history' && <EditorHistoryTab editor={editor} />}
+                    {editor.tab === 'revisions' && <EditorHistoryTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
             </form>,

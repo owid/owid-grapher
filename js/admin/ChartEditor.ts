@@ -99,9 +99,10 @@ export default class ChartEditor {
         if (!this.chart.activeTransform.isValidConfig) {
             return ['basic']
         } else {
-            const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize', 'history']
+            const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
             if (this.chart.hasMapTab) tabs.push('map')
             if (this.chart.isScatter) tabs.push('scatter')
+            tabs.push('revisions')
             return tabs
         }
     }
@@ -137,6 +138,7 @@ export default class ChartEditor {
             } else {
                 runInAction(() => {
                     chart.props.version += 1
+                    this.logs.unshift(json.newLog)
                     this.savedChartConfig = JSON.stringify(chart.json)
                 })
             }

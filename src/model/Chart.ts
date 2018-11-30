@@ -5,7 +5,7 @@ import * as db from '../db'
 import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 import User from './User'
-import { ChartLog } from './ChartLog'
+import { ChartRevision } from './ChartRevision'
 
 @Entity("charts")
 export class Chart extends BaseEntity {
@@ -23,8 +23,8 @@ export class Chart extends BaseEntity {
     lastEditedByUser!: User
     @ManyToOne(type => User, user => user.publishedCharts)
     publishedByUser!: User
-    @OneToMany(type => ChartLog, log => log.chart)
-    logs!: ChartLog[]
+    @OneToMany(type => ChartRevision, rev => rev.chart)
+    logs!: ChartRevision[]
 }
 
 // TODO integrate this old logic with typeorm

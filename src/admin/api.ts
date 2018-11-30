@@ -21,7 +21,7 @@ import {Dataset} from '../model/Dataset'
 import {Tag} from '../model/Tag'
 import User from '../model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
-import { createChartLog, ChartLog } from '../model/ChartLog'
+import { ChartRevision } from '../model/ChartRevision'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -81,9 +81,9 @@ async function getChartById(chartId: number): Promise<ChartConfigProps|undefined
     }
 }
 
-async function getLogsByChartId(chartId: number): Promise<ChartLog[]> {
+async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     const logs = (await db.query(`SELECT userId, config, fullName as userName, l.createdAt
-        FROM chart_logs l
+        FROM chart_revisions l
         LEFT JOIN users u on u.id = userId
         WHERE chartId = ?
         ORDER BY l.id DESC
@@ -143,7 +143,6 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
                 `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
                 [JSON.stringify(newConfig), now, now, user.id, chartId]
             )
-            createChartLog(chartId, user.id, existingConfig)
         } else {
             const result = await t.execute(
                 `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
@@ -151,6 +150,16 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
             )
             chartId = result.insertId
         }
+
+        // Record this change in version history
+        const log = new ChartRevision()
+        log.chartId = chartId as number
+        log.userId = user.id
+        log.config = newConfig
+        // TODO: the orm needs to support this but it does not :(
+        log.createdAt = new Date()
+        log.updatedAt = new Date()
+        await t.manager.save(log)
 
         // Remove any old dimensions and store the new ones
         // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
@@ -169,8 +178,6 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
                 await t.execute(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
             }
         }
-
-        console.log(newConfig.isPublished, existingConfig && existingConfig.isPublished)
 
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
             // Newly published, set publication info
@@ -339,7 +346,8 @@ api.put('/charts/:chartId', async (req: Request, res: Response) => {
 
     await saveChart(res.locals.user, req.body, existingConfig)
 
-    return { success: true, chartId: existingConfig.id }
+    const logs = await getLogsByChartId(existingConfig.id as number)
+    return { success: true, chartId: existingConfig.id, newLog: logs[0] }
 })
 
 api.delete('/charts/:chartId', async (req: Request, res: Response) => {

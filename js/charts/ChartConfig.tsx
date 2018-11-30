@@ -99,6 +99,11 @@ export class ChartConfigProps {
     @observable.ref type: ChartTypeType = "LineChart"
 
     @observable.ref id?: number = undefined
+    @observable.ref createdAt?: Date = undefined
+    @observable.ref updatedAt?: Date = undefined
+    @observable.ref lastEditedByUserId?: number = undefined
+    @observable.ref version: number = 1
+
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
     @observable.ref subtitle?: string = undefined
@@ -143,7 +148,6 @@ export class ChartConfigProps {
     @observable excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
-    @observable.ref version: number = 1
 }
 
 // TODO: this really represents more than just the configuration state and should be split
