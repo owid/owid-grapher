@@ -27,6 +27,13 @@ export interface Dataset {
     isPrivate: boolean
 }
 
+export interface Log {
+    userId: number
+    userName: string
+    config: string
+    createdAt: string
+}
+
 // This contains the dataset/variable metadata for the entire database
 // Used for variable selector interface
 
@@ -47,6 +54,7 @@ export interface ChartEditorProps {
     admin: Admin
     chart: ChartConfig
     database: EditorDatabase
+    logs: Log[]
 }
 
 export default class ChartEditor {
@@ -83,11 +91,15 @@ export default class ChartEditor {
         return this.props.database
     }
 
+    @computed get logs(): Log[] {
+        return this.props.logs
+    }
+
     @computed get availableTabs(): EditorTab[] {
         if (!this.chart.activeTransform.isValidConfig) {
             return ['basic']
         } else {
-            const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
+            const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize', 'history']
             if (this.chart.hasMapTab) tabs.push('map')
             if (this.chart.isScatter) tabs.push('scatter')
             return tabs
@@ -100,6 +112,10 @@ export default class ChartEditor {
 
     @computed get features() {
         return new EditorFeatures(this)
+    }
+
+    async applyConfig(config: any) {
+        this.props.chart.update(JSON.parse(config))
     }
 
     // Load index of datasets and variables for the given namespace

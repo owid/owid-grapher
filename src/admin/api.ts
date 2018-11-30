@@ -21,6 +21,7 @@ import {Dataset} from '../model/Dataset'
 import {Tag} from '../model/Tag'
 import User from '../model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
+import { createChartLog, ChartLog } from '../model/ChartLog'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -80,6 +81,16 @@ async function getChartById(chartId: number): Promise<ChartConfigProps|undefined
     }
 }
 
+async function getLogsByChartId(chartId: number): Promise<ChartLog[]> {
+    const logs = (await db.query(`SELECT userId, config, fullName as userName, l.createdAt
+        FROM chart_logs l
+        LEFT JOIN users u on u.id = userId
+        WHERE chartId = ?
+        ORDER BY l.id DESC
+        LIMIT 50`, [chartId]))
+    return logs
+}
+
 async function expectChartById(chartId: any): Promise<ChartConfigProps> {
     const chart = await getChartById(expectInt(chartId))
 
@@ -132,6 +143,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
                 `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
                 [JSON.stringify(newConfig), now, now, user.id, chartId]
             )
+            createChartLog(chartId, user.id, existingConfig)
         } else {
             const result = await t.execute(
                 `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
@@ -199,6 +211,13 @@ api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
 
     return {
         namespaces: rows.map(row => row.namespace)
+    }
+})
+
+api.get('/charts/:chartId.logs.json', async (req: Request, res: Response) => {
+    const logs = await getLogsByChartId(req.params.chartId)
+    return {
+        logs: logs
     }
 })
 
@@ -644,7 +663,7 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
 api.router.put('/datasets/:datasetId/uploadZip', bodyParser.raw({ type: "application/zip", limit: "50mb" }), async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
- 
+
     await db.transaction(async t => {
         await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [datasetId])
         await t.execute(`INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)`, [datasetId, 'additional-material.zip', req.body])

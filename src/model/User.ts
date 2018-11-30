@@ -1,6 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typeorm"
 import { Chart } from './Chart'
 import { Dataset } from './Dataset'
+import { ChartLog } from "./ChartLog"
 const hashers = require('node-django-hashers')
 
 @Entity("users")
@@ -21,6 +22,9 @@ export default class User extends BaseEntity {
 
     @OneToMany(type => Chart, chart => chart.publishedByUser)
     publishedCharts!: Chart[]
+
+    @OneToMany(type => ChartLog, log => log.user)
+    editedCharts!: ChartLog[]
 
     @OneToMany(type => Dataset, dataset => dataset.createdByUser)
     createdDatasets!: Dataset[]
