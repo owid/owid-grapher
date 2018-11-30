@@ -164,6 +164,20 @@ testPages.get('/embeds', async (req, res) => {
     res.send(renderToHtmlPage(<EmbedTestPage prevPageUrl={prevPageUrl} nextPageUrl={nextPageUrl} charts={charts} currentPage={page} totalPages={numPages} />))
 })
 
+testPages.get('/embeds/:id', async (req, res) => {
+    const id = req.params.id
+    const chart = await Chart.createQueryBuilder().where("id = :id", { id: id }).getOne()
+    if (chart) {
+        const charts = [{
+            id: chart.id,
+            slug: chart.config.slug + (req.query.tab ? `?tab=${req.query.tab}` : "")
+        }]
+        res.send(renderToHtmlPage(<EmbedTestPage charts={charts} />))
+    } else {
+        res.send("Could not find chart ID")
+    }
+})
+
 function PreviewTestPage(props: { charts: any[] }) {
     const style = `
         html, body {
