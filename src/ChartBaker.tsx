@@ -225,9 +225,9 @@ ${BUILD_GRAPHER_PATH}/*
         // Ensure there is a git repo in repoDir
         await this.exec(`cd ${repoDir} && git init`)
 
-        if (fs.existsSync(path.join(repoDir, "netlify.toml"))) {
+        if (fs.existsSync(path.join(repoDir, ".netlify/state.json"))) {
             // Deploy directly to Netlify (faster than using the github hook)
-            await this.exec(`cd ${repoDir} && netlifyctl deploy -b .`)
+            await this.exec(`cd ${repoDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
         }
 
         for (const files of chunk(this.stagedFiles, 100)) {
