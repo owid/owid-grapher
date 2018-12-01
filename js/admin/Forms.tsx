@@ -295,7 +295,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 @observer
 export class BindString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, placeholder?: string, helpText?: string, textarea?: boolean, softCharacterLimit?: number, disabled?: boolean, rows?: number }> {
     @action.bound onValue(value: string) {
-        this.props.store[this.props.field] = value||undefined
+        this.props.store[this.props.field] = (value||undefined) as any
     }
 
     render() {
@@ -313,11 +313,11 @@ export class BindString<T extends {[field: string]: any}, K extends keyof T> ext
 @observer
 export class BindAutoString<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: string, label?: string, helpText?: string, softCharacterLimit?: number }> {
     @action.bound onValue(value: string) {
-        this.props.store[this.props.field] = value
+        this.props.store[this.props.field] = value as any
     }
 
     @action.bound onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = value ? undefined : this.props.auto
+        this.props.store[this.props.field] = (value ? undefined : this.props.auto) as any
     }
 
     render() {
@@ -381,7 +381,7 @@ export class FloatField extends React.Component<FloatFieldProps> {
 @observer
 export class BindFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, label?: string, helpText?: string }> {
     @action.bound onValue(value: number|undefined) {
-        this.props.store[this.props.field] = value
+        this.props.store[this.props.field] = value as any
     }
 
     render() {
@@ -396,11 +396,11 @@ export class BindFloat<T extends {[field: string]: any}, K extends keyof T> exte
 @observer
 export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> extends React.Component<{ field: K, store: T, auto: number, label?: string, helpText?: string }> {
     @action.bound onValue(value: number|undefined) {
-        this.props.store[this.props.field] = value
+        this.props.store[this.props.field] = value as any
     }
 
     @action.bound onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = value ? undefined : this.props.auto
+        this.props.store[this.props.field] = (value ? undefined : this.props.auto) as any
     }
 
     render() {
@@ -466,7 +466,6 @@ export class Pagination extends React.Component<{ totalItems: number, perPage: n
 
     }
 }
-
 
 const timeago = require('timeago.js')()
 
