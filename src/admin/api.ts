@@ -759,11 +759,11 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
     tag.charts = charts
 
     // Subcategories
-    const subcategories = await db.query(`
+    const children = await db.query(`
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId = ?
     `, [tag.id])
-    tag.subcategories = subcategories
+    tag.children = children
 
     // Possible parents to choose from
     const possibleParents = await db.query(`

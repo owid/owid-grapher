@@ -58,7 +58,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
                     <input type="submit" className="btn btn-primary">Send invite</input>
                 </div>
             </form>
-            {this.newTagId !== undefined && <Redirect to={`/categories/${this.newTagId}`}/>}
+            {this.newTagId !== undefined && <Redirect to={`/tags/${this.newTagId}`}/>}
         </Modal>
     }
 }
@@ -99,7 +99,7 @@ export default class TagsIndexPage extends React.Component {
                 <FieldsRow>
                     <span>Showing {this.categories.length} categories</span>
                 </FieldsRow>
-                <p>Categories are a way of organizing data. Each dataset can be assigned to any number of categories. A category may be a subcategory of another category.</p>
+                <p>Tags are a way of organizing data. Each dataset can be assigned any number of tags. A tag may be listed under another parent tag.</p>
                 <div className="cardHolder">
                     <section>
                         <h4>Top-Level Categories</h4>

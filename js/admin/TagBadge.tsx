@@ -16,7 +16,7 @@ export default class TagBadge extends React.Component<{ tag: Tag, onRemove?: () 
         if (onRemove) {
             return <span className="TagBadge" onClick={onRemove}>{tag.name}</span>
         } else {
-            return <Link className="TagBadge" to={`/categories/${tag.id}`}>{searchHighlight ? searchHighlight(tag.name) : tag.name}</Link>
+            return <Link className="TagBadge" to={`/tags/${tag.id}`}>{searchHighlight ? searchHighlight(tag.name) : tag.name}</Link>
         }
     }
 }

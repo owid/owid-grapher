@@ -249,7 +249,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
         const tagsByParent = _.groupBy(availableTags, c => c.parentName)
 
         return <div className="form-group">
-            <label>Categories</label>
+            <label>Tags</label>
             <div>{newDataset.tags.map(tag => <TagBadge tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
             <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
                 <option value="" disabled selected>Add category</option>

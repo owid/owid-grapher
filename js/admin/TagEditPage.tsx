@@ -19,7 +19,7 @@ interface TagPageData {
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    subcategories: Tag[]
+    children: Tag[]
     possibleParents: Tag[]
     isBulkImport: boolean
 }
@@ -112,13 +112,13 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     </FieldsRow>}
  
                     {!tag.isBulkImport && <div>
-                        <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                        <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.children.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                     </div>}
                 </form>
             </section>
-            {tag.subcategories.length > 0 && <section>
+            {tag.children.length > 0 && <section>
                 <h3>Subcategories</h3>
-                {tag.subcategories.map(c =>
+                {tag.children.map(c =>
                     <TagBadge tag={c as Tag}/>
                 )}
             </section>}
@@ -131,7 +131,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 <h3>Charts</h3>
                 <ChartList charts={tag.charts}/>
             </section>
-            {this.isDeleted && <Redirect to={`/categories`}/>}
+            {this.isDeleted && <Redirect to={`/tags`}/>}
         </main>
     }
 }
