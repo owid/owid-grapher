@@ -23,17 +23,7 @@ module.exports = (env, argv) => {
                         minChunks: 2
                     }
                 }
-            },
-            minimizer: [
-                new UglifyJsPlugin({
-                    uglifyOptions: {
-                        compress: {
-                            // https://github.com/developit/preact/issues/961
-                            reduce_vars: false
-                        }    
-                    },
-                })
-            ]
+            }
         },
         output: {
             path: path.join(__dirname, "dist/webpack"),
