@@ -28,12 +28,12 @@ export class Chart extends BaseEntity {
     logs!: ChartRevision[]
 
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-        const redirects = await db.query(`SELECT id, slug FROM chart_slug_redirects`)
+        const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
         const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
 
         const slugToId: {[slug: string]: number} = {}
         for (const row of redirects) {
-            slugToId[row.slug] = row.id
+            slugToId[row.slug] = row.chart_id
         }
         for (const row of rows) {
             slugToId[row.slug] = row.id

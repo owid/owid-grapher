@@ -48,6 +48,8 @@ async function tagCharts() {
         "yields-and-land-use-in-agriculture": "land-use-and-yields-in-agriculture"
     }
 
+    const chartTags: [number, number][] = []
+
     for (const htmlPath of paths) {
         const text = await fs.readFile(htmlPath, "utf8")
         const pageSlug = (_.last(htmlPath.split("/")) as string).split('.')[0]
@@ -55,14 +57,22 @@ async function tagCharts() {
 
         const isEntry = text.match(/entry-sidebar/)
 
-        if (isEntry && !tag) noTag.push(pageSlug)
-        else hasTag.push(pageSlug)
+        if (isEntry && !tag)
+            noTag.push(pageSlug)
+        else if (tag) {
+            const grapherSlugs = (text.match(/(?<=\/grapher\/).+?(?=[?|"])/g)||[]).filter(slug => slug !== "embedCharts.js" && !slug.includes("admin/") && !slug.includes("public/view"))
+            const chartIds = _.uniq(grapherSlugs.map(slug => slugToId[slug]))
 
-        const grapherSlugs = (text.match(/(?<=\/grapher\/).+?(?=[?|"])/g)||[]).filter(slug => slug !== "embedCharts.js" && !slug.includes("admin/") && !slug.includes("public/view"))
-        const chartIds = _.uniq(grapherSlugs.map(slug => slugToId[slug]))
+            for (const chartId of chartIds) {
+                chartTags.push([tag.id, chartId])
+            }
+        }
     }
 
-    console.log(noTag)
+    const uniqChartTags = _.uniqWith(chartTags, _.isEqual)
+    console.log(uniqChartTags.length)
+//    await db.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [uniqChartTags])
+
     await db.end()
 }
 
