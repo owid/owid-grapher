@@ -36,7 +36,6 @@ async function tagCharts() {
         "maternal-mortality": "maternal-health",
         "energy-production-and-changing-energy-sources": "energy-production-changing-energy-sources",
         "hunger-and-undernourishment": "hunger",
-//        "micronutrient-deficiency": ""
         "obesity": "obesity-bmi",
 //        "primary-and-secondary-education": ""
         "science-and-research": "science-research",

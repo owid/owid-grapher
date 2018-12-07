@@ -604,6 +604,13 @@
     "@types/history" "*"
     "@types/react" "*"
 
+"@types/react-tag-autocomplete@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/@types/react-tag-autocomplete/-/react-tag-autocomplete-5.6.0.tgz#26a9af61f78e0d6a669b37a09ddd97dbb30bffcc"
+  integrity sha512-EsUrbpKW5agXs/NbMUQRgwtZInQbUIIPBXiUz+XcJeUP7U6BRCWjw96sQmsEPRUwO0CdPfQEd82zwpCIGEr4Ew==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react@*", "@types/react@^16.0.29":
   version "16.7.11"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.7.11.tgz#1743b82ea6a0c659467f0c7317c233edb1f10be9"

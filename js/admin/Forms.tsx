@@ -475,3 +475,28 @@ export class Timeago extends React.Component<{ time: Date }> {
         return this.props.time ? timeago.format(this.props.time) : ""
     }
 }
+
+import TagBadge, { Tag } from './TagBadge'
+
+@observer
+export class TagEditor extends React.Component<{ tags: Tag[] }> {
+    @action.bound onInputKey(ev: React.KeyboardEvent) {
+        // BACKSPACE
+        if (ev.which === 8)
+            if (doGetCaretPosition($input[0]) === 0) {
+                var prev = $inputWrapper.prev();
+                if (prev.length) {
+                    self.remove(prev.data('item'));
+                }
+            }
+        }
+    }
+
+    render() {
+        const {tags} = this.props
+        return <div className="TagEditor">
+            {tags.map(tag => <TagBadge tag={tag}/>)}
+            <input onKeyDown={this.onInputKey} type="text" size={1}/>
+        </div>
+    }
+}

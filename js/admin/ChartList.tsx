@@ -7,6 +7,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
+import { TagEditor } from './Forms'
 
 export interface ChartListItem {
     id: number
@@ -74,7 +75,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
             <td>{highlight(chart.internalNotes)}</td>
-            <td>{chart.tags.map(tag => <TagBadge tag={tag}/>)}</td>
+            <td style={{minWidth: "240px"}}><TagEditor tags={chart.tags}/></td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
             <td>
