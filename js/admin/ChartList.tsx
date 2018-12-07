@@ -23,7 +23,7 @@ export interface ChartListItem {
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
-    tags?: Tag[]
+    tags: Tag[]
 }
 
 function showChartType(chart: ChartListItem) {
@@ -63,7 +63,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 
         return <tr>
             <td>
-                <a title="Show this chart on the front page of the website." onClick={_ => this.props.onStar(chart)}>
+                <a title="Show this chart on the front page of the website." onClick={() => this.props.onStar(chart)}>
                     {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
                 </a>
             </td>
@@ -74,6 +74,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
             <td>{highlight(chart.internalNotes)}</td>
+            <td>{chart.tags.map(tag => <TagBadge tag={tag}/>)}</td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
             <td>
@@ -128,6 +129,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
                     <th>Chart</th>
                     <th>Type</th>
                     <th>Notes</th>
+                    <th>Tags</th>
                     <th>Published</th>
                     <th>Last Updated</th>
                     <th></th>

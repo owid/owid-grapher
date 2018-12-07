@@ -6,7 +6,6 @@ import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 import User from './User'
 import { ChartRevision } from './ChartRevision'
-import { string } from 'prop-types';
 
 @Entity("charts")
 export class Chart extends BaseEntity {

@@ -10,7 +10,6 @@ import { slugify } from '../admin/serverUtil'
 import { Chart } from '../model/Chart'
 import { Tag } from '../model/Tag'
 
-
 async function tagCharts() {
     await db.connect()
 
@@ -70,8 +69,7 @@ async function tagCharts() {
     }
 
     const uniqChartTags = _.uniqWith(chartTags, _.isEqual)
-    console.log(uniqChartTags.length)
-//    await db.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [uniqChartTags])
+    await db.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [uniqChartTags])
 
     await db.end()
 }

@@ -204,6 +204,23 @@ api.get('/charts.json', async (req: Request, res: Response) => {
         ORDER BY charts.lastEditedAt DESC LIMIT ?
     `, [limit])
 
+    const chartTags = await db.query(`
+        SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+        JOIN charts c ON c.id=ct.chartId
+        JOIN tags t ON t.id=ct.tagId
+    `)
+
+    for (const chart of charts) {
+        chart.tags = []
+    }
+
+    const chartsById = _.keyBy(charts, c => c.id)
+
+    for (const ct of chartTags) {
+        const chart = chartsById[ct.chartId]
+        chart.tags.push({ id: ct.tagId, name: ct.tagName })
+    }
+
     return {
         charts: charts
     }
