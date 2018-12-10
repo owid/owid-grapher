@@ -12,6 +12,7 @@ import { VariableDisplaySettings } from '../charts/VariableData'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import ChartList, { ChartListItem } from './ChartList'
+import { AdminAppContext } from './AdminAppContext';
 
 interface VariablePageData {
     id: number
@@ -59,7 +60,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         this.isDeleted = false
     }
 
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
@@ -172,7 +173,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
 @observer
 export default class VariableEditPage extends React.Component<{ variableId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable variable?: VariablePageData
 
     render() {

@@ -8,6 +8,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
+import { AdminAppContext } from './AdminAppContext';
 
 interface PostIndexMeta {
     id: number
@@ -25,7 +26,7 @@ interface Searchable {
 
 @observer
 class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {post, highlight} = this.props
@@ -49,7 +50,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
 
 @observer
 export default class PostsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50

@@ -4,6 +4,7 @@ const timeago = require('timeago.js')()
 
 import Admin from './Admin'
 import Link from './Link'
+import { AdminAppContext } from './AdminAppContext';
 
 export interface VariableListItem {
     id: number
@@ -15,7 +16,7 @@ export interface VariableListItem {
 
 @observer
 class VariableRow extends React.Component<{ variable: VariableListItem, searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {variable, searchHighlight} = this.props
@@ -31,7 +32,7 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
 
 @observer
 export default class VariableList extends React.Component<{ variables: VariableListItem[], searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {props} = this

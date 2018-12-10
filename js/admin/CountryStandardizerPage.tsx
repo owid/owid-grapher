@@ -11,6 +11,7 @@ import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 import { uniq, toString, csvEscape } from '../charts/Util'
+import { AdminAppContext } from './AdminApp';
 
 class CSV {
     @observable filename?: string
@@ -191,7 +192,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
 
 @observer
 export default class CountryStandardizerPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     fileUploader!: HTMLInputElement
 
     @observable countryList: CountryEntry[] = []
@@ -420,55 +421,60 @@ export default class CountryStandardizerPage extends React.Component {
         const allowedInputFormats = CountryNameFormatDefs.filter(c => c.use_as_input)
         const allowedOutputFormats = CountryNameFormatDefs.filter(c => c.use_as_output)
 
-        return <AdminLayout title="CountryStandardizer">
-            <main className="CountryStandardizerPage">
-                <section>
-                    <h3>Country Standardizer Tool</h3>
-                    <p>Upload a CSV file with countries. Select the current input and desired output format. The tool will attempt to find a match automatically for all entries. If not, you will be able to select a similar entry or use a new name. After which, you can download the file that has a new column for your output countries.</p>
-                    <div className="form-group">
-                        <div className="custom-file">
-                            <input type="file" className="custom-file-input" id="customFile" onChange={this.onChooseCSV} />
-                            <label htmlFor="customFile" className="custom-file-control">{this.fileUploadLabel}</label>
+        return <AdminAppContext.Consumer>
+            {context => {
+                this.context = context
+                return <AdminLayout title="CountryStandardizer">
+                    <main className="CountryStandardizerPage">
+                        <section>
+                            <h3>Country Standardizer Tool</h3>
+                            <p>Upload a CSV file with countries. Select the current input and desired output format. The tool will attempt to find a match automatically for all entries. If not, you will be able to select a similar entry or use a new name. After which, you can download the file that has a new column for your output countries.</p>
+                            <div className="form-group">
+                                <div className="custom-file">
+                                    <input type="file" className="custom-file-input" id="customFile" onChange={this.onChooseCSV} />
+                                    <label htmlFor="customFile" className="custom-file-control">{this.fileUploadLabel}</label>
+                                </div>
+                                <small id="custom-file-help-block" className="text-muted form-text">
+                                    Country has to be saved under a column named 'Country'
+                                </small>
+                            </div>
+                            <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match." data-step="1" />
+                            <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match." />
+                            <div className="topbar">
+                                {showDownloadOption ?
+                                    <a href={this.csvDataUri} download={this.csvFilename} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip}><i className="fa fa-download"></i> Download {this.csvFilename}</a>
+                                    : <button className="btn btn-secondary" disabled><i className="fa fa-download"></i> No file to download (upload a CSV to start)</button>
+                                }
+                                <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
+                            </div>
+                            {validationError !== undefined ?
+                                <div className="alert alert-danger" role="alert">
+                                    <strong>CSV Error:</strong> {validationError}
+                                </div>
+                                : <div></div>
+                            }
+                            {this.displayMatchStatus}
+                        </section>
+                        <div>
+                            <table className="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Original Name</th>
+                                        <th>Standardized Name</th>
+                                        <th>Potential Candidates (select below)</th>
+                                        <th>Or enter a Custom Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {entriesToShow.map(entry =>
+                                        <CountryEntryRowRenderer entry={entry} onUpdate={this.onUpdateRow}/>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                        <small id="custom-file-help-block" className="text-muted form-text">
-                            Country has to be saved under a column named 'Country'
-                        </small>
-                    </div>
-                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match." data-step="1" />
-                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match." />
-                    <div className="topbar">
-                        {showDownloadOption ?
-                            <a href={this.csvDataUri} download={this.csvFilename} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip}><i className="fa fa-download"></i> Download {this.csvFilename}</a>
-                            : <button className="btn btn-secondary" disabled><i className="fa fa-download"></i> No file to download (upload a CSV to start)</button>
-                        }
-                        <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
-                    </div>
-                    {validationError !== undefined ?
-                        <div className="alert alert-danger" role="alert">
-                            <strong>CSV Error:</strong> {validationError}
-                        </div>
-                        : <div></div>
-                    }
-                    {this.displayMatchStatus}
-                </section>
-                <div>
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Original Name</th>
-                                <th>Standardized Name</th>
-                                <th>Potential Candidates (select below)</th>
-                                <th>Or enter a Custom Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {entriesToShow.map(entry =>
-                                <CountryEntryRowRenderer entry={entry} onUpdate={this.onUpdateRow}/>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-        </AdminLayout>
+                    </main>
+                </AdminLayout>
+            }}
+        </AdminAppContext.Consumer>
     }
 }

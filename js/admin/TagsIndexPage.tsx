@@ -8,6 +8,7 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { FieldsRow, Modal, TextField } from './Forms'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext'
 
 interface TagListItem {
     id: number
@@ -18,7 +19,7 @@ interface TagListItem {
 
 @observer
 class AddTagModal extends React.Component<{ parentId?: number, onClose: () => void }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable tagName: string = ""
     @observable newTagId?: number
@@ -65,7 +66,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
 
 @observer
 export default class TagsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable categories: TagListItem[] = []
     @observable isAddingTag: boolean = false

@@ -39,6 +39,12 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
 }
 
 export class TextField extends React.Component<TextFieldProps> {
+    base: React.RefObject<HTMLDivElement>
+    constructor(props: TextFieldProps) {
+        super(props)
+        this.base = React.createRef()
+    }
+
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key === "Enter" && this.props.onEnter) {
             this.props.onEnter()
@@ -49,10 +55,9 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    base!: HTMLDivElement
     componentDidMount() {
         if (this.props.autofocus) {
-            const input = this.base.querySelector("input") as HTMLInputElement
+            const input = this.base.current!.querySelector("input")!
             input.focus()
         }
     }
@@ -61,7 +66,7 @@ export class TextField extends React.Component<TextFieldProps> {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'required'])
 
-        return <div className="form-group">
+        return <div className="form-group" ref={this.base}>
             {props.label && <label>{props.label}</label>}
             <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(trim(e.currentTarget.value))} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}

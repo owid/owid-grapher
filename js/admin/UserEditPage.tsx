@@ -6,6 +6,7 @@ import { Redirect } from 'react-router-dom'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
+import { AdminAppContext } from './AdminAppContext';
 
 interface UserIndexMeta {
     id: number
@@ -18,7 +19,7 @@ interface UserIndexMeta {
 
 @observer
 export default class UserEditPage extends React.Component<{ userId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable user?: UserIndexMeta
     @observable isSaved: boolean = false
 

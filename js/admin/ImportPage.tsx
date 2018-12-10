@@ -11,6 +11,7 @@ import * as parse from 'csv-parse'
 import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
+import { AdminAppContext } from './AdminAppContext';
 
 declare const App: any
 declare const window: any
@@ -377,7 +378,7 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
 
 @observer
 class Importer extends React.Component<ImportPageData> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable csv?: CSV
     @observable.ref dataset = new EditableDataset()
@@ -533,7 +534,7 @@ interface ImportPageData {
 
 @observer
 export default class ImportPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable importData?: ImportPageData
 

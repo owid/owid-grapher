@@ -6,6 +6,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext';
 
 export interface DatasetListItem {
     id: number
@@ -22,7 +23,7 @@ export interface DatasetListItem {
 
 @observer
 class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {dataset, searchHighlight} = this.props
@@ -43,7 +44,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
 
 @observer
 export default class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {props} = this

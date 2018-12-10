@@ -21,6 +21,7 @@ import ImportPage from './ImportPage'
 import NotFoundPage from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import { LoadingBlocker, Modal } from './Forms'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -52,40 +53,42 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 
 @observer
 export default class AdminApp extends React.Component<{ admin: Admin }> {
-    getChildContext() {
+    get childContext() {
         return { admin: this.props.admin }
     }
 
     render() {
         const {admin} = this.props
 
-        return <Router basename={admin.basePath}>
-            <div className="AdminApp">
-                <AdminErrorMessage admin={admin}/>
-                <AdminLoader admin={admin}/>
-                <Switch>
-                    <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(atob(match.params.config))}/>}/>
-                    <Route exact path="/charts/create" component={ChartEditorPage}/>
-                    <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
-                    <Route exact path="/charts" component={ChartIndexPage}/>
-                    <Route exact path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
-                    <Route exact path="/users" component={UsersIndexPage}/>
-                    <Route exact path="/import" component={ImportPage}/>
-                    <Route exact path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
-                    <Route exact path="/variables" component={VariablesIndexPage}/>
-                    <Route exact path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
-                    <Route exact path="/datasets" component={DatasetsIndexPage}/>
-                    <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
-                    <Route exact path="/standardize" component={CountryStandardizerPage} />
-                    <Route exact path="/redirects" component={RedirectsIndexPage}/>
-                    <Route exact path="/categories/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
-                    <Route exact path="/categories" component={TagsIndexPage}/>
-                    <Route exact path="/pages" component={PostsIndexPage}/>
-                    <Route exact path="/test" component={TestIndexPage}/>
-                    <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
-                    <Route component={NotFoundPage}/>
-                </Switch>
-            </div>
-        </Router>
+        return <AdminAppContext.Provider value={this.childContext}>
+            <Router basename={admin.basePath}>
+                <div className="AdminApp">
+                    <AdminErrorMessage admin={admin}/>
+                    <AdminLoader admin={admin}/>
+                    <Switch>
+                        <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(atob(match.params.config))}/>}/>
+                        <Route exact path="/charts/create" component={ChartEditorPage}/>
+                        <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
+                        <Route exact path="/charts" component={ChartIndexPage}/>
+                        <Route exact path="/users/:userId" render={({ match }) => <UserEditPage userId={parseInt(match.params.userId)}/>}/>
+                        <Route exact path="/users" component={UsersIndexPage}/>
+                        <Route exact path="/import" component={ImportPage}/>
+                        <Route exact path="/variables/:variableId" render={({ match }) => <VariableEditPage variableId={parseInt(match.params.variableId)}/>}/>
+                        <Route exact path="/variables" component={VariablesIndexPage}/>
+                        <Route exact path="/datasets/:datasetId" render={({ match }) => <DatasetEditPage datasetId={parseInt(match.params.datasetId)}/>}/>
+                        <Route exact path="/datasets" component={DatasetsIndexPage}/>
+                        <Route exact path="/sources/:sourceId" render={({ match }) => <SourceEditPage sourceId={parseInt(match.params.sourceId)}/>}/>
+                        <Route exact path="/standardize" component={CountryStandardizerPage} />
+                        <Route exact path="/redirects" component={RedirectsIndexPage}/>
+                        <Route exact path="/categories/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
+                        <Route exact path="/categories" component={TagsIndexPage}/>
+                        <Route exact path="/pages" component={PostsIndexPage}/>
+                        <Route exact path="/test" component={TestIndexPage}/>
+                        <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
+                        <Route component={NotFoundPage}/>
+                    </Switch>
+                </div>
+            </Router>
+        </AdminAppContext.Provider>
     }
 }

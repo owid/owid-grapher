@@ -103,7 +103,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
 
 @observer
 export default class SourceEditPage extends React.Component<{ sourceId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable source?: SourcePageData
 
     render() {

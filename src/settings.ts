@@ -1,11 +1,6 @@
 import * as path from 'path'
 import * as parseUrl from 'url-parse'
 
-require('module-alias').addAliases({
-    'react'  : 'preact-compat',
-    'react-dom': 'preact-compat'
-})
-
 require('dotenv').config()
 
 interface Settings {

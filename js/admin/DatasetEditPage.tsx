@@ -18,6 +18,7 @@ import ChartFigureView from '../charts/ChartFigureView'
 import ChartType from '../charts/ChartType'
 import TagBadge from './TagBadge'
 import VariableList, { VariableListItem } from './VariableList'
+import { AdminAppContext } from './AdminAppContext'
 
 class VariableEditable {
     @observable name: string = ""
@@ -38,7 +39,8 @@ class VariableEditable {
 
 @observer
 class VariableEditRow extends React.Component<{ variable: VariableEditListItem, isBulkImport: boolean }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
+
     @observable.ref chart?: ChartConfig
     @observable newVariable!: VariableEditable
 
@@ -268,7 +270,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
 @observer
 class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
@@ -420,7 +422,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 
 @observer
 export default class DatasetEditPage extends React.Component<{ datasetId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable dataset?: DatasetPageData
 
     render() {

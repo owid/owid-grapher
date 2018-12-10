@@ -6,6 +6,7 @@ import Link from './Link'
 import Admin from './Admin'
 import EditorFAQ from './EditorFAQ'
 import AdminSidebar from './AdminSidebar'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
@@ -24,7 +25,7 @@ class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
 
 @observer
 export default class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable isFAQ: boolean = false
     @observable isSidebar: boolean = false

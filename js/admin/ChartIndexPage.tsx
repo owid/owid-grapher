@@ -8,6 +8,7 @@ import { TextField} from './Forms'
 import AdminLayout from './AdminLayout'
 import { uniq } from '../charts/Util'
 import ChartList, { ChartListItem } from './ChartList'
+import { AdminAppContext } from './AdminAppContext'
 
 interface Searchable {
     chart: ChartListItem
@@ -16,7 +17,7 @@ interface Searchable {
 
 @observer
 export default class ChartIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable searchInput?: string
     @observable maxVisibleCharts = 50
@@ -70,16 +71,21 @@ export default class ChartIndexPage extends React.Component {
                 return text
         }
 
-        return <AdminLayout title="Charts">
-            <main className="ChartIndexPage">
-                <div className="topRow">
-                    <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
-                    <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-                </div>
-                <ChartList charts={chartsToShow} searchHighlight={highlight} onDelete={action((c: any) => this.charts.splice(this.charts.indexOf(c), 1))}/>
-                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
-            </main>
-        </AdminLayout>
+        return <AdminAppContext.Consumer>
+            {context => {
+                this.context = context
+                return <AdminLayout title="Charts">
+                    <main className="ChartIndexPage">
+                        <div className="topRow">
+                            <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
+                            <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
+                        </div>
+                        <ChartList charts={chartsToShow} searchHighlight={highlight} onDelete={action((c: any) => this.charts.splice(this.charts.indexOf(c), 1))}/>
+                        {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
+                    </main>
+                </AdminLayout>
+            }}
+        </AdminAppContext.Consumer>
     }
 
     async getData() {

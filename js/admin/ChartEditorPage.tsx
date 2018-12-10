@@ -20,6 +20,7 @@ import EditorHistoryTab from './EditorHistoryTab'
 import SaveButtons from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import AdminLayout from './AdminLayout'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -54,7 +55,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     async fetchChart() {
         const {chartId, chartConfig} = this.props
@@ -121,12 +122,17 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     }
 
     render() {
-        return <AdminLayout noSidebar>
-            <main className="ChartEditorPage">
-                {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
-                {this.editor !== undefined && this.renderReady(this.editor)}
-            </main>
-        </AdminLayout>
+        return <AdminAppContext.Consumer>
+            {context => {
+                this.context = context
+                return <AdminLayout noSidebar>
+                    <main className="ChartEditorPage">
+                        {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
+                        {this.editor !== undefined && this.renderReady(this.editor)}
+                    </main>
+                </AdminLayout>
+            }}
+        </AdminAppContext.Consumer>
     }
 
     renderReady(editor: ChartEditor) {

@@ -4,12 +4,12 @@ import {observable, computed, action, runInAction, autorun, IReactionDisposer, r
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
-import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import DatasetList, { DatasetListItem } from './DatasetList'
 import ChartList, { ChartListItem } from './ChartList'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext'
 
 interface TagPageData {
     id: number
@@ -138,7 +138,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
 @observer
 export default class TagEditPage extends React.Component<{ tagId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable tag?: TagPageData
 
     render() {

@@ -16,6 +16,7 @@ import Tooltip from './Tooltip'
 import NoData from './NoData'
 import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
+import { ChartViewContext } from './ChartViewContext'
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -38,7 +39,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     @observable focusBracket: MapBracket
     @observable tooltipTarget?: { x: number, y: number, featureId: string }
 
-    context!: { chartView: ChartView, chart: ChartConfig }
+    static contextType = ChartViewContext
 
     base!: SVGGElement
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {

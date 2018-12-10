@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as PropTypes from 'prop-types'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { select } from 'd3-selection'
@@ -15,6 +16,7 @@ import DownloadTab from './DownloadTab'
 import { VNode, throttle, isMobile } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
+import { ChartViewContext } from './ChartViewContext'
 
 declare const window: any
 
@@ -135,7 +137,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         this.popups = this.popups.filter(d => !(d.nodeName === vnodeType))
     }
 
-    getChildContext() {
+    get childContext() {
         return {
             chart: this.chart,
             chartView: this,
@@ -197,7 +199,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         ]
     }
 
-    render() {
+    renderMain() {
         if (this.isExport) {
             return this.renderSVG()
         } else {
@@ -209,6 +211,12 @@ export default class ChartView extends React.Component<ChartViewProps> {
                 {this.renderReady()}
             </div>
         }
+    }
+
+    render() {
+        return <ChartViewContext.Provider value={this.childContext}>
+            {this.renderMain()}
+        </ChartViewContext.Provider>
     }
 
     // Chart should only render SVG when it's on the screen

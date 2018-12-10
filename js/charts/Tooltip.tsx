@@ -1,6 +1,6 @@
 import { extend } from './Util'
 import * as React from 'react'
-import ChartView from './ChartView'
+import { ChartViewContext } from './ChartViewContext'
 import { observable, computed } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
@@ -13,7 +13,7 @@ export interface TooltipProps {
 
 @observer
 class TooltipView extends React.Component<TooltipProps> {
-    context!: { chartView: ChartView }
+    static contextType = ChartViewContext
 
     @computed get rendered() {
         const { props, bounds } = this
