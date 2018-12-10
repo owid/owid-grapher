@@ -4,7 +4,7 @@ import {observable, computed, action, runInAction} from 'mobx'
 import {Prompt} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
-import Admin from './Admin'
+import { AdminAppContext } from './AdminAppContext'
 import AdminLayout from './AdminLayout'
 import { BindString } from './Forms'
 import VariableList, { VariableListItem } from './VariableList'

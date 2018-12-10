@@ -8,7 +8,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 interface PostIndexMeta {
     id: number

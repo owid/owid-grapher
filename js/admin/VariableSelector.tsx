@@ -233,7 +233,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
         }))
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 

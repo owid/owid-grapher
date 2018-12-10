@@ -166,7 +166,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         })
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 }

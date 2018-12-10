@@ -6,7 +6,7 @@ import { Redirect } from 'react-router-dom'
 
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 interface UserIndexMeta {
     id: number
@@ -29,7 +29,6 @@ export default class UserEditPage extends React.Component<{ userId: number }> {
             return null
         else if (isSaved)
             return <Redirect to="/users"/>
-
 
         return <AdminLayout>
             <main className="UserEditPage">

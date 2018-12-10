@@ -7,7 +7,7 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { FieldsRow } from './Forms'
 import Link from './Link'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 interface RedirectListItem {
     id: number

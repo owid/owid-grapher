@@ -147,7 +147,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
         })
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 

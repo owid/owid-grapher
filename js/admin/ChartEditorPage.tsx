@@ -35,7 +35,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
         })
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         //window.removeEventListener("hashchange", this.onHashChange)
         this.dispose()
     }
@@ -117,7 +117,7 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
         setTimeout(() => this.refresh(), 0)
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 

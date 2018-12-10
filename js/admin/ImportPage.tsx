@@ -11,7 +11,7 @@ import * as parse from 'csv-parse'
 import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 declare const App: any
 declare const window: any
@@ -468,7 +468,7 @@ class Importer extends React.Component<ImportPageData> {
             years, entities,
             variables: newVariables
         }
-        this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json) => {
+        this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json: any) => {
             runInAction(() => {
                 this.postImportDatasetId = json.datasetId
             })

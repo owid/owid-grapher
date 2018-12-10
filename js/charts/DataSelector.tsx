@@ -57,7 +57,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
             this.searchField.focus()
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         document.removeEventListener("click", this.onClickOutside)
     }
 
@@ -140,7 +140,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
             this.searchField.focus()
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         document.removeEventListener("click", this.onClickOutside)
     }
 

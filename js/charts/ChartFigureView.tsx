@@ -22,7 +22,7 @@ export default class ChartFigureView extends React.Component<{ chart: ChartConfi
         this.calcBounds()
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         window.removeEventListener('resize', this.calcBounds)
     }
 

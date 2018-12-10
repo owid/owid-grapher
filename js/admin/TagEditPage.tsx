@@ -110,7 +110,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             {this.parentTag && <TagBadge tag={this.parentTag as Tag}/>}
                         </div>
                     </FieldsRow>}
- 
                     {!tag.isBulkImport && <div>
                         <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                     </div>}

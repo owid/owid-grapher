@@ -71,7 +71,7 @@ export default class VariablesIndexPage extends React.Component {
         this.getData()
      }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 }
