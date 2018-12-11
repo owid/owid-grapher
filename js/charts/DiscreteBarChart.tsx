@@ -22,7 +22,7 @@ export interface DiscreteBarDatum {
 
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart() { return this.props.chart }
     @computed.struct get bounds() { return this.props.bounds.padRight(10) }
@@ -141,7 +141,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
-                const bars = select(this.base).selectAll("g.bar > rect")
+                const bars = select(this.base.current).selectAll("g.bar > rect")
                 bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
             })
         })
@@ -163,7 +163,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
         let yOffset = innerBounds.top + barHeight / 2
 
-        return <g className="DiscreteBarChart">
+        return <g ref={this.base} className="DiscreteBarChart">
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
             <HorizontalAxisView bounds={bounds} axis={xAxis} />
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />

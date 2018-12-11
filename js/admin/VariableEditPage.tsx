@@ -12,7 +12,7 @@ import { VariableDisplaySettings } from '../charts/VariableData'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import ChartList, { ChartListItem } from './ChartList'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 interface VariablePageData {
     id: number

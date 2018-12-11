@@ -42,7 +42,7 @@ export interface LineChartSeries {
 
 @observer
 export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
@@ -134,7 +134,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
     componentDidMount() {
         // Fancy intro animation
 
-        const base = select(this.base)
+        const base = select(this.base.current)
         base.selectAll("clipPath > rect")
             .attr("width", 0)
             .transition()
@@ -155,7 +155,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
         const { chart, transform, bounds, legend, tooltip, focusKeys, axisBox, renderUid } = this
         const { groupedData } = transform
 
-        return <g className="LineChart">
+        return <g ref={this.base} className="LineChart">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
                     {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}

@@ -227,7 +227,6 @@ class DatasetEditable {
 
 @observer
 class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, availableTags: { id: number, name: string, parentName: string }[], isBulkImport: boolean }> {
-
     @action.bound addTag(tagId: number) {
         const tag = this.props.availableTags.find(t => t.id === tagId)
         if (tag && !this.props.newDataset.tags.find(existingTag => existingTag.id === tag.id)) {
@@ -252,13 +251,13 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
         return <div className="form-group">
             <label>Categories</label>
-            <div>{newDataset.tags.map(tag => <TagBadge tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
+            <div>{newDataset.tags.map(tag => <TagBadge key={tag.id} tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
             <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
-                <option value="" disabled selected>Add category</option>
+                <option value="" disabled>Add category</option>
                 {_.map(tagsByParent, (tags, parentName) =>
-                    <optgroup label={parentName}>
+                    <optgroup key={parentName} label={parentName}>
                         {tags.map(tag =>
-                            <option value={tag.id}>{tag.name}</option>
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
                         )}
                     </optgroup>
                 )}

@@ -43,7 +43,8 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGRectElement> = React.createRef()
+
     @observable mouseOver: boolean = false
 
     @computed get yPos() {
@@ -79,7 +80,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
         const { bar, color, opacity, xOffset, yScale, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 
-        return <rect x={xOffset} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
+        return <rect ref={this.base} x={xOffset} y={yPos} width={barWidth} height={barHeight} fill={color} opacity={trueOpacity} onMouseOver={this.onBarMouseOver} onMouseLeave={this.onBarMouseLeave} />
     }
 }
 
@@ -119,7 +120,6 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         return (this.axisBox.innerBounds.width / this.transform.xValues.length) - this.barWidth
     }
 
-
     @computed get barFontSize() {
         return 0.75*this.props.chart.baseFontSize
     }
@@ -128,9 +128,9 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
         const {bounds, transform, chart, sidebarWidth } = this
         const {xAxisSpec, yAxisSpec} = transform
         return new AxisBox({
-            bounds: bounds.padRight(sidebarWidth + 20), 
-            fontSize: chart.baseFontSize, 
-            xAxis: xAxisSpec, 
+            bounds: bounds.padRight(sidebarWidth + 20),
+            fontSize: chart.baseFontSize,
+            xAxis: xAxisSpec,
             yAxis: yAxisSpec
         })
     }

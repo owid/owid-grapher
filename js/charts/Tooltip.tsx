@@ -36,18 +36,18 @@ class TooltipView extends React.Component<TooltipProps> {
 
         const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: `${x}px`, top: `${y}px`, backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em", zIndex: 100 }
 
-        return <div style={extend(style, props.style || {})}>
+        return <div ref={this.base} style={extend(style, props.style || {})}>
             {props.children}
         </div>
     }
 
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.struct bounds?: Bounds
     componentDidMount() {
         this.componentDidUpdate()
     }
     componentDidUpdate() {
-        this.bounds = Bounds.fromElement(this.base)
+        this.bounds = Bounds.fromElement(this.base.current!)
     }
 
     render() {
@@ -57,6 +57,8 @@ class TooltipView extends React.Component<TooltipProps> {
 
 @observer
 export default class Tooltip extends React.Component<TooltipProps> {
+    static contextType = ChartViewContext
+
     componentDidMount() {
         this.componentDidUpdate()
     }

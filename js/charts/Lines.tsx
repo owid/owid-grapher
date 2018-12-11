@@ -35,7 +35,7 @@ export interface HoverTarget {
 
 @observer
 export default class Lines extends React.Component<LinesProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     @observable.ref hover: HoverTarget | null = null
 
     @computed get renderUid(): number {
@@ -76,7 +76,7 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        const mouse = getRelativeMouse(this.base, ev)
+        const mouse = getRelativeMouse(this.base.current, ev)
         const { hoverData } = this
 
         const value = sortBy(hoverData, v => Vector2.distanceSq(v.pos, mouse))[0]
@@ -149,7 +149,7 @@ export default class Lines extends React.Component<LinesProps> {
     render() {
         const { hover, bounds } = this
 
-        return <g className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
+        return <g ref={this.base} className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
             <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0} />
             {this.renderBackgroundGroups()}
             {this.renderFocusGroups()}

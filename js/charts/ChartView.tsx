@@ -112,7 +112,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
     @observable popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     hasFadedIn: boolean = false
     @observable hasBeenVisible: boolean = false
 
@@ -177,11 +177,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: chart.baseFontSize,
             backgroundColor: "white",
-            "text-rendering": "optimizeLegibility",
-            "-webkit-font-smoothing": "antialiased"
+            textRendering: "optimizeLegibility",
+            WebkitFontSmoothing: "antialiased"
         }
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle} width={svgBounds.width} height={svgBounds.height}>
+        return <svg key="chartSVG" xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle as any} width={svgBounds.width} height={svgBounds.height}>
             {this.renderPrimaryTab(svgInnerBounds)}
         </svg>
     }
@@ -191,7 +191,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
         return [
             this.hasBeenVisible && this.renderSVG(),
-            <ControlsFooterView controlsFooter={this.controlsFooter} />,
+            <ControlsFooterView key="controlsFooter" controlsFooter={this.controlsFooter} />,
             this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,
@@ -207,7 +207,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
             const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
-            return this.chart.data.isReady && <div className={this.classNames} style={style}>
+            return this.chart.data.isReady && <div ref={this.base} className={this.classNames} style={style}>
                 {this.renderReady()}
             </div>
         }
@@ -221,7 +221,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound checkVisibility() {
-        function checkVisible(elm: any) {
+        function checkVisible(elm: HTMLElement) {
             if (!elm.getBoundingClientRect)
                 return false
             const rect = elm.getBoundingClientRect()
@@ -229,7 +229,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
         }
 
-        if (!this.hasBeenVisible && checkVisible(this.base)) {
+        if (!this.hasBeenVisible && checkVisible(this.base.current!)) {
             this.hasBeenVisible = true
         }
     }
@@ -246,7 +246,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     componentDidUpdate() {
         if (this.chart.data.isReady && this.hasBeenVisible && !this.hasFadedIn) {
-            select(this.base).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
+            select(this.base.current!).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
         } else {
             this.checkVisibility()

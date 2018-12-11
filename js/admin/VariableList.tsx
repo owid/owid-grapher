@@ -4,7 +4,7 @@ const timeago = require('timeago.js')()
 
 import Admin from './Admin'
 import Link from './Link'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 export interface VariableListItem {
     id: number

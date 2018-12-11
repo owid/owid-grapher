@@ -218,7 +218,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
     }
 
     dispose!: IReactionDisposer
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
         this.dispose = autorun(() => {
             if (!this.editorData)

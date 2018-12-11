@@ -5,6 +5,7 @@ import Bounds from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
 import { observable, computed, autorun, action } from 'mobx'
 import { observer } from 'mobx-react'
+import { ChartViewContext } from './ChartViewContext'
 
 interface TimelineProps {
     years: number[],
@@ -19,7 +20,8 @@ interface TimelineProps {
 
 @observer
 export default class Timeline extends React.Component<TimelineProps> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+    static contextType = ChartViewContext
 
     @observable startYearInput: number = 1900
     @observable endYearInput: number = 2000
@@ -176,12 +178,12 @@ export default class Timeline extends React.Component<TimelineProps> {
     }
 
     get sliderBounds() {
-        const slider = this.base.querySelector(".slider")
+        const slider = this.base.current!.querySelector(".slider")
         return slider ? Bounds.fromRect(slider.getBoundingClientRect()) : new Bounds(0, 0, 100, 100)
     }
 
     getInputYearFromMouse(evt: MouseEvent) {
-        const slider = this.base.querySelector(".slider") as HTMLDivElement
+        const slider = this.base.current!.querySelector(".slider") as HTMLDivElement
         const sliderBounds = slider.getBoundingClientRect()
 
         const { minYear, maxYear } = this
@@ -306,7 +308,7 @@ export default class Timeline extends React.Component<TimelineProps> {
         const startYearProgress = (startYear - minYear) / (maxYear - minYear)
         const endYearProgress = (endYear - minYear) / (maxYear - minYear)
 
-        return <div className={"clickable TimelineControl"} onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
+        return <div ref={this.base} className={"clickable TimelineControl"} onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
             <div onMouseDown={e => e.stopPropagation()} onClick={this.onTogglePlay}>
                 {isPlaying ? <i className="fa fa-pause" /> : <i className="fa fa-play" />}
             </div>

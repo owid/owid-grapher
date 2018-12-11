@@ -11,10 +11,10 @@ export interface ColorpickerProps {
 }
 
 export default class Colorpicker extends React.Component<ColorpickerProps> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
 
     componentDidMount() {
-        const textField = this.base.querySelector("input") as HTMLInputElement
+        const textField = this.base.current!.querySelector("input") as HTMLInputElement
         textField.focus()
 
         setTimeout(() => window.addEventListener('click', this.onClickOutside), 10)
@@ -39,7 +39,7 @@ export default class Colorpicker extends React.Component<ColorpickerProps> {
     render() {
         const availableColors: string[] = last((ColorSchemes['owid-distinct'] as ColorScheme).colorSets)
 
-        return <div className="Colorpicker" tabIndex={0} onClick={e => e.stopPropagation()}>
+        return <div ref={this.base} className="Colorpicker" tabIndex={0} onClick={e => e.stopPropagation()}>
             <ul>
                 {availableColors.map(color =>
                     <li style={{ backgroundColor: color }} onClick={() => { this.props.onColor(color); this.props.onClose() }} />

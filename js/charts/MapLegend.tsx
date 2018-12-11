@@ -171,7 +171,7 @@ class NumericMapLegend {
 
 @observer
 class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x: number, y: number, onMouseOver: (d: MapLegendBin) => void, onMouseLeave: () => void }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get bounds(): Bounds {
         const { props } = this
@@ -185,7 +185,7 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
     @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
         const { legend, props, base } = this
         const { focusBracket } = legend
-        const mouse = getRelativeMouse(base, ev)
+        const mouse = getRelativeMouse(base.current, ev)
         if (!this.bounds.contains(mouse))
             if (focusBracket)
                 return this.props.onMouseLeave()
@@ -220,16 +220,16 @@ class NumericMapLegendView extends React.Component<{ legend: NumericMapLegend, x
         const borderColor = "#333"
         const bottomY = props.y + height
 
-        return <g className="numericMapLegend">
-            {map(numericLabels, label =>
-                <line x1={props.x + label.bounds.x + label.bounds.width / 2} y1={bottomY - rectHeight} x2={props.x + label.bounds.x + label.bounds.width / 2} y2={bottomY + label.bounds.y + label.bounds.height} stroke={borderColor} strokeWidth={0.3} />
+        return <g ref={this.base} className="numericMapLegend">
+            {numericLabels.map(label =>
+                <line key={label.text} x1={props.x + label.bounds.x + label.bounds.width / 2} y1={bottomY - rectHeight} x2={props.x + label.bounds.x + label.bounds.width / 2} y2={bottomY + label.bounds.y + label.bounds.height} stroke={borderColor} strokeWidth={0.3} />
             )}
-            {sortBy(map(positionedBins, d => {
+            {sortBy(positionedBins.map((d, i) => {
                 const isFocus = focusBracket && ((d.bin as NumericBin).min === (focusBracket as NumericBin).min || ((d.bin as CategoricalBin).value != null && (d.bin as CategoricalBin).value === (focusBracket as CategoricalBin).value))
-                return <rect x={props.x + d.x} y={bottomY - rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 2.5 : 0.3} />
+                return <rect key={i} x={props.x + d.x} y={bottomY - rectHeight} width={d.width} height={rectHeight} fill={d.bin.color} stroke={isFocus ? "#FFEC38" : borderColor} strokeWidth={isFocus ? 2.5 : 0.3} />
             }), r => r.props['stroke-width'])}
-            {map(numericLabels, label =>
-                <text x={props.x + label.bounds.x} y={bottomY + label.bounds.y} fontSize={label.fontSize} dominant-baseline="hanging">{label.text}</text>
+            {numericLabels.map(label =>
+                <text key={label.text} x={props.x + label.bounds.x} y={bottomY + label.bounds.y} fontSize={label.fontSize} dominantBaseline="hanging">{label.text}</text>
             )}
         </g>
     }
@@ -351,10 +351,10 @@ class CategoricalMapLegendView extends React.Component<CategoricalMapLegendViewP
         //Bounds.debug([this.bounds])
         //Bounds.debug(marks.map(m => m.label.bounds))
         return <g className="categoricalMapLegend">
-            {map(marks, m => {
+            {marks.map((m, i) => {
                 const isFocus = focusBracket && m.bin.value === focusBracket.value
                 const stroke = isFocus ? "#FFEC38" : "#333"
-                return <g onMouseOver={() => this.props.onMouseOver(m.bin)} onMouseLeave={() => this.props.onMouseLeave()}>
+                return <g key={i} onMouseOver={() => this.props.onMouseOver(m.bin)} onMouseLeave={() => this.props.onMouseLeave()}>
                     <rect x={(props.x as number) + m.x} y={(props.y as number) + m.y} width={m.rectSize} height={m.rectSize} fill={m.bin.color} stroke={stroke} stroke-width={0.4} />,
                   <text x={(props.x as number) + m.label.bounds.x} y={(props.y as number) + m.label.bounds.y} fontSize={m.label.fontSize} dominant-baseline="hanging">{m.label.text}</text>
                 </g>

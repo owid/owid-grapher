@@ -11,7 +11,7 @@ import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 import { uniq, toString, csvEscape } from '../charts/Util'
-import { AdminAppContext } from './AdminApp';
+import { AdminAppContext } from './AdminAppContext'
 
 class CSV {
     @observable filename?: string

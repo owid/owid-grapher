@@ -68,7 +68,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
         return <div className="form-group" ref={this.base}>
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(trim(e.currentTarget.value))} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value} onChange={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -76,18 +76,18 @@ export class TextField extends React.Component<TextFieldProps> {
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
-    @bind onInput(ev: React.FormEvent<HTMLTextAreaElement>) {
+    @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue(value)
     }
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText', 'rows'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'rows'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <textarea className="form-control" value={props.value} onInput={this.onInput} rows={5} {...passthroughProps}/>
+            <textarea className="form-control" value={props.value} onChange={this.onChange} rows={5} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -149,9 +149,9 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)}>
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)} value={props.value}>
                 {options.map(opt =>
-                    <option value={opt.value} selected={opt.value === props.value}>{opt.text}</option>
+                    <option key={opt.value} value={opt.value}>{opt.text}</option>
                 )}
             </select>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
@@ -419,7 +419,7 @@ export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> 
 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @action.bound onClickOutside() {
         this.props.onClose()

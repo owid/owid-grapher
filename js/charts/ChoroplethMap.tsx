@@ -11,7 +11,6 @@ import MapTopology from './MapTopology'
 import Vector2 from './Vector2'
 import { worldRegionByMapEntity } from './WorldRegions'
 
-
 export interface ChoroplethDatum {
     entity: string
     year: number
@@ -40,7 +39,6 @@ interface ChoroplethMapProps {
     onHoverStop: () => void
 }
 
-
 interface RenderFeature {
     id: string
     geo: GeoFeature
@@ -51,7 +49,7 @@ interface RenderFeature {
 
 @observer
 export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     subunits: any
 
     @computed get uid(): number {
@@ -74,7 +72,6 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed get geoFeatures(): GeoFeature[] {
         return (topojson.feature(MapTopology as any, MapTopology.objects.world as any) as any).features
     }
-
 
     // The d3 path generator for this projection
     @computed get pathGen() {
@@ -229,7 +226,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             return
 
         const { renderFeatures } = this
-        const mouse = getRelativeMouse(this.base.querySelector('.subunits'), ev)
+        const mouse = getRelativeMouse(this.base.current!.querySelector('.subunits'), ev)
 
         const featuresWithDistance = renderFeatures.map(d => {
             return { feature: d, distance: Vector2.distance(d.center, mouse) }
@@ -274,7 +271,7 @@ export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g className="ChoroplethMap" clip-path={`url(#boundsClip-${uid})`} onMouseMove={this.onMouseMove} onClick={this.onClick} style={this.hoverFeature ? { cursor: "pointer" } : {}}>
+        return <g ref={this.base} className="ChoroplethMap" clipPath={`url(#boundsClip-${uid})`} onMouseMove={this.onMouseMove} onClick={this.onClick} style={this.hoverFeature ? { cursor: "pointer" } : {}}>
             <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" opacity={0}/>
             <defs>
                 <clipPath id={`boundsClip-${uid}`}>

@@ -38,7 +38,7 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 export class Areas extends React.Component<AreasProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverIndex?: number
 
@@ -110,7 +110,7 @@ export class Areas extends React.Component<AreasProps> {
         const {xScale, yScale} = axisBox
         const {hoverIndex} = this
 
-        return <g className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
+        return <g ref={this.base} className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
             <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/>
             {this.areas}
             {this.borders}
@@ -126,7 +126,7 @@ export class Areas extends React.Component<AreasProps> {
 
 @observer
 export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }
@@ -218,7 +218,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     componentDidMount() {
         // Fancy intro animation
 
-        const base = select(this.base)
+        const base = select(this.base.current)
         base.selectAll("clipPath > rect")
             .attr("width", 0)
             .transition()
@@ -237,7 +237,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
         const {chart, bounds, axisBox, legend, transform, renderUid} = this
-        return <g className="StackedArea">
+        return <g ref={this.base} className="StackedArea">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
                     <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>

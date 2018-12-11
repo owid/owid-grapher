@@ -81,7 +81,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 @observer
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
     render() {
@@ -99,7 +99,6 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
     @action.bound onChartType(value: string) {
         const {chart} = this.props.editor
         chart.props.type = (value as ChartTypeType)
-
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if ((chart.isScatter || chart.isSlopeChart) && !chart.props.dimensions.find(d => d.property === "color")) {

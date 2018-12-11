@@ -164,7 +164,7 @@ class ScatterBackgroundLine extends React.Component<{ group: ScatterRenderSeries
 
 @observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     @computed get data(): ScatterSeries[] {
         return this.props.data
     }
@@ -577,7 +577,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     componentDidMount() {
         const radiuses: string[] = []
-        select(this.base).selectAll("circle").each(function() {
+        select(this.base.current).selectAll("circle").each(function() {
             const circle = this as SVGCircleElement
             radiuses.push(circle.getAttribute('r') as string)
             circle.setAttribute('r', "0")
@@ -594,7 +594,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (isEmpty(renderData))
             return <NoData bounds={bounds} />
 
-        return <g className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
+        return <g ref={this.base} className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" />
             <defs>
                 <clipPath id={`scatterBounds-${renderUid}`}>

@@ -296,7 +296,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
         const tabs = <nav className="tabs">
             <ul>
                 {chart.availableTabs.map(tabName => {
-                    return tabName !== 'download' && <li className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
+                    return tabName !== 'download' && <li key={tabName} className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
                 })}
                 <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
                     <a><i className="fa fa-download" /></a>

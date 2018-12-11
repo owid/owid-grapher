@@ -80,9 +80,9 @@ export default class TextWrap {
         return <text fontSize={fontSize.toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
             {map(lines, (line, i) => {
                 if (props.raw)
-                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
+                    return <tspan key={i} x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
                 else
-                    return <tspan x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)}>{strip(line.text)}</tspan>
+                    return <tspan key={i} x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)}>{strip(line.text)}</tspan>
             })}
         </text>
     }

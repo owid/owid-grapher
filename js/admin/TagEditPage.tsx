@@ -118,7 +118,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             {tag.subcategories.length > 0 && <section>
                 <h3>Subcategories</h3>
                 {tag.subcategories.map(c =>
-                    <TagBadge tag={c as Tag}/>
+                    <TagBadge tag={c as Tag} key={tag.id}/>
                 )}
             </section>}
             <section>

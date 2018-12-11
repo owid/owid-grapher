@@ -10,14 +10,15 @@ import { AdminAppContext } from './AdminAppContext'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
     @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
-        if (e.target === this.base)
+        if (e.target === this.base.current)
             this.props.onDismiss()
     }
 
     render() {
-        return <div className="FixedOverlay" onClick={this.onClick}>
+        return <div ref={this.base} className="FixedOverlay" onClick={this.onClick}>
             {this.props.children}
         </div>
     }

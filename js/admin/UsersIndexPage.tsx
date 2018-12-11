@@ -6,7 +6,7 @@ import {observable, computed, action, runInAction} from 'mobx'
 import { Modal, Timeago } from './Forms'
 import Link from './Link'
 import AdminLayout from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext';
+import { AdminAppContext } from './AdminAppContext'
 
 interface UserIndexMeta {
     id: number

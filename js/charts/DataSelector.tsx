@@ -18,7 +18,7 @@ if (typeof(global) !== "undefined") {
 export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
     searchField!: HTMLInputElement
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get availableData(): DataKeyInfo[] {
         const { chart } = this.props
@@ -47,7 +47,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
-        if (this.base && !this.base.contains(e.target as Node))
+        if (this.base && !this.base.current!.contains(e.target as Node))
             this.props.onDismiss()
     }
 
@@ -73,7 +73,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         const { chart } = this.props
         const { selectedData, searchResults, searchInput } = this
 
-        return <div className="DataSelectorMulti" onClick={e => e.stopPropagation()}>
+        return <div ref={this.base} className="DataSelectorMulti" onClick={e => e.stopPropagation()}>
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times" /></button></h2>
             <div>
                 <div className="searchResults">
@@ -108,7 +108,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
 export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     @observable searchInput?: string
     searchField!: HTMLInputElement
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get availableItems() {
         const availableItems: { id: number, label: string }[] = []
@@ -130,7 +130,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
-        if (this.base && !this.base.contains(e.target as Node))
+        if (this.base && !this.base.current!.contains(e.target as Node))
             this.props.onDismiss()
     }
 
@@ -160,7 +160,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     render() {
         const { searchResults, searchInput } = this
 
-        return <div className="DataSelectorSingle" onClick={e => e.stopPropagation()}>
+        return <div ref={this.base} className="DataSelectorSingle" onClick={e => e.stopPropagation()}>
             <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
             <ul>
                 {searchResults.map(d => {
