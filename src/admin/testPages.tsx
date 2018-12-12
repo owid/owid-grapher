@@ -121,6 +121,7 @@ testPages.get('/embeds', async (req, res) => {
         .orderBy("id", "ASC")
 
     let tab = req.query.tab
+    const namespaces = (req.query.namespaces && req.query.namespaces.split(",")) || []
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap") {
@@ -141,16 +142,20 @@ testPages.get('/embeds', async (req, res) => {
     }
 
     if (req.query.namespace) {
+        namespaces.push(req.query.namespace)
+    }
+
+    if (namespaces.length > 0) {
         query.andWhere(`
             EXISTS(
                 SELECT *
                 FROM datasets
                 INNER JOIN variables ON variables.datasetId = datasets.id
                 INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
-                WHERE datasets.namespace = :namespace
+                WHERE datasets.namespace IN (:namespaces)
                 AND chart_dimensions.chartId = charts.id
             )
-        `, { namespace: req.query.namespace })
+        `, { namespaces: namespaces })
     }
 
     const charts: ChartItem[] = (await query.getMany()).map(c => ({ id: c.id, slug: c.config.slug }))
