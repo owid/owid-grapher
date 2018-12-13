@@ -406,7 +406,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>) {
-        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
+        const mouse = getRelativeMouse(this.base.current, ev)
 
         this.mouseFrame = requestAnimationFrame(() => {
             if (this.props.bounds.contains(mouse)) {

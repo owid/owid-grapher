@@ -56,7 +56,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
                     <TextField label="Category Name" value={this.tagName} onValue={this.onTagName} autofocus required/>
                 </div>
                 <div className="modal-footer">
-                    <input type="submit" className="btn btn-primary">Send invite</input>
+                    <input type="submit" className="btn btn-primary" value="Add tag"/>
                 </div>
             </form>
             {this.newTagId !== undefined && <Redirect to={`/categories/${this.newTagId}`}/>}

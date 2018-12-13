@@ -54,37 +54,35 @@ function showChartType(chart: ChartListItem) {
 
 @observer
 class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
+    static contextType = AdminAppContext
+
     render() {
         const {chart, searchHighlight} = this.props
 
         const highlight = searchHighlight || _.identity
 
-        return <AdminAppContext.Consumer>
-            {context => {
-                return <tr>
-                    <td>
-                        <a title="Show this chart on the front page of the website." onClick={() => this.props.onStar(chart)}>
-                            {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
-                        </a>
-                    </td>
-                    {chart.isPublished ? <td>
-                        <a href={`${context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
-                    </td> : <td>
-                        <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
-                    </td>}
-                    <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
-                    <td>{highlight(chart.internalNotes)}</td>
-                    <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
-                    <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
-                    <td>
-                        <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
-                    </td>
-                    <td>
-                        <button className="btn btn-danger" onClick={() => this.props.onDelete(chart)}>Delete</button>
-                    </td>
-                </tr>
-            }}
-        </AdminAppContext.Consumer>
+        return <tr>
+            <td>
+                <a title="Show this chart on the front page of the website." onClick={() => this.props.onStar(chart)}>
+                    {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
+                </a>
+            </td>
+            {chart.isPublished ? <td>
+                <a href={`${this.context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
+            </td> : <td>
+                <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
+            </td>}
+            <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
+            <td>{highlight(chart.internalNotes)}</td>
+            <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
+            <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
+            <td>
+                <Link to={`/charts/${chart.id}/edit`} className="btn btn-primary">Edit</Link>
+            </td>
+            <td>
+                <button className="btn btn-danger" onClick={() => this.props.onDelete(chart)}>Delete</button>
+            </td>
+        </tr>
     }
 }
 

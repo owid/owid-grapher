@@ -10,14 +10,21 @@ import Vector2 from './Vector2'
 export type SVGElement = any
 export type VNode = any
 
-export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent|{ x: number, y: number }): Vector2 {
+interface TouchListLike {
+    [index: number]: {
+        clientX: number
+        clientY: number
+    }
+}
+
+export function getRelativeMouse(node: SVGElement, event: { clientX: number, clientY: number }|{ targetTouches: TouchListLike }): Vector2 {
     let clientX, clientY
     if ((event as any).clientX != null) {
-        clientX = (event as MouseEvent).clientX
-        clientY = (event as MouseEvent).clientY
+        clientX = (event as any).clientX
+        clientY = (event as any).clientY
     } else {
-        clientX = (event as TouchEvent).targetTouches[0].clientX
-        clientY = (event as TouchEvent).targetTouches[0].clientY
+        clientX = (event as any).targetTouches[0].clientX
+        clientY = (event as any).targetTouches[0].clientY
     }
 
     const svg = node.ownerSVGElement || node

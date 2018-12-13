@@ -17,6 +17,7 @@ import { VNode, throttle, isMobile } from './Util'
 import Bounds from './Bounds'
 import DataSelector from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
+import { TooltipView } from './Tooltip'
 
 declare const window: any
 
@@ -189,14 +190,14 @@ export default class ChartView extends React.Component<ChartViewProps> {
     renderReady() {
         const { svgBounds, chart } = this
 
-        return [
-            this.hasBeenVisible && this.renderSVG(),
-            <ControlsFooterView key="controlsFooter" controlsFooter={this.controlsFooter} />,
-            this.renderOverlayTab(svgBounds),
-            this.popups,
-            this.chart.tooltip,
-            this.isSelectingData && <DataSelector key="dataSelector" chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />
-        ]
+        return <React.Fragment>
+            {this.hasBeenVisible && this.renderSVG()}
+            <ControlsFooterView controlsFooter={this.controlsFooter}/>
+            {this.renderOverlayTab(svgBounds)}
+            {this.popups}
+            <TooltipView/>
+            {this.isSelectingData && <DataSelector key="dataSelector" chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />}
+        </React.Fragment>
     }
 
     renderMain() {
