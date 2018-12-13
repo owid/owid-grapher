@@ -43,8 +43,8 @@ export default class VariableList extends React.Component<{ variables: VariableL
                     {props.variables.some(v => v.uploadedAt !== undefined) && <th>Uploaded</th>}
                 </tr>
             </thead>
-                <tbody>
-                {props.variables.map(variable => <VariableRow variable={variable} searchHighlight={props.searchHighlight}/>)}
+            <tbody>
+                {props.variables.map(variable => <VariableRow key={variable.id} variable={variable} searchHighlight={props.searchHighlight}/>)}
             </tbody>
         </table>
     }

@@ -41,7 +41,11 @@ class TooltipView extends React.Component<TooltipProps> {
         </div>
     }
 
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base: React.RefObject<HTMLDivElement>
+    constructor(props: TooltipProps) {
+        super(props)
+        this.base = React.createRef()
+    }
     @observable.struct bounds?: Bounds
     componentDidMount() {
         this.componentDidUpdate()
@@ -64,10 +68,14 @@ export default class Tooltip extends React.Component<TooltipProps> {
     }
 
     componentDidUpdate() {
-        this.context.chartView.chart.tooltip = <TooltipView {...this.props}>{this.props.children}</TooltipView>
+        this.context.chart.tooltip = <TooltipView key="tooltip" {...this.props}>{this.props.children}</TooltipView>
     }
 
     componentWillUnmount() {
-        this.context.chartView.chart.tooltip = null
+        this.context.chart.tooltip = null
+    }
+
+    render() {
+        return null
     }
 }

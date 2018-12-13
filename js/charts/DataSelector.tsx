@@ -19,6 +19,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
+    dismissable: boolean = true
 
     @computed get availableData(): DataKeyInfo[] {
         const { chart } = this.props
@@ -47,11 +48,13 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
-        if (this.base && !this.base.current!.contains(e.target as Node))
+        if (this.dismissable)
             this.props.onDismiss()
     }
 
     componentDidMount() {
+        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
+        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
         setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
         if (!isTouchDevice())
             this.searchField.focus()
@@ -73,14 +76,14 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         const { chart } = this.props
         const { selectedData, searchResults, searchInput } = this
 
-        return <div ref={this.base} className="DataSelectorMulti" onClick={e => e.stopPropagation()}>
+        return <div ref={this.base} className="DataSelectorMulti">
             <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times" /></button></h2>
             <div>
                 <div className="searchResults">
                     <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
                     <ul>
                         {searchResults.map(d => {
-                            return <li>
+                            return <li key={d.entityId}>
                                 <label className="clickable">
                                     <input type="checkbox" checked={false} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
@@ -91,7 +94,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                 <div className="selectedData">
                     <ul>
                         {selectedData.map(d => {
-                            return <li>
+                            return <li key={d.entityId}>
                                 <label className="clickable">
                                     <input type="checkbox" checked={true} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
@@ -109,6 +112,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
+    dismissable: boolean = true
 
     @computed get availableItems() {
         const availableItems: { id: number, label: string }[] = []
@@ -135,6 +139,8 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     }
 
     componentDidMount() {
+        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
+        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
         setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
         if (!this.props.chartView.isMobile)
             this.searchField.focus()
@@ -160,11 +166,11 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     render() {
         const { searchResults, searchInput } = this
 
-        return <div ref={this.base} className="DataSelectorSingle" onClick={e => e.stopPropagation()}>
+        return <div ref={this.base} className="DataSelectorSingle">
             <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
             <ul>
                 {searchResults.map(d => {
-                    return <li className="clickable" onClick={() => this.onSelect(d.id)}>
+                    return <li key={d.id} className="clickable" onClick={() => this.onSelect(d.id)}>
                         {d.label}
                     </li>
                 })}

@@ -105,18 +105,18 @@ export default class TagsIndexPage extends React.Component {
                     <section>
                         <h4>Top-Level Categories</h4>
                         {parentCategories.map(parent =>
-                            <TagBadge tag={parent as Tag}/>
+                            <TagBadge key={parent.id} tag={parent as Tag}/>
                         )}
                         <button className="btn btn-default" onClick={() => this.onNewTag()}>+ New Category</button>
                     </section>
                     {parentCategories.map(parent =>
-                        <section>
+                        <section key={`${parent.id}-section`}>
                             <h4>
                                 {parent.name}
                             </h4>
                             {parent.specialType === "systemParent" && <p>These are special categories that are assigned automatically.</p>}
                             {parent.children.map(tag =>
-                                <TagBadge tag={tag as Tag}/>
+                                <TagBadge key={tag.id} tag={tag as Tag}/>
                             )}
                             <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Category</button>
                         </section>

@@ -37,6 +37,8 @@ class TagEditable {
 
 @observer
 class TagEditor extends React.Component<{ tag: TagPageData }> {
+    static contextType = AdminAppContext
+
     @observable newtag!: TagEditable
     @observable isDeleted: boolean = false
 
@@ -53,7 +55,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
     async save() {
         const {tag} = this.props
-        console.log(this.newtag)
         const json = await this.context.admin.requestJSON(`/api/tags/${tag.id}`, { tag: this.newtag }, "PUT")
 
         if (json.success) {

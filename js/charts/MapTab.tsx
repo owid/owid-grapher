@@ -125,7 +125,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return <g ref={this.base} className="mapTab">
             <ChoroplethMap bounds={bounds.padBottom(mapLegend.height + 15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity} />
             <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} />
-            {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
+            {tooltipTarget && <Tooltip key="mapTooltip" x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
                 <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{mapToDataEntities[tooltipTarget.featureId] || tooltipTarget.featureId.replace(/_/g, " ")}</h3>
                 <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
                     <span>{tooltipDatum ? this.context.chart.map.data.formatTooltipValue(tooltipDatum.value) : `No data for ${inputYear}`}</span><br />

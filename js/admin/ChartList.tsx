@@ -90,6 +90,8 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 
 @observer
 export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
+    static contextType = AdminAppContext
+
     @action.bound async onDeleteChart(chart: ChartListItem) {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return

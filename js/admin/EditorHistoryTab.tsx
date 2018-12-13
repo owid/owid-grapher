@@ -15,7 +15,7 @@ export class LogRenderer extends React.Component<{ log: Log, applyConfig: (confi
         const { log } = this.props
 
         const user = log.userName || log.userId.toString()
-        return "Saved " + timeago.format(log.createdAt) + " by " + user
+        return `Saved ${timeago.format(log.createdAt)} by ${user}`
     }
 
     @computed get timestamp() {
@@ -43,8 +43,8 @@ export default class EditorHistoryTab extends React.Component<{ editor: ChartEdi
 
     render() {
         return <div>
-            {this.logs.map(log =>
-                <ul className="list-group">
+            {this.logs.map((log, i) =>
+                <ul key={i} className="list-group">
                     <LogRenderer log={log} applyConfig={this.applyConfig}></LogRenderer>
                 </ul>
             )}

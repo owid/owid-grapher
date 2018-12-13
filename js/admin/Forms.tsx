@@ -68,7 +68,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
         return <div className="form-group" ref={this.base}>
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onChange={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value||""} onChange={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -286,7 +286,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         return <div className="form-group AutoTextField">
             {props.label && <label>{props.label}</label>}
             <div className="input-group mb-2 mb-sm-0">
-                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
+                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onChange={e => props.onValue(e.currentTarget.value)}/>
                 <div className="input-group-addon" onClick={() => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
@@ -426,6 +426,8 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
     }
 
     componentDidMount() {
+        // Note: this strategy doesn't seem to work with React's onClick
+        this.base.current!.addEventListener("click", e => e.stopPropagation())
         setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
     }
 
@@ -436,7 +438,7 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
     render() {
         const {props} = this
         return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}}>
-            <div className="modal-dialog" role="document" onClick={e => e.stopPropagation()}>
+            <div ref={this.base} className="modal-dialog" role="document">
                 <div className="modal-content">
                     {this.props.children}
                 </div>

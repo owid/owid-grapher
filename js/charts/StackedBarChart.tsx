@@ -328,8 +328,8 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
             <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />
 
             <g>
-                {ticks.map(tick => {
-                    return <Text x={tick.bounds.x} y={tick.bounds.y} fill="#666" fontSize={this.tickFontSize}>{tick.text}</Text>
+                {ticks.map((tick, i) => {
+                    return <Text key={i} x={tick.bounds.x} y={tick.bounds.y} fill="#666" fontSize={this.tickFontSize}>{tick.text}</Text>
                 })}
             </g>
 
@@ -343,7 +343,7 @@ export default class StackedBarChart extends React.Component<{ bounds: Bounds, c
                             const xPos = mapXValueToOffset.get(bar.x) as number
                             const barOpacity = bar === this.hoverBar ? 1 : opacity
 
-                            return <StackedBarSegment bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} />
+                            return <StackedBarSegment key={bar.x} bar={bar} color={series.color} xOffset={xPos} opacity={barOpacity} yScale={yScale} onBarMouseOver={this.onBarMouseOver} onBarMouseLeave={this.onBarMouseLeave} barWidth={barWidth} />
                         })}
                     </g>
                 })}

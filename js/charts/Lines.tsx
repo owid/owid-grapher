@@ -64,8 +64,8 @@ export default class Lines extends React.Component<LinesProps> {
 
     @computed get hoverData(): HoverTarget[] {
         const { data } = this.props
-        return flatten(map(this.renderData, (series, i) => {
-            return map(series.values, (v, j) => {
+        return flatten(this.renderData.map((series, i) => {
+            return series.values.map((v, j) => {
                 return {
                     pos: v,
                     series: data[i],
@@ -114,26 +114,26 @@ export default class Lines extends React.Component<LinesProps> {
     }
 
     renderFocusGroups() {
-        return map(this.focusGroups, series =>
-            <g className={series.displayKey}>
+        return this.focusGroups.map(series =>
+            <g key={series.displayKey} className={series.displayKey}>
                 <path
                     stroke={series.color}
                     strokeLinecap="round"
                     d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
                     fill="none"
                     strokeWidth={1.5}
-                    stroke-dasharray={series.isProjection && "1,4"}
+                    strokeDasharray={series.isProjection ? "1,4" : undefined}
                 />
                 {this.hasMarkers && !series.isProjection && <g fill={series.color}>
-                    {series.values.map(v => <circle cx={v.x} cy={v.y} r={2}/>)}
+                    {series.values.map((v, i) => <circle key={i} cx={v.x} cy={v.y} r={2}/>)}
                 </g>}
             </g>
         )
     }
 
     renderBackgroundGroups() {
-        return map(this.backgroundGroups, series =>
-            <g className={series.displayKey}>
+        return this.backgroundGroups.map(series =>
+            <g key={series.displayKey} className={series.displayKey}>
                 <path
                     key={series.key + '-line'}
                     strokeLinecap="round"

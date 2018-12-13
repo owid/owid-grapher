@@ -161,11 +161,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
         const { chart } = this
         if (chart.overlayTab === 'sources')
-            return <SourcesTab bounds={bounds} chart={chart} />
+            return <SourcesTab key='sourcesTab' bounds={bounds} chart={chart} />
         else if (chart.overlayTab === 'data')
-            return <DataTab bounds={bounds} chart={chart} />
+            return <DataTab key='dataTab' bounds={bounds} chart={chart} />
         else if (chart.overlayTab === 'download')
-            return <DownloadTab bounds={bounds} chart={chart} />
+            return <DownloadTab key='downloadTab' bounds={bounds} chart={chart} />
         else
             return undefined
     }
@@ -195,7 +195,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
             this.renderOverlayTab(svgBounds),
             this.popups,
             this.chart.tooltip,
-            this.isSelectingData && <DataSelector chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />
+            this.isSelectingData && <DataSelector key="dataSelector" chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />
         ]
     }
 
@@ -221,15 +221,15 @@ export default class ChartView extends React.Component<ChartViewProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound checkVisibility() {
-        function checkVisible(elm: HTMLElement) {
-            if (!elm.getBoundingClientRect)
+        function checkVisible(elm: HTMLElement|null) {
+            if (!elm || !elm.getBoundingClientRect)
                 return false
             const rect = elm.getBoundingClientRect()
             const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight)
             return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
         }
 
-        if (!this.hasBeenVisible && checkVisible(this.base.current!)) {
+        if (!this.hasBeenVisible && checkVisible(this.base.current)) {
             this.hasBeenVisible = true
         }
     }

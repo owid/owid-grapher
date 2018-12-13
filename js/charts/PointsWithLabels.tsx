@@ -110,7 +110,7 @@ class ScatterGroupSingle extends React.Component<{ group: ScatterRenderSeries, i
 
         return <g key={group.displayKey} className={group.displayKey}>
             {group.isFocus && <circle cx={cx} cy={cy} fill="none" stroke={color} r={(size + 3).toFixed(2)} />}
-            <circle cx={cx} cy={cy} r={size.toFixed(2)} fill={color} opacity={0.8} stroke={stroke} stroke-width={0.7}/>
+            <circle cx={cx} cy={cy} r={size.toFixed(2)} fill={color} opacity={0.8} stroke={stroke} strokeWidth={0.7}/>
         </g>
     }
 }
@@ -444,12 +444,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.props.onMouseLeave()
     }
 
-    @action.bound onMouseMove(ev: any) {
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         if (this.mouseFrame !== undefined)
             cancelAnimationFrame(this.mouseFrame)
 
+        const nativeEvent = ev.nativeEvent
+
         this.mouseFrame = requestAnimationFrame(() => {
-            const mouse = getRelativeMouse(this.base, ev)
+            const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
             const closestSeries = sortBy(this.renderData, (series) => {
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
@@ -493,7 +495,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected } = this
 
-        return backgroundGroups.map(group => <ScatterBackgroundLine group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
+        return backgroundGroups.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
     }
 
     renderBackgroundLabels() {
@@ -523,7 +525,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size * 0.05
 
             if (series.values.length === 1) {
-                return <ScatterGroupSingle group={series}/>
+                return <ScatterGroupSingle key={series.displayKey} group={series}/>
             } else {
                 const firstValue = series.values[0]
                 return <g key={series.displayKey} className={series.displayKey}>

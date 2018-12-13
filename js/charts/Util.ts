@@ -1,6 +1,6 @@
 
-import { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, difference, sortedUniq } from 'lodash'
-export { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, difference, sortedUniq }
+import { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, omit, difference, sortedUniq } from 'lodash'
+export { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, omit, difference, sortedUniq }
 
 import { format } from 'd3-format'
 import { extent } from 'd3-array'
@@ -10,7 +10,7 @@ import Vector2 from './Vector2'
 export type SVGElement = any
 export type VNode = any
 
-export function getRelativeMouse(node: SVGElement, event: any): Vector2 {
+export function getRelativeMouse(node: SVGElement, event: MouseEvent|TouchEvent|{ x: number, y: number }): Vector2 {
     let clientX, clientY
     if ((event as any).clientX != null) {
         clientX = (event as MouseEvent).clientX

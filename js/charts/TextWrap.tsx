@@ -70,7 +70,7 @@ export default class TextWrap {
         return defaultTo(max(this.lines.map(l => l.width)), 0)
     }
 
-    render(x: number, y: number, options?: React.SVGAttributes<SVGTextElement>) {
+    render(x: number, y: number, options?: any) {//React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, lineHeight } = this
 
         if (lines.length === 0)

@@ -87,7 +87,7 @@ export class ScatterColorLegendView extends React.Component<ScatterColorLegendVi
                 const mouseLeave = onMouseLeave || undefined
                 const click = onClick ? () => onClick(mark.color) : undefined
 
-                const result = <g className="legendMark" onMouseOver={mouseOver} onMouseLeave={mouseLeave} onClick={click} fill={!isActive ? "#ccc": undefined}>
+                const result = <g key={mark.label.text} className="legendMark" onMouseOver={mouseOver} onMouseLeave={mouseLeave} onClick={click} fill={!isActive ? "#ccc": undefined}>
                     <rect x={props.x} y={props.y + offset - lineHeight / 2} width={mark.width} height={mark.height + lineHeight} fill="#fff" opacity={0} />,
                     <rect x={props.x} y={props.y + offset + rectSize / 2} width={rectSize} height={rectSize} fill={isActive ? mark.color : undefined} />,
                     {mark.label.render(props.x + rectSize + rectPadding, props.y + offset, isFocus ? { style: { fontWeight: 'bold' } } : undefined)}

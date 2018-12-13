@@ -272,7 +272,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         })
 
         return <g className="scatterTooltip">
-            {elements.map(el => el.wrap.render(el.x, el.y))}
+            {elements.map((el, i) => el.wrap.render(el.x, el.y, { key: i }))}
         </g>
     }
 }

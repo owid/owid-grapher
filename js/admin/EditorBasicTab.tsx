@@ -70,7 +70,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
             <h5>{slot.name}</h5>
             <EditableList>
                 {slot.dimensionsWithData.map(dim => {
-                    return dim.property === slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
+                    return dim.property === slot.property && <DimensionCard key={dim.index} dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
                 })}
             </EditableList>
             {canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
@@ -89,7 +89,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
         const { dimensionSlots } = props.editor.chart
 
         return <Section name="Add variables">
-            {dimensionSlots.map(slot => <DimensionSlotView slot={slot} editor={props.editor} />)}
+            {dimensionSlots.map(slot => <DimensionSlotView key={slot.name} slot={slot} editor={props.editor} />)}
         </Section>
     }
 }

@@ -62,12 +62,14 @@ export default class RedirectsIndexPage extends React.Component {
                 </FieldsRow>
                 <p>Redirects are automatically created when the slug of a published chart is changed.</p>
                 <table className="table table-bordered">
-                    <tr>
-                        <th>Slug</th>
-                        <th>Redirects To</th>
-                        <th></th>
-                    </tr>
-                    {redirects.map(redirect => <RedirectRow redirect={redirect} onDelete={this.onDelete}/>)}
+                    <tbody>
+                        <tr>
+                            <th>Slug</th>
+                            <th>Redirects To</th>
+                            <th></th>
+                        </tr>
+                        {redirects.map(redirect => <RedirectRow key={redirect.id} redirect={redirect} onDelete={this.onDelete}/>)}
+                    </tbody>
                 </table>
             </main>
         </AdminLayout>

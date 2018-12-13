@@ -8,7 +8,6 @@ import Bounds from '../charts/Bounds'
 import {includes, capitalize} from '../charts/Util'
 import ChartConfig from '../charts/ChartConfig'
 
-import Admin from './Admin'
 import ChartEditor, {EditorDatabase, Log} from './ChartEditor'
 import EditorBasicTab from './EditorBasicTab'
 import EditorDataTab from './EditorDataTab'
@@ -38,6 +37,10 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
     componentWillUnmount() {
         //window.removeEventListener("hashchange", this.onHashChange)
         this.dispose()
+    }
+
+    render() {
+        return null
     }
 
     @action.bound onHashChange() {
@@ -122,31 +125,26 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
     }
 
     render() {
-        return <AdminAppContext.Consumer>
-            {context => {
-                this.context = context
-                return <AdminLayout noSidebar>
-                    <main className="ChartEditorPage">
-                        {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
-                        {this.editor !== undefined && this.renderReady(this.editor)}
-                    </main>
-                </AdminLayout>
-            }}
-        </AdminAppContext.Consumer>
+        return <AdminLayout noSidebar>
+            <main className="ChartEditorPage">
+                {(this.editor === undefined || this.editor.currentRequest) && <LoadingBlocker/>}
+                {this.editor !== undefined && this.renderReady(this.editor)}
+            </main>
+        </AdminLayout>
     }
 
     renderReady(editor: ChartEditor) {
         const {chart, availableTabs, previewMode} = editor
 
-        return [
-            !editor.newChartId && <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>,
-            editor.newChartId && <Redirect to={`/charts/${editor.newChartId}/edit`}/>,
-            <TabBinder editor={editor}/>,
+        return <React.Fragment>
+            {!editor.newChartId && <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>}
+            {editor.newChartId && <Redirect to={`/charts/${editor.newChartId}/edit`}/>}
+            <TabBinder editor={editor}/>
             <form onSubmit={e => e.preventDefault()}>
                 <div className="p-2">
                     <ul className="nav nav-tabs">
                         {availableTabs.map(tab =>
-                            <li className="nav-item">
+                            <li key={tab} className="nav-item">
                                 <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
                             </li>
                         )}
@@ -162,24 +160,24 @@ export default class ChartEditorPage extends React.Component<{ chartId?: number,
                     {editor.tab === 'revisions' && <EditorHistoryTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
-            </form>,
+            </form>
             <div>
                 <figure data-grapher-src>
                     {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 360, 500) : new Bounds(0, 0, 800, 600)}/>}
                     {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
                 </figure>
                 <div className="btn-group" data-toggle="buttons">
-                    <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview" onClick={action(_ => editor.previewMode = 'mobile')}>
-                        <input type="radio" name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
+                    <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview">
+                        <input type="radio" onChange={action(_ => editor.previewMode = 'mobile')} name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
                         <i className="fa fa-mobile"/>
                     </label>
-                    <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview" onClick={action(_ => editor.previewMode = 'desktop')}>
-                        <input type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
+                    <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview">
+                        <input onChange={action(_ => editor.previewMode = 'desktop')} type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
                         <i className="fa fa-desktop"/>
                     </label>
                 </div>
             </div>
-        ]
+        </React.Fragment>
 
     }
 }

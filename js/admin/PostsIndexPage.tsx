@@ -75,7 +75,6 @@ export default class PostsIndexPage extends React.Component {
                 limit: 50,
                 key: 'term'
             })
-            console.log(results)
             return _.uniq(results.map((result: any) => result.obj.post))
         } else {
             return this.posts.slice(0, maxVisibleRows)
@@ -122,8 +121,8 @@ export default class PostsIndexPage extends React.Component {
                             <th></th>
                         </tr>
                     </thead>
-                        <tbody>
-                        {postsToShow.map(post => <PostRow post={post} highlight={highlight}/>)}
+                    <tbody>
+                        {postsToShow.map(post => <PostRow key={post.id} post={post} highlight={highlight}/>)}
                     </tbody>
                 </table>
                 {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more pages...</button>}
