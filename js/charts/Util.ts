@@ -59,7 +59,7 @@ export function entityNameForMap(name: string) {
 
 export function formatYear(year: number): string {
     if (isNaN(year)) {
-        console.error(`Invalid year '${year}'`)
+        console.warn(`Invalid year '${year}'`)
         return ""
     }
 

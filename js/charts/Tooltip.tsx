@@ -52,8 +52,10 @@ export class TooltipView extends React.Component {
         this.componentDidUpdate()
     }
     componentDidUpdate() {
-        if (this.bounds)
-            runInAction(() => this.bounds = Bounds.fromElement(this.base.current!))
+        runInAction(() => {
+            if (this.base.current)
+                this.bounds = Bounds.fromElement(this.base.current)
+        })
     }
 
     render() {

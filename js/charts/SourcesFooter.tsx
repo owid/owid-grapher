@@ -126,7 +126,7 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
     @action.bound onMouseMove(e: MouseEvent) {
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(':hover')) {
-            const mouse = getRelativeMouse(this.base, e)
+            const mouse = getRelativeMouse(this.base.current, e)
             this.tooltipTarget = { x: mouse.x, y: mouse.y }
         } else
             this.tooltipTarget = undefined

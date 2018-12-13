@@ -81,7 +81,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         const { ticks } = this
         const textColor = '#666'
 
-        return <g className="axis" font-size="0.8em">
+        return <g className="axis" fontSize="0.8em">
             {ticks.map(tick => {
                 return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" text-anchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
             })}
