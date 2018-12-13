@@ -55,6 +55,6 @@ You can run `yarn c` to get a node REPL with the database connection opened and 
 
 ## Architecture notes
 
-owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using the libraries [Preact](http://github.com/developit/preact) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
 
 The OWID tech stack has evolved over time as we have found really optimal ways of solving particular problems. We're now happy with the combination of React + Mobx + TypeScript + node and expect to be using these core tools for the foreseeable future. The MySQL database and data structure however is much older and we're interested in exploring alternatives that might allow us to work with large amounts of data more quickly and with more flexibility.
