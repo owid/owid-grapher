@@ -8,10 +8,11 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow, SelectField } from './Forms'
 import Link from './Link'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 export default class TestIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         return <AdminLayout title="Test">

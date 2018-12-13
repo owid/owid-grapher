@@ -120,13 +120,13 @@ export default class SourcesFooter {
 
 @observer
 class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX: number, targetY: number }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     @observable.ref tooltipTarget?: { x: number, y: number }
 
     @action.bound onMouseMove(e: MouseEvent) {
-        const cc = this.base.querySelector(".cclogo")
+        const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(':hover')) {
-            const mouse = getRelativeMouse(this.base, e)
+            const mouse = getRelativeMouse(this.base.current, e)
             this.tooltipTarget = { x: mouse.x, y: mouse.y }
         } else
             this.tooltipTarget = undefined
@@ -145,7 +145,7 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
         const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this.props.footer
         const { tooltipTarget } = this
 
-        return <g className="SourcesFooter" style={{ fill: "#777" }}>
+        return <g ref={this.base} className="SourcesFooter" style={{ fill: "#777" }}>
             <g className="clickable" onClick={onSourcesClick} style={{ fill: "#777" }}>{sources.render(targetX, targetY)}</g>
             {note.render(targetX, targetY + sources.height + paraMargin)}
             {isCompact

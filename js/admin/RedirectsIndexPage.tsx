@@ -7,6 +7,7 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { FieldsRow } from './Forms'
 import Link from './Link'
+import { AdminAppContext } from './AdminAppContext'
 
 interface RedirectListItem {
     id: number
@@ -17,7 +18,7 @@ interface RedirectListItem {
 
 @observer
 class RedirectRow extends React.Component<{ redirect: RedirectListItem, onDelete: (redirect: RedirectListItem) => void }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {redirect} = this.props
@@ -36,7 +37,7 @@ class RedirectRow extends React.Component<{ redirect: RedirectListItem, onDelete
 
 @observer
 export default class RedirectsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable redirects: RedirectListItem[] = []
 
@@ -61,12 +62,14 @@ export default class RedirectsIndexPage extends React.Component {
                 </FieldsRow>
                 <p>Redirects are automatically created when the slug of a published chart is changed.</p>
                 <table className="table table-bordered">
-                    <tr>
-                        <th>Slug</th>
-                        <th>Redirects To</th>
-                        <th></th>
-                    </tr>
-                    {redirects.map(redirect => <RedirectRow redirect={redirect} onDelete={this.onDelete}/>)}
+                    <tbody>
+                        <tr>
+                            <th>Slug</th>
+                            <th>Redirects To</th>
+                            <th></th>
+                        </tr>
+                        {redirects.map(redirect => <RedirectRow key={redirect.id} redirect={redirect} onDelete={this.onDelete}/>)}
+                    </tbody>
                 </table>
             </main>
         </AdminLayout>

@@ -8,6 +8,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
+import { AdminAppContext } from './AdminAppContext'
 
 interface PostIndexMeta {
     id: number
@@ -25,7 +26,7 @@ interface Searchable {
 
 @observer
 class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {post, highlight} = this.props
@@ -49,7 +50,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
 
 @observer
 export default class PostsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50
@@ -74,7 +75,6 @@ export default class PostsIndexPage extends React.Component {
                 limit: 50,
                 key: 'term'
             })
-            console.log(results)
             return _.uniq(results.map((result: any) => result.obj.post))
         } else {
             return this.posts.slice(0, maxVisibleRows)
@@ -121,8 +121,8 @@ export default class PostsIndexPage extends React.Component {
                             <th></th>
                         </tr>
                     </thead>
-                        <tbody>
-                        {postsToShow.map(post => <PostRow post={post} highlight={highlight}/>)}
+                    <tbody>
+                        {postsToShow.map(post => <PostRow key={post.id} post={post} highlight={highlight}/>)}
                     </tbody>
                 </table>
                 {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more pages...</button>}

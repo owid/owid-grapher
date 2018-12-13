@@ -11,6 +11,7 @@ import * as parse from 'csv-parse'
 import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
+import { AdminAppContext } from './AdminAppContext'
 
 declare const App: any
 declare const window: any
@@ -105,12 +106,14 @@ class DataPreview extends React.Component<{ csv: CSV }> {
         return <div style={{ height: height * visibleRows, overflowY: 'scroll' }} onScroll={this.onScroll}>
             <div style={{ height: height * numRows, paddingTop: height * rowOffset }}>
                 <table className="table" style={{ background: 'white' }}>
-                    {rows.slice(rowOffset, rowOffset + visibleRows).map((row, i) =>
-                        <tr>
-                            <td>{rowOffset + i + 1}</td>
-                            {row.map(cell => <td style={{ height: height }}>{cell}</td>)}
-                        </tr>
-                    )}
+                    <tbody>
+                        {rows.slice(rowOffset, rowOffset + visibleRows).map((row, i) =>
+                            <tr key={i}>
+                                <td>{rowOffset + i + 1}</td>
+                                {row.map((cell, j) => <td key={j} style={{ height: height }}>{cell}</td>)}
+                            </tr>
+                        )}
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -125,10 +128,10 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
         return <li className="EditVariable">
             <FieldsRow>
                 <BindString store={variable} field="name" label=""/>
-                <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }}>
-                    <option value="" selected={variable.overwriteId === undefined}>Create new variable</option>
+                <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }} value={variable.overwriteId||""}>
+                    <option value="">Create new variable</option>
                     {dataset.existingVariables.map(v =>
-                        <option value={v.id} selected={variable.overwriteId === v.id}>Overwrite {v.name}</option>
+                        <option value={v.id}>Overwrite {v.name}</option>
                     )}
                 </select>
             </FieldsRow>
@@ -156,8 +159,8 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
             <h3>Variables</h3>
             <p className="form-section-desc">These are the variables that will be stored for your dataset.</p>
             <ol>
-                {dataset.newVariables.map(variable =>
-                    <EditVariable variable={variable} dataset={dataset} />
+                {dataset.newVariables.map((variable, i) =>
+                    <EditVariable key={i} variable={variable} dataset={dataset} />
                 )}
             </ol>
             {this.deletingVariables.length > 0 && <div className="alert alert-danger">
@@ -377,7 +380,7 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
 
 @observer
 class Importer extends React.Component<ImportPageData> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable csv?: CSV
     @observable.ref dataset = new EditableDataset()
@@ -467,7 +470,7 @@ class Importer extends React.Component<ImportPageData> {
             years, entities,
             variables: newVariables
         }
-        this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json) => {
+        this.context.admin.requestJSON('/api/importDataset', requestData, "POST").then((json: any) => {
             runInAction(() => {
                 this.postImportDatasetId = json.datasetId
             })
@@ -509,8 +512,8 @@ class Importer extends React.Component<ImportPageData> {
 
                 {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
                 {!dataset.isLoading && [
-                    <EditVariables dataset={dataset} />,
-                    <input type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />
+                    <EditVariables key="editVariables" dataset={dataset} />,
+                    <input key="submit" type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />
                 ]}
                 {this.postImportDatasetId && <Redirect to={`/datasets/${this.postImportDatasetId}`}/>}
             </section>}
@@ -533,7 +536,7 @@ interface ImportPageData {
 
 @observer
 export default class ImportPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable importData?: ImportPageData
 

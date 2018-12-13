@@ -70,7 +70,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
             <h5>{slot.name}</h5>
             <EditableList>
                 {slot.dimensionsWithData.map(dim => {
-                    return dim.property === slot.property && <DimensionCard dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
+                    return dim.property === slot.property && <DimensionCard key={dim.index} dimension={dim} editor={editor} onEdit={slot.allowMultiple ? undefined : action(() => this.isSelectingVariables = true)} onRemove={slot.isOptional ? () => this.onRemoveDimension(dim) : undefined} />
                 })}
             </EditableList>
             {canAddMore && <div className="dimensionSlot" onClick={action(() => this.isSelectingVariables = true)}>Add variable{slot.allowMultiple && 's'}</div>}
@@ -81,7 +81,7 @@ class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: C
 
 @observer
 class VariablesSection extends React.Component<{ editor: ChartEditor }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
     render() {
@@ -89,7 +89,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
         const { dimensionSlots } = props.editor.chart
 
         return <Section name="Add variables">
-            {dimensionSlots.map(slot => <DimensionSlotView slot={slot} editor={props.editor} />)}
+            {dimensionSlots.map(slot => <DimensionSlotView key={slot.name} slot={slot} editor={props.editor} />)}
         </Section>
     }
 }
@@ -99,7 +99,6 @@ export default class EditorBasicTab extends React.Component<{ editor: ChartEdito
     @action.bound onChartType(value: string) {
         const {chart} = this.props.editor
         chart.props.type = (value as ChartTypeType)
-
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if ((chart.isScatter || chart.isSlopeChart) && !chart.props.dimensions.find(d => d.property === "color")) {

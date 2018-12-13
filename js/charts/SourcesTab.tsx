@@ -30,17 +30,19 @@ export default class SourcesTab extends React.Component<{ bounds: Bounds, chart:
 
         const editUrl = Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/datasets/${variable.datasetId}` : undefined
 
-        return <div className="datasource-wrapper">
+        return <div key={source.id} className="datasource-wrapper">
             <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>
             <table className="variable-desc">
-                {variable.description && <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(variable.description)}}/></tr>}
-                {variable.coverage && <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr>}
-                {variable.timespan && <tr><td>Variable time span</td><td>{variable.timespan}</td></tr>}
-                {dimension.unitConversionFactor !== 1 && <tr><td>Unit conversion factor for chart</td><td>{dimension.unitConversionFactor}</td></tr>}
-                {source.dataPublishedBy && <tr><td>Data published by</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublishedBy)}}/></tr>}
-                {source.dataPublisherSource && <tr><td>Data publisher's source</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublisherSource)}}/></tr>}
-                {source.link && <tr><td>Link</td><td dangerouslySetInnerHTML={{__html: linkify(source.link)}}/></tr>}
-                {source.retrievedDate && <tr><td>Retrieved</td><td>{source.retrievedDate}</td></tr>}
+                <tbody>
+                    {variable.description ? <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(variable.description)}}/></tr> : null}
+                    {variable.coverage ? <tr><td>Variable geographic coverage</td><td>{variable.coverage}</td></tr> : null}
+                    {variable.timespan ? <tr><td>Variable time span</td><td>{variable.timespan}</td></tr> : null}
+                    {dimension.unitConversionFactor !== 1 ? <tr><td>Unit conversion factor for chart</td><td>{dimension.unitConversionFactor}</td></tr> : null}
+                    {source.dataPublishedBy ? <tr><td>Data published by</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublishedBy)}}/></tr> : null}
+                    {source.dataPublisherSource ? <tr><td>Data publisher's source</td><td dangerouslySetInnerHTML={{__html: linkify(source.dataPublisherSource)}}/></tr> : null}
+                    {source.link ? <tr><td>Link</td><td dangerouslySetInnerHTML={{__html: linkify(source.link)}}/></tr> : null}
+                    {source.retrievedDate ? <tr><td>Retrieved</td><td>{source.retrievedDate}</td></tr> : null}
+                </tbody>
             </table>
             {source.additionalInfo && <p dangerouslySetInnerHTML={{__html: linkify(source.additionalInfo)}}/>}
         </div>

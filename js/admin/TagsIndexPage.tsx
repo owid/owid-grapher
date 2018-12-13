@@ -8,6 +8,7 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { FieldsRow, Modal, TextField } from './Forms'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext'
 
 interface TagListItem {
     id: number
@@ -18,7 +19,7 @@ interface TagListItem {
 
 @observer
 class AddTagModal extends React.Component<{ parentId?: number, onClose: () => void }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable tagName: string = ""
     @observable newTagId?: number
@@ -55,7 +56,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
                     <TextField label="Category Name" value={this.tagName} onValue={this.onTagName} autofocus required/>
                 </div>
                 <div className="modal-footer">
-                    <input type="submit" className="btn btn-primary">Send invite</input>
+                    <input type="submit" className="btn btn-primary" value="Add tag"/>
                 </div>
             </form>
             {this.newTagId !== undefined && <Redirect to={`/categories/${this.newTagId}`}/>}
@@ -65,7 +66,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
 
 @observer
 export default class TagsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable categories: TagListItem[] = []
     @observable isAddingTag: boolean = false
@@ -104,18 +105,18 @@ export default class TagsIndexPage extends React.Component {
                     <section>
                         <h4>Top-Level Categories</h4>
                         {parentCategories.map(parent =>
-                            <TagBadge tag={parent as Tag}/>
+                            <TagBadge key={parent.id} tag={parent as Tag}/>
                         )}
                         <button className="btn btn-default" onClick={() => this.onNewTag()}>+ New Category</button>
                     </section>
                     {parentCategories.map(parent =>
-                        <section>
+                        <section key={`${parent.id}-section`}>
                             <h4>
                                 {parent.name}
                             </h4>
                             {parent.specialType === "systemParent" && <p>These are special categories that are assigned automatically.</p>}
                             {parent.children.map(tag =>
-                                <TagBadge tag={tag as Tag}/>
+                                <TagBadge key={tag.id} tag={tag as Tag}/>
                             )}
                             <button className="btn btn-default" onClick={() => this.onNewTag(parent.id)}>+ New Category</button>
                         </section>

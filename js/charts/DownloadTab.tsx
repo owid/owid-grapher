@@ -129,7 +129,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
         const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
 
         return [
-            <a href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
+            <a key="png" href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
                 <div>
                     <img src={pngPreviewUrl} style={imgStyle} />
                     <aside>
@@ -138,7 +138,7 @@ export default class DownloadTab extends React.Component<DownloadTabProps> {
                     </aside>
                 </div>
             </a>,
-            <a href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
+            <a key="svg" href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
                 <div>
                     <img src={svgPreviewUrl} style={imgStyle} />
                     <aside>

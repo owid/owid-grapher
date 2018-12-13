@@ -4,12 +4,12 @@ import {observable, computed, action, runInAction, autorun, IReactionDisposer, r
 import {Prompt, Redirect} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
-import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import DatasetList, { DatasetListItem } from './DatasetList'
 import ChartList, { ChartListItem } from './ChartList'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext'
 
 interface TagPageData {
     id: number
@@ -37,6 +37,8 @@ class TagEditable {
 
 @observer
 class TagEditor extends React.Component<{ tag: TagPageData }> {
+    static contextType = AdminAppContext
+
     @observable newtag!: TagEditable
     @observable isDeleted: boolean = false
 
@@ -53,7 +55,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
     async save() {
         const {tag} = this.props
-        console.log(this.newtag)
         const json = await this.context.admin.requestJSON(`/api/tags/${tag.id}`, { tag: this.newtag }, "PUT")
 
         if (json.success) {
@@ -110,7 +111,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             {this.parentTag && <TagBadge tag={this.parentTag as Tag}/>}
                         </div>
                     </FieldsRow>}
- 
                     {!tag.isBulkImport && <div>
                         <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                     </div>}
@@ -119,7 +119,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             {tag.subcategories.length > 0 && <section>
                 <h3>Subcategories</h3>
                 {tag.subcategories.map(c =>
-                    <TagBadge tag={c as Tag}/>
+                    <TagBadge tag={c as Tag} key={tag.id}/>
                 )}
             </section>}
             <section>
@@ -138,7 +138,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
 @observer
 export default class TagEditPage extends React.Component<{ tagId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable tag?: TagPageData
 
     render() {

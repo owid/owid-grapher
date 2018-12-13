@@ -11,6 +11,7 @@ import AdminLayout from './AdminLayout'
 import { SelectField } from './Forms'
 import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 import { uniq, toString, csvEscape } from '../charts/Util'
+import { AdminAppContext } from './AdminAppContext'
 
 class CSV {
     @observable filename?: string
@@ -83,8 +84,6 @@ class CSV {
     }
 
     @action.bound parseCSV() {
-        console.log("parsing CSV")
-
         const { rows, countryColumnIndex, mapCountriesInputToOutput, findSimilarCountries } = this
 
         if (countryColumnIndex < 0) {
@@ -191,7 +190,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
 
 @observer
 export default class CountryStandardizerPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     fileUploader!: HTMLInputElement
 
     @observable countryList: CountryEntry[] = []
@@ -462,8 +461,8 @@ export default class CountryStandardizerPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {entriesToShow.map(entry =>
-                                <CountryEntryRowRenderer entry={entry} onUpdate={this.onUpdateRow}/>
+                            {entriesToShow.map((entry, i) =>
+                                <CountryEntryRowRenderer key={i} entry={entry} onUpdate={this.onUpdateRow}/>
                             )}
                         </tbody>
                     </table>

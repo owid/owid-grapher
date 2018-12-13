@@ -9,8 +9,6 @@ const mobxFormatters = require('mobx-formatters').default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
-//import 'preact/devtools'
-
 import Grapher from './charts/Grapher'
 import ChartView from './charts/ChartView'
 declare var window: any

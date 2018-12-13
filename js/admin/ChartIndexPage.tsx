@@ -8,6 +8,7 @@ import { TextField} from './Forms'
 import AdminLayout from './AdminLayout'
 import { uniq } from '../charts/Util'
 import ChartList, { ChartListItem } from './ChartList'
+import { AdminAppContext } from './AdminAppContext'
 
 interface Searchable {
     chart: ChartListItem
@@ -16,7 +17,7 @@ interface Searchable {
 
 @observer
 export default class ChartIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable searchInput?: string
     @observable maxVisibleCharts = 50

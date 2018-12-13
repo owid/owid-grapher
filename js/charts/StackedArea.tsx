@@ -38,14 +38,14 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 export class Areas extends React.Component<AreasProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverIndex?: number
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         const {axisBox, data} = this.props
 
-        const mouse = getRelativeMouse(this.base, ev)
+        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
         if (axisBox.innerBounds.contains(mouse)) {
             const closestPoint = sortBy(data[0].values, d => Math.abs(axisBox.xScale.place(d.x) - mouse.x))[0]
@@ -110,13 +110,13 @@ export class Areas extends React.Component<AreasProps> {
         const {xScale, yScale} = axisBox
         const {hoverIndex} = this
 
-        return <g className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
+        return <g ref={this.base} className="Areas" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseMove}>
             <rect x={xScale.range[0]} y={yScale.range[1]} width={xScale.range[1]-xScale.range[0]} height={yScale.range[0]-yScale.range[1]} opacity={0} fill="rgba(255,255,255,0)"/>
             {this.areas}
             {this.borders}
             {hoverIndex !== undefined && <g className="hoverIndicator">
                 {data.map(series => {
-                    return <circle cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>
+                    return <circle key={series.key} cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>
                 })}
                 <line x1={xScale.place(data[0].values[hoverIndex].x)} y1={yScale.range[0]} x2={xScale.place(data[0].values[hoverIndex].x)} y2={yScale.range[1]} stroke="#ccc"/>
             </g>}
@@ -126,7 +126,7 @@ export class Areas extends React.Component<AreasProps> {
 
 @observer
 export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }
@@ -193,24 +193,26 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
 
         return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
-                <tr>
-                    <td><strong>{formatYear(refValue.x)}</strong></td>
-                    <td>
-                        {/* Total */}
-                        {!transform.isRelative && !someMissing && <span>
-                            <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
-                        </span>}
-                    </td>
-                </tr>
-                {reverse(clone(transform.stackedData)).map(series => {
-                    const value = series.values[hoverIndex]
-                    return <tr>
-                        <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
-                            <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                <tbody>
+                    <tr>
+                        <td><strong>{formatYear(refValue.x)}</strong></td>
+                        <td>
+                            {/* Total */}
+                            {!transform.isRelative && !someMissing && <span>
+                                <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
+                            </span>}
                         </td>
-                        <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number)}</td>
                     </tr>
-                })}
+                    {reverse(clone(transform.stackedData)).map(series => {
+                        const value = series.values[hoverIndex]
+                        return <tr key={series.key}>
+                            <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
+                                <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                            </td>
+                            <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number)}</td>
+                        </tr>
+                    })}
+                </tbody>
             </table>
         </Tooltip>
     }
@@ -218,7 +220,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
     componentDidMount() {
         // Fancy intro animation
 
-        const base = select(this.base)
+        const base = select(this.base.current)
         base.selectAll("clipPath > rect")
             .attr("width", 0)
             .transition()
@@ -237,7 +239,7 @@ export default class StackedAreaChart extends React.Component<{ bounds: Bounds, 
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage}/>
 
         const {chart, bounds, axisBox, legend, transform, renderUid} = this
-        return <g className="StackedArea">
+        return <g ref={this.base} className="StackedArea">
             <defs>
                 <clipPath id={`boundsClip-${renderUid}`}>
                     <rect x={axisBox.innerBounds.x} y={0} width={bounds.width} height={bounds.height*2}></rect>
