@@ -19,6 +19,7 @@ import ChartType from '../charts/ChartType'
 import TagBadge from './TagBadge'
 import VariableList, { VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
+import { Base64 } from 'js-base64'
 
 class VariableEditable {
     @observable name: string = ""
@@ -148,7 +149,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
             </div>
             {this.chart && <div className="col">
                 <ChartFigureView chart={this.chart}/>
-                <Link className="btn btn-secondary pull-right" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
+                <Link className="btn btn-secondary pull-right" to={`/charts/create/${Base64.encode(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
             </div>}
         </div>
     }

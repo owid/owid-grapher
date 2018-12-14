@@ -538,6 +538,11 @@
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.51.tgz#d0c728663de8905457a26c8891ac08ad2b3539c9"
   integrity sha512-+vtCjz+pzr5KkaX/GMnVF0YtQqkm+oVcdBH0Q7zCxdwk42c71xJ9hT1b6Mbn4Kf7CAxSHvkWF1LRdpYwUM+pcg==
 
+"@types/js-base64@^2.3.1":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@types/js-base64/-/js-base64-2.3.1.tgz#c39f14f129408a3d96a1105a650d8b2b6eeb4168"
+  integrity sha512-4RKbhIDGC87s4EBy2Cp2/5S2O6kmCRcZnD5KRCq1q9z2GhBte1+BdsfVKCpG8yKpDGNyEE2G6IqFIh6W2YwWPA==
+
 "@types/js-cookie@^2.0.28":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@types/js-cookie/-/js-cookie-2.2.0.tgz#ae2eabaa4bc892ba553c664cca21e6ee5224e5b5"
@@ -5682,7 +5687,7 @@ jquery@^3.2.1, jquery@^3.3.1:
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
   integrity sha512-Ubldcmxp5np52/ENotGxlLe6aGMvmF4R8S6tZjsP6Knsaxd/xp3Zrh50cG93lR6nPXyUFwzN3ZSOQI0wRJNdGg==
 
-js-base64@^2.1.8, js-base64@^2.1.9:
+js-base64@^2.1.8, js-base64@^2.1.9, js-base64@^2.4.9:
   version "2.4.9"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.4.9.tgz#748911fb04f48a60c4771b375cac45a80df11c03"
   integrity sha512-xcinL3AuDJk7VSzsHgb9DvvIXayBbadtMZ4HFPx8rUszbW1MuNMlwYVC4zzCZ6e1sqZpnNS5ZFYOhXqA39T7LQ==

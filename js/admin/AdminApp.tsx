@@ -22,6 +22,7 @@ import NotFoundPage from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import { LoadingBlocker, Modal } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
+import { Base64 } from 'js-base64'
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -66,7 +67,7 @@ export default class AdminApp extends React.Component<{ admin: Admin }> {
                     <AdminErrorMessage admin={admin}/>
                     <AdminLoader admin={admin}/>
                     <Switch>
-                        <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(atob(match.params.config))}/>}/>
+                        <Route exact path="/charts/create/:config" render={({ match }) => <ChartEditorPage chartConfig={JSON.parse(Base64.decode(match.params.config))}/>}/>
                         <Route exact path="/charts/create" component={ChartEditorPage}/>
                         <Route exact path="/charts/:chartId/edit" render={({ match }) => <ChartEditorPage chartId={parseInt(match.params.chartId)}/>}/>
                         <Route exact path="/charts" component={ChartIndexPage}/>
