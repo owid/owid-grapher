@@ -424,7 +424,7 @@ export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    dismissable: boolean = false
+    dismissable: boolean = true
 
     @action.bound onClickOutside() {
         if (this.dismissable)
