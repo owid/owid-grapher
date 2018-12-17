@@ -190,13 +190,17 @@ export interface ToggleProps {
 }
 
 export class Toggle extends React.Component<ToggleProps> {
+    @action.bound onChange(e: React.ChangeEvent<HTMLInputElement>) {
+        this.props.onValue(!!e.currentTarget.checked)
+    }
+
     render() {
         const { props } = this
         const passthroughProps = pick(props, ['title', 'disabled']) as any
 
         return <div className="form-check">
             <label className="form-check-label">
-                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)} {...passthroughProps}/>
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={this.onChange} {...passthroughProps}/>
                 {props.label}
             </label>
         </div>
@@ -420,14 +424,16 @@ export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+    dismissable: boolean = false
 
     @action.bound onClickOutside() {
-        this.props.onClose()
+        if (this.dismissable)
+            this.props.onClose()
     }
 
     componentDidMount() {
-        // Note: this strategy doesn't seem to work with React's onClick
-        this.base.current!.addEventListener("click", e => e.stopPropagation())
+        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
+        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
         setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
     }
 

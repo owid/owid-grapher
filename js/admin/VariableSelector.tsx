@@ -133,7 +133,7 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                 <h5 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h5>
             </div>
             <div className="modal-body">
-                <form>
+                <div>
                     <div className="searchResults">
                         <FieldsRow>
                             <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
@@ -161,13 +161,13 @@ export default class VariableSelector extends React.Component<VariableSelectorPr
                     <div className="selectedData">
                         <ul>
                             {chosenVariables.map(d => {
-                                return <li>
+                                return <li key={d.id}>
                                     <Toggle value={true} onValue={() => this.unselectVariable(d)} label={d.name}/>
-                            </li>
+                                </li>
                             })}
                         </ul>
                     </div>
-                </form>
+                </div>
             </div>
             <div className="modal-footer">
                 <button className="btn" onClick={this.onDismiss}>Close</button>
