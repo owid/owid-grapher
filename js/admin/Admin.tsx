@@ -29,7 +29,7 @@ export default class Admin {
         this.settings = settings
     }
 
-    @observable currentRequests: Promise<any>[] = []
+    @observable currentRequests: Promise<Response>[] = []
 
     @computed get isLoading() {
         return this.currentRequests.length > 0
@@ -79,8 +79,9 @@ export default class Admin {
         let text: string|undefined
         let json: Json
 
+        let request: Promise<Response>
         try {
-            const request = this.rawRequest(targetPath, data instanceof File ? data : JSON.stringify(data), method)
+            request = this.rawRequest(targetPath, data instanceof File ? data : JSON.stringify(data), method)
             this.currentRequests.push(request)
 
             response = await request
@@ -98,7 +99,7 @@ export default class Admin {
             this.errorMessage = { title: `Failed to ${method} ${targetPath}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
             throw this.errorMessage
         } finally {
-            this.currentRequests.pop()
+            this.currentRequests = this.currentRequests.filter(req => req !== request)
         }
 
         return json

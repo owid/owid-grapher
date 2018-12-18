@@ -1,6 +1,7 @@
 /* Chart editor styling */
 
 @import "node_modules/bootstrap/scss/bootstrap";
+@import "node_modules/react-tag-autocomplete/example/styles";
 
 html {
     font-size: 14px;
@@ -705,3 +706,7 @@ main:not(.ChartEditorPage) {
     }
 }
 
+// Tweak to stop suggestions overlapping "Add new tag" in another tag input below
+.react-tags__suggestions {
+    z-index: 10;
+}

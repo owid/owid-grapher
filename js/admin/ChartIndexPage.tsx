@@ -85,9 +85,6 @@ export default class ChartIndexPage extends React.Component {
 
     async getData() {
         const {admin} = this.context
-        if (admin.currentRequests.length > 0)
-            return
-
         const json = await admin.getJSON("/api/charts.json")
         runInAction(() => {
             this.charts = json.charts

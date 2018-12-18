@@ -676,6 +676,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-tag-input@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@types/react-tag-input/-/react-tag-input-5.0.3.tgz#0596185f3a73e92a768465e57b8cc9184385e53f"
+  integrity sha512-yF0lCDzcqdgIm+vNpsxREcEKLIeM40OWbhxXHDU1ZSLSJ9LpnJoAyP3/mUU01tKpdL6U3xIJlcQFKFHMbCf0eQ==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react@*", "@types/react@^16.0.29":
   version "16.7.17"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.7.17.tgz#3242e796a1ffbba4f49eae5915a67f4c079504e9"
@@ -8396,10 +8403,9 @@ react-router@^4.3.1:
     prop-types "^15.6.1"
     warning "^4.0.1"
 
-react-tag-autocomplete@^5.8.0:
+"react-tag-autocomplete@https://github.com/mispy/react-tags":
   version "5.8.0"
-  resolved "https://registry.yarnpkg.com/react-tag-autocomplete/-/react-tag-autocomplete-5.8.0.tgz#af7ffea38915d3312976b01fc4b34b6c7d5159f7"
-  integrity sha512-1svOlZ6oQWH9ekGxd8sQgwvEg4lpwarcyH0rluWQ290xQ/nY8PNeIvF6VSZwWpTv+1zCkfjzqyO95TnXcwp+YQ==
+  resolved "https://github.com/mispy/react-tags#c95bea73c02e16b7613ac6b366fe4a6a325af3be"
 
 react@^16.4.2, react@^16.6.3:
   version "16.6.3"

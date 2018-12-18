@@ -490,25 +490,13 @@ export class Timeago extends React.Component<{ time: Date }> {
 }
 
 import TagBadge, { Tag } from './TagBadge'
+const ReactTags = require('react-tag-autocomplete')
 
 @observer
-export class TagEditor extends React.Component<{ tags: Tag[] }> {
-    input!: HTMLInputElement
-
-    @action.bound onInputKey(ev: React.KeyboardEvent) {
-        // BACKSPACE remove tag
-        if (ev.which === 8) {
-            if (this.input.selectionStart === 0) {
-                this.props.tags.pop()
-            }
-        }
-    }
-
+export class EditTags extends React.Component<{ tags: Tag[], suggestions: Tag[], onDelete: (index: number) => void, onAdd: (tag: Tag) => void }> {
     render() {
-        const {tags} = this.props
-        return <div className="TagEditor">
-            {tags.map(tag => <TagBadge tag={tag}/>)}
-            <input onKeyDown={this.onInputKey} type="text" size={1} ref={e => this.input = e as HTMLInputElement}/>
-        </div>
+        const {tags, suggestions} = this.props
+
+        return <ReactTags tags={tags} suggestions={suggestions} handleAddition={this.props.onAdd} handleDelete={this.props.onDelete} minQueryLength={1}/>
     }
 }
