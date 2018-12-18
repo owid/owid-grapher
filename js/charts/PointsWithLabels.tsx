@@ -110,7 +110,7 @@ class ScatterGroupSingle extends React.Component<{ group: ScatterRenderSeries, i
 
         return <g key={group.displayKey} className={group.displayKey}>
             {group.isFocus && <circle cx={cx} cy={cy} fill="none" stroke={color} r={(size + 3).toFixed(2)} />}
-            <circle cx={cx} cy={cy} r={size.toFixed(2)} fill={color} opacity={0.8} stroke={stroke} stroke-width={0.7}/>
+            <circle cx={cx} cy={cy} r={size.toFixed(2)} fill={color} opacity={0.8} stroke={stroke} strokeWidth={0.7}/>
         </g>
     }
 }
@@ -164,7 +164,7 @@ class ScatterBackgroundLine extends React.Component<{ group: ScatterRenderSeries
 
 @observer
 export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     @computed get data(): ScatterSeries[] {
         return this.props.data
     }
@@ -444,12 +444,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             this.props.onMouseLeave()
     }
 
-    @action.bound onMouseMove(ev: any) {
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         if (this.mouseFrame !== undefined)
             cancelAnimationFrame(this.mouseFrame)
 
+        const nativeEvent = ev.nativeEvent
+
         this.mouseFrame = requestAnimationFrame(() => {
-            const mouse = getRelativeMouse(this.base, ev)
+            const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
             const closestSeries = sortBy(this.renderData, (series) => {
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
@@ -493,7 +495,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected } = this
 
-        return backgroundGroups.map(group => <ScatterBackgroundLine group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
+        return backgroundGroups.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
     }
 
     renderBackgroundLabels() {
@@ -523,7 +525,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             const strokeWidth = (series.isHover ? 3 : (isSubtleForeground ? 0.8 : 2)) + lastValue.size * 0.05
 
             if (series.values.length === 1) {
-                return <ScatterGroupSingle group={series}/>
+                return <ScatterGroupSingle key={series.displayKey} group={series}/>
             } else {
                 const firstValue = series.values[0]
                 return <g key={series.displayKey} className={series.displayKey}>
@@ -577,7 +579,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
 
     componentDidMount() {
         const radiuses: string[] = []
-        select(this.base).selectAll("circle").each(function() {
+        select(this.base.current).selectAll("circle").each(function() {
             const circle = this as SVGCircleElement
             radiuses.push(circle.getAttribute('r') as string)
             circle.setAttribute('r', "0")
@@ -594,7 +596,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         if (isEmpty(renderData))
             return <NoData bounds={bounds} />
 
-        return <g className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
+        return <g ref={this.base} className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
             <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" />
             <defs>
                 <clipPath id={`scatterBounds-${renderUid}`}>

@@ -266,7 +266,7 @@ html, body {
         max-width: 90vw;
     }
 
-    form {
+    .modal-body > div {
         display: flex !important;
         justify-content: space-between;
     }

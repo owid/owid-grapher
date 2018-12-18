@@ -10,6 +10,7 @@ import AdminLayout from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
 import Link from './Link'
 import DatasetList, {DatasetListItem} from './DatasetList'
+import { AdminAppContext } from './AdminAppContext'
 
 interface Searchable {
     dataset: DatasetListItem
@@ -18,7 +19,7 @@ interface Searchable {
 
 @observer
 export default class DatasetsIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable datasets: DatasetListItem[] = []
     @observable maxVisibleRows = 50

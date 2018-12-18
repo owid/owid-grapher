@@ -304,7 +304,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { backgroundMarks, needsLines } = this
 
         return backgroundMarks.map(mark =>
-            <PlacedMarkView mark={mark} legend={legend} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+            <PlacedMarkView key={mark.mark.item.key} mark={mark} legend={legend} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
         )
     }
 
@@ -314,7 +314,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { focusMarks, needsLines } = this
 
         return focusMarks.map(mark =>
-            <PlacedMarkView mark={mark} legend={legend} isFocus={true} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
+            <PlacedMarkView key={mark.mark.item.key} mark={mark} legend={legend} isFocus={true} needsLines={needsLines} onMouseOver={() => this.onMouseOver(mark.mark.item.key)} onClick={() => this.onClick(mark.mark.item.key)}/>
         )
     }
 

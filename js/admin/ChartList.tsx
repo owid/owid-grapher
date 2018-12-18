@@ -8,6 +8,7 @@ import Admin from './Admin'
 import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
 import { TagEditor } from './Forms'
+import { AdminAppContext } from './AdminAppContext'
 
 export interface ChartListItem {
     id: number
@@ -54,11 +55,10 @@ function showChartType(chart: ChartListItem) {
 
 @observer
 class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {chart, searchHighlight} = this.props
-        const {admin} = this.context
 
         const highlight = searchHighlight || _.identity
 
@@ -69,7 +69,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
                 </a>
             </td>
             {chart.isPublished ? <td>
-                <a href={`${admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
+                <a href={`${this.context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
             </td> : <td>
                 <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
             </td>}
@@ -90,6 +90,8 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 
 @observer
 export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
+    static contextType = AdminAppContext
+
     @action.bound async onDeleteChart(chart: ChartListItem) {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return
@@ -138,7 +140,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
                 </tr>
             </thead>
                 <tbody>
-                {charts.map(chart => <ChartRow chart={chart} searchHighlight={searchHighlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
+                {charts.map(chart => <ChartRow chart={chart} key={chart.id} searchHighlight={searchHighlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
             </tbody>
         </table>
     }

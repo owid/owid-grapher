@@ -53,10 +53,10 @@ export default class ConnectedScatterLegend {
             {endLabel.render(targetX + props.maxWidth - endLabel.width, targetY, { fill: fontColor })}
             <line x1={lineLeft} y1={lineY} x2={lineRight} y2={lineY} stroke="#666" strokeWidth={1} />
             <circle cx={lineLeft} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2} />
-            {!props.endpointsOnly && [
-                <circle cx={lineLeft + (lineRight - lineLeft) / 3} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2} />,
+            {!props.endpointsOnly && <React.Fragment>
+                <circle cx={lineLeft + (lineRight - lineLeft) / 3} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2} />
                 <circle cx={lineLeft + 2 * (lineRight - lineLeft) / 3} cy={lineY} r={2} fill="#666" stroke="#ccc" strokeWidth={0.2} />
-            ]}
+            </React.Fragment>}
             <Triangle cx={lineRight} cy={lineY} r={3} fill="#666" stroke="#ccc" strokeWidth={0.2}
                 transform={`rotate(${90}, ${lineRight}, ${lineY})`}
             />

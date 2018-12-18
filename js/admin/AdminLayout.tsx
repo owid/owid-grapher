@@ -6,17 +6,19 @@ import Link from './Link'
 import Admin from './Admin'
 import EditorFAQ from './EditorFAQ'
 import AdminSidebar from './AdminSidebar'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
     @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
-        if (e.target === this.base)
+        if (e.target === this.base.current)
             this.props.onDismiss()
     }
 
     render() {
-        return <div className="FixedOverlay" onClick={this.onClick}>
+        return <div ref={this.base} className="FixedOverlay" onClick={this.onClick}>
             {this.props.children}
         </div>
     }
@@ -24,7 +26,7 @@ class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
 
 @observer
 export default class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable isFAQ: boolean = false
     @observable isSidebar: boolean = false

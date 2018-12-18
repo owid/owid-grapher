@@ -1,7 +1,7 @@
 import { extend } from './Util'
 import * as React from 'react'
-import ChartView from './ChartView'
-import { observable, computed } from 'mobx'
+import { ChartViewContext } from './ChartViewContext'
+import { observable, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import Bounds from './Bounds'
 
@@ -12,15 +12,19 @@ export interface TooltipProps {
 }
 
 @observer
-class TooltipView extends React.Component<TooltipProps> {
-    context!: { chartView: ChartView }
+export class TooltipView extends React.Component {
+    static contextType = ChartViewContext
 
     @computed get rendered() {
-        const { props, bounds } = this
-        const { chartView } = this.context
+        const { bounds } = this
+        const { chartView, chart } = this.context
 
-        let x = props.x
-        let y = props.y
+        if (!chart.tooltip) return null
+
+        const tooltip  = chart.tooltip
+
+        let x = tooltip.x as number
+        let y = tooltip.y as number
 
         // Ensure tooltip remains inside chart
         if (bounds) {
@@ -36,18 +40,22 @@ class TooltipView extends React.Component<TooltipProps> {
 
         const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: `${x}px`, top: `${y}px`, backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em", zIndex: 100 }
 
-        return <div style={extend(style, props.style || {})}>
-            {props.children}
+        return <div ref={this.base} style={extend(style, tooltip.style || {})}>
+            {tooltip.children}
         </div>
     }
 
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
     @observable.struct bounds?: Bounds
     componentDidMount() {
         this.componentDidUpdate()
     }
     componentDidUpdate() {
-        this.bounds = Bounds.fromElement(this.base)
+        runInAction(() => {
+            if (this.base.current)
+                this.bounds = Bounds.fromElement(this.base.current)
+        })
     }
 
     render() {
@@ -57,15 +65,21 @@ class TooltipView extends React.Component<TooltipProps> {
 
 @observer
 export default class Tooltip extends React.Component<TooltipProps> {
+    static contextType = ChartViewContext
+
     componentDidMount() {
         this.componentDidUpdate()
     }
 
     componentDidUpdate() {
-        this.context.chartView.chart.tooltip = <TooltipView {...this.props}>{this.props.children}</TooltipView>
+        runInAction(() => this.context.chart.tooltip = this.props)
     }
 
     componentWillUnmount() {
-        this.context.chartView.chart.tooltip = null
+        runInAction(() => this.context.chart.tooltip = null)
+    }
+
+    render() {
+        return null
     }
 }

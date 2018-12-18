@@ -81,9 +81,9 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         const { ticks } = this
         const textColor = '#666'
 
-        return <g className="axis" font-size="0.8em">
+        return <g className="axis" fontSize="0.8em">
             {ticks.map(tick => {
-                return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominant-baseline="middle" text-anchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
+                return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" text-anchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
             })}
         </g>
     }
@@ -117,7 +117,7 @@ export interface SlopeProps {
 class Slope extends React.Component<SlopeProps> {
     line: SVGElement
 
-    @computed get isInBackground(): Boolean {
+    @computed get isInBackground(): boolean {
         const { isLayerMode, isHovered, isFocused } = this.props
 
         if (!isLayerMode)
@@ -142,9 +142,9 @@ class Slope extends React.Component<SlopeProps> {
             {hasLeftLabel && leftLabel.render(leftLabelBounds.x + leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
             {hasLeftLabel && <Text x={x1 - 8} y={y1 - leftValueLabelBounds.height / 2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{leftValueStr}</Text>}
             <circle cx={x1} cy={y1} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
-            <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} stroke-width={lineStrokeWidth} opacity={opacity} />
+            <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} strokeWidth={lineStrokeWidth} opacity={opacity} />
             <circle cx={x2} cy={y2} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
-            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominant-baseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{rightValueStr}</Text>}
+            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominantBaseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{rightValueStr}</Text>}
             {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
         </g>
     }
@@ -406,7 +406,7 @@ export default class LabelledSlopes extends React.Component<LabelledSlopesProps>
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>) {
-        const mouse = getRelativeMouse(this.base, ev)
+        const mouse = getRelativeMouse(this.base.current, ev)
 
         this.mouseFrame = requestAnimationFrame(() => {
             if (this.props.bounds.contains(mouse)) {

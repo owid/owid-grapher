@@ -3,10 +3,11 @@ import Bounds from './Bounds'
 import TextWrap from './TextWrap'
 import ChartConfig from './ChartConfig'
 import {observer} from 'mobx-react'
+import { ChartViewContext } from './ChartViewContext'
 
 @observer
 export default class NoData extends React.Component<{ bounds: Bounds, message?: string }> {
-    context!: { chart: ChartConfig }
+    static contextType = ChartViewContext
 
     render() {
         const { bounds, message } = this.props

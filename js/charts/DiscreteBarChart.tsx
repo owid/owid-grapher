@@ -22,7 +22,7 @@ export interface DiscreteBarDatum {
 
 @observer
 export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart() { return this.props.chart }
     @computed.struct get bounds() { return this.props.bounds.padRight(10) }
@@ -141,13 +141,13 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
             const widths = this.barPlacements.map(b => b.width)
             runInAction(() => {
-                const bars = select(this.base).selectAll("g.bar > rect")
+                const bars = select(this.base.current).selectAll("g.bar > rect")
                 bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
             })
         })
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 
@@ -163,7 +163,7 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
 
         let yOffset = innerBounds.top + barHeight / 2
 
-        return <g className="DiscreteBarChart">
+        return <g ref={this.base} className="DiscreteBarChart">
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
             <HorizontalAxisView bounds={bounds} axis={xAxis} />
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />
@@ -173,9 +173,9 @@ export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, 
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
 
                 const result = <g className="bar">
-                    <text x={bounds.left + legendWidth - 5} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor="end" fontSize={endLabelFontSize}>{d.label}</text>
+                    <text x={bounds.left + legendWidth - 5} y={yOffset} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize}>{d.label}</text>
                     <rect x={barX} y={yOffset - barHeight / 2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} />
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominant-baseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
                 </g>
                 yOffset += barHeight + barSpacing
                 return result

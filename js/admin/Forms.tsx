@@ -39,6 +39,12 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
 }
 
 export class TextField extends React.Component<TextFieldProps> {
+    base: React.RefObject<HTMLDivElement>
+    constructor(props: TextFieldProps) {
+        super(props)
+        this.base = React.createRef()
+    }
+
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.key === "Enter" && this.props.onEnter) {
             this.props.onEnter()
@@ -49,10 +55,9 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    base!: HTMLDivElement
     componentDidMount() {
         if (this.props.autofocus) {
-            const input = this.base.querySelector("input") as HTMLInputElement
+            const input = this.base.current!.querySelector("input")!
             input.focus()
         }
     }
@@ -61,9 +66,9 @@ export class TextField extends React.Component<TextFieldProps> {
         const { props } = this
         const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'required'])
 
-        return <div className="form-group">
+        return <div className="form-group" ref={this.base}>
             {props.label && <label>{props.label}</label>}
-            <input className="form-control" type="text" value={props.value} onInput={e => this.props.onValue(trim(e.currentTarget.value))} onKeyDown={this.onKeyDown} {...passthroughProps}/>
+            <input className="form-control" type="text" value={props.value||""} onChange={e => this.props.onValue(e.currentTarget.value)} onKeyDown={this.onKeyDown} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -71,18 +76,18 @@ export class TextField extends React.Component<TextFieldProps> {
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
-    @bind onInput(ev: React.FormEvent<HTMLTextAreaElement>) {
+    @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue(value)
     }
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'helpText', 'rows'])
+        const passthroughProps = pick(props, ['placeholder', 'title', 'disabled', 'label', 'rows'])
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <textarea className="form-control" value={props.value} onInput={this.onInput} rows={5} {...passthroughProps}/>
+            <textarea className="form-control" value={props.value} onChange={this.onChange} rows={5} {...passthroughProps}/>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
             {props.softCharacterLimit && props.value && <SoftCharacterLimit text={props.value} limit={props.softCharacterLimit}/>}
         </div>
@@ -144,9 +149,9 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)}>
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)} value={props.value}>
                 {options.map(opt =>
-                    <option value={opt.value} selected={opt.value === props.value}>{opt.text}</option>
+                    <option key={opt.value} value={opt.value}>{opt.text}</option>
                 )}
             </select>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
@@ -185,13 +190,17 @@ export interface ToggleProps {
 }
 
 export class Toggle extends React.Component<ToggleProps> {
+    @action.bound onChange(e: React.ChangeEvent<HTMLInputElement>) {
+        this.props.onValue(!!e.currentTarget.checked)
+    }
+
     render() {
         const { props } = this
         const passthroughProps = pick(props, ['title', 'disabled']) as any
 
         return <div className="form-check">
             <label className="form-check-label">
-                <input className="form-check-input" type="checkbox" checked={props.value} onChange={e => props.onValue(!!e.currentTarget.checked)} {...passthroughProps}/>
+                <input className="form-check-input" type="checkbox" checked={props.value} onChange={this.onChange} {...passthroughProps}/>
                 {props.label}
             </label>
         </div>
@@ -281,7 +290,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         return <div className="form-group AutoTextField">
             {props.label && <label>{props.label}</label>}
             <div className="input-group mb-2 mb-sm-0">
-                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onInput={e => props.onValue(e.currentTarget.value)}/>
+                <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onChange={e => props.onValue(e.currentTarget.value)}/>
                 <div className="input-group-addon" onClick={() => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
                     {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
                 </div>
@@ -414,13 +423,17 @@ export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> 
 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+    dismissable: boolean = true
 
     @action.bound onClickOutside() {
-        this.props.onClose()
+        if (this.dismissable)
+            this.props.onClose()
     }
 
     componentDidMount() {
+        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
+        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
         setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
     }
 
@@ -431,7 +444,7 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
     render() {
         const {props} = this
         return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}}>
-            <div className="modal-dialog" role="document" onClick={e => e.stopPropagation()}>
+            <div ref={this.base} className="modal-dialog" role="document">
                 <div className="modal-content">
                     {this.props.children}
                 </div>

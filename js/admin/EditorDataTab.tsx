@@ -100,19 +100,19 @@ export default class EditorDataTab extends React.Component<{ editor: ChartEditor
             <Section name="Can user add/change data?">
                 <div className="form-check">
                     <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onClick={_ => chart.props.addCountryMode = "add-country"}/>
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onChange={_ => chart.props.addCountryMode = "add-country"}/>
                         User can add and remove data
                     </label>
                 </div>
                 <div className="form-check">
                     <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onClick={_ => chart.props.addCountryMode = "change-country"}/>
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onChange={_ => chart.props.addCountryMode = "change-country"}/>
                         User can change entity
                     </label>
                 </div>
                 <div className="form-check">
                     <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onClick={_ => chart.props.addCountryMode = "disabled"}/>
+                        <input className="form-check-input" type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onChange={_ => chart.props.addCountryMode = "disabled"}/>
                         User cannot change/add data
                     </label>
                 </div>

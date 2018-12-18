@@ -10,6 +10,9 @@ if [ "$1" == "test" ]; then
 elif [ "$1" == "mispytest" ]; then
   NAME="mispytest-grapher"
   DB_NAME="mispytest_grapher"
+elif [ "$1" == "danieltest" ]; then
+  NAME="danieltest-grapher"
+  DB_NAME="danieltest_grapher"
 elif [ "$1" == "live" ]; then
   NAME="live-grapher"
   DB_NAME="live_grapher"

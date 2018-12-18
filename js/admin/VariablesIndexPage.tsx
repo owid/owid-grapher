@@ -7,10 +7,11 @@ import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import {SearchField, FieldsRow } from './Forms'
 import VariableList, {VariableListItem} from './VariableList'
+import { AdminAppContext } from './AdminAppContext'
 
 @observer
 export default class VariablesIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     @observable variables: VariableListItem[] = []
     @observable maxVisibleRows = 50
@@ -70,7 +71,7 @@ export default class VariablesIndexPage extends React.Component {
         this.getData()
      }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
     }
 }

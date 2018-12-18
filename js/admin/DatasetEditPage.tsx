@@ -18,6 +18,8 @@ import ChartFigureView from '../charts/ChartFigureView'
 import ChartType from '../charts/ChartType'
 import TagBadge from './TagBadge'
 import VariableList, { VariableListItem } from './VariableList'
+import { AdminAppContext } from './AdminAppContext'
+import { Base64 } from 'js-base64'
 
 class VariableEditable {
     @observable name: string = ""
@@ -38,7 +40,8 @@ class VariableEditable {
 
 @observer
 class VariableEditRow extends React.Component<{ variable: VariableEditListItem, isBulkImport: boolean }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
+
     @observable.ref chart?: ChartConfig
     @observable newVariable!: VariableEditable
 
@@ -115,7 +118,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
         })
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         this.dispose()
         this.dispose2()
     }
@@ -146,7 +149,7 @@ class VariableEditRow extends React.Component<{ variable: VariableEditListItem, 
             </div>
             {this.chart && <div className="col">
                 <ChartFigureView chart={this.chart}/>
-                <Link className="btn btn-secondary pull-right" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
+                <Link className="btn btn-secondary pull-right" to={`/charts/create/${Base64.encode(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
             </div>}
         </div>
     }
@@ -225,7 +228,6 @@ class DatasetEditable {
 
 @observer
 class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, availableTags: { id: number, name: string, parentName: string }[], isBulkImport: boolean }> {
-
     @action.bound addTag(tagId: number) {
         const tag = this.props.availableTags.find(t => t.id === tagId)
         if (tag && !this.props.newDataset.tags.find(existingTag => existingTag.id === tag.id)) {
@@ -250,13 +252,13 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
         return <div className="form-group">
             <label>Tags</label>
-            <div>{newDataset.tags.map(tag => <TagBadge tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
+            <div>{newDataset.tags.map(tag => <TagBadge key={tag.id} tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
             <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
-                <option value="" disabled selected>Add category</option>
+                <option value="" disabled>Add category</option>
                 {_.map(tagsByParent, (tags, parentName) =>
-                    <optgroup label={parentName}>
+                    <optgroup key={parentName} label={parentName}>
                         {tags.map(tag =>
-                            <option value={tag.id}>{tag.name}</option>
+                            <option key={tag.id} value={tag.id}>{tag.name}</option>
                         )}
                     </optgroup>
                 )}
@@ -268,7 +270,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
 @observer
 class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
@@ -420,7 +422,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 
 @observer
 export default class DatasetEditPage extends React.Component<{ datasetId: number }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable dataset?: DatasetPageData
 
     render() {

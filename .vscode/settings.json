@@ -7,7 +7,7 @@
     "tslint.autoFixOnSave": true,
     "search.exclude": {
         "public": true,
-        "env": true
+        "dist": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "python.pythonPath": "${workspaceRoot}/env/bin/python"

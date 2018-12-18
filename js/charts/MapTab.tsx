@@ -16,6 +16,7 @@ import Tooltip from './Tooltip'
 import NoData from './NoData'
 import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
+import { ChartViewContext } from './ChartViewContext'
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -38,14 +39,14 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     @observable focusBracket: MapBracket
     @observable tooltipTarget?: { x: number, y: number, featureId: string }
 
-    context!: { chartView: ChartView, chart: ChartConfig }
+    static contextType = ChartViewContext
 
-    base!: SVGGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
         const datum = d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        const mouse = getRelativeMouse(this.base, ev)
+        const mouse = getRelativeMouse(this.base.current, ev)
         if (d.id !== undefined)
             this.tooltipTarget = { x: mouse.x, y: mouse.y, featureId: d.id as string }
     }
@@ -107,7 +108,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     componentDidMount() {
-        select(this.base).selectAll("path")
+        select(this.base.current).selectAll("path")
             .attr("data-fill", function() { return (this as SVGPathElement).getAttribute("fill") })
             .attr("fill", this.context.chart.map.noDataColor)
             .transition()
@@ -121,10 +122,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const { choroplethData, projection, defaultFill, bounds, inputYear, mapToDataEntities } = this.props
         const { focusBracket, focusEntity, mapLegend, tooltipTarget, tooltipDatum } = this
 
-        return <g className="mapTab">
+        return <g ref={this.base} className="mapTab">
             <ChoroplethMap bounds={bounds.padBottom(mapLegend.height + 15)} choroplethData={choroplethData} projection={projection} defaultFill={defaultFill} onHover={this.onMapMouseOver} onHoverStop={this.onMapMouseLeave} onClick={this.onClick} focusBracket={focusBracket} focusEntity={focusEntity} />
             <MapLegendView legend={mapLegend} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} />
-            {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
+            {tooltipTarget && <Tooltip key="mapTooltip" x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center" }}>
                 <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{mapToDataEntities[tooltipTarget.featureId] || tooltipTarget.featureId.replace(/_/g, " ")}</h3>
                 <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
                     <span>{tooltipDatum ? this.context.chart.map.data.formatTooltipValue(tooltipDatum.value) : `No data for ${inputYear}`}</span><br />
@@ -139,7 +140,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 }
 
 interface MapTabProps {
-    chart: ChartConfig, 
+    chart: ChartConfig
     bounds: Bounds
 }
 

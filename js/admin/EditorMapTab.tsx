@@ -290,9 +290,11 @@ export default class EditorMapTab extends React.Component<{ editor: ChartEditor 
         return <div className="EditorMapTab tab-pane">
             <VariableSection mapConfig={mapConfig} />
             {mapConfig.data.isReady &&
-                [<TimelineSection mapConfig={mapConfig} />,
-                <ColorsSection mapConfig={mapConfig} />,
-                <MapLegendSection mapConfig={mapConfig} />]
+                <React.Fragment>
+                    <TimelineSection mapConfig={mapConfig} />
+                    <ColorsSection mapConfig={mapConfig} />
+                    <MapLegendSection mapConfig={mapConfig} />
+                </React.Fragment>
             }
         </div>
     }

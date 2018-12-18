@@ -101,8 +101,8 @@ export class HorizontalAxisView extends React.Component<{ bounds: Bounds, axis: 
 
         return <g className="HorizontalAxis">
             {label && label.render(bounds.centerX - label.width / 2, bounds.bottom - label.height)}
-            {ticks.map(tick => {
-                return <text x={scale.place(tick)} y={bounds.bottom - labelOffset} fill={textColor} textAnchor="middle" fontSize={axis.tickFontSize}>{scale.tickFormat(tick)}</text>
+            {ticks.map((tick, i) => {
+                return <text key={i} x={scale.place(tick)} y={bounds.bottom - labelOffset} fill={textColor} textAnchor="middle" fontSize={axis.tickFontSize}>{scale.tickFormat(tick)}</text>
             })}
             {scale.scaleTypeOptions.length > 1 && onScaleTypeChange &&
                 <ScaleSelector x={bounds.right} y={bounds.bottom - 5} scaleType={scale.scaleType} scaleTypeOptions={scale.scaleTypeOptions} onChange={onScaleTypeChange} />}

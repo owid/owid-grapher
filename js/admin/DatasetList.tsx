@@ -6,6 +6,7 @@ import * as _ from 'lodash'
 import Admin from './Admin'
 import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
+import { AdminAppContext } from './AdminAppContext'
 
 export interface DatasetListItem {
     id: number
@@ -22,7 +23,7 @@ export interface DatasetListItem {
 
 @observer
 class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {dataset, searchHighlight} = this.props
@@ -35,7 +36,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
             {dataset.isPrivate ? <span className="text-secondary">Unpublished: </span> : ""}<Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
             <td>{highlight(dataset.description)}</td>
-            <td>{dataset.tags.map(tag => <TagBadge tag={tag} searchHighlight={searchHighlight}/>)}</td>
+            <td>{dataset.tags.map(tag => <TagBadge tag={tag} key={tag.id} searchHighlight={searchHighlight}/>)}</td>
             <td>{timeago.format(dataset.dataEditedAt)} by {highlight(dataset.dataEditedByUserName)}</td>
         </tr>
     }
@@ -43,7 +44,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
 
 @observer
 export default class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
 
     render() {
         const {props} = this
@@ -58,7 +59,7 @@ export default class DatasetList extends React.Component<{ datasets: DatasetList
                 </tr>
             </thead>
             <tbody>
-                {props.datasets.map(dataset => <DatasetRow dataset={dataset} searchHighlight={props.searchHighlight}/>)}
+                {props.datasets.map(dataset => <DatasetRow dataset={dataset} key={dataset.id} searchHighlight={props.searchHighlight}/>)}
             </tbody>
         </table>
     }

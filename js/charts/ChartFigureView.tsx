@@ -10,11 +10,11 @@ import ChartConfig from './ChartConfig'
 // Wrapper for ChartView that uses css on figure element to determine the bounds
 @observer
 export default class ChartFigureView extends React.Component<{ chart: ChartConfig }> {
-    base!: HTMLDivElement
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
 
     @action.bound calcBounds() {
-        this.bounds = Bounds.fromRect(this.base.getBoundingClientRect())
+        this.bounds = Bounds.fromRect(this.base.current!.getBoundingClientRect())
     }
 
     componentDidMount() {
@@ -22,12 +22,12 @@ export default class ChartFigureView extends React.Component<{ chart: ChartConfi
         this.calcBounds()
     }
 
-    componentDidUnmount() {
+    componentWillUnmount() {
         window.removeEventListener('resize', this.calcBounds)
     }
 
     render() {
-        return <figure>
+        return <figure ref={this.base}>
             {this.bounds && <ChartView chart={this.props.chart} bounds={this.bounds}/>}
         </figure>
     }

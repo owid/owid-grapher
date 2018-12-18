@@ -6,6 +6,7 @@ import {observable, computed, action, runInAction} from 'mobx'
 import { Modal, Timeago } from './Forms'
 import Link from './Link'
 import AdminLayout from './AdminLayout'
+import { AdminAppContext } from './AdminAppContext'
 
 interface UserIndexMeta {
     id: number
@@ -19,8 +20,8 @@ interface UserIndexMeta {
 
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
-    context!: { admin: Admin }
-    emailInput: HTMLInputElement|null = null
+    static contextType = AdminAppContext
+    emailInput: React.RefObject<HTMLInputElement> = React.createRef()
 
     @observable email: string = ""
     @observable inviteSuccess: boolean = false
@@ -37,24 +38,28 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     }
 
     componentDidMount() {
-        if (this.emailInput)
-            this.emailInput.focus()
+        this.emailInput.current!.focus()
+    }
+
+    @action.bound onSubmit(event: React.FormEvent) {
+        event.preventDefault()
+        this.submit()
     }
 
     render() {
         return <Modal onClose={this.props.onClose}>
-            <form onSubmit={e => { e.preventDefault(); this.submit() } }>
+            <form onSubmit={this.onSubmit}>
                 <div className="modal-header">
                     <h5 className="modal-title">Invite a user</h5>
                 </div>
                 <div className="modal-body">
                     <div className="form-group">
                         <label>Email address to invite</label>
-                        <input type="email" className="form-control" onInput={e => this.email = e.currentTarget.value} required ref={e => this.emailInput = e}/>
+                        <input type="email" className="form-control" onChange={e => this.email = e.currentTarget.value} required ref={this.emailInput}/>
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <input type="submit" className="btn btn-primary">Send invite</input>
+                    <input type="submit" className="btn btn-primary" value="Send invite"/>
                 </div>
                 {this.inviteSuccess && <div className="alert alert-success" role="alert">
                     Invite sent!
@@ -66,7 +71,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 
 @observer
 export default class UsersIndexPage extends React.Component {
-    context!: { admin: Admin }
+    static contextType = AdminAppContext
     @observable users: UserIndexMeta[] = []
     @observable isInviteModal: boolean = false
 
@@ -91,28 +96,30 @@ export default class UsersIndexPage extends React.Component {
                     <button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>
                 </div>
                 <table className="table table-bordered">
-                    <tr>
-                        <th>Name</th>
-                        <th>Last Seen</th>
-                        <th>Joined</th>
-                        <th>Status</th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                    {users.map(user =>
+                    <tbody>
                         <tr>
-                            <td>{user.fullName}</td>
-                            <td><Timeago time={user.lastSeen}/></td>
-                            <td><Timeago time={user.createdAt}/></td>
-                            <td>{user.isActive ? 'active' : 'inactive'}</td>
-                            <td>
-                                <Link to={`/users/${user.id}`} className="btn btn-primary">Edit</Link>
-                            </td>
-                            <td>
-                                <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>
-                            </td>
+                            <th>Name</th>
+                            <th>Last Seen</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                            <th></th>
+                            <th></th>
                         </tr>
-                    )}
+                        {users.map(user =>
+                            <tr key={user.id}>
+                                <td>{user.fullName}</td>
+                                <td><Timeago time={user.lastSeen}/></td>
+                                <td><Timeago time={user.createdAt}/></td>
+                                <td>{user.isActive ? 'active' : 'inactive'}</td>
+                                <td>
+                                    <Link to={`/users/${user.id}`} className="btn btn-primary">Edit</Link>
+                                </td>
+                                <td>
+                                    <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
                 </table>
             </main>
         </AdminLayout>

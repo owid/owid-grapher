@@ -114,16 +114,21 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 
 testPages.get('/embeds', async (req, res) => {
     const numPerPage = 20, page = req.query.page ? expectInt(req.query.page) : 1
-    let query = Chart.createQueryBuilder("charts").limit(numPerPage).offset(numPerPage*(page-1)).orderBy("id", "ASC")
+    let query = Chart.createQueryBuilder("charts")
+        .where("publishedAt IS NOT NULL")
+        .limit(numPerPage)
+        .offset(numPerPage*(page-1))
+        .orderBy("id", "ASC")
 
     let tab = req.query.tab
+    const namespaces = (req.query.namespaces && req.query.namespaces.split(",")) || []
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap") {
-            query = query.where(`config->"$.hasMapTab" IS TRUE`)
+            query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
             tab = tab || "map"
         } else {
-            query = query.where(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
+            query = query.andWhere(`config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`, { type: req.query.type })
             tab = tab || "chart"
         }
     }
@@ -137,16 +142,20 @@ testPages.get('/embeds', async (req, res) => {
     }
 
     if (req.query.namespace) {
+        namespaces.push(req.query.namespace)
+    }
+
+    if (namespaces.length > 0) {
         query.andWhere(`
             EXISTS(
                 SELECT *
                 FROM datasets
                 INNER JOIN variables ON variables.datasetId = datasets.id
                 INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
-                WHERE datasets.namespace = :namespace
+                WHERE datasets.namespace IN (:namespaces)
                 AND chart_dimensions.chartId = charts.id
             )
-        `, { namespace: req.query.namespace })
+        `, { namespaces: namespaces })
     }
 
     const charts: ChartItem[] = (await query.getMany()).map(c => ({ id: c.id, slug: c.config.slug }))

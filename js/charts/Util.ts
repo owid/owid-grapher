@@ -1,6 +1,6 @@
 
-import { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, difference, sortedUniq } from 'lodash'
-export { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, difference, sortedUniq }
+import { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, omit, difference, sortedUniq } from 'lodash'
+export { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmpty, isFinite, some, every, min, max, uniq, cloneDeep, sum, find, identity, union, debounce, includes, toString, isString, keyBy, values, flatten, groupBy, reverse, clone, reduce, noop, floor, ceil, round, toArray, throttle, has, intersection, uniqWith, without, uniqBy, capitalize, sample, sampleSize, pick, omit, difference, sortedUniq }
 
 import { format } from 'd3-format'
 import { extent } from 'd3-array'
@@ -10,14 +10,21 @@ import Vector2 from './Vector2'
 export type SVGElement = any
 export type VNode = any
 
-export function getRelativeMouse(node: SVGElement, event: any): Vector2 {
+interface TouchListLike {
+    [index: number]: {
+        clientX: number
+        clientY: number
+    }
+}
+
+export function getRelativeMouse(node: SVGElement, event: { clientX: number, clientY: number }|{ targetTouches: TouchListLike }): Vector2 {
     let clientX, clientY
     if ((event as any).clientX != null) {
-        clientX = (event as MouseEvent).clientX
-        clientY = (event as MouseEvent).clientY
+        clientX = (event as any).clientX
+        clientY = (event as any).clientY
     } else {
-        clientX = (event as TouchEvent).targetTouches[0].clientX
-        clientY = (event as TouchEvent).targetTouches[0].clientY
+        clientX = (event as any).targetTouches[0].clientX
+        clientY = (event as any).targetTouches[0].clientY
     }
 
     const svg = node.ownerSVGElement || node
@@ -52,7 +59,7 @@ export function entityNameForMap(name: string) {
 
 export function formatYear(year: number): string {
     if (isNaN(year)) {
-        console.error(`Invalid year '${year}'`)
+        console.warn(`Invalid year '${year}'`)
         return ""
     }
 
