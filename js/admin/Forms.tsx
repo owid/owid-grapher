@@ -535,6 +535,7 @@ export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Ta
     @action.bound onAddTag(tag: Tag) {
         this.tags.push(tag)
         this.tags = _.uniq(this.tags).filter(t => t.name !== 'Uncategorized')
+        this.ensureUncategorized()
     }
 
     @action.bound onRemoveTag(index: number) {
