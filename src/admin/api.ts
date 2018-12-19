@@ -734,7 +734,7 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 })
 
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
-    let tagId = expectInt(req.params.tagId) as number|null
+    const tagId = expectInt(req.params.tagId) as number|null
 
     // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
     // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag

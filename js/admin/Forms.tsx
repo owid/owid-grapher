@@ -10,9 +10,8 @@ import { bind } from 'decko'
 import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 
-import { extend, pick, capitalize, trim } from '../charts/Util'
+import { extend, pick, capitalize } from '../charts/Util'
 import Colorpicker from './Colorpicker'
-import { AdminAppContext } from './AdminAppContext'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
