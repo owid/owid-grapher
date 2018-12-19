@@ -41,9 +41,12 @@ interface Settings {
     BUILD_GRAPHER_PATH: string
     BUILD_DIR: string
     GIT_DATASETS_DIR: string
+
+    // The special tag that represents all untagged stuff
+    UNCATEGORIZED_TAG_ID: number
 }
 
-const env: Settings = (process.env as any)
+const env: Settings = Object.assign({}, process.env as any)
 
 env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? "production" : "development"
 env.BASE_DIR = env.BASE_DIR || path.join(__dirname, "../../")
@@ -65,5 +68,7 @@ env.EMAIL_USE_TLS = !!env.EMAIL_USE_TLS
 
 const url = parseUrl(env.BUILD_GRAPHER_URL)
 env.BUILD_GRAPHER_PATH = url.pathname
+
+env.UNCATEGORIZED_TAG_ID = env.UNCATEGORIZED_TAG_ID ? parseInt(env.UNCATEGORIZED_TAG_ID as any) : 375
 
 export = env

@@ -6,8 +6,8 @@ import * as _ from 'lodash'
 
 import Admin from './Admin'
 import Link from './Link'
-import TagBadge, { Tag } from './TagBadge'
-import { EditTags } from './Forms'
+import { Tag } from './TagBadge'
+import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
 import { bind } from 'decko'
 
@@ -58,23 +58,20 @@ function showChartType(chart: ChartListItem) {
 class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, availableTags: Tag[], onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
 
-    @observable tags: Tag[] = _.clone(this.props.chart.tags)
-
-    @bind async onAddTag(tag: Tag) {
-        this.tags.push(tag)
+    async saveTags(tags: Tag[]) {
+        const {chart} = this.props
+        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
+        if (json.success) {
+            chart.tags = tags
+        }
     }
 
-    @bind async onRemoveTag(index: number) {
-        this.tags.splice(index, 1)
-    }
-
-    componentDidMount() {
-        this.tags = _.clone(this.props.chart.tags)
+    @action.bound onSaveTags(tags: Tag[]) {
+        this.saveTags(tags)
     }
 
     render() {
         const {chart, searchHighlight, availableTags} = this.props
-        const {tags} = this
 
         const highlight = searchHighlight || _.identity
 
@@ -91,7 +88,9 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
             <td>{highlight(chart.internalNotes)}</td>
-            <td style={{minWidth: "380px"}}><EditTags tags={tags} suggestions={availableTags} onAdd={this.onAddTag} onDelete={this.onRemoveTag}/></td>
+            <td style={{minWidth: "380px"}}>
+                <EditableTags tags={chart.tags} suggestions={availableTags} onSave={this.onSaveTags}/>
+            </td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
             <td>

@@ -8,7 +8,7 @@ import * as bodyParser from 'body-parser'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'
-import {BASE_DIR, DB_NAME} from '../settings'
+import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID} from '../settings'
 import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from './serverUtil'
 import {sendMail} from '../mail'
 import OldChart, {Chart} from '../model/Chart'
@@ -204,22 +204,7 @@ api.get('/charts.json', async (req: Request, res: Response) => {
         ORDER BY charts.lastEditedAt DESC LIMIT ?
     `, [limit])
 
-    const chartTags = await db.query(`
-        SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
-        JOIN charts c ON c.id=ct.chartId
-        JOIN tags t ON t.id=ct.tagId
-    `)
-
-    for (const chart of charts) {
-        chart.tags = []
-    }
-
-    const chartsById = _.keyBy(charts, c => c.id)
-
-    for (const ct of chartTags) {
-        const chart = chartsById[ct.chartId]
-        chart.tags.push({ id: ct.tagId, name: ct.tagName })
-    }
+    await Chart.assignTagsForCharts(charts)
 
     return {
         charts: charts
@@ -356,6 +341,14 @@ api.post('/charts/:chartId/star', async (req: Request, res: Response) => {
 api.post('/charts', async (req: Request, res: Response) => {
     const chartId = await saveChart(res.locals.user, req.body)
     return { success: true, chartId: chartId }
+})
+
+api.post('/charts/:chartId/setTags', async (req: Request, res: Response) => {
+    const chartId = expectInt(req.params.chartId)
+
+    await Chart.setTags(chartId, req.body.tagIds)
+
+    return { success: true }
 })
 
 api.put('/charts/:chartId', async (req: Request, res: Response) => {
@@ -527,6 +520,8 @@ api.get('/variables/:variableId.json', async (req: Request, res: Response) => {
         GROUP BY charts.id
     `, [variableId])
 
+    await Chart.assignTagsForCharts(charts)
+
     variable.charts = charts
 
     return { variable: variable as VariableSingleMeta }/*, vardata: await getVariableData([variableId]) }*/
@@ -641,6 +636,8 @@ api.get('/datasets/:datasetId.json', async (req: Request) => {
 
     dataset.charts = charts
 
+    await Chart.assignTagsForCharts(charts)
+
     const tags = await db.query(`
         SELECT t.id, t.name
         FROM tags t
@@ -682,6 +679,14 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
 
     // Note: not currently in transaction
     await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+
+    return { success: true }
+})
+
+api.post('/datasets/:datasetId/setTags', async (req: Request, res: Response) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    await Dataset.setTags(datasetId, req.body.tagIds)
 
     return { success: true }
 })
@@ -729,7 +734,13 @@ api.get('/redirects.json', async (req: Request, res: Response) => {
 })
 
 api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
-    const tagId = expectInt(req.params.tagId)
+    let tagId = expectInt(req.params.tagId) as number|null
+
+    // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
+    // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
+    // every time we create a new chart etcs
+    const uncategorized = tagId === UNCATEGORIZED_TAG_ID
+
     const tag = await db.get(`
         SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
@@ -741,39 +752,43 @@ api.get('/tags/:tagId.json', async (req: Request, res: Response) => {
         SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.isPrivate
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
-        JOIN dataset_tags dt ON dt.datasetId = d.id
-        WHERE dt.tagId = ?
+        LEFT JOIN dataset_tags dt ON dt.datasetId = d.id
+        WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
         ORDER BY d.dataEditedAt DESC
-    `, [tagId])
+    `, uncategorized ? [] : [tagId])
     tag.datasets = datasets
 
     // The other tags for those datasets
     if (tag.datasets.length) {
-        const datasetTags = await db.query(`
-            SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
-            JOIN tags t ON dt.tagId = t.id
-            WHERE dt.datasetId IN (?)
-        `, [tag.datasets.map((d: any) => d.id)])
-        const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
-        for (const dataset of tag.datasets) {
-            dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+        if (uncategorized) {
+            for (const dataset of tag.datasets)
+                dataset.tags = []
+        } else {
+            const datasetTags = await db.query(`
+                SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
+                JOIN tags t ON dt.tagId = t.id
+                WHERE dt.datasetId IN (?)
+            `, [tag.datasets.map((d: any) => d.id)])
+            const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
+            for (const dataset of tag.datasets) {
+                dataset.tags = tagsByDatasetId[dataset.id].map(t => _.omit(t, 'datasetId'))
+            }
         }
     }
 
     // Charts using datasets under this tag
     const charts = await db.query(`
         SELECT ${OldChart.listFields} FROM charts
-        JOIN chart_dimensions cd ON cd.chartId=charts.id
-        JOIN variables v ON v.id=cd.variableId
-        JOIN datasets d ON d.id=v.datasetId
-        JOIN dataset_tags dt ON dt.datasetId=d.id
+        LEFT JOIN chart_tags ct ON ct.chartId=charts.id
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        WHERE dt.tagId = ?
+        WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
         GROUP BY charts.id
         ORDER BY charts.updatedAt DESC
-    `, [tagId])
+    `, uncategorized ? [] : [tagId])
     tag.charts = charts
+
+    await Chart.assignTagsForCharts(charts)
 
     // Subcategories
     const children = await db.query(`
@@ -957,9 +972,6 @@ api.post('/importDataset', async (req: Request, res: Response) => {
             const row = [dataset.name, "owid", "", now, now, now, userId, now, userId, userId, true]
             const datasetResult = await t.execute(`INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId, isPrivate) VALUES (?)`, [row])
             datasetId = datasetResult.insertId
-
-            // Add default tag
-            await t.execute(`INSERT INTO dataset_tags (datasetId, tagId) VALUES (?,?)`, [datasetId, 375])
         }
 
         // Find or create the dataset source

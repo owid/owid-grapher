@@ -11,12 +11,12 @@ import { VariableDisplaySettings } from '../charts/VariableData'
 import Admin from './Admin'
 import AdminLayout from './AdminLayout'
 import Link from './Link'
-import { BindString, Toggle, BindFloat, FieldsRow } from './Forms'
+import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from './Forms'
 import ChartList, { ChartListItem } from './ChartList'
 import ChartConfig from '../charts/ChartConfig'
 import ChartFigureView from '../charts/ChartFigureView'
 import ChartType from '../charts/ChartType'
-import TagBadge from './TagBadge'
+import { Tag } from './TagBadge'
 import VariableList, { VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
 import { Base64 } from 'js-base64'
@@ -228,22 +228,8 @@ class DatasetEditable {
 
 @observer
 class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, availableTags: { id: number, name: string, parentName: string }[], isBulkImport: boolean }> {
-    @action.bound addTag(tagId: number) {
-        const tag = this.props.availableTags.find(t => t.id === tagId)
-        if (tag && !this.props.newDataset.tags.find(existingTag => existingTag.id === tag.id)) {
-            this.props.newDataset.tags.push({ id: tag.id, name: tag.name })
-            this.props.newDataset.tags = this.props.newDataset.tags.filter(t => t.name !== "Uncategorized")
-        }
-
-    }
-
-    @action.bound removeTag(tagId: number) {
-        const {isBulkImport, newDataset} = this.props
-        if (isBulkImport) return
-        newDataset.tags = newDataset.tags.filter(t => t.id !== tagId)
-        if (newDataset.tags.length === 0) {
-            newDataset.tags.push(this.props.availableTags.find(t => t.name === "Uncategorized") as any)
-        }
+    @action.bound onSaveTags(tags: Tag[]) {
+        this.props.newDataset.tags = tags
     }
 
     render() {
@@ -252,17 +238,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 
         return <div className="form-group">
             <label>Tags</label>
-            <div>{newDataset.tags.map(tag => <TagBadge key={tag.id} tag={tag} onRemove={() => this.removeTag(tag.id)}/>)}</div>
-            <select className="form-control" onChange={e => this.addTag(parseInt(e.target.value))} value="" disabled={isBulkImport}>
-                <option value="" disabled>Add category</option>
-                {_.map(tagsByParent, (tags, parentName) =>
-                    <optgroup key={parentName} label={parentName}>
-                        {tags.map(tag =>
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                        )}
-                    </optgroup>
-                )}
-            </select>
+            <EditableTags tags={newDataset.tags} suggestions={availableTags} onSave={this.onSaveTags}/>
             {/*<small className="form-text text-muted">Currently used for internal organization</small>*/}
         </div>
     }

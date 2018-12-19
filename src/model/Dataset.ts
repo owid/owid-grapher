@@ -81,6 +81,15 @@ export class Dataset extends BaseEntity {
         stream.end()
     }
 
+    static async setTags(datasetId: number, tagIds: number[]) {
+        await db.transaction(async t => {
+            const tagRows = tagIds.map(tagId => [tagId, datasetId])
+            await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+            if (tagRows.length)
+                await t.execute(`INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`, [tagRows])
+        })
+    }
+
     async toCSV(): Promise<string> {
         let csv = ""
         await Dataset.writeCSV(this.id, { write: (s: string) => csv += s, end: () => null } as any)

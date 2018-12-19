@@ -22,6 +22,10 @@ export default class Admin {
     basePath: string
     username: string
     settings: ClientSettings
+
+    // The special "uncategorized" tag that represents all things without a tag
+    uncategorizedTag = { name: "Uncategorized", id: 375 }
+
     constructor(rootUrl: string, username: string, settings: ClientSettings) {
         this.grapherRoot = rootUrl
         this.basePath = "/admin"

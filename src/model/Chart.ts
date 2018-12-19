@@ -39,6 +39,35 @@ export class Chart extends BaseEntity {
         }
         return slugToId
     }
+
+    static async setTags(chartId: number, tagIds: number[]) {
+        await db.transaction(async t => {
+            const tagRows = tagIds.map(tagId => [tagId, chartId])
+            await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
+            if (tagRows.length)
+                await t.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [tagRows])
+        })
+    }
+
+    static async assignTagsForCharts(charts: { id: number, tags: any[] }[]) {
+        const chartTags = await db.query(`
+            SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+            JOIN charts c ON c.id=ct.chartId
+            JOIN tags t ON t.id=ct.tagId
+        `)
+
+        for (const chart of charts) {
+            chart.tags = []
+        }
+
+        const chartsById = _.keyBy(charts, c => c.id)
+
+        for (const ct of chartTags) {
+            const chart = chartsById[ct.chartId]
+            if (chart)
+                chart.tags.push({ id: ct.tagId, name: ct.tagName })
+        }        
+    }
 }
 
 // TODO integrate this old logic with typeorm

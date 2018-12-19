@@ -12,6 +12,7 @@ import {observer} from 'mobx-react'
 
 import { extend, pick, capitalize, trim } from '../charts/Util'
 import Colorpicker from './Colorpicker'
+import { AdminAppContext } from './AdminAppContext'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -490,13 +491,90 @@ export class Timeago extends React.Component<{ time: Date }> {
 }
 
 import TagBadge, { Tag } from './TagBadge'
+
+// NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
+// Better UX for case when you aren't adding new tags, only selecting from list.
 const ReactTags = require('react-tag-autocomplete')
 
 @observer
-export class EditTags extends React.Component<{ tags: Tag[], suggestions: Tag[], onDelete: (index: number) => void, onAdd: (tag: Tag) => void }> {
+class EditTags extends React.Component<{ tags: Tag[], suggestions: Tag[], onDelete: (index: number) => void, onAdd: (tag: Tag) => void, onSave: () => void }> {
+    dismissable: boolean = true
+
+    @action.bound onClickSomewhere(e: MouseEvent) {
+        if (this.dismissable)
+            this.props.onSave()
+        this.dismissable = true
+    }
+
+    @action.bound onClick() {
+        this.dismissable = false
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.onClickSomewhere)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.onClickSomewhere)
+    }
+
     render() {
         const {tags, suggestions} = this.props
+        return <div className="EditTags" onClick={this.onClick}>
+            <ReactTags tags={tags} suggestions={suggestions} handleAddition={this.props.onAdd} handleDelete={this.props.onDelete} minQueryLength={1}/>
+        </div>
+    }
+}
 
-        return <ReactTags tags={tags} suggestions={suggestions} handleAddition={this.props.onAdd} handleDelete={this.props.onDelete} minQueryLength={1}/>
+@observer
+export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Tag[], onSave: (tags: Tag[]) => void, disabled?: boolean }> {
+    @observable isEditing: boolean = false
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @observable tags: Tag[] = _.clone(this.props.tags)
+
+    @action.bound onAddTag(tag: Tag) {
+        this.tags.push(tag)
+        this.tags = _.uniq(this.tags).filter(t => t.name !== 'Uncategorized')
+    }
+
+    @action.bound onRemoveTag(index: number) {
+        this.tags.splice(index, 1)
+        this.ensureUncategorized()
+    }
+
+    @action.bound ensureUncategorized() {
+        if (this.tags.length === 0) {
+            const uncategorized = this.props.suggestions.find(t => t.name === "Uncategorized")
+            if (uncategorized)
+                this.tags.push(uncategorized)
+        }
+    }
+
+    @action.bound onToggleEdit() {
+        if (this.isEditing) {    
+            this.props.onSave(this.tags.filter(t => t.name !== "Uncategorized"))
+        }
+        this.isEditing = !this.isEditing
+    }
+
+    componentDidMount() {
+        this.ensureUncategorized()
+    }
+
+    render() {
+        const {disabled} = this.props
+        const {tags} = this
+
+        return <div className="EditableTags">
+            {
+                this.isEditing
+                    ? <EditTags tags={this.tags} onAdd={this.onAddTag} onDelete={this.onRemoveTag} onSave={this.onToggleEdit} suggestions={this.props.suggestions}/>
+                    : <div>
+                        {tags.map(t => <TagBadge key={t.id} tag={t}/>)}
+                        {!disabled && <button className="btn btn-link" onClick={this.onToggleEdit}>Edit Tags</button>}
+                    </div>
+            }            
+        </div>
     }
 }
