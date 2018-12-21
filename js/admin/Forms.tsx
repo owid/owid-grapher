@@ -560,6 +560,10 @@ export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Ta
     }
 
     componentDidMount() {
+        this.componentDidUpdate()
+    }
+
+    componentDidUpdate() {
         this.ensureUncategorized()
     }
 

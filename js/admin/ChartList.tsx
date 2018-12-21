@@ -62,7 +62,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
         const {chart} = this.props
         const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
         if (json.success) {
-            chart.tags = tags
+            runInAction(() => chart.tags = tags)
         }
     }
 
@@ -107,7 +107,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
 
-    @observable.ref availableTags: Tag[] = []
+    @observable availableTags: Tag[] = []
 
     @bind async onDeleteChart(chart: ChartListItem) {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
@@ -142,7 +142,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
 
     @bind async getTags() {
         const json = await this.context.admin.getJSON('/api/tags.json')
-        this.availableTags = json.tags
+        runInAction(() => this.availableTags = json.tags)
     }
 
     componentDidMount() {
