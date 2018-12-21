@@ -17,7 +17,7 @@ async function dataExport() {
     const variables = await db.query("SELECT v.name, v.id FROM variables v JOIN chart_dimensions cd ON cd.variableId=v.id WHERE cd.chartId IN (?)", [idsToGet])
     const variableIds = variables.map((v: any) => v.id)
     const stream = fs.createWriteStream("/Users/mispy/tmp/sdgs.csv")
- 
+
     // From dataset CSV export
     const csvHeader = ["Entity", "Year"]
     for (const variable of variables) {

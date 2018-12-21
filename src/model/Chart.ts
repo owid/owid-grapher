@@ -6,7 +6,6 @@ import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
 import User from './User'
 import { ChartRevision } from './ChartRevision'
-import { string } from 'prop-types';
 
 @Entity("charts")
 export class Chart extends BaseEntity {
@@ -28,17 +27,46 @@ export class Chart extends BaseEntity {
     logs!: ChartRevision[]
 
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-        const redirects = await db.query(`SELECT id, slug FROM chart_slug_redirects`)
+        const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
         const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
 
         const slugToId: {[slug: string]: number} = {}
         for (const row of redirects) {
-            slugToId[row.slug] = row.id
+            slugToId[row.slug] = row.chart_id
         }
         for (const row of rows) {
             slugToId[row.slug] = row.id
         }
         return slugToId
+    }
+
+    static async setTags(chartId: number, tagIds: number[]) {
+        await db.transaction(async t => {
+            const tagRows = tagIds.map(tagId => [tagId, chartId])
+            await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
+            if (tagRows.length)
+                await t.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [tagRows])
+        })
+    }
+
+    static async assignTagsForCharts(charts: { id: number, tags: any[] }[]) {
+        const chartTags = await db.query(`
+            SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+            JOIN charts c ON c.id=ct.chartId
+            JOIN tags t ON t.id=ct.tagId
+        `)
+
+        for (const chart of charts) {
+            chart.tags = []
+        }
+
+        const chartsById = _.keyBy(charts, c => c.id)
+
+        for (const ct of chartTags) {
+            const chart = chartsById[ct.chartId]
+            if (chart)
+                chart.tags.push({ id: ct.tagId, name: ct.tagName })
+        }        
     }
 }
 

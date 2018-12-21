@@ -1,12 +1,15 @@
 import * as React from 'react'
+import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 const timeago = require('timeago.js')()
 import * as _ from 'lodash'
+import {bind} from 'decko'
 
 import Admin from './Admin'
 import Link from './Link'
 import TagBadge, { Tag } from './TagBadge'
 import { AdminAppContext } from './AdminAppContext'
+import { EditableTags } from './Forms'
 
 export interface DatasetListItem {
     id: number
@@ -22,11 +25,24 @@ export interface DatasetListItem {
 }
 
 @observer
-class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighlight?: (text: string) => any }> {
+class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTags: Tag[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
 
+    async saveTags(tags: Tag[]) {
+        const {dataset} = this.props
+        const json = await this.context.admin.requestJSON(`/api/datasets/${dataset.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
+        if (json.success) {
+            dataset.tags = tags
+        }
+    }
+
+    @action.bound onSaveTags(tags: Tag[]) {
+        this.saveTags(tags)
+    }
+
+
     render() {
-        const {dataset, searchHighlight} = this.props
+        const {dataset, searchHighlight, availableTags} = this.props
 
         const highlight = searchHighlight || _.identity
 
@@ -36,7 +52,9 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
             {dataset.isPrivate ? <span className="text-secondary">Unpublished: </span> : ""}<Link to={`/datasets/${dataset.id}`}>{highlight(dataset.name)}</Link>
             </td>
             <td>{highlight(dataset.description)}</td>
-            <td>{dataset.tags.map(tag => <TagBadge tag={tag} key={tag.id} searchHighlight={searchHighlight}/>)}</td>
+            <td>
+                <EditableTags tags={dataset.tags} suggestions={availableTags} onSave={this.onSaveTags} disabled={dataset.namespace !== 'owid'}/>
+            </td>
             <td>{timeago.format(dataset.dataEditedAt)} by {highlight(dataset.dataEditedByUserName)}</td>
         </tr>
     }
@@ -45,6 +63,17 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, searchHighl
 @observer
 export default class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
+    
+    @observable availableTags: Tag[] = []
+
+    @bind async getTags() {
+        const json = await this.context.admin.getJSON('/api/tags.json')
+        this.availableTags = json.tags
+    }
+
+    componentDidMount() {
+        this.getTags()
+    }
 
     render() {
         const {props} = this
@@ -54,12 +83,12 @@ export default class DatasetList extends React.Component<{ datasets: DatasetList
                     <th>Dataspace</th>
                     <th>Dataset</th>
                     <th>Notes</th>
-                    <th>Categories</th>
+                    <th>Tags</th>
                     <th>Uploaded</th>
                 </tr>
             </thead>
             <tbody>
-                {props.datasets.map(dataset => <DatasetRow dataset={dataset} key={dataset.id} searchHighlight={props.searchHighlight}/>)}
+                {props.datasets.map(dataset => <DatasetRow dataset={dataset} availableTags={this.availableTags} key={dataset.id} searchHighlight={props.searchHighlight}/>)}
             </tbody>
         </table>
     }

@@ -11,7 +11,7 @@
         "target": "es5",
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es6", "esnext.asynciterable"],
+        "lib": ["dom", "es7", "esnext.asynciterable"],
         "plugins": [
             { "name": "tslint-language-service" }
         ],

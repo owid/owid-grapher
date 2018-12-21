@@ -19,7 +19,7 @@ interface TagPageData {
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    subcategories: Tag[]
+    children: Tag[]
     possibleParents: Tag[]
     isBulkImport: boolean
 }
@@ -98,7 +98,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         return <main className="TagEditPage">
             <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
             <section>
-                <h1>Category: {tag.name}</h1>
+                <h1>Tag: {tag.name}</h1>
                 <p>Last updated {timeago.format(tag.updatedAt)}</p>
             </section>
             <section>
@@ -112,14 +112,14 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                         </div>
                     </FieldsRow>}
                     {!tag.isBulkImport && <div>
-                        <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.subcategories.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
+                        <input type="submit" className="btn btn-success" value="Update category"/> {tag.datasets.length === 0 && tag.children.length === 0 && !tag.specialType && <button className="btn btn-danger" onClick={() => this.deleteTag()}>Delete category</button>}
                     </div>}
                 </form>
             </section>
-            {tag.subcategories.length > 0 && <section>
+            {tag.children.length > 0 && <section>
                 <h3>Subcategories</h3>
-                {tag.subcategories.map(c =>
-                    <TagBadge tag={c as Tag} key={tag.id}/>
+                {tag.children.map(c =>
+                    <TagBadge tag={c as Tag} key={c.id}/>
                 )}
             </section>}
             <section>
@@ -131,7 +131,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 <h3>Charts</h3>
                 <ChartList charts={tag.charts}/>
             </section>
-            {this.isDeleted && <Redirect to={`/categories`}/>}
+            {this.isDeleted && <Redirect to={`/tags`}/>}
         </main>
     }
 }

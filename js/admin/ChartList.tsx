@@ -1,13 +1,15 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import { action, runInAction } from 'mobx'
+import { action, runInAction, observable } from 'mobx'
 const timeago = require('timeago.js')()
 import * as _ from 'lodash'
 
 import Admin from './Admin'
 import Link from './Link'
-import TagBadge, { Tag } from './TagBadge'
+import { Tag } from './TagBadge'
+import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
+import { bind } from 'decko'
 
 export interface ChartListItem {
     id: number
@@ -24,7 +26,7 @@ export interface ChartListItem {
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
-    tags?: Tag[]
+    tags: Tag[]
 }
 
 function showChartType(chart: ChartListItem) {
@@ -53,11 +55,23 @@ function showChartType(chart: ChartListItem) {
 }
 
 @observer
-class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
+class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, availableTags: Tag[], onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
 
+    async saveTags(tags: Tag[]) {
+        const {chart} = this.props
+        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
+        if (json.success) {
+            chart.tags = tags
+        }
+    }
+
+    @action.bound onSaveTags(tags: Tag[]) {
+        this.saveTags(tags)
+    }
+
     render() {
-        const {chart, searchHighlight} = this.props
+        const {chart, searchHighlight, availableTags} = this.props
 
         const highlight = searchHighlight || _.identity
 
@@ -74,6 +88,9 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
             <td>{highlight(chart.internalNotes)}</td>
+            <td style={{minWidth: "380px"}}>
+                <EditableTags tags={chart.tags} suggestions={availableTags} onSave={this.onSaveTags}/>
+            </td>
             <td>{chart.publishedAt && timeago.format(chart.publishedAt)}{chart.publishedBy && <span> by {highlight(chart.publishedBy)}</span>}</td>
             <td>{timeago.format(chart.lastEditedAt)} by {highlight(chart.lastEditedBy)}</td>
             <td>
@@ -90,7 +107,9 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
 
-    @action.bound async onDeleteChart(chart: ChartListItem) {
+    @observable.ref availableTags: Tag[] = []
+
+    @bind async onDeleteChart(chart: ChartListItem) {
         if (!window.confirm(`Delete the chart ${chart.slug}? This action cannot be undone!`))
             return
 
@@ -104,7 +123,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
         }
     }
 
-    @action.bound async onStar(chart: ChartListItem) {
+    @bind async onStar(chart: ChartListItem) {
         if (chart.isStarred) return
 
         const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/star`, {}, 'POST')
@@ -121,8 +140,18 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
         }
     }
 
+    @bind async getTags() {
+        const json = await this.context.admin.getJSON('/api/tags.json')
+        this.availableTags = json.tags
+    }
+
+    componentDidMount() {
+        this.getTags()
+    }
+
     render() {
         const {charts, searchHighlight} = this.props
+        const { availableTags } = this
         return <table className="table table-bordered">
             <thead>
                 <tr>
@@ -130,6 +159,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
                     <th>Chart</th>
                     <th>Type</th>
                     <th>Notes</th>
+                    <th>Tags</th>
                     <th>Published</th>
                     <th>Last Updated</th>
                     <th></th>
@@ -137,7 +167,7 @@ export default class ChartList extends React.Component<{ charts: ChartListItem[]
                 </tr>
             </thead>
                 <tbody>
-                {charts.map(chart => <ChartRow chart={chart} key={chart.id} searchHighlight={searchHighlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
+                {charts.map(chart => <ChartRow chart={chart} key={chart.id} availableTags={availableTags} searchHighlight={searchHighlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
             </tbody>
         </table>
     }

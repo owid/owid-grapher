@@ -1,6 +1,7 @@
 /* Chart editor styling */
 
 @import "node_modules/bootstrap/scss/bootstrap";
+@import "node_modules/react-tag-autocomplete/example/styles";
 
 html {
     font-size: 14px;
@@ -657,7 +658,7 @@ main:not(.ChartEditorPage) {
     box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
 }
 
-.CategoriesIndexPage {
+.TagsIndexPage {
     .badge {
         font-size: 0.8em;
         margin-right: 0.5em;
@@ -679,3 +680,15 @@ main:not(.ChartEditorPage) {
         color: #333;
     }
 }
+
+.EditableTags {
+    button {
+        opacity: 0.8;
+    }
+
+    // Tweak to stop suggestions overlapping "Add new tag" in another tag input below
+    .react-tags__suggestions {
+        z-index: 10;
+    }
+}
+

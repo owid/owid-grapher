@@ -91,9 +91,6 @@ export default class DatasetsIndexPage extends React.Component {
 
     async getData() {
         const {admin} = this.context
-        if (admin.currentRequests.length > 0)
-            return
-
         const json = await admin.getJSON("/api/datasets.json")
         runInAction(() => {
             this.datasets = json.datasets

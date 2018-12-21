@@ -526,7 +526,7 @@ interface ImportPageData {
         id: number
         name: string
     }[]
-    categories: {
+    tags: {
         id: number
         name: string
         parent: string

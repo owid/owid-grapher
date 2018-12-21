@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
+import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import * as parse from 'csv-parse'
 
 const unidecode = require("unidecode")
@@ -255,24 +255,32 @@ export default class CountryStandardizerPage extends React.Component {
     dispose!: IReactionDisposer
     componentDidMount() {
         // Fetch mapping from server when the input or output format changes
-        this.dispose = autorun(() => this.fetchCountryMap(this.inputFormat, this.outputFormat))
+        this.dispose = reaction(
+            () => this.inputFormat && this.outputFormat,
+            () => this.fetchCountryMap()
+        )
+
+        this.fetchCountryMap()
     }
 
     componentWillUnmount() {
         this.dispose()
     }
 
-    async fetchCountryMap(inputFormat: string, outputFormat: string) {
+    async fetchCountryMap() {
+        const { inputFormat, outputFormat} = this
         const { admin }  = this.context
-        const results = await admin.getJSON(`/api/countries.json?input=` + inputFormat + `&output=` + outputFormat)
+        const results = await admin.getJSON(`/api/countries.json?input=${inputFormat}&output=${outputFormat}`)
 
-        const countryMap: { [key: string]: string} = {}
-        results.countries.forEach((countryFormat: any) => {
-            if (countryFormat.input === null) return
-            countryMap[countryFormat.input.toLowerCase()] = toString(countryFormat.output)
+        runInAction(() => {
+            const countryMap: { [key: string]: string} = {}
+            results.countries.forEach((countryFormat: any) => {
+                if (countryFormat.input === null) return
+                countryMap[countryFormat.input.toLowerCase()] = toString(countryFormat.output)
+            })    
+
+            this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
         })
-
-        this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
     }
 
     @computed get csvDataUri(): string {
