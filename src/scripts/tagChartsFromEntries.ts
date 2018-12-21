@@ -10,10 +10,8 @@ import { slugify } from '../admin/serverUtil'
 import { Chart } from '../model/Chart'
 import { Tag } from '../model/Tag'
 
-async function tagCharts() {
+async function tagCharts(htmlDir: string) {
     await db.connect()
-
-    const htmlDir = `/Users/mispy/wp-static`
 
     const paths = glob.sync(path.join(htmlDir, '*.html'))
 
@@ -73,4 +71,9 @@ async function tagCharts() {
     await db.end()
 }
 
-tagCharts()
+
+if (!process.argv[2]) {
+    console.log("Usage: node tagChartsFromEntries.js /wp-static")
+} else {
+    tagCharts(process.argv[2])
+}
