@@ -110,7 +110,7 @@ export default class ChartView extends React.Component<ChartViewProps> {
         return new Bounds(0, 0, this.svgBounds.width, this.svgBounds.height).pad(15)
     }
 
-    @observable popups: VNode[] = []
+    @observable.ref popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -131,11 +131,11 @@ export default class ChartView extends React.Component<ChartViewProps> {
     }
 
     addPopup(vnode: VNode) {
-        this.popups.push(vnode)
+        this.popups = this.popups.concat([vnode])
     }
 
     removePopup(vnodeType: any) {
-        this.popups = this.popups.filter(d => !(d.nodeName === vnodeType))
+        this.popups = this.popups.filter(d => !(d.type === vnodeType))
     }
 
     get childContext() {

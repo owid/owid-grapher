@@ -14,22 +14,44 @@ import { worldRegions, labelsByRegion } from './WorldRegions'
 declare const Global: { rootUrl: string }
 
 @observer
-class EmbedMenu extends React.Component<{ embedUrl: string }> {
+class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string }> {
+    dismissable = true
+
+    @action.bound onClickSomewhere() {
+        if (this.dismissable) {
+            this.props.chartView.removePopup(EmbedMenu)
+        } else {
+            this.dismissable = true
+        }
+    }
+    
+    @action.bound onClick() {
+        this.dismissable = false
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.onClickSomewhere)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.onClickSomewhere)
+    }
+
     render() {
         const { embedUrl } = this.props
 
-        return <div className="embedMenu" onClick={evt => evt.stopPropagation()}>
+        return <div className="embedMenu" onClick={this.onClick}>
             <h2>Embed</h2>
             <p>Paste this into any HTML page:</p>
-            <textarea onFocus={evt => evt.currentTarget.select()}>
-                {`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
-            </textarea>
+            <textarea onFocus={evt => evt.currentTarget.select()} defaultValue={`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}/>
         </div>
     }
 }
 
 @observer
 class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, onDismiss: () => void }> {
+    dismissable = true
+
     @computed get title(): string {
         return this.props.chart.data.currentTitle
     }
@@ -50,26 +72,31 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
 
     embedMenu: any
 
-    @action.bound onClickOutside() {
-        this.props.chartView.removePopup(EmbedMenu)
+    @action.bound dismiss() {
+        this.props.onDismiss()
+    }
 
-        if (this.props.onDismiss)
-            this.props.onDismiss()
+    @action.bound onClickSomewhere() {
+        if (this.dismissable) {
+            this.dismiss()
+        } else {
+            this.dismissable = true
+        }
     }
 
     componentDidMount() {
-        setTimeout(() => {
-            window.addEventListener('click', this.onClickOutside)
-        }, 50)
+        document.addEventListener('click', this.onClickSomewhere)
     }
 
     componentWillUnmount() {
-        window.removeEventListener('click', this.onClickOutside)
+        document.removeEventListener('click', this.onClickSomewhere)
     }
 
     @action.bound onEmbed() {
-        if (this.canonicalUrl)
-            this.props.chartView.addPopup(<EmbedMenu embedUrl={this.canonicalUrl} />)
+        if (this.canonicalUrl) {
+            this.props.chartView.addPopup(<EmbedMenu key="EmbedMenu" chartView={this.props.chartView} embedUrl={this.canonicalUrl} />)
+            this.dismiss()
+        }
     }
 
     @computed get twitterHref(): string {
@@ -89,7 +116,7 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
     render() {
         const { editUrl, twitterHref, facebookHref, isDisabled } = this
 
-        return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={(evt) => evt.stopPropagation()}>
+        return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={action(() => this.dismissable = false)}>
             <h2>Share</h2>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <i className="fa fa-twitter" /> Twitter
