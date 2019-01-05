@@ -60,7 +60,7 @@ export default class Header {
     }
 
     @computed get logo(): Logo|undefined {
-        return new Logo({ fontSize: this.props.chart.baseFontSize, svg: LOGO_SVG })
+        return this.props.chart.props.hideLogo ? undefined : new Logo({ fontSize: this.props.chart.baseFontSize, svg: LOGO_SVG })
     }
 
     @computed get logoWidth(): number { return this.logo ? this.logo.width : 0 }

@@ -11,6 +11,10 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
         this.props.editor.chart.props.slug = slugify(slug).toLowerCase()
     }
 
+    @action.bound onToggleLogo(value: boolean) {
+        this.props.editor.chart.props.hideLogo = value||undefined
+    }
+
     render() {
         const {chart} = this.props.editor
 
@@ -20,6 +24,7 @@ export default class EditorTextTab extends React.Component<{ editor: ChartEditor
                 <Toggle label="Hide automatic time/entity" value={!!chart.props.hideTitleAnnotation} onValue={action((value: boolean) => chart.props.hideTitleAnnotation = value||undefined)}/>
                 <AutoTextField label="/grapher" value={chart.data.slug} onValue={this.onSlug} isAuto={chart.props.slug === undefined} onToggleAuto={_ => chart.props.slug = chart.props.slug === undefined ? chart.data.slug : undefined} helpText="Human-friendly URL for this chart"/>
                 <BindString field="subtitle" store={chart.props} placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart." textarea softCharacterLimit={280}/>
+                <Toggle label="Hide logo" value={!!chart.props.hideLogo} onValue={this.onToggleLogo}/>
             </Section>
             <Section name="Footer">
                 <BindAutoString label="Source" field="sourceDesc" store={chart.props} auto={chart.data.sourcesLine} helpText="Short comma-separated list of source names" softCharacterLimit={60}/>
