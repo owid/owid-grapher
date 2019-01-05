@@ -412,13 +412,13 @@ export default class ScatterTransform implements IChartTransform {
         if (isRelativeMode) {
             props.domain = yDomainDefault
             props.scaleTypeOptions = ['linear']
-            const label = yAxisLabelBase
+            const label = chart.yAxis.label || yAxisLabelBase
             if (label && label.length > 1) {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
-            props.label = yAxisLabelBase
+            props.label = chart.yAxis.label || yAxisLabelBase
             props.tickFormat = yDimension && yDimension.formatValueShort
         }
 
@@ -445,13 +445,13 @@ export default class ScatterTransform implements IChartTransform {
         if (isRelativeMode) {
             props.domain = xDomainDefault
             props.scaleTypeOptions = ['linear']
-            const label = xAxisLabelBase
+            const label = chart.xAxis.label || xAxisLabelBase
             if (label && label.length > 1) {
                 props.label = "Average annual change in " + (label.charAt(1).match(/[A-Z]/) ? label : label.charAt(0).toLowerCase() + label.slice(1))
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
-            props.label = xAxisLabelBase
+            props.label = chart.xAxis.label || xAxisLabelBase
             props.tickFormat = xDimension && xDimension.formatValueShort
         }
 

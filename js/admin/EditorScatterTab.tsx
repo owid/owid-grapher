@@ -81,7 +81,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                 <Toggle label="Hide connected scatter lines" value={!!chart.props.hideConnectedScatterLines} onValue={this.onToggleConnection}/>
                 <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
             </Section>
-
             <Section name="Filtering">
                 <Toggle label="Exclude observations for entities that are not countries" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
                 <SelectField label="Exclude individual entities" value={""} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/>

@@ -128,7 +128,7 @@ export default class LineChartTransform implements IChartTransform {
     @computed get xAxis(): AxisSpec {
         const { xDomain } = this
         return {
-            label: "",
+            label: this.chart.xAxis.label||"",
             tickFormat: formatYear,
             domain: xDomain,
             scaleType: 'linear',

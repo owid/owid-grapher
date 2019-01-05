@@ -9,7 +9,7 @@ export class AxisConfigProps {
     @observable.ref max?: number = undefined
     @observable.ref scaleType: ScaleType = 'linear'
     @observable.ref canChangeScaleType?: true = undefined
-    @observable.ref labelDistance?: number // DEPRECATED - remove when nvd3 is gone
+    @observable label?: string = undefined
 }
 
 // Interface used to access configuration by charts
@@ -53,11 +53,15 @@ export default class AxisConfig {
         }
     }
 
+    @computed get label() {
+        return this.props.label
+    }
+
     // Convert axis configuration to a finalized axis spec by supplying
     // any needed information calculated from the data
     toSpec({ defaultDomain }: { defaultDomain: [number, number] }): AxisSpec {
         return {
-            label: "",
+            label: this.label||"",
             tickFormat: d => `${d}`,
             domain: [Math.min(defaultTo(this.domain[0], Infinity), defaultDomain[0]), Math.max(defaultTo(this.domain[1], -Infinity), defaultDomain[1])],
             scaleType: this.scaleType,

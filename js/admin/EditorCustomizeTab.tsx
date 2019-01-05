@@ -5,7 +5,7 @@ import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, TextField, Button } from './Forms'
+import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, BindString, TextField, Button } from './Forms'
 import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
 import { debounce, keysOf } from '../charts/Util'
 
@@ -123,13 +123,8 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
     @computed get xAxis() { return this.props.editor.chart.xAxis.props }
     @computed get yAxis() { return this.props.editor.chart.yAxis.props }
 
-    renderForAxis(_: string, axis: AxisConfigProps) {
+    renderForAxis(axisName: string, axis: AxisConfigProps) {
         return <div>
-            <FieldsRow>
-                <NumberField label={`Min`} value={axis.min} onValue={(value) => axis.min = value} />
-                <NumberField label={`Max`} value={axis.max} onValue={(value) => axis.max = value} />
-            </FieldsRow>
-            <Toggle label={`Enable log/linear selector`} value={axis.canChangeScaleType || false} onValue={(value) => axis.canChangeScaleType = value || undefined} />
         </div>
     }
 
@@ -140,10 +135,24 @@ export default class EditorCustomizeTab extends React.Component<{ editor: ChartE
 
         return <div>
             {features.customYAxis && <Section name="Y Axis">
-                {this.renderForAxis('Y', yAxis)}
+                {features.customYAxisScale && <React.Fragment>
+                    <FieldsRow>
+                        <NumberField label={`Min`} value={yAxis.min} onValue={(value) => yAxis.min = value} />
+                        <NumberField label={`Max`} value={yAxis.max} onValue={(value) => yAxis.max = value} />
+                    </FieldsRow>
+                    <Toggle label={`Enable log/linear selector`} value={yAxis.canChangeScaleType || false} onValue={(value) => yAxis.canChangeScaleType = value || undefined}/>
+                </React.Fragment>}
+                {features.customYAxisLabel && <BindString label="Label" field="label" store={yAxis}/>}
             </Section>}
             {features.customXAxis && <Section name="X Axis">
-                {this.renderForAxis('X', xAxis)}
+                {features.customXAxisScale && <React.Fragment>
+                    <FieldsRow>
+                        <NumberField label={`Min`} value={xAxis.min} onValue={(value) => xAxis.min = value} />
+                        <NumberField label={`Max`} value={xAxis.max} onValue={(value) => xAxis.max = value} />
+                    </FieldsRow>
+                    <Toggle label={`Enable log/linear selector`} value={xAxis.canChangeScaleType || false} onValue={(value) => xAxis.canChangeScaleType = value || undefined}/>
+                </React.Fragment>}
+                {features.customXAxisLabel && <BindString label="Label" field="label" store={xAxis}/>}
             </Section>}
             {!chart.isScatter && <TimeSection editor={this.props.editor} />}
             <Section name="Colors">
