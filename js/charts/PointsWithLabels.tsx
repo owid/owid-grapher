@@ -28,7 +28,6 @@ export interface ScatterSeries {
     size: number
     values: ScatterValue[]
     isAutoColor?: true
-    hideLines: boolean
 }
 
 export interface ScatterValue {
