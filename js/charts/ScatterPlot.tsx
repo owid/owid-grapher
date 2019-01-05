@@ -199,17 +199,21 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
             return uniq(transform.currentData.filter(g => activeKeys.indexOf(g.key) !== -1).map(g => g.color))
     }
 
+    @computed get hideLines(): boolean {
+        return !!this.chart.props.hideConnectedScatterLines
+    }
+
     render() {
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage} />
 
-        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, activeColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLines } = this
+        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, activeColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLines, hideLines } = this
         const { currentData, sizeDomain } = transform
 
         return <g>
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} />
             {comparisonLines && comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
-            <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave} onClick={this.onScatterClick}/>
+            <PointsWithLabels hideLines={hideLines} data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave} onClick={this.onScatterClick}/>
             <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
             {(arrowLegend || tooltipSeries) && <line x1={bounds.right - sidebarWidth} y1={bounds.top + legend.height + 2} x2={bounds.right - 5} y2={bounds.top + legend.height + 2} stroke="#ccc" />}
             {arrowLegend && <g className="clickable" onClick={this.onToggleEndpoints}>

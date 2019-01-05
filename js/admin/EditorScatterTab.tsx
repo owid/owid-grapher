@@ -65,6 +65,11 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         chart.props.excludedEntities = chart.props.excludedEntities.filter(e => e !== entityId)
     }
 
+    @action.bound onToggleConnection(value: boolean) {
+        const {chart} = this.props
+        chart.props.hideConnectedScatterLines = value
+    }
+
     render() {
         const {hasHighlightToggle, highlightToggle, excludedEntityChoices} = this
         const {chart} = this.props
@@ -73,6 +78,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
             <Section name="Timeline">
                 <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
                 <Toggle label="Hide entities without data for full time span (within tolerance)" value={!!chart.props.hideLinesOutsideTolerance} onValue={this.onToggleHideLinesOutsideTolerance}/>
+                <Toggle label="Hide connected scatter lines" value={!!chart.props.hideConnectedScatterLines} onValue={this.onToggleConnection}/>
                 <NumberField label="Override X axis target year" value={chart.scatter.xOverrideYear} onValue={debounce(this.onXOverrideYear, 300)}/>
             </Section>
 

@@ -121,7 +121,6 @@ export class ChartConfigProps {
     @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 
-    @observable.ref comparisonLine?: ComparisonLineConfig = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
@@ -141,9 +140,13 @@ export class ChartConfigProps {
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
 
-    // Currently scatterplot-specific options
+    // SCATTERPLOT-SPECIFIC OPTIONS
+
     @observable.ref hideTimeline?: true = undefined
     @observable.ref hideLinesOutsideTolerance?: true = undefined
+
+    // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
+    @observable hideConnectedScatterLines?: boolean = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable excludedEntities?: number[] = undefined
@@ -238,7 +241,6 @@ export default class ChartConfig {
     @computed get primaryTab() { return this.props.tab }
     @computed get overlayTab() { return this.props.overlay }
     @computed get addCountryMode() { return this.props.addCountryMode || "add-country" }
-    @computed get comparisonLine() { return this.props.comparisonLine }
     @computed get highlightToggle() { return this.props.highlightToggle }
     @computed get hasChartTab() { return this.props.hasChartTab }
     @computed get hasMapTab() { return this.props.hasMapTab }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { observable, computed, action, toJS } from 'mobx'
+import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
@@ -83,7 +83,6 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 @observer
 class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
-    //{ label: undefined, yEquals: undefined }
 
     @action.bound onAddComparisonLine() {
         const {chart} = this.props.editor

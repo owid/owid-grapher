@@ -28,6 +28,7 @@ export interface ScatterSeries {
     size: number
     values: ScatterValue[]
     isAutoColor?: true
+    hideLines: boolean
 }
 
 export interface ScatterValue {
@@ -54,6 +55,7 @@ interface PointsWithLabelsProps {
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void
+    hideLines: boolean
 }
 
 interface ScatterRenderValue {
@@ -222,6 +224,10 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
         return scaleOrdinal(schemeCategory20)
     }
 
+    @computed get hideLines(): boolean {
+        return this.props.hideLines
+    }
+
     // Pre-transform data for rendering
     @computed get initialRenderData(): ScatterRenderSeries[] {
         const { data, xScale, yScale, defaultColorScale, sizeScale, fontScale } = this
@@ -341,11 +347,13 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     // are present
     // This is also the one label in the case of a single point
     makeEndLabel(series: ScatterRenderSeries) {
-        const { isSubtleForeground, labelFontFamily } = this
+        const { isSubtleForeground, labelFontFamily, hideLines } = this
 
         const lastValue = last(series.values) as ScatterRenderValue
         const lastPos = lastValue.position
-        const fontSize = lastValue.fontSize * (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+        const fontSize = hideLines 
+            ? series.isForeground ? (this.isSubtleForeground ? 8 : 9) : 7
+            : lastValue.fontSize * (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -365,7 +373,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
             labelBounds = labelBounds.extend({ y: labelBounds.y + labelBounds.height / 2 })
 
         return {
-            text: series.text,
+            text: (hideLines && series.isForeground) ? lastValue.time.y.toString() : series.text,
             fontSize: fontSize,
             bounds: labelBounds,
             series: series,
@@ -493,9 +501,9 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderBackgroundGroups() {
-        const { backgroundGroups, isLayerMode, isConnected } = this
+        const { backgroundGroups, isLayerMode, isConnected, hideLines } = this
 
-        return backgroundGroups.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
+        return hideLines ? [] : backgroundGroups.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
     }
 
     renderBackgroundLabels() {
@@ -518,7 +526,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
     }
 
     renderForegroundGroups() {
-        const { foregroundGroups, isSubtleForeground, renderUid } = this
+        const { foregroundGroups, isSubtleForeground, renderUid, hideLines } = this
 
         return foregroundGroups.map(series => {
             const lastValue = last(series.values) as ScatterRenderValue
@@ -538,7 +546,7 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                             <circle cx={4} cy={4} r={4} />
                         </marker>
                     </defs>
-                    {series.isFocus && <circle
+                    {series.isFocus && !hideLines && <circle
                         cx={firstValue.position.x.toFixed(2)}
                         cy={firstValue.position.y.toFixed(2)}
                         r={strokeWidth + 1}
@@ -548,14 +556,14 @@ export default class PointsWithLabels extends React.Component<PointsWithLabelsPr
                     />}
                     <polyline
                         strokeLinecap="round"
-                        stroke={series.color}
+                        stroke={hideLines ? "rgba(0,0,0,0)" : series.color}
                         points={series.values.map(v => `${v.position.x.toFixed(2)},${v.position.y.toFixed(2)}`).join(' ')}
                         fill="none"
                         strokeWidth={strokeWidth}
                         opacity={isSubtleForeground ? 0.6 : 1}
                         markerStart={`url(#${series.displayKey}-circle-${renderUid})`}
                         markerMid={`url(#${series.displayKey}-circle-${renderUid})`}
-                        markerEnd={`url(#${series.displayKey}-arrow-${renderUid})`}
+                        markerEnd={hideLines ? `url(#${series.displayKey}-circle-${renderUid})` : `url(#${series.displayKey}-arrow-${renderUid})`}
                     />
                 </g>
             }
