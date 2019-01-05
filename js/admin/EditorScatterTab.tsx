@@ -11,12 +11,10 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = { description: "", paramStr: "" }
 
-    @computed get hasComparisonLine() { return !!this.props.chart.comparisonLine }
     @computed get hasHighlightToggle() { return !!this.props.chart.highlightToggle }
 
     constructor(props: { chart: ChartConfig }) {
         super(props)
-        extend(this.comparisonLine, props.chart.comparisonLine)
         extend(this.highlightToggle, props.chart.highlightToggle)
     }
 
@@ -32,13 +30,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
         this.props.chart.scatter.xOverrideYear = value
     }
 
-    @action.bound onToggleComparisonLine(value: boolean) {
-        if (value)
-            this.props.chart.props.comparisonLine = this.comparisonLine
-        else
-            this.props.chart.props.comparisonLine = undefined
-    }
-
     @action.bound onToggleHighlightToggle(value: boolean) {
         if (value)
             this.props.chart.props.highlightToggle = this.highlightToggle
@@ -47,9 +38,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
     }
 
     save() {
-        if (this.hasComparisonLine)
-            this.props.chart.props.comparisonLine = toJS(this.comparisonLine)
-
         if (this.hasHighlightToggle)
             this.props.chart.props.highlightToggle = toJS(this.highlightToggle)
     }
@@ -78,7 +66,7 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
     }
 
     render() {
-        const {hasComparisonLine, hasHighlightToggle, comparisonLine, highlightToggle, excludedEntityChoices} = this
+        const {hasHighlightToggle, highlightToggle, excludedEntityChoices} = this
         const {chart} = this.props
 
         return <div className="EditorScatterTab">
@@ -98,13 +86,6 @@ export default class EditorScatterTab extends React.Component<{ chart: ChartConf
                     </li>)}
                 </ul>}
             </Section>
-
-            <Section name="Comparison line">
-                <p>Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
-                <Toggle label="Enable comparison line" value={!!hasComparisonLine} onValue={this.onToggleComparisonLine}/>
-                {hasComparisonLine && <TextField label="y=" placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { this.comparisonLine.yEquals = value||undefined; this.save() })}/>}
-            </Section>
-
             <Section name="Highlight toggle">
                 <p>Allow users to toggle a particular chart selection state to highlight certain entities.</p>
                 <Toggle label="Enable highlight toggle" value={!!hasHighlightToggle} onValue={this.onToggleHighlightToggle}/>

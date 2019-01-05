@@ -53,7 +53,6 @@ export default class SourcesFooter {
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
         if (originUrl && originUrl.toLowerCase().match(/^https?:\/\/./)) {
-            console.log(originUrl)
             const url = parseUrl(originUrl)
             const finalUrl = `https://${url.hostname}${url.pathname}`
             const finalUrlText = `${url.hostname}${url.pathname}`.replace("ourworldindata.org", "OurWorldInData.org")
