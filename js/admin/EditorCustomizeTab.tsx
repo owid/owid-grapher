@@ -5,7 +5,7 @@ import ChartEditor from './ChartEditor'
 import ChartConfig from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, TextField } from './Forms'
+import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, TextField, Button } from './Forms'
 import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
 import { debounce, keysOf } from '../charts/Util'
 
@@ -82,28 +82,39 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
-    @observable comparisonLine: ComparisonLineConfig = { label: undefined, yEquals: undefined }
+    @observable comparisonLines: ComparisonLineConfig[] = []
+    //{ label: undefined, yEquals: undefined }
 
-    @action.bound onToggleComparisonLine(value: boolean) {
-        if (value)
-            this.props.editor.chart.props.comparisonLine = this.comparisonLine
-        else
-            this.props.editor.chart.props.comparisonLine = undefined
+    @action.bound onAddComparisonLine() {
+        const {chart} = this.props.editor
+
+        if (chart.props.comparisonLines === undefined)
+            chart.props.comparisonLines = []
+
+        chart.props.comparisonLines.push({})
     }
 
-    save() {
-        this.props.editor.chart.props.comparisonLine = toJS(this.comparisonLine)
+    @action.bound onRemoveComparisonLine(index: number) {
+        const {chart} = this.props.editor
+
+        chart.props.comparisonLines!.splice(index, 1)
+
+        if (chart.props.comparisonLines!.length === 0)
+            chart.props.comparisonLines = undefined
     }
 
     render() {
-        const {comparisonLine} = this.props.editor.chart
+        const {comparisonLines} = this.props.editor.chart
+
         return <Section name="Comparison line">
             <p>Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
-            <Toggle label="Enable comparison line" value={!!comparisonLine} onValue={this.onToggleComparisonLine}/>
-            {comparisonLine !== undefined && <div>
-                <TextField label="y=" placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { this.comparisonLine.yEquals = value||undefined; this.save() })}/>
-                <TextField label="Label" value={comparisonLine.label} onValue={action((value: string) => { this.comparisonLine.label = value||undefined; this.save() })}/>
-            </div>}
+
+            <Button onClick={this.onAddComparisonLine}><i className="fa fa-plus"></i> Add comparison line</Button>
+            {comparisonLines.map((comparisonLine, i) => <div key={i}>
+                {`Line ${i+1}`} <Button onClick={() => this.onRemoveComparisonLine(i)}><i className="fa fa-remove"></i></Button>
+                <TextField label={`y=`} placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { comparisonLine.yEquals = value||undefined })}/>
+                <TextField label="Label" value={comparisonLine.label} onValue={action((value: string) => { comparisonLine.label = value||undefined })}/>
+            </div>)}
         </Section>
     }
 }

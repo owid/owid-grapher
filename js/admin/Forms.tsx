@@ -583,3 +583,10 @@ export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Ta
         </div>
     }
 }
+
+@observer
+export class Button extends React.Component<{ children: any, onClick: () => void }> {
+    render() {
+        return <button className="btn btn-link" onClick={this.props.onClick}>{this.props.children}</button>
+    }
+}

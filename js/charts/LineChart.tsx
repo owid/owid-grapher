@@ -164,7 +164,7 @@ export default class LineChart extends React.Component<{ bounds: Bounds, chart: 
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {chart.comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={chart.comparisonLine} />}
+                {chart.comparisonLines && chart.comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
                 {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
                 <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
             </g>

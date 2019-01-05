@@ -122,6 +122,7 @@ export class ChartConfigProps {
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 
     @observable.ref comparisonLine?: ComparisonLineConfig = undefined
+    @observable comparisonLines?: ComparisonLineConfig[] = undefined
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
@@ -243,6 +244,7 @@ export default class ChartConfig {
     @computed get hasMapTab() { return this.props.hasMapTab }
     @computed get hideLegend() { return this.props.hideLegend }
     @computed get baseColorScheme() { return this.props.baseColorScheme }
+    @computed get comparisonLines() { return this.props.comparisonLines || [] }
 
     @computed get entityType() { return defaultTo(this.props.entityType, "country") }
 

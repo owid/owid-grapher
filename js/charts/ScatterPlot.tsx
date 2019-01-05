@@ -180,8 +180,8 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         this.chart.xAxis.scaleType = scaleType
     }
 
-    @computed get comparisonLine() {
-        return this.chart.comparisonLine
+    @computed get comparisonLines() {
+        return this.chart.comparisonLines
     }
 
     @action.bound onToggleEndpoints() {
@@ -203,12 +203,12 @@ export default class ScatterPlot extends React.Component<{ bounds: Bounds, confi
         if (this.transform.failMessage)
             return <NoData bounds={this.bounds} message={this.transform.failMessage} />
 
-        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, activeColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLine } = this
+        const { transform, bounds, axisBox, legend, focusKeys, hoverKeys, focusColors, activeColors, arrowLegend, sidebarWidth, tooltipSeries, comparisonLines } = this
         const { currentData, sizeDomain } = transform
 
         return <g>
             <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} />
-            {comparisonLine && <ComparisonLine axisBox={axisBox} comparisonLine={comparisonLine} />}
+            {comparisonLines && comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
             <PointsWithLabels data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onScatterMouseOver} onMouseLeave={this.onScatterMouseLeave} onClick={this.onScatterClick}/>
             <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
             {(arrowLegend || tooltipSeries) && <line x1={bounds.right - sidebarWidth} y1={bounds.top + legend.height + 2} x2={bounds.right - 5} y2={bounds.top + legend.height + 2} stroke="#ccc" />}
