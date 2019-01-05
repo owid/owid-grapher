@@ -43,10 +43,6 @@ export default class SourcesFooter {
         return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
     }
 
-    @computed get defaultLicenseSvg(): string {
-        return `<a target='_blank' style='fill: #777;' href='http://ourworldindata.org'>OurWorldInData.org</a> • ${this.ccSvg}`
-    }
-
     @computed get licenseSvg(): string {
         if (this.props.chart.isNativeEmbed)
             return this.ccSvg
@@ -56,13 +52,15 @@ export default class SourcesFooter {
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
-        if (originUrl && originUrl.toLowerCase().indexOf("ourworldindata.org") !== -1) {
+        if (originUrl && originUrl.toLowerCase().match(/^https?:\/\/./)) {
+            console.log(originUrl)
             const url = parseUrl(originUrl)
-            const finalUrl = `https://ourworldindata.org${url.pathname}`
-            if (Bounds.forText(finalUrl, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
-                return this.defaultLicenseSvg
+            const finalUrl = `https://${url.hostname}${url.pathname}`
+            const finalUrlText = `${url.hostname}${url.pathname}`.replace("ourworldindata.org", "OurWorldInData.org")
+            if (Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
+                return this.ccSvg
 
-            licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + "OurWorldInData.org" + url.pathname + "</a>")
+            licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + finalUrlText + "</a>")
         } else {
             return this.ccSvg
         }
