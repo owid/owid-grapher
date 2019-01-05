@@ -6710,7 +6710,7 @@ neo-async@^2.5.0:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.0.tgz#b9d15e4d71c6762908654b5183ed38b753340835"
   integrity sha512-MFh0d/Wa7vkKO3Y3LlacqAEeHK0mckVqzDieUKTT+KGxi+zIpeVsFxymkIiRpbpDziHc290Xr9A1O4Om7otoRA==
 
-netlify-cli@^2.5.0:
+netlify-cli@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/netlify-cli/-/netlify-cli-2.6.0.tgz#1eabc85e649354c7fc64adf1c20a3c0c4510d9a4"
   integrity sha512-wKGUb0hHYMDQmg94KnI+dpjQVD2dto7/smyRqHkoTSn0HLvG/LW2nFxd1XzTS5Wal1/o8XcaozK3PbLikWiJXg==
