@@ -4,12 +4,12 @@ const cookieParser = require('cookie-parser')
 const errorToSlack = require('express-error-slack')
 import "reflect-metadata"
 
-import AdminSPA from './AdminSPA'
+import { AdminSPA } from './AdminSPA'
 import {authMiddleware} from './authentication'
-import api from './api'
-import devServer from './devServer'
-import testPages from './testPages'
-import adminViews from './adminViews'
+import { api } from './api'
+import { devServer } from './devServer'
+import { testPages } from './testPages'
+import { adminViews } from './adminViews'
 import {renderToHtmlPage} from './serverUtil'
 import {BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
@@ -56,4 +56,4 @@ app.use(async (err: any, req: any, res: express.Response, next: any) => {
     }
 })
 
-export default app
+export { app }

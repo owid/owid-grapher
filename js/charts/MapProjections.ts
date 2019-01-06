@@ -2,7 +2,7 @@ import { geoPath, GeoPath, geoConicConformal, geoAzimuthalEqualArea, GeoProjecti
 import { computed } from 'mobx'
 const { geoRobinson, geoPatterson } = require('d3-geo-projection')
 
-class MapProjections {
+class MapProjectionsKlass {
     [key: string]: GeoPath<any, any>
 
     @computed get World(): GeoPath<any, any> {
@@ -74,4 +74,5 @@ class MapProjections {
     }
 }
 
-export default new MapProjections()
+const MapProjections = new MapProjectionsKlass()
+export { MapProjections }

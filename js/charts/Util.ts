@@ -5,7 +5,7 @@ export { isEqual, map, sortBy, each, keys, trim, isNumber, filter, extend, isEmp
 import { format } from 'd3-format'
 import { extent } from 'd3-array'
 
-import Vector2 from './Vector2'
+import { Vector2 } from './Vector2'
 
 export type SVGElement = any
 export type VNode = any

@@ -1,7 +1,7 @@
 import { select } from 'd3-selection'
 import { first, last, sortBy, find } from './Util'
 import * as React from 'react'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
 import { observable, computed, autorun, action } from 'mobx'
 import { observer } from 'mobx-react'
@@ -19,7 +19,7 @@ interface TimelineProps {
 }
 
 @observer
-export default class Timeline extends React.Component<TimelineProps> {
+export class Timeline extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     static contextType = ChartViewContext
 

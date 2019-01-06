@@ -3,10 +3,10 @@ import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { Admin } from './Admin'
+import { AdminLayout } from './AdminLayout'
 import { FieldsRow } from './Forms'
-import Link from './Link'
+import { Link } from './Link'
 import { AdminAppContext } from './AdminAppContext'
 
 interface RedirectListItem {
@@ -36,7 +36,7 @@ class RedirectRow extends React.Component<{ redirect: RedirectListItem, onDelete
 }
 
 @observer
-export default class RedirectsIndexPage extends React.Component {
+export class RedirectsIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable redirects: RedirectListItem[] = []

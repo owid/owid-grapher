@@ -84,4 +84,4 @@ devServer.get('/*', async (req, res) => {
     serveFile(res, targetPath)
 })
 
-export default devServer
+export { devServer }

@@ -11,7 +11,7 @@
 import * as React from 'react'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ScaleType from './ScaleType'
+import { ScaleType } from './ScaleType'
 
 interface ScaleSelectorProps {
     x: number
@@ -22,7 +22,7 @@ interface ScaleSelectorProps {
 }
 
 @observer
-export default class ScaleSelector extends React.Component<ScaleSelectorProps> {
+export class ScaleSelector extends React.Component<ScaleSelectorProps> {
     @computed get x(): number { return this.props.x }
     @computed get y(): number { return this.props.y }
 

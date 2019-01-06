@@ -1,12 +1,12 @@
 import { extend } from './Util'
-import Vector2 from './Vector2'
+import { Vector2 } from './Vector2'
 const pixelWidth = require('string-pixel-width')
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
-export default class Bounds {
+export class Bounds {
     static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
     static baseFontFamily: string = "Helvetica, Arial"

@@ -7,7 +7,7 @@ global.window = { location: { search: "" }}
 global.App = { isEditor: false }
 global.Global = { rootUrl: "https://ourworldindata.org/grapher" }
 
-import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
+import { ChartConfig, ChartConfigProps } from '../js/charts/ChartConfig'
 
 export async function chartToSVG(jsonConfig: ChartConfigProps, vardata: any): Promise<string> {
     const chart = new ChartConfig(jsonConfig)

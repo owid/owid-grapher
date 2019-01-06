@@ -1,3 +1,1 @@
-type ScaleType = 'linear' | 'log';
-
-export default ScaleType
+export type ScaleType = 'linear' | 'log'

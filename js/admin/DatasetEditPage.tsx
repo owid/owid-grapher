@@ -8,16 +8,15 @@ const timeago = require('timeago.js')()
 
 import { VariableDisplaySettings } from '../charts/VariableData'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
-import Link from './Link'
+import { AdminLayout } from './AdminLayout'
+import { Link } from './Link'
 import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from './Forms'
-import ChartList, { ChartListItem } from './ChartList'
-import ChartConfig from '../charts/ChartConfig'
-import ChartFigureView from '../charts/ChartFigureView'
-import ChartType from '../charts/ChartType'
+import { ChartList, ChartListItem }from './ChartList'
+import { ChartConfig }from '../charts/ChartConfig'
+import { ChartFigureView } from '../charts/ChartFigureView'
+import { ChartType } from '../charts/ChartType'
 import { Tag } from './TagBadge'
-import VariableList, { VariableListItem } from './VariableList'
+import { VariableList, VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
 import { Base64 } from 'js-base64'
 
@@ -397,7 +396,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 }
 
 @observer
-export default class DatasetEditPage extends React.Component<{ datasetId: number }> {
+export class DatasetEditPage extends React.Component<{ datasetId: number }> {
     static contextType = AdminAppContext
     @observable dataset?: DatasetPageData
 

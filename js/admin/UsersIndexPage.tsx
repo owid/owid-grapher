@@ -1,11 +1,11 @@
-import Admin from './Admin'
+import { Admin } from './Admin'
 import * as React from 'react'
 import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 
 import { Modal, Timeago } from './Forms'
-import Link from './Link'
-import AdminLayout from './AdminLayout'
+import { Link } from './Link'
+import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
 
 interface UserIndexMeta {
@@ -70,7 +70,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 }
 
 @observer
-export default class UsersIndexPage extends React.Component {
+export class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
     @observable users: UserIndexMeta[] = []
     @observable isInviteModal: boolean = false

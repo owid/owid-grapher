@@ -2,15 +2,15 @@ import * as React from 'react'
 import { intersection, without, uniq, includes } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
-import LabelledSlopes, { SlopeProps } from './LabelledSlopes'
-import NoData from './NoData'
-import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
+import { Bounds }from './Bounds'
+import { ChartConfig }from './ChartConfig'
+import { LabelledSlopes, SlopeProps } from './LabelledSlopes'
+import { NoData } from './NoData'
+import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
 import { isString } from 'util'
 
 @observer
-export default class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color

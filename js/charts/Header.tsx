@@ -1,8 +1,8 @@
 import * as React from 'react'
-import TextWrap from './TextWrap'
+import { TextWrap } from './TextWrap'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 const isNode: boolean = require('detect-node')
 
 interface LogoProps {
@@ -44,7 +44,7 @@ interface HeaderProps {
     chart: ChartConfig
 }
 
-export default class Header {
+export class Header {
     props: HeaderProps
 
     constructor(props: HeaderProps) {

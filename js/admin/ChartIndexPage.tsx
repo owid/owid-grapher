@@ -3,11 +3,10 @@ import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction} from 'mobx'
 const fuzzysort = require("fuzzysort")
 
-import Admin from './Admin'
 import { TextField} from './Forms'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import { uniq } from '../charts/Util'
-import ChartList, { ChartListItem } from './ChartList'
+import { ChartList, ChartListItem } from './ChartList'
 import { AdminAppContext } from './AdminAppContext'
 
 interface Searchable {
@@ -16,7 +15,7 @@ interface Searchable {
 }
 
 @observer
-export default class ChartIndexPage extends React.Component {
+export class ChartIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable searchInput?: string

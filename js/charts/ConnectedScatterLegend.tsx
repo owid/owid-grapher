@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { computed } from 'mobx'
 import { Triangle } from './Marks'
-import TextWrap from './TextWrap'
+import { TextWrap } from './TextWrap'
 import { formatYear } from './Util'
 
 interface ConnectedScatterLegendProps {
@@ -12,7 +12,7 @@ interface ConnectedScatterLegendProps {
     endpointsOnly: boolean
 }
 
-export default class ConnectedScatterLegend {
+export class ConnectedScatterLegend {
     props: ConnectedScatterLegendProps
     constructor(props: ConnectedScatterLegendProps) {
         this.props = props

@@ -4,10 +4,10 @@ import {observable, computed, action, runInAction} from 'mobx'
 import * as _ from 'lodash'
 import { Redirect } from 'react-router-dom'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { Admin } from './Admin'
+import { AdminLayout } from './AdminLayout'
 import { FieldsRow, Modal, TextField } from './Forms'
-import TagBadge, { Tag } from './TagBadge'
+import { TagBadge, Tag } from './TagBadge'
 import { AdminAppContext } from './AdminAppContext'
 
 interface TagListItem {
@@ -65,7 +65,7 @@ class AddTagModal extends React.Component<{ parentId?: number, onClose: () => vo
 }
 
 @observer
-export default class TagsIndexPage extends React.Component {
+export class TagsIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable tags: TagListItem[] = []

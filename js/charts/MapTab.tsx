@@ -1,19 +1,18 @@
 import * as React from 'react'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChoroplethMap, { ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity } from './ChoroplethMap'
-import MapLegend, { MapLegendView } from './MapLegend'
+import { ChoroplethMap, ChoroplethData, ChoroplethDatum, GeoFeature, MapBracket, MapEntity } from './ChoroplethMap'
+import { MapLegend, MapLegendView } from './MapLegend'
 import { getRelativeMouse, formatYear } from './Util'
-import Header from './Header'
-import SourcesFooter from './SourcesFooter'
-import ChartConfig from './ChartConfig'
-import MapConfig from './MapConfig'
+import { Header } from './Header'
+import { SourcesFooter } from './SourcesFooter'
+import { ChartConfig }from './ChartConfig'
+import { MapConfig } from './MapConfig'
 import { MapLegendBin } from './MapData'
-import MapProjection from './MapProjection'
-import ChartView from './ChartView'
-import Tooltip from './Tooltip'
-import NoData from './NoData'
+import { MapProjection } from './MapProjection'
+import { Tooltip } from './Tooltip'
+import { NoData } from './NoData'
 import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
 import { ChartViewContext } from './ChartViewContext'
@@ -145,7 +144,7 @@ interface MapTabProps {
 }
 
 @observer
-export default class MapTab extends React.Component<MapTabProps> {
+export class MapTab extends React.Component<MapTabProps> {
     @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
 
     @computed get header() {

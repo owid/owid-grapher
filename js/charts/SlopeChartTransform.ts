@@ -1,17 +1,16 @@
 import { scaleOrdinal } from 'd3-scale'
 import { some, union, min, max, find, isEmpty } from './Util'
 import { computed } from 'mobx'
-import ChartConfig from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { defaultTo, defaultWith, findClosest } from './Util'
-import DimensionWithData from './DimensionWithData'
+import { DimensionWithData } from './DimensionWithData'
 import { SlopeChartSeries, SlopeChartValue } from './LabelledSlopes'
-import { first, last, makeSafeForCSS } from './Util'
-import IChartTransform from './IChartTransform'
-import ColorSchemes from './ColorSchemes'
+import { IChartTransform } from './IChartTransform'
+import { ColorSchemes } from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export default class SlopeChartTransform implements IChartTransform {
+export class SlopeChartTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {

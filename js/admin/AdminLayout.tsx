@@ -2,10 +2,9 @@ import * as React from 'react'
 import {observable, action, computed} from 'mobx'
 import {observer} from 'mobx-react'
 
-import Link from './Link'
-import Admin from './Admin'
-import EditorFAQ from './EditorFAQ'
-import AdminSidebar from './AdminSidebar'
+import { Link } from './Link'
+import { EditorFAQ } from './EditorFAQ'
+import { AdminSidebar } from './AdminSidebar'
 import { AdminAppContext } from './AdminAppContext'
 
 @observer
@@ -25,7 +24,7 @@ class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
 }
 
 @observer
-export default class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
+export class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
     static contextType = AdminAppContext
 
     @observable isFAQ: boolean = false

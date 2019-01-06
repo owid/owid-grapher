@@ -3,7 +3,7 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, CreateDateColumn, Up
 import * as randomstring from 'randomstring'
 
 @Entity("user_invitations")
-export default class UserInvitation extends BaseEntity {
+export class UserInvitation extends BaseEntity {
     static makeInviteCode(): string {
         return randomstring.generate()
     }

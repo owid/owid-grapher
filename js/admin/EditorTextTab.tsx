@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartEditor from './ChartEditor'
+import { ChartEditor } from './ChartEditor'
 import { Toggle, Section, BindString, BindAutoString, AutoTextField } from './Forms'
 const slugify = require('slugify')
 
 @observer
-export default class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSlug(slug: string) {
         this.props.editor.chart.props.slug = slugify(slug).toLowerCase()
     }

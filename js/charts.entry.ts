@@ -9,11 +9,11 @@ const mobxFormatters = require('mobx-formatters').default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
-import Grapher from './charts/Grapher'
-import ChartView from './charts/ChartView'
+import { Grapher } from './charts/Grapher'
+import { ChartView } from './charts/ChartView'
 declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
 
-import Debug from './charts/Debug'
+import { Debug } from './charts/Debug'
 Debug.expose()

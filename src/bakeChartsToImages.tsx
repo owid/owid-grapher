@@ -12,7 +12,7 @@ global.window = { location: { search: "" }}
 global.App = { isEditor: false }
 global.Global = { rootUrl: "https://ourworldindata.org/grapher" }
 
-import ChartConfig, { ChartConfigProps } from '../js/charts/ChartConfig'
+import { ChartConfig, ChartConfigProps } from '../js/charts/ChartConfig'
 
 async function getChartsBySlug() {
     const chartsBySlug: Map<string, ChartConfigProps> = new Map()

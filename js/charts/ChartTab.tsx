@@ -1,20 +1,20 @@
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import Header from './Header'
-import SourcesFooter from './SourcesFooter'
-import SlopeChart from './SlopeChart'
-import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
-import ScatterPlot from './ScatterPlot'
-import LineChart from './LineChart'
-import ChartView from './ChartView'
-import StackedArea from './StackedArea'
-import DiscreteBarChart from './DiscreteBarChart'
-import StackedBarChart from './StackedBarChart'
+import { Header } from './Header'
+import { SourcesFooter } from './SourcesFooter'
+import { SlopeChart } from './SlopeChart'
+import { Bounds } from './Bounds'
+import { ChartConfig }from './ChartConfig'
+import { ChartView } from './ChartView'
+import { ScatterPlot } from  './ScatterPlot'
+import { LineChart } from  './LineChart'
+import { StackedArea } from  './StackedArea'
+import { DiscreteBarChart } from  './DiscreteBarChart'
+import { StackedBarChart } from  './StackedBarChart'
 
 @observer
-export default class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
+export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
     @computed get header() {
         const that = this
 

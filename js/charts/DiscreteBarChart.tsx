@@ -3,13 +3,13 @@ import { select } from 'd3-selection'
 import { sortBy, some, min, max } from './Util'
 import { computed, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
-import AxisScale from './AxisScale'
-import Color from './Color'
-import HorizontalAxis, { HorizontalAxisView } from './HorizontalAxis'
+import { ChartConfig }from './ChartConfig'
+import { Bounds } from './Bounds'
+import { AxisScale } from './AxisScale'
+import { Color } from './Color'
+import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
 import { AxisGridLines } from './AxisBox'
-import NoData from './NoData'
+import { NoData } from './NoData'
 
 export interface DiscreteBarDatum {
     key: string
@@ -21,7 +21,7 @@ export interface DiscreteBarDatum {
 }
 
 @observer
-export default class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart() { return this.props.chart }

@@ -5,7 +5,7 @@ import { ChartRevision } from "./ChartRevision"
 const hashers = require('node-django-hashers')
 
 @Entity("users")
-export default class User extends BaseEntity {
+export class User extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ unique: true }) email!: string
     @Column({ length: 128 }) password!: string

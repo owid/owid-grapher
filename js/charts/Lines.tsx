@@ -3,11 +3,11 @@ import { map, flatten, some, includes, sortBy, filter, sum, guid } from './Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import { LineChartSeries, LineChartValue } from './LineChart'
-import AxisScale from './AxisScale'
-import Vector2 from './Vector2'
+import { AxisScale } from './AxisScale'
+import { Vector2 } from './Vector2'
 import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
-import Bounds from './Bounds'
-import DataKey from './DataKey'
+import { Bounds }from './Bounds'
+import { DataKey } from './DataKey'
 
 export interface LinesProps {
     xScale: AxisScale,
@@ -34,7 +34,7 @@ export interface HoverTarget {
 }
 
 @observer
-export default class Lines extends React.Component<LinesProps> {
+export class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     @observable.ref hover: HoverTarget | null = null
 

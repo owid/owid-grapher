@@ -3,11 +3,11 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import * as Cookies from 'js-cookie'
 
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { getQueryParams } from './Util'
-import ChartView from './ChartView'
+import { ChartView } from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
-import HTMLTimeline from './HTMLTimeline'
+import { Timeline } from './HTMLTimeline'
 import { extend, keys } from './Util'
 import { worldRegions, labelsByRegion } from './WorldRegions'
 
@@ -249,9 +249,9 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         const {chart} = this.props
         if (chart.props.tab === 'map') {
             const {map} = chart
-            return <HTMLTimeline years={map.data.timelineYears} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
+            return <Timeline years={map.data.timelineYears} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
         } else {
-            return <HTMLTimeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+            return <Timeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         }
     }
 }

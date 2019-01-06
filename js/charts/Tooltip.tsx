@@ -3,7 +3,7 @@ import * as React from 'react'
 import { ChartViewContext } from './ChartViewContext'
 import { observable, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 
 export interface TooltipProps {
     x: number
@@ -64,7 +64,7 @@ export class TooltipView extends React.Component {
 }
 
 @observer
-export default class Tooltip extends React.Component<TooltipProps> {
+export class Tooltip extends React.Component<TooltipProps> {
     static contextType = ChartViewContext
 
     componentDidMount() {

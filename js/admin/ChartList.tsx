@@ -4,8 +4,7 @@ import { action, runInAction, observable } from 'mobx'
 const timeago = require('timeago.js')()
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import Link from './Link'
+import { Link } from './Link'
 import { Tag } from './TagBadge'
 import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
@@ -104,7 +103,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 }
 
 @observer
-export default class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
+export class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
 
     @observable availableTags: Tag[] = []

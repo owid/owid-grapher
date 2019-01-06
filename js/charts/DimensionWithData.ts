@@ -1,9 +1,9 @@
 import { Variable } from './VariableData'
 import { observable, computed } from 'mobx'
 import { defaultTo, formatValue, some, isString, sortBy, isNumber } from './Util'
-import ChartDimension from './ChartDimension'
+import { ChartDimension } from './ChartDimension'
 
-export default class DimensionWithData {
+export class DimensionWithData {
     props: ChartDimension
     @observable.ref index: number
     @observable.ref variable: Variable

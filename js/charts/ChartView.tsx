@@ -1,21 +1,20 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as PropTypes from 'prop-types'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { select } from 'd3-selection'
 import 'd3-transition'
 
-import ChartConfig, { ChartConfigProps } from './ChartConfig'
+import { ChartConfig, ChartConfigProps } from './ChartConfig'
 import {ControlsFooter, ControlsFooterView} from './ControlsFooter'
-import ChartTab from './ChartTab'
-import DataTab from './DataTab'
-import MapTab from './MapTab'
-import SourcesTab from './SourcesTab'
-import DownloadTab from './DownloadTab'
+import { ChartTab } from './ChartTab'
+import { DataTab } from './DataTab'
+import { MapTab } from './MapTab'
+import { SourcesTab } from './SourcesTab'
+import { DownloadTab } from './DownloadTab'
 import { VNode, throttle, isMobile } from './Util'
-import Bounds from './Bounds'
-import DataSelector from './DataSelector'
+import { Bounds } from './Bounds'
+import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
 import { TooltipView } from './Tooltip'
 
@@ -30,7 +29,7 @@ interface ChartViewProps {
 }
 
 @observer
-export default class ChartView extends React.Component<ChartViewProps> {
+export class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({ jsonConfig, containerNode, isEditor, isEmbed, queryStr }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean, isEmbed?: true, queryStr?: string }) {
         select(containerNode).classed('chart-container', true)
         let chartView

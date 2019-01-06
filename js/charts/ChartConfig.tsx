@@ -1,28 +1,28 @@
 import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from 'mobx'
 import { ComparisonLineConfig } from './ComparisonLine'
-import AxisConfig, { AxisConfigProps } from './AxisConfig'
-import ChartType, { ChartTypeType } from './ChartType'
-import ChartTabOption from './ChartTabOption'
+import { AxisConfig, AxisConfigProps } from './AxisConfig'
+import { ChartType, ChartTypeType } from './ChartType'
+import { ChartTabOption } from './ChartTabOption'
 import { defaultTo } from './Util'
-import VariableData from './VariableData'
-import ChartData from './ChartData'
-import DimensionWithData from './DimensionWithData'
-import MapConfig, { MapConfigProps } from './MapConfig'
-import URLBinder from "./URLBinder"
-import StackedBarTransform from './StackedBarTransform'
-import DiscreteBarTransform from './DiscreteBarTransform'
-import StackedAreaTransform from './StackedAreaTransform'
-import LineChartTransform from "./LineChartTransform"
-import ScatterTransform from "./ScatterTransform"
-import SlopeChartTransform from "./SlopeChartTransform"
-import Color from "./Color"
-import ChartView from "./ChartView"
+import { VariableData } from './VariableData'
+import { ChartData } from './ChartData'
+import { DimensionWithData } from './DimensionWithData'
+import { MapConfig, MapConfigProps } from './MapConfig'
+import { URLBinder } from "./URLBinder"
+import { StackedBarTransform } from './StackedBarTransform'
+import { DiscreteBarTransform } from './DiscreteBarTransform'
+import { StackedAreaTransform } from './StackedAreaTransform'
+import { LineChartTransform } from "./LineChartTransform"
+import { ScatterTransform } from "./ScatterTransform"
+import { SlopeChartTransform } from "./SlopeChartTransform"
+import { Color } from "./Color"
+import { ChartView } from "./ChartView"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import Bounds from "./Bounds"
-import IChartTransform from "./IChartTransform"
-import ChartDimension from "./ChartDimension"
+import { Bounds }from "./Bounds"
+import { IChartTransform } from "./IChartTransform"
+import { ChartDimension } from "./ChartDimension"
 import * as md5 from 'md5'
 
 declare const App: any
@@ -157,7 +157,7 @@ export class ChartConfigProps {
 
 // TODO: this really represents more than just the configuration state and should be split
 // into multiple components. It's sort of the top-level chart state.
-export default class ChartConfig {
+export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
     @observable.ref tooltip: React.ReactNode

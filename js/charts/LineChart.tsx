@@ -12,17 +12,17 @@ import { observer } from 'mobx-react'
 import { select } from 'd3-selection'
 import { easeLinear } from 'd3-ease'
 
-import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
-import AxisBox from './AxisBox'
-import StandardAxisBoxView from './StandardAxisBoxView'
-import Lines from './Lines'
-import HeightedLegend, { HeightedLegendView } from './HeightedLegend'
-import ComparisonLine from './ComparisonLine'
+import { ChartConfig }from './ChartConfig'
+import { Bounds }from './Bounds'
+import { AxisBox } from './AxisBox'
+import { StandardAxisBoxView } from './StandardAxisBoxView'
+import { Lines } from './Lines'
+import { HeightedLegend, HeightedLegendView } from './HeightedLegend'
+import { ComparisonLine } from './ComparisonLine'
 import { HoverTarget } from './Lines'
-import Tooltip from './Tooltip'
-import DataKey from './DataKey'
-import NoData from './NoData'
+import { Tooltip } from './Tooltip'
+import { DataKey } from './DataKey'
+import { NoData } from './NoData'
 import { formatYear } from './Util'
 
 export interface LineChartValue {
@@ -41,7 +41,7 @@ export interface LineChartSeries {
 }
 
 @observer
-export default class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart() { return this.props.chart }

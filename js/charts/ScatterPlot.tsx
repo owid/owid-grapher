@@ -12,20 +12,20 @@ import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { intersection, without, uniq } from './Util'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
-import NoData from './NoData'
-import PointsWithLabels, { ScatterSeries, ScatterValue } from './PointsWithLabels'
-import TextWrap from './TextWrap'
-import ConnectedScatterLegend from './ConnectedScatterLegend'
-import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
-import AxisBox, { AxisBoxView } from './AxisBox'
-import ComparisonLine from './ComparisonLine'
+import { Bounds }from './Bounds'
+import { ChartConfig }from './ChartConfig'
+import { NoData } from './NoData'
+import { PointsWithLabels, ScatterSeries, ScatterValue } from './PointsWithLabels'
+import { TextWrap } from './TextWrap'
+import { ConnectedScatterLegend } from './ConnectedScatterLegend'
+import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { AxisBox, AxisBoxView } from './AxisBox'
+import { ComparisonLine } from './ComparisonLine'
 import { ScaleType } from './AxisScale'
 import { formatYear, first, last } from './Util'
 
 @observer
-export default class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
+export class ScatterPlot extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color

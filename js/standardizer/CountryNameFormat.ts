@@ -2,7 +2,7 @@ import { keyBy } from '../charts/Util'
 
 // export type CountryNameFormatType = 'NonStandardCountryName' | 'OurWorldInDataName' | 'IsoAlpha2' | 'IsoAlpha3' | 'ImfCode' | 'MarcCode' | 'CowLetter' | 'CowCode' | 'UnctadCode' | 'NCDCode' | 'KansasCode' | 'PennCode' | 'ContinentName' | 'ContinentCode'
 
-export default class CountryNameFormat {
+export class CountryNameFormat {
     static NonStandardCountryName = 'NonStandardCountryName'
     static OurWorldInDataName = 'OurWorldInDataName'
     static IsoAlpha2 = 'IsoAlpha2'

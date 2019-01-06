@@ -11,7 +11,7 @@ import {observable, action} from 'mobx'
 import {observer} from 'mobx-react'
 
 import { extend, pick, capitalize } from '../charts/Util'
-import Colorpicker from './Colorpicker'
+import { Colorpicker } from './Colorpicker'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -489,7 +489,7 @@ export class Timeago extends React.Component<{ time: Date }> {
     }
 }
 
-import TagBadge, { Tag } from './TagBadge'
+import { TagBadge, Tag } from './TagBadge'
 
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.

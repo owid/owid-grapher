@@ -8,7 +8,7 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
     native?: boolean
 }
 
-export default class Link extends React.Component<LinkProps> {
+export class Link extends React.Component<LinkProps> {
     static contextType = AdminAppContext
 
     render() {

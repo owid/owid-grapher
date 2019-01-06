@@ -3,11 +3,11 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import * as parseUrl from 'url-parse'
 
-import TextWrap from './TextWrap'
-import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
+import { TextWrap } from './TextWrap'
+import { ChartConfig }from './ChartConfig'
+import { Bounds }from './Bounds'
 import {getRelativeMouse} from './Util'
-import Tooltip from './Tooltip'
+import { Tooltip } from './Tooltip'
 
 // Metadata reflection hack - Mispy
 declare const global: any
@@ -20,7 +20,7 @@ interface SourcesFooterProps {
     maxWidth: number
 }
 
-export default class SourcesFooter {
+export class SourcesFooter {
     props: SourcesFooterProps
     constructor(props: SourcesFooterProps) {
         this.props = props

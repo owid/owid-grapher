@@ -1,9 +1,9 @@
 import { extend, some, isString, isNumber, uniq, sortedUniq, min, max, keyBy, keys, values, each, sortBy } from './Util'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 
 // XXX
-import Admin from '../admin/Admin'
+import { Admin } from '../admin/Admin'
 declare var window: { admin: Admin }
 
 declare var Global: { rootUrl: string }
@@ -108,7 +108,7 @@ interface EntityMeta {
     code: string
 }
 
-export default class VariableData {
+export class VariableData {
     chart: ChartConfig
     @observable.ref dataRequest?: Promise<Response>
     @observable.ref variablesById: { [id: number]: Variable } = {}

@@ -4,10 +4,10 @@ import { defaultTo, guid } from './Util'
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import AxisBox from './AxisBox'
-import evalEquation from './evalEquation'
-import Bounds from './Bounds'
-import Vector2 from './Vector2'
+import { AxisBox } from './AxisBox'
+import { evalEquation } from './evalEquation'
+import { Bounds }from './Bounds'
+import { Vector2 } from './Vector2'
 
 export interface ComparisonLineConfig {
     label?: string
@@ -15,7 +15,7 @@ export interface ComparisonLineConfig {
 }
 
 @observer
-export default class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
+export class ComparisonLine extends React.Component<{ axisBox: AxisBox, comparisonLine: ComparisonLineConfig }> {
     @computed get controlData(): [number, number][] {
         const { comparisonLine, axisBox } = this.props
         const { xScale, yScale } = axisBox

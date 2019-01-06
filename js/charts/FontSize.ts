@@ -1,2 +1,1 @@
-type FontSize = number
-export default FontSize
+export type FontSize = number

@@ -26,7 +26,7 @@ class TransactionContext {
 }
 
 // Promise wrapper for node-mysql with transaction support and some shorthands
-export default class DatabaseConnection {
+export class DatabaseConnection {
     config: mysql.PoolConfig
     pool!: mysql.Pool
 

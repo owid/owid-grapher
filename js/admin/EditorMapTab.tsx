@@ -2,13 +2,13 @@ import * as React from 'react'
 import { clone, isEmpty, noop, extend, map } from '../charts/Util'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartEditor from './ChartEditor'
+import { ChartEditor } from './ChartEditor'
 import { NumericSelectField, NumberField, SelectField, TextField, Toggle, EditableList, EditableListItem, ColorBox, Section, FieldsRow, BindAutoFloat } from './Forms'
-import MapConfig from '../charts/MapConfig'
-import MapProjection from '../charts/MapProjection'
-import ColorSchemes from '../charts/ColorSchemes'
+import { MapConfig } from '../charts/MapConfig'
+import { MapProjection } from '../charts/MapProjection'
+import { ColorSchemes } from '../charts/ColorSchemes'
 import { NumericBin, CategoricalBin } from '../charts/MapData'
-import Color from '../charts/Color'
+import { Color } from '../charts/Color'
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
@@ -280,7 +280,7 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-export default class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
     @computed get chart() { return this.props.editor.chart }
     @computed get mapConfig() { return this.chart.map as MapConfig }
 

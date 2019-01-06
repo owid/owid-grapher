@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
 
-import Link from './Link'
+import { Link } from './Link'
 
 export interface Tag {
     id: number
@@ -9,7 +9,7 @@ export interface Tag {
 }
 
 @observer
-export default class TagBadge extends React.Component<{ tag: Tag, onRemove?: () => void, searchHighlight?: (text: string) => any }> {
+export class TagBadge extends React.Component<{ tag: Tag, onRemove?: () => void, searchHighlight?: (text: string) => any }> {
     render() {
         const {tag, searchHighlight, onRemove} = this.props
 

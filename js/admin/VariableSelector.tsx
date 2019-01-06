@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import { groupBy, each, isString, sortBy } from '../charts/Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartEditor, { Dataset } from './ChartEditor'
+import { ChartEditor, Dataset } from './ChartEditor'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { defaultTo } from '../charts/Util'
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
@@ -24,7 +24,7 @@ interface Variable {
 }
 
 @observer
-export default class VariableSelector extends React.Component<VariableSelectorProps> {
+export class VariableSelector extends React.Component<VariableSelectorProps> {
     @observable.ref chosenNamespace: string | undefined
     @observable.ref searchInput?: string
     @observable.ref isProjection?: true

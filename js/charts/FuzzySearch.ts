@@ -1,7 +1,7 @@
 import {keyBy} from './Util'
 const fuzzysort = require("fuzzysort")
 
-export default class FuzzySearch<T> {
+export class FuzzySearch<T> {
     strings: string[]
     datamap: any
 

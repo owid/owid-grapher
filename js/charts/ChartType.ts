@@ -2,7 +2,7 @@
 
 export type ChartTypeType = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "SlopeChart" | "StackedBar"
 
-export default class ChartType {
+export class ChartType {
     static LineChart: ChartTypeType = "LineChart"
     static ScatterPlot: ChartTypeType = "ScatterPlot"
     static StackedArea: ChartTypeType = "StackedArea"

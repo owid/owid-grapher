@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export default function RegisterPage(props: { inviteEmail?: string, errorMessage?: string, body: any }) {
+export function RegisterPage(props: { inviteEmail?: string, errorMessage?: string, body: any }) {
     const style = `
         html, body {
             height: 100%;

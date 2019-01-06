@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as express from 'express'
 import * as crypto from 'crypto'
 import * as randomstring from 'randomstring'
-import User from '../model/User'
+import { User } from '../model/User'
 
 // For backwards compatibility, we reimplement Django authentication and session code a bit
 const hashers = require('node-django-hashers')

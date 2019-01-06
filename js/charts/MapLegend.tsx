@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { min, max, reduce, map, each, last, sortBy, flatten, some, find } from './Util'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRelativeMouse } from './Util'
 import { MapLegendBin, NumericBin, CategoricalBin, MapDataValue } from './MapData'
-import TextWrap from './TextWrap'
+import { TextWrap } from './TextWrap'
 
 interface NumericMapLegendProps {
     width: number,
@@ -373,7 +373,7 @@ export interface MapLegendProps {
     equalSizeBins?: true
 }
 
-export default class MapLegend {
+export class MapLegend {
     props: MapLegendProps
     constructor(props: MapLegendProps) {
         this.props = props

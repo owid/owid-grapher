@@ -5,7 +5,7 @@ import {observable} from 'mobx'
 import {extend} from './Util'
 import {VariableDisplaySettings} from './VariableData'
 
-export default class ChartDimension {
+export class ChartDimension {
     @observable property!: string
     @observable variableId!: number
     @observable display: VariableDisplaySettings = {

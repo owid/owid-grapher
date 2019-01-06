@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { uniq } from './Util'
 import { computed } from 'mobx'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import { ScaleType } from './AxisScale'
-import AxisScale from './AxisScale'
-import ScaleSelector from './ScaleSelector'
-import TextWrap from './TextWrap'
+import { AxisScale } from './AxisScale'
+import { ScaleSelector } from './ScaleSelector'
+import { TextWrap } from './TextWrap'
 
 interface HorizontalAxisProps {
     scale: AxisScale,
@@ -14,7 +14,7 @@ interface HorizontalAxisProps {
 }
 
 // Axis layout model. Computes the space needed for displaying an axis.
-export default class HorizontalAxis {
+export class HorizontalAxis {
     static labelPadding = 5
 
     props: HorizontalAxisProps

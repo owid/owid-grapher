@@ -1,17 +1,17 @@
 import { computed } from 'mobx'
 import { scaleOrdinal } from 'd3-scale'
 import { includes, identity, extend, some, isEmpty, cloneDeep, find, sortBy, sortedUniq, min, max, values, defaultTo, findClosest, formatYear, uniq } from './Util'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { StackedBarValue, StackedBarSeries } from './StackedBarChart'
-import AxisSpec from './AxisSpec'
-import IChartTransform from './IChartTransform'
-import DimensionWithData from './DimensionWithData'
-import ColorSchemes, { ColorScheme } from './ColorSchemes'
-import DataKey from './DataKey'
+import { AxisSpec } from './AxisSpec'
+import { IChartTransform } from './IChartTransform'
+import { DimensionWithData } from './DimensionWithData'
+import { ColorSchemes, ColorScheme } from './ColorSchemes'
+import { DataKey } from './DataKey'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export default class StackedBarTransform implements IChartTransform {
+export class StackedBarTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {

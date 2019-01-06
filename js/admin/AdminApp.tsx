@@ -1,24 +1,24 @@
 import * as React from 'react'
-import Admin from './Admin'
-import ChartEditorPage from './ChartEditorPage'
+import { Admin } from './Admin'
+import { ChartEditorPage } from './ChartEditorPage'
 import {action} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartIndexPage from './ChartIndexPage'
-import UsersIndexPage from './UsersIndexPage'
-import DatasetsIndexPage from './DatasetsIndexPage'
-import CountryStandardizerPage from './CountryStandardizerPage'
-import UserEditPage from './UserEditPage'
-import VariableEditPage from './VariableEditPage'
-import VariablesIndexPage from './VariablesIndexPage'
-import DatasetEditPage from './DatasetEditPage'
-import SourceEditPage from './SourceEditPage'
-import RedirectsIndexPage from './RedirectsIndexPage'
-import TagEditPage from './TagEditPage'
-import TagsIndexPage from './TagsIndexPage'
-import PostsIndexPage from './PostsIndexPage'
-import TestIndexPage from './TestIndexPage'
-import ImportPage from './ImportPage'
-import NotFoundPage from './NotFoundPage'
+import { ChartIndexPage } from './ChartIndexPage'
+import { UsersIndexPage } from './UsersIndexPage'
+import { DatasetsIndexPage } from './DatasetsIndexPage'
+import { CountryStandardizerPage } from './CountryStandardizerPage'
+import { UserEditPage } from './UserEditPage'
+import { VariableEditPage } from './VariableEditPage'
+import { VariablesIndexPage } from './VariablesIndexPage'
+import { DatasetEditPage } from './DatasetEditPage'
+import { SourceEditPage } from './SourceEditPage'
+import { RedirectsIndexPage } from './RedirectsIndexPage'
+import { TagEditPage } from './TagEditPage'
+import { TagsIndexPage } from './TagsIndexPage'
+import { PostsIndexPage } from './PostsIndexPage'
+import { TestIndexPage } from './TestIndexPage'
+import { ImportPage } from './ImportPage'
+import { NotFoundPage } from './NotFoundPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import { LoadingBlocker, Modal } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
@@ -53,7 +53,7 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 }
 
 @observer
-export default class AdminApp extends React.Component<{ admin: Admin }> {
+export class AdminApp extends React.Component<{ admin: Admin }> {
     get childContext() {
         return { admin: this.props.admin }
     }

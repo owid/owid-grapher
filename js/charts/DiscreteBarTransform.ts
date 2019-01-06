@@ -1,14 +1,14 @@
 import { computed } from 'mobx'
 import { some, isEmpty, find, sortBy, max, values } from './Util'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { DiscreteBarDatum } from './DiscreteBarChart'
-import IChartTransform from './IChartTransform'
-import DimensionWithData from './DimensionWithData'
-import ColorSchemes from './ColorSchemes'
+import { IChartTransform } from './IChartTransform'
+import { DimensionWithData } from './DimensionWithData'
+import { ColorSchemes } from './ColorSchemes'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export default class DiscreteBarTransform implements IChartTransform {
+export class DiscreteBarTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {

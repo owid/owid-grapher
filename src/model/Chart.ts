@@ -2,9 +2,9 @@ import * as _ from 'lodash'
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany, JoinColumn} from "typeorm"
 
 import * as db from '../db'
-import ChartConfig, { ChartConfigProps } from '../../js/charts/ChartConfig'
+import { ChartConfig, ChartConfigProps } from '../../js/charts/ChartConfig'
 import {getVariableData} from './Variable'
-import User from './User'
+import { User } from './User'
 import { ChartRevision } from './ChartRevision'
 
 @Entity("charts")
@@ -71,7 +71,7 @@ export class Chart extends BaseEntity {
 }
 
 // TODO integrate this old logic with typeorm
-export default class OldChart {
+export class OldChart {
     static listFields = `
         charts.id,
         JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.title")) AS title,

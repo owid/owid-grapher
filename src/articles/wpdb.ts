@@ -1,7 +1,7 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 
-import DatabaseConnection from '../util/DatabaseConnection'
+import { DatabaseConnection } from '../util/DatabaseConnection'
 import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from '../settings'
 
 import * as path from 'path'

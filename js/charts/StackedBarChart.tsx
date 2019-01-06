@@ -5,15 +5,15 @@ import { select } from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 
 import { includes, intersection, formatYear, guid, uniq, min, max, defaultTo, makeSafeForCSS } from './Util'
-import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
-import AxisBox, { AxisGridLines } from './AxisBox'
-import AxisScale from './AxisScale'
-import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
-import NoData from './NoData'
-import Text from './Text'
-import ScatterColorLegend, { ScatterColorLegendView } from './ScatterColorLegend'
-import Tooltip from './Tooltip'
+import { ChartConfig }from './ChartConfig'
+import { Bounds }from './Bounds'
+import { AxisBox, AxisGridLines } from './AxisBox'
+import { AxisScale } from './AxisScale'
+import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
+import { NoData } from './NoData'
+import { Text } from './Text'
+import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { Tooltip } from './Tooltip'
 
 export interface StackedBarValue {
     x: number
@@ -85,7 +85,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 }
 
 @observer
-export default class StackedBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class StackedBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base!: SVGGElement
     readonly minBarSpacing = 4
 

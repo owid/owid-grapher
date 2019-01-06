@@ -5,13 +5,13 @@ import { observer } from 'mobx-react'
 import { includes, sample, sampleSize } from '../charts/Util'
 import { DimensionSlot } from '../charts/ChartConfig'
 import { ChartTypeDefs, ChartTypeType } from '../charts/ChartType'
-import DimensionWithData from '../charts/DimensionWithData'
-import ChartDimension from '../charts/ChartDimension'
+import { DimensionWithData } from '../charts/DimensionWithData'
+import { ChartDimension } from '../charts/ChartDimension'
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from './Forms'
-import ChartEditor from './ChartEditor'
-import VariableSelector from './VariableSelector'
-import DimensionCard from './DimensionCard'
+import { ChartEditor } from './ChartEditor'
+import { VariableSelector } from './VariableSelector'
+import { DimensionCard } from './DimensionCard'
 
 @observer
 class DimensionSlotView extends React.Component<{ slot: DimensionSlot, editor: ChartEditor }> {
@@ -95,7 +95,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onChartType(value: string) {
         const {chart} = this.props.editor
         chart.props.type = (value as ChartTypeType)

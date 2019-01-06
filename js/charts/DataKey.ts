@@ -1,3 +1,1 @@
-type DataKey = string
-
-export default DataKey
+export type DataKey = string

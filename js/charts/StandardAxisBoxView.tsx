@@ -5,9 +5,9 @@
  */
 
 import * as React from 'react'
-import AxisBox, {AxisBoxView} from './AxisBox'
-import ChartConfig from './ChartConfig'
-import ScaleType from './ScaleType'
+import { AxisBox, AxisBoxView } from './AxisBox'
+import { ChartConfig }from './ChartConfig'
+import { ScaleType } from './ScaleType'
 import {action} from 'mobx'
 
 export interface StandardAxisBoxViewProps {
@@ -15,7 +15,7 @@ export interface StandardAxisBoxViewProps {
     chart: ChartConfig
 }
 
-export default class StandardAxisBoxView extends React.Component<StandardAxisBoxViewProps> {
+export class StandardAxisBoxView extends React.Component<StandardAxisBoxViewProps> {
     @action.bound onXScaleChange(scaleType: ScaleType) {
         this.props.chart.xAxis.scaleType = scaleType
     }

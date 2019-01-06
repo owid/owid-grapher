@@ -1,6 +1,6 @@
 import {observable, computed} from 'mobx'
-import AxisSpec from './AxisSpec'
-import ScaleType from './ScaleType'
+import { AxisSpec } from './AxisSpec'
+import { ScaleType } from './ScaleType'
 import {defaultTo} from './Util'
 
 // Represents the actual entered configuration state in the editor
@@ -13,7 +13,7 @@ export class AxisConfigProps {
 }
 
 // Interface used to access configuration by charts
-export default class AxisConfig {
+export class AxisConfig {
     props: AxisConfigProps
 
     constructor(props: AxisConfigProps) {

@@ -11,15 +11,15 @@ import * as wpdb from '../articles/wpdb'
 import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID} from '../settings'
 import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from './serverUtil'
 import {sendMail} from '../mail'
-import OldChart, {Chart} from '../model/Chart'
-import UserInvitation from '../model/UserInvitation'
+import { OldChart, Chart } from '../model/Chart'
+import { UserInvitation } from '../model/UserInvitation'
 import {Request, Response, CurrentUser} from './authentication'
 import {getVariableData} from '../model/Variable'
 import { ChartConfigProps } from '../../js/charts/ChartConfig'
-import CountryNameFormat, { CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
+import { CountryNameFormat, CountryDefByKey } from '../../js/standardizer/CountryNameFormat'
 import {Dataset} from '../model/Dataset'
 import {Tag} from '../model/Tag'
-import User from '../model/User'
+import { User } from '../model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from '../gitDataExport'
 import { ChartRevision } from '../model/ChartRevision'
 
@@ -1050,4 +1050,4 @@ api.post('/importDataset', async (req: Request, res: Response) => {
     return { success: true, datasetId: newDatasetId }
 })
 
-export default api
+export { api }

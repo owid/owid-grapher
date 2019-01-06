@@ -2,11 +2,11 @@ import { sortBy } from './Util'
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import { ScaleType } from './AxisScale'
-import AxisScale from './AxisScale'
-import ScaleSelector from './ScaleSelector'
-import TextWrap from './TextWrap'
+import { AxisScale } from './AxisScale'
+import { ScaleSelector } from './ScaleSelector'
+import { TextWrap } from './TextWrap'
 
 interface VerticalAxisProps {
     scale: AxisScale,
@@ -15,7 +15,7 @@ interface VerticalAxisProps {
 }
 
 // Axis layout model. Computes the space needed for displaying an axis.
-export default class VerticalAxis {
+export class VerticalAxis {
     props: VerticalAxisProps
     constructor(props: VerticalAxisProps) {
         this.props = props

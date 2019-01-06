@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as _ from 'lodash'
 
-import webpack from './webpack'
+import { webpack } from './webpack'
 import * as settings from '../settings'
 
-export default function AdminSPA(props: { rootUrl: string, username: string }) {
+export function AdminSPA(props: { rootUrl: string, username: string }) {
     const script = `
         window.Global = { rootUrl: "${props.rootUrl}" }
         window.App = {}

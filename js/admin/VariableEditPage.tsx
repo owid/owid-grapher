@@ -4,14 +4,14 @@ import {observable, computed, action, runInAction, autorun, IReactionDisposer} f
 import * as _ from 'lodash'
 import {Prompt, Redirect} from 'react-router-dom'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
-import Link from './Link'
+import { Admin } from './Admin'
+import { AdminLayout } from './AdminLayout'
+import { Link } from './Link'
 import {BindString, BindFloat, FieldsRow } from './Forms'
 import { VariableDisplaySettings } from '../charts/VariableData'
-import ChartConfig from '../charts/ChartConfig'
-import ChartFigureView from '../charts/ChartFigureView'
-import ChartList, { ChartListItem } from './ChartList'
+import { ChartConfig }from '../charts/ChartConfig'
+import { ChartFigureView } from '../charts/ChartFigureView'
+import { ChartList, ChartListItem }from './ChartList'
 import { AdminAppContext } from './AdminAppContext'
 
 interface VariablePageData {
@@ -172,7 +172,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 }
 
 @observer
-export default class VariableEditPage extends React.Component<{ variableId: number }> {
+export class VariableEditPage extends React.Component<{ variableId: number }> {
     static contextType = AdminAppContext
     @observable variable?: VariablePageData
 

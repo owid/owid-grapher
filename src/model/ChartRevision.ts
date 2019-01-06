@@ -2,7 +2,7 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColum
 
 import * as db from '../db'
 import { Chart } from './Chart'
-import User from './User'
+import { User } from './User'
 
 @Entity("chart_revisions")
 export class ChartRevision extends BaseEntity {

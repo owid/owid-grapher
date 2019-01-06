@@ -1,13 +1,13 @@
 import { toString, includes, flatten, uniq, sortBy, extend, csvEscape } from './Util'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import * as React from 'react'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 
 // Client-side data export from chart
 @observer
-export default class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     @computed get bounds() {
         return this.props.bounds
     }

@@ -8,9 +8,8 @@ import { observer } from 'mobx-react'
 import { Redirect } from 'react-router-dom'
 
 import * as parse from 'csv-parse'
-import { Modal, BindString, NumericSelectField, FieldsRow } from './Forms'
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { BindString, NumericSelectField, FieldsRow } from './Forms'
+import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
 
 declare const App: any
@@ -535,7 +534,7 @@ interface ImportPageData {
 }
 
 @observer
-export default class ImportPage extends React.Component {
+export class ImportPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable importData?: ImportPageData

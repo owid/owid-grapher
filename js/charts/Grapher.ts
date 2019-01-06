@@ -1,4 +1,4 @@
-import ChartView from './ChartView'
+import { ChartView } from './ChartView'
 import {throttle, isMobile} from './Util'
 
 interface LoadableFigure {
@@ -69,7 +69,7 @@ export class MultiEmbedder {
 }
 
 // Global entry point for initializing charts
-export default class Grapher {
+export class Grapher {
     // Look for all <figure data-grapher-src="..."> elements in the document and turn them
     // into iframeless embeds
     static embedder: MultiEmbedder

@@ -10,7 +10,7 @@
  * @created 2017-03-15
  */
 
-export default class Vector2 {
+export class Vector2 {
     static left = new Vector2(-1, 0)
     static right = new Vector2(1, 0)
     static up = new Vector2(0, -1)

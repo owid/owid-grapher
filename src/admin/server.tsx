@@ -2,7 +2,7 @@
 // This import has side-effects to do with React import binding, keep it up here
 import {NODE_SERVER_PORT, NODE_SERVER_HOST} from '../settings'
 
-import app from './app'
+import { app } from './app'
 
 import * as db from '../db'
 import * as wpdb from '../articles/wpdb'

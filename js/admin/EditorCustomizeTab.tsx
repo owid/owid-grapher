@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartEditor from './ChartEditor'
-import ChartConfig from '../charts/ChartConfig'
+import { ChartEditor } from './ChartEditor'
+import { ChartConfig }from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
 import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, BindString, TextField, Button } from './Forms'
-import ColorSchemes, { ColorScheme } from '../charts/ColorSchemes'
+import { ColorSchemes, ColorScheme } from '../charts/ColorSchemes'
 import { debounce, keysOf } from '../charts/Util'
 
 @observer
@@ -119,7 +119,7 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }> {
     @computed get xAxis() { return this.props.editor.chart.xAxis.props }
     @computed get yAxis() { return this.props.editor.chart.yAxis.props }
 

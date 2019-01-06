@@ -1,7 +1,7 @@
-import Link from './Link'
+import { Link } from './Link'
 import * as React from 'react'
 
-export default function AdminSidebar(props: { onDismiss: () => void }) {
+export function AdminSidebar(props: { onDismiss: () => void }) {
     return <aside className="AdminSidebar">
         <ul className="sidebar-menu">
             <li className="header">SITE</li>

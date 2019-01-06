@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import DimensionWithData from '../charts/DimensionWithData'
-import ChartEditor from './ChartEditor'
+import { DimensionWithData } from '../charts/DimensionWithData'
+import { ChartEditor } from './ChartEditor'
 import { Toggle, EditableListItem, BindAutoString, BindAutoFloat } from './Forms'
 
 @observer
-export default class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
+export class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
     @observable.ref isExpanded: boolean = false
 
     @computed get hasExpandedOptions(): boolean {

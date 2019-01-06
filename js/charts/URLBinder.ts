@@ -9,11 +9,11 @@
 
 import { debounce, isNumber, includes, filter, uniq, toString, isFinite } from './Util'
 import { computed, when, runInAction, reaction, toJS } from 'mobx'
-import ChartTabOption from './ChartTabOption'
+import { ChartTabOption } from './ChartTabOption'
 import { defaultTo } from './Util'
-import ChartConfig, { ChartConfigProps } from './ChartConfig'
+import { ChartConfig, ChartConfigProps } from './ChartConfig'
 import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from './Util'
-import MapProjection from './MapProjection'
+import { MapProjection } from './MapProjection'
 
 interface ChartQueryParams {
     tab?: string
@@ -32,7 +32,7 @@ interface ChartQueryParams {
 declare const App: any
 declare const Global: { rootUrl: string }
 
-export default class URLBinder {
+export class URLBinder {
     chart: ChartConfig
     origChartProps: ChartConfigProps
     chartQueryStr: string = "?"

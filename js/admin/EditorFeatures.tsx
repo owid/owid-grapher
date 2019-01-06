@@ -1,9 +1,9 @@
 import { computed } from 'mobx'
-import ChartEditor from './ChartEditor'
+import { ChartEditor } from './ChartEditor'
 
 // Responsible for determining what parts of the editor should be shown, based on the
 // type of chart being edited
-export default class EditorFeatures {
+export class EditorFeatures {
     editor: ChartEditor
     constructor(editor: ChartEditor) {
         this.editor = editor

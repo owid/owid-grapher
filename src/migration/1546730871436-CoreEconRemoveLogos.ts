@@ -15,5 +15,4 @@ export class CoreEconRemoveLogos1546730871436 implements MigrationInterface {
 
     public async down(queryRunner: QueryRunner): Promise<any> {
     }
-
 }

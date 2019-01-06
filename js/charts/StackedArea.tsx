@@ -2,14 +2,14 @@ import * as React from 'react'
 import {sortBy, reverse, clone, last, guid, pointsToPath, formatYear} from './Util'
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig from './ChartConfig'
-import Bounds from './Bounds'
-import AxisBox from './AxisBox'
-import StandardAxisBoxView from './StandardAxisBoxView'
+import { ChartConfig } from './ChartConfig'
+import { Bounds }from './Bounds'
+import { AxisBox } from './AxisBox'
+import { StandardAxisBoxView } from './StandardAxisBoxView'
 import {getRelativeMouse, makeSafeForCSS} from './Util'
-import HeightedLegend, {HeightedLegendView} from './HeightedLegend'
-import NoData from './NoData'
-import Tooltip from './Tooltip'
+import { HeightedLegend, HeightedLegendView } from './HeightedLegend'
+import { NoData } from './NoData'
+import { Tooltip } from './Tooltip'
 import {select} from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 import {rgb} from 'd3-color'
@@ -125,7 +125,7 @@ export class Areas extends React.Component<AreasProps> {
 }
 
 @observer
-export default class StackedAreaChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get chart(): ChartConfig { return this.props.chart }

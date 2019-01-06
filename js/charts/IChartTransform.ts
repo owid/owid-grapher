@@ -1,6 +1,6 @@
-import AxisSpec from './AxisSpec'
+import { AxisSpec } from './AxisSpec'
 
-export default interface IChartTransform {
+export interface IChartTransform {
     isValidConfig: boolean
     yAxis?: AxisSpec
     xAxis?: AxisSpec

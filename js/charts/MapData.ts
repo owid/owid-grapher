@@ -2,14 +2,14 @@ import { uniq, round, toArray, keys, isEmpty, reverse, includes, extend, each, f
 import { computed, autorun, runInAction, reaction, toJS, IReactionDisposer } from 'mobx'
 import { mean, deviation } from 'd3-array'
 
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { defaultTo, isString, last, findClosest } from './Util'
-import ColorSchemes, { ColorScheme } from './ColorSchemes'
-import Color from './Color'
+import { ColorSchemes, ColorScheme } from './ColorSchemes'
+import { Color } from './Color'
 import { ChoroplethData } from './ChoroplethMap'
 import { entityNameForMap } from './Util'
-import DimensionWithData from './DimensionWithData'
-import MapTopology from './MapTopology'
+import { DimensionWithData } from './DimensionWithData'
+import { MapTopology } from './MapTopology'
 
 export interface MapDataValue {
     entity: string,
@@ -93,7 +93,7 @@ export class CategoricalBin {
 
 export type MapLegendBin = NumericBin | CategoricalBin
 
-export default class MapData {
+export class MapData {
     chart: ChartConfig
     constructor(chart: ChartConfig) {
         this.chart = chart

@@ -7,12 +7,12 @@ import {getConnection} from 'typeorm'
 import * as db from '../db'
 import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from './serverUtil'
 import {tryLogin} from './authentication'
-import LoginPage from './LoginPage'
-import RegisterPage from './RegisterPage'
+import { LoginPage } from './LoginPage'
+import { RegisterPage } from './RegisterPage'
 import {Dataset} from '../model/Dataset'
 
-import User from '../model/User'
-import UserInvitation from '../model/UserInvitation'
+import { User } from '../model/User'
+import { UserInvitation } from '../model/UserInvitation'
 
 const adminViews = Router()
 
@@ -115,4 +115,4 @@ adminViews.get('/datasets/:datasetId/downloadZip', async (req, res) => {
     res.send(file.file)
 })
 
-export default adminViews
+export { adminViews }

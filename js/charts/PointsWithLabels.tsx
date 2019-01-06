@@ -13,11 +13,11 @@ import { scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20 } from 'd3-sc
 import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import NoData from './NoData'
-import AxisScale from './AxisScale'
+import { Bounds }from './Bounds'
+import { NoData } from './NoData'
+import { AxisScale } from './AxisScale'
 import { getRelativeMouse, makeSafeForCSS, intersection } from './Util'
-import Vector2 from './Vector2'
+import { Vector2 } from './Vector2'
 import { Triangle } from './Marks'
 import { select } from 'd3-selection'
 
@@ -164,7 +164,7 @@ class ScatterBackgroundLine extends React.Component<{ group: ScatterRenderSeries
 }
 
 @observer
-export default class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
+export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     @computed get data(): ScatterSeries[] {
         return this.props.data

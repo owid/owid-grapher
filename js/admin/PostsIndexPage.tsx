@@ -5,8 +5,8 @@ const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { Admin } from './Admin'
+import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
 
@@ -49,7 +49,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
 }
 
 @observer
-export default class PostsIndexPage extends React.Component {
+export class PostsIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable posts: PostIndexMeta[] = []

@@ -5,9 +5,9 @@
  * that is ready to go into rendering-- no unfilled nulls.
  */
 
-import ScaleType from './ScaleType'
+import { ScaleType } from './ScaleType'
 
-interface AxisSpec {
+export interface AxisSpec {
     label: string
     tickFormat: (d: number) => string
     domain: [number, number]
@@ -16,5 +16,3 @@ interface AxisSpec {
     hideFractionalTicks?: boolean,
     hideGridlines?: boolean
 }
-
-export default AxisSpec

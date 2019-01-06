@@ -2,8 +2,7 @@ import * as React from 'react'
 import {observer} from 'mobx-react'
 const timeago = require('timeago.js')()
 
-import Admin from './Admin'
-import Link from './Link'
+import { Link } from './Link'
 import { AdminAppContext } from './AdminAppContext'
 
 export interface VariableListItem {
@@ -31,7 +30,7 @@ class VariableRow extends React.Component<{ variable: VariableListItem, searchHi
 }
 
 @observer
-export default class VariableList extends React.Component<{ variables: VariableListItem[], searchHighlight?: (text: string) => any }> {
+export class VariableList extends React.Component<{ variables: VariableListItem[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
 
     render() {

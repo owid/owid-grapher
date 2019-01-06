@@ -3,14 +3,13 @@ import {observer} from 'mobx-react'
 import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import {SearchField, FieldsRow } from './Forms'
-import VariableList, {VariableListItem} from './VariableList'
+import { VariableList, VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
 
 @observer
-export default class VariablesIndexPage extends React.Component {
+export class VariablesIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable variables: VariableListItem[] = []

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 
 @observer
-export default class NotFoundPage extends React.Component {
+export class NotFoundPage extends React.Component {
     render() {
         return <AdminLayout>
             <main className="NotFoundPage">

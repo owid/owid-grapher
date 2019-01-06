@@ -2,7 +2,7 @@ import * as React from 'react'
 import { sum, includes, max, isString } from './Util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import TextWrap from './TextWrap'
+import { TextWrap } from './TextWrap'
 import { defaultTo } from './Util'
 
 export interface ScatterColorLegendProps {
@@ -19,7 +19,7 @@ export interface LabelMark {
     height: number
 }
 
-export default class ScatterColorLegend {
+export class ScatterColorLegend {
     props: ScatterColorLegendProps
     constructor(props: ScatterColorLegendProps) {
         this.props = props

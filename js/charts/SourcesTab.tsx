@@ -2,8 +2,8 @@ import { extend } from './Util'
 import * as React from 'react'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
+import { Bounds }from './Bounds'
+import { ChartConfig }from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
 const linkifyHtml = require('linkifyjs/html')
 import * as Cookies from 'js-cookie'
@@ -15,7 +15,7 @@ function linkify(s: string) {
 declare const Global: { rootUrl: string }
 
 @observer
-export default class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     @computed get bounds() {
         return this.props.bounds
     }

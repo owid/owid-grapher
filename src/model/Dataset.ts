@@ -1,7 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinTable, Unique} from "typeorm"
 import { Writable } from "stream"
 
-import User from './User'
+import { User } from './User'
 import { Source } from './Source'
 import { Variable } from './Variable'
 import { Tag } from './Tag'

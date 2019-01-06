@@ -8,9 +8,9 @@ import { some, noop, includes, cloneDeep, max, sortBy } from './Util'
 import { defaultTo } from './Util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import TextWrap from './TextWrap'
-import AxisScale from './AxisScale'
-import Bounds from './Bounds'
+import { TextWrap } from './TextWrap'
+import { AxisScale } from './AxisScale'
+import { Bounds }from './Bounds'
 
 export interface HeightedLegendProps {
     items: HeightedLegendItem[],
@@ -43,7 +43,7 @@ interface PlacedMark {
     groupSize: number
 }
 
-export default class HeightedLegend {
+export class HeightedLegend {
     props: HeightedLegendProps
 
     @computed get fontSize(): number { return 0.75*this.props.fontSize }

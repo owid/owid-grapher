@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export default class LoadingBlocker extends React.Component {
+export class LoadingBlocker extends React.Component {
     render() {
         const style: any = {
             position: 'fixed',

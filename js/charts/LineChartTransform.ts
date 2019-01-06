@@ -1,17 +1,17 @@
 import { computed } from 'mobx'
 import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq } from './Util'
-import ChartConfig from './ChartConfig'
-import DataKey from './DataKey'
+import { ChartConfig }from './ChartConfig'
+import { DataKey } from './DataKey'
 import { LineChartSeries, LineChartValue } from './LineChart'
-import AxisSpec from './AxisSpec'
+import { AxisSpec } from './AxisSpec'
 import { defaultTo, formatYear, findClosest } from './Util'
-import ColorSchemes, { ColorScheme } from './ColorSchemes'
-import IChartTransform from './IChartTransform'
-import DimensionWithData from './DimensionWithData'
+import { ColorSchemes, ColorScheme } from './ColorSchemes'
+import { IChartTransform } from './IChartTransform'
+import { DimensionWithData } from './DimensionWithData'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export default class LineChartTransform implements IChartTransform {
+export class LineChartTransform implements IChartTransform {
     chart: ChartConfig
     constructor(chart: ChartConfig) {
         this.chart = chart

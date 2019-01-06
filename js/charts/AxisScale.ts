@@ -20,7 +20,7 @@ export interface AxisConfig {
     label: string
 }
 
-export default class AxisScale {
+export class AxisScale {
     @observable scaleType: ScaleType
     @observable.struct scaleTypeOptions: ScaleType[]
     @observable tickFormat: (v: number) => string

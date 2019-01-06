@@ -4,14 +4,14 @@ import {observable, computed, action, runInAction} from 'mobx'
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { Admin } from './Admin'
+import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow, SelectField } from './Forms'
-import Link from './Link'
+import { Link } from './Link'
 import { AdminAppContext } from './AdminAppContext'
 
 @observer
-export default class TestIndexPage extends React.Component {
+export class TestIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     render() {

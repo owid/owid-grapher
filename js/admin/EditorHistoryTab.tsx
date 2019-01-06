@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { observer } from "mobx-react"
-import ChartEditor, { Log } from './ChartEditor'
+import { ChartEditor, Log } from './ChartEditor'
 import { computed, action, observable } from 'mobx'
 const timeago = require('timeago.js')()
 
@@ -34,7 +34,7 @@ export class LogRenderer extends React.Component<{ log: Log, applyConfig: (confi
 }
 
 @observer
-export default class EditorHistoryTab extends React.Component<{ editor: ChartEditor}> {
+export class EditorHistoryTab extends React.Component<{ editor: ChartEditor}> {
     @computed get logs() { return this.props.editor.logs || [] }
 
     @action.bound async applyConfig(config: any) {

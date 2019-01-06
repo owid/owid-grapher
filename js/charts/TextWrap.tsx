@@ -1,8 +1,8 @@
 import { isEmpty, reduce, map, max } from './Util'
 import { computed } from 'mobx'
-import FontSize from './FontSize'
+import { FontSize } from './FontSize'
 import { defaultTo } from './Util'
-import Bounds from './Bounds'
+import { Bounds }from './Bounds'
 import * as React from 'react'
 
 export interface TextWrapProps {
@@ -23,7 +23,7 @@ function strip(html: string) {
     return html.replace(/<\/?[^>]+>/g, "")
 }
 
-export default class TextWrap {
+export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {
         this.props = props

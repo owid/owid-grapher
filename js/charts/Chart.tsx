@@ -9,9 +9,9 @@ chart.interactive(domNode)
 
 */
 
-import ChartConfig from './ChartConfig'
-import ChartView from './ChartView'
-import Bounds from './Bounds'
+import { ChartConfig }from './ChartConfig'
+import { ChartView } from './ChartView'
+import { Bounds }from './Bounds'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
@@ -19,7 +19,7 @@ interface ChartConfigProps {
     type: string
 }
 
-export default class Chart {
+export class Chart {
     static testBootstrap() {
         const figure = document.getElementsByTagName("figure")[0]
         const chart = new Chart({ type: "LineChart" })

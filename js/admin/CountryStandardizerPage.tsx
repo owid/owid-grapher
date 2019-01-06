@@ -6,10 +6,9 @@ import * as parse from 'csv-parse'
 const unidecode = require("unidecode")
 const FuzzySet = require("fuzzyset")
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import { SelectField } from './Forms'
-import CountryNameFormat, { CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
+import { CountryNameFormat, CountryNameFormatDefs, CountryDefByKey } from '../standardizer/CountryNameFormat'
 import { uniq, toString, csvEscape } from '../charts/Util'
 import { AdminAppContext } from './AdminAppContext'
 
@@ -189,7 +188,7 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
 }
 
 @observer
-export default class CountryStandardizerPage extends React.Component {
+export class CountryStandardizerPage extends React.Component {
     static contextType = AdminAppContext
     fileUploader!: HTMLInputElement
 

@@ -11,12 +11,12 @@
 import * as React from 'react'
 import { observable, computed, reaction, action } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import AxisScale from './AxisScale'
-import VerticalAxis, { VerticalAxisView } from './VerticalAxis'
-import HorizontalAxis, { HorizontalAxisView } from './HorizontalAxis'
-import AxisSpec from './AxisSpec'
-import ScaleType from './ScaleType'
+import { Bounds }from './Bounds'
+import { AxisScale } from './AxisScale'
+import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
+import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
+import { AxisSpec } from './AxisSpec'
+import { ScaleType } from './ScaleType'
 import { extend } from './Util'
 
 interface AxisBoxProps {
@@ -30,7 +30,7 @@ interface AxisBoxProps {
 // There is a *two-way dependency* between the bounding size of each axis.
 // e.g. if the y axis becomes wider because a label is present, the x axis then has less
 // space to work with, and vice versa
-export default class AxisBox {
+export class AxisBox {
     props: AxisBoxProps
 
     @observable targetYDomain: [number, number] = [1, 100]

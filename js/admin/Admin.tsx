@@ -4,7 +4,7 @@ import * as _ from 'lodash'
 import {observable, computed} from 'mobx'
 import * as urljoin from 'url-join'
 
-import AdminApp from './AdminApp'
+import { AdminApp } from './AdminApp'
 import { Json, queryParamsToStr } from '../charts/Util'
 
 type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
@@ -16,7 +16,7 @@ interface ClientSettings {
 
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
-export default class Admin {
+export class Admin {
     @observable errorMessage?: { title: string, content: string, isFatal?: boolean }
     grapherRoot: string
     basePath: string

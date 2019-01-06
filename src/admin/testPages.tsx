@@ -5,7 +5,7 @@ import * as React from 'react'
 
 import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
-import OldChart, {Chart} from '../model/Chart'
+import { OldChart, Chart } from '../model/Chart'
 import * as db from '../db'
 import {NODE_BASE_URL, BUILD_GRAPHER_URL} from '../settings'
 import {expectInt} from './serverUtil'
@@ -237,4 +237,4 @@ testPages.get('/:slug.svg', async (req, res) => {
     res.send(await chartToSVG(chart.config, vardata))
 })
 
-export default testPages
+export { testPages }

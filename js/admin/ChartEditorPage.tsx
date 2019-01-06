@@ -3,22 +3,22 @@ import {observer} from 'mobx-react'
 import {observable, computed, runInAction, autorun, action, reaction, IReactionDisposer} from 'mobx'
 import { Prompt, Redirect } from 'react-router-dom'
 
-import ChartView from '../charts/ChartView'
-import Bounds from '../charts/Bounds'
+import { ChartView } from '../charts/ChartView'
+import { Bounds }from '../charts/Bounds'
 import {includes, capitalize} from '../charts/Util'
-import ChartConfig from '../charts/ChartConfig'
+import { ChartConfig }from '../charts/ChartConfig'
 
-import ChartEditor, {EditorDatabase, Log} from './ChartEditor'
-import EditorBasicTab from './EditorBasicTab'
-import EditorDataTab from './EditorDataTab'
-import EditorTextTab from './EditorTextTab'
-import EditorCustomizeTab from './EditorCustomizeTab'
-import EditorScatterTab from './EditorScatterTab'
-import EditorMapTab from './EditorMapTab'
-import EditorHistoryTab from './EditorHistoryTab'
-import SaveButtons from './SaveButtons'
+import { ChartEditor, EditorDatabase, Log} from './ChartEditor'
+import { EditorBasicTab } from './EditorBasicTab'
+import { EditorDataTab } from './EditorDataTab'
+import { EditorTextTab } from './EditorTextTab'
+import { EditorCustomizeTab } from './EditorCustomizeTab'
+import { EditorScatterTab } from './EditorScatterTab'
+import { EditorMapTab } from './EditorMapTab'
+import { EditorHistoryTab } from './EditorHistoryTab'
+import { SaveButtons } from './SaveButtons'
 import { LoadingBlocker } from './Forms'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
 
 @observer
@@ -54,7 +54,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export default class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
+export class ChartEditorPage extends React.Component<{ chartId?: number, newChartIndex?: number, chartConfig?: any }> {
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]

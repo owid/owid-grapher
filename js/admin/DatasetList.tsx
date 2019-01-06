@@ -5,9 +5,8 @@ const timeago = require('timeago.js')()
 import * as _ from 'lodash'
 import {bind} from 'decko'
 
-import Admin from './Admin'
-import Link from './Link'
-import TagBadge, { Tag } from './TagBadge'
+import { Link } from './Link'
+import { Tag } from './TagBadge'
 import { AdminAppContext } from './AdminAppContext'
 import { EditableTags } from './Forms'
 
@@ -61,7 +60,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTa
 }
 
 @observer
-export default class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
+export class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
     
     @observable availableTags: Tag[] = []

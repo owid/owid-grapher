@@ -3,10 +3,10 @@ import { observer } from 'mobx-react'
 import { computed, action, observable } from 'mobx'
 
 import { uniqBy, isTouchDevice } from './Util'
-import ChartConfig from './ChartConfig'
+import { ChartConfig }from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
-import ChartView from './ChartView'
-import FuzzySearch from './FuzzySearch'
+import { ChartView } from './ChartView'
+import { FuzzySearch } from './FuzzySearch'
 
 // Metadata reflection hack - Mispy
 declare const global: any
@@ -180,7 +180,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
 }
 
 @observer
-export default class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
+export class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
     render() {
         const { chart } = this.props
 

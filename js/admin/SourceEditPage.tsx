@@ -5,9 +5,9 @@ import {Prompt} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
 import { AdminAppContext } from './AdminAppContext'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import { BindString } from './Forms'
-import VariableList, { VariableListItem } from './VariableList'
+import { VariableList, VariableListItem } from './VariableList'
 
 interface SourcePageData {
     id: number
@@ -102,7 +102,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
 }
 
 @observer
-export default class SourceEditPage extends React.Component<{ sourceId: number }> {
+export class SourceEditPage extends React.Component<{ sourceId: number }> {
     static contextType = AdminAppContext
     @observable source?: SourcePageData
 

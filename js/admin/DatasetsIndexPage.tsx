@@ -5,11 +5,9 @@ const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import Admin from './Admin'
-import AdminLayout from './AdminLayout'
+import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
-import Link from './Link'
-import DatasetList, {DatasetListItem} from './DatasetList'
+import { DatasetList, DatasetListItem } from './DatasetList'
 import { AdminAppContext } from './AdminAppContext'
 
 interface Searchable {
@@ -18,7 +16,7 @@ interface Searchable {
 }
 
 @observer
-export default class DatasetsIndexPage extends React.Component {
+export class DatasetsIndexPage extends React.Component {
     static contextType = AdminAppContext
 
     @observable datasets: DatasetListItem[] = []

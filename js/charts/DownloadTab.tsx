@@ -2,8 +2,8 @@ import { extend } from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import Bounds from './Bounds'
-import ChartConfig from './ChartConfig'
+import { Bounds }from './Bounds'
+import { ChartConfig }from './ChartConfig'
 
 interface DownloadTabProps {
     bounds: Bounds,
@@ -13,7 +13,7 @@ interface DownloadTabProps {
 declare var Blob: any
 
 @observer
-export default class DownloadTab extends React.Component<DownloadTabProps> {
+export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get targetWidth() { return this.props.chart.idealBounds.width }
     @computed get targetHeight() { return this.props.chart.idealBounds.height }
 

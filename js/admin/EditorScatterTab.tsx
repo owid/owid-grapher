@@ -2,12 +2,12 @@ import * as React from 'react'
 import {extend, debounce} from '../charts/Util'
 import {observable, computed, action, toJS} from 'mobx'
 import {observer} from 'mobx-react'
-import ChartConfig, {HighlightToggleConfig} from '../charts/ChartConfig'
+import { ChartConfig, HighlightToggleConfig } from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import {Toggle, NumberField, SelectField, TextField, Section} from './Forms'
 
 @observer
-export default class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
+export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = { description: "", paramStr: "" }
 

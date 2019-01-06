@@ -1,9 +1,9 @@
 import { observable, computed } from 'mobx'
-import MapProjection from './MapProjection'
-import Chart from './ChartConfig'
-import MapData from './MapData'
+import { MapProjection } from './MapProjection'
+import { ChartConfig } from './ChartConfig'
+import { MapData } from './MapData'
 import { defaultTo } from './Util'
-import Color from './Color'
+import { Color } from './Color'
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -47,8 +47,8 @@ export class MapConfigProps {
     }
 }
 
-export default class MapConfig {
-    chart: Chart
+export class MapConfig {
+    chart: ChartConfig
 
     get props() {
         return (this.chart.props.map as MapConfigProps)
@@ -79,7 +79,7 @@ export default class MapConfig {
         this.props.targetYear = value
     }
 
-    constructor(chart: Chart) {
+    constructor(chart: ChartConfig) {
         this.chart = chart
     }
 }

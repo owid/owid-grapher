@@ -7,9 +7,9 @@
 
 import { observable, computed, runInAction, when } from 'mobx'
 import { extend } from '../charts/Util'
-import ChartConfig from '../charts/ChartConfig'
-import EditorFeatures from './EditorFeatures'
-import Admin from './Admin'
+import { ChartConfig } from '../charts/ChartConfig'
+import { EditorFeatures } from './EditorFeatures'
+import { Admin } from './Admin'
 
 declare const Global: { rootUrl: string }
 
@@ -57,7 +57,7 @@ export interface ChartEditorProps {
     logs: Log[]
 }
 
-export default class ChartEditor {
+export class ChartEditor {
     props: ChartEditorProps
     // Whether the current chart state is saved or not
     @observable.ref currentRequest: Promise<any> | undefined

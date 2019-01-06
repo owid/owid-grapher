@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export default function LoginPage(props: { next?: string, errorMessage?: string }) {
+export function LoginPage(props: { next?: string, errorMessage?: string }) {
     const style = `
         html, body {
             height: 100%;

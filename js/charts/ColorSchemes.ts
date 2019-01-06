@@ -2,7 +2,7 @@ import { rgb } from 'd3-color'
 import { interpolate } from 'd3-interpolate'
 import { clone, last } from './Util'
 import * as colorbrewer from 'colorbrewer'
-import Color from './Color'
+import { Color } from './Color'
 
 const longSchemeNames: { [key: string]: string } = {
     'YlGn': 'Yellow-Green shades',
@@ -149,7 +149,7 @@ export class ColorScheme {
     }
 }
 
-export default (() => {
+export const ColorSchemes = (() => {
     const colorSchemes: { [key: string]: ColorScheme|undefined } = {}
 
     // Create a ColorScheme for each colorbrewer scheme

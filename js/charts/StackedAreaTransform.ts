@@ -1,17 +1,17 @@
 import { computed } from 'mobx'
 import { scaleOrdinal } from 'd3-scale'
 import { some, isEmpty, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq } from './Util'
-import ChartConfig from './ChartConfig'
-import DataKey from './DataKey'
+import { ChartConfig }from './ChartConfig'
+import { DataKey } from './DataKey'
 import { StackedAreaSeries, StackedAreaValue } from './StackedArea'
-import AxisSpec from './AxisSpec'
-import ColorSchemes, { ColorScheme } from './ColorSchemes'
+import { AxisSpec } from './AxisSpec'
+import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { formatValue, formatYear, defaultTo, findClosest } from './Util'
-import IChartTransform from './IChartTransform'
+import { IChartTransform } from './IChartTransform'
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
-export default class StackedAreaTransform implements IChartTransform {
+export class StackedAreaTransform implements IChartTransform {
     chart: ChartConfig
 
     constructor(chart: ChartConfig) {

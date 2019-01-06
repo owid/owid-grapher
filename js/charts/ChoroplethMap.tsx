@@ -4,11 +4,11 @@ import { observer } from 'mobx-react'
 import * as topojson from 'topojson'
 
 import { identity, sortBy, guid, getRelativeMouse, min } from './Util'
-import Bounds from './Bounds'
-import MapProjections from './MapProjections'
-import MapProjection from './MapProjection'
-import MapTopology from './MapTopology'
-import Vector2 from './Vector2'
+import { Bounds }from './Bounds'
+import { MapProjections } from './MapProjections'
+import { MapProjection } from './MapProjection'
+import { MapTopology } from './MapTopology'
+import { Vector2 } from './Vector2'
 import { worldRegionByMapEntity } from './WorldRegions'
 
 export interface ChoroplethDatum {
@@ -48,7 +48,7 @@ interface RenderFeature {
 }
 
 @observer
-export default class ChoroplethMap extends React.Component<ChoroplethMapProps> {
+export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     subunits: any
 

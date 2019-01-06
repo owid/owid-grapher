@@ -2,10 +2,10 @@ import * as React from 'react'
 import { clone, map } from '../charts/Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
-import ChartConfig from '../charts/ChartConfig'
-import DataKey from '../charts/DataKey'
+import { ChartConfig }from '../charts/ChartConfig'
+import { DataKey } from '../charts/DataKey'
 import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
-import ChartEditor from './ChartEditor'
+import { ChartEditor } from './ChartEditor'
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
@@ -91,7 +91,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
-export default class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { chart } = editor
