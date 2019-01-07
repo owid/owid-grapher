@@ -33,8 +33,7 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
         return new ScatterColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
-            get colors() { return that.legendColors },
-            get scale() { return that.transform.colorScale }
+            get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }
         })
     }
 
@@ -83,7 +82,7 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const {legendColors, transform, chart} = this
+        const {colorsInUse: legendColors, transform, chart} = this
         return legendColors.filter(color => {
             const matchingKeys = transform.data.filter(g => g.color === color).map(g => g.key)
             return intersection(matchingKeys, chart.data.selectedKeys).length === matchingKeys.length
@@ -118,7 +117,7 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
     }
 
     // Only show colors on legend that are actually in use
-    @computed get legendColors() {
+    @computed get colorsInUse() {
         return uniq(this.transform.data.map(g => g.color))
     }
 
@@ -140,8 +139,8 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
     // this is for backwards compatibility with charts that were added without legend
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
     @computed get showLegend(): boolean {
-        const { legendColors } = this
-        const { colorScale } = this.transform
+        const { colorsInUse: legendColors } = this
+        const { colorScale } = this.transform.colors
 
         return colorScale.domain().some(value => {
             if (!isString(value)) {

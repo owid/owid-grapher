@@ -9,6 +9,8 @@ import { AxisSpec } from './AxisSpec'
 import { formatValue, domainExtent, findClosest } from './Util'
 import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { IChartTransform } from './IChartTransform'
+import { Color } from './Color';
+import { Colorizer, Colorable } from './Colorizer';
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -20,8 +22,26 @@ export class ScatterTransform implements IChartTransform {
         this.chart = chart
     }
 
+    @computed get colorKeys(): string[] {
+        const { colorDimension } = this
+        return colorDimension ? colorDimension.variable.categoricalValues : []
+    }
+
+    @computed get colors(): Colorizer {
+        const that = this
+        return new Colorizer({
+            get chart() { return that.chart },
+            get defaultColorScheme() { return "continents" },
+            get keys() { return that.colorKeys }
+        })
+    }
+
+    @computed get colorables(): Colorable[] {
+        return this.colors.colorables
+    }
+
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === 'y') && some(this.chart.dimensions, d => d.property === 'x')
+        return this.chart.dimensions.some(d => d.property === 'y') && this.chart.dimensions.some(d => d.property === 'x')
     }
 
     @computed get failMessage(): string | undefined {
@@ -169,37 +189,12 @@ export class ScatterTransform implements IChartTransform {
         this.chart.props.compareEndPointsOnly = value || undefined
     }
 
-    @computed get colorSchemeName(): string {
-        return defaultTo(this.chart.props.baseColorScheme, "continents")
-    }
 
-    @computed get colorSet(): string[] {
-        const { colorSchemeName, colorDimension } = this
-        const colorScheme = ColorSchemes[colorSchemeName] as ColorScheme
-        const numColors = colorDimension ? colorDimension.variable.categoricalValues.length : 4
-        const colors = colorScheme.getColors(numColors)
-
-        if (this.chart.props.invertColorScheme)
-            colors.reverse()
-
-        return colors
-    }
-
-    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
-        const colorDim = this.chart.data.dimensionsByField['color']
-
-        const colorScale = scaleOrdinal(this.colorSet)
-        if (colorDim) {
-            colorScale.domain(colorDim.variable.categoricalValues)
-        }
-
-        return colorScale
-    }
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     @computed get dataByEntityAndYear(): Map<string, Map<number, ScatterValue>> {
-        const { chart, yearsToCalculate, colorScale, entitiesToShow, xOverrideYear } = this
+        const { chart, yearsToCalculate, colors, entitiesToShow, xOverrideYear } = this
         const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
@@ -262,7 +257,7 @@ export class ScatterTransform implements IChartTransform {
 
                     (point.time as any)[dimension.property] = year
                     if (dimension.property === 'color') {
-                        point.color = colorScale(value as string)
+                        point.color = colors.get(value as string)
                     } else {
                         (point as any)[dimension.property] = value
                     }

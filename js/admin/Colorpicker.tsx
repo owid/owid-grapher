@@ -41,8 +41,8 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
 
         return <div ref={this.base} className="Colorpicker" tabIndex={0} onClick={e => e.stopPropagation()}>
             <ul>
-                {availableColors.map(color =>
-                    <li style={{ backgroundColor: color }} onClick={() => { this.props.onColor(color); this.props.onClose() }} />
+                {availableColors.map((color, i) =>
+                    <li key={i} style={{ backgroundColor: color }} onClick={() => { this.props.onColor(color); this.props.onClose() }} />
                 )}
             </ul>
             <TextField placeholder="#xxxxxx" value={this.props.color} onValue={this.onColor} onEnter={this.props.onClose} onEscape={this.props.onClose} />

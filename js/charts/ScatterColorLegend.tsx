@@ -4,12 +4,12 @@ import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import { TextWrap } from './TextWrap'
 import { defaultTo } from './Util'
+import { Colorable } from './Colorizer'
 
 export interface ScatterColorLegendProps {
-    maxWidth: number,
-    fontSize: number,
-    colors: string[],
-    scale: d3.ScaleOrdinal<string, string>
+    maxWidth: number
+    fontSize: number
+    colorables: Colorable[]
 }
 
 export interface LabelMark {
@@ -33,15 +33,11 @@ export class ScatterColorLegend {
     @computed get labelMarks(): LabelMark[] {
         const { props, fontSize, rectSize, rectPadding } = this
 
-        return props.scale.domain().map(value => {
-            const color = props.scale(value)
-            if (props.colors.indexOf(color) === -1 || !isString(value))
-                return null
-
-            const label = new TextWrap({ maxWidth: props.maxWidth, fontSize: fontSize, text: value })
+        return props.colorables.map(c => {
+            const label = new TextWrap({ maxWidth: props.maxWidth, fontSize: fontSize, text: c.label })
             return {
                 label: label,
-                color: color,
+                color: c.color,
                 width: rectSize + rectPadding + label.width,
                 height: Math.max(label.height, rectSize)
             }

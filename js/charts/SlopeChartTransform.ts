@@ -7,6 +7,7 @@ import { DimensionWithData } from './DimensionWithData'
 import { SlopeChartSeries, SlopeChartValue } from './LabelledSlopes'
 import { IChartTransform } from './IChartTransform'
 import { ColorSchemes } from './ColorSchemes'
+import { Colorizer, Colorable } from './Colorizer';
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -18,7 +19,7 @@ export class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === 'y')
+        return this.chart.dimensions.some(d => d.property === 'y')
     }
 
     @computed get failMessage(): string | undefined {
@@ -29,6 +30,24 @@ export class SlopeChartTransform implements IChartTransform {
             return "No matching data"
         else
             return undefined
+    }
+
+    @computed get colorKeys(): string[] {
+        const { colorDimension } = this
+        return colorDimension ? colorDimension.variable.categoricalValues : []
+    }
+
+    @computed get colors(): Colorizer {
+        const that = this
+        return new Colorizer({
+            get chart() { return that.chart },
+            get defaultColorScheme() { return "continents" },
+            get keys() { return that.colorKeys }
+        })
+    }
+
+    @computed get colorables(): Colorable[] {
+        return this.colors.colorables
     }
 
     @computed get timelineYears(): number[] {
@@ -61,8 +80,8 @@ export class SlopeChartTransform implements IChartTransform {
         return find(this.chart.data.filledDimensions, d => d.property === 'size')
     }
 
-    @computed.struct get colorDim(): DimensionWithData|undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'color')
+    @computed.struct get colorDimension(): DimensionWithData|undefined {
+        return this.chart.data.filledDimensions.find(d => d.property === 'color')
     }
 
     @computed.struct get yDimension(): DimensionWithData | undefined {
@@ -73,13 +92,13 @@ export class SlopeChartTransform implements IChartTransform {
     // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
     // this returns that data in the form { Afghanistan => Asia }
     @computed get colorByEntity(): Map<string, any> {
-        const { colorDim, colorScale }= this
+        const { colorDimension: colorDim, colors }= this
         const colorByEntity = new Map<string, any>()
 
         if (colorDim !== undefined) {
             colorDim.valueByEntityAndYear.forEach((yearToColorMap, entity) => {
                 const values = Array.from(yearToColorMap.values())
-                colorByEntity.set(entity, colorScale(values[0].toString()))
+                colorByEntity.set(entity, colors.get(values[0].toString()))
             })
         }
         return colorByEntity
@@ -99,39 +118,6 @@ export class SlopeChartTransform implements IChartTransform {
             })
         }
         return sizeByEntity
-    }
-
-    @computed get defaultColors(): string[] {
-        return [ // default color scheme for continents
-            "#5675c1", // Africa
-            "#aec7e8", // Antarctica
-            "#d14e5b", // Asia
-            "#ffd336", // Europe
-            "#4d824b", // North America
-            "#a652ba", // Oceania
-            "#69c487", // South America
-            "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
-    }
-
-    @computed get colorScheme(): string[] {
-        const { baseColorScheme } = this.chart
-        const { colorDim } = this
-
-        const colorScheme = baseColorScheme && ColorSchemes[baseColorScheme]
-        if (!colorScheme) return this.defaultColors
-        else if (!colorDim) return colorScheme.getColors(4)
-        else return colorScheme.getColors(colorDim.variable.categoricalValues.length)
-    }
-
-    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
-        const colorDim = this.chart.data.dimensionsByField['color']
-
-        const colorScale = scaleOrdinal(this.colorScheme)
-        if (colorDim) {
-            colorScale.domain(colorDim.variable.categoricalValues)
-        }
-
-        return colorScale
     }
 
     @computed get yTickFormat(): (d: number) => string {

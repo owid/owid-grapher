@@ -174,7 +174,7 @@ export class StackedBarChart extends React.Component<{ bounds: Bounds, chart: Ch
     }
 
     // Only show colors on legend that are actually in use
-    @computed get legendColors() {
+    @computed get colorsInUse() {
         return uniq(this.transform.stackedData.map(g => g.color))
     }
 
@@ -183,8 +183,7 @@ export class StackedBarChart extends React.Component<{ bounds: Bounds, chart: Ch
         return new ScatterColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
-            get colors() { return that.legendColors },
-            get scale() { return that.transform.colorScale }
+            get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }
         })
     }
 

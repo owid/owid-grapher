@@ -6,8 +6,8 @@ import { StackedBarValue, StackedBarSeries } from './StackedBarChart'
 import { AxisSpec } from './AxisSpec'
 import { IChartTransform } from './IChartTransform'
 import { DimensionWithData } from './DimensionWithData'
-import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { DataKey } from './DataKey'
+import { Colorizer, Colorable } from './Colorizer'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -87,27 +87,6 @@ export class StackedBarTransform implements IChartTransform {
         return primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
     }
 
-    // TODO ?
-    @computed get colorScheme() {
-        const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
-        return colorScheme !== undefined ? colorScheme : ColorSchemes["stackedAreaDefault"] as ColorScheme
-    }
-
-    @computed get colorScale(): d3.ScaleOrdinal<string, string> {
-        const { stackedData } = this
-
-        const colors: string[] = []
-        const labels: string[] = []
-        // Reverse to keep legend consistent with the vertical ordering of bar stack
-        stackedData.slice().reverse().forEach((series, i) => {
-            colors.push(series.color)
-            labels.push(series.label)
-        })
-
-        const colorScale = scaleOrdinal(colors).domain(labels)
-        return colorScale
-    }
-
     @computed get yFormatTooltip(): (d: number) => string {
         const { primaryDimension, yTickFormat } = this
 
@@ -175,40 +154,6 @@ export class StackedBarTransform implements IChartTransform {
         return uniq(this.allStackedValues.map(bar => bar.x))
     }
 
-    // Apply time filtering and stacking
-    @computed get stackedData(): StackedBarSeries[] {
-        const { groupedData, startYear, endYear } = this
-
-        const stackedData = cloneDeep(groupedData)
-
-        for (const series of stackedData) {
-            series.values = series.values.filter(v => v.x >= startYear && v.x <= endYear)
-        }
-
-        // every subsequent series needs be stacked on top of previous series
-        for (let i = 1; i < stackedData.length; i++) {
-            for (let j = 0; j < stackedData[0].values.length; j++) {
-                stackedData[i].values[j].yOffset = stackedData[i - 1].values[j].y + stackedData[i-1].values[j].yOffset
-            }
-        }
-
-        // if the total height of any stacked column is 0, remove it
-        const keyIndicesToRemove: number[] = []
-        const lastSeries = stackedData[stackedData.length - 1]
-        lastSeries.values.forEach((bar, index) => {
-            if ((bar.yOffset + bar.y) === 0) {
-                keyIndicesToRemove.push(index)
-            }
-        })
-        for (let i=keyIndicesToRemove.length - 1; i >= 0; i--) {
-            stackedData.forEach(series => {
-                series.values.splice(keyIndicesToRemove[i], 1)
-            })
-        }
-
-        return stackedData
-    }
-
     @computed get groupedData(): StackedBarSeries[] {
         const { chart, timelineYears } = this
         const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
@@ -239,7 +184,7 @@ export class StackedBarTransform implements IChartTransform {
                         key: datakey,
                         label: chart.data.formatKey(datakey),
                         values: [],
-                        color: "#fff" // temp
+                        color: "#fff" // Temp
                     }
                     seriesByKey.set(datakey, series)
                 }
@@ -275,15 +220,62 @@ export class StackedBarTransform implements IChartTransform {
 
         // Preserve order
         groupedData = sortBy(groupedData, series => -selectedKeys.indexOf(series.key))
-
-        // Assign colors
-        const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (chart.props.invertColorScheme)
-            baseColors.reverse()
-        groupedData.forEach((series, index) => {
-            series.color = chart.data.keyColors[series.key] || baseColors[index]
-        })
-
+        
         return groupedData
+    }
+
+    @computed get colorKeys(): string[] {
+        return uniq(this.groupedData.map(d => d.key)).reverse()
+    }
+
+    @computed get colors(): Colorizer {
+        const that = this
+        return new Colorizer({
+            get chart() { return that.chart },
+            get defaultColorScheme() { return "stackedAreaDefault" },
+            get keys() { return that.colorKeys },
+            get labelFormat() { return (key: string) => that.chart.data.formatKey(key) },
+            invert: true
+        })
+    }
+
+    @computed get colorables(): Colorable[] {
+        return this.colors.colorables
+    }
+
+
+    // Apply time filtering and stacking
+    @computed get stackedData(): StackedBarSeries[] {
+        const { groupedData, startYear, endYear } = this
+
+        const stackedData = cloneDeep(groupedData)
+
+        for (const series of stackedData) {
+            series.color = this.colors.get(series.key)
+            series.values = series.values.filter(v => v.x >= startYear && v.x <= endYear)
+        }
+
+        // every subsequent series needs be stacked on top of previous series
+        for (let i = 1; i < stackedData.length; i++) {
+            for (let j = 0; j < stackedData[0].values.length; j++) {
+                stackedData[i].values[j].yOffset = stackedData[i - 1].values[j].y + stackedData[i-1].values[j].yOffset
+            }
+        }
+
+        // if the total height of any stacked column is 0, remove it
+        const keyIndicesToRemove: number[] = []
+        const lastSeries = stackedData[stackedData.length - 1]
+        lastSeries.values.forEach((bar, index) => {
+            if ((bar.yOffset + bar.y) === 0) {
+                keyIndicesToRemove.push(index)
+            }
+        })
+        for (let i=keyIndicesToRemove.length - 1; i >= 0; i--) {
+            stackedData.forEach(series => {
+                series.values.splice(keyIndicesToRemove[i], 1)
+            })
+        }
+
+        return stackedData
     }
 }
