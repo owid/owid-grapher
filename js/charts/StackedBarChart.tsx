@@ -12,7 +12,7 @@ import { AxisScale } from './AxisScale'
 import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
 import { NoData } from './NoData'
 import { Text } from './Text'
-import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { VerticalColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
 import { Tooltip } from './Tooltip'
 
 export interface StackedBarValue {
@@ -178,9 +178,9 @@ export class StackedBarChart extends React.Component<{ bounds: Bounds, chart: Ch
         return uniq(this.transform.stackedData.map(g => g.color))
     }
 
-    @computed get legend(): ScatterColorLegend {
+    @computed get legend(): VerticalColorLegend {
         const that = this
-        return new ScatterColorLegend({
+        return new VerticalColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
             get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }

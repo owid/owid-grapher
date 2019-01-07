@@ -6,7 +6,7 @@ import { Bounds } from './Bounds'
 import { ChartConfig } from './ChartConfig'
 import { LabelledSlopes, SlopeProps } from './LabelledSlopes'
 import { NoData } from './NoData'
-import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { VerticalColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
 import { isString } from 'util'
 
 @observer
@@ -28,9 +28,9 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
         return this.props.bounds
     }
 
-    @computed get legend(): ScatterColorLegend {
+    @computed get legend(): VerticalColorLegend {
         const that = this
-        return new ScatterColorLegend({
+        return new VerticalColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
             get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }

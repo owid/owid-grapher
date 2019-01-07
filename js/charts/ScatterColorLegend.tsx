@@ -19,7 +19,7 @@ export interface LabelMark {
     height: number
 }
 
-export class ScatterColorLegend {
+export class VerticalColorLegend {
     props: ScatterColorLegendProps
     constructor(props: ScatterColorLegendProps) {
         this.props = props
@@ -59,7 +59,7 @@ export class ScatterColorLegend {
 export interface ScatterColorLegendViewProps {
     x: number,
     y: number,
-    legend: ScatterColorLegend,
+    legend: VerticalColorLegend,
     activeColors: string[],
     focusColors?: string[],
     onMouseOver?: (color: string) => void,
