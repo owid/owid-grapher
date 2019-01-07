@@ -5,14 +5,14 @@ import { select } from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 
 import { includes, intersection, formatYear, guid, uniq, min, max, defaultTo, makeSafeForCSS } from './Util'
-import { ChartConfig }from './ChartConfig'
-import { Bounds }from './Bounds'
+import { ChartConfig } from './ChartConfig'
+import { Bounds } from './Bounds'
 import { AxisBox, AxisGridLines } from './AxisBox'
 import { AxisScale } from './AxisScale'
 import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
 import { NoData } from './NoData'
 import { Text } from './Text'
-import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { VerticalColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
 import { Tooltip } from './Tooltip'
 
 export interface StackedBarValue {
@@ -174,17 +174,16 @@ export class StackedBarChart extends React.Component<{ bounds: Bounds, chart: Ch
     }
 
     // Only show colors on legend that are actually in use
-    @computed get legendColors() {
+    @computed get colorsInUse() {
         return uniq(this.transform.stackedData.map(g => g.color))
     }
 
-    @computed get legend(): ScatterColorLegend {
+    @computed get legend(): VerticalColorLegend {
         const that = this
-        return new ScatterColorLegend({
+        return new VerticalColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
-            get colors() { return that.legendColors },
-            get scale() { return that.transform.colorScale }
+            get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }
         })
     }
 

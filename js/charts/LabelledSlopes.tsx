@@ -18,7 +18,7 @@ import { observer } from 'mobx-react'
 
 import { SVGElement } from './Util'
 import { ScaleType } from './ScaleType'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { Text } from './Text'
 import { TextWrap } from './TextWrap'
 import { NoData } from './NoData'
@@ -83,7 +83,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 
         return <g className="axis" fontSize="0.8em">
             {ticks.map(tick => {
-                return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" text-anchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
+                return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" textAnchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
             })}
         </g>
     }
@@ -140,11 +140,11 @@ class Slope extends React.Component<SlopeProps> {
 
         return <g className="slope">
             {hasLeftLabel && leftLabel.render(leftLabelBounds.x + leftLabelBounds.width, leftLabelBounds.y, { textAnchor: 'end', fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
-            {hasLeftLabel && <Text x={x1 - 8} y={y1 - leftValueLabelBounds.height / 2} text-anchor="end" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{leftValueStr}</Text>}
+            {hasLeftLabel && <Text x={x1 - 8} y={y1 - leftValueLabelBounds.height / 2} textAnchor="end" fontSize={labelFontSize} fill={labelColor} fontWeight={(isFocused || isHovered) ? 'bold' : undefined}>{leftValueStr}</Text>}
             <circle cx={x1} cy={y1} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
             <line ref={(el) => this.line = el} x1={x1} y1={y1} x2={x2} y2={y2} stroke={lineColor} strokeWidth={lineStrokeWidth} opacity={opacity} />
             <circle cx={x2} cy={y2} r={isFocused || isHovered ? 4 : 2} fill={lineColor} opacity={opacity} />
-            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominantBaseline="middle" fontSize={labelFontSize} fill={labelColor} font-weight={(isFocused || isHovered) && 'bold'}>{rightValueStr}</Text>}
+            {hasRightLabel && <Text x={x2 + 8} y={y2 - rightValueLabelBounds.height / 2} dominantBaseline="middle" fontSize={labelFontSize} fill={labelColor} fontWeight={(isFocused || isHovered) ? 'bold' : undefined}>{rightValueStr}</Text>}
             {hasRightLabel && rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, { fill: labelColor, fontWeight: (isFocused || isHovered) ? 'bold' : undefined })}
         </g>
     }
@@ -168,7 +168,7 @@ export interface LabelledSlopesProps {
 
 @observer
 export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
-    base: SVGElement
+    base: React.RefObject<SVGGElement> = React.createRef()
     svg: SVGElement
 
     @computed get data(): SlopeChartSeries[] {
@@ -242,20 +242,6 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const { bounds, isPortrait, xDomain, yScale } = this
         const padding = isPortrait ? 0 : SlopeChartAxis.calculateBounds(bounds, { orient: 'left', scale: yScale, tickFormat: this.props.yTickFormat }).width
         return scaleLinear().domain(xDomain).range(bounds.padWidth(padding).xRange())
-    }
-
-    @computed get colorScale(): ScaleOrdinal<string, string> {
-        const colorScheme = [ // TODO less ad hoc color scheme (probably would have to annotate the datasets)
-            "#5675c1", // Africa
-            "#aec7e8", // Antarctica
-            "#d14e5b", // Asia
-            "#ffd336", // Europe
-            "#4d824b", // North America
-            "#a652ba", // Oceania
-            "#69c487", // South America
-            "#ff7f0e", "#1f77b4", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "c49c94", "e377c2", "f7b6d2", "7f7f7f", "c7c7c7", "bcbd22", "dbdb8d", "17becf", "9edae5", "1f77b4"]
-
-        return scaleOrdinal(colorScheme).domain(uniq(this.props.data.map(d => d.color)))
     }
 
     @computed get maxLabelWidth(): number {
@@ -429,7 +415,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     componentDidMount() {
         // Nice little intro animation
-        select(this.base).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
+        select(this.base.current).select(".slopes").attr('stroke-dasharray', "100%").attr('stroke-dashoffset', "100%").transition().attr('stroke-dashoffset', "0%")
     }
 
     renderBackgroundGroups() {
@@ -455,11 +441,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const [y1, y2] = yScale.range()
         const onMouseMove = throttle(this.onMouseMove, 100)
 
-        return <g className="LabelledSlopes" >
+        return <g className="LabelledSlopes" ref={this.base}>
             <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
             <g className="gridlines">
                 {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
-                    return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" stroke-dasharray="3,2" />
+                    return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" strokeDasharray="3,2" />
                 })}
             </g>
             {!isPortrait && <SlopeChartAxis orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}

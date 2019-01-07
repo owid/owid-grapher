@@ -2,7 +2,7 @@ import { isEmpty, reduce, map, max } from './Util'
 import { computed } from 'mobx'
 import { FontSize } from './FontSize'
 import { defaultTo } from './Util'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import * as React from 'react'
 
 export interface TextWrapProps {

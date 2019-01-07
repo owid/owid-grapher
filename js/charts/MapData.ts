@@ -2,7 +2,7 @@ import { uniq, round, toArray, keys, isEmpty, reverse, includes, extend, each, f
 import { computed, autorun, runInAction, reaction, toJS, IReactionDisposer } from 'mobx'
 import { mean, deviation } from 'd3-array'
 
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { defaultTo, isString, last, findClosest } from './Util'
 import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { Color } from './Color'
@@ -213,7 +213,6 @@ export class MapData {
         // Ensure presence of 'No data' category
         const valuesMap = new Map<string, boolean>()
         valuesMap.set("No data", true)
-
 
         for (const value of this.mappableData.values) {
             if (isString(value)) {

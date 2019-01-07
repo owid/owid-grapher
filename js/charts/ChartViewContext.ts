@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ChartConfig }from '../charts/ChartConfig'
+import { ChartConfig } from '../charts/ChartConfig'
 import { ChartView } from '../charts/ChartView'
 import { VNode } from '../charts/Util'
 

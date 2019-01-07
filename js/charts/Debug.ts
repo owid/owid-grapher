@@ -1,6 +1,6 @@
 declare const window: any
 
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { ColorSchemes } from './ColorSchemes'
 const colorbrewer = require('colorbrewer')
 

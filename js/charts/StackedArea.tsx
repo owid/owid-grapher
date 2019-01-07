@@ -3,7 +3,7 @@ import {sortBy, reverse, clone, last, guid, pointsToPath, formatYear} from './Ut
 import {computed, action, observable} from 'mobx'
 import {observer} from 'mobx-react'
 import { ChartConfig } from './ChartConfig'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { AxisBox } from './AxisBox'
 import { StandardAxisBoxView } from './StandardAxisBoxView'
 import {getRelativeMouse, makeSafeForCSS} from './Util'

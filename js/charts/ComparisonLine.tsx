@@ -6,7 +6,7 @@ import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import { AxisBox } from './AxisBox'
 import { evalEquation } from './evalEquation'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { Vector2 } from './Vector2'
 
 export interface ComparisonLineConfig {

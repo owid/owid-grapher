@@ -7,7 +7,7 @@ const timeago = require('timeago.js')()
 import { AdminLayout } from './AdminLayout'
 import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import { DatasetList, DatasetListItem } from './DatasetList'
-import { ChartList, ChartListItem }from './ChartList'
+import { ChartList, ChartListItem } from './ChartList'
 import { TagBadge, Tag } from './TagBadge'
 import { AdminAppContext } from './AdminAppContext'
 

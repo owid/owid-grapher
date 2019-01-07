@@ -4,7 +4,7 @@ import { observer } from 'mobx-react'
 import * as topojson from 'topojson'
 
 import { identity, sortBy, guid, getRelativeMouse, min } from './Util'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { MapProjections } from './MapProjections'
 import { MapProjection } from './MapProjection'
 import { MapTopology } from './MapTopology'

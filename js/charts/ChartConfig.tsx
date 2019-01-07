@@ -20,7 +20,7 @@ import { Color } from "./Color"
 import { ChartView } from "./ChartView"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { Bounds }from "./Bounds"
+import { Bounds } from "./Bounds"
 import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import * as md5 from 'md5'
@@ -138,6 +138,8 @@ export class ChartConfigProps {
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
 
+    @observable colorBy?: string = undefined
+    @observable customColors?: {[ key: string ]: Color|undefined} = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
 

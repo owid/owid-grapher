@@ -261,6 +261,15 @@ html, body {
     }
 }
 
+.ColorableItem {
+    display: flex;
+    align-items: center;
+
+    > div {
+        margin-right: 0.5em;
+    }
+}
+
 .VariableSelector { 
     .modal-dialog {
         min-width: 800px;

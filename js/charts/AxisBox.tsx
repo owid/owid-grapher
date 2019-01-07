@@ -11,7 +11,7 @@
 import * as React from 'react'
 import { observable, computed, reaction, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { AxisScale } from './AxisScale'
 import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
 import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'

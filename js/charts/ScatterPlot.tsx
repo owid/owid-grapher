@@ -12,13 +12,13 @@ import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { intersection, without, uniq } from './Util'
 import { observer } from 'mobx-react'
-import { Bounds }from './Bounds'
-import { ChartConfig }from './ChartConfig'
+import { Bounds } from './Bounds'
+import { ChartConfig } from './ChartConfig'
 import { NoData } from './NoData'
 import { PointsWithLabels, ScatterSeries, ScatterValue } from './PointsWithLabels'
 import { TextWrap } from './TextWrap'
 import { ConnectedScatterLegend } from './ConnectedScatterLegend'
-import { ScatterColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
+import { VerticalColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
 import { AxisBox, AxisBoxView } from './AxisBox'
 import { ComparisonLine } from './ComparisonLine'
 import { ScaleType } from './AxisScale'
@@ -52,18 +52,17 @@ export class ScatterPlot extends React.Component<{ bounds: Bounds, config: Chart
             this.chart.data.toggleKey(datakey)
     }
 
-    // Only show colors on legend that are actually in use
-    @computed get legendColors() {
+    // Only want to show colors on legend that are actually on the chart right now
+    @computed get colorsInUse() {
         return uniq(this.transform.currentData.filter(g => g.isAutoColor).map(g => g.color))
     }
 
-    @computed get legend(): ScatterColorLegend {
+    @computed get legend(): VerticalColorLegend {
         const that = this
-        return new ScatterColorLegend({
+        return new VerticalColorLegend({
             get maxWidth() { return that.sidebarMaxWidth },
             get fontSize() { return that.chart.baseFontSize },
-            get colors() { return that.legendColors },
-            get scale() { return that.transform.colorScale }
+            get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }
         })
     }
 
@@ -92,8 +91,8 @@ export class ScatterPlot extends React.Component<{ bounds: Bounds, config: Chart
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const {legendColors, transform, chart} = this
-        return legendColors.filter(color => {
+        const {colorsInUse, transform, chart} = this
+        return colorsInUse.filter(color => {
             const matchingKeys = transform.currentData.filter(g => g.color === color).map(g => g.key)
             return intersection(matchingKeys, chart.data.selectedKeys).length === matchingKeys.length
         })

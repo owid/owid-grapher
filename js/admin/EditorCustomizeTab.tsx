@@ -2,12 +2,13 @@ import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartEditor } from './ChartEditor'
-import { ChartConfig }from '../charts/ChartConfig'
+import { ChartConfig } from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
-import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, BindString, TextField, Button } from './Forms'
-import { ColorSchemes, ColorScheme } from '../charts/ColorSchemes'
+import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, BindString, TextField, Button, EditableListItem, ColorBox, EditableList } from './Forms'
 import { debounce, keysOf } from '../charts/Util'
+import { ColorSchemes, ColorScheme } from '../charts/ColorSchemes'
+import { Color } from '../charts/Color'
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -29,6 +30,52 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
             <SelectField label="Color scheme" value={chart.baseColorScheme || "default"} onValue={this.onValue} options={["default"].concat(availableColorSchemes)} optionLabels={["Default"].concat(colorSchemeLabels)} /><br />
             <Toggle label="Invert colors" value={!!chart.props.invertColorScheme} onValue={this.onInvertColorScheme} />
         </FieldsRow>
+    }
+}
+
+@observer
+class ColorableItem extends React.Component<{ label: string, color: string|undefined, onColor: (color: string|undefined) => void }> {
+    @observable.ref isChoosingColor: boolean = false
+
+    render() {
+        const {label, color} = this.props
+
+        return <EditableListItem key={label} className="ColorableItem">
+            <ColorBox color={color} onColor={this.props.onColor}/>
+            <div>
+                {label}
+            </div>
+        </EditableListItem>
+    }
+}
+
+@observer
+class ColorsSection extends React.Component<{ chart: ChartConfig }> {
+    @action.bound onColorBy(value: string) {
+        this.props.chart.props.colorBy = value === "default" ? undefined : value
+    }
+
+    @action.bound assignColor(key: string, color: Color|undefined) {
+        const {chart} = this.props
+        if (chart.props.customColors === undefined)
+            chart.props.customColors = {}
+
+        chart.props.customColors[key] = color
+    }
+
+    render() {
+        const {chart} = this.props
+
+        const customColors = chart.props.customColors||{}
+        const colorables = chart.activeTransform.colorables
+
+        return <Section name="Colors">
+            <ColorSchemeSelector chart={chart}/>
+            {/*<SelectField label="Color by" value={chart.props.colorBy || "default"} onValue={this.onColorBy} options={["default", "entity", "variable"]} optionLabels={["Default", "Entity", "Variable"]} />*/}
+            {colorables && <EditableList>
+                {colorables.map(c => <ColorableItem key={c.key} label={c.label} color={customColors[c.key]} onColor={(color: Color|undefined) => this.assignColor(c.key, color)}/>)}
+            </EditableList>}
+        </Section>
     }
 }
 
@@ -155,9 +202,7 @@ export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }>
                 {features.customXAxisLabel && <BindString label="Label" field="label" store={xAxis}/>}
             </Section>}
             {!chart.isScatter && <TimeSection editor={this.props.editor} />}
-            <Section name="Colors">
-                <ColorSchemeSelector chart={chart} />
-            </Section>
+            <ColorsSection chart={chart}/>
             {(features.hideLegend || features.relativeModeToggle || features.entityType) && <Section name="Legend">
                 <FieldsRow>
                     {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}

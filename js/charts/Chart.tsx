@@ -9,9 +9,9 @@ chart.interactive(domNode)
 
 */
 
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { ChartView } from './ChartView'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 

@@ -1,6 +1,6 @@
 import { computed } from 'mobx'
 import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq } from './Util'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { DataKey } from './DataKey'
 import { LineChartSeries, LineChartValue } from './LineChart'
 import { AxisSpec } from './AxisSpec'

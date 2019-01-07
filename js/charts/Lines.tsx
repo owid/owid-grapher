@@ -6,7 +6,7 @@ import { LineChartSeries, LineChartValue } from './LineChart'
 import { AxisScale } from './AxisScale'
 import { Vector2 } from './Vector2'
 import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { DataKey } from './DataKey'
 
 export interface LinesProps {
