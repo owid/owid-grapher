@@ -1,6 +1,6 @@
 import * as wpdb from '../articles/wpdb'
 import * as fs from 'fs-extra'
-import { csvRow } from '../admin/serverUtil';
+import { csvRow } from '../admin/serverUtil'
 const googleTrends = require('google-trends-api')
 const asciify = require('asciify-string')
 
@@ -11,7 +11,6 @@ async function getTitles() {
         SELECT post_title FROM wp_posts AS posts
         WHERE (posts.post_type='page' OR posts.post_type='post') AND posts.post_status='publish' ORDER BY post_title DESC
     `)
-
 
     await wpdb.end()
 
@@ -37,12 +36,11 @@ async function main() {
 
         try {
             const related = await googleTrends.relatedQueries({ keyword: title })
-            data[title] = related    
+            data[title] = related
         } catch (err) {
             data[title] = JSON.stringify({})
             console.error(err)
         }
-
 
         await fs.writeFile('/tmp/trends.json', JSON.stringify(data))
     }
@@ -62,7 +60,7 @@ async function main() {
                     rows[j] = []
                 rows[j][i] = `${keyword.value} ${keyword.query}`
                 j += 1
-            }    
+            }
             i += 1
         }
     }

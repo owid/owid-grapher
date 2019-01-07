@@ -3,7 +3,7 @@ import { observer } from 'mobx-react'
 import { computed, action, observable } from 'mobx'
 
 import { uniqBy, isTouchDevice } from './Util'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
 import { ChartView } from './ChartView'
 import { FuzzySearch } from './FuzzySearch'

@@ -4,9 +4,9 @@ import {observable, computed, runInAction, autorun, action, reaction, IReactionD
 import { Prompt, Redirect } from 'react-router-dom'
 
 import { ChartView } from '../charts/ChartView'
-import { Bounds }from '../charts/Bounds'
+import { Bounds } from '../charts/Bounds'
 import {includes, capitalize} from '../charts/Util'
-import { ChartConfig }from '../charts/ChartConfig'
+import { ChartConfig } from '../charts/ChartConfig'
 
 import { ChartEditor, EditorDatabase, Log} from './ChartEditor'
 import { EditorBasicTab } from './EditorBasicTab'

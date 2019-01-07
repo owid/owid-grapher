@@ -2,13 +2,13 @@ import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartEditor } from './ChartEditor'
-import { ChartConfig }from '../charts/ChartConfig'
+import { ChartConfig } from '../charts/ChartConfig'
 import {ComparisonLineConfig} from '../charts/ComparisonLine'
 import { AxisConfigProps } from '../charts/AxisConfig'
 import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, BindString, TextField, Button, EditableListItem, ColorBox, EditableList } from './Forms'
 import { debounce, keysOf } from '../charts/Util'
 import { ColorSchemes, ColorScheme } from '../charts/ColorSchemes'
-import { Color } from '../charts/Color';
+import { Color } from '../charts/Color'
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -39,7 +39,7 @@ class ColorableItem extends React.Component<{ label: string, color: string|undef
 
     render() {
         const {label, color} = this.props
-     
+
         return <EditableListItem key={label} className="ColorableItem">
             <ColorBox color={color} onColor={this.props.onColor}/>
             <div>
@@ -68,7 +68,7 @@ class ColorsSection extends React.Component<{ chart: ChartConfig }> {
 
         const customColors = chart.props.customColors||{}
         const colorables = chart.activeTransform.colorables
-        
+
         return <Section name="Colors">
             <ColorSchemeSelector chart={chart}/>
             {/*<SelectField label="Color by" value={chart.props.colorBy || "default"} onValue={this.onColorBy} options={["default", "entity", "variable"]} optionLabels={["Default", "Entity", "Variable"]} />*/}

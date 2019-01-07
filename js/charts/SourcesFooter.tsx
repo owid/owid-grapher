@@ -4,8 +4,8 @@ import { observer } from 'mobx-react'
 import * as parseUrl from 'url-parse'
 
 import { TextWrap } from './TextWrap'
-import { ChartConfig }from './ChartConfig'
-import { Bounds }from './Bounds'
+import { ChartConfig } from './ChartConfig'
+import { Bounds } from './Bounds'
 import {getRelativeMouse} from './Util'
 import { Tooltip } from './Tooltip'
 

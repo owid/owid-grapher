@@ -1,6 +1,6 @@
 import { computed } from 'mobx'
 import { some, isEmpty, find, sortBy, max, values } from './Util'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { DiscreteBarDatum } from './DiscreteBarChart'
 import { IChartTransform } from './IChartTransform'
 import { DimensionWithData } from './DimensionWithData'

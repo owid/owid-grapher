@@ -1,5 +1,5 @@
 import { scaleOrdinal } from 'd3-scale'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { some, isEmpty, find, intersection, min, max, keyBy, extend, isNumber, has, groupBy, sortBy, map, includes, sortedFindClosestIndex, sortedUniq } from './Util'
 import { computed, observable } from 'mobx'
 import { defaultTo, defaultWith, first, last } from './Util'
@@ -9,8 +9,8 @@ import { AxisSpec } from './AxisSpec'
 import { formatValue, domainExtent, findClosest } from './Util'
 import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { IChartTransform } from './IChartTransform'
-import { Color } from './Color';
-import { Colorizer, Colorable } from './Colorizer';
+import { Color } from './Color'
+import { Colorizer, Colorable } from './Colorizer'
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -188,8 +188,6 @@ export class ScatterTransform implements IChartTransform {
     set compareEndPointsOnly(value: boolean) {
         this.chart.props.compareEndPointsOnly = value || undefined
     }
-
-
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year

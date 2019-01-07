@@ -1,7 +1,7 @@
 import { computed } from 'mobx'
 import { scaleOrdinal } from 'd3-scale'
 import { some, isEmpty, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq } from './Util'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { DataKey } from './DataKey'
 import { StackedAreaSeries, StackedAreaValue } from './StackedArea'
 import { AxisSpec } from './AxisSpec'

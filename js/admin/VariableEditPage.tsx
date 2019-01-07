@@ -9,9 +9,9 @@ import { AdminLayout } from './AdminLayout'
 import { Link } from './Link'
 import {BindString, BindFloat, FieldsRow } from './Forms'
 import { VariableDisplaySettings } from '../charts/VariableData'
-import { ChartConfig }from '../charts/ChartConfig'
+import { ChartConfig } from '../charts/ChartConfig'
 import { ChartFigureView } from '../charts/ChartFigureView'
-import { ChartList, ChartListItem }from './ChartList'
+import { ChartList, ChartListItem } from './ChartList'
 import { AdminAppContext } from './AdminAppContext'
 
 interface VariablePageData {

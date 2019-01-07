@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { uniq } from './Util'
 import { computed } from 'mobx'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { ScaleType } from './AxisScale'
 import { AxisScale } from './AxisScale'
 import { ScaleSelector } from './ScaleSelector'

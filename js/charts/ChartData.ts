@@ -1,7 +1,7 @@
 import { labelsByRegion } from './WorldRegions'
 import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { DataKey } from './DataKey'
 import { Color } from './Color'
 import { last, defaultTo, slugify } from './Util'

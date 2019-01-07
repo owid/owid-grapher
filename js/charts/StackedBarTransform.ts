@@ -1,7 +1,7 @@
 import { computed } from 'mobx'
 import { scaleOrdinal } from 'd3-scale'
 import { includes, identity, extend, some, isEmpty, cloneDeep, find, sortBy, sortedUniq, min, max, values, defaultTo, findClosest, formatYear, uniq } from './Util'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { StackedBarValue, StackedBarSeries } from './StackedBarChart'
 import { AxisSpec } from './AxisSpec'
 import { IChartTransform } from './IChartTransform'
@@ -220,7 +220,7 @@ export class StackedBarTransform implements IChartTransform {
 
         // Preserve order
         groupedData = sortBy(groupedData, series => -selectedKeys.indexOf(series.key))
-        
+
         return groupedData
     }
 
@@ -242,7 +242,6 @@ export class StackedBarTransform implements IChartTransform {
     @computed get colorables(): Colorable[] {
         return this.colors.colorables
     }
-
 
     // Apply time filtering and stacking
     @computed get stackedData(): StackedBarSeries[] {

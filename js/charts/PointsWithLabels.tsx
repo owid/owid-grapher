@@ -13,7 +13,7 @@ import { scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20 } from 'd3-sc
 import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { NoData } from './NoData'
 import { AxisScale } from './AxisScale'
 import { getRelativeMouse, makeSafeForCSS, intersection } from './Util'
@@ -350,7 +350,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const lastValue = last(series.values) as ScatterRenderValue
         const lastPos = lastValue.position
-        const fontSize = hideLines 
+        const fontSize = hideLines
             ? series.isForeground ? (this.isSubtleForeground ? 8 : 9) : 7
             : lastValue.fontSize * (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
 

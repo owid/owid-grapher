@@ -18,7 +18,7 @@ import { observer } from 'mobx-react'
 
 import { SVGElement } from './Util'
 import { ScaleType } from './ScaleType'
-import { Bounds }from './Bounds'
+import { Bounds } from './Bounds'
 import { Text } from './Text'
 import { TextWrap } from './TextWrap'
 import { NoData } from './NoData'

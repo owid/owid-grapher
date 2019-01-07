@@ -2,8 +2,8 @@ import { extend } from './Util'
 import * as React from 'react'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
-import { Bounds }from './Bounds'
-import { ChartConfig }from './ChartConfig'
+import { Bounds } from './Bounds'
+import { ChartConfig } from './ChartConfig'
 
 interface DownloadTabProps {
     bounds: Bounds,

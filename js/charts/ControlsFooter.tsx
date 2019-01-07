@@ -3,7 +3,7 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import * as Cookies from 'js-cookie'
 
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { getQueryParams } from './Util'
 import { ChartView } from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
@@ -24,7 +24,7 @@ class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string
             this.dismissable = true
         }
     }
-    
+
     @action.bound onClick() {
         this.dismissable = false
     }

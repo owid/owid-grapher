@@ -6,7 +6,7 @@
 
 import * as React from 'react'
 import { AxisBox, AxisBoxView } from './AxisBox'
-import { ChartConfig }from './ChartConfig'
+import { ChartConfig } from './ChartConfig'
 import { ScaleType } from './ScaleType'
 import {action} from 'mobx'
 
