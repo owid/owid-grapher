@@ -2,7 +2,7 @@ import { ChartConfig } from "./ChartConfig"
 import { computed } from "mobx"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { scaleOrdinal } from "d3-scale"
-import { Color } from "./Color";
+import { Color } from "./Color"
 
 interface ColorizerProps {
     chart: ChartConfig
