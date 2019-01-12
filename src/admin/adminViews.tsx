@@ -16,7 +16,13 @@ import { UserInvitation } from '../model/UserInvitation'
 
 const adminViews = Router()
 
-adminViews.get('/login', (req, res) => {
+// None of these should be google indexed
+adminViews.use(async (req, res, next) => {
+    res.set('X-Robots-Tag', 'noindex')
+    return next()
+})
+
+adminViews.get('/login', async (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next}/>))
 })
 adminViews.post('/login', async (req, res) => {
