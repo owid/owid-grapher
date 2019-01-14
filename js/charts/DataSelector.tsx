@@ -7,6 +7,8 @@ import { ChartConfig } from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
 import { ChartView } from './ChartView'
 import { FuzzySearch } from './FuzzySearch'
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 // Metadata reflection hack - Mispy
 declare const global: any
@@ -77,7 +79,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         const { selectedData, searchResults, searchInput } = this
 
         return <div ref={this.base} className="DataSelectorMulti">
-            <h2>Choose data to show <button onClick={this.props.onDismiss}><i className="fa fa-times" /></button></h2>
+            <h2>Choose data to show <button onClick={this.props.onDismiss}><FontAwesomeIcon icon={faTimes}/></button></h2>
             <div>
                 <div className="searchResults">
                     <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />

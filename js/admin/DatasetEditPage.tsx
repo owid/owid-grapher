@@ -19,6 +19,9 @@ import { Tag } from './TagBadge'
 import { VariableList, VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
 import { Base64 } from 'js-base64'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload, faUpload } from '@fortawesome/free-solid-svg-icons'
+import { faGithub } from '@fortawesome/free-brands-svg-icons'
 
 class VariableEditable {
     @observable name: string = ""
@@ -330,16 +333,16 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <h1>{dataset.name}</h1>
                 <p>Uploaded {timeago.format(dataset.dataEditedAt)} by {dataset.dataEditedByUserName}</p>
                 <Link native to={`/datasets/${dataset.id}.csv`} className="btn btn-primary">
-                    <i className="fa fa-download"/> Download CSV
+                    <FontAwesomeIcon icon={faDownload}/> Download CSV
                 </Link>
                 {!isBulkImport && !dataset.isPrivate && <a href={this.gitHistoryUrl} target="_blank" className="btn btn-secondary">
-                    <i className="fa fa-github"/> View on GitHub
+                    <FontAwesomeIcon icon={faGithub}/> View on GitHub
                 </a>}
                 {dataset.zipFile && <Link native to={`/datasets/${dataset.id}/downloadZip`} className="btn btn-secondary">
-                    <i className="fa fa-download"/> additional-material.zip
+                    <FontAwesomeIcon icon={faDownload}/> additional-material.zip
                 </Link>}
                 {!isBulkImport && <button className="btn btn-secondary" onClick={this.startChooseZip}>
-                    <i className="fa fa-upload"/> {dataset.zipFile ? "Overwrite Zip" : "Upload Zip"}
+                    <FontAwesomeIcon icon={faUpload}/> {dataset.zipFile ? "Overwrite Zip" : "Upload Zip"}
                 </button>}
             </section>
             <section>

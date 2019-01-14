@@ -6,6 +6,8 @@ import { Link } from './Link'
 import { EditorFAQ } from './EditorFAQ'
 import { AdminSidebar } from './AdminSidebar'
 import { AdminAppContext } from './AdminAppContext'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
@@ -73,7 +75,7 @@ export class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: 
                 <ul className="navbar-nav">
                     <li className="nav-item">
                         <Link className="nav-link" to="/charts/create">
-                            <i className="fa fa-plus"/> New chart
+                            <FontAwesomeIcon icon={faPlus}/> New chart
                         </Link>
                     </li>
                     <li className="nav-item">

@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export class LoadingBlocker extends React.Component {
     render() {
@@ -18,7 +20,7 @@ export class LoadingBlocker extends React.Component {
             color: 'white'
         }
         return <div style={style}>
-            <i className="fa fa-spinner fa-spin" />
+            <FontAwesomeIcon icon={faSpinner}/>
         </div>
     }
 }

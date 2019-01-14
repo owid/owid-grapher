@@ -6,6 +6,8 @@ import { ChartConfig } from '../charts/ChartConfig'
 import { DataKey } from '../charts/DataKey'
 import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
 import { ChartEditor } from './ChartEditor'
+import { faArrowsAltV, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
@@ -33,11 +35,11 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
         return <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
             <div>
-                <div><i className="fa fa-arrows-v"/></div>
+                <div><FontAwesomeIcon icon={faArrowsAltV}/></div>
                 <ColorBox color={color} onColor={this.onColor}/>
                 {meta ? meta.fullLabel : datakey}
             </div>
-            <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>
+            <div className="clickable" onClick={this.onRemove}><FontAwesomeIcon icon={faTimes}/></div>
         </EditableListItem>
     }
 }

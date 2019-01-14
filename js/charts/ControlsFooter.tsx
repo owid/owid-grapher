@@ -10,6 +10,9 @@ import { HighlightToggleConfig } from './ChartConfig'
 import { Timeline } from './HTMLTimeline'
 import { extend, keys } from './Util'
 import { worldRegions, labelsByRegion } from './WorldRegions'
+import { faCode, faEdit, faDownload, faShareAlt, faCog, faExpand, faPlus, faSearch, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
+import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 declare const Global: { rootUrl: string }
 
@@ -119,16 +122,16 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
         return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={action(() => this.dismissable = false)}>
             <h2>Share</h2>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
-                <i className="fa fa-twitter" /> Twitter
+                <FontAwesomeIcon icon={faTwitter}/> Twitter
             </a>
             <a className="btn" target="_blank" title="Share on Facebook" href={facebookHref}>
-                <i className="fa fa-facebook" /> Facebook
+                <FontAwesomeIcon icon={faFacebook}/> Facebook
             </a>
             <a className="btn" title="Embed this visualization in another HTML document" onClick={this.onEmbed}>
-                <i className="fa fa-code" /> Embed
+                <FontAwesomeIcon icon={faCode}/> Embed
             </a>
             {editUrl && <a className="btn" target="_blank" title="Edit chart" href={editUrl}>
-                <i className="fa fa-edit" /> Edit
+                <FontAwesomeIcon icon={faEdit}/> Edit
             </a>}
         </div>
     }
@@ -326,16 +329,16 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
                     return tabName !== 'download' && <li key={tabName} className={"tab clickable" + (tabName === chart.tab ? ' active' : '')} onClick={() => chart.tab = tabName}><a>{tabName}</a></li>
                 })}
                 <li className={"tab clickable icon" + (chart.tab === 'download' ? ' active' : '')} onClick={() => chart.tab = 'download'} title="Download as .png or .svg">
-                    <a><i className="fa fa-download" /></a>
+                    <a><FontAwesomeIcon icon={faDownload}/></a>
                 </li>
                 <li className="clickable icon">
-                    <a title="Share" onClick={this.onShareMenu}><i className="fa fa-share-alt"/></a>
+                    <a title="Share" onClick={this.onShareMenu}><FontAwesomeIcon icon={faShareAlt}/></a>
                 </li>
                 {hasSettingsMenu && <li className="clickable icon">
-                    <a title="Settings" onClick={this.onSettingsMenu}><i className="fa fa-cog"/></a>
+                    <a title="Settings" onClick={this.onSettingsMenu}><FontAwesomeIcon icon={faCog}/></a>
                 </li>}
                 {chartView.isEmbed && <li className="clickable icon">
-                    <a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><i className="fa fa-expand" /></a>
+                    <a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><FontAwesomeIcon icon={faExpand}/></a>
                 </li>}
             </ul>
         </nav>
@@ -344,11 +347,11 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
 
         const extraControls = hasInlineControls && <div className="extraControls">
             {chart.data.canAddData && <button type="button" onClick={this.onDataSelect}>
-                {(chart.isScatter || chart.isSlopeChart) ? <span><i className="fa fa-search" /> Search</span> : <span><i className="fa fa-plus" /> Add {addDataTerm}</span>}
+                {(chart.isScatter || chart.isSlopeChart) ? <span><FontAwesomeIcon icon={faSearch}/> Search</span> : <span><FontAwesomeIcon icon={faPlus}/> Add {addDataTerm}</span>}
             </button>}
 
             {chart.data.canChangeEntity && <button type="button" onClick={this.onDataSelect}>
-                <i className="fa fa-exchange" /> Change {chart.entityType}
+                <FontAwesomeIcon icon={faExchangeAlt}/> Change {chart.entityType}
             </button>}
 
             {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}

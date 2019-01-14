@@ -6,6 +6,8 @@ import { getRelativeMouse, formatYear } from './Util'
 import { observable, computed, autorun, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartViewContext } from './ChartViewContext'
+import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface TimelineProps {
     years: number[],
@@ -310,7 +312,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
         return <div ref={this.base} className={"clickable TimelineControl"} onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
             <div onMouseDown={e => e.stopPropagation()} onClick={this.onTogglePlay}>
-                {isPlaying ? <i className="fa fa-pause" /> : <i className="fa fa-play" />}
+                {isPlaying ? <FontAwesomeIcon icon={faPause}/> : <FontAwesomeIcon icon={faPlay}/>}
             </div>
             <div>{formatYear(minYear)}</div>
             <div className="slider">
