@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "noImplicitReturns": true,
+        "allowJs": false,
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "jsx": "react",
+        "target": "es5",
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+	"skipLibCheck": true,
+        "lib": ["dom", "es7", "esnext.asynciterable"],
+        "plugins": [
+            { "name": "tslint-language-service" }
+        ]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+}

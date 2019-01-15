@@ -4,7 +4,6 @@
 .env
 .idea/
 db.sqlite3
-/node_modules
 .sublime*
 yarn-error.log
 env
@@ -17,3 +16,5 @@ public
 *.swp
 datasetsExport
 .DS_Store
+theme/node_modules
+theme/yarn.lock
