@@ -20,7 +20,7 @@ module.exports = (env, argv) => {
             modules: [
                 path.join(__dirname, "js/libs"),
                 path.join(__dirname, "css/libs"),
-                path.join(__dirname, "node_modules"),
+                path.join(__dirname, "../node_modules"),
             ],
         },
         module: {
