@@ -135,6 +135,7 @@ export class ChartConfigProps {
     @observable.ref overlay?: ChartTabOption = undefined
 
     @observable.ref internalNotes?: string = undefined
+    @observable.ref variantName?: string = undefined
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
 

@@ -33,6 +33,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
             </Section>
             <Section name="Misc">
                 <BindString label="Internal author notes" field="internalNotes" store={chart.props} placeholder="e.g. WIP, needs review, etc" textarea/>
+                <BindString label="Variant name" field="variantName" store={chart.props} placeholder="e.g. IHME data" helpText="Optional variant name for distinguishing charts with the same title"/>
             </Section>
         </div>
     }

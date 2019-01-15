@@ -19,6 +19,7 @@ export interface ChartListItem {
     hasMapTab: boolean
     isPublished: boolean
     isStarred: boolean
+    variantName: string
     internalNotes: string
     type: string
     lastEditedAt: string
@@ -81,9 +82,9 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
                 </a>
             </td>
             {chart.isPublished ? <td>
-                <a href={`${this.context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a>
+                <a href={`${this.context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a> {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
             </td> : <td>
-                <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)}
+                <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)} {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
             </td>}
             <td style={{minWidth: "120px"}}>{showChartType(chart)}</td>
             <td>{highlight(chart.internalNotes)}</td>
@@ -165,7 +166,7 @@ export class ChartList extends React.Component<{ charts: ChartListItem[], search
                     <th></th>
                 </tr>
             </thead>
-                <tbody>
+            <tbody>
                 {charts.map(chart => <ChartRow chart={chart} key={chart.id} availableTags={availableTags} searchHighlight={searchHighlight} onDelete={this.onDeleteChart} onStar={this.onStar}/>)}
             </tbody>
         </table>
