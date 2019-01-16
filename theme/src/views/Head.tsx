@@ -1,5 +1,6 @@
-import {BAKED_URL, ASSETS_URL} from '../settings'
+import {BAKED_URL} from '../../../src/settings'
 import * as React from 'react'
+import { webpack } from '../../../src/staticGen';
 
 export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc?: string, imageUrl?: string, children?: any }) => {
     const {canonicalUrl} = props
@@ -26,8 +27,8 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
         <meta name="twitter:title" content={pageTitle}/>
         <meta name="twitter:description" content={pageDesc}/>
         <meta name="twitter:image" content={imageUrl}/>
-        <link rel="stylesheet" href={`${ASSETS_URL}/css/commons.css`}/>
-        <link rel="stylesheet" href={`${ASSETS_URL}/css/owid.css`}/>
+        <link rel="stylesheet" href={webpack('css/commons.css')}/>
+        <link rel="stylesheet" href={webpack('css/owid.css')}/>
         {props.children}
     </head>
 }

@@ -1,5 +1,5 @@
 import {createConnection} from './database'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from './settings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from '../../src/settings'
 
 import {decodeHTML} from 'entities'
 var slugify = require('slugify')
@@ -14,6 +14,10 @@ const imageSize = promisify(imageSizeStandard) as any
 const wpdb = createConnection({
     database: WORDPRESS_DB_NAME
 })
+
+export async function connect() {
+    await wpdb.conn.connect()    
+}
 
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
     return wpdb.query(queryStr, params)

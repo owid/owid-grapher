@@ -11,7 +11,7 @@ import * as grapherDb from './grapherDb'
 import { formatPost, FormattedPost, extractFormattingOptions, formatWordpressPost } from './formatting'
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
-import * as settings from './settings'
+import * as settings from '../../src/settings'
 const { BAKED_DIR, BAKED_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
 import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson } from './renderPage'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'

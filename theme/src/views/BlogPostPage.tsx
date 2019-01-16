@@ -1,4 +1,4 @@
-import {BAKED_URL, WORDPRESS_URL} from '../settings'
+import {BAKED_URL, WORDPRESS_URL} from '../../../src/settings'
 import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'

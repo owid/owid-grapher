@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as _ from 'lodash'
 import * as md5 from 'md5'
 
-import {GRAPHER_DIR, BAKED_DIR} from './settings'
+import {GRAPHER_DIR, BAKED_DIR} from '../../src/settings'
 import * as grapherDb from './grapherDb'
 
 // Given a grapher url with query string, create a key to match export filenames

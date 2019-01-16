@@ -1,6 +1,8 @@
 import * as express from 'express'
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from './renderPage'
-import {BAKED_DIR, WORDPRESS_DIR, DEV_SERVER_PORT, DEV_SERVER_HOST} from './settings'
+import {WORDPRESS_DIR, DEV_SERVER_PORT, DEV_SERVER_HOST} from '../../src/settings'
+import * as wpdb from './wpdb'
+import * as grapherDb from './grapherDb'
 
 const devServer = express()
 
@@ -22,6 +24,13 @@ devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))
 })
 
-devServer.listen(DEV_SERVER_PORT, DEV_SERVER_HOST, () => {
-    console.log(`OWID dev server started on ${DEV_SERVER_HOST}:${DEV_SERVER_PORT}`)
-})
+
+async function main() {
+    await wpdb.connect()
+    await grapherDb.connect()
+    devServer.listen(DEV_SERVER_PORT, DEV_SERVER_HOST, () => {
+        console.log(`OWID dev server started on ${DEV_SERVER_HOST}:${DEV_SERVER_PORT}`)
+    })
+}
+
+main()

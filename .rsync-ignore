@@ -10,3 +10,4 @@ dist
 logs/*
 datasetsExport
 tmp
+.tscache

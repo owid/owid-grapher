@@ -1,9 +1,8 @@
-import * as settings from '../settings'
+import * as settings from '../../../src/settings'
 import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
-import { CategoryWithEntries } from '../wpdb'
 import { formatAuthors, formatDate } from '../formatting'
 import * as _ from 'lodash'
 

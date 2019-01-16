@@ -1,5 +1,6 @@
-import * as settings from '../settings'
+import * as settings from '../../../src/settings'
 import * as React from 'react'
+import { webpack } from '../../../src/staticGen'
 
 export const SiteFooter = () => {
     return <footer className="SiteFooter">
@@ -15,8 +16,8 @@ export const SiteFooter = () => {
             <a href="https://github.com/owid">GitHub</a>
             <a href="/support">Donate</a>
         </nav>
-        <script src={`${settings.ASSETS_URL}/js/commons.js`}/>
-        <script src={`${settings.ASSETS_URL}/js/owid.js`}/>
+        <script src={webpack('js/commons.js')}/>
+        <script src={webpack('js/owid.js')}/>
         <script src={`${settings.BAKED_URL}/grapher/embedCharts.js`}/>
     </footer>
 }

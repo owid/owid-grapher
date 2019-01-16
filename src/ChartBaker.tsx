@@ -44,7 +44,7 @@ export class ChartBaker {
 
             for (const key in manifest) {
                 if (key === "charts.js" || key === "commons.css" || key === "commons.js") {
-                    const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
+                    const outPath = path.join(this.baseDir, `assets/${key === "commons.css" ? 'css/' : 'js/'}/${manifest[key]}`)
                     fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
                     this.stage(outPath)
                 } else if (key.match(/.js$/) || key.match(/.css$/)) {

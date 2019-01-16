@@ -1,18 +1,18 @@
-import { ENV, BASE_DIR, BUILD_GRAPHER_URL, BUILD_ASSETS_URL } from './settings'
+import { ENV, BASE_DIR, BUILD_GRAPHER_URL, BUILD_ASSETS_URL, WEBPACK_DEV_URL } from './settings'
 import * as fs from 'fs-extra'
-import * as path from 'path'
+import * as urljoin from 'url-join'
 
 let manifest: {[key: string]: string}
 export function webpack(assetName: string) {
     if (ENV === 'production') {
         if (!manifest) {
-            const manifestPath = path.join(BASE_DIR, 'dist/webpack/manifest.json')
+            const manifestPath = urljoin(BASE_DIR, 'dist/webpack/manifest.json')
             manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         }
 
-        return `${BUILD_ASSETS_URL}/${manifest[assetName]}`
+        return urljoin(BUILD_ASSETS_URL, manifest[assetName])
     } else {
-        return `${BUILD_ASSETS_URL}/${assetName}`
+        return urljoin(WEBPACK_DEV_URL, assetName)
     }
 }
 

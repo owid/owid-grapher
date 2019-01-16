@@ -19,11 +19,12 @@ interface Settings {
     NODE_SERVER_HOST: string
     NODE_SERVER_PORT: number
     NODE_BASE_URL: string
-    SLACK_ERRORS_WEBHOOK_URL: string
+    SLACK_ERRORS_WEBHOOK_URL?: string
     SESSION_COOKIE_AGE: number
 
     WORDPRESS_DB_NAME: string
     WORDPRESS_DIR: string
+    WORDPRESS_URL: string
 
     EMAIL_HOST: string
     EMAIL_PORT: number
@@ -44,31 +45,81 @@ interface Settings {
 
     // The special tag that represents all untagged stuff
     UNCATEGORIZED_TAG_ID: number
+
+    HTTPS_ONLY: boolean
+    BAKED_URL: string
+    BAKED_DIR: string
+
+    BLOG_POSTS_PER_PAGE: number
+    DEV_SERVER_HOST: string
+    DEV_SERVER_PORT: number
 }
 
-const env: Settings = Object.assign({}, process.env as any)
+const {env} = process
 
-env.ENV = (env.ENV === "production" || process.env.NODE_ENV === "production") ? "production" : "development"
-env.BASE_DIR = env.BASE_DIR || path.join(__dirname, "../../")
-env.BUILD_DIR = env.BUILD_DIR || path.join(env.BASE_DIR, "public")
-env.GIT_DATASETS_DIR = env.GIT_DATASETS_DIR || path.join(env.BASE_DIR, "datasetsExport")
-env.SESSION_COOKIE_AGE = process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600
-env.NODE_SERVER_HOST = process.env.NODE_SERVER_HOST || "localhost"
-env.NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030
-env.NODE_BASE_URL = env.NODE_BASE_URL || `http://${env.NODE_SERVER_HOST}:${env.NODE_SERVER_PORT}`
-env.DB_PORT = env.DB_PORT ? parseInt(env.DB_PORT as any) : 3306
+const BASE_DIR = env.BASE_DIR || path.join(__dirname, "../../")
 
-env.GITHUB_USERNAME = env.GITHUB_USERNAME || "owid-test"
-env.GIT_DEFAULT_USERNAME = env.GIT_DEFAULT_USERNAME || "Our World in Data"
-env.GIT_DEFAULT_EMAIL = env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org"
-env.TMP_DIR = "/tmp"
+function expect(key: string): string {
+    const val = env[key]
+    if (val === undefined) {
+        throw new Error(`OWID requires an environment variable for ${key}`)
+    } else {
+        return val
+    }
+}
 
-env.EMAIL_PORT = env.EMAIL_PORT ? parseInt(env.EMAIL_PORT as any) : 443
-env.EMAIL_USE_TLS = !!env.EMAIL_USE_TLS
+const ENV = (env.ENV === "production" || env.NODE_ENV === "production") ? "production" : "development"
 
-const url = parseUrl(env.BUILD_GRAPHER_URL)
-env.BUILD_GRAPHER_PATH = url.pathname
+const settings: Settings = {
+    ENV: ENV,
+    BASE_DIR: BASE_DIR,
 
-env.UNCATEGORIZED_TAG_ID = env.UNCATEGORIZED_TAG_ID ? parseInt(env.UNCATEGORIZED_TAG_ID as any) : 375
+    SECRET_KEY: ENV === "production" ? expect('SECRET_KEY') : "",
 
-export = env
+    DB_NAME: expect('DB_NAME'),
+    DB_USER: env.DB_USER || "root",
+    DB_PASS: env.DB_PASS || "",
+    DB_HOST: env.DB_HOST || "localhost",
+    DB_PORT: env.DB_PORT ? parseInt(env.DB_PORT) : 3306, 
+
+    WORDPRESS_DB_NAME: env.WORDPRESS_DB_NAME || "",
+    WORDPRESS_DIR: env.WORDPRESS_DIR || "",
+    WORDPRESS_URL: env.WORDPRESS_URL || "https://owid.cloud",
+
+    SLACK_ERRORS_WEBHOOK_URL: env.SLACK_ERRORS_WEBHOOK_URL || undefined,
+
+    EMAIL_HOST: env.EMAIL_HOST || 'smtp.mail.com',
+    EMAIL_PORT: env.EMAIL_PORT ? parseInt(env.EMAIL_PORT) : 443,
+    EMAIL_HOST_USER: env.EMAIL_HOST_USER || 'user',
+    EMAIL_HOST_PASSWORD: env.EMAIL_HOST_PASSWORD || 'password',
+    EMAIL_USE_TLS: env.EMAIL_USE_TLS === "false" ? false : true,
+
+    WEBPACK_DEV_URL: env.WEBPACK_DEV_URL || "http://localhost:8090",
+    BUILD_GRAPHER_URL: env.BUILD_GRAPHER_URL || "http://localhost:3030/grapher",
+    BUILD_ASSETS_URL: env.BUILD_ASSETS_URL || "http://localhost:8090",
+    BAKED_URL: env.BAKED_URL || "http://localhost:3030",
+    BAKED_DIR: env.BAKED_DIR || "/Users/mispy/wp-static",
+ 
+    BUILD_DIR: env.BUILD_DIR || path.join(BASE_DIR, "public"),
+    GIT_DATASETS_DIR: env.GIT_DATASETS_DIR || path.join(BASE_DIR, "datasetsExport"),
+    SESSION_COOKIE_AGE: process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600,
+    NODE_SERVER_HOST: process.env.NODE_SERVER_HOST || "localhost",
+    NODE_SERVER_PORT: process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030,
+    NODE_BASE_URL: env.NODE_BASE_URL || `http://${env.NODE_SERVER_HOST}:${env.NODE_SERVER_PORT}`,
+
+    GITHUB_USERNAME: env.GITHUB_USERNAME || "owid-test",
+    GIT_DEFAULT_USERNAME: env.GIT_DEFAULT_USERNAME || "Our World in Data",
+    GIT_DEFAULT_EMAIL: env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org",
+    TMP_DIR: "/tmp",
+
+    BUILD_GRAPHER_PATH: env.BUILD_GRAPHER_URL ? parseUrl(env.BUILD_GRAPHER_URL).pathname : "http://localhost:3030/grapher",
+
+    UNCATEGORIZED_TAG_ID: env.UNCATEGORIZED_TAG_ID ? parseInt(env.UNCATEGORIZED_TAG_ID as any) : 375,
+    HTTPS_ONLY: true,
+
+    BLOG_POSTS_PER_PAGE: 21,
+    DEV_SERVER_HOST: env.DEV_SERVER_HOST || "localhost",
+    DEV_SERVER_PORT: env.DEV_SERVER_PORT ? parseInt(env.DEV_SERVER_PORT) : 3099
+}
+
+export = settings
