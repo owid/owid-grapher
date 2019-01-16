@@ -1,6 +1,7 @@
 const path = require('path')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
@@ -62,6 +63,12 @@ module.exports = (env, argv) => {
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
             new ExtractTextPlugin(isProduction ? '[name].bundle.[hash].css' : '[name].css'),
+
+            // This plugin writes a hard disk cache that is reused between webpack-dev-server processes
+            // so that it's a lot faster to start up
+            new HardSourceWebpackPlugin(),
+
+            // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
         ],
         devServer: {

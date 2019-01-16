@@ -18,4 +18,4 @@ datasetsExport
 .DS_Store
 theme/node_modules
 theme/yarn.lock
-.cache
+.tscache
