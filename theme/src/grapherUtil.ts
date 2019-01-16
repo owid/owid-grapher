@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as _ from 'lodash'
 import * as md5 from 'md5'
 
-import {GRAPHER_DIR, BAKED_DIR} from '../../src/settings'
+import {BASE_DIR, BAKED_DIR} from 'src/settings'
 import * as grapherDb from './grapherDb'
 
 // Given a grapher url with query string, create a key to match export filenames
@@ -74,10 +74,10 @@ export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean }
     }
 
     if (toBake.length > 0) {
-        const args = [`${GRAPHER_DIR}/dist/src/bakeChartsToImages.js`]
+        const args = [`${BASE_DIR}/dist/src/bakeChartsToImages.js`]
         args.push(...toBake)
         args.push(`${BAKED_DIR}/exports`)
-        const promise = exec(`cd ${GRAPHER_DIR} && node ${args.map(arg => JSON.stringify(arg)).join(" ")}`)
+        const promise = exec(`cd ${BASE_DIR} && node ${args.map(arg => JSON.stringify(arg)).join(" ")}`)
         if (!opts.silent)
             promise.childProcess.stdout.on('data', (data: any) => console.log(data.toString().trim()))
         await promise    
