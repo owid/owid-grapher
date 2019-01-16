@@ -2,13 +2,13 @@
   "private": true,
   "version": "2.0.0",
   "scripts": {
+    "tsn": "ts-node --transpileOnly --cacheDirectory .tscache",
     "dev": "concurrently --kill-others --raw \"webpack-dev-server -d\" \"ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r source-map-support/register -- src/admin/server.tsx\"",
     "dev-theme": "cd theme && concurrently --kill-others --raw \"tsc -w\" \"ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r source-map-support/register src/devServer.tsx\" \"webpack-dev-server -d\"",
     "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && webpack -p --progress",
     "test": "jest",
-    "c": "node --experimental-repl-await ./dist/src/console.js",
     "serve": "node-pm dist/src/admin/server.js"
   },
   "dependencies": {
@@ -166,9 +166,11 @@
     "xlsx": "^0.14.0"
   },
   "devDependencies": {
+    "@types/jest": "^23.3.12",
     "depcheck": "^0.6.11",
-    "jest": "^23.4.1",
+    "jest": "^23.6.0",
     "source-map-support": "^0.5.9",
+    "ts-jest": "^23.10.5",
     "ts-node-dev": "^1.0.0-pre.32"
   }
 }

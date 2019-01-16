@@ -5,7 +5,6 @@ import {quote} from 'shell-quote'
 import * as urljoin from 'url-join'
 import * as settings from '../settings'
 import * as util from 'util'
-import { exec as childExec } from 'child_process'
 import * as shell from 'shelljs'
 
 export const promisifiedExec = util.promisify(shell.exec)
@@ -18,6 +17,7 @@ export async function tryExec(command: string): Promise<string> {
     try {
         return await exec(command)
     } catch (error) {
+        console.log(error)
         return error
     }
 }

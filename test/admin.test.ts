@@ -2,7 +2,7 @@
 // Db management is the tricky part
 
 const request = require('supertest')
-const app = require('../dist/src/admin/app').default
+const app = require('../src/admin/app').default
 
 describe('Admin API', () => {
     it('should return charts', async () => {

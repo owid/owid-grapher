@@ -43,15 +43,11 @@ Since the full data_values table (including everything we haven't visualized yet
 
 Finally, run `yarn dev` and head to `localhost:3030`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
-You may (optionally) want to run a static build, which produces the public chart urls: `node dist/src/bakeCharts.js`. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
+You may (optionally) want to run a static build, which produces the public chart urls: `yarn tsn src/bakeCharts.ts`. You only need to run this static build manually after a database import, otherwise it happens automatically when a chart is updated.
 
 ## Migrations
 
 If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `yarn typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `yarn typeorm migration:run`.
-
-## Development console
-
-You can run `yarn c` to get a node REPL with the database connection opened and models preloaded into the context. Then you can e.g. inspect all charts: `await Chart.find()`. Note that this depends on the `--experimental-repl-await` option introduced in node 10.
 
 ## Architecture notes
 

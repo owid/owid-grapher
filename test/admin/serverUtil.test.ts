@@ -1,4 +1,4 @@
-const { exec, tryExec } = require('../../dist/src/admin/serverUtil')
+const { exec, tryExec } = require('../../src/admin/serverUtil')
 
 describe('serverUtil', () => {
 
