@@ -2,9 +2,9 @@
   "private": true,
   "version": "2.0.0",
   "scripts": {
-    "setup": "tsc",
-    "dev": "concurrently --kill-others --raw \"tsc -w\" \"webpack-dev-server -d\" \"nodemon -r source-map-support/register --watch dist/src --inspect dist/src/admin/server.js\"",
-    "dev-theme": "cd theme && concurrently --kill-others --raw \"tsc -w\" \"nodemon -r source-map-support/register --watch dist/src dist/src/devServer.js\" \"webpack-dev-server\"",
+    "dev": "concurrently --kill-others --raw \"webpack-dev-server -d\" \"ts-node-dev --transpileOnly --cache-directory .cache --respawn --no-notify -r source-map-support/register -- src/admin/server.tsx\"",
+    "dev-theme": "cd theme && concurrently --kill-others --raw \"tsc -w\" \"ts-node-dev --transpileOnly --cache-directory .cache --respawn --no-notify -r source-map-support/register src/devServer.ts\" \"webpack-dev-server -d\"",
+    "typeorm": "ts-node -T --cacheDirectory .cache node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && webpack -p --progress",
     "test": "jest",
@@ -167,6 +167,7 @@
   "devDependencies": {
     "depcheck": "^0.6.11",
     "jest": "^23.4.1",
-    "source-map-support": "^0.5.9"
+    "source-map-support": "^0.5.9",
+    "ts-node-dev": "^1.0.0-pre.32"
   }
 }

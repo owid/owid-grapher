@@ -1,10 +1,6 @@
 const path = require('path')
-const webpack = require('webpack')
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
-const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
@@ -13,6 +9,7 @@ module.exports = (env, argv) => {
         entry: {
             charts: "./js/charts.entry.ts",
             admin: "./js/admin.entry.ts",
+            owid: "./theme/js/owid.entry.ts"
         },
         optimization: {
             splitChunks: {
