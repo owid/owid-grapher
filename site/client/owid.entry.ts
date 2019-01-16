@@ -8,32 +8,24 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 
 import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
-import {runHeaderMenus} from './SiteHeaderMenus'
+import {runHeaderMenus} from './SiteHeaderMenus2'
+import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
 window.Grapher = Grapher
 window.ChartView = ChartView
 window.App = window.App || {}
 
-
 Analytics.logEvent("OWID_PAGE_LOAD")
 
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
     const input = search.querySelector("input[type=search]") as HTMLInputElement
+    const lastQuery = ""
     search.addEventListener('submit', (ev) => {
         ev.preventDefault()
         Analytics.logEvent("OWID_SITE_SEARCH", { query: input.value }).then(() => search.submit()).catch(() => search.submit())
     })
-}
-
-function getParent(el: HTMLElement, condition: (el: HTMLElement) => boolean): HTMLElement | null {
-    let current: HTMLElement | null = el
-    while (current) {
-        if (condition(current)) return current
-        current = current.parentElement
-    }
-    return null
 }
 
 const trackedLinkExists: boolean = !!document.querySelector("a[data-track-click]")

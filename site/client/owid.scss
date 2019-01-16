@@ -15,6 +15,11 @@
 
 @import '~normalize.css';
 
+@import 'util.scss';
+@import 'layout.scss';
+@import 'general.scss';
+@import 'header.scss';
+
 body { margin: 0; }
 
 /* Box Sizing
@@ -58,20 +63,6 @@ html {
 body {
 	background-color: #fff;
 	color: rgba(0, 0, 0, 0.8);
-}
-
-a,
-input:focus,
-input[type="button"],
-input[type="reset"],
-input[type="submit"],
-textarea:focus,
-.button {
-	-webkit-transition: all 0.1s ease-in-out;
-	-moz-transition:    all 0.1s ease-in-out;
-	-ms-transition:     all 0.1s ease-in-out;
-	-o-transition:      all 0.1s ease-in-out;
-	transition:         all 0.1s ease-in-out;
 }
 
 ::-moz-selection {
@@ -611,7 +602,7 @@ address a:hover {
   select:focus,
   textarea:focus,
   input:focus {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
@@ -619,7 +610,7 @@ address a:hover {
   select,
   textarea,
   input {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
@@ -1017,7 +1008,7 @@ h6:hover .deep-link {
 
 .article-content a,
 .article-footer a {
-	@include owid-link; 
+	@include owid-link;
 }
 
 /* Homepage
@@ -1900,7 +1891,7 @@ hr.datasources-hr {
 		overflow: hidden;
 		margin-top: -6px;
 		white-space: pre-wrap;
-		word-wrap: break-word;		
+		word-wrap: break-word;
 	}
 }
 

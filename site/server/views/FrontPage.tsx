@@ -30,7 +30,17 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
             <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredMarkup)}}/>
         </Head>
         <body className="FrontPage">
-            <SiteHeader/>
+            <SiteHeader entries={entries}>
+                <div className="wrapper">
+                    <div className="site-intro">
+                        <h1>Know the world you live in</h1>
+                        <p>Everyone has an idea of how the world is changing. Is the world becoming more violent? Is an end to poverty possible? Is population growth unstoppable?</p>
+                        <p>We cannot know what is happening in the world from the daily news alone. The news media focuses on single events, too often missing the long-lasting, forceful changes that reshape the world we live in.</p>
+                        <p className="big">Taking a long-term perspective, Our World in Data shows how global living conditions and the earth’s environment around us are changing. <br />Through <em>interactive data visualizations</em> we can see how the world has changed; by summarizing the scientific literature we explain why.</p>
+                        <p>Published by researchers from the University of Oxford – open source and entirely free.</p>
+                    </div>
+                </div>
+            </SiteHeader>
             <main>
                 <div id="homepage-cover">
                     <div className="lead-in">
