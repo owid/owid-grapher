@@ -6,7 +6,7 @@ import * as _ from 'lodash'
 import * as md5 from 'md5'
 
 import {BASE_DIR, BAKED_DIR} from 'src/settings'
-import * as grapherDb from './grapherDb'
+import * as db from 'src/db'
 
 // Given a grapher url with query string, create a key to match export filenames
 export function grapherUrlToFilekey(grapherUrl: string) {
@@ -29,8 +29,8 @@ export interface GrapherExports {
 }
 
 export async function mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-    const redirects = await grapherDb.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
-    const rows = await grapherDb.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
+    const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
+    const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
 
     const slugToId: {[slug: string]: number} = {}
     for (const row of redirects) {
@@ -62,7 +62,7 @@ export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean }
         }
 
         const chartId = slugToId[slug]  
-        const rows = await grapherDb.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
+        const rows = await db.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
         if (!rows.length) {
             console.error(`Mysteriously missing chart by id ${chartId}`)
             continue

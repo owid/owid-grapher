@@ -16,9 +16,12 @@ interface Settings {
     BUILD_ASSETS_URL: string
     BASE_DIR: string
     SECRET_KEY: string
-    NODE_SERVER_HOST: string
-    NODE_SERVER_PORT: number
-    NODE_BASE_URL: string
+
+
+    ADMIN_SERVER_HOST: string
+    ADMIN_SERVER_PORT: number
+    ADMIN_BASE_URL: string
+
     SLACK_ERRORS_WEBHOOK_URL?: string
     SESSION_COOKIE_AGE: number
 
@@ -70,11 +73,18 @@ function expect(key: string): string {
 
 const ENV = (env.ENV === "production" || env.NODE_ENV === "production") ? "production" : "development"
 
+const ADMIN_SERVER_HOST = env.ADMIN_SERVER_HOST || "localhost"
+const ADMIN_SERVER_PORT = env.ADMIN_SERVER_PORT ? parseInt(env.ADMIN_SERVER_PORT) : 3030
+
 const settings: Settings = {
     ENV: ENV,
     BASE_DIR: BASE_DIR,
 
     SECRET_KEY: ENV === "production" ? expect('SECRET_KEY') : "",
+
+    ADMIN_SERVER_HOST: ADMIN_SERVER_HOST,
+    ADMIN_SERVER_PORT: ADMIN_SERVER_PORT,
+    ADMIN_BASE_URL: env.ADMIN_BASE_URL || `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`,
 
     DB_NAME: expect('DB_NAME'),
     DB_USER: env.DB_USER || "root",
@@ -103,9 +113,6 @@ const settings: Settings = {
     BUILD_DIR: env.BUILD_DIR || path.join(BASE_DIR, "public"),
     GIT_DATASETS_DIR: env.GIT_DATASETS_DIR || path.join(BASE_DIR, "datasetsExport"),
     SESSION_COOKIE_AGE: process.env.SESSION_COOKIE_AGE ? parseInt(process.env.SESSION_COOKIE_AGE) : 1209600,
-    NODE_SERVER_HOST: process.env.NODE_SERVER_HOST || "localhost",
-    NODE_SERVER_PORT: process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT) : 3030,
-    NODE_BASE_URL: env.NODE_BASE_URL || `http://${env.NODE_SERVER_HOST}:${env.NODE_SERVER_PORT}`,
 
     GITHUB_USERNAME: env.GITHUB_USERNAME || "owid-test",
     GIT_DEFAULT_USERNAME: env.GIT_DEFAULT_USERNAME || "Our World in Data",

@@ -1,6 +1,6 @@
 
 // This import has side-effects to do with React import binding, keep it up here
-import {NODE_SERVER_PORT, NODE_SERVER_HOST} from '../settings'
+import {ADMIN_SERVER_PORT, ADMIN_SERVER_HOST} from '../settings'
 
 import { app } from './app'
 
@@ -10,6 +10,6 @@ import * as wpdb from '../articles/wpdb'
 db.connect()
 wpdb.connect()
 
-app.listen(NODE_SERVER_PORT, NODE_SERVER_HOST, () => {
-    console.log(`Express started on ${NODE_SERVER_HOST}:${NODE_SERVER_PORT}`)
+app.listen(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, () => {
+    console.log(`owid-admin server started on ${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`)
 })

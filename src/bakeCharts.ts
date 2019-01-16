@@ -1,7 +1,6 @@
 import {ChartBaker} from './ChartBaker'
 import * as db from './db'
 import * as parseArgs from 'minimist'
-import * as os from 'os'
 import * as path from 'path'
 const argv = parseArgs(process.argv.slice(2))
 

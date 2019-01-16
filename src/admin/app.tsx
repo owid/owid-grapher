@@ -7,7 +7,7 @@ import "reflect-metadata"
 import { AdminSPA } from './AdminSPA'
 import {authMiddleware} from './authentication'
 import { api } from './api'
-import { devServer } from './devServer'
+// import { devServer } from '../site/devServer'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
 import {renderToHtmlPage} from './serverUtil'
@@ -29,7 +29,7 @@ app.use(authMiddleware)
 
 app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
-app.use('/grapher', devServer)
+// app.use('/grapher', devServer)
 
 app.use('/admin/build', express.static('dist/webpack'))
 app.use('/admin', adminViews)

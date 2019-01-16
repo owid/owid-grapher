@@ -40,6 +40,11 @@ export class Chart extends BaseEntity {
         return slugToId
     }
 
+    static async getBySlug(slug: string): Promise<Chart|undefined> {
+        const slugsById = await this.mapSlugsToIds()
+        return await Chart.findOne(slugsById[slug])
+    }
+
     static async setTags(chartId: number, tagIds: number[]) {
         await db.transaction(async t => {
             const tagRows = tagIds.map(tagId => [tagId, chartId])

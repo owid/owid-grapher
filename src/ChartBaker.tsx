@@ -12,7 +12,7 @@ const md5 = require('md5')
 import * as db from './db'
 import { embedSnippet } from './staticGen'
 import { ChartConfigProps } from '../js/charts/ChartConfig'
-import {ChartPage} from './ChartPage'
+import {ChartPage} from './site/ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { getVariableData } from './model/Variable'
 import { renderToHtmlPage, exec } from './admin/serverUtil'

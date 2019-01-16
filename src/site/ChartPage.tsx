@@ -1,20 +1,11 @@
-import {BUILD_GRAPHER_URL, BUILD_GRAPHER_PATH} from './settings'
+import {BUILD_GRAPHER_URL, BUILD_GRAPHER_PATH} from 'src/settings'
 
 import * as React from 'react'
-import * as path from 'path'
 import * as urljoin from 'url-join'
 import * as _ from 'lodash'
-const md5 = require('md5')
 
-import { webpack } from './staticGen'
-import { ChartConfigProps } from '../js/charts/ChartConfig'
-
-// HACK (Mispy): Typescript bindings don't support crossorigin attribute on link as of 14 Mar 2018
-declare module 'react' {
-    interface HTMLAttributes<T> {
-       crossorigin?: boolean
-   }
-}
+import { webpack } from 'src/staticGen'
+import { ChartConfigProps } from 'js/charts/ChartConfig'
 
 export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const {chart} = props
@@ -88,8 +79,8 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
                     figure { display: none !important; }
                 `}</style>
             </noscript>
-            <link rel="stylesheet" href={webpack("commons.css")}/>
-            <link rel="preload" href={`${BUILD_GRAPHER_PATH}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossorigin/>
+            <link rel="stylesheet" href={webpack("css/commons.css")}/>
+            <link rel="preload" href={`${BUILD_GRAPHER_PATH}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
         </head>
         <body className="singleChart">
             <figure data-grapher-src={`${BUILD_GRAPHER_PATH}/${chart.slug}`}/>
@@ -98,8 +89,8 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
-            <script src={webpack("commons.js")}/>
-            <script src={webpack("charts.js")}/>
+            <script src={webpack("js/commons.js")}/>
+            <script src={webpack("js/charts.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>
