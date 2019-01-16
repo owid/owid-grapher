@@ -1,5 +1,5 @@
 import * as wpdb from "./wpdb"
-import * as grapherDb from './grapherDb'
+import * as db from 'src/db'
 import {LongFormPage} from './views/LongFormPage'
 import {BlogPostPage} from './views/BlogPostPage'
 import {BlogIndexPage} from './views/BlogIndexPage'
@@ -26,9 +26,9 @@ export function renderToHtmlPage(element: any) {
 type wpPostRow = any
 
 export async function renderChartsPage() {
-    const chartItems = await grapherDb.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts`) as ChartIndexItem[]
+    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts`) as ChartIndexItem[]
 
-    const chartTags = await grapherDb.query(`
+    const chartTags = await db.query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
@@ -165,7 +165,7 @@ async function main(target: string, isPreview?: boolean) {
         console.error(err)
     } finally {
         wpdb.end()
-        grapherDb.end()
+        db.end()
     }
 }
 
