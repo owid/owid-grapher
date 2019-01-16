@@ -8,6 +8,11 @@ export function webpack(assetName: string) {
         const manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         return `/admin/build/${manifest[assetName]}`
     } else {
-        return `${settings.WEBPACK_DEV_URL}/${assetName}`
+        if (assetName.match(/.js$/))
+            return `${settings.WEBPACK_DEV_URL}/js/${assetName}`
+        else if (assetName.match(/.css$/))
+            return `${settings.WEBPACK_DEV_URL}/css/${assetName}`
+        else
+            return `${settings.WEBPACK_DEV_URL}/${assetName}`
     }
 }

@@ -4,7 +4,7 @@
   "scripts": {
     "tsn": "ts-node --transpileOnly --cacheDirectory .tscache",
     "dev": "concurrently --kill-others --raw \"webpack-dev-server -d\" \"ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r source-map-support/register -- src/admin/server.tsx\"",
-    "dev-theme": "cd theme && concurrently --kill-others --raw \"tsc -w\" \"ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r source-map-support/register src/devServer.tsx\" \"webpack-dev-server -d\"",
+    "dev-theme": "concurrently --kill-others --raw \"cd theme && ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r source-map-support/register -- src/devServer.tsx\" \"webpack-dev-server -d\"",
     "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && webpack -p --progress",
