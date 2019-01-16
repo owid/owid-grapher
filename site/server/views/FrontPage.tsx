@@ -34,23 +34,11 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
                 <div className="wrapper">
                     <div className="site-intro">
                         <h1>Know the world you live in</h1>
-                        <p>Everyone has an idea of how the world is changing. Is the world becoming more violent? Is an end to poverty possible? Is population growth unstoppable?</p>
-                        <p>We cannot know what is happening in the world from the daily news alone. The news media focuses on single events, too often missing the long-lasting, forceful changes that reshape the world we live in.</p>
-                        <p className="big">Taking a long-term perspective, Our World in Data shows how global living conditions and the earth’s environment around us are changing. <br />Through <em>interactive data visualizations</em> we can see how the world has changed; by summarizing the scientific literature we explain why.</p>
-                        <p>Published by researchers from the University of Oxford – open source and entirely free.</p>
+                        <p>Understand how the world is changing through research and <em>interactive data visualizations</em>.</p>
                     </div>
                 </div>
             </SiteHeader>
             <main>
-                <div id="homepage-cover">
-                    <div className="lead-in">
-                        <h1 className="desktop">Our world is changing</h1>
-                        <div className="desktop subheading">Explore the ongoing history of human civilization at the broadest level, through research and data visualization.</div>
-                        <div className="mobile subheading">Living conditions around the world are changing rapidly. Explore how and why.</div>
-                        <img className="down-arrow" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAAM1BMVEUAAAD/zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB//zB8l5oYuAAAAEHRSTlMAECAwQFBgcICPn6+/z9/vIxqCigAAAVxJREFUOMuFlcsWwyAIRFF8izr//7VdNK2KTeomJ+YGZggSon3ZkLJISZHpYdnc8V2juBvMCYCanCNiF8sAeviBmQz0YJYdL4BYzXGf7zPPHEMF9QPlG03kux+BtMkD4rxbQHJjJXlgzbCC2zPT13gKJAY+mjMq3YMU0a4yY5gnkORKXqBKoEGLvlwewCtU3J38AhmViBrsP5A6DJmPpycww5ND/g96JIoI/0GLSglbfxb7Bm3ZSIgGM5IRMUkJOkEGeu8dqhQnSO19YlQpIIeZ8AbDYUaXxwwAuk080lnwAgDlLDg1GPVhMVv1K9wQZd0U7bDCaL/arByZr46tp2/teVyBd4+sJcpHXFapxlAZ2jyu4eG4jplADYCU6G447Pq937iinM4hZcw6pFSpeKAfE5YFZ/+bCsi26wrQ+GY0jxqdJTIulH4zmomIuIw57FH904+BY6oikpIW/AINdBKzcQVAtQAAAABJRU5ErkJggg==" />
-                        <div className="title-author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a>.</div>
-                    </div>
-                </div>
                 <div id="homepage-content" className="clearfix">
                     <div id="homepage-latest">
                         <h3><a href="/grapher/latest">Latest Visualization</a></h3>

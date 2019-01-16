@@ -5,6 +5,10 @@ import { observer } from 'mobx-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faBars, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons'
 import classnames from 'classnames'
+import { find } from 'lodash'
+import { bind } from 'decko'
+
+import { AmazonMenu } from './AmazonMenu'
 
 export interface EntryMeta {
     slug: string
@@ -21,9 +25,17 @@ export interface CategoryWithEntries {
 @observer
 export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWithEntries[], isOpen: boolean, onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void, onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void }> {
     @observable.ref activeCategory?: CategoryWithEntries
+    submenuRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @action.bound setCategory(category: CategoryWithEntries) {
         this.activeCategory = category
+    }
+
+    @bind onActivate(categorySlug: string) {
+        if (categorySlug) {
+            const category = find(this.props.categories, (c) => c.slug === categorySlug)
+            if (category) this.setCategory(category)
+        }
     }
 
     render() {
@@ -38,7 +50,12 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
 
         return <div className={classnames("topics-dropdown", sizeClass, { "open": isOpen })} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} aria-hidden={isOpen}>
             <div className="menu">
-                {categories.map((category) => <CategoryItem key={category.name} category={category} active={category === activeCategory} onMouseEnter={() => this.setCategory(category)} />)}
+                <AmazonMenu
+                    onActivate={this.onActivate}
+                    submenuRect={this.submenuRef.current && this.submenuRef.current.getBoundingClientRect()}
+                >
+                    {categories.map((category) => <CategoryItem key={category.name} category={category} active={category === activeCategory} />)}
+                </AmazonMenu>
                 <hr />
                 <a href="/index" className="item">
                     <span className="label">Index of all topics</span>
@@ -47,7 +64,7 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
                     </span>
                 </a>
             </div>
-            <div className="submenu">
+            <div className="submenu" ref={this.submenuRef}>
                 {activeCategory && activeCategory.entries.map((entry) => <a key={entry.title} href={`/${entry.slug}`} className="item">
                     <span className="label">{entry.title}</span>
                 </a>)}
@@ -56,10 +73,10 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
     }
 }
 
-class CategoryItem extends React.Component<{ category: CategoryWithEntries, active: boolean, onMouseEnter: () => void }> {
+class CategoryItem extends React.Component<{ category: CategoryWithEntries, active: boolean }> {
     render() {
-        const { category, active, onMouseEnter } = this.props
-        return <div className={active ? "active item" : "item"} onMouseEnter={onMouseEnter}>
+        const { category, active } = this.props
+        return <div className={active ? "active item" : "item"} data-submenu-id={category.slug}>
             <span className="label">{category.name}</span>
             <span className="icon">
                 <svg width="5" height="10"><path d="M0,0 L5,5 L0,10 Z" fill="currentColor" /></svg>
@@ -74,7 +91,6 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
     dropdownTimeout?: number
 
     @action.bound setOpen(open: boolean) {
-        console.log("setOpen", open)
         this.dropdownIsOpen = open
         this.clearCloseTimeout()
     }
@@ -103,7 +119,7 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
                         <svg width="12" height="6"><path d="M0,0 L12,0 L6,6 Z" fill="currentColor" /></svg>
                     </div>
                 </button>
-                <DesktopTopicsMenu categories={categories} isOpen={this.dropdownIsOpen} onMouseEnter={() => this.setOpen(true)} onMouseLeave={() => this.scheduleCloseTimeout(500)} />
+                <DesktopTopicsMenu categories={categories} isOpen={this.dropdownIsOpen} onMouseEnter={() => this.setOpen(true)} onMouseLeave={() => this.scheduleCloseTimeout(350)} />
             </div>
             <div>
                 <div className="site-primary-navigation">
@@ -121,8 +137,8 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
                 </div>
                 <div className="site-secondary-navigation">
                     <ul className="site-secondary-links">
-                        <li><a href="/charts">Charts</a></li>
-                        <li><a href="/teaching">Teaching</a></li>
+                        <li><a href="/charts">All charts and research</a></li>
+                        <li><a href="/teaching">Teaching material</a></li>
                         <li><a href="https://sdg-tracker.org">Sustainable Development Goals</a></li>
                     </ul>
                 </div>
