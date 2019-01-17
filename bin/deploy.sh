@@ -55,7 +55,7 @@ then
   cd $TMP_NEW
   yarn install --production
   yarn build
-  ./node_modules/.bin/typeorm migration:run
+  yarn typeorm migration:run
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

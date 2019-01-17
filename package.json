@@ -7,7 +7,7 @@
     "dev-site": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- site/server/devServer.ts",
     "dev-webpack": "webpack-dev-server -d",
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
-    "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache node_modules/.bin/typeorm",
+    "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache -r tsconfig-paths/register node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
     "build": "rm -rf dist && tsc && webpack -p --progress",
     "test": "jest",
