@@ -1,6 +1,5 @@
 import * as mysql from 'mysql'
 import * as typeorm from 'typeorm'
-const ormconfig = require('ormconfig')
 let connection: typeorm.Connection
 
 export async function connect(name?: string) {
