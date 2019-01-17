@@ -1,4 +1,4 @@
-import {ChartBaker} from './ChartBaker'
+import {ChartBaker} from 'site/server/ChartBaker'
 import * as db from 'db/db'
 import * as parseArgs from 'minimist'
 import * as path from 'path'

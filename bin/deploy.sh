@@ -67,7 +67,7 @@ then
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  node dist/src/bakeCharts.js
+  node dist/scripts/bakeCharts.js
 EOF
 fi
 
