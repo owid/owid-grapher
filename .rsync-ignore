@@ -11,3 +11,4 @@ logs/*
 datasetsExport
 tmp
 .tscache
+test

@@ -1,7 +1,7 @@
 import { ChartConfig } from "./ChartConfig"
 import { computed } from "mobx"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { scaleOrdinal } from "d3-scale"
+import { scaleOrdinal, ScaleOrdinal } from "d3-scale"
 import { Color } from "./Color"
 
 interface ColorizerProps {
@@ -53,7 +53,7 @@ export class Colorizer {
         return colors
     }
 
-    @computed get colorScale(): d3.ScaleOrdinal<string, Color> {
+    @computed get colorScale(): ScaleOrdinal<string, Color> {
         return scaleOrdinal(this.colorSet).domain(this.colorKeys)
     }
 
