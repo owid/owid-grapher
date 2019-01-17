@@ -2,8 +2,8 @@
   "private": true,
   "version": "2.0.0",
   "scripts": {
-    "tsn": "ts-node --transpileOnly --cacheDirectory .tscache -r tsconfig-paths/register",
-    "tsnd": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register",
+    "tsn": "ts-node -F -r tsconfig-paths/register",
+    "tsnd": "ts-node-dev -F --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register",
     "dev-admin": "yarn tsnd admin/server/server.tsx",
     "dev-site": "yarn tsnd site/server/devServer.ts",
     "dev-webpack": "webpack-dev-server -d",
@@ -149,6 +149,7 @@
     "topojson": "^3.0.2",
     "ts-loader": "^4.1.0",
     "ts-node": "^3.3.0",
+    "tsconfig-paths": "^3.7.0",
     "tslint": "^5.9.1",
     "tslint-language-service": "^0.9.6",
     "tslint-loader": "^3.6.0",
@@ -166,8 +167,7 @@
     "webpack-manifest-plugin": "^2.0.0-rc.2",
     "webpack-parallel-uglify-plugin": "^1.1.0",
     "wpautop": "^1.0.0",
-    "xlsx": "^0.14.0",
-    "tsconfig-paths": "^3.7.0"
+    "xlsx": "^0.14.0"
   },
   "devDependencies": {
     "@types/jest": "^23.3.12",

@@ -4,13 +4,13 @@ const wpautop = require('wpautop')
 import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
-import {HTTPS_ONLY, WORDPRESS_URL, BAKED_BASE_URL}  from 'settings'
+import {HTTPS_ONLY, WORDPRESS_URL, BAKED_BASE_URL} from 'settings'
 import { getTables, getUploadedImages, FullPost } from './wpdb'
 import Tablepress from './views/Tablepress'
 import {GrapherExports} from './grapherUtil'
 import * as path from 'path'
 
-const mjAPI = require("mathjax-node");
+const mjAPI = require("mathjax-node")
 
 export interface Reference {
 
@@ -184,7 +184,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         if (el.parent.tagName === "a") {
             el.parent.attribs['target'] = '_blank'
         }
-
 
         // Set srcset to load image responsively
         const src = el.attribs['src']||""

@@ -105,7 +105,7 @@ const settings: Settings = {
     DB_USER: env.DB_USER || "root",
     DB_PASS: env.DB_PASS || "",
     DB_HOST: env.DB_HOST || "localhost",
-    DB_PORT: env.DB_PORT ? parseInt(env.DB_PORT) : 3306, 
+    DB_PORT: env.DB_PORT ? parseInt(env.DB_PORT) : 3306,
 
     WORDPRESS_DB_NAME: env.WORDPRESS_DB_NAME || "",
     WORDPRESS_DIR: env.WORDPRESS_DIR || "",
