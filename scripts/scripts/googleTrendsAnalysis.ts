@@ -1,6 +1,6 @@
 import * as wpdb from 'db/wpdb'
 import * as fs from 'fs-extra'
-import { csvRow } from 'util/server/serverUtil'
+import { csvRow } from 'friends/server/serverUtil'
 const googleTrends = require('google-trends-api')
 const asciify = require('asciify-string')
 

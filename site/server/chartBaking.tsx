@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import * as db from 'db/db'
-import { JsonError } from 'util/server/serverUtil'
+import { JsonError } from 'friends/server/serverUtil'
 import { Chart } from 'db/model/Chart'
 import { ChartConfigProps } from 'charts/ChartConfig'
 import { ChartPage } from 'site/server/views/ChartPage'

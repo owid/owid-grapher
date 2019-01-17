@@ -4,8 +4,8 @@ import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'settings'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
-import { expectInt } from 'util/server/serverUtil'
-import { embedSnippet } from 'util/server/staticGen'
+import { expectInt } from 'friends/server/serverUtil'
+import { embedSnippet } from 'friends/server/staticGen'
 
 const devServer = express()
 

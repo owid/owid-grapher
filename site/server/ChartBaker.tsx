@@ -10,12 +10,12 @@ import * as glob from 'glob'
 const md5 = require('md5')
 
 import * as db from 'db/db'
-import { embedSnippet } from 'util/server/staticGen'
+import { embedSnippet } from 'friends/server/staticGen'
 import { ChartConfigProps } from 'charts/ChartConfig'
 import {ChartPage} from 'site/server/views/ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { getVariableData } from 'db/model/Variable'
-import { renderToHtmlPage, exec } from 'util/server/serverUtil'
+import { renderToHtmlPage, exec } from 'friends/server/serverUtil'
 
 export interface ChartBakerProps {
     repoDir: string

@@ -4,7 +4,7 @@ import * as db from 'db/db'
 import * as _ from 'lodash'
 import * as settings from 'settings'
 
-import { exec } from 'util/server/serverUtil'
+import { exec } from 'friends/server/serverUtil'
 
 async function dataExport() {
     await db.connect()

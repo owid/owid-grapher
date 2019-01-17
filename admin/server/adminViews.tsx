@@ -5,7 +5,7 @@ import * as React from 'react'
 import {getConnection} from 'typeorm'
 
 import * as db from 'db/db'
-import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from 'util/server/serverUtil'
+import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from 'friends/server/serverUtil'
 import {tryLogin} from './authentication'
 import { LoginPage } from './LoginPage'
 import { RegisterPage } from './RegisterPage'

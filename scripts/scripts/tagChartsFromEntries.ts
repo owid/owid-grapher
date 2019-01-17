@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 import * as glob from 'glob'
 import * as path from 'path'
 
-import { slugify } from 'util/server/serverUtil'
+import { slugify } from 'friends/server/serverUtil'
 import { Chart } from 'db/model/Chart'
 import { Tag } from 'db/model/Tag'
 

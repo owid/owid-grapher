@@ -3,7 +3,7 @@ import * as fs from 'fs-extra'
 import {quote} from 'shell-quote'
 import * as util from 'util'
 
-import { JsonError, filenamify, exec } from 'util/server/serverUtil'
+import { JsonError, filenamify, exec } from 'friends/server/serverUtil'
 import { Dataset } from 'db/model/Dataset'
 import { Source } from 'db/model/Source'
 import { GIT_DATASETS_DIR, GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, TMP_DIR } from 'settings'

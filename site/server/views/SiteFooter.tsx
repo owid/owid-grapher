@@ -1,6 +1,6 @@
 import * as settings from 'settings'
 import * as React from 'react'
-import { webpack } from 'util/server/staticGen'
+import { webpack } from 'friends/server/staticGen'
 
 export const SiteFooter = () => {
     return <footer className="SiteFooter">
