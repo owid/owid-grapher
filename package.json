@@ -2,16 +2,17 @@
   "private": true,
   "version": "2.0.0",
   "scripts": {
-    "tsn": "ts-node --transpileOnly --cacheDirectory .tscache",
-    "dev-admin": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- admin/server/server.tsx",
-    "dev-site": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- site/server/devServer.ts",
+    "tsn": "ts-node --transpileOnly --cacheDirectory .tscache -r tsconfig-paths/register",
+    "tsnd": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register",
+    "dev-admin": "yarn tsnd admin/server/server.tsx",
+    "dev-site": "yarn tsnd site/server/devServer.ts",
     "dev-webpack": "webpack-dev-server -d",
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
-    "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache -r tsconfig-paths/register node_modules/.bin/typeorm",
+    "typeorm": "yarn tsn node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
-    "build": "rm -rf dist && tsc && webpack -p --progress",
+    "build": "rm -rf dist && webpack -p --progress",
     "test": "jest",
-    "serve": "node-pm dist/src/admin/server.js"
+    "serve": "yarn tsn admin/server/server.tsx"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.12",
@@ -165,7 +166,8 @@
     "webpack-manifest-plugin": "^2.0.0-rc.2",
     "webpack-parallel-uglify-plugin": "^1.1.0",
     "wpautop": "^1.0.0",
-    "xlsx": "^0.14.0"
+    "xlsx": "^0.14.0",
+    "tsconfig-paths": "^3.7.0"
   },
   "devDependencies": {
     "@types/jest": "^23.3.12",
@@ -174,7 +176,6 @@
     "npm-run-all": "^4.1.5",
     "source-map-support": "^0.5.9",
     "ts-jest": "^23.10.5",
-    "ts-node-dev": "^1.0.0-pre.32",
-    "tsconfig-paths": "^3.7.0"
+    "ts-node-dev": "^1.0.0-pre.32"
   }
 }

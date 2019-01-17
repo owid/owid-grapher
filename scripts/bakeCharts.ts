@@ -1,3 +1,4 @@
+import {BASE_DIR} from 'settings'
 import {ChartBaker} from 'site/server/ChartBaker'
 import * as db from 'db/db'
 import * as parseArgs from 'minimist'
@@ -6,7 +7,7 @@ const argv = parseArgs(process.argv.slice(2))
 
 async function main(email: string, name: string, message: string) {
     const baker = new ChartBaker({
-        repoDir: path.join(__dirname, `../../public`)
+        repoDir: path.join(BASE_DIR, `public`)
     })
 
     try {

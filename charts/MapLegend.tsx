@@ -355,7 +355,7 @@ class CategoricalMapLegendView extends React.Component<CategoricalMapLegendViewP
                 const isFocus = focusBracket && m.bin.value === focusBracket.value
                 const stroke = isFocus ? "#FFEC38" : "#333"
                 return <g key={i} onMouseOver={() => this.props.onMouseOver(m.bin)} onMouseLeave={() => this.props.onMouseLeave()}>
-                    <rect x={(props.x as number) + m.x} y={(props.y as number) + m.y} width={m.rectSize} height={m.rectSize} fill={m.bin.color} stroke={stroke} stroke-width={0.4} />,
+                    <rect x={(props.x as number) + m.x} y={(props.y as number) + m.y} width={m.rectSize} height={m.rectSize} fill={m.bin.color} stroke={stroke} strokeWidth={0.4} />,
                   <text x={(props.x as number) + m.label.bounds.x} y={(props.y as number) + m.label.bounds.y} fontSize={m.label.fontSize} dominantBaseline="hanging">{m.label.text}</text>
                 </g>
             })}

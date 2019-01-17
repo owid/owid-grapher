@@ -1,6 +1,6 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import { ENV, BUILD_GRAPHER_PATH, BASE_DIR } from 'settings'
+import { ENV, BASE_DIR } from 'settings'
 
 import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'
@@ -30,7 +30,7 @@ export class ChartBaker {
 
     constructor(props: ChartBakerProps) {
         this.props = props
-        this.baseDir = path.join(this.props.repoDir, BUILD_GRAPHER_PATH)
+        this.baseDir = path.join(this.props.repoDir, "grapher")
         fs.mkdirpSync(this.baseDir)
     }
 
@@ -123,7 +123,7 @@ export class ChartBaker {
         // Redirect /grapher/latest
         const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
         for (const row of latestRows) {
-            redirects.push(`${BUILD_GRAPHER_PATH}/latest ${BUILD_GRAPHER_PATH}/${JSON.parse(row.slug)} 302`)
+            redirects.push(`/grapher/latest /grapher/${JSON.parse(row.slug)} 302`)
         }
 
         // Redirect old slugs to new slugs
@@ -135,7 +135,7 @@ export class ChartBaker {
         for (const row of rows) {
             const trueSlug = JSON.parse(row.trueSlug)
             if (row.slug !== trueSlug) {
-                redirects.push(`${BUILD_GRAPHER_PATH}/${row.slug} ${BUILD_GRAPHER_PATH}/${trueSlug} 302`)
+                redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302`)
             }
         }
 
@@ -146,17 +146,17 @@ export class ChartBaker {
     async bakeHeaders() {
         const {repoDir} = this.props
 
-        const headers = `${BUILD_GRAPHER_PATH}/data/variables/*
+        const headers = `/grapher/data/variables/*
   Cache-Control: public, max-age=31556926
   Access-Control-Allow-Origin: *
 
-${BUILD_GRAPHER_PATH}/assets/*
+/grapher/assets/*
   Cache-Control: public, max-age=31556926
 
-${BUILD_GRAPHER_PATH}/exports/*
+/grapher/exports/*
   Cache-Control: public, max-age=31556926
 
-${BUILD_GRAPHER_PATH}/*
+/grapher/*
   Access-Control-Allow-Origin: *
 `
         await fs.writeFile(`${repoDir}/_headers`, headers)

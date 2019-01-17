@@ -17,6 +17,9 @@ interface Settings {
 
     BAKED_GRAPHER_URL: string
     BAKED_ASSETS_URL: string
+    BAKED_BASE_URL: string
+    BAKED_SITE_DIR: string
+    BAKED_GRAPHER_DIR: string
     BASE_DIR: string
     SECRET_KEY: string
 
@@ -44,17 +47,12 @@ interface Settings {
     GITHUB_USERNAME: string
     TMP_DIR: string
 
-    // These settings are inferred from other settings
-    BUILD_GRAPHER_PATH: string
-    BAKED_GRAPHER_DIR: string
     GIT_DATASETS_DIR: string
 
     // The special tag that represents all untagged stuff
     UNCATEGORIZED_TAG_ID: number
 
     HTTPS_ONLY: boolean
-    BAKED_BASE_URL: string
-    BAKED_SITE_DIR: string
 
     BLOG_POSTS_PER_PAGE: number
     BAKED_DEV_SERVER_HOST: string
@@ -63,7 +61,7 @@ interface Settings {
 
 const {env} = process
 
-const BASE_DIR = env.BASE_DIR || path.join(__dirname, "../../")
+const BASE_DIR = env.BASE_DIR || __dirname
 
 function expect(key: string): string {
     const val = env[key]
@@ -144,8 +142,6 @@ const settings: Settings = {
     GIT_DEFAULT_USERNAME: env.GIT_DEFAULT_USERNAME || "Our World in Data",
     GIT_DEFAULT_EMAIL: env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org",
     TMP_DIR: env.TMP_DIR || "/tmp",
-
-    BUILD_GRAPHER_PATH: env.BAKED_GRAPHER_URL ? parseUrl(env.BAKED_GRAPHER_URL).pathname : "http://localhost:3030/grapher",
 
     UNCATEGORIZED_TAG_ID: env.UNCATEGORIZED_TAG_ID ? parseInt(env.UNCATEGORIZED_TAG_ID as any) : 375,
     HTTPS_ONLY: true,

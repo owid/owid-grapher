@@ -1,4 +1,4 @@
-import {BAKED_GRAPHER_URL, BUILD_GRAPHER_PATH} from 'settings'
+import {BAKED_GRAPHER_URL} from 'settings'
 
 import * as React from 'react'
 import * as urljoin from 'url-join'
@@ -45,7 +45,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
-            figure.innerHTML = "<img src=\\"${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
+            figure.innerHTML = "<img src=\\"${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
             throw err;
         }
@@ -79,18 +79,18 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
                     figure { display: none !important; }
                 `}</style>
             </noscript>
-            <link rel="stylesheet" href={webpack("css/commons.css")}/>
-            <link rel="preload" href={`${BUILD_GRAPHER_PATH}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
+            <link rel="stylesheet" href={webpack("commons.css")}/>
+            <link rel="preload" href={`${BAKED_GRAPHER_URL}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
         </head>
         <body className="singleChart">
-            <figure data-grapher-src={`${BUILD_GRAPHER_PATH}/${chart.slug}`}/>
+            <figure data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}/>
             <noscript id="fallback">
-                <img src={`${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg`}/>
+                <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
-            <script src={webpack("js/commons.js")}/>
-            <script src={webpack("js/charts.js")}/>
+            <script src={webpack("commons.js")}/>
+            <script src={webpack("charts.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>

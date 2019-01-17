@@ -17,14 +17,14 @@ export function AdminSPA(props: { rootUrl: string, username: string }) {
         <head>
             <title>owid-admin</title>
             <meta name="description" content=""/>
-            <link href={webpack("css/commons.css")} rel="stylesheet" type="text/css"/>
-            <link href={webpack("css/admin.css")} rel="stylesheet" type="text/css"/>
+            <link href={webpack("commons.css")} rel="stylesheet" type="text/css"/>
+            <link href={webpack("admin.css")} rel="stylesheet" type="text/css"/>
         </head>
         <body>
             <div id="app">
             </div>
-            <script src={webpack("js/commons.js")}></script>
-            <script src={webpack("js/admin.js")}></script>
+            <script src={webpack("commons.js")}></script>
+            <script src={webpack("admin.js")}></script>
             <script type="text/javascript" dangerouslySetInnerHTML={{__html: script}}/>
             {/* This lets the public frontend know to show edit links and such */}
             <iframe src="https://ourworldindata.org/identifyadmin" style={{display: 'none'}}/>
