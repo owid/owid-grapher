@@ -54,7 +54,7 @@ interface Settings {
 
     HTTPS_ONLY: boolean
     BAKED_BASE_URL: string
-    BAKED_WORDPRESS_DIR: string
+    BAKED_SITE_DIR: string
 
     BLOG_POSTS_PER_PAGE: number
     BAKED_DEV_SERVER_HOST: string
@@ -129,7 +129,7 @@ const settings: Settings = {
     BAKED_GRAPHER_URL: env.BAKED_GRAPHER_URL || `${BAKED_BASE_URL}/grapher`,
 
     // Where the static build output goes
-    BAKED_WORDPRESS_DIR: env.BAKED_DIR || "/Users/mispy/wp-static",
+    BAKED_SITE_DIR: env.BAKED_SITE_DIR || "/Users/mispy/wp-static",
     BAKED_GRAPHER_DIR: env.BAKED_GRAPHER_DIR || path.join(BASE_DIR, "public"),
 
     // The development server that bakes and serves individual urls

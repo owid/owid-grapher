@@ -5,11 +5,16 @@ import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'src/s
 import * as wpdb from '../../theme/src/wpdb'
 import * as db from 'src/db'
 import { expectInt } from 'src/admin/serverUtil'
+import { embedSnippet } from 'src/staticGen'
 
 const devServer = express()
 
 devServer.get('/grapher/data/variables/:variableIds.json', async (req, res) => {
     res.json(await chartDataJson((req.params.variableIds as string).split("+").map(v => expectInt(v))))
+})
+
+devServer.get('/grapher/embedCharts.js', async (req, res) => {
+    res.send(await embedSnippet())
 })
 
 devServer.get('/grapher/:slug', async (req, res) => {

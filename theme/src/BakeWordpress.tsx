@@ -8,11 +8,11 @@ import * as cheerio from 'cheerio'
 
 import * as wpdb from './wpdb'
 import * as db from 'src/db'
-import { formatPost, FormattedPost, extractFormattingOptions, formatWordpressPost } from './formatting'
+import { formatPost, FormattedPost, extractFormattingOptions } from './formatting'
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from '../../src/settings'
-const { BAKED_WORDPRESS_DIR: BAKED_DIR, BAKED_BASE_URL: BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
+const { BAKED_SITE_DIR, BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
 import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson } from './renderPage'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
@@ -78,7 +78,7 @@ export default class WordpressBaker {
         const rows = await wpdb.query(`SELECT url, action_data, action_code FROM wp_redirection_items`)
         redirects.push(...rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`))
 
-        await this.stageWrite(path.join(BAKED_DIR, `_redirects`), redirects.join("\n"))
+        await this.stageWrite(path.join(BAKED_SITE_DIR, `_redirects`), redirects.join("\n"))
     }
 
     async bakeEmbeds() {
@@ -108,7 +108,7 @@ export default class WordpressBaker {
                 : <LongFormPage entries={entries} post={formatted} formattingOptions={formattingOptions} />
         )
 
-        const outPath = path.join(BAKED_DIR, `${post.slug}.html`)
+        const outPath = path.join(BAKED_SITE_DIR, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))        
         await this.stageWrite(outPath, html)
     }
@@ -133,21 +133,21 @@ export default class WordpressBaker {
         await Promise.all(bakingPosts.map(post => this.bakePost(post)))
 
         // Delete any previously rendered posts that aren't in the database
-        const existingSlugs = glob.sync(`${BAKED_DIR}/**/*.html`).map(path => path.replace(`${BAKED_DIR}/`, '').replace(".html", ""))
+        const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
             .filter(path => !path.startsWith('wp-') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
-            const outPath = `${BAKED_DIR}/${slug}.html`
+            const outPath = `${BAKED_SITE_DIR}/${slug}.html`
             await fs.unlink(outPath)
             this.stage(outPath, `DELETING ${outPath}`)
         }
     }
 
     async bakeSpecialPages() {
-        await this.stageWrite(`${BAKED_DIR}/index.html`, await renderFrontPage())
-        await this.stageWrite(`${BAKED_DIR}/subscribe.html`, await renderSubscribePage())
-        await this.stageWrite(`${BAKED_DIR}/charts.html`, await renderChartsPage())
-        await this.stageWrite(`${BAKED_DIR}/headerMenu.json`, await renderMenuJson())
+        await this.stageWrite(`${BAKED_SITE_DIR}/index.html`, await renderFrontPage())
+        await this.stageWrite(`${BAKED_SITE_DIR}/subscribe.html`, await renderSubscribePage())
+        await this.stageWrite(`${BAKED_SITE_DIR}/charts.html`, await renderChartsPage())
+        await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())
     }
 
     async bakeBlog() {
@@ -157,7 +157,7 @@ export default class WordpressBaker {
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? 'blog' : `blog/page/${i}`
             const html = await renderBlogByPageNum(i)
-            await this.stageWrite(`${BAKED_DIR}/${slug}.html`, html)
+            await this.stageWrite(`${BAKED_SITE_DIR}/${slug}.html`, html)
         }
     }
 
@@ -190,13 +190,13 @@ export default class WordpressBaker {
     </entry>`).join("\n")}
 </feed>
 `
-        await this.stageWrite(`${BAKED_DIR}/atom.xml`, feed)
+        await this.stageWrite(`${BAKED_SITE_DIR}/atom.xml`, feed)
     }
 
     async bakeAssets() {
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content ${BAKED_DIR}/`)
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-includes ${BAKED_DIR}/`)
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/themes/owid-theme/public/* ${BAKED_DIR}/`)
+        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-includes ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/themes/owid-theme/public/* ${BAKED_SITE_DIR}/`)
     }
 
     async bakeAll() {
@@ -227,12 +227,12 @@ export default class WordpressBaker {
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         for (const files of chunk(this.stagedFiles, 100)) {
-            this.exec(`cd ${BAKED_DIR} && git add -A ${files.join(" ")}`)
+            this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
         }
         if (authorEmail && authorName && commitMsg) {
-            this.exec(`cd ${BAKED_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
+            this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
         } else {
-            this.exec(`cd ${BAKED_DIR} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`)
+            this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`)
         }
     }
 

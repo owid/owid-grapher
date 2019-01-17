@@ -35,36 +35,29 @@ async function getChartsBySlug() {
     return chartsBySlug
 }
 
-async function main(chartUrls: string[], outDir: string) {
-    await db.connect()
-    try {
-        await fs.mkdirp(outDir)
-        const chartsBySlug = await getChartsBySlug()
+export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
+    await fs.mkdirp(outDir)
+    const chartsBySlug = await getChartsBySlug()
 
-        for (const urlStr of chartUrls) {
-            const url = parseUrl(urlStr)
-            const slug = _.last(url.pathname.split('/')) as string
-            const jsonConfig = chartsBySlug.get(slug)
-            if (jsonConfig) {
-                const queryStr = url.query as any
+    for (const urlStr of chartUrls) {
+        const url = parseUrl(urlStr)
+        const slug = _.last(url.pathname.split('/')) as string
+        const jsonConfig = chartsBySlug.get(slug)
+        if (jsonConfig) {
+            const queryStr = url.query as any
 
-                const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
-                chart.isLocalExport = true
-                const {width, height} = chart.idealBounds
-                const outPath = `${outDir}/${slug}${queryStr ? "-"+(md5(queryStr) as string) : ""}_v${jsonConfig.version}_${width}x${height}.svg`
-                console.log(outPath)
+            const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
+            chart.isLocalExport = true
+            const {width, height} = chart.idealBounds
+            const outPath = `${outDir}/${slug}${queryStr ? "-"+(md5(queryStr) as string) : ""}_v${jsonConfig.version}_${width}x${height}.svg`
+            console.log(outPath)
 
-                if (!fs.existsSync(outPath)) {
-                    const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
-                    const vardata = await getVariableData(variableIds)
-                    chart.vardata.receiveData(vardata)
-                    fs.writeFile(outPath, chart.staticSVG)
-                }
+            if (!fs.existsSync(outPath)) {
+                const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+                const vardata = await getVariableData(variableIds)
+                chart.vardata.receiveData(vardata)
+                fs.writeFile(outPath, chart.staticSVG)
             }
         }
-    } finally {
-        db.end()
     }
 }
-
-main(argv._.slice(0, -1), argv._[argv._.length-1])

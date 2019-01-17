@@ -24,7 +24,7 @@ export function embedSnippet(): string {
         var link = document.createElement('link');
         link.type = 'text/css';
         link.rel = 'stylesheet';
-        link.href = '${webpack('commons.css')}';
+        link.href = '${webpack('css/commons.css')}';
         document.head.appendChild(link);
 
         var hasPolyfill = false;
@@ -47,13 +47,13 @@ export function embedSnippet(): string {
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('commons.js')}';
+        script.src = '${webpack('js/commons.js')}';
         document.head.appendChild(script);
 
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('charts.js')}';
+        script.src = '${webpack('js/charts.js')}';
         document.head.appendChild(script);
     `
 }

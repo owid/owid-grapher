@@ -10,6 +10,7 @@ export async function connect() {
 }
 
 function cleanup() {
+    if (!connection) return
     connection.close().then(() => {
         console.log("Database connection closed")
         process.exit(0)

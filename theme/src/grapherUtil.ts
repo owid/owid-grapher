@@ -5,8 +5,9 @@ import * as path from 'path'
 import * as _ from 'lodash'
 import * as md5 from 'md5'
 
-import {BASE_DIR, BAKED_DIR} from 'src/settings'
+import {BASE_DIR, BAKED_SITE_DIR} from 'src/settings'
 import * as db from 'src/db'
+import { bakeChartsToImages } from 'src/bakeChartsToImages'
 
 // Given a grapher url with query string, create a key to match export filenames
 export function grapherUrlToFilekey(grapherUrl: string) {
@@ -74,21 +75,14 @@ export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean }
     }
 
     if (toBake.length > 0) {
-        const args = [`${BASE_DIR}/dist/src/bakeChartsToImages.js`]
-        args.push(...toBake)
-        args.push(`${BAKED_DIR}/exports`)
-        const promise = exec(`cd ${BASE_DIR} && node ${args.map(arg => JSON.stringify(arg)).join(" ")}`)
-        if (!opts.silent)
-            promise.childProcess.stdout.on('data', (data: any) => console.log(data.toString().trim()))
-        await promise    
+        await bakeChartsToImages(toBake, `${BAKED_SITE_DIR}/exports`)
     }
-
 }
 
 export async function getGrapherExportsByUrl(): Promise<{ get: (grapherUrl: string) => ChartExportMeta }> {
     // Index the files to see what we have available, using the most recent version
     // if multiple exports exist
-    const files = glob.sync(`${BAKED_DIR}/exports/*.svg`)
+    const files = glob.sync(`${BAKED_SITE_DIR}/exports/*.svg`)
     const exportsByKey = new Map()
     for (const filepath of files) {
         const filename = path.basename(filepath)
