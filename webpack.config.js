@@ -8,9 +8,9 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         entry: {
-            charts: "./js/charts.entry.ts",
-            admin: "./js/admin.entry.ts",
-            owid: "./theme/js/owid.entry.ts"
+            charts: "./charts/client/charts.entry.ts",
+            admin: "./admin/client/admin.entry.ts",
+            owid: "./site/client/owid.entry.ts"
         },
         optimization: {
             splitChunks: {
@@ -29,10 +29,11 @@ module.exports = (env, argv) => {
             // So using build hash for now
             filename: (isProduction ? "js/[name].bundle.[hash].js" : "js/[name].js")
         },
-          resolve: {
+        resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
             modules: [
                 path.join(__dirname, "node_modules"),
+                __dirname
             ],
         },
         module: {

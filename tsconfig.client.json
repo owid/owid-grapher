@@ -13,9 +13,6 @@
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es7", "esnext.asynciterable"],
         "baseUrl": ".",
-        "paths": {
-            "js/*": ["./js/*"]
-        },
         "plugins": [
             { "name": "tslint-language-service" }
         ],

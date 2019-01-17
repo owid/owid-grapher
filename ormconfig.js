@@ -8,10 +8,10 @@ module.exports = {
     "username": DB_USER || 'root',
     "password": DB_PASS || '',
     "database": DB_NAME,
-    "entities": ["src/model/**/*.ts"],
-    "migrations": ["src/migration/**/*.ts"],
+    "entities": ["db/model/**/*.ts"],
+    "migrations": ["db/migration/**/*.ts"],
     "cli": {
-        "entitiesDir": "src/model",
-        "migrationsDir": "src/migration"
+        "entitiesDir": "db/model",
+        "migrationsDir": "db/migration"
     }
  }

@@ -3,8 +3,8 @@
   "version": "2.0.0",
   "scripts": {
     "tsn": "ts-node --transpileOnly --cacheDirectory .tscache",
-    "dev-admin": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- src/admin/server.tsx",
-    "dev-site": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- src/site/devServer.ts",
+    "dev-admin": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- admin/server/server.tsx",
+    "dev-site": "ts-node-dev --transpileOnly --cache-directory .tscache --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -- site/server/devServer.ts",
     "dev-webpack": "webpack-dev-server -d",
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
     "typeorm": "ts-node --transpileOnly --cacheDirectory .tscache node_modules/.bin/typeorm",
