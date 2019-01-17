@@ -16,16 +16,16 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
     const structuredMarkup = {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "url": settings.BAKED_URL,
+        "url": settings.BAKED_BASE_URL,
         "potentialAction": {
             "@type": "SearchAction",
-            "target": `${settings.BAKED_URL}/search?q={search_term_string}`,
+            "target": `${settings.BAKED_BASE_URL}/search?q={search_term_string}`,
             "query-input": "required name=search_term_string"
         }
     }
 
     return <html>
-        <Head canonicalUrl={settings.BAKED_URL}>
+        <Head canonicalUrl={settings.BAKED_BASE_URL}>
             <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredMarkup)}}/>
         </Head>
         <body className="FrontPage">

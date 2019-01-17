@@ -1,4 +1,4 @@
-import {BAKED_URL} from '../../../src/settings'
+import {BAKED_BASE_URL} from '../../../src/settings'
 import * as React from 'react'
 import { webpack } from '../../../src/staticGen';
 
@@ -7,7 +7,7 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle ? `${props.pageTitle} - Our World in Data` : `Our World in Data`
     const pageDesc = props.pageDesc || "Living conditions around the world are changing rapidly. Explore how and why."
-    const imageUrl = props.imageUrl || `${BAKED_URL}/wp-content/uploads/2016/06/OurWorldInData.png`
+    const imageUrl = props.imageUrl || `${BAKED_BASE_URL}/wp-content/uploads/2016/06/OurWorldInData.png`
 
     return <head>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>

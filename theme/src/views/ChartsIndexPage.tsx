@@ -42,7 +42,7 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
     }
 
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_URL}/charts`} pageTitle="Charts" pageDesc="All of the interactive charts on Our World in Data."/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/charts`} pageTitle="Charts" pageDesc="All of the interactive charts on Our World in Data."/>
         <body className="ChartsIndexPage">
             <SiteHeader/>
             <main>

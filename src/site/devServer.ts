@@ -1,7 +1,7 @@
 import * as express from 'express'
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from '../../theme/src/renderPage'
 import {chartPage, chartDataJson} from 'src/site/chartBaking'
-import {WORDPRESS_DIR, DEV_SERVER_PORT, DEV_SERVER_HOST} from 'src/settings'
+import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'src/settings'
 import * as wpdb from '../../theme/src/wpdb'
 import * as db from 'src/db'
 import { expectInt } from 'src/admin/serverUtil'
@@ -37,8 +37,8 @@ devServer.get('/:slug', async (req, res) => {
 async function main() {
     await wpdb.connect()
     await db.connect()
-    devServer.listen(DEV_SERVER_PORT, DEV_SERVER_HOST, () => {
-        console.log(`OWID development baker started on ${DEV_SERVER_HOST}:${DEV_SERVER_PORT}`)
+    devServer.listen(BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, () => {
+        console.log(`OWID development baker started on ${BAKED_DEV_SERVER_HOST}:${BAKED_DEV_SERVER_PORT}`)
     })
 }
 

@@ -1,25 +1,25 @@
-import { ENV, BASE_DIR, BUILD_GRAPHER_URL, BUILD_ASSETS_URL, WEBPACK_DEV_URL } from './settings'
+import { ENV, BASE_DIR, BAKED_GRAPHER_URL, BAKED_ASSETS_URL } from './settings'
 import * as fs from 'fs-extra'
 import * as urljoin from 'url-join'
 
 let manifest: {[key: string]: string}
 export function webpack(assetName: string) {
     if (ENV === 'production') {
+        // Read the real asset name from the manifest in case it has a hashed filename
         if (!manifest) {
             const manifestPath = urljoin(BASE_DIR, 'dist/webpack/manifest.json')
             manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         }
-
-        return urljoin(BUILD_ASSETS_URL, manifest[assetName])
-    } else {
-        return urljoin(WEBPACK_DEV_URL, assetName)
+        assetName = manifest[assetName]
     }
+
+    return urljoin(BAKED_ASSETS_URL, assetName)
 }
 
 export function embedSnippet(): string {
     return `
         window.App = {};
-        window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };
+        window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
 
         var link = document.createElement('link');
         link.type = 'text/css';

@@ -11,7 +11,7 @@ import { api } from './api'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
 import {renderToHtmlPage} from './serverUtil'
-import {BUILD_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
+import {BAKED_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from '../settings'
 
 import * as React from 'react'
 
@@ -36,7 +36,7 @@ app.use('/admin', adminViews)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BUILD_GRAPHER_URL}`} username={res.locals.user.fullName}/>))
+    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BAKED_GRAPHER_URL}`} username={res.locals.user.fullName}/>))
 })
 
 // Send errors to Slack

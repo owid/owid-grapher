@@ -7,13 +7,13 @@ import {renderToHtmlPage} from './serverUtil'
 import {chartToSVG} from '../svgPngExport'
 import { OldChart, Chart } from '../model/Chart'
 import * as db from '../db'
-import {NODE_BASE_URL, BUILD_GRAPHER_URL} from '../settings'
+import {ADMIN_BASE_URL, BAKED_GRAPHER_URL} from '../settings'
 import {expectInt} from './serverUtil'
 import * as querystring from 'querystring'
 import * as _ from 'lodash'
 import * as url from 'url'
 
-const IS_LIVE = NODE_BASE_URL === "https://owid.cloud"
+const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
 const testPages = Router()
 
@@ -88,7 +88,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             <div className="row">
                 <div className="side-by-side">
                     <h3>ourworldindata.org</h3>
-                    {!IS_LIVE && <h3>{NODE_BASE_URL}</h3>}
+                    {!IS_LIVE && <h3>{ADMIN_BASE_URL}</h3>}
                 </div>
             </div>
             {props.charts.map(chart =>
@@ -96,7 +96,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                     <div className="chart-id">{chart.id}</div>
                     <div className="side-by-side">
                         <iframe src={`https://ourworldindata.org/grapher/${chart.slug}`}/>
-                        {!IS_LIVE && <figure data-grapher-src={`${BUILD_GRAPHER_URL}/${chart.slug}`}/>}
+                        {!IS_LIVE && <figure data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}/>}
                     </div>
                 </div>
             )}

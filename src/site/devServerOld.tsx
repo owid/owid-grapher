@@ -7,12 +7,12 @@ import * as minimatch from 'minimatch'
 import * as urljoin from 'url-join'
 import * as querystring from 'querystring'
 
-import {ENV, BUILD_GRAPHER_URL, BUILD_DIR} from '../settings'
+import {ENV, BAKED_GRAPHER_URL, BAKED_GRAPHER_DIR} from '../settings'
 
 const devServer = Router()
 
 async function getRedirects(): Promise<{ from: string, to: string }[]> {
-    const buffer = await fs.readFile(path.join(BUILD_DIR, "_redirects"))
+    const buffer = await fs.readFile(path.join(BAKED_GRAPHER_DIR, "_redirects"))
     return buffer.toString('utf8').split("\n").map(line => {
         const spl = line.split(" ")
         return { from: spl[0], to: spl[1] }
@@ -44,7 +44,7 @@ class HeaderRule {
 }
 
 async function getHeaderRules(): Promise<HeaderRule[]> {
-    const buffer = await fs.readFile(path.join(BUILD_DIR, "_headers"))
+    const buffer = await fs.readFile(path.join(BAKED_GRAPHER_DIR, "_headers"))
     return buffer.toString("utf8").split("\n\n").map(block =>
         new HeaderRule(block)
     )
@@ -57,7 +57,7 @@ async function serveFile(res: Response, targetPath: string) {
 devServer.get('/*', async (req, res) => {
     if (ENV === "production") {
         // No dev server in production, redirect to static build
-        res.redirect(urljoin(BUILD_GRAPHER_URL, req.path) + (req.query ? `?${querystring.stringify(req.query)}` : ''))
+        res.redirect(urljoin(BAKED_GRAPHER_URL, req.path) + (req.query ? `?${querystring.stringify(req.query)}` : ''))
         return
     }
 
@@ -77,7 +77,7 @@ devServer.get('/*', async (req, res) => {
         }
     }
 
-    let targetPath = path.join(BUILD_DIR, "grapher", req.path)
+    let targetPath = path.join(BAKED_GRAPHER_DIR, "grapher", req.path)
     if (fs.existsSync(targetPath+".html"))
         targetPath += ".html"
 

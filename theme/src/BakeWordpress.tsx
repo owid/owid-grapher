@@ -12,7 +12,7 @@ import { formatPost, FormattedPost, extractFormattingOptions, formatWordpressPos
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from '../../src/settings'
-const { BAKED_DIR, BAKED_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
+const { BAKED_WORDPRESS_DIR: BAKED_DIR, BAKED_BASE_URL: BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
 import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson } from './renderPage'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
@@ -175,14 +175,14 @@ export default class WordpressBaker {
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title>Our World in Data</title>
     <subtitle>Living conditions around the world are changing rapidly. Explore how and why.</subtitle>
-    <id>${BAKED_URL}/</id>
-    <link type="text/html" rel="alternate" href="${BAKED_URL}"/>
-    <link type="application/atom+xml" rel="self" href="${BAKED_URL}/atom.xml"/>
+    <id>${BAKED_BASE_URL}/</id>
+    <link type="text/html" rel="alternate" href="${BAKED_BASE_URL}"/>
+    <link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
     <updated>${posts[0].date.toISOString()}</updated>
     ${posts.map(post => `<entry>
         <title>${post.title}</title>
-    <id>${BAKED_URL}/${post.slug}</id>
-        <link rel="alternate" href="${BAKED_URL}/${post.slug}"/>
+    <id>${BAKED_BASE_URL}/${post.slug}</id>
+        <link rel="alternate" href="${BAKED_BASE_URL}/${post.slug}"/>
         <published>${post.date.toISOString()}</published>
         <updated>${post.modifiedDate.toISOString()}</updated>
         ${post.authors.map(author => `<author><name>${author}</name></author>`).join("")}

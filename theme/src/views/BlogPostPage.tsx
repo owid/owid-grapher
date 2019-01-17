@@ -1,4 +1,4 @@
-import {BAKED_URL, WORDPRESS_URL} from '../../../src/settings'
+import {BAKED_BASE_URL, WORDPRESS_URL} from '../../../src/settings'
 import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
@@ -9,7 +9,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
     const {post, formattingOptions} = props
 
     const pageTitle = post.title
-    const canonicalUrl = `${BAKED_URL}/${post.slug}`
+    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
 
     return <html>

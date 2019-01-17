@@ -1,6 +1,6 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import { ENV, WEBPACK_DEV_URL, DB_NAME, BUILD_ASSETS_URL, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
+import { ENV, BUILD_GRAPHER_PATH, BASE_DIR } from './settings'
 
 import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'

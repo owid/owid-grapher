@@ -1,10 +1,11 @@
-import * as settings from '../../../src/settings'
 import * as React from 'react'
+import * as _ from 'lodash'
+
+import * as settings from 'src/settings'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { formatAuthors, formatDate } from '../formatting'
-import * as _ from 'lodash'
 
 interface PostMeta {
     title: string
@@ -19,7 +20,7 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
     const pageNums = _.range(1, numPages+1)
 
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_URL}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")} pageTitle="Blog"/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")} pageTitle="Blog"/>
         <body className="blog">
             <SiteHeader/>
 

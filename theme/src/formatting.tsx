@@ -4,7 +4,7 @@ const wpautop = require('wpautop')
 import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
-import {HTTPS_ONLY, WORDPRESS_URL, BAKED_URL}  from '../../src/settings'
+import {HTTPS_ONLY, WORDPRESS_URL, BAKED_BASE_URL}  from '../../src/settings'
 import { getTables, getUploadedImages, FullPost } from './wpdb'
 import Tablepress from './views/Tablepress'
 import {GrapherExports} from './grapherUtil'
@@ -310,8 +310,8 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
     let html = post.content
 
     // Standardize urls
-    html = html.replace(new RegExp(WORDPRESS_URL, 'g'), BAKED_URL)
-        .replace(new RegExp("https?://ourworldindata.org", 'g'), BAKED_URL)
+    html = html.replace(new RegExp(WORDPRESS_URL, 'g'), BAKED_BASE_URL)
+        .replace(new RegExp("https?://ourworldindata.org", 'g'), BAKED_BASE_URL)
 
     // If <!--raw--> appears at the top of a post, it signals that the author
     // wants to bypass the formatting and just write plain HTML

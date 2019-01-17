@@ -73,7 +73,7 @@ export function csvRow(arr: string[]): string {
 }
 
 export function absoluteUrl(path: string): string {
-    return urljoin(settings.NODE_BASE_URL, path)
+    return urljoin(settings.ADMIN_BASE_URL, path)
 }
 
 // Take an arbitrary string and turn it into a nice url slug

@@ -1,4 +1,4 @@
-import {BAKED_URL, WORDPRESS_URL} from '../../../src/settings'
+import {BAKED_BASE_URL, WORDPRESS_URL} from '../../../src/settings'
 import * as React from 'react'
 import { Head } from './Head'
 import { CitationMeta } from './CitationMeta'
@@ -13,7 +13,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
     const authorsText = formatAuthors(post.authors, true)
 
     const pageTitle = post.title
-    const canonicalUrl = `${BAKED_URL}/${post.slug}`
+    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
     const publishedYear = post.modifiedDate.getFullYear()
     const allEntries = _.flatten(_.values(entries).map(c => c.entries))

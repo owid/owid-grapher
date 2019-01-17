@@ -18,6 +18,6 @@ export const SiteFooter = () => {
         </nav>
         <script src={webpack('js/commons.js')}/>
         <script src={webpack('js/owid.js')}/>
-        <script src={`${settings.BAKED_URL}/grapher/embedCharts.js`}/>
+        <script src={`${settings.BAKED_BASE_URL}/grapher/embedCharts.js`}/>
     </footer>
 }

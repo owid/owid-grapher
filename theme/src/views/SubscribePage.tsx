@@ -36,7 +36,7 @@ export default function SubscribePage() {
     `
 
     return <html>
-        <Head pageTitle="Subscribe" canonicalUrl={`${settings.BAKED_URL}/subscribe`}>
+        <Head pageTitle="Subscribe" canonicalUrl={`${settings.BAKED_BASE_URL}/subscribe`}>
             <style dangerouslySetInnerHTML={{__html: style}}/>
         </Head>
         <body className="SubscribePage">

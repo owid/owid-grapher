@@ -1,4 +1,4 @@
-import {BUILD_GRAPHER_URL, BUILD_GRAPHER_PATH} from 'src/settings'
+import {BAKED_GRAPHER_URL, BUILD_GRAPHER_PATH} from 'src/settings'
 
 import * as React from 'react'
 import * as urljoin from 'url-join'
@@ -12,8 +12,8 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
 
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
-    const canonicalUrl = urljoin(BUILD_GRAPHER_URL, chart.slug as string)
-    const imageUrl = urljoin(BUILD_GRAPHER_URL, "exports", `${chart.slug}.png?v=${chart.version}`)
+    const canonicalUrl = urljoin(BAKED_GRAPHER_URL, chart.slug as string)
+    const imageUrl = urljoin(BAKED_GRAPHER_URL, "exports", `${chart.slug}.png?v=${chart.version}`)
 
     const style = `
         html, body {
@@ -42,7 +42,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         var figure = document.getElementsByTagName("figure")[0];
         try {
             window.App = {};
-            window.Global = { rootUrl: '${BUILD_GRAPHER_URL}' };
+            window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
             figure.innerHTML = "<img src=\\"${BUILD_GRAPHER_PATH}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
