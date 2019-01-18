@@ -15,7 +15,7 @@ elif [ "$1" == "danieltest" ]; then
 elif [ "$1" == "live" ]; then
   NAME="live-grapher"
   DB_NAME="live_grapher"
-  WORDPRESS_DIR="/home/owid/ourworldindata.org"
+  WORDPRESS_DIR="/home/owid/owid.cloud"
 
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r

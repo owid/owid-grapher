@@ -7,7 +7,7 @@ import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'setti
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { expectInt } from 'utils/server/serverUtil'
-import { embedSnippet } from 'utils/server/staticGen'
+import { embedSnippet } from 'site/server/embedCharts'
 
 const devServer = express()
 

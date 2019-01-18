@@ -45,7 +45,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
-            figure.innerHTML = "<img src=\\"${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
+            figure.innerHTML = "<img src=\\"/grapher/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
             throw err;
         }
@@ -80,12 +80,12 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
                 `}</style>
             </noscript>
             <link rel="stylesheet" href={webpack("commons.css")}/>
-            <link rel="preload" href={`${BAKED_GRAPHER_URL}/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
+            <link rel="preload" href={`/grapher/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
         </head>
         <body className="singleChart">
-            <figure data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}/>
+            <figure data-grapher-src={`/grapher/${chart.slug}`}/>
             <noscript id="fallback">
-                <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
+                <img src={`/grapher/exports/${chart.slug}.svg`}/>
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
