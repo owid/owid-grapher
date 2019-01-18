@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "strict": true,
+        "alwaysStrict": true,
         "noImplicitReturns": true,
         "allowJs": false,
         "outDir": "./dist/",

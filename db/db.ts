@@ -2,7 +2,12 @@ import * as mysql from 'mysql'
 import * as typeorm from 'typeorm'
 let connection: typeorm.Connection
 
-export async function connect(name?: string) {
+export async function connect() {
+    return getConnection()
+}
+
+async function getConnection() {
+
     if (connection) return connection
 
     try {
@@ -48,19 +53,21 @@ export class TransactionContext {
 }
 
 export async function transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
-    return typeorm.getConnection().transaction(async manager => {
+    return (await getConnection()).transaction(async manager => {
         const t = new TransactionContext(manager)
-        return await callback(t)
+        return callback(t)
     })
 }
 
 export async function query(queryStr: string, params?: any[]): Promise<any> {
-    return typeorm.getConnection().query(params ? mysql.format(queryStr, params) : queryStr)
+    const conn = await getConnection()
+    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
 // For operations that modify data (TODO: handling to check query isn't used for this)
 export async function execute(queryStr: string, params?: any[]): Promise<any> {
-    return typeorm.getConnection().query(params ? mysql.format(queryStr, params) : queryStr)
+    const conn = await getConnection()
+    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
 export async function get(queryStr: string, params?: any[]): Promise<any> {

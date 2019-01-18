@@ -62,7 +62,7 @@ export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean }
             continue
         }
 
-        const chartId = slugToId[slug]  
+        const chartId = slugToId[slug]
         const rows = await db.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
         if (!rows.length) {
             console.error(`Mysteriously missing chart by id ${chartId}`)

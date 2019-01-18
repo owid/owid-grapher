@@ -1,7 +1,5 @@
-import WordpressBaker from './BakeWordpress'
+import { WordpressBaker } from 'site/server/BakeWordpress'
 import * as parseArgs from 'minimist'
-import * as os from 'os'
-import * as path from 'path'
 const argv = parseArgs(process.argv.slice(2))
 
 async function main() {

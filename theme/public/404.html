@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+	<title>404 Not Found</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Language" content="en-us">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+    	html, body {
+    		height: 100%;
+    	}
+
+    	body {
+    		display: flex;
+    		align-items: center;
+    		justify-content: center;
+    		font-size: 18px;
+    	}
+
+    	body > div {
+    		text-align: center;
+    	}
+
+    	input[type=search] {
+    		width: 420px;
+    		border: 1px solid #ccc;
+    	}
+
+    	input[type=submit] {
+    		background-color: #c0023e;
+    		color: white;
+    		width: auto;
+    		cursor: pointer;
+    	}
+
+    	input {
+    		font-size: 18px !important;
+    		padding: 10px 14px;
+    	}
+    </style>
+</head>
+<body>
+    <div>
+      <h1>Sorry, that page doesn’t exist!</h1>
+      <p>You can search below or <a href="/">return to the homepage</a>.</p>
+	<form action="https://google.com/search" method="GET">
+		<input type="hidden" name="sitesearch" value="ourworldindata.org">
+		<input id="search_q" type="search" name="q" placeholder="Search...">
+        <input class="btn" id="search_submit" type="submit" value="Search">
+	</form>
+	</div>
+    <script>
+		var query = window.location.pathname.split("/");
+		document.getElementById("search_q").value = query[query.length-1];
+    </script>
+</body>
+</html>

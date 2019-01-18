@@ -26,7 +26,6 @@ interface Settings {
     ADMIN_SERVER_HOST: string
     ADMIN_SERVER_PORT: number
     ADMIN_BASE_URL: string
-    ADMIN_ASSETS_URL: string
 
     SLACK_ERRORS_WEBHOOK_URL?: string
     SESSION_COOKIE_AGE: number
@@ -99,7 +98,6 @@ const settings: Settings = {
     ADMIN_SERVER_HOST: ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT: ADMIN_SERVER_PORT,
     ADMIN_BASE_URL: env.ADMIN_BASE_URL || `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`,
-    ADMIN_ASSETS_URL: env.ADMIN_ASSETS_URL || WEBPACK_DEV_URL,
 
     DB_NAME: expect('DB_NAME'),
     DB_USER: env.DB_USER || "root",

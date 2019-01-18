@@ -24,7 +24,7 @@ export interface WPBakerProps {
     forceUpdate?: boolean
 }
 
-export default class WordpressBaker {
+export class WordpressBaker {
     props: WPBakerProps
     grapherExports!: GrapherExports
     stagedFiles: string[] = []
@@ -70,11 +70,11 @@ export default class WordpressBaker {
             "/grapher/* https://owid-grapher.netlify.com/grapher/:splat 200",
 
             "/slides/* https://slides.ourworldindata.org/:splat 301",
-            
+
             // Redirect search to google sitesearch
             "/search q=:q https://google.com/search?sitesearch=ourworldindata.org&q=:q 302"
         ]
-    
+
         const rows = await wpdb.query(`SELECT url, action_data, action_code FROM wp_redirection_items`)
         redirects.push(...rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`))
 

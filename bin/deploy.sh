@@ -33,6 +33,9 @@ then
   FINAL_TARGET="$ROOT/$NAME-code"
   FINAL_DATA="$ROOT/$NAME-data"
 
+  # Run pre-deploy builds and checks
+  yarn pre-deploy
+
   # Rsync the local repository to a temporary location on the server
   $RSYNC $DIR/ $HOST:$SYNC_TARGET
 
@@ -54,7 +57,6 @@ then
   # Install dependencies, build assets and migrate
   cd $TMP_NEW
   yarn install --production
-  yarn build
   yarn typeorm migration:run
 
   # Atomically swap the old and new versions
@@ -68,6 +70,7 @@ then
   # Static build to update the public frontend code
   cd $FINAL_TARGET
   yarn tsn scripts/bakeCharts.ts
+  yarn tsn scripts/bakeSite.ts
 EOF
 fi
 
