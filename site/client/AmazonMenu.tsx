@@ -1,23 +1,25 @@
+// This is a port of a jQuery library:
+// https://github.com/kamens/jQuery-menu-aim
+
 import * as React from 'react'
 import { bind } from 'decko'
 
 import { getParent } from './utils'
-
-const selector = "[data-submenu-id]"
 
 interface Position {
     x: number,
     y: number
 }
 
+const ATTRIBUTE = "data-submenu-id"
 const MOUSE_LOCS_TRACKED = 3
 const DELAY = 400
 const TOLERANCE_PX = 20
 
 function getSubmenuId(targetEl: HTMLElement): string | null {
-    const listItem = getParent(targetEl, (el: HTMLElement) => el.matches(selector))
+    const listItem = getParent(targetEl, (el: HTMLElement) => el.matches(`[${ATTRIBUTE}]`))
     if (listItem) {
-        return listItem.getAttribute("data-submenu-id")
+        return listItem.getAttribute(ATTRIBUTE)
     }
     return null
 }
@@ -33,7 +35,7 @@ export class AmazonMenu extends React.Component<{ children: React.ReactNode, sub
     lastDelayLoc?: Position
     timeoutId?: number
 
-    @bind onMouseMove(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    @bind onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
         this.mouseLocs.push({
             x: event.pageX,
             y: event.pageY
@@ -173,14 +175,14 @@ export class AmazonMenu extends React.Component<{ children: React.ReactNode, sub
         return 0
     }
 
-    @bind onMouseOver(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    @bind onMouseOver(event: React.MouseEvent<HTMLDivElement>) {
         const submenuId = getSubmenuId(event.target as HTMLElement)
         if (submenuId) {
             this.onMouseEnterItem(submenuId)
         }
     }
 
-    @bind onClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    @bind onClick(event: React.MouseEvent<HTMLDivElement>) {
         const submenuId = getSubmenuId(event.target as HTMLElement)
         if (submenuId) {
             this.onClickItem(submenuId)

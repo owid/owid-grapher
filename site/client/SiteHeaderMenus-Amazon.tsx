@@ -111,7 +111,12 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
 
         return <React.Fragment>
             <div className="topics-button-wrapper">
-                <button className={classnames("topics-button", { "active": this.dropdownIsOpen })} onMouseEnter={() => this.setOpen(true)} onMouseLeave={() => this.scheduleCloseTimeout(100)}>
+                <button
+                    className={classnames("topics-button", { "active": this.dropdownIsOpen })}
+                    onMouseEnter={() => this.setOpen(true)}
+                    onMouseLeave={() => this.scheduleCloseTimeout(100)}
+                    onClick={() => this.setOpen(true)}
+                >
                     <div className="label">
                         Research <br /><strong>by topic</strong>
                     </div>
