@@ -8,28 +8,48 @@ import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
 
-const wpdb = new DatabaseConnection({
-    host: 'localhost',
-    user: 'root',
-    database: WORDPRESS_DB_NAME
-})
+class WPDB {
+    conn?: DatabaseConnection
+
+    async connect() {
+        this.conn = new DatabaseConnection({
+            host: 'localhost',
+            user: 'root',
+            database: WORDPRESS_DB_NAME
+        })
+        await this.conn.connect()
+    }
+
+    async query(queryStr: string, params?: any[]): Promise<any[]> {
+        if (!this.conn) await this.connect()
+
+        return this.conn!.query(queryStr, params)
+    }
+
+    async get(queryStr: string, params?: any[]): Promise<any> {
+        if (!this.conn) await this.connect()
+
+        return this.conn!.get(queryStr, params)
+    }
+}
+
+const wpdb = new WPDB()
+
+export async function query(queryStr: string, params?: any[]): Promise<any[]> {
+    return wpdb.query(queryStr, params)
+}
+
+export async function get(queryStr: string, params?: any[]): Promise<any> {
+    return wpdb.get(queryStr, params)
+}
 
 export async function connect() {
     await wpdb.connect()
 }
 
-export function query(queryStr: string, params?: any[]): Promise<any[]> {
-    return wpdb.query(queryStr, params)
-}
-
-export function get(queryStr: string, params?: any[]): Promise<any> {
-    return wpdb.get(queryStr, params)
-}
-
 export function end() {
-    wpdb.end()
+    if (wpdb.conn) wpdb.conn.end()
 }
-
 
 interface ImageUpload {
     slug: string

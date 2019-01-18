@@ -63,8 +63,8 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     const email = shellEscape(user.email)
     const name = shellEscape(user.fullName)
     const message = shellEscape(commitMessage)
-    const bakeCharts = path.join(BASE_DIR, 'dist/src/bakeCharts.js')
-    const cmd = `node ${bakeCharts} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
+    const bakeCharts = path.join(BASE_DIR, 'scripts/bakeCharts.ts')
+    const cmd = `yarn tsn ${bakeCharts} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
     const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
     subprocess.unref()
 }

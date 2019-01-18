@@ -6,7 +6,7 @@ import * as shell from 'shelljs'
 import * as _ from 'lodash'
 import * as cheerio from 'cheerio'
 
-import * as wpdb from './wpdb'
+import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { formatPost, FormattedPost, extractFormattingOptions } from './formatting'
 import { LongFormPage } from './views/LongFormPage'

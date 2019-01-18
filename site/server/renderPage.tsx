@@ -136,11 +136,10 @@ export async function renderBlogByPageNum(pageNum: number) {
             // Find a smaller version of this image
             try {
                 const pathname = url.parse(post.imageUrl).pathname as string
-                const paths = glob.sync(path.join(WORDPRESS_DIR, pathname.replace(/.png/, "*.png")))
-                const sortedPaths = _.sortBy(paths, path => fs.statSync(path).size)
+                const paths = glob.sync(path.join(WORDPRESS_DIR, pathname.replace(/\.png/, "*.png")))
+                const sortedPaths = _.sortBy(paths, p => fs.statSync(p).size)
                 post.imageUrl = sortedPaths[sortedPaths.length-3].replace(WORDPRESS_DIR, '')
             } catch (err) {
-                console.error(err)
                 // Just use the big one
             }
         }
