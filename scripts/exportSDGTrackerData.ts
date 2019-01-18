@@ -3,9 +3,9 @@ import * as _ from 'lodash'
 import * as settings from 'settings'
 import * as fs from 'fs-extra'
 
-import { exec } from 'friends/server/serverUtil'
+import { exec } from 'utils/server/serverUtil'
 import { Chart } from 'db/model/Chart'
-import { csvRow } from 'friends/server/serverUtil'
+import { csvRow } from 'utils/server/serverUtil'
 
 async function dataExport() {
     await db.connect()

@@ -1,13 +1,13 @@
 import * as express from 'express'
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/renderPage'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'settings'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
-import { expectInt } from 'friends/server/serverUtil'
-import { embedSnippet } from 'friends/server/staticGen'
+import { expectInt } from 'utils/server/serverUtil'
+import { embedSnippet } from 'utils/server/staticGen'
 
 const devServer = express()
 

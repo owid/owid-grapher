@@ -9,7 +9,7 @@ const hashers = require('node-django-hashers')
 
 import * as db from 'db/db'
 import { SECRET_KEY, SESSION_COOKIE_AGE } from 'settings'
-import { JsonError } from 'friends/server/serverUtil'
+import { JsonError } from 'utils/server/serverUtil'
 
 export type CurrentUser = User
 

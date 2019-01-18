@@ -4,7 +4,7 @@ import * as db from 'db/db'
 import * as settings from 'settings'
 import * as fs from 'fs-extra'
 
-import { exec } from 'friends/server/serverUtil'
+import { exec } from 'utils/server/serverUtil'
 
 async function dataExport() {
     await db.connect()

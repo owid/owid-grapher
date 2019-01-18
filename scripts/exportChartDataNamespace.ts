@@ -5,7 +5,7 @@ import * as db from 'db/db'
 import * as _ from 'lodash'
 import * as settings from 'settings'
 
-import { exec } from 'friends/server/serverUtil'
+import { exec } from 'utils/server/serverUtil'
 
 const namespace = process.argv[2]
 

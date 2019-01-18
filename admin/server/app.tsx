@@ -10,7 +10,7 @@ import { api } from './api'
 // import { devServer } from '.site/devServer'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
-import {renderToHtmlPage} from 'friends/server/serverUtil'
+import {renderToHtmlPage} from 'utils/server/serverUtil'
 import {BAKED_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from 'settings'
 
 import * as React from 'react'

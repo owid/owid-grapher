@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as urljoin from 'url-join'
 import * as _ from 'lodash'
 
-import { webpack } from 'friends/server/staticGen'
+import { webpack } from 'utils/server/staticGen'
 import { ChartConfigProps } from 'charts/ChartConfig'
 
 export const ChartPage = (props: { chart: ChartConfigProps }) => {

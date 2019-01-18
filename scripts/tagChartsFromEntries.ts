@@ -1,12 +1,10 @@
 import * as db from 'db/db'
-import * as wpdb from 'db/wpdb'
 import * as _ from 'lodash'
-import * as settings from 'settings'
 import * as fs from 'fs-extra'
 import * as glob from 'glob'
 import * as path from 'path'
 
-import { slugify } from 'friends/server/serverUtil'
+import { slugify } from 'utils/server/serverUtil'
 import { Chart } from 'db/model/Chart'
 import { Tag } from 'db/model/Tag'
 
@@ -70,7 +68,6 @@ async function tagCharts(htmlDir: string) {
 
     await db.end()
 }
-
 
 if (!process.argv[2]) {
     console.log("Usage: node tagChartsFromEntries.js /wp-static")

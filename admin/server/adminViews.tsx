@@ -5,7 +5,7 @@ import * as React from 'react'
 import {getConnection} from 'typeorm'
 
 import * as db from 'db/db'
-import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from 'friends/server/serverUtil'
+import {expectInt, tryInt, csvRow, renderToHtmlPage, JsonError} from 'utils/server/serverUtil'
 import {tryLogin} from './authentication'
 import { LoginPage } from './LoginPage'
 import { RegisterPage } from './RegisterPage'
@@ -13,6 +13,7 @@ import {Dataset} from 'db/model/Dataset'
 
 import { User } from 'db/model/User'
 import { UserInvitation } from 'db/model/UserInvitation'
+import { renderPageById } from 'site/server/siteBaking'
 
 const adminViews = Router()
 
@@ -119,6 +120,12 @@ adminViews.get('/datasets/:datasetId/downloadZip', async (req, res) => {
 
     const file = await db.get(`SELECT filename, file FROM dataset_files WHERE datasetId=?`, [datasetId])
     res.send(file.file)
+})
+
+adminViews.get('/posts/preview/:postId', async (req, res) => {
+    const postId = expectInt(req.params.postId)
+
+    res.send(await renderPageById(postId, true))
 })
 
 export { adminViews }

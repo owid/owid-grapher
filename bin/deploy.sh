@@ -69,6 +69,7 @@ then
 
   # Hook into Wordpress
   rm -rf $WORDPRESS_DIR/wp-content/themes/owid-theme && cp -r $FINAL_TARGET/theme $WORDPRESS_DIR/wp-content/themes/owid-theme
+  ln -sf $FINAL_TARGET $WORDPRESS_DIR/wp-content/themes/owid-theme/codelink
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET

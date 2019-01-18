@@ -5,7 +5,7 @@ import { User } from './User'
 import { Source } from './Source'
 import { Variable } from './Variable'
 import { Tag } from './Tag'
-import { csvRow, slugify, filenamify } from 'friends/server/serverUtil'
+import { csvRow, slugify, filenamify } from 'utils/server/serverUtil'
 import * as db from 'db/db'
 
 @Entity("datasets")

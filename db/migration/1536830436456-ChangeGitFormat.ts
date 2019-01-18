@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 import {quote} from 'shell-quote'
 
-import { exec } from 'friends/server/serverUtil'
+import { exec } from 'utils/server/serverUtil'
 
 export class ChangeGitFormat1536830436456 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {

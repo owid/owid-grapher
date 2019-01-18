@@ -1,6 +1,4 @@
 import * as path from 'path'
-import * as parseUrl from 'url-parse'
-import * as urljoin from 'url-join'
 require('dotenv').config()
 
 interface Settings {
