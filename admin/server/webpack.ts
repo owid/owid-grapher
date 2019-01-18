@@ -7,8 +7,7 @@ export function webpack(assetName: string) {
     if (ENV === 'production') {
         const manifestPath = path.join(WEBPACK_OUTPUT_PATH, 'manifest.json')
         const manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
-        assetName = manifest[assetName.split('/')[1]]
-        return urljoin('/admin/build', assetName)
+        return urljoin('/admin/build/', manifest[assetName])
     } else {
         if (assetName.match(/\.js$/)) {
             assetName = `js/${assetName}`

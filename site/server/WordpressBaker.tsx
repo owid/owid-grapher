@@ -12,7 +12,7 @@ import { formatPost, FormattedPost, extractFormattingOptions } from './formattin
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
-const { BAKED_SITE_DIR, BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
+const { BASE_DIR, BAKED_SITE_DIR, BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
 import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson } from './renderPage'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
@@ -35,9 +35,9 @@ export class WordpressBaker {
 
     async bakeRedirects() {
         const redirects = [
-            // Let's Encrypt certbot verification 
+            // Let's Encrypt certbot verification
             "/.well-known/* https://owid.cloud/.well-known/:splat 200",
-            
+
             // RSS feed
             "/feed /atom.xml 302",
 
@@ -103,24 +103,24 @@ export class WordpressBaker {
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(post, formattingOptions, this.grapherExports)
         const html = renderToHtmlPage(
-            post.type == 'post'
+            post.type === 'post'
                 ? <BlogPostPage post={formatted} formattingOptions={formattingOptions} />
                 : <LongFormPage entries={entries} post={formatted} formattingOptions={formattingOptions} />
         )
 
         const outPath = path.join(BAKED_SITE_DIR, `${post.slug}.html`)
-        await fs.mkdirp(path.dirname(outPath))        
+        await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
     }
 
     // Bake all Wordpress posts, both blog posts and entry pages
     async bakePosts() {
         const postsQuery = wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status='publish'`)
-    
+
         const rows = await postsQuery
-    
-        let bakingPosts = []
-        let postSlugs = []
+
+        const bakingPosts = []
+        const postSlugs = []
         for (const row of rows) {
             if (row.post_name === 'blog') // Handled separately
                 continue
@@ -134,7 +134,7 @@ export class WordpressBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('wp-') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
@@ -194,9 +194,9 @@ export class WordpressBaker {
     }
 
     async bakeAssets() {
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content ${BAKED_SITE_DIR}/`)
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-includes ${BAKED_SITE_DIR}/`)
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/themes/owid-theme/public/* ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/uploads ${BAKED_SITE_DIR}/`)
+        shell.exec(`rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`)
+        shell.exec(`rsync -havz --delete ${BASE_DIR}/theme/public/* ${BAKED_SITE_DIR}/`)
     }
 
     async bakeAll() {

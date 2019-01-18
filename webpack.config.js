@@ -25,9 +25,8 @@ module.exports = (env, argv) => {
         },
         output: {
             path: path.join(__dirname, "dist/webpack"),
-            // Seems to be an occasional bug with [chunkhash] causing charts js file to load wrong thing from commons
-            // So using build hash for now
-            filename: (isProduction ? "js/[name].bundle.[hash].js" : "js/[name].js")
+            filename: "js/[name].js"
+            //filename: (isProduction ? "js/[name].bundle.[hash].js" : "js/[name].js")
         },
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
@@ -68,7 +67,8 @@ module.exports = (env, argv) => {
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new ExtractTextPlugin(isProduction ? 'css/[name].bundle.[hash].css' : 'css/[name].css'),
+            new ExtractTextPlugin('css/[name].css'),
+            //new ExtractTextPlugin(isProduction ? 'css/[name].bundle.[hash].css' : 'css/[name].css'),
 
             // This plugin writes a hard disk cache that is reused between webpack-dev-server processes
             // so that it's a lot faster to start up

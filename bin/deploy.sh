@@ -4,24 +4,24 @@ RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-fr
 HOST="owid@terra"
 ROOT="/home/owid"
 
-if [ "$1" == "test" ]; then
-  NAME="test-grapher"
-  DB_NAME="test_grapher"
-elif [ "$1" == "mispytest" ]; then
+if [ "$1" == "mispytest" ]; then
   NAME="mispytest-grapher"
   DB_NAME="mispytest_grapher"
+  WORDPRESS_DIR="/home/owid/mispytest-wordpress"
 elif [ "$1" == "danieltest" ]; then
   NAME="danieltest-grapher"
   DB_NAME="danieltest_grapher"
+  WORDPRESS_DIR="/home/owid/danieltest-wordpress"
 elif [ "$1" == "live" ]; then
   NAME="live-grapher"
   DB_NAME="live_grapher"
+  WORDPRESS_DIR="/home/owid/ourworldindata.org"
 
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r
   echo
 else
-  echo "Please select either live or test."
+  echo "Please select either live or a valid test target."
   exit 1
 fi
 
@@ -67,10 +67,12 @@ then
   # Restart the admin!
   sudo service $NAME restart
 
+  # Hook into Wordpress
+  rm -rf $WORDPRESS_DIR/wp-content/themes/owid-theme && cp -r $FINAL_TARGET/theme $WORDPRESS_DIR/wp-content/themes/owid-theme
+
   # Static build to update the public frontend code
   cd $FINAL_TARGET
   yarn tsn scripts/bakeCharts.ts
   yarn tsn scripts/bakeSite.ts
 EOF
 fi
-

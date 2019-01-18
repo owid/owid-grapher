@@ -107,7 +107,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                 {" "}
                 {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
             </nav>
-            <script src="/grapher/embedCharts.js"/>
+            <script src={`${BAKED_GRAPHER_URL}/embedCharts.js`}/>
         </body>
     </html>
 }

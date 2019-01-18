@@ -1,4 +1,4 @@
-import { WordpressBaker } from './BakeWordpress'
+import { WordpressBaker } from './WordpressBaker'
 import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
 

@@ -16,7 +16,7 @@ interface Settings {
     WEBPACK_OUTPUT_PATH: string
 
     BAKED_GRAPHER_URL: string
-    BAKED_ASSETS_URL: string
+    //BAKED_ASSETS_URL: string
     BAKED_BASE_URL: string
     BAKED_SITE_DIR: string
     BAKED_GRAPHER_DIR: string
@@ -121,7 +121,7 @@ const settings: Settings = {
 
     // For defining absolute urls in the baked output
     BAKED_BASE_URL: BAKED_BASE_URL,
-    BAKED_ASSETS_URL: env.BAKED_ASSETS_URL || WEBPACK_DEV_URL,
+    //BAKED_ASSETS_URL: env.BAKED_ASSETS_URL || WEBPACK_DEV_URL,
     BAKED_GRAPHER_URL: env.BAKED_GRAPHER_URL || `${BAKED_BASE_URL}/grapher`,
 
     // Where the static build output goes

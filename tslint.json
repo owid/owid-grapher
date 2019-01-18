@@ -34,7 +34,7 @@
         "strict-type-predicates": true,
         "no-for-in-array": true,
         "eofline": false,
-        "no-return-await": true,
+        "no-return-await": false,
         "await-promise": true
     },
     "rulesDirectory": []

@@ -10,6 +10,7 @@ import { embedSnippet } from 'friends/server/staticGen'
 const devServer = express()
 
 devServer.get('/grapher/data/variables/:variableIds.json', async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*')
     res.json(await chartDataJson((req.params.variableIds as string).split("+").map(v => expectInt(v))))
 })
 
@@ -18,6 +19,8 @@ devServer.get('/grapher/embedCharts.js', async (req, res) => {
 })
 
 devServer.get('/grapher/:slug', async (req, res) => {
+    // XXX add dev-prod parity for this
+    res.set('Access-Control-Allow-Origin', '*')
     res.send(await chartPage(req.params.slug))
 })
 

@@ -10,12 +10,12 @@
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
     "typeorm": "yarn tsn node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
+    "typecheck": "tsc --noEmit",
     "build": "rm -rf dist && webpack -p --progress",
     "test": "jest",
-    "serve": "yarn tsn admin/server/server.tsx",
-    "typecheck": "tsc --noEmit",
     "pre-deploy": "npm-run-all --parallel typecheck build test",
-    "deploy": "./bin/deploy.sh"
+    "deploy": "./bin/deploy.sh",
+    "serve": "yarn tsn admin/server/server.tsx"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.12",

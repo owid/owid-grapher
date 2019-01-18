@@ -1,6 +1,5 @@
 /node_modules
-/public/build
-/public/uploads/*
+/public
 .env
 .idea/
 db.sqlite3
@@ -11,7 +10,6 @@ env
 .awcache
 data
 dist
-public
 .netlify
 *.swp
 datasetsExport

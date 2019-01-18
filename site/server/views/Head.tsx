@@ -1,6 +1,6 @@
 import {BAKED_BASE_URL} from 'settings'
 import * as React from 'react'
-import { webpack } from 'friends/server/staticGen';
+import { webpack } from 'friends/server/staticGen'
 
 export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc?: string, imageUrl?: string, children?: any }) => {
     const {canonicalUrl} = props
@@ -27,8 +27,8 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
         <meta name="twitter:title" content={pageTitle}/>
         <meta name="twitter:description" content={pageDesc}/>
         <meta name="twitter:image" content={imageUrl}/>
-        <link rel="stylesheet" href={webpack('commons.css')}/>
-        <link rel="stylesheet" href={webpack('owid.css')}/>
+        <link rel="stylesheet" href={webpack('commons.css', 'site')}/>
+        <link rel="stylesheet" href={webpack('owid.css', 'site')}/>
         {props.children}
     </head>
 }

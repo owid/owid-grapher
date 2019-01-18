@@ -123,6 +123,9 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     html = html.replace(new RegExp("https://ourworldindata.org/wp-content/uploads/nvd3", 'g'), "https://www.maxroser.com/owidUploads/nvd3")
             .replace(new RegExp("https://ourworldindata.org/wp-content/uploads/datamaps", 'g'), "https://www.maxroser.com/owidUploads/datamaps")
 
+    // No need for wordpress urls
+    html = html.replace(new RegExp("https://ourworldindata.org/wp-content/uploads", 'g'), "/uploads")
+
     const $ = cheerio.load(html)
 
     // Wrap content demarcated by headings into section blocks
@@ -130,9 +133,9 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     for (const start of sectionStarts) {
         const $start = $(start)
         const $contents = $start.nextUntil("h2")
-        const $wrapNode = $("<section></section>");
+        const $wrapNode = $("<section></section>")
 
-        $contents.remove();
+        $contents.remove()
         $wrapNode.append($start.clone())
         $wrapNode.append($contents)
         $start.replaceWith($wrapNode)

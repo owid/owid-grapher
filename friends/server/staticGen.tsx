@@ -1,10 +1,10 @@
-import { ENV, BAKED_GRAPHER_URL, BAKED_ASSETS_URL, WEBPACK_OUTPUT_PATH } from 'settings'
+import { ENV, BAKED_GRAPHER_URL, WEBPACK_OUTPUT_PATH, WEBPACK_DEV_URL } from 'settings'
 import * as fs from 'fs-extra'
 import * as urljoin from 'url-join'
 import * as path from 'path'
 
 let manifest: {[key: string]: string}
-export function webpack(assetName: string) {
+export function webpack(assetName: string, context?: string) {
     if (ENV === 'production') {
         // Read the real asset name from the manifest in case it has a hashed filename
         if (!manifest) {
@@ -12,13 +12,21 @@ export function webpack(assetName: string) {
             manifest = JSON.parse(fs.readFileSync(manifestPath).toString('utf8'))
         }
         assetName = manifest[assetName]
-    } else if (assetName.match(/\.js$/)) {
-        assetName = `js/${assetName}`
-    } else if (assetName.match(/\.css$/)) {
-        assetName = `css/${assetName}`
-    }
 
-    return urljoin(BAKED_ASSETS_URL, assetName)
+        if (context === 'site') {
+            return urljoin('/assets', assetName)
+        } else {
+            return urljoin('/grapher/assets', assetName)
+        }
+    } else {
+        if (assetName.match(/\.js$/)) {
+            assetName = `js/${assetName}`
+        } else if (assetName.match(/\.css$/)) {
+            assetName = `css/${assetName}`
+        }
+
+        return urljoin(WEBPACK_DEV_URL, assetName)
+    }
 }
 
 export function embedSnippet(): string {

@@ -16,8 +16,8 @@ export const SiteFooter = () => {
             <a href="https://github.com/owid">GitHub</a>
             <a href="/support">Donate</a>
         </nav>
-        <script src={webpack('commons.js')}/>
-        <script src={webpack('owid.js')}/>
+        <script src={webpack('commons.js', 'site')}/>
+        <script src={webpack('owid.js', 'site')}/>
         <script src={`${settings.BAKED_BASE_URL}/grapher/embedCharts.js`}/>
     </footer>
 }
