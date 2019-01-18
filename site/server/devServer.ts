@@ -1,4 +1,6 @@
 import * as express from 'express'
+import * as path from 'path'
+
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/renderPage'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {WORDPRESS_DIR, BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'settings'
@@ -36,7 +38,7 @@ devServer.get('/headerMenu.json', async (req, res) => {
     res.send(await renderMenuJson())
 })
 
-devServer.use(express.static(WORDPRESS_DIR))
+devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/uploads')))
 
 devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))

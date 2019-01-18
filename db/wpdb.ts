@@ -52,9 +52,9 @@ export async function getUploadedImages() {
 
     for (const filepath of paths) {
         const filename = path.basename(filepath)
-        const match = filepath.match(/(\/wp-content.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
+        const match = filepath.match(/(\/uploads.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
         if (match) {
-            const [_, dirpath, slug, dims, filetype] = match
+            const [m, dirpath, slug, dims, filetype] = match
             let upload = uploadDex.get(slug)
             if (!upload) {
                 upload = {

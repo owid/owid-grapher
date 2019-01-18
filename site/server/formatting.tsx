@@ -5,7 +5,7 @@ import * as _ from 'lodash'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import {HTTPS_ONLY, WORDPRESS_URL, BAKED_BASE_URL} from 'settings'
-import { getTables, getUploadedImages, FullPost } from './wpdb'
+import { getTables, getUploadedImages, FullPost } from 'db/wpdb'
 import Tablepress from './views/Tablepress'
 import {GrapherExports} from './grapherUtil'
 import * as path from 'path'
@@ -124,7 +124,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             .replace(new RegExp("https://ourworldindata.org/wp-content/uploads/datamaps", 'g'), "https://www.maxroser.com/owidUploads/datamaps")
 
     // No need for wordpress urls
-    html = html.replace(new RegExp("https://ourworldindata.org/wp-content/uploads", 'g'), "/uploads")
+    html = html.replace(new RegExp("/wp-content/uploads", 'g'), "/uploads")
 
     const $ = cheerio.load(html)
 

@@ -1,4 +1,4 @@
-import * as wpdb from "./wpdb"
+import * as wpdb from "db/wpdb"
 import * as db from 'db/db'
 import {LongFormPage} from './views/LongFormPage'
 import {BlogPostPage} from './views/BlogPostPage'

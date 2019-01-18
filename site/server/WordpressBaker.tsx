@@ -46,10 +46,12 @@ export class WordpressBaker {
             "/wp-login.php https://owid.cloud/wp-login.php 301",
             "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
 
+            "/wp-content/uploads/* /uploads/:splat 301",
+
             // Backwards compatibility-- old Max stuff that isn't static-friendly
             "/roser/* https://www.maxroser.com/roser/:splat 301",
-            "/wp-content/uploads/nvd3/* https://www.maxroser.com/owidUploads/nvd3/:splat 301",
-            "/wp-content/uploads/datamaps/* https://www.maxroser.com/owidUploads/datamaps/:splat 301",
+            "/uploads/nvd3/* https://www.maxroser.com/owidUploads/nvd3/:splat 301",
+            "/uploads/datamaps/* https://www.maxroser.com/owidUploads/datamaps/:splat 301",
             "/slides/Max_PPT_presentations/* https://www.maxroser.com/slides/Max_PPT_presentations/:splat 301",
             "/slides/Max_Interactive_Presentations/* https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat 301",
 
