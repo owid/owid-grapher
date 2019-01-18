@@ -4,10 +4,11 @@ env
 tmp
 data
 .awcache
-public
+/public
 .git
 logs/*
 datasetsExport
 tmp
 .tscache
 test
+theme/codelink

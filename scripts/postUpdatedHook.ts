@@ -2,9 +2,9 @@ import { WordpressBaker } from 'site/server/WordpressBaker'
 import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(database: string, wordpressUrl: string, wordpressDir: string, email: string, name: string, postSlug: string) {
+async function main(database: string, email: string, name: string, postSlug: string) {
     try {
-        console.log(database, wordpressUrl, wordpressDir, email, name, postSlug)
+        console.log(database, email, name, postSlug)
         const baker = new WordpressBaker({})
 
         await baker.bakeAll()
@@ -15,4 +15,4 @@ async function main(database: string, wordpressUrl: string, wordpressDir: string
     }
 }
 
-main(argv._[0], argv._[1], argv._[2], argv._[3], argv._[4], argv._[5])
+main(argv._[0], argv._[1], argv._[2], argv._[3])

@@ -17,3 +17,4 @@ datasetsExport
 theme/node_modules
 theme/yarn.lock
 .tscache
+theme/codelink
