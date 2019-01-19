@@ -60,7 +60,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 
     async saveTags(tags: Tag[]) {
         const {chart} = this.props
-        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
+        const json = await this.context.admin.requestJSON(`/api/charts/${chart.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')
         if (json.success) {
             runInAction(() => chart.tags = tags)
         }

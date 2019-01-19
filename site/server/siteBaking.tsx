@@ -80,7 +80,6 @@ async function renderPage(postRow: wpPostRow) {
 
     const $ = cheerio.load(post.content)
 
-
     const grapherUrls = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//)).map(el => el.attribs['src'])
 
     // XXX This is slow!
@@ -97,7 +96,6 @@ async function renderPage(postRow: wpPostRow) {
     else
         return renderToHtmlPage(<LongFormPage entries={entries} post={formatted} formattingOptions={formattingOptions} />)
 }
-
 
 export async function renderFrontPage() {
     const postRows = await wpdb.query(`

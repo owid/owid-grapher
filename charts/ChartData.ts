@@ -1,4 +1,3 @@
-import { labelsByRegion } from './WorldRegions'
 import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
 import { computed } from 'mobx'
 import { ChartConfig } from './ChartConfig'
@@ -202,11 +201,11 @@ export class ChartData {
         let validSelections = chart.props.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
             const dimension = primaryDimensions[sel.index]
-            if (dimension == null) return false
+            if (!dimension) return false
 
             // Entity must be within that dimension
             const entityMeta = vardata.entityMetaById[sel.entityId]
-            if (entityMeta == null || !includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
+            if (!entityMeta|| !includes(dimension.variable.entitiesUniq, entityMeta.name)) return false
 
             // "change entity" charts can only have one entity selected
             if (chart.addCountryMode === "change-country" && sel.entityId !== last(chart.props.selectedData).entityId)

@@ -187,16 +187,16 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     const permalinks = await getPermalinks()
 
     cachedEntries = categoryOrder.map(cat => {
-        const rows = pageRows.filter((row: any) => {
+        const rowsWithCat = pageRows.filter((row: any) => {
             const cats = categoriesByPageId.get(row.ID)
             return cats && cats.indexOf(cat) !== -1
         })
 
-        const entries = rows.map((row: any) => {
+        const entries = rowsWithCat.map((row: any) => {
             return {
                 slug: permalinks.get(row.ID, row.post_name),
                 title: row.post_title,
-                starred: row.starred == "1"
+                starred: row.starred === "1"
             }
         })
 
@@ -209,7 +209,6 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
 
     return cachedEntries
 }
-
 
 let cachedPermalinks: Map<number, string>
 export async function getCustomPermalinks() {

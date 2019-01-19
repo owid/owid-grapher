@@ -24,7 +24,6 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
     if (formattingOptions.bodyClassName)
         classes.push(formattingOptions.bodyClassName)
 
-
     const bibtex = `@article{owid${post.slug.replace(/-/g, '')},
     author = {${authorsText}},
     title = {${pageTitle}},

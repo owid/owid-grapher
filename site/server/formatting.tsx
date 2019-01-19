@@ -38,8 +38,8 @@ mjAPI.config({
     MathJax: {
       // traditional MathJax configuration
     }
-});
-mjAPI.start();
+})
+mjAPI.start()
 
 function extractLatex(html: string): [string, string[]] {
     const latexBlocks: string[] = []
@@ -55,7 +55,7 @@ async function formatLatex(html: string, latexBlocks?: string[]): Promise<string
         [html, latexBlocks] = extractLatex(html)
 
     const compiled: string[] = []
-    for (let latex of latexBlocks) {
+    for (const latex of latexBlocks) {
         try {
             const result = await mjAPI.typeset({ math: latex, format: "TeX", svg: true })
             compiled.push(result.svg.replace("<svg", `<svg class="latex"`))
@@ -65,7 +65,7 @@ async function formatLatex(html: string, latexBlocks?: string[]): Promise<string
     }
 
     let i = -1
-    return html.replace(/\[latex\]/g, _ => {
+    return html.replace(/\[latex\]/g, () => {
         i += 1
         return compiled[i]
     })
@@ -224,14 +224,14 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     let parentHeading: TocHeading | null = null
 
     $("h1, h2, h3, h4").each((_, el) => {
-        const $heading = $(el);
+        const $heading = $(el)
         const headingText = $heading.text()
         // We need both the text and the html because may contain footnote
         // let headingHtml = $heading.html() as string
         let slug = urlSlug(headingText)
 
         // Avoid If the slug already exists, try prepend the parent
-        if (existingSlugs.indexOf(slug) !== -1 && parentHeading != null) {
+        if (existingSlugs.indexOf(slug) !== -1 && parentHeading) {
             slug = `${parentHeading.slug}-${slug}`
         }
 
@@ -299,7 +299,7 @@ function parseFormattingOptions(text: string): FormattingOptions {
         .filter((s) => s && s.length > 0)
         // populate options object
         .forEach((option: string) => {
-            const [name, value] = option.split(":")
+            const [name, value] = option.split(":") as [string, string|undefined]
             let parsedValue
             if (value === undefined || value === "true") parsedValue = true
             else if (value === "false") parsedValue = false
@@ -351,7 +351,7 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
         authors.push("Max Roser")
 
     let authorsText = authors.slice(0, -1).join(", ")
-    if (authorsText.length == 0)
+    if (authorsText.length === 0)
         authorsText = authors[0]
     else
         authorsText += ` and ${_.last(authors)}`

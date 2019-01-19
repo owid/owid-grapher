@@ -103,7 +103,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             <nav className="pagination">
                 {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>}
                 {" "}
-                {props.currentPage != null && props.totalPages != null && `Page ${props.currentPage} of ${props.totalPages}`}
+                {props.currentPage !== undefined && props.totalPages !== undefined && `Page ${props.currentPage} of ${props.totalPages}`}
                 {" "}
                 {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
             </nav>
@@ -179,7 +179,7 @@ testPages.get('/embeds/:id', async (req, res) => {
     if (chart) {
         const charts = [{
             id: chart.id,
-            slug: chart.config.slug + (req.query.tab ? `?tab=${req.query.tab}` : "")
+            slug: `${chart.config.slug}${req.query.tab ? `?tab=${req.query.tab}` : ""}`
         }]
         res.send(renderToHtmlPage(<EmbedTestPage charts={charts} />))
     } else {

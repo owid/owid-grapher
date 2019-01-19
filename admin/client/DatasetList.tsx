@@ -29,7 +29,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTa
 
     async saveTags(tags: Tag[]) {
         const {dataset} = this.props
-        const json = await this.context.admin.requestJSON(`/api/datasets/${dataset.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')        
+        const json = await this.context.admin.requestJSON(`/api/datasets/${dataset.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')
         if (json.success) {
             dataset.tags = tags
         }
@@ -38,7 +38,6 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTa
     @action.bound onSaveTags(tags: Tag[]) {
         this.saveTags(tags)
     }
-
 
     render() {
         const {dataset, searchHighlight, availableTags} = this.props
@@ -62,7 +61,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTa
 @observer
 export class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
-    
+
     @observable availableTags: Tag[] = []
 
     @bind async getTags() {

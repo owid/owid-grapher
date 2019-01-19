@@ -16,7 +16,7 @@ class CSV {
     @observable filename?: string
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
-    @observable mapCountriesInputToOutput: { [key: string]: string }
+    @observable mapCountriesInputToOutput: { [key: string]: string|undefined }
     @observable autoMatchedCount: number = 0
     @observable parseError?: string
     @observable findSimilarCountries: boolean = true
@@ -96,7 +96,7 @@ class CSV {
 
         // for fuzzy-match, use the input and output values as target to improve matching potential
         const inputCountries = Object.keys(mapCountriesInputToOutput).filter(key => mapCountriesInputToOutput[key] !== undefined)
-        const outputCountries = inputCountries.map(key => mapCountriesInputToOutput[key])
+        const outputCountries = inputCountries.map(key => mapCountriesInputToOutput[key]) as string[]
         const fuzz = FuzzySet(inputCountries.concat(outputCountries))
 
         let autoMatched = 0
@@ -139,7 +139,7 @@ export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> 
 }
 
 @observer
-export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, onUpdate: Function } > {
+export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void } > {
     @observable selectedStandardName!: string
 
     @computed get defaultOption() {

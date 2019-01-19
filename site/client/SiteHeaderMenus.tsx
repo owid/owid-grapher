@@ -24,7 +24,7 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
     @action.bound setCategory(category: CategoryWithEntries) {
         this.activeCategory = category
     }
-    
+
     render() {
         const {activeCategory} = this
         const {categories} = this.props
@@ -89,9 +89,9 @@ export class MobileEntriesMenu extends React.Component<{ categories: CategoryWit
     }
 
     render() {
-        const {categories} = this.props 
+        const {categories} = this.props
         const {activeCategory} = this
-        
+
         return <div id="topics-dropdown" className="mobile">
             <ul>
                 <li className="header">
@@ -198,5 +198,3 @@ export function runHeaderMenus() {
     const header = new HeaderMenus()
     header.run()
 }
-
-

@@ -553,7 +553,7 @@ export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Ta
     }
 
     @action.bound onToggleEdit() {
-        if (this.isEditing) {    
+        if (this.isEditing) {
             this.props.onSave(this.tags.filter(t => t.name !== "Uncategorized"))
         }
         this.isEditing = !this.isEditing
@@ -579,7 +579,7 @@ export class EditableTags extends React.Component<{ tags: Tag[], suggestions: Ta
                         {tags.map(t => <TagBadge key={t.id} tag={t}/>)}
                         {!disabled && <button className="btn btn-link" onClick={this.onToggleEdit}>Edit Tags</button>}
                     </div>
-            }            
+            }
         </div>
     }
 }

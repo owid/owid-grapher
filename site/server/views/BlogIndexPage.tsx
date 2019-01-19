@@ -28,7 +28,7 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
                 <div className="site-content">
                     <h2>Latest Posts</h2>
                     <ul className="posts">
-                        {posts.map(post => 
+                        {posts.map(post =>
                             <li key={post.slug} className="post">
                                 <a href={`/${post.slug}`}>
                                     {post.imageUrl && <img src={post.imageUrl}/>}
@@ -39,11 +39,11 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
                                 </a>
                             </li>
                         )}
-                	</ul>
+                    </ul>
                     <nav className="navigation pagination" role="navigation">
                         <h2 className="screen-reader-text">Posts navigation</h2>
                         <div className="nav-link">
-                            {pageNums.map(num => 
+                            {pageNums.map(num =>
                                 <a key={num} className={"page-numbers" + (num === pageNum ? " current" : "")} href={num === 1 ? '/blog/' : `/blog/page/${num}`}>{num}</a>
                             )}
                         </div>
@@ -51,6 +51,6 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
                 </div>
             </main>
             <SiteFooter/>
-        </body>        
+        </body>
     </html>
 }

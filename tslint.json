@@ -35,7 +35,8 @@
         "no-for-in-array": true,
         "eofline": false,
         "no-return-await": false,
-        "await-promise": true
+        "await-promise": true,
+        "no-shadowed-variable": false
     },
     "rulesDirectory": []
 }
