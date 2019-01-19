@@ -1,7 +1,8 @@
 const path = require('path')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
-const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
@@ -40,6 +41,7 @@ module.exports = (env, argv) => {
                 {
                     test: /\.tsx?$/,
                     loader: "ts-loader",
+                    exclude: /serverSettings/,
                     options: {
                         transpileOnly: true,
                         configFile: path.join(__dirname, "tsconfig.client.json")
@@ -76,6 +78,7 @@ module.exports = (env, argv) => {
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
+            new Dotenv()
         ],
         devServer: {
             host: 'localhost',

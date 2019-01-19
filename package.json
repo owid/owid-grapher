@@ -2,8 +2,8 @@
   "private": true,
   "version": "2.0.0",
   "scripts": {
-    "tsn": "ts-node -F -r tsconfig-paths/register",
-    "tsnd": "ts-node-dev -F --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register",
+    "tsn": "ts-node -F -r tsconfig-paths/register -r dotenv/config",
+    "tsnd": "ts-node-dev -F --respawn --no-notify -r tsconfig-paths/register -r source-map-support/register -r dotenv/config",
     "dev-admin": "yarn tsnd admin/server/server.tsx",
     "dev-site": "yarn tsnd site/server/devServer.ts",
     "dev-webpack": "webpack-dev-server -d",
@@ -39,6 +39,7 @@
     "d3-scale-chromatic": "^1.1.1",
     "decko": "^1.1.3",
     "dotenv": "^4.0.0",
+    "dotenv-webpack": "^1.7.0",
     "entities": "^1.1.1",
     "expr-eval": "^1.0.1",
     "express": "^4.16.2",

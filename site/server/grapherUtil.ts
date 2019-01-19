@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as _ from 'lodash'
 import * as md5 from 'md5'
 
-import {BASE_DIR, BAKED_SITE_DIR} from 'settings'
+import {BAKED_SITE_DIR} from 'serverSettings'
 import * as db from 'db/db'
 import { bakeChartsToImages } from 'site/server/bakeChartsToImages'
 
@@ -107,4 +107,39 @@ export async function getGrapherExportsByUrl(): Promise<{ get: (grapherUrl: stri
             return exportsByKey.get(grapherUrlToFilekey(grapherUrl))
         }
     }
+}
+interface ChartItemWithTags {
+    id: number
+    slug: string
+    title: string
+    tags: { id: number, name: string }[]
+}
+
+// Find all the charts we want to show on public listings
+export async function getIndexableCharts(): Promise<ChartItemWithTags[]> {
+    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title FROM charts WHERE publishedAt IS NOT NULL`)
+
+    const chartTags = await db.query(`
+        SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
+        JOIN charts c ON c.id=ct.chartId
+        JOIN tags t ON t.id=ct.tagId
+    `)
+
+    for (const c of chartItems) {
+        c.tags = []
+    }
+
+    const chartsById = _.keyBy(chartItems, c => c.id)
+
+    for (const ct of chartTags) {
+        // XXX hardcoded filtering to public parent tags
+        if ([1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510].indexOf(ct.tagParentId) === -1)
+            continue
+
+        const c = chartsById[ct.chartId]
+        if (c)
+            c.tags.push({ id: ct.tagId, name: ct.tagName })
+    }
+
+    return chartItems
 }

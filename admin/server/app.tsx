@@ -11,7 +11,8 @@ import { api } from './api'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
 import {renderToHtmlPage} from 'utils/server/serverUtil'
-import {BAKED_GRAPHER_URL, SLACK_ERRORS_WEBHOOK_URL} from 'settings'
+import { SLACK_ERRORS_WEBHOOK_URL } from 'serverSettings'
+import { BAKED_GRAPHER_URL } from 'settings'
 
 import * as React from 'react'
 

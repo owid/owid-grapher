@@ -1,4 +1,5 @@
-import { ENV, WEBPACK_OUTPUT_PATH, WEBPACK_DEV_URL } from 'settings'
+import { WEBPACK_OUTPUT_PATH } from 'serverSettings'
+import { ENV, WEBPACK_DEV_URL } from 'settings'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import * as urljoin from 'url-join'

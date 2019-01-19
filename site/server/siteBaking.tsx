@@ -13,7 +13,7 @@ import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as fs from 'fs-extra'
-import { WORDPRESS_DIR } from 'settings'
+import { WORDPRESS_DIR } from 'serverSettings'
 import { formatPost, extractFormattingOptions } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'

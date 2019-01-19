@@ -6,7 +6,8 @@ import * as util from 'util'
 import { JsonError, filenamify, exec } from 'utils/server/serverUtil'
 import { Dataset } from 'db/model/Dataset'
 import { Source } from 'db/model/Source'
-import { GIT_DATASETS_DIR, GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, TMP_DIR } from 'settings'
+import { GIT_DATASETS_DIR, TMP_DIR } from 'serverSettings'
+import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from 'settings'
 import * as db from 'db/db'
 
 async function datasetToReadme(dataset: Dataset): Promise<string> {

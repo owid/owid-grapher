@@ -1,4 +1,5 @@
-import {BAKED_BASE_URL, WORDPRESS_URL} from 'settings'
+import { WORDPRESS_URL } from 'serverSettings'
+import { BAKED_BASE_URL } from 'settings'
 import * as React from 'react'
 import { Head } from './Head'
 import { CitationMeta } from './CitationMeta'

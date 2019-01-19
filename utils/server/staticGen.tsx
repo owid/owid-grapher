@@ -1,4 +1,5 @@
-import { ENV, BAKED_GRAPHER_URL, WEBPACK_OUTPUT_PATH, WEBPACK_DEV_URL } from 'settings'
+import { WEBPACK_OUTPUT_PATH } from 'serverSettings'
+import { ENV, BAKED_GRAPHER_URL, WEBPACK_DEV_URL } from 'settings'
 import * as fs from 'fs-extra'
 import * as urljoin from 'url-join'
 import * as path from 'path'

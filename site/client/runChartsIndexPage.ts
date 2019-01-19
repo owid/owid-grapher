@@ -1,7 +1,7 @@
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 import {observable, computed, action, autorun} from 'mobx'
-
+import { ALGOLIA_SEARCH_KEY } from 'settings'
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -33,13 +33,13 @@ class ChartSearcher {
     @computed get searchStrings(): string[] {
         return this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
-    
+
     @computed get searchResults(): SearchResult[] {
         return fuzzysort.go(this.query, this.searchStrings, { threshold: -150 })
     }
 
     @computed get resultsByTitle(): {[key: string]: SearchResult} {
-        return _.keyBy(this.searchResults, 'target')   
+        return _.keyBy(this.searchResults, 'target')
     }
 
     constructor() {
@@ -54,7 +54,6 @@ class ChartSearcher {
         this.chartItemsByTitle = _.keyBy(this.chartItems, 'title')
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
-
 
     @action.bound onSearchInput() {
         this.query = this.searchInput.value
@@ -80,7 +79,7 @@ class ChartSearcher {
                 c.li.children[0].innerHTML = c.title
             }
 
-            return    
+            return
         }
 
         /*for (let i = this.searchResults.length-1; i >= 0; i--) {
@@ -113,7 +112,7 @@ class ChartSearcher {
         //this.searchInput.addEventListener('keydown', this.onKeydown)
 
         autorun(() => this.render())
-        
+
         const m = window.location.hash.match(/search=(.+)/)
         if (m) {
             this.searchInput.value = decodeHashSafe(m[1])
@@ -125,4 +124,5 @@ class ChartSearcher {
 export function runChartsIndexPage() {
     const searcher = new ChartSearcher()
     searcher.run()
+    console.log(ALGOLIA_SEARCH_KEY)
 }

@@ -2,7 +2,7 @@ import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from 'settings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from 'serverSettings'
 
 import * as path from 'path'
 import * as glob from 'glob'
@@ -110,7 +110,7 @@ export async function getUploadedImages() {
 export async function getAuthorship(): Promise<Map<number, string[]>> {
     const authorRows = await wpdb.query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
-        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id 
+        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
         WHERE terms.taxonomy='author'
     `)
 
