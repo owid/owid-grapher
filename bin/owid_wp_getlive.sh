@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 RSYNC="rsync -havz --progress"
 HOST="owid@terra"
@@ -9,6 +9,6 @@ $RSYNC --delete $HOST:/home/owid/owid.cloud/wp-content/plugins ~/owid.cloud/wp-c
 $RSYNC --delete $HOST:/home/owid/owid.cloud/wp-content/uploads ~/owid.cloud/wp-content/
 mysql -e "DROP DATABASE dev_wordpress;"
 mysql --default-character-set="utf8mb4" -e "CREATE DATABASE dev_wordpress;"
-mysql --default-character-set="utf8mb4" -D dev_wordpress -e "source ~/backup/dev_wordpress.sql;"
+mysql --default-character-set="utf8mb4" -D dev_wordpress -e "source ~/backup/owid_wordpress.sql;"
 echo "UPDATE wp_options SET option_value='http://localhost:8080' WHERE option_name='siteurl';" | mysql -D dev_wordpress 
 echo "UPDATE wp_options SET option_value='http://localhost:8080' WHERE option_name='home';" | mysql -D dev_wordpress 
