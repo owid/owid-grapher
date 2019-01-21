@@ -29,6 +29,7 @@
     "bootstrap": "^4.1.2",
     "cheerio": "^1.0.0-rc.2",
     "child-process-promise": "^2.2.1",
+    "chunk-text": "^1.0.5",
     "colorbrewer": "^1.0.0",
     "concurrently": "^4.0.1",
     "cookie-parser": "^1.4.3",

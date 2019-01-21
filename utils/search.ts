@@ -1,0 +1,59 @@
+
+import * as _ from 'lodash'
+const chunk = require('chunk-text')
+
+export function chunkWords(text: string, maxChunkLength: number): string[] {
+    return chunk(text, maxChunkLength)
+}
+
+export function chunkSentences(text: string, maxChunkLength: number): string[] {
+    // See https://stackoverflow.com/a/25736082/1983739
+    // Not perfect, just works in most cases
+    const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s/g
+    const sentences = _.flatten(text.split(sentenceRegex).map(s => s.length > maxChunkLength ? chunkWords(s, maxChunkLength) : s)).map(s => s.trim()).filter(s => s).reverse() as string[]
+
+    const chunks = []
+    let chunk = sentences.pop()
+    if (!chunk)
+        return []
+
+    while (true) {
+        const s = sentences.pop()
+        if (!s) {
+            chunks.push(chunk)
+            break
+        } else if (s.length > maxChunkLength) {
+            // Single sentence doesn't fit in the chunk, have to break it up
+            chunks.push(chunkWords(text, maxChunkLength).join(" "))
+        } else {
+            const nextChunk: string = chunk + " " + s
+            if (nextChunk.length > maxChunkLength) {
+                chunks.push(chunk)
+                chunk = s
+            } else {
+                chunk = nextChunk
+            }
+        }
+    }
+
+    return chunks
+}
+
+// Chunks a given bit of text into an array of fragments less than or equal to maxChunkLength in size
+// These chunks will honor sentence boundaries where possible
+export function chunkParagraphs(text: string, maxChunkLength: number): string[] {
+    const chunks: string[] = []
+    const paragraphs = text.split("\n\n").map(p => p.trim()).filter(p => p.length)
+
+
+    for (const p of paragraphs) {
+        if (p.length <= maxChunkLength) {
+            // Whole paragraph is already short enough, easy
+            chunks.push(p)
+        } else {
+            chunks.push(...chunkSentences(p, maxChunkLength))
+        }
+    }
+
+    return chunks
+}
