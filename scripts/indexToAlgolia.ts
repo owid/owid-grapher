@@ -2,12 +2,13 @@ import * as algoliasearch from 'algoliasearch'
 import * as _ from 'lodash'
 const chunk = require('chunk-text')
 
-import * as wpdb from '../wpdb'
-import { ALGOLIA_ID, ALGOLIA_ADMIN_KEY } from '../settings'
-import { formatPost } from '../formatting'
+import * as wpdb from 'db/wpdb'
+import { ALGOLIA_ID  } from 'settings'
+import { ALGOLIA_SECRET_KEY } from 'serverSettings'
+import { formatPost } from 'site/server/formatting'
 
 async function indexToAlgolia() {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_ADMIN_KEY)
+    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     const index = client.initIndex('mispydev_owid_articles');
 
     index.setSettings({ attributeForDistinct: 'slug' })
@@ -17,7 +18,7 @@ async function indexToAlgolia() {
 
     const records = []
 
-    for (const row of rows) {
+    /*for (const row of rows) {
         const post = await formatPost(await wpdb.getFullPost(row), {})
         const chunks = chunk(post.plaintext, 1000);
 
@@ -33,7 +34,7 @@ async function indexToAlgolia() {
         }
     }
 
-    await index.saveObjects(records)
+    await index.saveObjects(records)*/
     
     // for (let i = 0; i < records.length; i += 1000) {
     //     console.log(i)

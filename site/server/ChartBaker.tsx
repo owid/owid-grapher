@@ -1,6 +1,7 @@
 // Build all charts into a static bundle
 // Should support incremental builds for performance
-import { ENV, BASE_DIR } from 'settings'
+import { ENV } from 'settings'
+import { BASE_DIR } from 'serverSettings'
 
 import { uniq, without, chunk } from 'lodash'
 import * as fs from 'fs-extra'

@@ -4,6 +4,7 @@ import * as db from 'db/db'
 import * as _ from 'lodash'
 import * as settings from 'settings'
 
+import { DB_NAME } from 'serverSettings'
 import { exec } from 'utils/server/serverUtil'
 
 async function dataExport() {
@@ -26,7 +27,7 @@ async function dataExport() {
 
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --no-create-info ${settings.DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFile}`)
+        await exec(`mysqldump --no-create-info ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFile}`)
 
         count += chunk.length
         console.log(count)

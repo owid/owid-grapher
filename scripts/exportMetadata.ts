@@ -1,9 +1,9 @@
 // Script to export everything in the database except sensitive info and data_values (which is big)
 
 import * as db from 'db/db'
-import * as settings from 'settings'
 import * as fs from 'fs-extra'
 
+import { DB_NAME } from 'serverSettings'
 import { exec } from 'utils/server/serverUtil'
 
 async function dataExport() {
@@ -12,8 +12,8 @@ async function dataExport() {
     console.log(`Exporting database structure and metadata to /tmp/owid_metadata.sql...`)
 
     // Dump all tables including schema but exclude the rows of data_values
-    await exec(`mysqldump ${settings.DB_NAME} --ignore-table=${settings.DB_NAME}.sessions --ignore-table=${settings.DB_NAME}.user_invitations --ignore-table=${settings.DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
-    await exec(`mysqldump --no-data ${settings.DB_NAME} sessions user_invitations data_values >> /tmp/owid_metadata.sql`)
+    await exec(`mysqldump ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
+    await exec(`mysqldump --no-data ${DB_NAME} sessions user_invitations data_values >> /tmp/owid_metadata.sql`)
 
     // Strip passwords
     await exec(`sed -i -e "s/bcrypt[^']*//g" /tmp/owid_metadata.sql`)

@@ -12,7 +12,8 @@ import { formatPost, FormattedPost, extractFormattingOptions } from './formattin
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
-const { BASE_DIR, BAKED_SITE_DIR, BAKED_BASE_URL, WORDPRESS_DIR, BLOG_POSTS_PER_PAGE } = settings
+import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
+const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
 import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 

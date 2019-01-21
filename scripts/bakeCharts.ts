@@ -1,4 +1,4 @@
-import {BASE_DIR} from 'settings'
+import {BASE_DIR} from 'serverSettings'
 import {ChartBaker} from 'site/server/ChartBaker'
 import * as db from 'db/db'
 import * as parseArgs from 'minimist'
