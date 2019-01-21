@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   moduleNameMapper: {
       '^(admin|site|charts|utils|db|settings)/(.*)$': '<rootDir>/$1/$2',
-      '^settings$': '<rootDir>/settings'
+      '^settings$': '<rootDir>/settings',
+      '^serverSettings$': '<rootDir>/serverSettings'
   }
 };
