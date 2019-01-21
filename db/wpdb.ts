@@ -8,6 +8,9 @@ import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
 
+import { promisify } from 'util'
+import * as imageSizeStandard from 'image-size'
+const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
 
@@ -72,27 +75,25 @@ export async function getUploadedImages() {
 
     for (const filepath of paths) {
         const filename = path.basename(filepath)
-        const match = filepath.match(/(\/uploads.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
+        const match = filepath.match(/(\/wp-content.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
         if (match) {
-            const [m, dirpath, slug, dims, filetype] = match
-            let upload = uploadDex.get(slug)
+            const dimensions = await imageSize(filepath)
+            const [_, dirpath, slug, dims, filetype] = match
+            let upload = uploadDex.get(dirpath+slug)
             if (!upload) {
                 upload = {
                     slug: slug,
                     originalUrl: `${path.join(dirpath, slug)}.${filetype}`,
                     variants: []
                 }
-                uploadDex.set(slug, upload)
+                uploadDex.set(dirpath+slug, upload)
             }
 
-            if (dims) {
-                const [width, height] = dims.split("x")
-                upload.variants.push({
-                    url: path.join(dirpath, filename),
-                    width: parseInt(width),
-                    height: parseInt(height)
-                })
-            }
+            upload.variants.push({
+                url: path.join(dirpath, filename),
+                width: dimensions.width,
+                height: dimensions.height
+            })
 
             uploadDex.set(filename, upload)
         }
@@ -107,11 +108,15 @@ export async function getUploadedImages() {
 }
 
 // Retrieve a map of post ids to authors
+let cachedAuthorship: Map<number, string[]>
 export async function getAuthorship(): Promise<Map<number, string[]>> {
+    if (cachedAuthorship) return cachedAuthorship
+
     const authorRows = await wpdb.query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
-        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
+        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id 
         WHERE terms.taxonomy='author'
+        ORDER BY rels.term_order ASC
     `)
 
     const authorship = new Map<number, string[]>()
@@ -124,6 +129,7 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
         authors.push(row.description.split(" ").slice(0, 2).join(" "))
     }
 
+    cachedAuthorship = authorship
     return authorship
 }
 
@@ -187,12 +193,12 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     const permalinks = await getPermalinks()
 
     cachedEntries = categoryOrder.map(cat => {
-        const rowsWithCat = pageRows.filter((row: any) => {
+        const rows = pageRows.filter(row => {
             const cats = categoriesByPageId.get(row.ID)
             return cats && cats.indexOf(cat) !== -1
         })
 
-        const entries = rowsWithCat.map((row: any) => {
+        const entries = rows.map(row => {
             return {
                 slug: permalinks.get(row.ID, row.post_name),
                 title: row.post_title,
@@ -212,7 +218,8 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
 
 export async function getPermalinks() {
     return {
-        get: (ID: number, postName: string) => postName.replace(/\/$/, "")
+        // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
+        get: (ID: number, postName: string) => postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/")
     }
 }
 
@@ -232,6 +239,19 @@ export async function getFeaturedImages() {
     return featuredImages
 }
 
+export async function getFeaturedImageUrl(postId: number): Promise<string|undefined> {
+    if (cachedFeaturedImages)
+        return cachedFeaturedImages.get(postId)
+    else {
+        const rows = await wpdb.query(`
+            SELECT wp_postmeta.post_id, wp_posts.guid
+            FROM wp_postmeta
+            INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value
+            WHERE wp_postmeta.meta_key='_thumbnail_id' AND wp_postmeta.post_id=?`, [postId])
+        return rows.length ? rows[0].guid : undefined
+    }
+}
+
 export interface FullPost {
     id: number
     type: 'post'|'page'
@@ -247,8 +267,8 @@ export interface FullPost {
 
 export async function getFullPost(row: any): Promise<FullPost> {
     const authorship = await getAuthorship()
-    const featuredImages = await getFeaturedImages()
     const permalinks = await getPermalinks()
+    const featuredImageUrl = await getFeaturedImageUrl(row.ID)
 
     const postId = row.post_status === "inherit" ? row.post_parent : row.ID
 
@@ -262,7 +282,7 @@ export async function getFullPost(row: any): Promise<FullPost> {
         authors: authorship.get(postId) || [],
         content: row.post_content,
         excerpt: row.post_excerpt,
-        imageUrl: featuredImages.get(row.ID)
+        imageUrl: featuredImageUrl
     }
 }
 
@@ -287,7 +307,7 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
     const authorship = await getAuthorship()
     const featuredImages = await getFeaturedImages()
 
-    cachedPosts = rows.map((row: any) => {
+    cachedPosts = rows.map(row => {
         return {
             title: row.post_title,
             date: new Date(row.post_date),
