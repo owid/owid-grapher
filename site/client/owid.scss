@@ -288,7 +288,6 @@ address a:hover {
 		background-color: #001c3d;
 		color: white;
 		position: relative;
-		z-index: 1;
 	}
 
 	.SiteHeader .widget-area {
@@ -317,19 +316,15 @@ address a:hover {
 		max-width: 1170px;
 	}
 
-	#owid-topbar ul.desktop li {
+	#owid-topbar > ul.desktop > li {
 		display: inline-block;
 		margin-left: 28px;
 	}
 
-	#owid-topbar ul.desktop li > a {
+	#owid-topbar > ul.desktop > li > a {
 		height: 47px;
 		line-height: 47px;
 		color: rgba(255, 255, 255, 0.9);
-	}
-
-	#owid-topbar ul.desktop i {
-		padding-right: 8px;
 	}
 
 	#search-nav {
@@ -340,7 +335,7 @@ address a:hover {
 	    background-color: white;
 	}
 
-	#search-nav input {
+	#search-nav > input {
 		width: auto;
 		-webkit-appearance: none;
 		width: 270px;
@@ -2434,10 +2429,6 @@ html:not(.js) {
         max-width: 90vw;
 	}
 
-	ul > li span {
-		color: #aaa;
-	}
-
 	/* Make the ending lines look nice */
 	/* https://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid */
 	ul::after {
@@ -2447,5 +2438,35 @@ html:not(.js) {
 
 	a {
 	    @include owid-link;
+	}
+}
+
+.SearchResults {
+	position: fixed;
+	top: 130px;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	color: black;
+	background: white;
+	/* Needs to go over the charts */
+	z-index: 2;
+	padding: 1rem;
+	overflow-y: scroll;
+
+
+	> .container {
+		max-width: 80rem;
+		margin: auto;
+		display: flex;
+		flex-direction: row;	
+	}
+
+	> .container > :first-child {
+		margin-right: 5rem;
+	}
+
+	.postResults, .chartResults {
+		width: 50%;
 	}
 }
