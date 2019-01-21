@@ -210,25 +210,9 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     return cachedEntries
 }
 
-let cachedPermalinks: Map<number, string>
-export async function getCustomPermalinks() {
-    if (cachedPermalinks) return cachedPermalinks
-
-    const rows = await wpdb.query(`SELECT post_id, meta_value FROM wp_postmeta WHERE meta_key='custom_permalink'`)
-    const permalinks = new Map<number, string>()
-    for (const row of rows) {
-        permalinks.set(row.post_id, row.meta_value)
-    }
-
-    cachedPermalinks = permalinks
-    return permalinks
-}
-
 export async function getPermalinks() {
-    const permalinks = await getCustomPermalinks()
-
     return {
-        get: (ID: number, postName: string) => (permalinks.get(ID) || postName).replace(/\/$/, "")
+        get: (ID: number, postName: string) => postName.replace(/\/$/, "")
     }
 }
 
