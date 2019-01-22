@@ -6,8 +6,16 @@ load_child_theme_textdomain('owid', apply_filters('child_theme_textdomain', get_
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_head', 'wp_shortlink_wp_head');
 remove_action('wp_print_styles', 'print_emoji_styles');
-remove_filter('template_redirect', 'redirect_canonical');  
+remove_filter('template_redirect', 'redirect_canonical');
 add_filter('show_admin_bar', '__return_false');
+
+// Allow uploading SVGs
+function cc_mime_types($mimes) {
+    $mimes['svg'] = 'image/svg+xml';
+    return $mimes;
+}
+
+add_filter('upload_mimes', 'cc_mime_types');
 
 function build_static($post_ID, $post_after, $post_before) {
 	if ($post_after->post_status == "publish" || $post_before->post_status == "publish") {
