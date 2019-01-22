@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import * as db from 'db/db'
 import { JsonError } from 'utils/server/serverUtil'
 import { Chart } from 'db/model/Chart'
 import { ChartConfigProps } from 'charts/ChartConfig'

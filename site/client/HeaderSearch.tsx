@@ -79,7 +79,7 @@ class SearchResults extends React.Component<{ results: Results }> {
 @observer
 export class HeaderSearch extends React.Component {
     @observable.ref results?: Results
-    lastQuery: string
+    lastQuery?: string
 
     async runSearch(query: string) {
         const algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
@@ -103,8 +103,8 @@ export class HeaderSearch extends React.Component {
 
     @action.bound onSearch(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.currentTarget.value
+        this.lastQuery = value
         if (value) {
-            this.lastQuery = value
             this.runSearch(value)
         } else {
             this.results = undefined
