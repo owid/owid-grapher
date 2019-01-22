@@ -33,7 +33,7 @@ then
   FINAL_TARGET="$ROOT/$NAME-code"
   FINAL_DATA="$ROOT/$NAME-data"
 
-  # Run pre-deploy builds and checks
+  # Run pre-deploy checks
   yarn check
 
   # Rsync the local repository to a temporary location on the server
@@ -57,6 +57,7 @@ then
   # Install dependencies, build assets and migrate
   cd $TMP_NEW
   yarn install --production
+  yarn build
   yarn typeorm migration:run
 
   # Atomically swap the old and new versions

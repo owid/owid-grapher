@@ -1,5 +1,5 @@
-import 'charts/client/charts.entry'
 import 'site/client/owid.scss'
+import 'charts/client/chart.scss'
 import './oldScripts.js'
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
@@ -10,6 +10,8 @@ import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {Grapher} from 'site/client/Grapher'
+window.App = window.App || {}
+
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 

@@ -12,3 +12,4 @@ tmp
 .tscache
 test
 theme/codelink
+dist

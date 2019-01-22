@@ -11,9 +11,9 @@
     "typeorm": "yarn tsn node_modules/.bin/typeorm",
     "lint": "tslint --project . -t verbose",
     "typecheck": "tsc --noEmit",
-    "build": "rm -rf dist && webpack -p --progress",
+    "build": "rm -rf dist && ENV=production webpack -p --progress",
     "test": "jest",
-    "check": "npm-run-all --parallel typecheck build test",
+    "check": "npm-run-all --parallel typecheck test",
     "deploy": "./bin/deploy.sh",
     "serve": "yarn tsn admin/server/server.tsx"
   },
