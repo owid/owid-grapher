@@ -1,4 +1,3 @@
-import * as settings from 'settings'
 import * as React from 'react'
 import { webpack } from 'utils/server/staticGen'
 
@@ -18,6 +17,5 @@ export const SiteFooter = () => {
         </nav>
         <script src={webpack('commons.js', 'site')}/>
         <script src={webpack('owid.js', 'site')}/>
-        <script src={`${settings.BAKED_GRAPHER_URL}/embedCharts.js`}/>
     </footer>
 }
