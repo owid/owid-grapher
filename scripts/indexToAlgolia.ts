@@ -1,26 +1,26 @@
 import * as algoliasearch from 'algoliasearch'
 import * as _ from 'lodash'
-const chunk = require('chunk-text')
 
 import * as wpdb from 'db/wpdb'
 import { ALGOLIA_ID  } from 'settings'
 import { ALGOLIA_SECRET_KEY } from 'serverSettings'
-import { formatPost } from 'site/server/formatting'
+import { formatPostPlaintext } from 'site/server/formatting'
+import { chunkParagraphs } from 'utils/search'
 
 async function indexToAlgolia() {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex('mispydev_owid_articles');
+    // const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    // const index = client.initIndex('mispydev_owid_articles')
 
-    index.setSettings({ attributeForDistinct: 'slug' })
-    return
+    // index.setSettings({ attributeForDistinct: 'slug' })
 
     const rows = await wpdb.query(`SELECT ID, post_name, post_title, post_content FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
 
     const records = []
 
-    /*for (const row of rows) {
-        const post = await formatPost(await wpdb.getFullPost(row), {})
-        const chunks = chunk(post.plaintext, 1000);
+    for (const row of rows) {
+        const postText = await formatPostPlaintext(await wpdb.getFullPost(row))
+        const chunks = chunkParagraphs(postText, 1000)
+        console.log(chunks)
 
         let i = 0
         for (const c of chunks) {
@@ -34,8 +34,10 @@ async function indexToAlgolia() {
         }
     }
 
-    await index.saveObjects(records)*/
-    
+    console.log(records.length)
+
+    // await index.saveObjects(records)
+
     // for (let i = 0; i < records.length; i += 1000) {
     //     console.log(i)
     //     await index.saveObjects(records.slice(i, i+1000))

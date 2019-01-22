@@ -10,6 +10,7 @@ import { getTables, getUploadedImages, FullPost } from 'db/wpdb'
 import Tablepress from './views/Tablepress'
 import {GrapherExports} from './grapherUtil'
 import * as path from 'path'
+import { htmlToPlaintext } from 'utils/string'
 
 const mjAPI = require("mathjax-node")
 
@@ -105,9 +106,13 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     // Footnotes
     const footnotes: string[] = []
     html = html.replace(/\[ref\]([\s\S]*?)\[\/ref\]/gm, (_, footnote) => {
-        footnotes.push(footnote)
-        const i = footnotes.length
-        return `<a id="ref-${i}" class="ref" href="#note-${i}"><sup>${i}</sup></a>`
+        if (formattingOptions.footnotes) {
+            footnotes.push(footnote)
+            const i = footnotes.length
+            return `<a id="ref-${i}" class="ref" href="#note-${i}"><sup>${i}</sup></a>`
+        } else {
+            return '"'
+        }
     })
 
     // Insert [table id=foo] tablepress tables
@@ -340,7 +345,8 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
         // Override formattingOptions if specified in the post (as an HTML comment)
         const options: FormattingOptions = Object.assign({
             toc: post.type === 'page',
-            wpFormat: true
+            wpFormat: true,
+            footnotes: true
         }, formattingOptions)
         return formatWordpressPost(post, html, options, grapherExports)
     }
@@ -361,4 +367,9 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
 
 export function formatDate(date: Date): string {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' })
+}
+
+export async function formatPostPlaintext(rawPost: FullPost): Promise<string> {
+    const post = await formatPost(rawPost, { footnotes: false })
+    return htmlToPlaintext(post.html)
 }
