@@ -1,4 +1,3 @@
-import 'charts/client/charts.entry'
 import 'site/client/owid.scss'
 import './oldScripts.js'
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
@@ -9,20 +8,20 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
-import {Grapher} from 'site/client/Grapher'
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
     const input = search.querySelector("input[type=search]") as HTMLInputElement
+    let lastQuery = ""
     search.addEventListener('submit', (ev) => {
         ev.preventDefault()
         Analytics.logEvent("OWID_SITE_SEARCH", { query: input.value }).then(() => search.submit()).catch(() => search.submit())
     })
 }
 
-function getParent(el: HTMLElement, condition: (el: HTMLElement) => boolean): HTMLElement | null {
+function getParent(el: HTMLElement, condition: Function): HTMLElement | null {
     let current: HTMLElement | null = el
     while (current) {
         if (condition(current)) return current
@@ -54,4 +53,3 @@ declare var window: any
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 runHeaderMenus()
-Grapher.embedAll()

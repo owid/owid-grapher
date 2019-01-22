@@ -1,5 +1,5 @@
-import { ChartView } from 'charts/ChartView'
-import {throttle, isMobile} from 'charts/Util'
+import { ChartView } from './ChartView'
+import {throttle, isMobile} from './Util'
 
 interface LoadableFigure {
     configUrl: string
