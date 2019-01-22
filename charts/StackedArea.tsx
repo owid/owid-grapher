@@ -217,17 +217,23 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
         </Tooltip>
     }
 
+    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
     componentDidMount() {
         // Fancy intro animation
 
         const base = select(this.base.current)
-        base.selectAll("clipPath > rect")
+        this.animSelection = select(this.base.current).selectAll("clipPath > rect")
             .attr("width", 0)
-            .transition()
+
+        this.animSelection.transition()
                 .duration(800)
                 .ease(easeLinear)
                 .attr("width", this.bounds.width)
                 .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+    }
+
+    componentWillUnmount() {
+        if (this.animSelection) this.animSelection.interrupt()
     }
 
     @computed get renderUid() {

@@ -1,24 +1,29 @@
 import * as React from 'react'
-import { observable, computed, autorun } from 'mobx'
+import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import * as algoliasearch from 'algoliasearch'
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
+import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY, BAKED_GRAPHER_URL } from 'settings'
+import { EmbedChart } from 'site/client/EmbedChart'
 
 interface PostHit {
     slug: string
     title: string
     content: string
+    excerpt: string
     _highlightResult: any
 }
+
 interface ChartHit {
     slug: string
     title: string
     _highlightResult: any
 }
+
 interface Results {
     posts: PostHit[]
     charts: ChartHit[]
 }
+
 class PostResult extends React.Component<{ hit: PostHit }> {
     render() {
         const {hit} = this.props
@@ -30,6 +35,7 @@ class PostResult extends React.Component<{ hit: PostHit }> {
         </div>
     }
 }
+
 class ChartResult extends React.Component<{ hit: ChartHit }> {
     render() {
         const {hit} = this.props
@@ -45,21 +51,8 @@ class SearchResults extends React.Component<{ results: Results }> {
         return this.props.results.charts.length ? this.props.results.charts[0].slug : undefined
     }
 
-    newChart: boolean = false
-
     componentDidMount() {
-        autorun(() => {
-            this.bestChartSlug ? this.newChart = true : undefined
-        })
-        this.componentDidUpdate()
         document.body.style.overflowY = 'hidden'
-    }
-
-    componentDidUpdate() {
-        if (this.newChart) {
-            (window as any).Grapher.embedAll()
-            this.newChart = false
-        }
     }
 
     componentWillUnmount() {
@@ -76,7 +69,7 @@ class SearchResults extends React.Component<{ results: Results }> {
                 </div>
                 <div className="chartResults">
                     <h2>Data</h2>
-                    {this.bestChartSlug && <figure data-grapher-src={`https://ourworldindata.org/grapher/${this.bestChartSlug}`}/>}
+                    {this.bestChartSlug && <EmbedChart src={`${BAKED_GRAPHER_URL}/${this.bestChartSlug}`}/>}
                     {results.charts.map(hit => <ChartResult key={hit.slug} hit={hit}/>)}
                 </div>
             </div>
@@ -86,19 +79,33 @@ class SearchResults extends React.Component<{ results: Results }> {
 @observer
 export class HeaderSearch extends React.Component {
     @observable.ref results?: Results
+    lastQuery: string
 
-    async onSearch(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.currentTarget.value
-        if (value) {
-            const algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-            const json = await algolia.search([
-                { indexName: 'mispydev_owid_articles', query: value, params: { distinct: true } },
-                { indexName: 'mispydev_owid_charts', query: value, params: {} }
-            ])
+    async runSearch(query: string) {
+        const algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+        const json = await algolia.search([
+            { indexName: 'mispydev_owid_articles', query: query, params: { distinct: true } },
+            { indexName: 'mispydev_owid_charts', query: query, params: {} }
+        ])
+
+        if (this.lastQuery !== query) {
+            // Don't need this result anymore
+            return
+        }
+
+        runInAction(() => {
             this.results = {
                 posts: json.results[0].hits,
                 charts: json.results[1].hits
-            }
+            }    
+        })
+    }
+
+    @action.bound onSearch(e: React.ChangeEvent<HTMLInputElement>) {
+        const value = e.currentTarget.value
+        if (value) {
+            this.lastQuery = value
+            this.runSearch(value)
         } else {
             this.results = undefined
         }

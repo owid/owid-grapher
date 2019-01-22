@@ -10,7 +10,7 @@ interface LoadableFigure {
 }
 
 // Given the html for a chart, extract the JSON config fragment
-function readConfigFromHTML(html: string): any {
+export function readConfigFromHTML(html: string): any {
     const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
     return m ? JSON.parse(m[1]) : undefined
 }

@@ -131,17 +131,24 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         this.hoverKey = undefined
     }
 
+    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
     componentDidMount() {
         // Fancy intro animation
 
         const base = select(this.base.current)
-        base.selectAll("clipPath > rect")
+        this.animSelection = base.selectAll("clipPath > rect")
             .attr("width", 0)
+
+        this.animSelection
             .transition()
             .duration(800)
             .ease(easeLinear)
             .attr("width", this.bounds.width)
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+    }
+
+    componentWillUnmount() {
+        if (this.animSelection) this.animSelection.interrupt()
     }
 
     @computed get renderUid(): number {

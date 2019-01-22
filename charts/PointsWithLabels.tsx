@@ -584,14 +584,21 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
+    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
     componentDidMount() {
         const radiuses: string[] = []
-        select(this.base.current).selectAll("circle").each(function() {
+        this.animSelection = select(this.base.current).selectAll("circle")
+        
+        this.animSelection.each(function() {
             const circle = this as SVGCircleElement
             radiuses.push(circle.getAttribute('r') as string)
             circle.setAttribute('r', "0")
         }).transition().duration(500).attr('r', (_, i) => radiuses[i])
             .on("end", () => this.forceUpdate())
+    }
+
+    componentWillUnmount() {
+        if (this.animSelection) this.animSelection.interrupt()
     }
 
     render() {
