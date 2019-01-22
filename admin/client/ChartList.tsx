@@ -9,6 +9,7 @@ import { Tag } from './TagBadge'
 import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
 import { bind } from 'decko'
+import { BAKED_GRAPHER_URL } from 'settings'
 
 export interface ChartListItem {
     id: number
@@ -82,7 +83,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
                 </a>
             </td>
             {chart.isPublished ? <td>
-                <a href={`${this.context.admin.grapherRoot}/${chart.slug}`}>{highlight(chart.title)}</a> {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
+                <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{highlight(chart.title)}</a> {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
             </td> : <td>
                 <span style={{ color: 'red' }}>Draft: </span> {highlight(chart.title)} {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
             </td>}

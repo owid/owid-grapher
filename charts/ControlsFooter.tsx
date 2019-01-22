@@ -13,8 +13,7 @@ import { worldRegions, labelsByRegion } from './WorldRegions'
 import { faCode, faEdit, faDownload, faShareAlt, faCog, faExpand, faPlus, faSearch, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
-declare const Global: { rootUrl: string }
+import { ADMIN_BASE_URL } from 'settings'
 
 @observer
 class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string }> {
@@ -64,7 +63,7 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
     }
 
     @computed get editUrl(): string | undefined {
-        return Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/charts/${this.props.chart.props.id}/edit` : undefined
+        return Cookies.get('isAdmin') ? `${ADMIN_BASE_URL}/admin/charts/${this.props.chart.props.id}/edit` : undefined
     }
 
     @computed get canonicalUrl(): string | undefined {

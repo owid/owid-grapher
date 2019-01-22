@@ -14,6 +14,7 @@ import { defaultTo } from './Util'
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
 import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from './Util'
 import { MapProjection } from './MapProjection'
+import { BAKED_GRAPHER_URL } from 'settings'
 
 interface ChartQueryParams {
     tab?: string
@@ -30,7 +31,6 @@ interface ChartQueryParams {
 }
 
 declare const App: any
-declare const Global: { rootUrl: string }
 
 export class URLBinder {
     chart: ChartConfig
@@ -98,7 +98,7 @@ export class URLBinder {
 
     @computed get baseUrl(): string | undefined {
         if (this.chart.isPublished)
-            return Global.rootUrl + "/" + this.chart.data.slug
+            return `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
         else
             return undefined
     }

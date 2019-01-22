@@ -1,11 +1,11 @@
 import { extend, some, isString, isNumber, uniq, sortedUniq, min, max, keyBy, keys, values, each, sortBy } from './Util'
 import { ChartConfig } from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
+import { BAKED_GRAPHER_URL } from 'settings'
 
 // XXX
 declare var window: { admin: any }
 
-declare var Global: { rootUrl: string }
 declare var App: { isEditor: boolean }
 
 export class VariableDisplaySettings {
@@ -155,7 +155,7 @@ export class VariableData {
             req.addEventListener("load", function() {
                 that.receiveData(JSON.parse(this.responseText))
             })
-            req.open("GET", `${Global.rootUrl}/data/variables/${variableIds.join("+")}.json?v=${cacheTag}`)
+            req.open("GET", `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join("+")}.json?v=${cacheTag}`)
             req.send()
         }
 

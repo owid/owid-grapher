@@ -37,7 +37,7 @@ app.use('/admin', adminViews)
 
 // Default route: single page admin app
 app.get('*', (req, res) => {
-    res.send(renderToHtmlPage(<AdminSPA rootUrl={`${BAKED_GRAPHER_URL}`} username={res.locals.user.fullName}/>))
+    res.send(renderToHtmlPage(<AdminSPA username={res.locals.user.fullName}/>))
 })
 
 // Send errors to Slack

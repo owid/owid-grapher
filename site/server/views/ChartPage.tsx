@@ -42,7 +42,6 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         var figure = document.getElementsByTagName("figure")[0];
         try {
             window.App = {};
-            window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
             ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
         } catch (err) {
             figure.innerHTML = "<img src=\\"/grapher/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";

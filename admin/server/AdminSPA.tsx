@@ -4,12 +4,11 @@ import * as _ from 'lodash'
 import { webpack } from './webpack'
 import * as settings from 'settings'
 
-export function AdminSPA(props: { rootUrl: string, username: string }) {
+export function AdminSPA(props: { username: string }) {
     const script = `
-        window.Global = { rootUrl: "${props.rootUrl}" }
         window.App = {}
         App.isEditor = true
-        window.admin = new Admin(Global.rootUrl, "${props.username}", ${JSON.stringify(_.pick(settings, ["ENV", "GITHUB_USERNAME"]))})
+        window.admin = new Admin("${props.username}", ${JSON.stringify(_.pick(settings, ["ENV", "GITHUB_USERNAME"]))})
         admin.start(document.querySelector("#app"))
 `
 

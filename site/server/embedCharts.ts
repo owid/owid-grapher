@@ -4,7 +4,6 @@ import { webpack } from 'utils/server/staticGen'
 export function embedSnippet(): string {
     return `
         window.App = {};
-        window.Global = { rootUrl: '${BAKED_GRAPHER_URL}' };
 
         var link = document.createElement('link');
         link.type = 'text/css';

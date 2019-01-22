@@ -18,13 +18,11 @@ interface ClientSettings {
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
     @observable errorMessage?: { title: string, content: string, isFatal?: boolean }
-    grapherRoot: string
     basePath: string
     username: string
     settings: ClientSettings
 
-    constructor(rootUrl: string, username: string, settings: ClientSettings) {
-        this.grapherRoot = rootUrl
+    constructor(username: string, settings: ClientSettings) {
         this.basePath = "/admin"
         this.username = username
         this.settings = settings

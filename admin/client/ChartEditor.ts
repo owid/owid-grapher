@@ -10,8 +10,7 @@ import { extend } from 'charts/Util'
 import { ChartConfig } from 'charts/ChartConfig'
 import { EditorFeatures } from './EditorFeatures'
 import { Admin } from './Admin'
-
-declare const Global: { rootUrl: string }
+import { BAKED_GRAPHER_URL } from 'settings'
 
 export type EditorTab = string
 
@@ -163,7 +162,7 @@ export class ChartEditor {
     }
 
     publishChart() {
-        const url = Global.rootUrl + "/" + this.chart.data.slug
+        const url = `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.chart.props.isPublished = true

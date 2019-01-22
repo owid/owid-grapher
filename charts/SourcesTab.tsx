@@ -7,13 +7,11 @@ import { ChartConfig } from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
 const linkifyHtml = require('linkifyjs/html')
 import * as Cookies from 'js-cookie'
+import { ADMIN_BASE_URL } from 'settings'
 
 function linkify(s: string) {
     return linkifyHtml(s).replace(/(?:\r\n|\r|\n)/g, '<br/>')
 }
-
-declare const Global: { rootUrl: string }
-
 @observer
 export class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     @computed get bounds() {
@@ -28,7 +26,7 @@ export class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartCo
         const { dimension } = source
         const { variable } = dimension
 
-        const editUrl = Cookies.get('isAdmin') ? `${Global.rootUrl}/admin/datasets/${variable.datasetId}` : undefined
+        const editUrl = Cookies.get('isAdmin') ? `${ADMIN_BASE_URL}/admin/datasets/${variable.datasetId}` : undefined
 
         return <div key={source.id} className="datasource-wrapper">
             <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>
