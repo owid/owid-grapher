@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "build": "rm -rf dist && webpack -p --progress",
     "test": "jest",
-    "pre-deploy": "npm-run-all --parallel typecheck build test",
+    "check": "npm-run-all --parallel typecheck build test",
     "deploy": "./bin/deploy.sh",
     "serve": "yarn tsn admin/server/server.tsx"
   },

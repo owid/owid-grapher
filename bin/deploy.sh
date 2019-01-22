@@ -34,7 +34,7 @@ then
   FINAL_DATA="$ROOT/$NAME-data"
 
   # Run pre-deploy builds and checks
-  yarn pre-deploy
+  yarn check
 
   # Rsync the local repository to a temporary location on the server
   $RSYNC $DIR/ $HOST:$SYNC_TARGET
