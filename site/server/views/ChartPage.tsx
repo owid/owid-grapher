@@ -89,7 +89,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
             <script src={webpack("commons.js")}/>
-            <script src={webpack("charts.js")}/>
+            <script src={webpack("site.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>
