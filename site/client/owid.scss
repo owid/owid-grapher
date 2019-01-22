@@ -2441,7 +2441,7 @@ html:not(.js) {
 	}
 }
 
-.SearchResults {
+.HeaderSearch .SearchResults {
 	position: fixed;
 	top: 130px;
 	left: 0;
@@ -2453,8 +2453,9 @@ html:not(.js) {
 	z-index: 2;
 	padding: 1rem;
 	overflow-y: scroll;
+}
 
-
+.SearchResults {
 	> .container {
 		max-width: 80rem;
 		margin: auto;
@@ -2468,5 +2469,10 @@ html:not(.js) {
 
 	.postResults, .chartResults {
 		width: 50%;
-	}
+    }
+    
+    .postResults li {
+        list-style-type: none;
+        
+    }
 }

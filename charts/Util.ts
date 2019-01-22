@@ -149,54 +149,6 @@ export function defaultTo<T, K>(value: T | undefined | null, defaultValue: K): T
 export function first<T>(arr: T[]) { return arr[0] }
 export function last<T>(arr: T[]) { return arr[arr.length - 1] }
 
-export interface QueryParams { [key: string]: string|undefined }
-
-export function getQueryParams(queryStr?: string): QueryParams {
-    queryStr = queryStr || window.location.search
-    if (queryStr[0] === "?")
-        queryStr = queryStr.substring(1)
-
-    const querySplit = filter(queryStr.split("&"), s => !isEmpty(s))
-    const params: QueryParams = {}
-
-    for (const param of querySplit) {
-        const pair = param.split("=")
-        params[pair[0]] = pair[1]
-    }
-
-    return params
-}
-
-export function queryParamsToStr(params: QueryParams) {
-    let newQueryStr = ""
-
-    each(params, (v, k) => {
-        if (v === undefined) return
-
-        if (isEmpty(newQueryStr)) newQueryStr += "?"
-        else newQueryStr += "&"
-        newQueryStr += k + '=' + v
-    })
-
-    return newQueryStr
-}
-
-export function setQueryVariable(key: string, val: string | null) {
-    const params = getQueryParams()
-
-    if (val === null || val === "") {
-        delete params[key]
-    } else {
-        params[key] = val
-    }
-
-    setQueryStr(queryParamsToStr(params))
-}
-
-export function setQueryStr(str: string) {
-    history.replaceState(null, document.title, window.location.pathname + str + window.location.hash)
-}
-
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(numValues: number[], scaleType: 'linear' | 'log'): [number, number] {
     const filterValues = scaleType === 'log' ? numValues.filter(v => v > 0) : numValues

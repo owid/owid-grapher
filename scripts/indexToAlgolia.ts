@@ -14,7 +14,7 @@ async function indexToAlgolia() {
 
     index.setSettings({ attributeForDistinct: 'slug' })
 
-    const rows = await wpdb.query(`SELECT ID, post_name, post_title, post_content FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
+    const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
 
     const records = []
 
@@ -29,6 +29,7 @@ async function indexToAlgolia() {
             records.push({
                 objectID: `${row.ID}-c${i}`,
                 postId: post.id,
+                postType: rawPost.type,
                 slug: post.slug,
                 title: post.title,
                 excerpt: post.excerpt,
@@ -41,12 +42,11 @@ async function indexToAlgolia() {
         }
     }
 
-    await index.saveObjects(records)
+    // await index.saveObjects(records)
 
-    // for (let i = 0; i < records.length; i += 1000) {
-    //     console.log(i)
-    //     await index.saveObjects(records.slice(i, i+1000))
-    // }
+    for (let i = 0; i < records.length; i += 1000) {
+        await index.saveObjects(records.slice(i, i+1000))
+    }
 
     wpdb.end()
 }

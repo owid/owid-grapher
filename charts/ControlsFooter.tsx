@@ -336,7 +336,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
                 {hasSettingsMenu && <li className="clickable icon">
                     <a title="Settings" onClick={this.onSettingsMenu}><FontAwesomeIcon icon={faCog}/></a>
                 </li>}
-                {chartView.isEmbed && <li className="clickable icon">
+                {chart.isEmbed && <li className="clickable icon">
                     <a title="Open chart in new tab" href={chart.url.canonicalUrl} target="_blank"><FontAwesomeIcon icon={faExpand}/></a>
                 </li>}
             </ul>

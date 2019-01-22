@@ -6,7 +6,7 @@ export class Analytics {
 
         return new Promise((resolve, reject) => {
             if (!window.amplitude) {
-                console.log(name, props)
+                // console.log(name, props)
                 resolve()
             } else {
                 window.amplitude.getInstance().logEvent(name, props, () => {

@@ -5,6 +5,7 @@ import {BlogPostPage} from './views/BlogPostPage'
 import {BlogIndexPage} from './views/BlogIndexPage'
 import {FrontPage} from './views/FrontPage'
 import {ChartsIndexPage, ChartIndexItem} from './views/ChartsIndexPage'
+import {SearchPage} from './views/SearchPage'
 import SubscribePage from './views/SubscribePage'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
@@ -148,4 +149,8 @@ export async function renderBlogByPageNum(pageNum: number) {
     }
 
     return renderToHtmlPage(<BlogIndexPage posts={posts} pageNum={pageNum} numPages={numPages}/>)
+}
+
+export async function renderSearchPage(query: string) {
+    return renderToHtmlPage(<SearchPage query={query}/>)
 }

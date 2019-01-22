@@ -9,6 +9,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
+import {runSearchPage} from './SearchPageMain'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
 window.Grapher = Grapher
@@ -58,3 +59,4 @@ declare var window: any
 
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
+window.runSearchPage = runSearchPage

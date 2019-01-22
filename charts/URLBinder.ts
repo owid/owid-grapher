@@ -12,7 +12,7 @@ import { computed, when, runInAction, reaction, toJS } from 'mobx'
 import { ChartTabOption } from './ChartTabOption'
 import { defaultTo } from './Util'
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
-import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from './Util'
+import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from 'utils/client/url'
 import { MapProjection } from './MapProjection'
 import { BAKED_GRAPHER_URL } from 'settings'
 
