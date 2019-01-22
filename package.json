@@ -107,7 +107,6 @@
     "ts-node": "^3.3.0",
     "tsconfig-paths": "^3.7.0",
     "tslint": "^5.9.1",
-    "tslint-language-service": "^0.9.9",
     "tslint-loader": "^3.6.0",
     "typeorm": "^0.2.7",
     "typescript": "^3.2.1",
