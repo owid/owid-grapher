@@ -5,6 +5,8 @@ import { siteSearch, SiteSearchResults } from 'site/siteSearch'
 import { SearchResults } from 'site/client/SearchResults'
 import { observer } from "mobx-react"
 import { action, observable, autorun, IReactionDisposer, runInAction } from "mobx"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch } from "@fortawesome/free-solid-svg-icons"
 
 @observer
 export class SearchPageMain extends React.Component {
@@ -34,6 +36,9 @@ export class SearchPageMain extends React.Component {
     }
 
     componentDidMount() {
+        const input = document.querySelector(".SearchPage > main > form input") as HTMLInputElement
+        input.value = this.query
+        input.focus()
         this.onSearch(this.query)
     }
 
@@ -52,15 +57,11 @@ export class SearchPageMain extends React.Component {
 
     render() {
         return <React.Fragment>
-            <form id="search-nav" action="/search" method="GET">
-                <input type="search" name="q" onChange={e => this.onSearchInput(e)} value={this.query} autoFocus/>
-                <button type="submit">Search</button>
-            </form>
             {this.results && <SearchResults results={this.results}/>}
         </React.Fragment>
     }
 }
 
 export function runSearchPage() {
-    ReactDOM.render(<SearchPageMain/>, document.querySelector("main"))
+    ReactDOM.render(<SearchPageMain/>, document.querySelector(".searchResults"))
 }

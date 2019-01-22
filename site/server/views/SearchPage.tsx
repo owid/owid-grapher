@@ -3,6 +3,8 @@ import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
 
 export const SearchPage = (props: { query: string }) => {
     return <html>
@@ -10,6 +12,14 @@ export const SearchPage = (props: { query: string }) => {
         <body className="SearchPage">
             <SiteHeader/>
             <main>
+                <form action="/search" method="GET">
+                    <div className="inputWrapper">
+                        <input type="search" name="q" placeholder={`Try "Poverty", "Population growth" or "Plastic pollution"`} autoFocus/>
+                        <FontAwesomeIcon icon={faSearch}/>
+                    </div>
+                    <button type="submit">Search</button>
+                </form>
+                <div className="searchResults"></div>
             </main>
             <SiteFooter/>
             <script>{`window.runSearchPage()`}</script>
