@@ -42,7 +42,7 @@ export class Chart extends BaseEntity {
 
     static async getBySlug(slug: string): Promise<Chart|undefined> {
         const slugsById = await this.mapSlugsToIds()
-        return await Chart.findOne(slugsById[slug])
+        return await Chart.findOne({ id: slugsById[slug] })
     }
 
     static async setTags(chartId: number, tagIds: number[]) {
