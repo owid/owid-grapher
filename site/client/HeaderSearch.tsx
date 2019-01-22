@@ -2,6 +2,7 @@ import * as React from 'react'
 import { observable, computed, autorun } from 'mobx'
 import { observer } from 'mobx-react'
 import * as algoliasearch from 'algoliasearch'
+import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
 
 interface PostHit {
     slug: string
@@ -23,7 +24,7 @@ class PostResult extends React.Component<{ hit: PostHit }> {
         const {hit} = this.props
         return <div className="PostResult">
             <a href={`/${hit.slug}`}>{hit.title}</a>
-            <p>{hit.content}</p>
+            <p>{hit.excerpt}</p>
             {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/>
             <p dangerouslySetInnerHTML={{__html: hit._highlightResult.content.value}}/> */}
         </div>
@@ -37,8 +38,6 @@ class ChartResult extends React.Component<{ hit: ChartHit }> {
         </div>
     }
 }
-
-
 
 @observer
 class SearchResults extends React.Component<{ results: Results }> {
@@ -91,7 +90,7 @@ export class HeaderSearch extends React.Component {
     async onSearch(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.currentTarget.value
         if (value) {
-            const algolia = algoliasearch("TBPYZP1AP6", "2078ca669653f7f0e5aac70e4f7c7eb1")
+            const algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
             const json = await algolia.search([
                 { indexName: 'mispydev_owid_articles', query: value, params: { distinct: true } },
                 { indexName: 'mispydev_owid_charts', query: value, params: {} }

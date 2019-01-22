@@ -111,7 +111,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             const i = footnotes.length
             return `<a id="ref-${i}" class="ref" href="#note-${i}"><sup>${i}</sup></a>`
         } else {
-            return '"'
+            return ""
         }
     })
 
