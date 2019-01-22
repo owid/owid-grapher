@@ -1,4 +1,5 @@
 import * as express from 'express'
+require('express-async-errors')
 import * as path from 'path'
 
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/siteBaking'
