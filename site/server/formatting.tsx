@@ -368,8 +368,3 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
 export function formatDate(date: Date): string {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' })
 }
-
-export async function formatPostPlaintext(rawPost: FullPost): Promise<string> {
-    const post = await formatPost(rawPost, { footnotes: false })
-    return htmlToPlaintext(post.html)
-}
