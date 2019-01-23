@@ -26,7 +26,7 @@ describe(chunkParagraphs, () => {
     it("uses full paragraphs if it has enough room", () => {
         const chunks = chunkParagraphs(CO2_TEXT, 1000)
 
-        expect(chunks.length).toBe(3)
+        expect(chunks.length).toBe(2)
     })
 })
 

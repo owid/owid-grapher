@@ -4,7 +4,7 @@ import { observer } from 'mobx-react'
 import * as Cookies from 'js-cookie'
 
 import { ChartConfig } from './ChartConfig'
-import { getQueryParams } from './Util'
+import { getQueryParams } from 'utils/client/url'
 import { ChartView } from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
 import { Timeline } from './HTMLTimeline'
