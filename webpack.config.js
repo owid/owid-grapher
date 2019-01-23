@@ -78,6 +78,9 @@ module.exports = (env, argv) => {
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
+
+            // This plugin loads settings from .env so we can import them
+            // Note that this means the settings become part of the client-side JS at webpack build time, not at server run time
             new Dotenv()
         ],
         devServer: {
