@@ -17,6 +17,7 @@ import { WORDPRESS_DIR } from 'serverSettings'
 import { formatPost, extractFormattingOptions } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
+import { JsonError } from "utils/server/serverUtil";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -55,6 +56,9 @@ export async function renderChartsPage() {
 
 export async function renderPageBySlug(slug: string) {
     const rows = await wpdb.query(`SELECT * FROM wp_posts AS post WHERE post_name=?`, [slug])
+    if (!rows.length)
+        throw new JsonError(`No page found by slug ${slug}`, 404)
+
     return renderPage(rows[0])
 }
 
