@@ -1,7 +1,8 @@
 .site-header {
     background-color: #002147;
-    font-family: $serif-font-stack;
-    background: linear-gradient(180deg, #001C3D 0%, #043269 65.84%, #014074 85.02%, #004E86 93.83%);
+    // font-family: $sans-serif-font-stack;
+    // background: linear-gradient(180deg, #001C3D 0%, #043269 65.84%, #014074 85.02%, #004E86 93.83%);
+    border-bottom: 4px solid #ff4012;
 }
 
 .site-navigation-wrapper {
@@ -127,10 +128,11 @@
 }
 
 .site-masthead {
+    font-family: $serif-font-stack;
     padding: 2rem 0;
 
     h1 {
-        font-size: 2.25rem;
+        font-size: 2.75rem;
         font-weight: 400;
         color: white;
         text-align: center;
@@ -139,9 +141,9 @@
     }
 
     p {
-        font-size: 1.25rem;
+        font-size: 1.625rem;
         margin: 0 auto 1.25rem;
-        max-width: 540px; /* TODO standardise */
+        max-width: 36rem; /* TODO standardise */
         color: #7CA3D0;
         line-height: 1.6;
         text-align: center;
@@ -149,7 +151,11 @@
 
     p em {
         font-style: normal;
-        color: #66BFFF;
+        color: #78c7ff;
+    }
+
+    .author-byline {
+        font-size: 1.25rem;
     }
 }
 

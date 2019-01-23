@@ -35,53 +35,27 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                     <div className="site-masthead">
                         <h1>Know the world you live in</h1>
                         <p>Understand how the world is changing through research and <em>interactive data visualizations</em>.</p>
-                        <div className="masthead-search">
-                            <label htmlFor="masthead-search">Search across all content</label>
-                            <div className="input-wrapper">
-                                <input id="masthead-search" type="search" placeholder='Try "poverty" or "population growth"' />
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </div>
-                            </div>
-                        </div>
-                        <p><em>70,000</em> variables, <em>2700</em> charts and <em>100</em> entries.</p>
-                        <p>All our content is open access and our tools are open source.</p>
+                        <p className="author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a></p>
                     </div>
                 </div>
             </SiteHeader>
 
-            <section className="recommended-content-section">
-                <div className="wrapper">
-                    <div className="content">
+            <div id="homepage-content" className="clearfix">
+                    <div id="homepage-latest">
+                        <h3><a href="/grapher/latest">Latest Visualization</a></h3>
+                        <figure data-grapher-src="https://ourworldindata.org/grapher/latest" style={{ height: "660px" }}/>
                     </div>
-                </div>
-            </section>
-
-            <section className="credibility-section">
-                <div className="wrapper">
-                    <h2>Cited by</h2>
-                    <p>logos</p>
-                </div>
-            </section>
-
-            <section className="latest-content-section">
-                <div className="wrapper">
-                    <div className="short-updates-section">
-                        <h2>Short updates and posts</h2>
-                        <div className="short-updates-list">
-                            {posts.slice(0,8).map(post => <div key={post.slug} className="short-updates-item">
-                                <div className="thumbnail">
-                                    <img src={post.imageUrl} />
-                                </div>
-                                <div className="metadata">
-                                    <h3 className="title">{post.title}</h3>
+                    <div id="homepage-blog">
+                        <h3><a href="/blog">Blog</a></h3>
+                        <ul>
+                            {posts.map(post => <li key={post.slug} className="post">
+                                <h4><a href={`/${post.slug}`}>{post.title}</a></h4>
+                                <div className="entry-meta">
                                     <time>{formatDate(post.date)}</time>
                                 </div>
-                            </div>)}
-                        </div>
-                        <div className="see-all">
-                            <a href="/index" className="button">See all short updates and facts</a>
-                        </div>
+                            </li>)}
+                        </ul>
+                        <a className="more" href="/blog">More →</a>
                     </div>
                     <div id="homepage-entries" className="owid-data">
                         <h3 id="entries"><a href="#entries">Entries</a></h3>
@@ -95,56 +69,23 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </div>
                             </li>)}
                         </ul>
-                        <div className="see-all">
-                            <a href="/index" className="button">See all short updates and facts</a>
+                    </div>
+                    <div className="owid-data owid-presentations">
+                        <h3 id="presentations"><a href="#presentations">Presentations</a></h3>
+                        <p>Visual histories spanning multiple topics.</p>
+                        <ul>
+                            <li><h4>Visual History of...</h4><div className='link-container'><a href='/slides/war-and-violence'>War & Violence</a><a href='/slides/world-poverty'>World Poverty</a><a href='/slides/global-health'>Global Health</a><a href='/slides/hunger-and-food-provision'>World Hunger & Food Provision</a><a href='/slides/africa-in-data'>Africa</a></div></li>
+                        </ul>
+                    </div>
+                    <div id="homepage-twitter">
+                        <h3><a href="https://twitter.com/OurWorldInData">Follow us</a></h3>
+                        <div className="social">
+                            <a href="https://twitter.com/OurWorldInData"><FontAwesomeIcon icon={faTwitter}/></a>
+                            <a href="https://www.facebook.com/OurWorldinData"><FontAwesomeIcon icon={faFacebookF}/></a>
+                            <a href="/feed/"><FontAwesomeIcon icon={faRss}/></a>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <section className="newsletter-section">
-                <div className="wrapper">
-                    <h2>Stay up to date</h2>
-                    <p>Subscribe to our bi-weekly newsletter to receive &hellip;</p>
-                    <div className="newsletter-form">
-                        <input type="email" />
-                        <button>Subscribe</button>
-                    </div>
-                </div>
-            </section>
-
-            <section className="projects-section">
-                <div className="wrapper">
-                    <h2>Other projects</h2>
-                    <div className="project sdg-tracker">
-                        <h3>Sustainable Development Goals Tracker</h3>
-                        <p>Is the world on track to reach the Sustainable Development Goals?</p>
-                    </div>
-                    <div className="project teaching-hub">
-                        <h3>Teaching Hub</h3>
-                        <p>Slides, research, and visualizations for teaching and learning about global development</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="about-section"></section>
-
-            <section className="topics-section">
-                <div className="wrapper">
-                    <h2>Topics</h2>
-
-                    <div className="topics-list">
-                        {entries.map(category => <div key={category.slug} className="topics-list-item">
-                            <h3>{category.name}</h3>
-                            <div className="entries-list">
-                                {category.entries.map(entry => <div key={entry.slug} className="entries-list-item">
-                                    <h4>{entry.title}</h4>
-                                </div>)}
-                            </div>
-                        </div>)}
-                    </div>
-                </div>
-            </section>
 
             <SiteFooter />
         </body>

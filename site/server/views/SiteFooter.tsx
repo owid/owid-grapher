@@ -2,7 +2,7 @@ import * as React from 'react'
 import { webpack } from 'utils/server/staticGen'
 
 export const SiteFooter = () => {
-    return <footer className="site-footer">
+    return <footer className="SiteFooter">
         <div>
             <a href="/" className="logo">Our World in Data</a> is a <a href="https://creativecommons.org/licenses/by-sa/4.0/">creative commons</a> publication about human civilization at a global scale.
         </div>

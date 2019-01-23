@@ -102,7 +102,7 @@ async function renderPage(postRow: wpPostRow) {
 }
 
 export async function renderFrontPage() {
-    const posts = await wpdb.getBlogIndex()
+    const posts = (await wpdb.getBlogIndex()).slice(0,6)
     const entries = await wpdb.getEntriesByCategory()
     return renderToHtmlPage(<FrontPage entries={entries} posts={posts}/>)
 }
