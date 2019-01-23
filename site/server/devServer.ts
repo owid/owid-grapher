@@ -8,7 +8,7 @@ import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 's
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
-import { expectInt } from 'utils/server/serverUtil'
+import { expectInt, JsonError } from 'utils/server/serverUtil'
 import { embedSnippet } from 'site/server/embedCharts'
 
 const devServer = express()
@@ -26,6 +26,8 @@ devServer.get('/grapher/latest', async (req, res) => {
     const latestRows = await db.query(`SELECT config->>"$.slug" AS slug FROM charts where starred=1`)
     if (latestRows.length) {
         res.redirect(`${BAKED_GRAPHER_URL}/${latestRows[0].slug}`)
+    } else {
+        throw new JsonError("No latest chart", 404)
     }
 })
 
