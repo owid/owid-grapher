@@ -11,6 +11,7 @@ import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
+window.Grapher = Grapher
 window.ChartView = ChartView
 window.App = window.App || {}
 
