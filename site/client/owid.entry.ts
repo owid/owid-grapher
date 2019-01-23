@@ -10,6 +10,8 @@ import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {Grapher} from 'site/client/Grapher'
+import {ChartView} from 'charts/ChartView'
+window.ChartView = ChartView
 window.App = window.App || {}
 
 
@@ -55,5 +57,3 @@ declare var window: any
 
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
-runHeaderMenus()
-Grapher.embedAll()

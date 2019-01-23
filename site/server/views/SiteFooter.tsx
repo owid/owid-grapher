@@ -17,5 +17,9 @@ export const SiteFooter = () => {
         </nav>
         <script src={webpack('commons.js', 'site')}/>
         <script src={webpack('owid.js', 'site')}/>
+        <script dangerouslySetInnerHTML={{__html: `
+            runHeaderMenus()
+            Grapher.embedAll()
+        `}}/>
     </footer>
 }

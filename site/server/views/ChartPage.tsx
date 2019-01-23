@@ -42,7 +42,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         var figure = document.getElementsByTagName("figure")[0];
         try {
             window.App = {};
-            ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure })
+            window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure });
         } catch (err) {
             figure.innerHTML = "<img src=\\"/grapher/exports/${chart.slug}.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
@@ -89,7 +89,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
             <script src={webpack("commons.js")}/>
-            <script src={webpack("site.js")}/>
+            <script src={webpack("owid.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>
