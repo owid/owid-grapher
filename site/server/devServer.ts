@@ -5,7 +5,7 @@ import * as path from 'path'
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'settings'
-import {WORDPRESS_DIR} from 'serverSettings'
+import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { expectInt } from 'utils/server/serverUtil'
@@ -41,6 +41,8 @@ devServer.get('/headerMenu.json', async (req, res) => {
 })
 
 devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/uploads')))
+
+devServer.use('/', express.static(path.join(BASE_DIR, 'theme/public')))
 
 devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))
