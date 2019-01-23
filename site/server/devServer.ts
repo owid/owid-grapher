@@ -4,7 +4,7 @@ import * as path from 'path'
 
 import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
-import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST} from 'settings'
+import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
@@ -20,6 +20,13 @@ devServer.get('/grapher/data/variables/:variableIds.json', async (req, res) => {
 
 devServer.get('/grapher/embedCharts.js', async (req, res) => {
     res.send(embedSnippet())
+})
+
+devServer.get('/grapher/latest', async (req, res) => {
+    const latestRows = await db.query(`SELECT config->>"$.slug" AS slug FROM charts where starred=1`)
+    if (latestRows.length) {
+        res.redirect(`${BAKED_GRAPHER_URL}/${latestRows[0].slug}`)
+    }
 })
 
 devServer.get('/grapher/:slug', async (req, res) => {
