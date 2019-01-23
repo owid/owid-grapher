@@ -3,14 +3,14 @@ import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
-import { CategoryWithEntries } from 'db/wpdb'
+import { CategoryWithEntries, PostInfo } from 'db/wpdb'
 import { formatDate } from '../formatting'
-import { faRss } from '@fortawesome/free-solid-svg-icons'
+import { faRss, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faFacebookF } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { BAKED_GRAPHER_URL } from 'settings'
 
-export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { title: string, slug: string, date: Date }[] }) => {
+export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[] }) => {
     const { entries, posts } = props
 
     // Structured data for google
@@ -32,29 +32,56 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
         <body className="FrontPage">
             <SiteHeader entries={entries}>
                 <div className="wrapper">
-                    <div className="site-intro">
+                    <div className="site-masthead">
                         <h1>Know the world you live in</h1>
                         <p>Understand how the world is changing through research and <em>interactive data visualizations</em>.</p>
+                        <div className="masthead-search">
+                            <label htmlFor="masthead-search">Search across all content</label>
+                            <div className="input-wrapper">
+                                <input id="masthead-search" type="search" placeholder='Try "poverty" or "population growth"' />
+                                <div className="icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </div>
+                            </div>
+                        </div>
+                        <p><em>70,000</em> variables, <em>2700</em> charts and <em>100</em> entries.</p>
+                        <p>All our content is open access and our tools are open source.</p>
                     </div>
                 </div>
             </SiteHeader>
-            <main>
-                <div id="homepage-content" className="clearfix">
-                    <div id="homepage-latest">
-                        <h3><a href="/grapher/latest">Latest Visualization</a></h3>
-                        <figure data-grapher-src={`${BAKED_GRAPHER_URL}/latest`} style={{ height: "660px" }}/>
+
+            <section className="recommended-content-section">
+                <div className="wrapper">
+                    <div className="content">
                     </div>
-                    <div id="homepage-blog">
-                        <h3><a href="/blog">Blog</a></h3>
-                        <ul>
-                            {posts.map(post => <li key={post.slug} className="post">
-                                <h4><a href={`/${post.slug}`}>{post.title}</a></h4>
-                                <div className="entry-meta">
+                </div>
+            </section>
+
+            <section className="credibility-section">
+                <div className="wrapper">
+                    <h2>Cited by</h2>
+                    <p>logos</p>
+                </div>
+            </section>
+
+            <section className="latest-content-section">
+                <div className="wrapper">
+                    <div className="short-updates-section">
+                        <h2>Short updates and posts</h2>
+                        <div className="short-updates-list">
+                            {posts.slice(0,8).map(post => <div key={post.slug} className="short-updates-item">
+                                <div className="thumbnail">
+                                    <img src={post.imageUrl} />
+                                </div>
+                                <div className="metadata">
+                                    <h3 className="title">{post.title}</h3>
                                     <time>{formatDate(post.date)}</time>
                                 </div>
-                            </li>)}
-                        </ul>
-                        <a className="more" href="/blog">More →</a>
+                            </div>)}
+                        </div>
+                        <div className="see-all">
+                            <a href="/index" className="button">See all short updates and facts</a>
+                        </div>
                     </div>
                     <div id="homepage-entries" className="owid-data">
                         <h3 id="entries"><a href="#entries">Entries</a></h3>
@@ -68,24 +95,57 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
                                 </div>
                             </li>)}
                         </ul>
-                    </div>
-                    <div className="owid-data owid-presentations">
-                        <h3 id="presentations"><a href="#presentations">Presentations</a></h3>
-                        <p>Visual histories spanning multiple topics.</p>
-                        <ul>
-                            <li><h4>Visual History of...</h4><div className='link-container'><a href='/slides/war-and-violence'>War & Violence</a><a href='/slides/world-poverty'>World Poverty</a><a href='/slides/global-health'>Global Health</a><a href='/slides/hunger-and-food-provision'>World Hunger & Food Provision</a><a href='/slides/africa-in-data'>Africa</a></div></li>
-                        </ul>
-                    </div>
-                    <div id="homepage-twitter">
-                        <h3><a href="https://twitter.com/OurWorldInData">Follow us</a></h3>
-                        <div className="social">
-                            <a href="https://twitter.com/OurWorldInData"><FontAwesomeIcon icon={faTwitter}/></a>
-                            <a href="https://www.facebook.com/OurWorldinData"><FontAwesomeIcon icon={faFacebookF}/></a>
-                            <a href="/feed/"><FontAwesomeIcon icon={faRss}/></a>
+                        <div className="see-all">
+                            <a href="/index" className="button">See all short updates and facts</a>
                         </div>
                     </div>
                 </div>
-            </main>
+            </section>
+
+            <section className="newsletter-section">
+                <div className="wrapper">
+                    <h2>Stay up to date</h2>
+                    <p>Subscribe to our bi-weekly newsletter to receive &hellip;</p>
+                    <div className="newsletter-form">
+                        <input type="email" />
+                        <button>Subscribe</button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="projects-section">
+                <div className="wrapper">
+                    <h2>Other projects</h2>
+                    <div className="project sdg-tracker">
+                        <h3>Sustainable Development Goals Tracker</h3>
+                        <p>Is the world on track to reach the Sustainable Development Goals?</p>
+                    </div>
+                    <div className="project teaching-hub">
+                        <h3>Teaching Hub</h3>
+                        <p>Slides, research, and visualizations for teaching and learning about global development</p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="about-section"></section>
+
+            <section className="topics-section">
+                <div className="wrapper">
+                    <h2>Topics</h2>
+
+                    <div className="topics-list">
+                        {entries.map(category => <div key={category.slug} className="topics-list-item">
+                            <h3>{category.name}</h3>
+                            <div className="entries-list">
+                                {category.entries.map(entry => <div key={entry.slug} className="entries-list-item">
+                                    <h4>{entry.title}</h4>
+                                </div>)}
+                            </div>
+                        </div>)}
+                    </div>
+                </div>
+            </section>
+
             <SiteFooter />
         </body>
     </html>

@@ -15,10 +15,14 @@
 
 @import '~normalize.css';
 
+@import 'css/variables.scss';
+
 @import 'css/util.scss';
 @import 'css/layout.scss';
 @import 'css/general.scss';
 @import 'css/header.scss';
+
+@import 'css/homepage.scss';
 
 body { margin: 0; }
 
@@ -598,13 +602,13 @@ address a:hover {
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  select:focus,
-  textarea:focus,
-  input:focus {
-    font-size: 16px;
-  }
-}
+// @media screen and (-webkit-min-device-pixel-ratio:0) {
+//   select:focus,
+//   textarea:focus,
+//   input:focus {
+//     font-size: 16px;
+//   }
+// }
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   select,

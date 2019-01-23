@@ -1,6 +1,6 @@
 .site-header {
     background-color: #002147;
-    font-family: Merriweather;
+    font-family: $serif-font-stack;
     background: linear-gradient(180deg, #001C3D 0%, #043269 65.84%, #014074 85.02%, #004E86 93.83%);
 }
 
@@ -91,7 +91,7 @@
         }
     }
 
-    .search-icon {
+    .icon {
         position: absolute;
         top: 0;
         left: .75rem;
@@ -126,11 +126,11 @@
     }
 }
 
-.site-intro {
+.site-masthead {
     padding: 2rem 0;
 
     h1 {
-        font-size: 2.75rem;
+        font-size: 2.25rem;
         font-weight: 400;
         color: white;
         text-align: center;
@@ -150,6 +150,49 @@
     p em {
         font-style: normal;
         color: #66BFFF;
+    }
+}
+
+.masthead-search {
+    text-align: center;
+    max-width: 40rem;
+    margin: 0 auto;
+
+    .input-wrapper {
+        position: relative;
+        .icon {
+            position: absolute;
+            top: 0;
+            left: .75rem;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            color: rgba(black, .2);
+        }
+    }
+
+    input {
+        font-family: inherit;
+        font-size: 1.25rem;
+        line-height: 1.375;
+        color: white;
+        background-color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 100px;
+        padding: .5em 1em .5em 2.25em;
+        display: block;
+        width: 100%;
+        outline: none;
+        margin: 0 auto;
+        color: black;
+
+        &::placeholder {
+            color: rgba(white, .3);
+            transition: color 200ms ease;
+        }
+        &:focus::placeholder {
+            color: rgba(white, .1);
+        }
     }
 }
 
@@ -229,7 +272,7 @@
     cursor: default;
 
     background-color: white;
-    font-family: "Source Sans Pro";
+    font-family: $sans-serif-font-stack;
     font-size: 0.9375rem;
     font-weight: 700;
     line-height: 1.35;

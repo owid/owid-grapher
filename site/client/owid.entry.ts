@@ -8,7 +8,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 
 import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
-import {runHeaderMenus} from './SiteHeaderMenus-Amazon'
+import {runHeaderMenus} from './SiteHeaderMenus'
 import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'

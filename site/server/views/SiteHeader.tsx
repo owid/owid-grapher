@@ -76,7 +76,7 @@ export const SiteHeader = (props: { entries?: CategoryWithEntries[], children?: 
                     <div className="site-primary-navigation">
                         <div className="site-search">
                             <input type="search" placeholder="Search..." />
-                            <div className="search-icon">
+                            <div className="icon">
                                 <FontAwesomeIcon icon={faSearch} />
                             </div>
                         </div>
@@ -88,7 +88,7 @@ export const SiteHeader = (props: { entries?: CategoryWithEntries[], children?: 
                     </div>
                     <div className="site-secondary-navigation">
                         <ul className="site-secondary-links">
-                            <li><a href="/charts">All charts and research</a></li>
+                            <li><a href="/charts">All charts</a></li>
                             <li><a href="/teaching">Teaching material</a></li>
                             <li><a href="https://sdg-tracker.org">Sustainable Development Goals</a></li>
                         </ul>

@@ -102,22 +102,8 @@ async function renderPage(postRow: wpPostRow) {
 }
 
 export async function renderFrontPage() {
-    const postRows = await wpdb.query(`
-        SELECT ID, post_title, post_date, post_name FROM wp_posts
-        WHERE post_status='publish' AND post_type='post' ORDER BY post_date DESC LIMIT 6`)
-
-    const permalinks = await wpdb.getPermalinks()
-
-    const posts = postRows.map(row => {
-        return {
-            title: row.post_title,
-            date: new Date(row.post_date),
-            slug: permalinks.get(row.ID, row.post_name)
-        }
-    })
-
+    const posts = await wpdb.getBlogIndex()
     const entries = await wpdb.getEntriesByCategory()
-
     return renderToHtmlPage(<FrontPage entries={entries} posts={posts}/>)
 }
 
