@@ -8,6 +8,7 @@ import { formatDate } from '../formatting'
 import { faRss } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faFacebookF } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { BAKED_GRAPHER_URL } from 'settings'
 
 export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { title: string, slug: string, date: Date }[] }) => {
     const { entries, posts } = props
@@ -43,7 +44,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
                 <div id="homepage-content" className="clearfix">
                     <div id="homepage-latest">
                         <h3><a href="/grapher/latest">Latest Visualization</a></h3>
-                        <figure data-grapher-src="https://ourworldindata.org/grapher/latest" style={{ height: "660px" }}/>
+                        <figure data-grapher-src={`${BAKED_GRAPHER_URL}/latest`} style={{ height: "660px" }}/>
                     </div>
                     <div id="homepage-blog">
                         <h3><a href="/blog">Blog</a></h3>
