@@ -53,12 +53,12 @@ async function indexChartsToAlgolia() {
             _tags: c.tags.map((t: any) => t.name),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            numDimensions: parseInt(c.numDimensions)
+            numDimensions: parseInt(c.numDimensions),
+            titleLength: c.title.length
         })
     }
-    console.log(records)
-
-    // await index.saveObjects(records)
+    
+    await index.saveObjects(records)
 
     // for (let i = 0; i < records.length; i += 1000) {
     //     console.log(i)
