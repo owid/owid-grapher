@@ -44,7 +44,7 @@ export class ChartBaker {
             await fs.mkdirp(path.join(this.baseDir, 'assets'))
 
             for (const key in manifest) {
-                if (key === "charts.js" || key === "commons.css" || key === "commons.js") {
+                if (key === "owid.js" || key === "commons.css" || key === "commons.js") {
                     const outPath = path.join(this.baseDir, `assets/${manifest[key]}`)
                     fs.copySync(`${buildDir}/${manifest[key]}`, outPath)
                     this.stage(outPath)
