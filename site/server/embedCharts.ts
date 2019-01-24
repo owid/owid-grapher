@@ -37,7 +37,7 @@ export function embedSnippet(): string {
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('charts.js')}';
+        script.src = '${webpack('owid.js')}';
         document.head.appendChild(script);
     `
 }
