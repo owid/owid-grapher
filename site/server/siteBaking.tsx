@@ -86,8 +86,8 @@ async function renderPage(postRow: wpPostRow) {
 
     const grapherUrls = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//)).map(el => el.attribs['src'])
 
-    // XXX This is slow!
-    await bakeGrapherUrls(grapherUrls, { silent: true })
+    // This can be slow if uncached!
+    await bakeGrapherUrls(grapherUrls)
 
     const exportsByUrl = await getGrapherExportsByUrl()
 

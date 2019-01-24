@@ -51,7 +51,7 @@ devServer.get('/headerMenu.json', async (req, res) => {
 
 devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/uploads')))
 
-devServer.use('/', express.static(path.join(BASE_DIR, 'theme/public')))
+devServer.use('/', express.static(path.join(BASE_DIR, 'public')))
 
 devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))

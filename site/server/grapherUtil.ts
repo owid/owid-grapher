@@ -43,7 +43,7 @@ export async function mapSlugsToIds(): Promise<{ [slug: string]: number }> {
     return slugToId
 }
 
-export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean } = {}) {
+export async function bakeGrapherUrls(urls: string[]) {
     const currentExports = await getGrapherExportsByUrl()
     const slugToId = await mapSlugsToIds()
     const toBake = []
@@ -63,6 +63,11 @@ export async function bakeGrapherUrls(urls: string[], opts: { silent?: boolean }
         }
 
         const chartId = slugToId[slug]
+        if (chartId === undefined) {
+            console.error(`Couldn't find chart with slug ${slug}`)
+            continue
+        }
+
         const rows = await db.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
         if (!rows.length) {
             console.error(`Mysteriously missing chart by id ${chartId}`)

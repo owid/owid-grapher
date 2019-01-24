@@ -223,7 +223,7 @@ export class SiteBaker {
     async bakeAssets() {
         shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/uploads ${BAKED_SITE_DIR}/`)
         shell.exec(`rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`)
-        shell.exec(`rsync -havz --delete ${BASE_DIR}/theme/public/* ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havz --delete ${BASE_DIR}/public/* ${BAKED_SITE_DIR}/`)
 
         await fs.writeFile(`${BAKED_SITE_DIR}/grapher/embedCharts.js`, embedSnippet())
         this.stage(`${BAKED_SITE_DIR}/grapher/embedCharts.js`)
@@ -352,9 +352,9 @@ export class SiteBaker {
         // Ensure there is a git repo in there
         await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
         
-        for (const files of chunk(this.stagedFiles, 100)) {
-            this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
-        }
+        // for (const files of chunk(this.stagedFiles, 100)) {
+        //     this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
+        // }
 
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
             // Deploy directly to Netlify (faster than using the github hook)
