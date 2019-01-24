@@ -4,7 +4,7 @@ env
 tmp
 data
 .awcache
-/public
+/bakedSite
 .git
 logs/*
 datasetsExport

@@ -18,20 +18,24 @@ import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPag
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
 import * as React from 'react'
+import { embedSnippet } from './embedCharts';
+import { ChartConfigProps } from 'charts/ChartConfig';
+import { getVariableData } from 'db/model/Variable';
+import { ChartPage } from './views/ChartPage';
+import { bakeImageExports } from './svgPngExport';
 
 // Static site generator using Wordpress
 
-export interface WPBakerProps {
+export interface SiteBakerProps {
     forceUpdate?: boolean
 }
 
-export class WordpressBaker {
-    props: WPBakerProps
+export class SiteBaker {
+    props: SiteBakerProps
     grapherExports!: GrapherExports
     stagedFiles: string[] = []
-    constructor(props: WPBakerProps) {
+    constructor(props: SiteBakerProps) {
         this.props = props;
-        (settings as any).IS_BAKING = true
     }
 
     async bakeRedirects() {
@@ -69,17 +73,34 @@ export class WordpressBaker {
             "/grapher/public/* /grapher/:splat 301",
             "/grapher/view/* /grapher/:splat 301",
 
-            // Main grapher chart urls are proxied through to separate repo
-            "/grapher/* https://owid-grapher.netlify.com/grapher/:splat 200",
-
             "/slides/* https://slides.ourworldindata.org/:splat 301",
 
             // Redirect search to google sitesearch
             "/search q=:q https://google.com/search?sitesearch=ourworldindata.org&q=:q 302"
         ]
 
+        // Redirects from Wordpress admin UI
         const rows = await wpdb.query(`SELECT url, action_data, action_code FROM wp_redirection_items`)
         redirects.push(...rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`))
+
+        // Redirect /grapher/latest
+        const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
+        for (const row of latestRows) {
+            redirects.push(`/grapher/latest /grapher/${JSON.parse(row.slug)} 302`)
+        }
+
+        // Redirect old slugs to new slugs
+        const chartRedirectRows = await db.query(`
+            SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
+            FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
+        `)
+
+        for (const row of chartRedirectRows) {
+            const trueSlug = JSON.parse(row.trueSlug)
+            if (row.slug !== trueSlug) {
+                redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302`)
+            }
+        }
 
         await this.stageWrite(path.join(BAKED_SITE_DIR, `_redirects`), redirects.join("\n"))
     }
@@ -94,7 +115,6 @@ export class WordpressBaker {
         }
         grapherUrls = _.uniq(grapherUrls)
 
-        // Now bake (the grapher handles versioning as only it knows the current version of charts)
         await bakeGrapherUrls(grapherUrls)
 
         this.grapherExports = await getGrapherExportsByUrl()
@@ -137,7 +157,7 @@ export class WordpressBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('uploads') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
@@ -146,6 +166,7 @@ export class WordpressBaker {
         }
     }
 
+    // Bake unique individual pages
     async bakeSpecialPages() {
         await this.stageWrite(`${BAKED_SITE_DIR}/index.html`, await renderFrontPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/subscribe.html`, await renderSubscribePage())
@@ -153,7 +174,8 @@ export class WordpressBaker {
         await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())
     }
 
-    async bakeBlog() {
+    // Bake the blog index
+    async bakeBlogIndex() {
         const allPosts = await wpdb.getBlogIndex()
         const numPages = Math.ceil(allPosts.length/BLOG_POSTS_PER_PAGE)
 
@@ -164,6 +186,7 @@ export class WordpressBaker {
         }
     }
 
+    // Bake the RSS feed
     async bakeRSS() {
         const postRows = await wpdb.query(`SELECT * FROM wp_posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 10`)
 
@@ -196,20 +219,117 @@ export class WordpressBaker {
         await this.stageWrite(`${BAKED_SITE_DIR}/atom.xml`, feed)
     }
 
+    // Bake the static assets
     async bakeAssets() {
         shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/uploads ${BAKED_SITE_DIR}/`)
         shell.exec(`rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`)
         shell.exec(`rsync -havz --delete ${BASE_DIR}/theme/public/* ${BAKED_SITE_DIR}/`)
+
+        await fs.writeFile(`${BAKED_SITE_DIR}/grapher/embedCharts.js`, embedSnippet())
+        this.stage(`${BAKED_SITE_DIR}/grapher/embedCharts.js`)
+    }
+
+    async bakeVariableData(variableIds: number[], outPath: string): Promise<string> {
+        await fs.mkdirp(`${BAKED_SITE_DIR}/grapher/data/variables/`)
+        const vardata = await getVariableData(variableIds)
+        await fs.writeFile(outPath, JSON.stringify(vardata))
+        this.stage(outPath)
+        return vardata
+    }
+
+    async bakeChartPage(chart: ChartConfigProps) {
+        const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
+        await fs.writeFile(outPath, renderToHtmlPage(<ChartPage chart={chart}/>))
+        this.stage(outPath)
+    }
+
+    async bakeChart(chart: ChartConfigProps) {
+        const htmlPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
+        let isSameVersion = false
+        try {
+            // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
+            const html = await fs.readFile(htmlPath, 'utf8')
+            const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
+            if (match) {
+                const fileVersion = JSON.parse(match[1]).version
+                isSameVersion = chart.version === fileVersion
+            }
+        } catch (err) {
+            if (err.code !== 'ENOENT')
+                console.error(err)
+        }
+
+        const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+        if (!variableIds.length) return
+
+        // Make sure we bake the variables successfully before outputing the chart html
+        const vardataPath = `${BAKED_SITE_DIR}/grapher/data/variables/${variableIds.join("+")}.json`
+        if (!isSameVersion || !fs.existsSync(vardataPath)) {
+            await this.bakeVariableData(variableIds, vardataPath)
+        }
+
+        // Always bake the html for every chart; it's cheap to do so
+        await this.bakeChartPage(chart)
+
+        try {
+            await fs.mkdirp(`${BAKED_SITE_DIR}/grapher/exports/`)
+            const svgPath = `${BAKED_SITE_DIR}/grapher/exports/${chart.slug}.svg`
+            const pngPath = `${BAKED_SITE_DIR}/grapher/exports/${chart.slug}.png`
+            if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+                const vardata = JSON.parse(await fs.readFile(vardataPath, 'utf8'))
+                await bakeImageExports(`${BAKED_SITE_DIR}/grapher/exports`, chart, vardata)
+                this.stage(svgPath)
+                this.stage(pngPath)
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    async bakeCharts(opts: { regenConfig?: boolean, regenData?: boolean, regenImages?: boolean } = {}) {
+        const rows = await db.query(`SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`)
+
+        const newSlugs = []
+        let requests = []
+        for (const row of rows) {
+            const chart: ChartConfigProps = JSON.parse(row.config)
+            chart.id = row.id
+            newSlugs.push(chart.slug)
+
+            requests.push(this.bakeChart(chart))
+            // Execute in batches
+            if (requests.length > 50) {
+                await Promise.all(requests)
+                requests = []
+            }
+        }
+
+        // Delete any that are missing from the database
+        const oldSlugs = glob.sync(`${BAKED_SITE_DIR}/grapher/*.html`).map(slug => slug.replace(`${BAKED_SITE_DIR}/grapher/`, '').replace(".html", ""))
+        const toRemove = without(oldSlugs, ...newSlugs)
+        for (const slug of toRemove) {
+            console.log(`DELETING ${slug}`)
+            try {
+                const paths = [`${BAKED_SITE_DIR}/grapher/${slug}.html`, `${BAKED_SITE_DIR}/grapher/exports/${slug}.png`]//, `${BAKED_SITE_DIR}/grapher/exports/${slug}.svg`]
+                await Promise.all(paths.map(p => fs.unlink(p)))
+                paths.map(p => this.stage(p))
+            } catch (err) {
+                console.error(err)
+            }
+        }
+
+        return Promise.all(requests)
     }
 
     async bakeAll() {
         await this.bakeRedirects()
         await this.bakeEmbeds()
-        await this.bakeBlog()
+        await this.bakeBlogIndex()
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeSpecialPages()
         await this.bakePosts()
+        await this.bakeCharts()
     }
 
     async stageWrite(outPath: string, content: string) {
@@ -229,9 +349,18 @@ export class WordpressBaker {
     }
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
+        // Ensure there is a git repo in there
+        await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
+        
         for (const files of chunk(this.stagedFiles, 100)) {
             this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
         }
+
+        if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
+            // Deploy directly to Netlify (faster than using the github hook)
+            await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
+        }
+
         if (authorEmail && authorName && commitMsg) {
             this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
         } else {

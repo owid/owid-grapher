@@ -26,8 +26,7 @@ export const DB_HOST: string = process.env.DB_HOST || "localhost"
 export const DB_PORT: number = process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306
 
 // Where the static build output goes
-export const BAKED_SITE_DIR: string = process.env.BAKED_SITE_DIR || "/Users/mispy/wp-static"
-export const BAKED_GRAPHER_DIR: string = process.env.BAKED_GRAPHER_DIR || path.join(BASE_DIR, "public")
+export const BAKED_SITE_DIR: string = process.env.BAKED_SITE_DIR || path.join(BASE_DIR, 'bakedSite')
 export const WEBPACK_OUTPUT_PATH: string = process.env.WEBPACK_OUTPUT_PATH || path.join(BASE_DIR, 'dist/webpack')
 
 // Settings for automated email sending, e.g. for admin invites

@@ -49,8 +49,8 @@ then
 
   # Link in all the persistent stuff that needs to stay around between versions
   ln -sf $FINAL_DATA/.env $TMP_NEW/.env
-  mkdir -p $FINAL_DATA/public
-  ln -sf $FINAL_DATA/public $TMP_NEW/public
+  mkdir -p $FINAL_DATA/bakedSite
+  ln -sf $FINAL_DATA/bakedSite $TMP_NEW/bakedSite
   mkdir -p $FINAL_DATA/datasetsExport
   ln -sf $FINAL_DATA/datasetsExport $TMP_NEW/datasetsExport
 
@@ -74,7 +74,6 @@ then
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  yarn tsn scripts/bakeCharts.ts
   yarn tsn scripts/bakeSite.ts
 EOF
 fi
