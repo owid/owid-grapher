@@ -1,5 +1,5 @@
 import { WEBPACK_OUTPUT_PATH } from 'serverSettings'
-import { ENV, BAKED_GRAPHER_URL, WEBPACK_DEV_URL } from 'settings'
+import { ENV, WEBPACK_DEV_URL } from 'settings'
 import * as fs from 'fs-extra'
 import * as urljoin from 'url-join'
 import * as path from 'path'
@@ -14,11 +14,7 @@ export function webpack(assetName: string, context?: string) {
         }
         assetName = manifest[assetName]
 
-        if (context === 'site') {
-            return urljoin('/assets', assetName)
-        } else {
-            return urljoin(BAKED_GRAPHER_URL, '/assets', assetName)
-        }
+        return urljoin('/assets', assetName)
     } else {
         if (assetName.match(/\.js$/)) {
             assetName = `js/${assetName}`

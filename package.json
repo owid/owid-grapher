@@ -75,6 +75,7 @@
     "mobx-formatters": "^1.0.2",
     "mobx-react": "^5.4.3",
     "module-alias": "^2.0.3",
+    "moment": "^2.24.0",
     "mysql": "^2.15.0",
     "netlify-cli": "^2.6.4",
     "node-django-hashers": "^1.0.9",

@@ -1,5 +1,6 @@
-import { BAKED_GRAPHER_URL } from 'settings'
+import { BAKED_BASE_URL } from 'settings'
 import { webpack } from 'utils/server/staticGen'
+import * as urljoin from 'url-join'
 
 export function embedSnippet(): string {
     return `
@@ -8,7 +9,7 @@ export function embedSnippet(): string {
         var link = document.createElement('link');
         link.type = 'text/css';
         link.rel = 'stylesheet';
-        link.href = '${webpack('commons.css')}';
+        link.href = '${urljoin(BAKED_BASE_URL, webpack('commons.css'))}';
         document.head.appendChild(link);
 
         var hasPolyfill = false;
@@ -31,13 +32,13 @@ export function embedSnippet(): string {
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('commons.js')}';
+        script.src = '${urljoin(BAKED_BASE_URL, webpack('commons.js'))}';
         document.head.appendChild(script);
 
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('owid.js')}';
+        script.src = '${urljoin(BAKED_BASE_URL, webpack('owid.js'))}';
         document.head.appendChild(script);
     `
 }
