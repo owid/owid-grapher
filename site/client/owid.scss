@@ -526,7 +526,7 @@ h6:hover .deep-link {
 }
 
 .title-author-byline {
-	margin-top: 0px;
+	margin-top: 2rem;
 	font-size: 1rem;
 	text-align: right;
 	color: white;
@@ -622,7 +622,7 @@ h6:hover .deep-link {
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-@media screen and (min-width: 980px) {
+@include desktop {
 	#homepage-cover .mobile {
 		display: none;
 	}
@@ -727,7 +727,7 @@ h6:hover .deep-link {
 	}
 }
 
-@media screen and (max-width: 980px) {
+@include mobile {
 	#homepage-cover .desktop {
 		display: none;
 	}

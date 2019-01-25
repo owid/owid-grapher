@@ -378,16 +378,7 @@
 
 /* Mobile navigation */
 
-@include desktop {
-    .mobile-only {
-        display: none;
-    }
-}
-
 @include mobile {
-    .desktop-only {
-        display: none;
-    }
     .site-header .wrapper {
         padding: 0;
     }
