@@ -2,12 +2,12 @@ import { SiteBaker } from 'site/server/SiteBaker'
 import * as parseArgs from 'minimist'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main() {
+async function main(email: string, name: string, message: string) {
     const baker = new SiteBaker({})
 
     try {
         await baker.bakeAll()
-        await baker.deploy(`Code deployment update`)
+        await baker.deploy(message || "Automated update", email, name)
     } catch (err) {
         console.error(err)
     } finally {
@@ -15,4 +15,4 @@ async function main() {
     }
 }
 
-main()
+main(argv._[0], argv._[1], argv._[2])
