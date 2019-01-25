@@ -5,16 +5,13 @@ HOST="owid@terra"
 ROOT="/home/owid"
 
 if [ "$1" == "mispytest" ]; then
-  NAME="mispytest-grapher"
-  DB_NAME="mispytest_grapher"
+  NAME="mispytest"
   WORDPRESS_DIR="/home/owid/mispytest-wordpress"
 elif [ "$1" == "danieltest" ]; then
-  NAME="danieltest-grapher"
-  DB_NAME="danieltest_grapher"
+  NAME="danieltest"
   WORDPRESS_DIR="/home/owid/danieltest-wordpress"
 elif [ "$1" == "live" ]; then
-  NAME="live-grapher"
-  DB_NAME="live_grapher"
+  NAME="live"
   WORDPRESS_DIR="/home/owid/owid.cloud"
 
   # Prompt for confirmation if deploying to live
@@ -30,7 +27,7 @@ then
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
   SYNC_TARGET="$ROOT/tmp/$NAME-$USER"
   TMP_NEW="$ROOT/tmp/$NAME-$USER-tmp"
-  FINAL_TARGET="$ROOT/$NAME-code"
+  FINAL_TARGET="$ROOT/$NAME"
   FINAL_DATA="$ROOT/$NAME-data"
 
   # Run pre-deploy checks
