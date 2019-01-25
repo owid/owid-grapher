@@ -34,7 +34,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
 
     return <html>
         <Head pageTitle={pageTitle} pageDesc={pageDesc} canonicalUrl={canonicalUrl} imageUrl={post.imageUrl}>
-            {isEntry && <CitationMeta title={pageTitle} authors={post.authors} date={post.modifiedDate} canonicalUrl={canonicalUrl}/>}
+            {isEntry && <CitationMeta id={post.id} title={pageTitle} authors={post.authors} date={post.modifiedDate} canonicalUrl={canonicalUrl}/>}
         </Head>
         <body className={classes.join(" ")}>
             <SiteHeader/>
