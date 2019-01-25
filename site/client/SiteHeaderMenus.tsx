@@ -56,11 +56,12 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                 </div>
                 <nav className="site-navigation desktop-only">
                     <div className="topics-button-wrapper">
-                        <button
+                        <a
+                            href="/#entries"
                             className={classnames("topics-button", { "active": this.dropdownIsOpen })}
                             onMouseEnter={() => this.setOpen(true)}
                             onMouseLeave={() => this.scheduleCloseTimeout(100)}
-                            onClick={() => this.setOpen(true)}
+                            onClick={(event) => { this.setOpen(true); event.preventDefault() }}
                         >
                             <div className="label">
                                 Research <br /><strong>by topic</strong>
@@ -68,17 +69,18 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                             <div className="icon">
                                 <svg width="12" height="6"><path d="M0,0 L12,0 L6,6 Z" fill="currentColor" /></svg>
                             </div>
-                        </button>
+                        </a>
                         <DesktopTopicsMenu categories={categories} isOpen={this.dropdownIsOpen} onMouseEnter={() => this.setOpen(true)} onMouseLeave={() => this.scheduleCloseTimeout(350)} />
                     </div>
                     <div>
                         <div className="site-primary-navigation">
-                            <div className="site-search">
-                                <input type="search" placeholder="Search..." />
+                            <form className="site-search" action="https://google.com/search" method="GET">
+                                <input type="hidden" name="sitesearch" value="ourworldindata.org" />
+                                <input type="search" name="q" placeholder="Search..." />
                                 <div className="icon">
                                     <FontAwesomeIcon icon={faSearch} />
                                 </div>
-                            </div>
+                            </form>
                             <ul className="site-primary-links">
                                 <li><a href="/blog">Blog</a></li>
                                 <li><a href="/about">About</a></li>
