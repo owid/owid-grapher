@@ -398,6 +398,8 @@
     .site-logo a {
         font-size: 1.25rem;
         padding: 1rem;
+        // do not break "Our world in data" on mobile
+        br { display: none; }
     }
     .site-navigation button {
         background: transparent;

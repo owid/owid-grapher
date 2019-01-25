@@ -9,7 +9,7 @@ export const SiteHeader = () => {
         <div className="wrapper site-navigation-bar">
             <div className="site-logo">
                 <a href="/">
-                    Our World in Data
+                    Our World<br /> in Data
                 </a>
             </div>
             <nav className="site-navigation desktop-only">
