@@ -1,8 +1,16 @@
-// $sans-serif-font-stack: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
-$sans-serif-font-stack: "Helvetica Neue", Arial, sans-serif;
-// $serif-font-stack: "Merriweather", "Georgia", serif;
-$serif-font-stack: "Georgia", serif;
+/*******************************************************************************
+ * Fonts
+ */
 
+$sans-serif-font-stack: "Helvetica Neue", Arial, sans-serif;
+$serif-font-stack: Georgia, "Times New Roman", serif;
+
+
+/*******************************************************************************
+ * Colors
+ */
+
+/* Oxford Blue */
 $primary-color: #002147;
 $primary-color-lighter-1: #0f3764;
 $primary-color-lighter-2: #2c5485;
@@ -10,3 +18,22 @@ $primary-color-lighter-3: #406592;
 $primary-color-lighter-4: #6382a8;
 $primary-color-lighter-5: #b5c6db;
 $primary-color-lighter-6: #E9EEF2;
+
+
+/*******************************************************************************
+ * Breakpoints
+ */
+
+$desktop-min-width: 960px;
+
+@mixin mobile {
+    @media (max-width: #{$desktop-min-width - 1px}) {
+        @content;
+    }
+}
+
+@mixin desktop {
+    @media (min-width: #{$desktop-min-width}) {
+        @content;
+    }
+}

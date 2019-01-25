@@ -1,9 +1,13 @@
-.flex-row {
-	display: flex;
-	flex-direction: row;
+/* Float Clearing
+--------------------------------------------- */
+
+.clearfix:before {
+	content: " ";
+	display: table;
 }
 
-.flex-column {
-	display: flex;
-	flex-direction: column;
+.clearfix:after {
+	clear: both;
+	content: " ";
+	display: table;
 }

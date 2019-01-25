@@ -1,12 +1,12 @@
 .site-header {
     background-color: $primary-color;
-    // font-family: $sans-serif-font-stack;
-    // background: linear-gradient(180deg, $primary-color 0%, #043269 65.84%, #014074 85.02%, #004E86 93.83%);
     border-bottom: 4px solid #ff4012;
 }
 
 .site-logo a {
-    font-size: 1.375rem;
+    font-size: 1.8rem;
+    font-weight: 300;
+    line-height: 1.1;
     color: white;
     display: block;
     text-align: center;
@@ -34,7 +34,7 @@
 .site-primary-navigation {
     display: flex;
     flex-direction: row;
-    margin-bottom: .65rem;
+    margin-bottom: .5rem;
     align-items: center;
 }
 
@@ -378,13 +378,13 @@
 
 /* Mobile navigation */
 
-@media only screen and (min-width: 1041px) {
+@include desktop {
     .mobile-only {
         display: none;
     }
 }
 
-@media only screen and (max-width: 1040px) {
+@include mobile {
     .desktop-only {
         display: none;
     }
@@ -413,7 +413,9 @@
         width: 100%;
         padding: .6rem 1rem;
         font-size: 1.125rem;
-        border-radius: 0;
+        -webkit-border-radius: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
     }
 }
 
