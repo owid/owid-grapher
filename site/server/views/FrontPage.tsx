@@ -30,20 +30,22 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredMarkup)}}/>
         </Head>
         <body className="FrontPage">
-            <SiteHeader entries={entries}>
-                <div className="wrapper">
-                    <div className="site-masthead">
-                        <h1>Know the world you live in</h1>
-                        <p>Understand how the world is changing through research and <em>interactive data visualizations</em>.</p>
-                        <p className="author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a></p>
-                    </div>
+            <SiteHeader entries={entries} />
+
+            <div id="homepage-cover">
+                <div className="lead-in">
+                    <h1 className="desktop">Our world is changing</h1>
+                    <div className="desktop subheading">Explore the ongoing history of human civilization at the broadest level, through research and data visualization.</div>
+                    <div className="mobile subheading">Living conditions around the world are changing rapidly. Explore how and why.</div>
+                    <div className="title-author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a>.</div>
                 </div>
-            </SiteHeader>
+            </div>
 
             <div id="homepage-content" className="clearfix">
+                <div className="wrapper">
                     <div id="homepage-latest">
                         <h3><a href="/grapher/latest">Latest Visualization</a></h3>
-                        <figure data-grapher-src="https://ourworldindata.org/grapher/latest" style={{ height: "660px" }}/>
+                        <figure data-grapher-src={`${BAKED_GRAPHER_URL}/latest`} style={{ height: "660px" }}/>
                     </div>
                     <div id="homepage-blog">
                         <h3><a href="/blog">Blog</a></h3>
@@ -86,6 +88,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         </div>
                     </div>
                 </div>
+            </div>
 
             <SiteFooter />
         </body>
