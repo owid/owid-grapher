@@ -2451,8 +2451,9 @@ html:not(.js) {
 	background: white;
 	/* Needs to go over the charts */
 	z-index: 2;
-	padding: 1rem;
-	overflow-y: scroll;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: scroll;
 }
 
 .SearchPage > main {
@@ -2508,6 +2509,8 @@ html:not(.js) {
 }
 
 .SearchResults {
+    padding-bottom: 200px;
+
 	> .container {
 		max-width: 80rem;
 		margin: auto;
@@ -2520,10 +2523,27 @@ html:not(.js) {
 	}
 
 	.postResults, .chartResults {
-		width: 50%;
+        width: 50%;
+        
+        > h2 {
+            color: #666;
+            font-weight: normal;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ccc;
+        }
     }
     
     .postResults li {
         list-style-type: none;
     }
+
+    .postResults em, .ChartResult em {
+        font-style: normal;
+        font-weight: bold;
+    }
+}
+
+.chartVariantName {
+    color: rgb(170, 170, 170);
+    font-size: 0.9em;
 }

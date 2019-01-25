@@ -27,17 +27,26 @@ async function search(queries: SearchQuery[]) {
 }
 
 export interface PostHit {
+    postId: number
     slug: string
     title: string
     postType: 'post'|'page'
     content: string
     excerpt: string
     _highlightResult: any
+    _snippetResult: {
+        content: {
+            value: string
+        }
+    }
 }
 
 export interface ChartHit {
+    chartId: number
     slug: string
     title: string
+    subtitle: string
+    variantName: string
     _highlightResult: any
 }
 

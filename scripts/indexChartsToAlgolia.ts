@@ -42,6 +42,8 @@ async function indexChartsToAlgolia() {
 
     const records = []
     for (const c of chartItems) {
+        if (!c.tags) continue
+
         records.push({
             objectID: c.id,
             chartId: c.id,

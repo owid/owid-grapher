@@ -24,19 +24,28 @@ async function indexToAlgolia() {
         const postText = htmlToPlaintext(post.html)
         const chunks = chunkParagraphs(postText, 1000)
 
+        let importance = 0
+        if (post.type === 'entry')
+            importance = 3
+        else if (post.type === 'explainer')
+            importance = 2
+        else if (post.type === 'fact')
+            importance = 1
+
         let i = 0
         for (const c of chunks) {
             records.push({
                 objectID: `${row.ID}-c${i}`,
                 postId: post.id,
-                postType: rawPost.type,
+                type: post.type,
                 slug: post.slug,
                 title: post.title,
                 excerpt: post.excerpt,
                 authors: post.authors,
                 date: post.date,
                 modifiedDate: post.modifiedDate,
-                content: c
+                content: c,
+                importance: importance
             })
             i += 1
         }
