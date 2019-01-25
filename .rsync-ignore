@@ -11,5 +11,5 @@ datasetsExport
 tmp
 .tscache
 test
-theme/codelink
+/theme/codelink
 dist

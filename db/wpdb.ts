@@ -7,6 +7,7 @@ import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from 'serverSettings'
 import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
+import * as db from 'db/db'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
@@ -351,4 +352,14 @@ export async function getTables(): Promise<Map<string, TablepressTable>> {
     }
 
     return cachedTables
+}
+
+// Sync post from the wordpress database to OWID database
+export async function syncPostToGrapher(postId: number): Promise<string> {
+    const post = await wpdb.get("SELECT * FROM wp_posts WHERE ID=?", [postId])
+
+    const postRow = [post.ID, post.post_title, post.post_name, post.post_type, post.post_content, post.post_date_gmt, post.post_modified_gmt]
+    await db.execute("INSERT INTO posts (id, title, slug, type, content, published_at, updated_at) VALUES (?)", [postRow])
+
+    return post.post_name
 }

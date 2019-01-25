@@ -9,6 +9,7 @@ import { Admin } from './Admin'
 import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
+import { WORDPRESS_URL } from 'settings';
 
 interface PostIndexMeta {
     id: number
@@ -39,7 +40,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
             <td>{post.status}</td>
             <td>{timeago.format(post.updatedAt)}</td>
             <td>
-                <a href={`/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
+                <a href={`${WORDPRESS_URL}/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
             </td>
             {/*<td>
                 <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>

@@ -11,6 +11,7 @@ export const WEBPACK_DEV_URL: string = process.env.WEBPACK_DEV_URL || "http://lo
 export const BAKED_BASE_URL: string = process.env.BAKED_BASE_URL || `http://${BAKED_DEV_SERVER_HOST}:${BAKED_DEV_SERVER_PORT}`
 export const BAKED_GRAPHER_URL: string = process.env.BAKED_GRAPHER_URL || `${BAKED_BASE_URL}/grapher`
 export const ADMIN_BASE_URL: string = process.env.ADMIN_BASE_URL || `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
+export const WORDPRESS_URL: string = process.env.WORDPRESS_URL || "https://owid.cloud"
 
 // Settings for git export and version tracking of database
 export const GITHUB_USERNAME: string = process.env.GITHUB_USERNAME || "owid-test"

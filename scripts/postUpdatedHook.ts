@@ -1,18 +1,27 @@
 import { SiteBaker } from 'site/server/SiteBaker'
 import * as parseArgs from 'minimist'
+import * as wpdb from 'db/wpdb'
+import * as db from 'db/db'
+import { BAKE_ON_CHANGE } from 'serverSettings'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(database: string, email: string, name: string, postSlug: string) {
+async function main(email: string, name: string, postId: number) {
     try {
-        console.log(database, email, name, postSlug)
-        const baker = new SiteBaker({})
+        console.log(email, name, postId)
+        const slug = await wpdb.syncPostToGrapher(postId)
 
-        await baker.bakeAll()
-        await baker.deploy(`Updating ${postSlug}`, email, name)
-        baker.end()
+        if (BAKE_ON_CHANGE) {
+            const baker = new SiteBaker({})
+            await baker.bakeAll()
+            await baker.deploy(`Updating ${slug}`, email, name)
+            baker.end()
+        }
     } catch (err) {
         console.error(err)
+    } finally {
+        await wpdb.end()
+        await db.end()
     }
 }
 
-main(argv._[0], argv._[1], argv._[2], argv._[3])
+main(argv._[0], argv._[1], parseInt(argv._[2]))

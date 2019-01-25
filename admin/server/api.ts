@@ -60,9 +60,15 @@ const api = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
+    if (!BAKE_ON_CHANGE) {
+        console.log("Not triggering static build because BAKE_ON_CHANGE is false")
+        return
+    }
+
     const email = shellEscape(user.email)
     const name = shellEscape(user.fullName)
     const message = shellEscape(commitMessage)
+
     const bakeSite = path.join(BASE_DIR, 'scripts/bakeSite.ts')
     const cmd = `yarn tsn ${bakeSite} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
     const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
