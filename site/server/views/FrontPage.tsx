@@ -60,13 +60,12 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: { titl
                     </div>
                     <div id="homepage-entries" className="owid-data">
                         <h3 id="entries"><a href="#entries">Entries</a></h3>
-                        <p>Ongoing collections of research and data by topic. Entries marked with <span className="star">⭑</span> are the most complete.</p>
                         <ul>
                             {entries.map(category => <li key={category.slug}>
                                 <h4 id={category.slug}>{category.name}</h4>
                                 <div className="link-container">
                                     {category.entries.map(entry =>
-                                        <a key={entry.slug} className={entry.starred ? "starred" : undefined} title={entry.starred ? "Starred pages are our best and most complete entries." : undefined} href={`/${entry.slug}`}>{entry.title}</a>
+                                        <a key={entry.slug} href={`/${entry.slug}`}>{entry.title}</a>
                                     )}
                                 </div>
                             </li>)}

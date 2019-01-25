@@ -136,7 +136,6 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
 export interface EntryMeta {
     slug: string
     title: string
-    starred: boolean
 }
 
 export interface CategoryWithEntries {
@@ -185,8 +184,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     }
 
     const pageRows = await wpdb.query(`
-        SELECT posts.ID, post_title, post_date, post_name, star.meta_value AS starred FROM wp_posts AS posts
-        LEFT JOIN wp_postmeta AS star ON star.post_id=ID AND star.meta_key='_ino_star'
+        SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
         WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC
     `)
 
@@ -201,8 +199,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         const entries = rows.map(row => {
             return {
                 slug: permalinks.get(row.ID, row.post_name),
-                title: row.post_title,
-                starred: row.starred === "1"
+                title: row.post_title
             }
         })
 

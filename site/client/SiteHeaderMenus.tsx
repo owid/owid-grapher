@@ -55,7 +55,7 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
                             <ul className="entries">
                                 <li><hr/></li>
                                 {category.entries.map(entry =>
-                                    <li key={entry.slug}><a className={entry.starred ? "starred" : undefined} title={entry.starred ? "Starred pages are our best and most complete entries." : undefined} href={`/${entry.slug}`}>{entry.title}</a></li>
+                                    <li key={entry.slug}><a href={`/${entry.slug}`}>{entry.title}</a></li>
                                 )}
                             </ul>
                         </li>
@@ -68,7 +68,7 @@ export class DesktopHeader extends React.Component<{ categories: CategoryWithEnt
                     {activeCategory.entries.map(entry => {
                         const classes = []
                         return <li key={entry.slug}>
-                            <a className={entry.starred ? "starred" : undefined} title={entry.starred ? "Starred pages are our best and most complete entries." : undefined} href={`/${entry.slug}`}>{entry.title}</a>
+                            <a href={`/${entry.slug}`}>{entry.title}</a>
                         </li>
                     })}
                 </React.Fragment>}
