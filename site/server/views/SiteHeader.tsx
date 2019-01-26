@@ -59,7 +59,7 @@ export const SiteHeader = () => {
                     </a>
                 </li>
                 <li>
-                    <a href="https://ourworldindata.org/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter">
+                    <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter">
                         <FontAwesomeIcon icon={faEnvelope} />
                     </a>
                 </li>
