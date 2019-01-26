@@ -1,8 +1,8 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
-
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from 'serverSettings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR, DB_HOST, DB_USER, DB_PASS} from 'serverSettings'
+import * as Knex from 'knex'
 
 import * as path from 'path'
 import * as glob from 'glob'
@@ -11,9 +11,26 @@ import * as db from 'db/db'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
+import { Chart } from 'charts/Chart';
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
+
+    knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
+        if (!knexInstance) {
+            knexInstance = Knex({
+                client: 'mysql',
+                connection: {
+                    host: DB_HOST,
+                    user: DB_USER,
+                    password: DB_PASS,
+                    database: WORDPRESS_DB_NAME
+                }
+            })    
+        }
+    
+        return knexInstance(tableName) 
+    }
 
     async connect() {
         this.conn = new DatabaseConnection({
@@ -51,8 +68,9 @@ export async function connect() {
     await wpdb.connect()
 }
 
-export function end() {
+export async function end() {
     if (wpdb.conn) wpdb.conn.end()
+    if (knexInstance) await knexInstance.destroy()
 }
 
 interface ImageUpload {
@@ -354,12 +372,8 @@ export async function getTables(): Promise<Map<string, TablepressTable>> {
     return cachedTables
 }
 
-// Sync post from the wordpress database to OWID database
-export async function syncPostToGrapher(postId: number): Promise<string> {
-    const post = await wpdb.get("SELECT * FROM wp_posts WHERE ID=?", [postId])
+let knexInstance: Knex
 
-    const postRow = [post.ID, post.post_title, post.post_name, post.post_type, post.post_content, post.post_date_gmt, post.post_modified_gmt]
-    await db.execute("INSERT INTO posts (id, title, slug, type, content, published_at, updated_at) VALUES (?)", [postRow])
-
-    return post.post_name
+export function knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
+    return wpdb.knex(tableName)
 }

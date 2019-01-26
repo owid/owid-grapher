@@ -8,7 +8,7 @@ import * as bodyParser from 'body-parser'
 
 import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
-import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID} from 'serverSettings'
+import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE} from 'serverSettings'
 import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from 'utils/server/serverUtil'
 import {sendMail} from 'admin/server/mail'
 import { OldChart, Chart } from 'db/model/Chart'
