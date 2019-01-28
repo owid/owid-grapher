@@ -876,6 +876,8 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
 api.get('/posts.json', async req => {
     const rows = await Post.select('id', 'title', 'type', 'status', 'updated_at')
 
+    const tagsByPostId = await Post.tagsByPostId()
+
     // const rows = await wpdb.query(`
     //     SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
     //     FROM wp_posts
@@ -886,10 +888,19 @@ api.get('/posts.json', async req => {
     const authorship = await wpdb.getAuthorship()
 
     for (const post of rows) {
-        (post as any).authors = authorship.get(post.id)||[]
+        (post as any).authors = authorship.get(post.id)||[];
+        (post as any).tags = tagsByPostId.get(post.id)||[]
     }
 
-    return { posts: rows.map(r => camelCaseProperties(r)) }
+    return { posts: rows }
+})
+
+api.post('/posts/:postId/setTags', async (req: Request, res: Response) => {
+    const postId = expectInt(req.params.postId)
+
+    await Post.setTags(postId, req.body.tagIds)
+
+    return { success: true }
 })
 
 api.get('/importData.json', async req => {
