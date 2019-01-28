@@ -22,7 +22,9 @@ import {Tag} from 'db/model/Tag'
 import { User } from 'db/model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from 'admin/server/gitDataExport'
 import { ChartRevision } from 'db/model/ChartRevision'
-
+import { Post } from 'db/model/Post'
+import { camelCaseProperties } from 'utils/object'
+    
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
 class FunctionalRouter {
@@ -872,20 +874,22 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
 })
 
 api.get('/posts.json', async req => {
-    const rows = await wpdb.query(`
-        SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
-        FROM wp_posts
-        WHERE (post_type='post' OR post_type='page')
-            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
-        ORDER BY post_modified DESC`)
+    const rows = await Post.select('id', 'title', 'type', 'status', 'updated_at')
+
+    // const rows = await wpdb.query(`
+    //     SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
+    //     FROM wp_posts
+    //     WHERE (post_type='post' OR post_type='page')
+    //         AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
+    //     ORDER BY post_modified DESC`)
 
     const authorship = await wpdb.getAuthorship()
 
     for (const post of rows) {
-        post.authors = authorship.get(post.id)||[]
+        (post as any).authors = authorship.get(post.id)||[]
     }
 
-    return { posts: rows }
+    return { posts: rows.map(r => camelCaseProperties(r)) }
 })
 
 api.get('/importData.json', async req => {

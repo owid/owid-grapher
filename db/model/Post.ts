@@ -2,22 +2,28 @@ import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
 import * as _ from 'lodash'
 
-interface PostRow {
-    id: number
-    title: string
-    slug: string
-    type: 'post'|'page'
-    status: string
-    content: string
-    published_at: Date|null
-    updated_at: Date
+export namespace Post {
+    export interface Row {
+        id: number
+        title: string
+        slug: string
+        type: 'post'|'page'
+        status: string
+        content: string
+        published_at: Date|null
+        updated_at: Date
+    }
+    
+    export type Field = keyof Row
+    
+    export function table() {
+        return db.knex()("posts")
+    }
+    
+    export function select<K extends keyof Row>(...args: K[]): Promise<Pick<Row, K>[]> {
+        return table().select(...args) as any
+    }
 }
-
-type PostField = keyof PostRow
-
-// function camelToSnakeCase(s: string) {
-//     return s.split(/(?<=[a-z])(?=[A-Z])/g).join("_").toLowerCase()
-// }
 
 export async function syncPostsToGrapher(postIds?: number[]) {
     const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN ?", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE post_type='page' OR post_type='post'")
@@ -30,7 +36,7 @@ export async function syncPostsToGrapher(postIds?: number[]) {
         content: post.post_content, 
         published_at: post.post_date_gmt === "0000-00-00 00:00:00" ? null : post.post_date_gmt, 
         updated_at: post.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : post.post_modified_gmt
-    })) as PostRow[]
+    })) as Post.Row[]
 
     const existing = await db.knex().select('id').from('posts').whereIn('id', dbRows.map(r => r.id))
     const doesExist = _.keyBy(existing, 'id')
