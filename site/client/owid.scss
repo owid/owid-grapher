@@ -2535,6 +2535,23 @@ html:not(.js) {
     
     .postResults li {
         list-style-type: none;
+
+        a {
+            font-size: 16px;
+        }
+
+        p {
+            font-size: 13px;
+        }
+    }
+
+    .chartResults > ul > li {
+        list-style-type: none;
+        line-height: 1.8em;
+
+        p {
+            font-size: 13px;
+        }
     }
 
     .postResults em, .ChartResult em {

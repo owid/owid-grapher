@@ -8,10 +8,12 @@ import { BAKED_GRAPHER_URL } from "settings";
 class ChartResult extends React.Component<{ hit: ChartHit }> {
     render() {
         const {hit} = this.props
-        return <div className="ChartResult">
-            <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/>
+        return <li className="ChartResult">
+            {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
+            <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>{hit.title}</a>
             {hit.variantName ? <span className="chartVariantName"> {hit.variantName}</span> : undefined}
-        </div>
+            {hit.subtitle ? <p dangerouslySetInnerHTML={{ __html: hit._snippetResult.subtitle.value }}/> : undefined}
+        </li>
     }
 }
 
@@ -31,7 +33,6 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
 
     render() {
         const {results} = this.props
-        const {entries, blogposts} = this
 
         return <div className="SearchResults">
             <div className="container">
@@ -39,7 +40,8 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
                     <h2>Articles</h2>
                     <ul>
                         {results.posts.map(hit => <li key={hit.postId}>
-                            <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/>
+                            {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
+                            <a href={`/${hit.slug}`}>{hit.title}</a>
                             <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
                         </li>)}
                     </ul>
@@ -47,7 +49,9 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
                 <div className="chartResults">
                     <h2>Data</h2>
                     {this.bestChartSlug && <EmbedChart src={`${BAKED_GRAPHER_URL}/${this.bestChartSlug}`}/>}
-                    {results.charts.map(hit => <ChartResult key={hit.chartId} hit={hit}/>)}
+                    <ul>
+                        {results.charts.map(hit => <ChartResult key={hit.chartId} hit={hit}/>)}
+                    </ul>
                 </div>
             </div>
         </div>

@@ -48,6 +48,11 @@ export interface ChartHit {
     subtitle: string
     variantName: string
     _highlightResult: any
+    _snippetResult: {
+        subtitle: {
+            value: string
+        }
+    }
 }
 
 export interface SiteSearchResults {
