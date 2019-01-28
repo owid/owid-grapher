@@ -5,6 +5,7 @@ import * as path from 'path'
 import * as _ from 'lodash'
 import * as md5 from 'md5'
 
+import { BAKED_BASE_URL } from 'settings'
 import {BAKED_SITE_DIR} from 'serverSettings'
 import * as db from 'db/db'
 import { bakeChartsToImages } from 'site/server/bakeChartsToImages'
@@ -99,7 +100,7 @@ export async function getGrapherExportsByUrl(): Promise<{ get: (grapherUrl: stri
         if (!current || current.version < versionNumber) {
             exportsByKey.set(key, {
                 key: key,
-                svgUrl: `/exports/${filename}`,
+                svgUrl: `${BAKED_BASE_URL}/exports/${filename}`,
                 version: versionNumber,
                 width: parseInt(width),
                 height: parseInt(height)

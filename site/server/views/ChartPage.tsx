@@ -84,7 +84,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         <body className="singleChart">
             <figure data-grapher-src={`/grapher/${chart.slug}`}/>
             <noscript id="fallback">
-                <img src={`/grapher/exports/${chart.slug}.svg`}/>
+                <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
