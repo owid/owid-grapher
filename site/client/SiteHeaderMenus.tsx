@@ -120,7 +120,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                             <ul className="site-primary-links">
                                 <li><a href="/blog">Blog</a></li>
                                 <li><a href="/about">About</a></li>
-                                <li><a href="/support">Donate</a></li>
+                                <li><a href="/donate">Donate</a></li>
                             </ul>
                         </div>
                         <div className="site-secondary-navigation">
@@ -211,7 +211,9 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
                 >
                     {categories.map((category) =>
                         <div key={category.slug} className={category === activeCategory ? "active item" : "item"} data-submenu-id={category.slug}>
-                            <span className="label">{category.name}</span>
+                            <span className="label">
+                                {category.name}
+                            </span>
                             <span className="icon">
                                 <svg width="5" height="10"><path d="M0,0 L5,5 L0,10 Z" fill="currentColor" /></svg>
                             </span>
@@ -235,7 +237,9 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
             </div>
             <div className="submenu" ref={this.submenuRef}>
                 {activeCategory && activeCategory.entries.map((entry) => <a key={entry.title} href={`/${entry.slug}`} className="item">
-                    <span className="label">{entry.title}</span>
+                    <span className="label">
+                        { entry.slug === window.location.pathname.slice(1) && <FontAwesomeIcon icon={faEye} />} {entry.title}
+                    </span>
                 </a>)}
             </div>
         </div>
@@ -285,7 +289,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
                 <li className="end-link"><a href="https://sdg-tracker.org">Sustainable Development Goals</a></li>
                 <li className="end-link"><a href="/blog">Blog</a></li>
                 <li className="end-link"><a href="/about">About</a></li>
-                <li className="end-link"><a href="/support">Donate</a></li>
+                <li className="end-link"><a href="/donate">Donate</a></li>
             </ul>
         </div>
     }

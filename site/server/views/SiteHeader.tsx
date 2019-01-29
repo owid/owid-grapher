@@ -34,7 +34,7 @@ export const SiteHeader = () => {
                         <ul className="site-primary-links">
                             <li><a href="/blog">Blog</a></li>
                             <li><a href="/about">About</a></li>
-                            <li><a href="/support">Donate</a></li>
+                            <li><a href="/donate">Donate</a></li>
                         </ul>
                     </div>
                     <div className="site-secondary-navigation">
