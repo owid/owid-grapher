@@ -1,6 +1,5 @@
-import * as _ from 'lodash'
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany, JoinColumn} from "typeorm"
-
+import * as _ from 'lodash'
 import * as db from 'db/db'
 import { ChartConfig, ChartConfigProps } from 'charts/ChartConfig'
 import {getVariableData} from './Variable'
@@ -99,6 +98,7 @@ export class OldChart {
 
     static async getBySlug(slug: string): Promise<OldChart> {
         const row = await db.get(`SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`, [slug])
+
         return new OldChart(row.id, JSON.parse(row.config))
     }
 

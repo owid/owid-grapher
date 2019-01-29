@@ -22,7 +22,7 @@ function build_static($post_ID, $post_after, $post_before) {
 		global $wpdb;
 		$current_user = wp_get_current_user();
         putenv('PATH=' . getenv('PATH') . ':/bin:/usr/local/bin:/usr/bin');
-		$cmd = "cd " . dirname(__FILE__) . "/codelink && yarn tsn scripts/postUpdatedHook.ts " . escapeshellarg($wpdb->dbname) . " " . escapeshellarg($current_user->user_email) . " " . escapeshellarg($current_user->display_name) . " " . escapeshellarg($post_after->post_name) . " > /tmp/wp-static.log 2>&1 &";
+		$cmd = "cd " . dirname(__FILE__) . "/codelink && yarn tsn scripts/postUpdatedHook.ts " .escapeshellarg($current_user->user_email) . " " . escapeshellarg($current_user->display_name) . " " . escapeshellarg($post_after->ID) . " > /tmp/wp-static.log 2>&1 &";
 		error_log($cmd);
 		exec($cmd);
 	}

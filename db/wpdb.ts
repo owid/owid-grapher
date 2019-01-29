@@ -1,18 +1,36 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
-
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR} from 'serverSettings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR, DB_HOST, DB_USER, DB_PASS} from 'serverSettings'
+import * as Knex from 'knex'
 
 import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
+import * as db from 'db/db'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
+import { Chart } from 'charts/Chart';
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
+
+    knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
+        if (!knexInstance) {
+            knexInstance = Knex({
+                client: 'mysql',
+                connection: {
+                    host: DB_HOST,
+                    user: DB_USER,
+                    password: DB_PASS,
+                    database: WORDPRESS_DB_NAME
+                }
+            })    
+        }
+    
+        return knexInstance(tableName) 
+    }
 
     async connect() {
         this.conn = new DatabaseConnection({
@@ -50,8 +68,9 @@ export async function connect() {
     await wpdb.connect()
 }
 
-export function end() {
+export async function end() {
     if (wpdb.conn) wpdb.conn.end()
+    if (knexInstance) await knexInstance.destroy()
 }
 
 interface ImageUpload {
@@ -136,7 +155,6 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
 export interface EntryMeta {
     slug: string
     title: string
-    starred: boolean
 }
 
 export interface CategoryWithEntries {
@@ -185,8 +203,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     }
 
     const pageRows = await wpdb.query(`
-        SELECT posts.ID, post_title, post_date, post_name, star.meta_value AS starred FROM wp_posts AS posts
-        LEFT JOIN wp_postmeta AS star ON star.post_id=ID AND star.meta_key='_ino_star'
+        SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
         WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC
     `)
 
@@ -201,8 +218,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         const entries = rows.map(row => {
             return {
                 slug: permalinks.get(row.ID, row.post_name),
-                title: row.post_title,
-                starred: row.starred === "1"
+                title: row.post_title
             }
         })
 
@@ -354,4 +370,10 @@ export async function getTables(): Promise<Map<string, TablepressTable>> {
     }
 
     return cachedTables
+}
+
+let knexInstance: Knex
+
+export function knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
+    return wpdb.knex(tableName)
 }

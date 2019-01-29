@@ -8,7 +8,7 @@ import * as bodyParser from 'body-parser'
 
 import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
-import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID} from 'serverSettings'
+import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE} from 'serverSettings'
 import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from 'utils/server/serverUtil'
 import {sendMail} from 'admin/server/mail'
 import { OldChart, Chart } from 'db/model/Chart'
@@ -22,7 +22,9 @@ import {Tag} from 'db/model/Tag'
 import { User } from 'db/model/User'
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from 'admin/server/gitDataExport'
 import { ChartRevision } from 'db/model/ChartRevision'
-
+import { Post } from 'db/model/Post'
+import { camelCaseProperties } from 'utils/object'
+    
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
 class FunctionalRouter {
@@ -60,9 +62,15 @@ const api = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
+    if (!BAKE_ON_CHANGE) {
+        console.log("Not triggering static build because BAKE_ON_CHANGE is false")
+        return
+    }
+
     const email = shellEscape(user.email)
     const name = shellEscape(user.fullName)
     const message = shellEscape(commitMessage)
+
     const bakeSite = path.join(BASE_DIR, 'scripts/bakeSite.ts')
     const cmd = `yarn tsn ${bakeSite} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
     const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
@@ -866,20 +874,33 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
 })
 
 api.get('/posts.json', async req => {
-    const rows = await wpdb.query(`
-        SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
-        FROM wp_posts
-        WHERE (post_type='post' OR post_type='page')
-            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
-        ORDER BY post_modified DESC`)
+    const rows = await Post.select('id', 'title', 'type', 'status', 'updated_at').from(Post.table())
+
+    const tagsByPostId = await Post.tagsByPostId()
+
+    // const rows = await wpdb.query(`
+    //     SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
+    //     FROM wp_posts
+    //     WHERE (post_type='post' OR post_type='page')
+    //         AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
+    //     ORDER BY post_modified DESC`)
 
     const authorship = await wpdb.getAuthorship()
 
     for (const post of rows) {
-        post.authors = authorship.get(post.id)||[]
+        (post as any).authors = authorship.get(post.id)||[];
+        (post as any).tags = tagsByPostId.get(post.id)||[]
     }
 
     return { posts: rows }
+})
+
+api.post('/posts/:postId/setTags', async (req: Request, res: Response) => {
+    const postId = expectInt(req.params.postId)
+
+    await Post.setTags(postId, req.body.tagIds)
+
+    return { success: true }
 })
 
 api.get('/importData.json', async req => {

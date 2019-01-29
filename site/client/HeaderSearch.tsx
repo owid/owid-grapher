@@ -4,22 +4,9 @@ import { observer } from 'mobx-react'
 import * as algoliasearch from 'algoliasearch'
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
 import { SearchResults } from './SearchResults'
-import { SiteSearchResults } from 'site/siteSearch';
-
-interface PostHit {
-    slug: string
-    title: string
-    postType: 'post'|'page'
-    content: string
-    excerpt: string
-    _highlightResult: any
-}
-
-interface ChartHit {
-    slug: string
-    title: string
-    _highlightResult: any
-}
+import { SiteSearchResults, PostHit, ChartHit } from 'site/siteSearch'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface Results {
     posts: PostHit[]
@@ -77,8 +64,11 @@ export class HeaderSearch extends React.Component {
 
     render() {
         const {results} = this
-        return <form id="search-nav" action="/search" method="GET" className="HeaderSearch">
-            <input type="search" name="q" onChange={e => this.onSearch(e)}/>
+        return <form action="/search" method="GET" className="HeaderSearch">
+            <input type="search" name="q" onChange={e => this.onSearch(e)} placeholder="Search..."/>
+            <div className="icon">
+                <FontAwesomeIcon icon={faSearch} />
+            </div>
             {results && <HeaderSearchResults results={results}/>}
         </form>
     }

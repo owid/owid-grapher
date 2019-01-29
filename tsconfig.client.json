@@ -10,6 +10,7 @@
         "jsx": "react",
         "target": "es5",
         "experimentalDecorators": true,
+        "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es7", "esnext.asynciterable"],
         "baseUrl": ".",

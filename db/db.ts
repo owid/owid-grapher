@@ -1,5 +1,7 @@
 import * as mysql from 'mysql'
 import * as typeorm from 'typeorm'
+import * as Knex from 'knex'
+import { DB_HOST, DB_USER, DB_PASS, DB_NAME } from 'serverSettings';
 let connection: typeorm.Connection
 
 export async function connect() {
@@ -77,4 +79,24 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 export async function end() {
     if (connection)
         await connection.close()
+    if (knexInstance)
+        await knexInstance.destroy()
+}
+
+let knexInstance: Knex
+
+export function knex() {
+    if (!knexInstance) {
+        knexInstance = Knex({
+            client: 'mysql',
+            connection: {
+                host: DB_HOST,
+                user: DB_USER,
+                password: DB_PASS,
+                database: DB_NAME
+            }
+        })    
+    }
+
+    return knexInstance
 }

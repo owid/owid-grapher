@@ -1,0 +1,25 @@
+/* Float Clearing
+--------------------------------------------- */
+
+.clearfix:before {
+	content: " ";
+	display: table;
+}
+
+.clearfix:after {
+	clear: both;
+	content: " ";
+	display: table;
+}
+
+@include desktop {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+@include mobile {
+    .desktop-only {
+        display: none !important;
+    }
+}

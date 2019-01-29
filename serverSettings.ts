@@ -38,7 +38,6 @@ export const EMAIL_HOST_PASSWORD: string = process.env.EMAIL_HOST_PASSWORD || 'p
 // Wordpress target settings
 export const WORDPRESS_DB_NAME: string = process.env.WORDPRESS_DB_NAME || ""
 export const WORDPRESS_DIR: string = process.env.WORDPRESS_DIR || ""
-export const WORDPRESS_URL: string = process.env.WORDPRESS_URL || "https://owid.cloud"
 export const HTTPS_ONLY: boolean = true
 
 // Node slack webhook to report errors to using express-error-slack
@@ -49,3 +48,6 @@ export const GIT_DATASETS_DIR: string = process.env.GIT_DATASETS_DIR || path.joi
 export const TMP_DIR: string = process.env.TMP_DIR || "/tmp"
 
 export const UNCATEGORIZED_TAG_ID: number = process.env.UNCATEGORIZED_TAG_ID ? parseInt(process.env.UNCATEGORIZED_TAG_ID as any) : 375
+
+// Should the static site output be baked when relevant database items change?
+export const BAKE_ON_CHANGE: boolean = ENV === 'production' ? true : false

@@ -1,14 +1,15 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
+import {observable, computed, action, runInAction} from 'mobx'
 const timeago = require('timeago.js')()
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import { Admin } from './Admin'
 import { AdminLayout } from './AdminLayout'
-import { SearchField, FieldsRow } from './Forms'
+import { SearchField, FieldsRow, EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
+import { WORDPRESS_URL } from 'settings'
+import { Tag } from './TagBadge'
 
 interface PostIndexMeta {
     id: number
@@ -17,6 +18,7 @@ interface PostIndexMeta {
     status: string
     authors: string[]
     updatedAt: string
+    tags: Tag[]
 }
 
 interface Searchable {
@@ -25,21 +27,35 @@ interface Searchable {
 }
 
 @observer
-class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any }> {
+class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any, availableTags: Tag[] }> {
     static contextType = AdminAppContext
 
+    async saveTags(tags: Tag[]) {
+        const {post} = this.props
+        const json = await this.context.admin.requestJSON(`/api/posts/${post.id}/setTags`, { tagIds: tags.map(t => t.id) }, 'POST')
+        if (json.success) {
+            runInAction(() => post.tags = tags)
+        }
+    }
+
+    @action.bound onSaveTags(tags: Tag[]) {
+        this.saveTags(tags)
+    }
+
     render() {
-        const {post, highlight} = this.props
-        const {admin} = this.context
+        const {post, highlight, availableTags} = this.props
 
         return <tr>
             <td>{highlight(post.title) || "(no title)"}</td>
             <td>{highlight(post.authors.join(", "))}</td>
             <td>{post.type}</td>
             <td>{post.status}</td>
+            <td style={{minWidth: "380px"}}>
+                <EditableTags tags={post.tags} suggestions={availableTags} onSave={this.onSaveTags}/>
+            </td>
             <td>{timeago.format(post.updatedAt)}</td>
             <td>
-                <a href={`/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
+                <a href={`${WORDPRESS_URL}/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
             </td>
             {/*<td>
                 <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>
@@ -55,6 +71,7 @@ export class PostsIndexPage extends React.Component {
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50
     @observable searchInput?: string
+    @observable availableTags: Tag[] = []
 
     @computed get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
@@ -104,11 +121,11 @@ export class PostsIndexPage extends React.Component {
                 return text
         }
 
-        return <AdminLayout title="posts">
+        return <AdminLayout title="Posts">
             <main className="PostsIndexPage">
                 <FieldsRow>
-                    <span>Showing {postsToShow.length} of {numTotalRows} pages</span>
-                    <SearchField placeholder="Search all pages..." value={searchInput} onValue={this.onSearchInput} autofocus/>
+                    <span>Showing {postsToShow.length} of {numTotalRows} posts</span>
+                    <SearchField placeholder="Search all posts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
                 </FieldsRow>
                 <table className="table table-bordered">
                     <thead>
@@ -117,15 +134,16 @@ export class PostsIndexPage extends React.Component {
                             <th>Authors</th>
                             <th>Type</th>
                             <th>Status</th>
+                            <th>Tags</th>
                             <th>Last Updated</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {postsToShow.map(post => <PostRow key={post.id} post={post} highlight={highlight}/>)}
+                        {postsToShow.map(post => <PostRow key={post.id} post={post} highlight={highlight} availableTags={this.availableTags}/>)}
                     </tbody>
                 </table>
-                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more pages...</button>}
+                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more posts...</button>}
             </main>
         </AdminLayout>
     }
@@ -141,7 +159,13 @@ export class PostsIndexPage extends React.Component {
         })
     }
 
+    async getTags() {
+        const json = await this.context.admin.getJSON('/api/tags.json')
+        runInAction(() => this.availableTags = json.tags)
+    }
+
     componentDidMount() {
         this.getData()
+        this.getTags()
      }
 }

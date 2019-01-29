@@ -23,6 +23,16 @@ adminViews.use(async (req, res, next) => {
     return next()
 })
 
+adminViews.get('/', async (req, res) => {
+    // The second mode of Wordpress preview redirects
+    // e.g. http://localhost:3030/admin/?p=22505&preview_id=22505&preview_nonce=93a5fc7eee&_thumbnail_id=22508&preview=true
+    if (req.query.preview_id) {
+        res.redirect(`/admin/posts/preview/${req.query.preview_id}`)
+    } else {
+        res.redirect(`/admin/charts`)
+    }
+})
+
 adminViews.get('/login', async (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next}/>))
 })
