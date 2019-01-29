@@ -1,6 +1,9 @@
 import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
 import * as _ from 'lodash'
+import { Tag } from './Tag';
+import { QueryBuilder } from 'knex'
+import {decodeHTML} from 'entities'
 
 export namespace Post {
     export interface Row {
@@ -20,8 +23,10 @@ export namespace Post {
         return db.knex()("posts")
     }
     
-    export function select<K extends keyof Row>(...args: K[]): Promise<Pick<Row, K>[]> {
-        return table().select(...args) as any
+    export function select<K extends keyof Row>(...args: K[]): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
+        return {
+            from: (query) => query.select(...args) as any
+        }
     }
 
     export async function tagsByPostId() {
@@ -53,7 +58,7 @@ export namespace Post {
 }
 
 export async function syncPostsToGrapher(postIds?: number[]) {
-    const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN ?", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE post_type='page' OR post_type='post'")
+    const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN (?)", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE post_type='page' OR post_type='post'")
     const dbRows = rows.map((post: any) => ({
         id: post.ID, 
         title: post.post_title, 
@@ -65,8 +70,11 @@ export async function syncPostsToGrapher(postIds?: number[]) {
         updated_at: post.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : post.post_modified_gmt
     })) as Post.Row[]
 
-    const existing = await db.knex().select('id').from('posts').whereIn('id', dbRows.map(r => r.id))
+    const existing = await Post.select('id').from(Post.table().whereIn('id', dbRows.map(r => r.id)))
     const doesExist = _.keyBy(existing, 'id')
+
+    // const allTags = await Tag.select('id', 'name')
+
 
     await db.knex().transaction(async t => {
         for (const row of dbRows) {
@@ -77,6 +85,21 @@ export async function syncPostsToGrapher(postIds?: number[]) {
         }
     })
 }
+
+// export async function syncPostTagsToGrapher() {
+//     const categoriesByPostId = await wpdb.getCategoriesByPostId()
+//     const tagsByPostId = await wpdb.getTagsByPostId()
+//     const postRows = await wpdb.query("select * from wp_posts where post_type='page' or post_type='post'")
+
+//     for (const post of postRows) {
+//         const tags = tagsByPostId.get(post.ID) || []
+//         let tagNames = tags.map(t => decodeHTML(t)).concat([post.post_title])
+//         const matchingTags = await Tag.select('id', 'name', 'isBulkImport').from(Tag.table().whereIn('name', tagNames).andWhere({ isBulkImport: false }))
+//         console.log(matchingTags)
+//         const tagIds = _.uniq(matchingTags.map(t => t.id))
+//         await Post.setTags(post.ID, tagIds)
+//     }
+// }
 
 // Sync post from the wordpress database to OWID database
 export async function syncPostToGrapher(postId: number): Promise<string> {
