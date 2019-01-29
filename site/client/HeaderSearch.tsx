@@ -4,7 +4,7 @@ import { observer } from 'mobx-react'
 import * as algoliasearch from 'algoliasearch'
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
 import { SearchResults } from './SearchResults'
-import { SiteSearchResults, PostHit, ChartHit } from 'site/siteSearch'
+import { SiteSearchResults, PostHit, ChartHit, siteSearch } from 'site/siteSearch'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
@@ -33,23 +33,14 @@ export class HeaderSearch extends React.Component {
     lastQuery?: string
 
     async runSearch(query: string) {
-        const algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-        const json = await algolia.search([
-            { indexName: 'mispydev_owid_articles', query: query, params: { distinct: true } },
-            { indexName: 'mispydev_owid_charts', query: query, params: {} }
-        ])
+        const results = await siteSearch(query)
 
         if (this.lastQuery !== query) {
             // Don't need this result anymore
             return
         }
 
-        runInAction(() => {
-            this.results = {
-                posts: json.results[0].hits,
-                charts: json.results[1].hits
-            }    
-        })
+        runInAction(() => this.results = results)
     }
 
     @action.bound onSearch(e: React.ChangeEvent<HTMLInputElement>) {

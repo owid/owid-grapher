@@ -16,16 +16,6 @@ function getClient() {
     return algolia
 }
 
-async function search(queries: SearchQuery[]) {
-    const algoliaQueries = queries.map(q => ({
-        indexName: `mispydev_owid_${q.indexName}`,
-        query: q.query,
-        params: q.params
-    }))
-
-    return await getClient().search(algoliaQueries)
-}
-
 export interface PostHit {
     postId: number
     slug: string
@@ -62,8 +52,8 @@ export interface SiteSearchResults {
 
 export async function siteSearch(query: string): Promise<SiteSearchResults> {
     const json = await getClient().search([
-        { indexName: 'mispydev_owid_articles', query: query, params: { distinct: true } },
-        { indexName: 'mispydev_owid_charts', query: query, params: {} }
+        { indexName: 'articles', query: query, params: { distinct: true } },
+        { indexName: 'charts', query: query, params: {} }
     ])
     
     return {

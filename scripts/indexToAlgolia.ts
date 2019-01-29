@@ -10,7 +10,7 @@ import { htmlToPlaintext } from 'utils/string'
 
 async function indexToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex('mispydev_owid_articles')
+    const index = client.initIndex('articles')
 
     index.setSettings({ attributeForDistinct: 'slug' })
 
@@ -24,13 +24,13 @@ async function indexToAlgolia() {
         const postText = htmlToPlaintext(post.html)
         const chunks = chunkParagraphs(postText, 1000)
 
-        let importance = 0
-        if (post.type === 'entry')
-            importance = 3
-        else if (post.type === 'explainer')
-            importance = 2
-        else if (post.type === 'fact')
-            importance = 1
+        // let importance = 0
+        // if (post.type === 'entry')
+        //     importance = 3
+        // else if (post.type === 'explainer')
+        //     importance = 2
+        // else if (post.type === 'fact')
+        //     importance = 1
 
         let i = 0
         for (const c of chunks) {
@@ -45,7 +45,7 @@ async function indexToAlgolia() {
                 date: post.date,
                 modifiedDate: post.modifiedDate,
                 content: c,
-                importance: importance
+                // importance: importance
             })
             i += 1
         }

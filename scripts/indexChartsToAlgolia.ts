@@ -36,7 +36,7 @@ async function indexChartsToAlgolia() {
     }
 
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex('mispydev_owid_charts')
+    const index = client.initIndex('charts')
 
     index.setSettings({ attributeForDistinct: 'id' })
 
