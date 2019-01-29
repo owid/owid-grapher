@@ -5,7 +5,7 @@ import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { CategoryWithEntries, PostInfo } from 'db/wpdb'
 import { formatDate } from '../formatting'
-import { faRss, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faRss } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faFacebookF } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { BAKED_GRAPHER_URL } from 'settings'
@@ -34,9 +34,8 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <div id="homepage-cover">
                 <div className="lead-in">
-                    <h1 className="desktop">Our world is changing</h1>
-                    <div className="desktop subheading">Explore the ongoing history of human civilization at the broadest level, through research and data visualization.</div>
-                    <div className="mobile subheading">Living conditions around the world are changing rapidly. Explore how and why.</div>
+                    <h1 className="desktop-only">Know the world you live in</h1>
+                    <div className="subheading">Understand how the world is changing through research and interactive data visualizations.</div>
                     <div className="title-author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a>.</div>
                 </div>
             </div>

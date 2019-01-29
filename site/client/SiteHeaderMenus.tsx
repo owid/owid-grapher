@@ -108,7 +108,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         </a>
                     </li>
                     <li>
-                        <a href="https://ourworldindata.org/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter">
+                        <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter">
                             <FontAwesomeIcon icon={faEnvelope} />
                         </a>
                     </li>
@@ -174,7 +174,7 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
                     submenuRect={this.submenuRef.current && this.submenuRef.current.getBoundingClientRect()}
                 >
                     {categories.map((category) =>
-                        <div className={category === activeCategory ? "active item" : "item"} data-submenu-id={category.slug}>
+                        <div key={category.slug} className={category === activeCategory ? "active item" : "item"} data-submenu-id={category.slug}>
                             <span className="label">{category.name}</span>
                             <span className="icon">
                                 <svg width="5" height="10"><path d="M0,0 L5,5 L0,10 Z" fill="currentColor" /></svg>

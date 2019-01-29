@@ -16,91 +16,17 @@
 @import '~normalize.css';
 
 @import 'css/variables.scss';
+@import 'css/mixins.scss';
 
+@import 'css/category-coloring.scss';
 @import 'css/util.scss';
 @import 'css/layout.scss';
 @import 'css/general.scss';
 @import 'css/header.scss';
 
 @import 'css/homepage.scss';
+@import 'css/content.scss';
 
-
-/* Added by Max: Hover Effect of Images that load in Fancy Box
------------------------------------------------------------- */
-
-.article-content a > img {
-	cursor: zoom-in;
-}
-
-.article-content a > img:hover {
-	-webkit-box-shadow: 0px 0px 4px #000;
-	-moz-box-shadow: 0px 0px 4px #000;
-	box-shadow: 0px 0px 4px #000;
-	z-index: 10;
-}
-
-/* Tables
---------------------------------------------- */
-
-.article-content .tableContainer {
-	margin: 1em 0;
-}
-
-.article-content .tableContainer > table:not(.plain) {
-	border-collapse: collapse;
-	border-spacing: 0;
-    color: #000;
-	font-size: 14px;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: center;
-	width: 100%;
-
-	> tbody {
-		border-bottom: 1px solid #ddd;
-	}
-
-	td,
-	th {
-		text-align: center;
-		border: 1px solid #aaa;
-		padding: 0.4em;
-	}
-
-	th {
-		font-weight: 700;
-	}
-}
-
-.tablepress {
-	margin: 1em 0;
-    color: #000;
-}
-
-.tablepress th {
-	border-bottom: 1px solid #333;
-	background: #d9edf7;
-}
-
-.tablepress th,
-.tablepress td {
-	padding: 0.4em;
-	border: 1px solid #ddd;
-	text-align: center;
-	vertical-align: center;
-}
-
-.tablepress tr:nth-child(2n) {
-	background-color: #f9f9f9;
-}
-
-/* Fix for title on really small screens */
-@media (max-width: 400px) {
-	.logo {
-		max-width: calc(100% - 100px);
-		font-size: 20px;
-	}
-}
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
@@ -143,7 +69,7 @@
 --------------------------------------------- */
 
 .SiteFooter {
-	background: #001c3d;
+	background: $primary-color;
 	border-top: 1px solid rgba(0, 0, 0, 0.1);
 	color: rgba(255, 255, 255, 0.5);
 	text-align: center;
@@ -232,13 +158,13 @@ header.blog-header h1 {
 	text-align: center;
 	font-family: $serif-font-stack;
 	font-weight: 400;
-	background: #001c3d;
+	background: $primary-color;
 	color: white;
 	margin: auto;
 	margin-bottom: 1rem;
 	font-size: 1.8rem;
-	height: 5rem;
-	line-height: 5rem;
+	line-height: 1;
+	padding: 1.25rem 0;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -427,23 +353,26 @@ h1.entry-title > a:hover {
 
 /* The little section at the top of blog posts that links to related entries */
 .blog-info {
-	border-top: 1px solid #999;
-	border-bottom: 1px solid #999;
-	padding: 10px 0px;
-	margin-bottom: 20px;
-	font-size: 0.7em;
+    background-color: #E9EEF2;
+    color: #406592;
+	padding: 0.625rem;
+	margin-bottom: 2rem;
+	font-size: 0.875rem;
 	text-align: center;
 
 	> p:last-child {
 		margin-bottom: 0;
 	}
+
+    > p:first-child {
+        margin-top: 0;
+    }
 }
 
 /* Optional abstract for blog posts */
 .blog-abstract {
 	background-color: #f8f7fe;
 	padding: 20px;
-	font-style: italic;
 }
 
 main {
@@ -495,16 +424,6 @@ h6:hover .deep-link {
     text-align: center;
 }
 
-@mixin owid-link {
-	color: #3366cc;
-	&:visited {
-		color: #5a3696;
-	}
-	&:hover {
-		text-decoration: underline;
-	}
-}
-
 .article-content a,
 .article-footer a {
 	@include owid-link;
@@ -512,18 +431,6 @@ h6:hover .deep-link {
 
 /* Homepage
 --------------------------------------------- */
-
-.FrontPage .SiteHeader {
-	border-bottom: 4px solid #FF4012;
-}
-
-.left {
-	float: left;
-}
-
-.right {
-	float: right;
-}
 
 .title-author-byline {
 	margin-top: 2rem;
@@ -655,7 +562,7 @@ h6:hover .deep-link {
 	#homepage-cover .subheading {
 		font-size: 25px;
 		line-height: 1.2;
-		max-width: 880px;
+		max-width: 780px;
 		margin: auto;
 	}
 
@@ -728,10 +635,6 @@ h6:hover .deep-link {
 }
 
 @include mobile {
-	#homepage-cover .desktop {
-		display: none;
-	}
-
 	#homepage-cover {
 		background-image: url(../images/WorldMapDark2.png);
 	    background-position: 50% 0px;
@@ -747,8 +650,9 @@ h6:hover .deep-link {
 	}
 
 	#homepage-cover h1 {
-		font-size: 128px;
-		margin: 0;
+		font-family: $serif-font-stack;
+		font-weight: 400;
+		font-size: 2.25rem;
 		line-height: 0.9;
 	}
 
@@ -945,212 +849,8 @@ h6:hover .deep-link {
 	/*padding-bottom: 2px;*/
 }
 
-/* Population Growth & Vital Statistics */
-.owid-data li:nth-of-type(1) h4,
-#topics-dropdown li.category:nth-of-type(1) > a  {
-	color: #2082a2;
-}
-.owid-data li:nth-of-type(1) .link-container {
-	border-top: 2px solid #2082a2;
-}
-.owid-data li:nth-of-type(1) a:hover,
-#topics-dropdown li.category:nth-of-type(1) .subcategory-menu {
-	background: #2082a2 !important;
-}
-
-/* Health */
-.owid-data li:nth-of-type(2) h4,
-#topics-dropdown li.category:nth-of-type(2) > a  {
-	color: #cc0000;
-}
-.owid-data li:nth-of-type(2) .link-container {
-	border-top: 2px solid #cc0000;
-}
-.owid-data li:nth-of-type(2) a:hover,
-#topics-dropdown li.category:nth-of-type(2) .subcategory-menu {
-	background: #cc0000 !important;
-}
-
-/* Food & Agriculture */
-.owid-data li:nth-of-type(3) h4,
-#topics-dropdown li.category:nth-of-type(3) > a  {
-	color: #689920;
-}
-.owid-data li:nth-of-type(3) .link-container {
-	border-top: 2px solid #689920;
-}
-.owid-data li:nth-of-type(3) a:hover,
-#topics-dropdown li.category:nth-of-type(3) .subcategory-menu {
-	background: #689920 !important;
-}
-
-/* Resources & Energy */
-.owid-data li:nth-of-type(4) h4,
-#topics-dropdown li.category:nth-of-type(4) > a  {
-	color: #e37f3f;
-}
-.owid-data li:nth-of-type(4) .link-container {
-	border-top: 2px solid #e37f3f;
-}
-.owid-data li:nth-of-type(4) a:hover,
-#topics-dropdown li.category:nth-of-type(4) .subcategory-menu {
-	background: #e37f3f !important;
-}
-
-/* Environmental Change */
-.owid-data li:nth-of-type(5) h4,
-#topics-dropdown li.category:nth-of-type(5) > a  {
-	color: #013220;
-}
-.owid-data li:nth-of-type(5) .link-container {
-	border-top: 2px solid #013220;
-}
-.owid-data li:nth-of-type(5) a:hover,
-#topics-dropdown li.category:nth-of-type(5) .subcategory-menu {
-	background: #013220 !important;
-}
-
-/* Technology & Infrastructure */
-.owid-data li:nth-of-type(6) h4,
-#topics-dropdown li.category:nth-of-type(6) > a  {
-	color: #2774c6;
-}
-.owid-data li:nth-of-type(6) .link-container {
-	border-top: 2px solid #2774c6;
-}
-.owid-data li:nth-of-type(6) a:hover,
-#topics-dropdown li.category:nth-of-type(6) .subcategory-menu {
-	background: #2774c6 !important;
-}
-
-/* Growth & Distribution of Prosperity */
-.owid-data li:nth-of-type(7) h4,
-#topics-dropdown li.category:nth-of-type(7) > a  {
-	color: #009655;
-}
-.owid-data li:nth-of-type(7) .link-container {
-	border-top: 2px solid #009655;
-}
-.owid-data li:nth-of-type(7) a:hover,
-#topics-dropdown li.category:nth-of-type(7) .subcategory-menu {
-	background: #009655 !important;
-}
-
-/* Economic Development, Work & Standard of Living */
-.owid-data li:nth-of-type(8) h4,
-#topics-dropdown li.category:nth-of-type(8) > a  {
-	color: #d2bc00;
-}
-.owid-data li:nth-of-type(8) .link-container {
-	border-top: 2px solid #d2bc00;
-}
-.owid-data li:nth-of-type(8) a:hover,
-#topics-dropdown li.category:nth-of-type(8) .subcategory-menu {
-	background: #d2bc00 !important;
-}
-
-/* The Public Sector & Economic System */
-.owid-data li:nth-of-type(9) h4,
-#topics-dropdown li.category:nth-of-type(9) > a  {
-	color: #eb6400;
-}
-.owid-data li:nth-of-type(9) .link-container {
-	border-top: 2px solid #eb6400;
-}
-.owid-data li:nth-of-type(9) a:hover,
-#topics-dropdown li.category:nth-of-type(9) .subcategory-menu {
-	background: #eb6400 !important;
-}
-
-/* Global Interconnections */
-.owid-data li:nth-of-type(10) h4,
-#topics-dropdown li.category:nth-of-type(10) > a  {
-	color: #17393d;
-}
-.owid-data li:nth-of-type(10) .link-container {
-	border-top: 2px solid #17393d;
-}
-.owid-data li:nth-of-type(10) a:hover,
-#topics-dropdown li.category:nth-of-type(10) .subcategory-menu {
-	background: #17393d !important;
-}
-
-/* War & Peace */
-.owid-data li:nth-of-type(11) h4,
-#topics-dropdown li.category:nth-of-type(11) > a  {
-	color: #660000;
-}
-.owid-data li:nth-of-type(11) .link-container {
-	border-top: 2px solid #660000;
-}
-.owid-data li:nth-of-type(11) a:hover,
-#topics-dropdown li.category:nth-of-type(11) .subcategory-menu {
-	background: #660000 !important;
-}
-
-/* Political Regimes */
-.owid-data li:nth-of-type(12) h4,
-#topics-dropdown li.category:nth-of-type(12) > a  {
-	color: #1b0655;
-}
-.owid-data li:nth-of-type(12) .link-container {
-	border-top: 2px solid #1b0655;
-}
-.owid-data li:nth-of-type(12) a:hover,
-#topics-dropdown li.category:nth-of-type(12) .subcategory-menu {
-	background: #1b0655 !important;
-}
-
-/* Violence & Rights */
-.owid-data li:nth-of-type(13) h4,
-#topics-dropdown li.category:nth-of-type(13) > a  {
-	color: #cc235c;
-}
-.owid-data li:nth-of-type(13) .link-container {
-	border-top: 2px solid #cc235c;
-}
-.owid-data li:nth-of-type(13) a:hover,
-#topics-dropdown li.category:nth-of-type(13) .subcategory-menu {
-	background: #cc235c !important;
-}
-
-/* Education & Knowledge */
-.owid-data li:nth-of-type(14) h4,
-#topics-dropdown li.category:nth-of-type(14) > a  {
-	color: #012d8e;
-}
-.owid-data li:nth-of-type(14) .link-container {
-	border-top: 2px solid #012d8e;
-}
-.owid-data li:nth-of-type(14) a:hover,
-#topics-dropdown li.category:nth-of-type(14) .subcategory-menu {
-	background: #012d8e !important;
-}
-
-/* Media & Communication */
-.owid-data li:nth-of-type(15) h4,
-#topics-dropdown li.category:nth-of-type(15) > a  {
-	color: #0089be;
-}
-.owid-data li:nth-of-type(15) .link-container {
-	border-top: 2px solid #0089be;
-}
-.owid-data li:nth-of-type(15) a:hover,
-#topics-dropdown li.category:nth-of-type(15) .subcategory-menu {
-	background: #0089be !important;
-}
-
-/* Culture, Values & Society */
-.owid-data li:nth-of-type(16) h4,
-#topics-dropdown li.category:nth-of-type(16) > a {
-	color: #d76db6;
-}
-.owid-data li:nth-of-type(16) .link-container {
-	border-top: 2px solid #d76db6;
-}
-.owid-data li:nth-of-type(16) a:hover,
-#topics-dropdown li.category:nth-of-type(16) .subcategory-menu {
-	background: #d76db6 !important;
+.owid-data a.starred:hover:after {
+	color: white;
 }
 
 /* MISPY: Front page mobile-default responsiveness and data entry listing */
@@ -1191,27 +891,20 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 	margin-top: 1.5rem;
 }
 
-.articleHeader {
+.articleHeader > h1 {
+    font-family: $serif-font-stack;	font-weight: 400;
+    font-size: 3rem;
+    line-height: 1.2;
+    margin: 0 0 20px;
 
-	> h1 {
-		font-family: $serif-font-stack;	font-weight: 400;
-		font-size: 40px;
-		line-height: 1.2;
-		margin: 0 0 20px;
-	}
-
-
-	/*article h1 {
-		font-size: 40px;
-		font-weight: 700;
-		line-height: 1.1em;
-	}*/
+    @include mobile {
+        font-size: 2.25rem;
+    }
 }
 
 .article-content > section:not(:first-child) {
     margin-top: 60px;
     padding-top: 30px;
-    border-top: 1px solid rgba(0,0,0,.1);
 }
 
 .article-content > section {
@@ -1224,37 +917,45 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 	/* Major sections e.g. I. Empirical View */
 	> h2 {
 		font-family: $serif-font-stack;
+		font-size: 3rem;
 		font-weight: 400;
 		text-align: center;
-		font-size: 24px;
-		margin-bottom: 2.5em;
+        margin-top: 0;
+        padding-top: 2rem;
+		margin-bottom: 5.25rem;
 		line-height: 1.25em;
-	}
 
-	/*> h2, > h3, > h4, > h5 {
-		line-height: 1.2;
-		margin: 0 0 20px;
-	}*/
+        @include mobile {
+            font-size: 2.5rem;
+        }
+	}
 
 	/* Subsections e.g. I.1 Historical perspective */
 	> h3 {
 		font-family: $serif-font-stack;
+		font-size: 2.25rem;
 		font-weight: 400;
-		font-size: 22px;
 		line-height: 1.25em;
-		margin-top: 2rem;
-		margin-bottom: 1.5em;
-		border-bottom: 1px solid rgba(0,0,0,.1);
-		padding-bottom: 1rem;
+		margin-top: 4.5rem;
+		margin-bottom: 1.5rem;
+
+        @include mobile {
+            font-size: 1.75rem;
+        }
 	}
 
 	/* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
 	> h4 {
-		font-weight: 700;
-		font-size: 18px;
+		font-family: $serif-font-stack;
+		font-weight: 400;
+		font-size: 1.5rem;
 		line-height: 1.4em;
-		margin-bottom: 1em;
-		margin-top: 2em;
+		margin-top: 2.75rem;
+		margin-bottom: 1rem;
+
+        @include mobile {
+            font-size: 1.25rem;
+        }
 	}
 
 	> h5 {
@@ -1325,25 +1026,6 @@ hr.datasources-hr {
 	top: -40px;
 	padding-top: 20px;
 }
-
-/* Upscale some of the text on larger viewports */
-@media (min-width: 768px) {
-	.articleHeader > h1 {
-		font-size: 45px;
-	}
-}
-
-@media (min-width: 1024px) {
-	/*article {
-		font-size: 1.06rem;
-		line-height: 1.7em;
-	}*/
-
-	.article-content > section > h2 {
-		font-size: 32px;
-	}
-}
-
 
 .article-footer {
 	font-size: 0.8em;
@@ -1448,14 +1130,15 @@ figure[data-grapher-src]:not(.grapherPreview) {
 
 article.page h1.entry-title {
 	text-align: center;
-	margin: 0;
+	margin: 0 0 1rem;
 }
 
 article.page .authors-byline {
 	margin-top: 0.5rem;
 	text-align: center;
 	font-family: $serif-font-stack;
-	font-style: italic;
+    font-size: 1.125rem;
+    color: rgba($text-color, .8);
 }
 
 article.page .authors-byline a {
@@ -1539,7 +1222,6 @@ iframe:not(:first-child) {
 @media only screen and (max-width: 980px) {
 	article.post, article.page {
 		padding: 1rem;
-		padding-top: 2rem;
 	}
 
 	.deep-link {
@@ -1828,7 +1510,7 @@ html:not(.js) {
 }
 
 @media print {
-	.SiteHeader,
+	.site-header,
 	footer.SiteFooter,
 	#un-button,
 	.citation-note,

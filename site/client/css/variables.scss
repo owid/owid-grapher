@@ -2,8 +2,8 @@
  * Fonts
  */
 
-$sans-serif-font-stack: "Helvetica Neue", Arial, sans-serif;
-$serif-font-stack: Georgia, "Times New Roman", serif;
+$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
+$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 
 /*******************************************************************************
@@ -12,12 +12,34 @@ $serif-font-stack: Georgia, "Times New Roman", serif;
 
 /* Oxford Blue */
 $primary-color: #002147;
-$primary-color-lighter-1: #0f3764;
-$primary-color-lighter-2: #2c5485;
-$primary-color-lighter-3: #406592;
-$primary-color-lighter-4: #6382a8;
+$primary-color-lighter-1: #193F6A;
+$primary-color-lighter-2: #31537D;
+$primary-color-lighter-3: #416592;
+$primary-color-lighter-4: #6382A8;
 $primary-color-lighter-5: #b5c6db;
 $primary-color-lighter-6: #E9EEF2;
+
+/* Category colors */
+$population-color: #2082a2;
+$health-color: #cc0000;
+$food-color: #689920;
+$energy-color: #e37f3f;
+$environment-color: #013220;
+$technology-color: #2774c6;
+$growth-and-inequality-color: #009655;
+$work-and-life-color: #d2bc00;
+$public-sector-color: #eb6400;
+$global-connections-color: #17393d;
+$war-and-peace-color: #660000;
+$politics-color: #1b0655;
+$violence-and-rights-color: #cc235c;
+$education-color: #012d8e;
+$media-color: #0089be;
+$culture-color: #d76db6;
+
+$body-bg: #fafafa;
+
+$text-color: #2e4057;
 
 
 /*******************************************************************************
