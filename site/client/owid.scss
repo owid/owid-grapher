@@ -15,611 +15,27 @@
 
 @import '~normalize.css';
 
-body { margin: 0; }
+@import 'css/variables.scss';
+@import 'css/mixins.scss';
 
-/* Box Sizing
---------------------------------------------- */
+@import 'css/category-coloring.scss';
+@import 'css/util.scss';
+@import 'css/layout.scss';
+@import 'css/general.scss';
+@import 'css/header.scss';
 
-* {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing:    border-box;
-	box-sizing:         border-box;
-}
+@import 'css/homepage.scss';
+@import 'css/content.scss';
 
-/* Float Clearing
---------------------------------------------- */
-
-.clearfix:before {
-	content: " ";
-	display: table;
-}
-
-.clearfix:after {
-	clear: both;
-	content: " ";
-	display: table;
-}
-
-/* Typographical Elements
---------------------------------------------- */
-
-html {
-	line-height: 1.6em;
-	font-weight: 400;
-    /* font-family: "Libre Franklin", "Helvetica Neue", sans-serif; */
-	/*font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;*/
-	font-family: sans-serif;
-    text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-	-webkit-text-size-adjust: 100%;
-	word-wrap: break-word;
-}
-
-body {
-	background-color: #fff;
-	color: rgba(0, 0, 0, 0.8);
-}
-
-a,
-input:focus,
-input[type="button"],
-input[type="reset"],
-input[type="submit"],
-textarea:focus,
-.button {
-	-webkit-transition: all 0.1s ease-in-out;
-	-moz-transition:    all 0.1s ease-in-out;
-	-ms-transition:     all 0.1s ease-in-out;
-	-o-transition:      all 0.1s ease-in-out;
-	transition:         all 0.1s ease-in-out;
-}
-
-::-moz-selection {
-	background-color: #4979D4; /* helles blau*/
-	color: #fff;
-}
-
-::selection {
-	background-color: #4979D4;
-	color: #fff;
-}
-
-a {
-	color: #1059E5;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-ol,
-ul {
-	margin: 0;
-	padding: 0;
-
-}
-
-b,
-strong {
-	font-weight: 700;
-}
-
-cite,
-em,
-i {
-	font-style: italic;
-}
-
-/* ----------------------------------------------------------- */
-
-
-h6 {
-	color: #000;
-	line-height: 1.2;
-
-	margin-bottom: 0px;
-	margin-top: 10px;
-
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	font-size: 15px;
-	font-weight: 400;
-	font-style: italic;
-	opacity: 0.8;
-	text-align: center;
-}
-
-h6 a.ref sup {
-	font-size: 12px !important;
-}
-
-
-/* iFrames
---------------------------------------------- */
-
-/* MISPY: This styling is for mainly for the old non-grapher nvd3 stuff. */
-
-.narrow_iframe {
-	display: block;
-	margin: 0 auto;
-	max-width: 750px;
-}
-
-address {
-	padding-left: 8px;
-	padding-top: 7px !important;
-	margin-top: -32px !important;
-	margin-bottom: 30px;
-
-	font-family:  'Helvetica Neue', Helvetica, Arial, sans-serif;
-	font-style: normal !important;
-	line-height: 14px !important;
-	font-size: 10px !important;
-
-	color: #1059E5;
-	background-color:#FAFAFA;
-	text-align: left;
-
-}
-
-.narrow_iframe address {
-	margin-top: -10px !important;
-}
-
-address a {
-	color: #1059E5;
-	padding-right: 30px;
-}
-
-address a:hover {
-		color: #FF4012;
-}
-
-
-/* Added by Max: Hover Effect of Images that load in Fancy Box
------------------------------------------------------------- */
-
-.article-content a > img {
-	cursor: zoom-in;
-}
-
-.article-content a > img:hover {
-	-webkit-box-shadow: 0px 0px 4px #000;
-	-moz-box-shadow: 0px 0px 4px #000;
-	box-shadow: 0px 0px 4px #000;
-	z-index: 10;
-}
-
-/* Tables
---------------------------------------------- */
-
-.article-content .tableContainer {
-	margin: 1em 0;
-}
-
-.article-content .tableContainer > table:not(.plain) {
-	border-collapse: collapse;
-	border-spacing: 0;
-    color: #000;
-	font-size: 14px;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: center;
-	width: 100%;
-
-	> tbody {
-		border-bottom: 1px solid #ddd;
-	}
-
-	td,
-	th {
-		text-align: center;
-		border: 1px solid #aaa;
-		padding: 0.4em;
-	}
-
-	th {
-		font-weight: 700;
-	}
-}
-
-.tablepress {
-	margin: 1em 0;
-    color: #000;
-}
-
-.tablepress th {
-	border-bottom: 1px solid #333;
-	background: #d9edf7;
-}
-
-.tablepress th,
-.tablepress td {
-	padding: 0.4em;
-	border: 1px solid #ddd;
-	text-align: center;
-	vertical-align: center;
-}
-
-.tablepress tr:nth-child(2n) {
-	background-color: #f9f9f9;
-}
-
-
-/* Site Header
---------------------------------------------- */
-
-.SiteHeader {
-	min-height: 49px; /* 45 + border */
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-
-	#owid-topbar {
-		width: 100%;
-		height: 70px;
-		background-color: #001c3d;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.logo {
-		margin: 0;
-		padding-left: 24px;
-		padding-right: 24px;
-
-		font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-		font-size: 24px;
-		font-weight: 400;
-
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	#owid-topbar a {
-		outline: 0;
-	}
-}
-
-/* Site Header - Desktop */
-@media only screen and (min-width: 1060px) {
-	.SiteHeader .mobile {
-		display: none;
-	}
-
-	.SiteHeader {
-		padding: 0 20px;
-		background-color: #001c3d;
-		color: white;
-		position: relative;
-		z-index: 1;
-	}
-
-	.SiteHeader .widget-area {
-		display: block;
-	}
-
-	.SiteHeader hr {
-		color: #dedede;
-	}
-
-	#menu-item-1877::after {
-		top: 10px;
-	}
-
-	.SiteHeader, #entries-nav {
-		background: #001c3d !important;
-	}
-
-	.SiteHeader {
-		padding-bottom: 20px;
-	}
-
-	#owid-topbar {
-		margin: auto;
-		padding-top: 20px;
-		max-width: 1170px;
-	}
-
-	#owid-topbar ul.desktop li {
-		display: inline-block;
-		margin-left: 28px;
-	}
-
-	#owid-topbar ul.desktop li > a {
-		height: 47px;
-		line-height: 47px;
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	#owid-topbar ul.desktop i {
-		padding-right: 8px;
-	}
-
-	#search-nav {
-		border: 1px solid #cacaca;
-		border-radius: 30px;
-	    -webkit-border-radius: 30px;
-	    -moz-border-radius: 30px;
-	    background-color: white;
-	}
-
-	#search-nav input {
-		width: auto;
-		-webkit-appearance: none;
-		width: 270px;
-		padding: 0;
-		margin: 5px;
-		margin-left: 15px;
-		margin-right: 15px;
-		border: none;
-	}
-
-	#category-nav {
-		font-size: 14px;
-		clear: both;
-		margin-top: 10px;
-	}
-
-	#entries-nav {
-		font-size: 14px;
-	}
-
-	#category-nav, #entries-nav {
-		text-align: center;
-		user-select: none;
-	    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-	    -moz-user-select: none;      /* Firefox */
-	    -ms-user-select: none;       /* IE/Edge */
-	    -webkit-touch-callout: none; /* iOS Safari */
-	}
-
-	#category-nav a, #entries-nav a {
-		color: white;
-		padding: 11px 15px 8px 15px;
-		padding-left: 0px;
-		padding-right: 0px;
-		cursor: pointer;
-		padding-bottom: 3px;
-		border-bottom: 2px solid transparent;
-		opacity: 0.8;
-	}
-
-	#category-nav a:hover, #entries-nav a:hover,
-	#category-nav li.active a, #entries-nav li.active a,
-	#category-nav li.selected a {
-		opacity: 1;
-	}
-
-	#category-nav li {
-		display: inline-block;
-		padding: 5px;
-	}
-
-	#entries-nav hr {
-		margin-bottom: 1.1em;
-		margin-top: 1.1em;
-		max-width: 1140px;
-		opacity: 0.8;
-	}
-
-	#entries-nav li {
-		display: inline;
-	}
-
-	#entries-nav li:not(:first-child)::after {
-		content: " · ";
-		font-weight: bold;
-	}
-
-	#entries-nav li:last-child::after {
-		content: none;
-	}
-
-	#category-nav ul.entries {
-		display: none;
-	}
-
-	#entries-nav {
-		background: white;
-		left: 0;
-		width: 100%;
-		/*box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.3);*/
-	}
-}
-
-/* Site Header - Mobile */
-
-@media only screen and (max-width: 1060px) {
-	.SiteHeader .desktop {
-		display: none;
-	}
-
-	.SiteHeader .logo {
-		font-size: 20px;
-	}
-
-	.SiteHeader .mobile.right li > a {
-		line-height: 70px;
-		text-transform: uppercase;
-		color: white;
-		font-size: 20px;
-		height: 100%;
-	}
-
-	.SiteHeader .subcategory-menu {
-		background: white;
-		line-height: 18px;
-		background-color: #1C758A;
-		color: white;
-	}
-
-	.SiteHeader .submenu-title {
-		margin-left: 8px;
-		padding: 17px 0 7px;
-		border-bottom: 1px solid white;
-	}
-
-	.SiteHeader .subcategory-menu > ul > li > a {
-		color: white;
-		display: block;
-		font-size: 13px;
-		line-height: 1.3;
-		padding: 5px 8px;
-		width: auto;
-	}
-
-	.SiteHeader .subcategory-menu > ul > li > a:hover {
-		background: #2C8D7B;
-	}
-
-	.SiteHeader ul.mobile > li {
-		display: inline-block;
-	}
-
-	.SiteHeader ul.mobile > li > a {
-		display: inline-flex;
-		height: 70px;
-		width: 70px;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		text-align: center;
-		font-size: 20px;
-	}
-
-	.SiteHeader li.nav-button svg {
-		pointer-events: none;
-		opacity: 0.9;
-		width: 24px;
-		height: 24px;
-	}
-
-	#topics-dropdown.mobile > ul > li {
-		border-bottom: 1px solid #ddd;
-	}
-
-	#topics-dropdown.mobile > ul > li > a {
-		display: block;
-		padding: 8px 15px 8px 20px;
-	}
-
-	#topics-dropdown.mobile li.header {
-		background: #cc181e;
-		text-align: center;
-	}
-
-	#topics-dropdown.mobile li.header h2 {
-		margin: 0;
-		color: white;
-		font-size: 20px;
-		padding: 10px 15px 10px 20px;
-	}
-
-	#topics-dropdown.mobile li.category {
-		border-bottom: 1px solid #ddd;
-	}
-
-	#topics-dropdown.mobile li.category > a {
-		display: block;
-		position: relative;
-		cursor: pointer;
-		color: #2082a2;
-		font-size: 15px;
-	}
-
-	#topics-dropdown.mobile li.category > a > span {
-		filter: brightness(0.9) saturate(0.5);
-		-webkit-filter: brightness(0.9) saturate(0.5);
-	}
-
-	#topics-dropdown.mobile li.category > a:hover {
-		background: #F7F7F7;
-	}
-
-	#topics-dropdown.mobile .subcategory-menu {
-		filter: saturate(60%);
-		-webkit-filter: saturate(60%);
-	}
-
-	#topics-dropdown.mobile li.category.active .subcategory-menu {
-		display: block;
-	}
-
-	#topics-dropdown.mobile .subcategory-menu {
-		background: #2082a2;
-	}
-
-	#topics-dropdown.mobile .subcategory-menu li > a {
-		display: block;
-		padding: 10px 20px;
-		color: white;
-		font-size: 14px;
-		border-bottom: none !important;
-	}
-
-	#topics-dropdown.mobile .subcategory-menu li > a:hover {
-		background: rgba(255, 255, 255, 0.15);
-	}
-
-	#topics-dropdown.mobile li.end-link > a {
-		text-align: center;
-		color: #444;
-	}
-
-	*::-webkit-input-placeholder {
-	    color: #999;
-	}
-	*:-moz-placeholder {
-	    color: #999;
-	}
-	*::-moz-placeholder {
-	    color: #999;
-	}
-	*:-ms-input-placeholder {
-	    color: #999;
-	}
-
-	#search-dropdown form {
-		position: relative;
-		height: 70px;
-		margin-bottom: 0;
-	}
-
-	#search-dropdown input {
-		float: left;
-		width: 100%;
-		line-height: 100%;
-		height: 100%;
-		font-size: 14px;
-		border: none !important;
-		padding: 1em;
-	}
-
-	#search-dropdown input:hover {
-		border-right: 1px solid #ddd;
-	}
-}
-
-/* Fix for title on really small screens */
-@media (max-width: 400px) {
-	.logo {
-		max-width: calc(100% - 100px);
-		font-size: 20px;
-	}
-}
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  select:focus,
-  textarea:focus,
-  input:focus {
-    font-size: 16px !important;
-  }
-}
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   select,
   textarea,
   input {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
@@ -653,7 +69,7 @@ address a:hover {
 --------------------------------------------- */
 
 .SiteFooter {
-	background: #001c3d;
+	background: $primary-color;
 	border-top: 1px solid rgba(0, 0, 0, 0.1);
 	color: rgba(255, 255, 255, 0.5);
 	text-align: center;
@@ -740,15 +156,15 @@ address a:hover {
 
 header.blog-header h1 {
 	text-align: center;
-	font-family: Georgia, "Times New Roman", Serif;	font-weight: 400;
-
-	background: #001c3d;
+	font-family: $serif-font-stack;
+	font-weight: 400;
+	background: $primary-color;
 	color: white;
 	margin: auto;
 	margin-bottom: 1rem;
 	font-size: 1.8rem;
-	height: 5rem;
-	line-height: 5rem;
+	line-height: 1;
+	padding: 1.25rem 0;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -768,7 +184,7 @@ body.blog .site-content {
 }
 
 body.blog h2 {
-    font-family: Georgia, "Times New Roman", Serif;
+    font-family: $serif-font-stack;
     font-weight: 400;
     margin-bottom: 14px;
 }
@@ -791,7 +207,7 @@ body.blog li.post h3 {
 	margin-bottom: 0;
 	font-size: 19px;
 	line-height: 24px;
-	font-family: Georgia, "Times New Roman", Serif;
+	font-family: $serif-font-stack;
 	font-weight: 400;
 }
 
@@ -878,7 +294,7 @@ h1.entry-title > a:hover {
     color: #fff;
     cursor: pointer;
     display: inline-block;
-    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family: $sans-serif-font-stack;
     font-size: 14px;
     letter-spacing: 1px;
     padding: 8px 12px;
@@ -937,23 +353,26 @@ h1.entry-title > a:hover {
 
 /* The little section at the top of blog posts that links to related entries */
 .blog-info {
-	border-top: 1px solid #999;
-	border-bottom: 1px solid #999;
-	padding: 10px 0px;
-	margin-bottom: 20px;
-	font-size: 0.7em;
+    background-color: #E9EEF2;
+    color: #406592;
+	padding: 0.625rem;
+	margin-bottom: 2rem;
+	font-size: 0.875rem;
 	text-align: center;
 
 	> p:last-child {
 		margin-bottom: 0;
 	}
+
+    > p:first-child {
+        margin-top: 0;
+    }
 }
 
 /* Optional abstract for blog posts */
 .blog-abstract {
 	background-color: #f8f7fe;
 	padding: 20px;
-	font-style: italic;
 }
 
 main {
@@ -1005,38 +424,16 @@ h6:hover .deep-link {
     text-align: center;
 }
 
-@mixin owid-link {
-	color: #3366cc;
-	&:visited {
-		color: #5a3696;
-	}
-	&:hover {
-		text-decoration: underline;
-	}
-}
-
 .article-content a,
 .article-footer a {
-	@include owid-link; 
+	@include owid-link;
 }
 
 /* Homepage
 --------------------------------------------- */
 
-.FrontPage .SiteHeader {
-	border-bottom: 4px solid #FF4012;
-}
-
-.left {
-	float: left;
-}
-
-.right {
-	float: right;
-}
-
 .title-author-byline {
-	margin-top: 0px;
+	margin-top: 2rem;
 	font-size: 1rem;
 	text-align: right;
 	color: white;
@@ -1048,9 +445,7 @@ h6:hover .deep-link {
 }
 
 #homepage-content {
-	padding: 30px 1rem 30px 1rem;
-	max-width: 1170px;
-	margin: auto;
+	padding: 30px 0;
 }
 
 .social a {
@@ -1077,7 +472,7 @@ h6:hover .deep-link {
 }
 
 #homepage-content h3 {
-	font-family: Georgia, "Times New Roman", Serif;
+	font-family: $serif-font-stack;
 	font-weight: 400;
 	margin-bottom: 14px;
 }
@@ -1099,7 +494,7 @@ h6:hover .deep-link {
 }
 
 #homepage-blog h4 {
-	font-family: Georgia, "Times New Roman", Serif;
+	font-family: $serif-font-stack;
 	font-weight: 400;
 	margin-bottom: 0.25rem;
 	font-size: 20px;
@@ -1134,7 +529,7 @@ h6:hover .deep-link {
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-@media screen and (min-width: 980px) {
+@include desktop {
 	#homepage-cover .mobile {
 		display: none;
 	}
@@ -1154,7 +549,7 @@ h6:hover .deep-link {
 	}
 
 	#homepage-cover h1 {
-		font-family: Georgia, "Times New Roman", Serif;
+		font-family: $serif-font-stack;
 		font-weight: 400;
 		font-size: 4rem;
 		line-height: 0.9;
@@ -1167,7 +562,7 @@ h6:hover .deep-link {
 	#homepage-cover .subheading {
 		font-size: 25px;
 		line-height: 1.2;
-		max-width: 880px;
+		max-width: 780px;
 		margin: auto;
 	}
 
@@ -1239,11 +634,7 @@ h6:hover .deep-link {
 	}
 }
 
-@media screen and (max-width: 980px) {
-	#homepage-cover .desktop {
-		display: none;
-	}
-
+@include mobile {
 	#homepage-cover {
 		background-image: url(../images/WorldMapDark2.png);
 	    background-position: 50% 0px;
@@ -1259,8 +650,9 @@ h6:hover .deep-link {
 	}
 
 	#homepage-cover h1 {
-		font-size: 128px;
-		margin: 0;
+		font-family: $serif-font-stack;
+		font-weight: 400;
+		font-size: 2.25rem;
 		line-height: 0.9;
 	}
 
@@ -1425,7 +817,7 @@ h6:hover .deep-link {
 }
 
 .owid-data h4 {
-	font-family: Georgia, "Times New Roman", Serif;
+	font-family: $serif-font-stack;
 	font-weight: 400;
 	margin-top: 25px;
 	margin-bottom: 0;
@@ -1457,218 +849,14 @@ h6:hover .deep-link {
 	/*padding-bottom: 2px;*/
 }
 
-/* Population Growth & Vital Statistics */
-.owid-data li:nth-of-type(1) h4,
-#topics-dropdown li.category:nth-of-type(1) > a  {
-	color: #2082a2;
-}
-.owid-data li:nth-of-type(1) .link-container {
-	border-top: 2px solid #2082a2;
-}
-.owid-data li:nth-of-type(1) a:hover,
-#topics-dropdown li.category:nth-of-type(1) .subcategory-menu {
-	background: #2082a2 !important;
-}
-
-/* Health */
-.owid-data li:nth-of-type(2) h4,
-#topics-dropdown li.category:nth-of-type(2) > a  {
-	color: #cc0000;
-}
-.owid-data li:nth-of-type(2) .link-container {
-	border-top: 2px solid #cc0000;
-}
-.owid-data li:nth-of-type(2) a:hover,
-#topics-dropdown li.category:nth-of-type(2) .subcategory-menu {
-	background: #cc0000 !important;
-}
-
-/* Food & Agriculture */
-.owid-data li:nth-of-type(3) h4,
-#topics-dropdown li.category:nth-of-type(3) > a  {
-	color: #689920;
-}
-.owid-data li:nth-of-type(3) .link-container {
-	border-top: 2px solid #689920;
-}
-.owid-data li:nth-of-type(3) a:hover,
-#topics-dropdown li.category:nth-of-type(3) .subcategory-menu {
-	background: #689920 !important;
-}
-
-/* Resources & Energy */
-.owid-data li:nth-of-type(4) h4,
-#topics-dropdown li.category:nth-of-type(4) > a  {
-	color: #e37f3f;
-}
-.owid-data li:nth-of-type(4) .link-container {
-	border-top: 2px solid #e37f3f;
-}
-.owid-data li:nth-of-type(4) a:hover,
-#topics-dropdown li.category:nth-of-type(4) .subcategory-menu {
-	background: #e37f3f !important;
-}
-
-/* Environmental Change */
-.owid-data li:nth-of-type(5) h4,
-#topics-dropdown li.category:nth-of-type(5) > a  {
-	color: #013220;
-}
-.owid-data li:nth-of-type(5) .link-container {
-	border-top: 2px solid #013220;
-}
-.owid-data li:nth-of-type(5) a:hover,
-#topics-dropdown li.category:nth-of-type(5) .subcategory-menu {
-	background: #013220 !important;
-}
-
-/* Technology & Infrastructure */
-.owid-data li:nth-of-type(6) h4,
-#topics-dropdown li.category:nth-of-type(6) > a  {
-	color: #2774c6;
-}
-.owid-data li:nth-of-type(6) .link-container {
-	border-top: 2px solid #2774c6;
-}
-.owid-data li:nth-of-type(6) a:hover,
-#topics-dropdown li.category:nth-of-type(6) .subcategory-menu {
-	background: #2774c6 !important;
-}
-
-/* Growth & Distribution of Prosperity */
-.owid-data li:nth-of-type(7) h4,
-#topics-dropdown li.category:nth-of-type(7) > a  {
-	color: #009655;
-}
-.owid-data li:nth-of-type(7) .link-container {
-	border-top: 2px solid #009655;
-}
-.owid-data li:nth-of-type(7) a:hover,
-#topics-dropdown li.category:nth-of-type(7) .subcategory-menu {
-	background: #009655 !important;
-}
-
-/* Economic Development, Work & Standard of Living */
-.owid-data li:nth-of-type(8) h4,
-#topics-dropdown li.category:nth-of-type(8) > a  {
-	color: #d2bc00;
-}
-.owid-data li:nth-of-type(8) .link-container {
-	border-top: 2px solid #d2bc00;
-}
-.owid-data li:nth-of-type(8) a:hover,
-#topics-dropdown li.category:nth-of-type(8) .subcategory-menu {
-	background: #d2bc00 !important;
-}
-
-/* The Public Sector & Economic System */
-.owid-data li:nth-of-type(9) h4,
-#topics-dropdown li.category:nth-of-type(9) > a  {
-	color: #eb6400;
-}
-.owid-data li:nth-of-type(9) .link-container {
-	border-top: 2px solid #eb6400;
-}
-.owid-data li:nth-of-type(9) a:hover,
-#topics-dropdown li.category:nth-of-type(9) .subcategory-menu {
-	background: #eb6400 !important;
-}
-
-/* Global Interconnections */
-.owid-data li:nth-of-type(10) h4,
-#topics-dropdown li.category:nth-of-type(10) > a  {
-	color: #17393d;
-}
-.owid-data li:nth-of-type(10) .link-container {
-	border-top: 2px solid #17393d;
-}
-.owid-data li:nth-of-type(10) a:hover,
-#topics-dropdown li.category:nth-of-type(10) .subcategory-menu {
-	background: #17393d !important;
-}
-
-/* War & Peace */
-.owid-data li:nth-of-type(11) h4,
-#topics-dropdown li.category:nth-of-type(11) > a  {
-	color: #660000;
-}
-.owid-data li:nth-of-type(11) .link-container {
-	border-top: 2px solid #660000;
-}
-.owid-data li:nth-of-type(11) a:hover,
-#topics-dropdown li.category:nth-of-type(11) .subcategory-menu {
-	background: #660000 !important;
-}
-
-/* Political Regimes */
-.owid-data li:nth-of-type(12) h4,
-#topics-dropdown li.category:nth-of-type(12) > a  {
-	color: #1b0655;
-}
-.owid-data li:nth-of-type(12) .link-container {
-	border-top: 2px solid #1b0655;
-}
-.owid-data li:nth-of-type(12) a:hover,
-#topics-dropdown li.category:nth-of-type(12) .subcategory-menu {
-	background: #1b0655 !important;
-}
-
-/* Violence & Rights */
-.owid-data li:nth-of-type(13) h4,
-#topics-dropdown li.category:nth-of-type(13) > a  {
-	color: #cc235c;
-}
-.owid-data li:nth-of-type(13) .link-container {
-	border-top: 2px solid #cc235c;
-}
-.owid-data li:nth-of-type(13) a:hover,
-#topics-dropdown li.category:nth-of-type(13) .subcategory-menu {
-	background: #cc235c !important;
-}
-
-/* Education & Knowledge */
-.owid-data li:nth-of-type(14) h4,
-#topics-dropdown li.category:nth-of-type(14) > a  {
-	color: #012d8e;
-}
-.owid-data li:nth-of-type(14) .link-container {
-	border-top: 2px solid #012d8e;
-}
-.owid-data li:nth-of-type(14) a:hover,
-#topics-dropdown li.category:nth-of-type(14) .subcategory-menu {
-	background: #012d8e !important;
-}
-
-/* Media & Communication */
-.owid-data li:nth-of-type(15) h4,
-#topics-dropdown li.category:nth-of-type(15) > a  {
-	color: #0089be;
-}
-.owid-data li:nth-of-type(15) .link-container {
-	border-top: 2px solid #0089be;
-}
-.owid-data li:nth-of-type(15) a:hover,
-#topics-dropdown li.category:nth-of-type(15) .subcategory-menu {
-	background: #0089be !important;
-}
-
-/* Culture, Values & Society */
-.owid-data li:nth-of-type(16) h4,
-#topics-dropdown li.category:nth-of-type(16) > a {
-	color: #d76db6;
-}
-.owid-data li:nth-of-type(16) .link-container {
-	border-top: 2px solid #d76db6;
-}
-.owid-data li:nth-of-type(16) a:hover,
-#topics-dropdown li.category:nth-of-type(16) .subcategory-menu {
-	background: #d76db6 !important;
+.owid-data a.starred:hover:after {
+	color: white;
 }
 
 /* MISPY: Front page mobile-default responsiveness and data entry listing */
 
 body.home .mobile.subheading {
-	font-family: Georgia;
+	font-family: $serif-font-stack;
 	color: rgb(255, 203, 31);
 	font-size: 22px;
 }
@@ -1703,27 +891,20 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 	margin-top: 1.5rem;
 }
 
-.articleHeader {
+.articleHeader > h1 {
+    font-family: $serif-font-stack;	font-weight: 400;
+    font-size: 3rem;
+    line-height: 1.2;
+    margin: 0 0 20px;
 
-	> h1 {
-		font-family: Georgia, "Times New Roman", Serif;	font-weight: 400;
-		font-size: 40px;
-		line-height: 1.2;
-		margin: 0 0 20px;
-	}
-
-
-	/*article h1 {
-		font-size: 40px;
-		font-weight: 700;
-		line-height: 1.1em;
-	}*/
+    @include mobile {
+        font-size: 2.25rem;
+    }
 }
 
 .article-content > section:not(:first-child) {
     margin-top: 60px;
     padding-top: 30px;
-    border-top: 1px solid rgba(0,0,0,.1);
 }
 
 .article-content > section {
@@ -1735,42 +916,50 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 	/* Major sections e.g. I. Empirical View */
 	> h2 {
-		font-family: Georgia, "Times New Roman", Serif;
+		font-family: $serif-font-stack;
+		font-size: 3rem;
 		font-weight: 400;
 		text-align: center;
-		font-size: 24px;
-		margin-bottom: 2.5em;
+        margin-top: 0;
+        padding-top: 2rem;
+		margin-bottom: 5.25rem;
 		line-height: 1.25em;
-	}
 
-	/*> h2, > h3, > h4, > h5 {
-		line-height: 1.2;
-		margin: 0 0 20px;
-	}*/
+        @include mobile {
+            font-size: 2.5rem;
+        }
+	}
 
 	/* Subsections e.g. I.1 Historical perspective */
 	> h3 {
-		font-family: Georgia, "Times New Roman", Serif;
+		font-family: $serif-font-stack;
+		font-size: 2.25rem;
 		font-weight: 400;
-		font-size: 22px;
 		line-height: 1.25em;
-		margin-top: 2rem;
-		margin-bottom: 1.5em;
-		border-bottom: 1px solid rgba(0,0,0,.1);
-		padding-bottom: 1rem;
+		margin-top: 4.5rem;
+		margin-bottom: 1.5rem;
+
+        @include mobile {
+            font-size: 1.75rem;
+        }
 	}
 
 	/* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
 	> h4 {
-		font-weight: 700;
-		font-size: 18px;
+		font-family: $serif-font-stack;
+		font-weight: 400;
+		font-size: 1.5rem;
 		line-height: 1.4em;
-		margin-bottom: 1em;
-		margin-top: 2em;
+		margin-top: 2.75rem;
+		margin-bottom: 1rem;
+
+        @include mobile {
+            font-size: 1.25rem;
+        }
 	}
 
 	> h5 {
-		font-family: Georgia, "Times New Roman", Serif;
+		font-family: $serif-font-stack;
 		font-weight: 400;
 		line-height: 1.2;
 		margin: 0 0 20px;
@@ -1838,25 +1027,6 @@ hr.datasources-hr {
 	padding-top: 20px;
 }
 
-/* Upscale some of the text on larger viewports */
-@media (min-width: 768px) {
-	.articleHeader > h1 {
-		font-size: 45px;
-	}
-}
-
-@media (min-width: 1024px) {
-	/*article {
-		font-size: 1.06rem;
-		line-height: 1.7em;
-	}*/
-
-	.article-content > section > h2 {
-		font-size: 32px;
-	}
-}
-
-
 .article-footer {
 	font-size: 0.8em;
     line-height: 1.7em;
@@ -1900,7 +1070,7 @@ hr.datasources-hr {
 		overflow: hidden;
 		margin-top: -6px;
 		white-space: pre-wrap;
-		word-wrap: break-word;		
+		word-wrap: break-word;
 	}
 }
 
@@ -1960,14 +1130,15 @@ figure[data-grapher-src]:not(.grapherPreview) {
 
 article.page h1.entry-title {
 	text-align: center;
-	margin: 0;
+	margin: 0 0 1rem;
 }
 
 article.page .authors-byline {
 	margin-top: 0.5rem;
 	text-align: center;
-	font-family: Palatino, Georgia, serif;
-	font-style: italic;
+	font-family: $serif-font-stack;
+    font-size: 1.125rem;
+    color: rgba($text-color, .8);
 }
 
 article.page .authors-byline a {
@@ -1992,7 +1163,7 @@ article.post {
     margin-bottom: 30px;
     margin-left: 40px;
     font-weight: normal;
-    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family: $sans-serif-font-stack;
 }
 
 .article-content ul ul {
@@ -2051,7 +1222,6 @@ iframe:not(:first-child) {
 @media only screen and (max-width: 980px) {
 	article.post, article.page {
 		padding: 1rem;
-		padding-top: 2rem;
 	}
 
 	.deep-link {
@@ -2196,7 +1366,7 @@ article.page {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: $sans-serif-font-stack;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;
@@ -2340,7 +1510,7 @@ html:not(.js) {
 }
 
 @media print {
-	.SiteHeader,
+	.site-header,
 	footer.SiteFooter,
 	#un-button,
 	.citation-note,

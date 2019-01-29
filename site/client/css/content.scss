@@ -1,0 +1,79 @@
+/*******************************************************************************
+ * Added by Max: Hover Effect of Images that load in Fancy Box
+ */
+
+.article-content a > img {
+	cursor: zoom-in;
+}
+
+.article-content a > img:hover {
+	-webkit-box-shadow: 0px 0px 4px #000;
+	-moz-box-shadow: 0px 0px 4px #000;
+	box-shadow: 0px 0px 4px #000;
+	z-index: 10;
+}
+
+
+/*******************************************************************************
+ * Tables
+ */
+
+.article-content .tableContainer {
+	margin: 1em 0;
+}
+
+.article-content .tableContainer > table:not(.plain) {
+	border-collapse: collapse;
+	border-spacing: 0;
+    color: #000;
+	font-size: 14px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	width: 100%;
+
+	> tbody {
+		border-bottom: 1px solid #ddd;
+	}
+
+	td,
+	th {
+		text-align: center;
+		border: 1px solid #aaa;
+		padding: 0.4em;
+	}
+
+	th {
+		font-weight: 700;
+	}
+}
+
+.tablepress {
+	margin: 1em 0;
+    color: #000;
+}
+
+.tablepress th {
+	border-bottom: 1px solid #333;
+	background: #d9edf7;
+}
+
+.tablepress th,
+.tablepress td {
+	padding: 0.4em;
+	border: 1px solid #ddd;
+	text-align: center;
+	vertical-align: center;
+}
+
+.tablepress tr:nth-child(2n) {
+	background-color: #f9f9f9;
+}
+
+/* Fix for title on really small screens */
+@media (max-width: 400px) {
+	.logo {
+		max-width: calc(100% - 100px);
+		font-size: 20px;
+	}
+}
