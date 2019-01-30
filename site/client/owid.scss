@@ -1103,6 +1103,9 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 .LongFormPage .articleHeader {
 	margin-top: 1.5rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .articleHeader > h1 {
