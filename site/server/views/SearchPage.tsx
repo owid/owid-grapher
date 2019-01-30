@@ -6,7 +6,7 @@ import { SiteFooter } from './SiteFooter'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 
-export const SearchPage = (props: { query: string }) => {
+export const SearchPage = () => {
     return <html>
         <Head canonicalUrl={`${settings.BAKED_BASE_URL}/search`} pageTitle="Search" pageDesc="Search articles and charts on Our World in Data."/>
         <body className="SearchPage">

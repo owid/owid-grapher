@@ -137,6 +137,6 @@ export async function renderBlogByPageNum(pageNum: number) {
     return renderToHtmlPage(<BlogIndexPage posts={posts} pageNum={pageNum} numPages={numPages}/>)
 }
 
-export async function renderSearchPage(query: string) {
-    return renderToHtmlPage(<SearchPage query={query}/>)
+export async function renderSearchPage() {
+    return renderToHtmlPage(<SearchPage/>)
 }

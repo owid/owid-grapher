@@ -46,7 +46,7 @@ devServer.get('/charts', async (req, res) => {
 })
 
 devServer.get('/search', async (req, res) => {
-    res.send(await renderSearchPage(req.params.q))
+    res.send(await renderSearchPage())
 })
 
 devServer.get('/headerMenu.json', async (req, res) => {

@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
-import * as algoliasearch from 'algoliasearch'
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
 import { SearchResults } from './SearchResults'
 import { SiteSearchResults, PostHit, ChartHit, siteSearch } from 'site/siteSearch'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

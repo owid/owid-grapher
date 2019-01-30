@@ -1901,6 +1901,14 @@ html:not(.js) {
         font-style: normal;
         font-weight: bold;
     }
+
+    .algoliaCredit {
+        max-width: 80rem;
+        margin: auto;
+        margin-top: 2rem;
+        text-align: right;
+        opacity: 0.9;
+    }
 }
 
 .chartVariantName {
