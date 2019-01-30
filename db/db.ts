@@ -2,6 +2,7 @@ import * as mysql from 'mysql'
 import * as typeorm from 'typeorm'
 import * as Knex from 'knex'
 import { DB_HOST, DB_USER, DB_PASS, DB_NAME } from 'serverSettings';
+import { log } from 'utils/server/log'
 let connection: typeorm.Connection
 
 export async function connect() {
@@ -31,7 +32,7 @@ function cleanup() {
         console.log("Database connection closed")
         process.exit(0)
     }).catch((err) => {
-        console.error(err)
+        log.error(err)
         process.exit(1)
     })
 }

@@ -238,6 +238,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/caseless@*":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@types/caseless/-/caseless-0.12.1.tgz#9794c69c8385d0192acc471a540d1f8e0d16218a"
+  integrity sha512-FhlMa34NHp9K5MY1Uz8yb+ZvuX0pnvn3jScRSNAb75KHGB8d3rEU6hqMs3Z2vjuytcMfRg6c5CHMc3wtYyD2/A==
+
 "@types/cheerio@^0.22.10":
   version "0.22.10"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.10.tgz#780d552467824be4a241b29510a7873a7432c4a6"
@@ -526,6 +531,13 @@
   resolved "https://registry.yarnpkg.com/@types/filenamify/-/filenamify-2.0.1.tgz#2a75ad266f4fb82e113ef7fdc52e0355c27c2b3d"
   integrity sha512-QpmNRLMBSQtvd1eV8dodwiUCtSJRhg0EhV+9Xwpch1DhiXPh75qx6aRxVfHvzhQdPzrFJx9v+hpiC0FIVyPQOA==
 
+"@types/form-data@*":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@types/form-data/-/form-data-2.2.1.tgz#ee2b3b8eaa11c0938289953606b745b738c54b1e"
+  integrity sha512-JAMFhOaHIciYVh8fb5/83nmuO/AHwmto+Hq7a9y8FzLDcC1KCU344XDOMEmahnrTFlHjgh4L0WJFczNIX2GxnQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/fs-extra@^4.0.6":
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-4.0.8.tgz#6957ddaf9173195199cb96da3db44c74700463d2"
@@ -757,6 +769,16 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
+"@types/request@*":
+  version "2.48.1"
+  resolved "https://registry.yarnpkg.com/@types/request/-/request-2.48.1.tgz#e402d691aa6670fbbff1957b15f1270230ab42fa"
+  integrity sha512-ZgEZ1TiD+KGA9LiAAPPJL68Id2UWfeSO62ijSXZjFJArVV+2pKcsVHmrcu+1oiE3q6eDGiFiSolRc4JHoerBBg==
+  dependencies:
+    "@types/caseless" "*"
+    "@types/form-data" "*"
+    "@types/node" "*"
+    "@types/tough-cookie" "*"
+
 "@types/sequelize@^4.27.7":
   version "4.27.33"
   resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.27.33.tgz#1e906565f371c7efbda0bf2bfa322bea4b5bb1a2"
@@ -799,6 +821,13 @@
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/@types/sizzle/-/sizzle-2.3.2.tgz#a811b8c18e2babab7d542b3365887ae2e4d9de47"
   integrity sha512-7EJYyKTL7tFR8+gDbB6Wwz/arpGa0Mywk1TJbNzKzHtzbwVmY4HR9WqS5VV7dsBUKQmPNr192jHr/VpBluj/hg==
+
+"@types/slack-node@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@types/slack-node/-/slack-node-0.1.2.tgz#6a6f8ddff89e808cc037f45c0b2035f6bdf8d6f6"
+  integrity sha512-qSuxW6s2itY8WoOr+ELflN8vG0dpomPn+5v997YsUA5DwjWaS0JE/TF8ZrGTg6bdiL9cAGG4VhSRleeLetX5yw==
+  dependencies:
+    "@types/request" "*"
 
 "@types/strip-bom@^3.0.0":
   version "3.0.0"
@@ -847,6 +876,11 @@
     "@types/topojson-client" "*"
     "@types/topojson-simplify" "*"
     "@types/topojson-specification" "*"
+
+"@types/tough-cookie@*":
+  version "2.3.5"
+  resolved "https://registry.yarnpkg.com/@types/tough-cookie/-/tough-cookie-2.3.5.tgz#9da44ed75571999b65c37b60c9b2b88db54c585d"
+  integrity sha512-SCcK7mvGi3+ZNz833RRjFIxrn4gI1PPR3NtuIS+6vMkvmsGjosqTJwRt5bAEFLRz+wtJMWv8+uOnZf2hi2QXTg==
 
 "@types/url-join@^0.8.2":
   version "0.8.2"

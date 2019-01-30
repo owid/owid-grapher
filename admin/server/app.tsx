@@ -1,9 +1,8 @@
 import * as express from 'express'
 require('express-async-errors')
 const cookieParser = require('cookie-parser')
-const errorToSlack = require('express-error-slack')
+const expressErrorSlack = require('express-error-slack')
 import "reflect-metadata"
-
 import { AdminSPA } from './AdminSPA'
 import {authMiddleware} from './authentication'
 import { api } from './api'
@@ -42,7 +41,7 @@ app.get('*', (req, res) => {
 // Send errors to Slack
 // The middleware passes all errors onto the next error-handling middleware
 if (SLACK_ERRORS_WEBHOOK_URL) {
-    app.use(errorToSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
+    app.use(expressErrorSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
 }
 
 // Give full error messages, including in production

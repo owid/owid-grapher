@@ -9,6 +9,7 @@ import { BAKED_BASE_URL } from 'settings'
 import {BAKED_SITE_DIR} from 'serverSettings'
 import * as db from 'db/db'
 import { bakeChartsToImages } from 'site/server/bakeChartsToImages'
+import { log } from 'utils/server/log'
 
 // Given a grapher url with query string, create a key to match export filenames
 export function grapherUrlToFilekey(grapherUrl: string) {
@@ -59,19 +60,19 @@ export async function bakeGrapherUrls(urls: string[]) {
 
         const slug = _.last(parseUrl(url).pathname.split('/'))
         if (!slug) {
-            console.error(`Invalid chart url ${url}`)
+            log.warn(`Invalid chart url ${url}`)
             continue
         }
 
         const chartId = slugToId[slug]
         if (chartId === undefined) {
-            console.error(`Couldn't find chart with slug ${slug}`)
+            log.warn(`Couldn't find chart with slug ${slug}`)
             continue
         }
 
         const rows = await db.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
         if (!rows.length) {
-            console.error(`Mysteriously missing chart by id ${chartId}`)
+            log.warn(`Mysteriously missing chart by id ${chartId}`)
             continue
         }
 

@@ -6,6 +6,7 @@ import { app } from './app'
 
 import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
+import { log } from 'utils/server/log'
 
 async function main() {
     try {
@@ -16,7 +17,7 @@ async function main() {
             console.log(`owid-admin server started on ${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`)
         })
     } catch (e) {
-        console.error(e)
+        log.error(e)
         process.exit(1)
     }
 }

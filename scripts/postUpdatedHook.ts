@@ -4,6 +4,7 @@ import * as parseArgs from 'minimist'
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { BAKE_ON_CHANGE } from 'serverSettings'
+import { log } from 'utils/server/log'
 const argv = parseArgs(process.argv.slice(2))
 
 async function main(email: string, name: string, postId: number) {
@@ -18,7 +19,7 @@ async function main(email: string, name: string, postId: number) {
             baker.end()
         }
     } catch (err) {
-        console.error(err)
+        log.error(err)
     } finally {
         await wpdb.end()
         await db.end()

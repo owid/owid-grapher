@@ -17,7 +17,7 @@ export const CitationMeta = (props: { id: number, title: string, authors: string
         <meta name="citation_online_date" content={moment(date).format("YYYY/MM/DD")}/>
         <meta name="citation_publication_date" content={moment(date).format("YYYY/MM/DD")}/>
         <meta name="citation_journal_title" content="Our World in Data"/>
-        <meta name="citation_journal_abbrev" content="OWID"/>
+        <meta name="citation_journal_abbrev" content="Our World in Data"/>
         {authors.map(author => <meta key={author} name="citation_author" content={author}/>)}
     </React.Fragment>
 }
