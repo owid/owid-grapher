@@ -7,7 +7,6 @@ async function main(email: string, name: string, message: string) {
     const baker = new SiteBaker({})
 
     try {
-        throw new Error("test error logging")
         await baker.bakeAll()
         await baker.deploy(message || "Automated update", email, name)
     } catch (err) {
