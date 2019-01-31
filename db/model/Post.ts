@@ -18,10 +18,8 @@ export namespace Post {
     }
     
     export type Field = keyof Row
-    
-    export function table() {
-        return db.knex()("posts")
-    }
+
+    export const table = "posts"
     
     export function select<K extends keyof Row>(...args: K[]): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
         return {
@@ -58,30 +56,35 @@ export namespace Post {
 }
 
 export async function syncPostsToGrapher(postIds?: number[]) {
-    const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN (?)", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE post_type='page' OR post_type='post'")
-    const dbRows = rows.map((post: any) => ({
-        id: post.ID, 
-        title: post.post_title, 
-        slug: post.post_name, 
-        type: post.post_type, 
-        status: post.post_status, 
-        content: post.post_content, 
-        published_at: post.post_date_gmt === "0000-00-00 00:00:00" ? null : post.post_date_gmt, 
+    const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN (?) AND post_status != 'trash'", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'")
+
+    const doesExistInWordpress = _.keyBy(rows, 'ID')
+    const existsInGrapher = await Post.select('id').from(db.knex().from(Post.table).whereIn('id', postIds ? postIds : rows.map(r => r.ID)))
+    const doesExistInGrapher = _.keyBy(existsInGrapher, 'id')
+
+ 
+    const toDelete = postIds ? postIds.filter(id => doesExistInGrapher[id] && !doesExistInWordpress[id]) : []
+    const toInsert = rows.filter(post => !doesExistInGrapher[post.ID]).map((post: any) => ({
+    id: post.ID,
+        title: post.post_title,
+        slug: post.post_name,
+        type: post.post_type,
+        status: post.post_status,
+        content: post.post_content,
+        published_at: post.post_date_gmt === "0000-00-00 00:00:00" ? null : post.post_date_gmt,
         updated_at: post.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : post.post_modified_gmt
     })) as Post.Row[]
 
-    const existing = await Post.select('id').from(Post.table().whereIn('id', dbRows.map(r => r.id)))
-    const doesExist = _.keyBy(existing, 'id')
-
-    // const allTags = await Tag.select('id', 'name')
-
-
     await db.knex().transaction(async t => {
-        for (const row of dbRows) {
-            if (doesExist[row.id])
-                await t.update(row).where('id', '=', row.id).into('posts')
+        if (toDelete.length) {
+            await t.whereIn('id', toDelete).delete().from(Post.table)
+        }
+
+        for (const row of toInsert) {
+            if (doesExistInGrapher[row.id])
+                await t.update(row).where('id', '=', row.id).into(Post.table)
             else
-                await t.insert(row).into('posts')
+                await t.insert(row).into(Post.table)
         }
     })
 }
@@ -102,8 +105,9 @@ export async function syncPostsToGrapher(postIds?: number[]) {
 // }
 
 // Sync post from the wordpress database to OWID database
-export async function syncPostToGrapher(postId: number): Promise<string> {
+export async function syncPostToGrapher(postId: number): Promise<string|undefined> {
     await syncPostsToGrapher([postId])
 
-    return (await db.get("SELECT slug FROM posts WHERE id=?", [postId])).slug
+    const post = await db.get("SELECT slug FROM posts WHERE id=?", [postId])
+    return post ? post.slug : undefined
 }

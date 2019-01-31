@@ -7,7 +7,7 @@ import { BAKE_ON_CHANGE } from 'serverSettings'
 import { log } from 'utils/server/log'
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(email: string, name: string, postId: number) {
+async function main(email: string, name: string, postId: number, postSlug: string) {
     try {
         console.log(email, name, postId)
         const slug = await syncPostToGrapher(postId)
@@ -15,7 +15,7 @@ async function main(email: string, name: string, postId: number) {
         if (BAKE_ON_CHANGE) {
             const baker = new SiteBaker({})
             await baker.bakeAll()
-            await baker.deploy(`Updating ${slug}`, email, name)
+            await baker.deploy(slug ? `Updating ${slug}` : `Deleting ${postSlug}`, email, name)
             baker.end()
         }
     } catch (err) {
@@ -26,4 +26,4 @@ async function main(email: string, name: string, postId: number) {
     }
 }
 
-main(argv._[0], argv._[1], parseInt(argv._[2]))
+main(argv._[0], argv._[1], parseInt(argv._[2]), argv._[3])
