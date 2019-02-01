@@ -216,7 +216,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
     render() {
         const {categories} = this.props 
         const {activeCategory} = this
-        return <div id="mobile-topics-dropdown" className="mobile-only">
+        return <div className="mobile-topics-dropdown mobile-only">
             <ul>
                 <li className="header">
                     <h2>Topics</h2>
