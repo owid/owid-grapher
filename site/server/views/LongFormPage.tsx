@@ -60,8 +60,8 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                                         <a href={`#acknowledgements`}>Acknowledgements</a>
                                     </li>}
 
-                                    {post.footnotes.length ? <li key="footnotes" className="section nosubs">
-                                        <a href={`#footnotes`}>Footnotes</a>
+                                    {post.footnotes.length ? <li key="references" className="section nosubs">
+                                        <a href={`#references`}>References</a>
                                     </li> : undefined}
                                     {isEntry && <li key="citation" className="section nosubs">
                                         <a href={`#citation`}>Citation</a>
@@ -79,8 +79,8 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                                 </React.Fragment>}
 
                                 {post.footnotes.length ? <React.Fragment>
-                                    <h3 id="footnotes">Footnotes</h3>
-                                    <ol className="footnotes">
+                                    <h3 id="references">References</h3>
+                                    <ol className="references">
                                         {post.footnotes.map((footnote, i) =>
                                             <li key={`note-${i+1}`} id={`note-${i+1}`}>
                                                 <p dangerouslySetInnerHTML={{__html: footnote}}/>
