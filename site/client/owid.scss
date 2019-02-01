@@ -1918,3 +1918,164 @@ html:not(.js) {
     color: rgb(170, 170, 170);
     font-size: 0.9em;
 }
+
+.feedbackPromptContainer {
+    opacity: 0.9;
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    z-index: 100;
+}
+
+.FeedbackPrompt {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: #002147;
+    color: white;
+    cursor: pointer;
+}
+
+.FeedbackForm {
+    width: 342px;
+    height: 550px;
+    border-radius: .57143rem;
+    box-shadow: 0 0 0.42857rem 0 rgba(0,0,0,.2);
+    background: hsla(0,0%,100%,.98);
+    color: #333;
+    text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: opacity .25s ease-in-out;
+
+    &.loading > * {
+        opacity: 0.5;
+    }
+
+    > header {
+        background: #002147;
+        color: white;        
+        font-size: 18px;
+        text-align: center;
+
+        padding-top: 1.07143rem;
+        padding-bottom: 1.07143rem;    
+        padding-left: 1.42857rem;
+        padding-right: 1.42857rem;
+        margin-bottom: 1rem;
+    }
+
+    > div.formBody {
+        padding-left: .71429rem;
+        padding-right: .71429rem;
+        overflow-y: auto;
+        flex-grow: 1;
+
+        > div {
+            margin-bottom: 1.42857rem;
+    
+            label {
+                vertical-align: middle;
+                line-height: 2.14286;
+                color: #555;
+            }
+    
+            input {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                transition: border-color .25s ease-in-out,box-shadow .1s ease-in-out,background-color .25s ease-in-out,color .25s ease-in-out;
+                outline: none;
+                border: 1px solid #d8dcde;
+                border-radius: 4px;
+                background-color: #fff;
+                padding: .71429em 1.14286em;
+                width: 100%;
+                min-height: 40px;
+                box-sizing: border-box;
+                vertical-align: middle;
+                line-height: 1.28571;
+                color: #2f3941;
+                font-family: inherit;
+                font-size: 14px;            
+            }
+    
+            textarea {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                transition: border-color .25s ease-in-out,box-shadow .1s ease-in-out,background-color .25s ease-in-out,color .25s ease-in-out;
+                outline: none;
+                border: 1px solid #d8dcde;
+                border-radius: 4px;
+                background-color: #fff;
+                padding: .71429em 1.14286em;
+                width: 100%;
+                min-height: 40px;
+                box-sizing: border-box;
+                vertical-align: middle;
+                line-height: 1.28571;
+                color: #2f3941;
+                font-family: inherit;
+                font-size: 14px;            
+            }
+        }    
+    }
+
+    > footer {
+        border-top: .07857rem solid #e9ebed;
+        box-shadow: 0 -0.07143rem 0.85714rem rgba(0,0,0,.08);
+        padding-top: 1.07143rem;
+        padding-bottom: 1.07143rem;
+        display: flex;
+        justify-content: flex-end;
+        padding-left: 1.42857rem;
+        padding-right: 1.42857rem;
+    
+        button {
+            display: inline-block;
+            transition: border-color .25s ease-in-out,box-shadow .1s ease-in-out,background-color .25s ease-in-out,color .25s ease-in-out;
+            margin: 0;
+            border: 1px solid #5293c7;
+            border-radius: 4px;
+            background-color: transparent;
+            cursor: pointer;
+            padding: 0 1.92857em;
+            min-width: 8.57143em;
+            overflow: hidden;
+            vertical-align: middle;
+            text-align: center;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            line-height: 38px;
+            white-space: nowrap;
+            color: #1f73b7;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            -webkit-font-smoothing: subpixel-antialiased;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        button:first-child:hover {
+            background-color: #63a9f8;
+            color: white;
+        }
+
+        button[type=submit] {
+            background-color: #002147;
+            color: white;
+            margin-left: .35714rem;
+
+            &:hover {
+                background-color: #63a9f8;
+                color: white;
+            }
+        }
+    }
+}

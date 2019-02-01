@@ -15,10 +15,12 @@ export const SiteFooter = () => {
             <a href="https://github.com/owid">GitHub</a>
             <a href="/support">Donate</a>
         </nav>
+        <div className="feedbackPromptContainer"></div>
         <script src={webpack('commons.js', 'site')}/>
         <script src={webpack('owid.js', 'site')}/>
         <script dangerouslySetInnerHTML={{__html: `
             runHeaderMenus();
+            runFeedback();
             Grapher.embedAll();
         `}}/>
     </footer>

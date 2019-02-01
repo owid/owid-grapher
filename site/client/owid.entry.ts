@@ -10,12 +10,19 @@ import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {runSearchPage} from './SearchPageMain'
+import {runFeedback} from './Feedback'
 import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
+
+declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
 window.App = window.App || {}
+window.runChartsIndexPage = runChartsIndexPage
+window.runHeaderMenus = runHeaderMenus
+window.runSearchPage = runSearchPage
+window.runFeedback = runFeedback
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 
@@ -47,8 +54,3 @@ if (trackedLinkExists) {
     })
 }
 
-declare var window: any
-
-window.runChartsIndexPage = runChartsIndexPage
-window.runHeaderMenus = runHeaderMenus
-window.runSearchPage = runSearchPage
