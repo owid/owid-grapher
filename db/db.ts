@@ -108,6 +108,10 @@ export function knex() {
     return knexInstance
 }
 
+export function table(t: string) {
+    return knex().table(t)
+}
+
 export async function select<T, K extends keyof T>(query: Knex.QueryBuilder, ...args: K[]): Promise<Pick<T, K>[]> {
     return query.select(...args) as any
 }

@@ -25,6 +25,8 @@ export class Chart extends BaseEntity {
     @OneToMany(type => ChartRevision, rev => rev.chart)
     logs!: ChartRevision[]
 
+    static table: string = "charts"
+
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
         const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
         const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)

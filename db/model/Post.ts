@@ -55,13 +55,12 @@ export namespace Post {
     }
 }
 
-export async function syncPostsToGrapher(postIds?: number[]) {
-    const rows = postIds ? await wpdb.query("SELECT * FROM wp_posts WHERE ID IN (?) AND post_status != 'trash'", [postIds]) : await wpdb.query("SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'")
+export async function syncPostsToGrapher() {
+    const rows = await wpdb.query("SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'")
 
     const doesExistInWordpress = _.keyBy(rows, 'ID')
     const existsInGrapher = await Post.select('id').from(db.knex().from(Post.table))
     const doesExistInGrapher = _.keyBy(existsInGrapher, 'id')
-
  
     const categoriesByPostId = await wpdb.getCategoriesByPostId()
 
@@ -70,7 +69,7 @@ export async function syncPostsToGrapher(postIds?: number[]) {
         return {
             id: post.ID,
             title: post.post_title,
-            slug: post.post_name,
+            slug: post.post_name.replace(/__/g, '/'),
             type: post.post_type,
             status: post.post_status,
             content: post.post_content,
@@ -115,8 +114,35 @@ export async function syncPostTagsToGrapher() {
 
 // Sync post from the wordpress database to OWID database
 export async function syncPostToGrapher(postId: number): Promise<string|undefined> {
-    await syncPostsToGrapher([postId])
+    const rows = await wpdb.query("SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'", [postId])
 
-    const post = await db.get("SELECT slug FROM posts WHERE id=?", [postId])
-    return post ? post.slug : undefined
+    const existsInWordpress = !!rows.length
+    const existsInGrapher = (await Post.select('id').from(db.knex().from(Post.table))).length
+
+    const post = rows[0]
+    const postRow = post ? {
+        id: post.ID,
+        title: post.post_title,
+        slug: post.post_name.replace(/__/g, '/'),
+        type: post.post_type,
+        status: post.post_status,
+        content: post.post_content,
+        published_at: post.post_date_gmt === "0000-00-00 00:00:00" ? null : post.post_date_gmt,
+        updated_at: post.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : post.post_modified_gmt    
+    } as Post.Row : undefined
+
+
+    await db.knex().transaction(async t => {
+        if (!existsInWordpress && existsInGrapher) {
+            // Delete from grapher
+            await t.where({ 'id': postId }).delete().from(Post.table)
+        } else if (existsInWordpress && !existsInGrapher) {
+            await t.insert(postRow).into(Post.table)
+        } else if (existsInWordpress && existsInGrapher) {
+            await t.update(postRow).where('id', '=', post.id).into(Post.table)
+        }
+    })
+
+    const newPost = await db.get("SELECT slug FROM posts WHERE id=?", [postId])
+    return newPost ? newPost.slug : undefined
 }

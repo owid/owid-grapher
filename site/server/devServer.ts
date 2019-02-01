@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
@@ -12,6 +12,10 @@ import { expectInt, JsonError } from 'utils/server/serverUtil'
 import { embedSnippet } from 'site/server/embedCharts'
 
 const devServer = express()
+
+devServer.get('/sitemap.xml', async (req, res) => {
+    res.send(await makeSitemap())
+})
 
 devServer.get('/grapher/data/variables/:variableIds.json', async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*')

@@ -18,7 +18,12 @@ import { WORDPRESS_DIR } from 'serverSettings'
 import { formatPost, extractFormattingOptions } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
-import { JsonError } from "utils/server/serverUtil";
+import { JsonError } from "utils/server/serverUtil"
+import { Chart } from 'db/model/Chart'
+import { Post } from "db/model/Post";
+import { BAKED_BASE_URL } from "settings";
+import moment = require("moment")
+import * as urljoin from 'url-join'
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -139,4 +144,22 @@ export async function renderBlogByPageNum(pageNum: number) {
 
 export async function renderSearchPage() {
     return renderToHtmlPage(<SearchPage/>)
+}
+
+export async function makeSitemap() {
+    const posts = await Post.select('slug', 'updated_at').from(db.table(Post.table).where({ status: 'publish' }))
+    const urls = posts.map(p => ({
+        loc: urljoin(BAKED_BASE_URL, p.slug.replace(/__/g, '/')),
+        lastmod: moment(p.updated_at).format("YYYY-MM-DD")
+    }))
+
+    const sitemap = `<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(url => `    <url>
+        <loc>${url.loc}</url>
+        <lastmod>${url.lastmod}</lastmod>
+    </url>`).join("\n")}
+</urlset>`
+    
+    return sitemap
 }
