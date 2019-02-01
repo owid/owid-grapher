@@ -29,7 +29,6 @@ Analytics.logEvent("OWID_PAGE_LOAD")
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
     const input = search.querySelector("input[type=search]") as HTMLInputElement
-    const lastQuery = ""
     search.addEventListener('submit', (ev) => {
         ev.preventDefault()
         Analytics.logEvent("OWID_SITE_SEARCH", { query: input.value }).then(() => search.submit()).catch(() => search.submit())

@@ -1919,20 +1919,27 @@ html:not(.js) {
     font-size: 0.9em;
 }
 
+@media (max-width: 950px) {
+    .feedbackPromptContainer {
+        display: none;
+    }
+}
+
 .feedbackPromptContainer {
     opacity: 0.9;
     position: fixed;
-    right: 10px;
-    bottom: 10px;
+    right: 20px;
+    bottom: 20px;
     z-index: 100;
 }
 
 .FeedbackPrompt {
-    padding: 1rem;
-    border-radius: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 0.4rem;
     background: #002147;
     color: white;
     cursor: pointer;
+    font-size: 15px;
 }
 
 .FeedbackForm {
