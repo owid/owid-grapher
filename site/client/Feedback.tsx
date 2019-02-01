@@ -14,6 +14,7 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
     @observable loading: boolean = false
     @observable done: boolean = false
     @observable error: string|undefined
+    dismissable: boolean = true
 
     async sendFeedback() {
         const feedback = {
@@ -28,7 +29,7 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
                 if (req.status !== 200) {
                     runInAction(() => { this.loading = false; this.error = `${req.status} ${req.statusText}` })
                 } else {
-                    runInAction(() => { this.loading = false; this.done = true })
+                    runInAction(() => { this.loading = false; this.done = true; this.name = ""; this.email = ""; this.message = "" })
                 }    
             }
         })
@@ -37,6 +38,22 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
         
         req.send(JSON.stringify(feedback))
+    }
+
+    @action.bound onClickSomewhere() {
+        if (this.dismissable) {
+            this.props.onDismiss()
+        } else {
+            this.dismissable = true
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.onClickSomewhere)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.onClickSomewhere)
     }
 
     @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -61,7 +78,7 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
 
     render() {
         const {loading} = this
-        return <form className={classnames("FeedbackForm", { loading: this.loading })} onSubmit={this.onSubmit}>
+        return <form className={classnames("FeedbackForm", { loading: this.loading })} onSubmit={this.onSubmit} onClick={action(() => this.dismissable = false)}>
             <header>
                 Leave us feedback
             </header>
