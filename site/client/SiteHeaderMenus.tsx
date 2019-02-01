@@ -116,7 +116,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </div>
                     <div>
                         <div className="site-primary-navigation">
-                            <HeaderSearch autoFocus={!!document.querySelector(".FrontPage")}/>
+                            <HeaderSearch/>
                             <ul className="site-primary-links">
                                 <li><a href="/blog">Blog</a></li>
                                 <li><a href="/about">About</a></li>
