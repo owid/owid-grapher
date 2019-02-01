@@ -8,7 +8,6 @@ export const SiteFooter = () => {
         </div>
         <nav>
             <a href="/about">About</a>
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScTaT03ggC7yo8KzRLvoCJY-5mtfuA6jOHheLLFtD5lSHkXlg/viewform">Feedback</a>
             <a href="/subscribe">Subscribe</a>
             <a href="https://twitter.com/OurWorldInData">Twitter</a>
             <a href="https://www.facebook.com/OurWorldinData">Facebook</a>
