@@ -94,10 +94,20 @@ export function knex() {
                 host: DB_HOST,
                 user: DB_USER,
                 password: DB_PASS,
-                database: DB_NAME
+                database: DB_NAME,
+                typeCast: (field: any, next: any) => {
+                    if (field.type == 'TINY' && field.length == 1) {
+                        return (field.string() == '1'); // 1 = true, 0 = false
+                    } 
+                    return next();
+                }
             }
         })    
     }
 
     return knexInstance
+}
+
+export async function select<T, K extends keyof T>(query: Knex.QueryBuilder, ...args: K[]): Promise<Pick<T, K>[]> {
+    return query.select(...args) as any
 }

@@ -32,10 +32,6 @@ export class Dataset extends BaseEntity {
     @ManyToOne(type => User, user => user.createdDatasets)
     createdByUser!: User
 
-    @ManyToMany(type => Tag)
-    @JoinTable()
-    tags!: Tag[]
-
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable) {
         const csvHeader = ["Entity", "Year"]

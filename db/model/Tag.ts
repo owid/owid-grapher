@@ -1,16 +1,22 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, Unique} from "typeorm"
-import { Dataset } from './Dataset'
+import * as db from 'db/db'
+import { QueryBuilder } from 'knex'
 
-@Entity("tags")
-@Unique(["name", "parentId"])
-export class Tag extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
+export namespace Tag {
+    export interface Row {
+        id: number
+        name: string
+        parentId: number
+        specialType: string
+        isBulkImport: boolean
+    }
+    
+    export type Field = keyof Row
 
-    @Column() name!: string
-    @Column() parentId!: number
-    @Column() specialType!: string
-    @Column() isBulkImport!: boolean
+    export const table = "tags"
 
-    @ManyToMany(type => Dataset)
-    datasets!: Dataset[]
+    export function select<K extends keyof Row>(...args: K[]): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
+        return {
+            from: (query) => query.select(...args) as any
+        }
+    }
 }

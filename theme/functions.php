@@ -34,4 +34,13 @@ add_theme_support('post-thumbnails');
 
 add_post_type_support( 'page', 'excerpt' );
 
+function owid_init() {
+    unregister_taxonomy_for_object_type('post_tag', 'post');
+    unregister_taxonomy_for_object_type('post_tag', 'page');
+    unregister_taxonomy_for_object_type('category', 'post');
+    unregister_taxonomy_for_object_type('category', 'page');
+}
+
+add_action('init', 'owid_init');
+
 ?>

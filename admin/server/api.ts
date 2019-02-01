@@ -847,10 +847,6 @@ api.get('/tags.json', async (req: Request, res: Response) => {
 api.delete('/tags/:tagId/delete', async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
 
-    const tag = Tag.findOne({ id: tagId })
-
-    if (tag)
-
     await db.transaction(async t => {
         await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])
     })
@@ -892,7 +888,7 @@ api.get('/posts.json', async req => {
         (post as any).tags = tagsByPostId.get(post.id)||[]
     }
 
-    return { posts: rows }
+    return { posts: rows.map(r => camelCaseProperties(r)) }
 })
 
 api.post('/posts/:postId/setTags', async (req: Request, res: Response) => {

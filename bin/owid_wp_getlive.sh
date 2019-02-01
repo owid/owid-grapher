@@ -3,7 +3,7 @@
 RSYNC="rsync -havz --progress"
 HOST="owid@terra"
 
-ssh $HOST "mysqldump --default-character-set=utf8mb4 owid_wordpress -r /home/owid/dev_wordpress.sql"
+ssh $HOST "mysqldump --default-character-set=utf8mb4 owid_wordpress -r /home/owid/owid_wordpress.sql"
 $RSYNC $HOST:/home/owid/owid_wordpress.sql ~/backup/
 $RSYNC --delete $HOST:/home/owid/owid.cloud/wp-content/plugins ~/owid.cloud/wp-content/
 $RSYNC --delete $HOST:/home/owid/owid.cloud/wp-content/uploads ~/owid.cloud/wp-content/

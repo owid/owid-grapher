@@ -163,6 +163,51 @@ export interface CategoryWithEntries {
     entries: EntryMeta[]
 }
 
+export async function getCategoriesByPostId(): Promise<Map<number, string[]>> {
+    const categoriesByPostId = new Map<number, string[]>()
+    const rows = await wpdb.query(`
+        SELECT object_id, terms.name FROM wp_term_relationships AS rels
+        LEFT JOIN wp_terms AS terms ON terms.term_id=rels.term_taxonomy_id
+    `)
+
+    for (const row of rows) {
+        let cats = categoriesByPostId.get(row.object_id)
+        if (!cats) {
+            cats = []
+            categoriesByPostId.set(row.object_id, cats)
+        }
+        cats.push(row.name)
+    }
+
+    return categoriesByPostId
+}
+
+export async function getTagsByPostId(): Promise<Map<number, string[]>> {
+    const tagsByPostId = new Map<number, string[]>()
+    const rows = await wpdb.query(`
+        SELECT p.id, t.name
+        FROM wp_posts p
+        JOIN wp_term_relationships tr
+            on (p.id=tr.object_id)
+        JOIN wp_term_taxonomy tt
+            on (tt.term_taxonomy_id=tr.term_taxonomy_id
+            and tt.taxonomy='post_tag')
+        JOIN wp_terms t
+            on (tt.term_id=t.term_id)
+    `)
+
+    for (const row of rows) {
+        let cats = tagsByPostId.get(row.id)
+        if (!cats) {
+            cats = []
+            tagsByPostId.set(row.id, cats)
+        }
+        cats.push(row.name)
+    }
+
+    return tagsByPostId
+}
+
 // Retrieve a list of categories and their associated entries
 let cachedEntries: CategoryWithEntries[]
 export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
@@ -187,20 +232,6 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         "Culture"
     ]
 
-    const categoriesByPageId = new Map<number, string[]>()
-    const rows = await wpdb.query(`
-        SELECT object_id, terms.name FROM wp_term_relationships AS rels
-        LEFT JOIN wp_terms AS terms ON terms.term_id=rels.term_taxonomy_id
-    `)
-
-    for (const row of rows) {
-        let cats = categoriesByPageId.get(row.object_id)
-        if (!cats) {
-            cats = []
-            categoriesByPageId.set(row.object_id, cats)
-        }
-        cats.push(row.name)
-    }
 
     const pageRows = await wpdb.query(`
         SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
@@ -208,6 +239,8 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     `)
 
     const permalinks = await getPermalinks()
+
+    const categoriesByPageId = await getCategoriesByPostId()
 
     cachedEntries = categoryOrder.map(cat => {
         const rows = pageRows.filter(row => {
