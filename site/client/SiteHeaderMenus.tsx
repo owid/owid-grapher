@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { observable, runInAction, action } from 'mobx'
+import { observable, action, reaction, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { HeaderSearch } from './HeaderSearch'
-
-import { faSearch, faBars, faExternalLinkAlt, faEnvelope, faArrowDown, faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons'
-import { CategoryWithEntries, EntryMeta } from 'db/wpdb'
+import { faSearch, faBars, faExternalLinkAlt, faEnvelope, faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons'
+import { CategoryWithEntries } from 'db/wpdb'
 import classnames from 'classnames'
 import { find } from 'lodash'
 import { bind } from 'decko'
@@ -17,10 +16,27 @@ import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
 @observer
 export class Header extends React.Component<{ categories: CategoryWithEntries[] }> {
     @observable.ref dropdownIsOpen: boolean = false
-    dropdownTimeout?: number
 
+    dropdownOpenTimeoutId?: number  // ID of the timeout that will set isOpen to true
+    dropdownCloseTimeoutId?: number // ID of the timeout that will set isOpen to false
+    dropdownLastOpened?: number     // Timestamp of the last time isOpen was set to true
+
+    // Mobile menu toggles
     @observable showSearch: boolean = false
     @observable showCategories: boolean = false
+
+    dispose!: IReactionDisposer
+
+    componentDidMount() {
+        this.dispose = reaction(
+            () => this.dropdownIsOpen,
+            () => { if (this.dropdownIsOpen) this.dropdownLastOpened = Date.now() }
+        )
+    }
+
+    componentWillUnmount() {
+        this.dispose()
+    }
 
     @action.bound onToggleSearch() {
         this.showSearch = !this.showSearch
@@ -32,20 +48,44 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
 
     @action.bound setOpen(open: boolean) {
         this.dropdownIsOpen = open
+        this.clearOpenTimeout()
+        this.clearCloseTimeout()
+    }
+
+    @action.bound scheduleOpenTimeout(delay: number) {
+        this.dropdownOpenTimeoutId = window.setTimeout(() => this.setOpen(true), delay)
         this.clearCloseTimeout()
     }
 
     @action.bound scheduleCloseTimeout(delay: number) {
-        this.dropdownTimeout = window.setTimeout(() => this.setOpen(false), delay)
+        this.dropdownCloseTimeoutId = window.setTimeout(() => this.setOpen(false), delay)
+        this.clearOpenTimeout()
+    }
+
+    @action.bound clearOpenTimeout() {
+        if (this.dropdownOpenTimeoutId) {
+            clearTimeout(this.dropdownOpenTimeoutId)
+            this.dropdownOpenTimeoutId = undefined
+        }
     }
 
     @action.bound clearCloseTimeout() {
-        if (this.dropdownTimeout) {
-            clearTimeout(this.dropdownTimeout)
-            this.dropdownTimeout = undefined
+        if (this.dropdownCloseTimeoutId) {
+            clearTimeout(this.dropdownCloseTimeoutId)
+            this.dropdownCloseTimeoutId = undefined
         }
     }
-    
+
+    @action.bound onDropdownButtonClick(event: React.MouseEvent<HTMLAnchorElement>) {
+        event.preventDefault()
+        // Only close the menu if it's been open for a while, to avoid accidentally closing it while it's appearing.
+        if (this.dropdownIsOpen && this.dropdownLastOpened != null && this.dropdownLastOpened + 500 < Date.now()) {
+            this.setOpen(false)
+        } else {
+            this.setOpen(true)
+        }
+    }
+
     render() {
         const {categories} = this.props
 
@@ -61,9 +101,9 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         <a
                             href="/#entries"
                             className={classnames("topics-button", { "active": this.dropdownIsOpen })}
-                            onMouseEnter={() => this.setOpen(true)}
+                            onMouseEnter={() => this.scheduleOpenTimeout(200)}
                             onMouseLeave={() => this.scheduleCloseTimeout(100)}
-                            onClick={(event) => { this.setOpen(true); event.preventDefault() }}
+                            onClick={this.onDropdownButtonClick}
                         >
                             <div className="label">
                                 Research <br /><strong>by topic</strong>
@@ -76,7 +116,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </div>
                     <div>
                         <div className="site-primary-navigation">
-                            <HeaderSearch autoFocus={!!document.querySelector(".FrontPage")}/>
+                            <HeaderSearch/>
                             <ul className="site-primary-links">
                                 <li><a href="/blog">Blog</a></li>
                                 <li><a href="/about">About</a></li>
@@ -214,7 +254,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
     }
 
     render() {
-        const {categories} = this.props 
+        const {categories} = this.props
         const {activeCategory} = this
         return <div className="mobile-topics-dropdown mobile-only">
             <ul>
@@ -290,5 +330,3 @@ export class SiteHeaderMenus extends React.Component {
 export function runHeaderMenus() {
     ReactDOM.render(<SiteHeaderMenus/>, document.querySelector(".site-header"))
 }
-
-
