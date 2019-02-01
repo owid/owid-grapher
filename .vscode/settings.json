@@ -6,8 +6,8 @@
     "files.insertFinalNewline": false,
     "tslint.autoFixOnSave": true,
     "search.exclude": {
-        "public": true,
-        "dist": true
+        "dist": true,
+        "bakedSite": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "python.pythonPath": "${workspaceRoot}/env/bin/python"
