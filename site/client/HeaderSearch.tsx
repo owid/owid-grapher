@@ -26,7 +26,7 @@ class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }
 }
 
 @observer
-export class HeaderSearch extends React.Component {
+export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
     @observable.ref results?: Results
     lastQuery?: string
 
@@ -54,7 +54,7 @@ export class HeaderSearch extends React.Component {
     render() {
         const {results} = this
         return <form action="/search" method="GET" className="HeaderSearch">
-            <input type="search" name="q" onChange={e => this.onSearch(e)} placeholder="Search..."/>
+            <input type="search" name="q" onChange={e => this.onSearch(e)} placeholder="Search..." autoFocus={this.props.autoFocus}/>
             <div className="icon">
                 <FontAwesomeIcon icon={faSearch} />
             </div>

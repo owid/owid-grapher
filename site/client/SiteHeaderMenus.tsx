@@ -76,7 +76,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </div>
                     <div>
                         <div className="site-primary-navigation">
-                            <HeaderSearch/>
+                            <HeaderSearch autoFocus={!!document.querySelector(".FrontPage")}/>
                             <ul className="site-primary-links">
                                 <li><a href="/blog">Blog</a></li>
                                 <li><a href="/about">About</a></li>
@@ -252,14 +252,28 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
 }
 
 @observer
-export class SiteHeaderMenus extends React.Component<{ categories: CategoryWithEntries[] }> {
+export class SiteHeaderMenus extends React.Component {
     @observable width!: number
+    @observable.ref categories: CategoryWithEntries[] = []
 
     @action.bound onResize() {
         this.width = window.innerWidth
     }
 
+    async getEntries() {
+        const json = await (await fetch("/headerMenu.json", {
+            method: "GET",
+            credentials: 'same-origin',
+            headers: {
+                "Accept": "application/json"
+            }
+        })).json()
+
+        runInAction(() => this.categories = json.categories)
+    }
+
     componentDidMount() {
+        this.getEntries()
         this.onResize()
         window.addEventListener('resize', this.onResize)
     }
@@ -269,27 +283,12 @@ export class SiteHeaderMenus extends React.Component<{ categories: CategoryWithE
     }
 
     render() {
-        return <Header categories={this.props.categories}/>
-    }
-}
-
-export class HeaderMenus {
-    async run() {
-        const json = await (await fetch("/headerMenu.json", {
-            method: "GET",
-            credentials: 'same-origin',
-            headers: {
-                "Accept": "application/json"
-            }
-        })).json()
-
-        ReactDOM.render(<SiteHeaderMenus categories={json.categories}/>, document.querySelector(".site-header"))
+        return <Header categories={this.categories}/>
     }
 }
 
 export function runHeaderMenus() {
-    const header = new HeaderMenus()
-    header.run()
+    ReactDOM.render(<SiteHeaderMenus/>, document.querySelector(".site-header"))
 }
 
 
