@@ -14,7 +14,7 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
 import * as React from 'react'
@@ -170,6 +170,7 @@ export class SiteBaker {
         await this.stageWrite(`${BAKED_SITE_DIR}/charts.html`, await renderChartsPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/search.html`, await renderSearchPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())
+        await this.stageWrite(`${BAKED_SITE_DIR}/sitemap.xml`, await makeSitemap())
     }
 
     // Bake the blog index
