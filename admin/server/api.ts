@@ -899,6 +899,12 @@ api.post('/posts/:postId/setTags', async (req: Request, res: Response) => {
     return { success: true }
 })
 
+api.get('/posts/:postId.json', async (req: Request, res: Response) => {
+    const postId = expectInt(req.params.postId)
+    const post = await db.table(Post.table).where({ id: postId }).select('*').first() as Post.Row
+    return camelCaseProperties(post)
+})
+
 api.get('/importData.json', async req => {
     // Get all datasets from the importable namespace to match against
     const datasets = await db.query(`SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`)

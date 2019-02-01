@@ -19,6 +19,7 @@ import { PostsIndexPage } from './PostsIndexPage'
 import { TestIndexPage } from './TestIndexPage'
 import { ImportPage } from './ImportPage'
 import { NotFoundPage } from './NotFoundPage'
+import { PostEditorPage } from './PostEditorPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import { LoadingBlocker, Modal } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
@@ -84,6 +85,7 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                         <Route exact path="/tags/:tagId" render={({ match }) => <TagEditPage tagId={parseInt(match.params.tagId)}/>}/>
                         <Route exact path="/tags" component={TagsIndexPage}/>
                         <Route exact path="/posts" component={PostsIndexPage}/>
+                        <Route exact path="/posts/:postId/edit" render={({ match }) => <PostEditorPage postId={parseInt(match.params.postId)}/>}/>
                         <Route exact path="/test" component={TestIndexPage}/>
                         <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
                         <Route component={NotFoundPage}/>
