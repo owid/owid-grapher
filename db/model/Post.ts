@@ -116,33 +116,32 @@ export async function syncPostTagsToGrapher() {
 export async function syncPostToGrapher(postId: number): Promise<string|undefined> {
     const rows = await wpdb.query("SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'", [postId])
 
-    const existsInWordpress = !!rows.length
-    const existsInGrapher = (await Post.select('id').from(db.knex().from(Post.table))).length
+    const existsInGrapher = (await Post.select('id').from(db.table(Post.table))).length
 
-    const post = rows[0]
-    const postRow = post ? {
-        id: post.ID,
-        title: post.post_title,
-        slug: post.post_name.replace(/__/g, '/'),
-        type: post.post_type,
-        status: post.post_status,
-        content: post.post_content,
-        published_at: post.post_date_gmt === "0000-00-00 00:00:00" ? null : post.post_date_gmt,
-        updated_at: post.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : post.post_modified_gmt    
+    const wpPost = rows[0]
+    const postRow = wpPost ? {
+        id: wpPost.ID,
+        title: wpPost.post_title,
+        slug: wpPost.post_name.replace(/__/g, '/'),
+        type: wpPost.post_type,
+        status: wpPost.post_status,
+        content: wpPost.post_content,
+        published_at: wpPost.post_date_gmt === "0000-00-00 00:00:00" ? null : wpPost.post_date_gmt,
+        updated_at: wpPost.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : wpPost.post_modified_gmt    
     } as Post.Row : undefined
 
 
     await db.knex().transaction(async t => {
-        if (!existsInWordpress && existsInGrapher) {
+        if (!postRow && existsInGrapher) {
             // Delete from grapher
-            await t.where({ 'id': postId }).delete().from(Post.table)
-        } else if (existsInWordpress && !existsInGrapher) {
-            await t.insert(postRow).into(Post.table)
-        } else if (existsInWordpress && existsInGrapher) {
-            await t.update(postRow).where('id', '=', post.id).into(Post.table)
+            await t.table(Post.table).where({ 'id': postId }).delete()
+        } else if (postRow && !existsInGrapher) {
+            await t.table(Post.table).insert(postRow)
+        } else if (postRow && existsInGrapher) {
+            await t.table(Post.table).where('id', '=', postRow.id).update(postRow)
         }
     })
 
-    const newPost = await db.get("SELECT slug FROM posts WHERE id=?", [postId])
+    const newPost = (await Post.select('slug').from(db.table(Post.table).where({ id: postId })))[0]
     return newPost ? newPost.slug : undefined
 }

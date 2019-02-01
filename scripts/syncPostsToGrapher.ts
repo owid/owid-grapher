@@ -5,7 +5,6 @@ import { syncPostsToGrapher, syncPostTagsToGrapher } from 'db/model/Post'
 async function main() {
     try {
         await syncPostsToGrapher()
-        await syncPostTagsToGrapher()
     } finally {
         await wpdb.end()
         await db.end()
