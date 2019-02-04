@@ -14,7 +14,7 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, entriesByYearPage } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
 import * as React from 'react'
@@ -23,6 +23,7 @@ import { ChartConfigProps } from 'charts/ChartConfig';
 import { getVariableData } from 'db/model/Variable';
 import { ChartPage } from './views/ChartPage';
 import { bakeImageExports } from './svgPngExport';
+import { Post } from 'db/model/Post';
 
 // Static site generator using Wordpress
 
@@ -154,7 +155,7 @@ export class SiteBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('subscribe') && !path.startsWith('blog') && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
@@ -171,6 +172,25 @@ export class SiteBaker {
         await this.stageWrite(`${BAKED_SITE_DIR}/search.html`, await renderSearchPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())
         await this.stageWrite(`${BAKED_SITE_DIR}/sitemap.xml`, await makeSitemap())
+    }
+
+    // Pages that are expected by google scholar for indexing
+    async bakeGoogleScholar() {
+        await this.stageWrite(`${BAKED_SITE_DIR}/entries-by-year/index.html`, await entriesByYearPage())
+
+        const rows = await db.table(Post.table)
+            .where({ status: 'publish' })
+            .join('post_tags', { 'post_tags.post_id': 'posts.id' })
+            .join('tags', { 'tags.id': 'post_tags.tag_id' })
+            .where({ 'tags.name': 'Entries' })
+            .select(db.raw("distinct year(published_at) as year"))
+            .orderBy('year', 'DESC') as { year: number }[]
+
+        const years = rows.map(r => r.year)
+
+        for (const year of years) {
+            await this.stageWrite(`${BAKED_SITE_DIR}/entries-by-year/${year}.html`, await entriesByYearPage(year))
+        }
     }
 
     // Bake the blog index
@@ -327,6 +347,7 @@ export class SiteBaker {
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeSpecialPages()
+        await this.bakeGoogleScholar()
         await this.bakePosts()
         await this.bakeCharts()
     }

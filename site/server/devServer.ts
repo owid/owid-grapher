@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, entriesByYearPage} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
@@ -15,6 +15,14 @@ const devServer = express()
 
 devServer.get('/sitemap.xml', async (req, res) => {
     res.send(await makeSitemap())
+})
+
+devServer.get('/entries-by-year', async (req, res) => {
+    res.send(await entriesByYearPage())
+})
+
+devServer.get(`/entries-by-year/:year`, async (req, res) => {
+    res.send(await entriesByYearPage(parseInt(req.params.year)))
 })
 
 devServer.get('/grapher/data/variables/:variableIds.json', async (req, res) => {

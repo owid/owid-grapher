@@ -24,6 +24,7 @@ import { Post } from "db/model/Post";
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings";
 import moment = require("moment")
 import * as urljoin from 'url-join'
+import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -167,4 +168,19 @@ ${urls.map(url => `    <url>
 </urlset>`
     
     return sitemap
+}
+
+// These pages exist largely just for Google Scholar
+export async function entriesByYearPage(year?: number) {
+    const entries = await db.table(Post.table)
+        .where({ status: 'publish' })
+        .join('post_tags', { 'post_tags.post_id': 'posts.id' })
+        .join('tags', { 'tags.id': 'post_tags.tag_id' })
+        .where({ 'tags.name': 'Entries' })
+        .select('title', 'slug', 'published_at') as Pick<Post.Row, 'title'|'slug'|'published_at'>[]
+
+    if (year !== undefined)
+        return renderToHtmlPage(<EntriesForYearPage entries={entries} year={year}/>)
+    else
+        return renderToHtmlPage(<EntriesByYearPage entries={entries}/>)
 }
