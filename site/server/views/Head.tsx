@@ -30,6 +30,11 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
         <link href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display" rel="stylesheet" />
         <link rel="stylesheet" href={webpack('commons.css', 'site')}/>
         <link rel="stylesheet" href={webpack('owid.css', 'site')}/>
+        {/*
+            To best leverage Stripe’s advanced fraud functionality, include
+            this script on every page of your site, not just the checkout page.
+        */}
+        <script src="https://js.stripe.com/v3/" />
         {props.children}
     </head>
 }
