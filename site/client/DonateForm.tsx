@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faBars, faExternalLinkAlt, faEnvelope, faArrowDown, faAngleDown, faAngleUp, faEye } from '@fortawesome/free-solid-svg-icons'
 import classnames from 'classnames'
 import { bind } from 'decko'
+import { BAKED_BASE_URL } from 'settings'
 
 import stripe from './stripe'
 
@@ -76,8 +77,8 @@ export class DonateForm extends React.Component {
 
         stripe.redirectToCheckout({
             items: [this.stripeItem],
-            successUrl: 'https://ourworldindata.org/donate/thank-you',
-            cancelUrl: 'https://ourworldindata.org/donate'
+            successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+            cancelUrl: `${BAKED_BASE_URL}/donate`
         })
         .then((result: { error: any }) => {
             if (result.error) {
