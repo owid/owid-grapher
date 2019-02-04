@@ -1,6 +1,6 @@
 .site-header {
     background-color: $primary-color;
-    border-bottom: 4px solid #ff4012;
+    border-bottom: 4px solid $secondary-color;
 }
 
 .site-logo a {
@@ -75,8 +75,8 @@
     }
 
     a {
-        color: $primary-color-lighter-4;
-        &:hover { color: $primary-color-lighter-5; }
+        color: $primary-color-500;
+        &:hover { color: $primary-color-300; }
     }
 }
 
@@ -89,7 +89,7 @@
         line-height: 1.375;
         color: white;
         background-color: transparent;
-        border: 1px solid $primary-color-lighter-2;
+        border: 1px solid $primary-color-700;
         border-radius: 100px;
         padding: .3rem 1rem .3rem 2.25rem;
         display: block;
@@ -97,11 +97,11 @@
         outline: none;
 
         &::placeholder {
-            color: $primary-color-lighter-2;
+            color: $primary-color-700;
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $primary-color-lighter-1;
+            color: $primary-color-900;
         }
     }
 
@@ -112,7 +112,7 @@
         bottom: 0;
         display: flex;
         align-items: center;
-        color: $primary-color-lighter-2;
+        color: $primary-color-700;
     }
 }
 
@@ -145,7 +145,7 @@
     }
 
     a {
-        color: $primary-color-lighter-2;
+        color: $primary-color-700;
         transition: color 150ms ease;
         display: inline-block;
 
@@ -243,8 +243,8 @@
 .topics-button {
     font-family: inherit;
     line-height: 1.35;
-    color: $primary-color-lighter-5;
-    border: 1px solid $primary-color-lighter-2;
+    color: $primary-color-400;
+    border: 1px solid $primary-color-700;
     border-radius: 6px;
     background-color: transparent;
     outline: none;
@@ -255,7 +255,7 @@
     text-align: left;
 
     strong {
-        color: $primary-color-lighter-6;
+        color: $primary-color-200;
         font-weight: 800;
     }
 
@@ -264,7 +264,7 @@
     }
 
     .icon {
-        color: $primary-color-lighter-2;
+        color: $primary-color-700;
         flex: 0;
         display: flex;
         padding-left: 3px;
@@ -273,14 +273,14 @@
     &.active, &:active {
         background-color: white;
         border-color: white;
-        color: rgba($primary-color, .7);
+        color: $primary-color-700;
 
         strong {
             color: $primary-color;
         }
 
         .icon {
-            color: $primary-color-lighter-5;
+            color: $primary-color-500;
         }
     }
 }
@@ -326,7 +326,7 @@
         padding: .5rem 0;
 
         .item {
-            color: rgba($primary-color, .6);
+            color: $primary-color-600;
             padding: .35rem 1rem .4rem 1.15rem;
             display: flex;
             flex-direction: row;
@@ -338,7 +338,7 @@
 
             .icon {
                 margin-left: 1rem;
-                color: rgba($primary-color, .15);
+                color: $primary-color-200;
             }
         }
 
@@ -346,17 +346,17 @@
         a.item:hover {
             color: $primary-color;
             .icon {
-                color: rgba($primary-color, .6);
+                color: $primary-color-600;
             }
         }
 
         .item.active {
-            background-color: $primary-color-lighter-6;
+            background-color: $primary-color-100;
         }
 
         hr {
             border: none;
-            border-bottom: 1px solid $primary-color-lighter-6;
+            border-bottom: 1px solid $primary-color-100;
             margin: .25rem 0;
             padding: 0;
             display: block;
@@ -371,7 +371,7 @@
     .submenu {
         flex: 1;
         padding: 1rem 1.25rem;
-        background-color: $primary-color-lighter-6;
+        background-color: $primary-color-100;
 
         .item {
             color: $primary-color;
@@ -379,7 +379,7 @@
             padding: .4rem .5rem;
 
             &:hover {
-                color: rgba($primary-color, .6);
+                color: $primary-color-600;
             }
         }
     }
@@ -445,14 +445,14 @@
     }
 
     li a {
-        color: rgba($primary-color, .85);
+        color: $primary-color-800;
         padding: .5rem 1rem;
-        border-bottom: 1px solid rgba($primary-color, .05);
+        border-bottom: 1px solid $primary-color-100;
         display: block;
         text-align: center;
 
         &:hover {
-            background-color: rgba($primary-color, .04);
+            background-color: $primary-color-100;
         }
     }
 
@@ -463,7 +463,7 @@
         text-align: left;
 
         .icon {
-            color: rgba($primary-color, .3);
+            color: $primary-color-300;
         }
     }
 
@@ -472,7 +472,7 @@
     }
 
     .subcategory-menu {
-        background-color: rgba($primary-color, .1);
+        background-color: $primary-color-100;
         margin-top: -1px;
 
         a {
