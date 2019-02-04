@@ -54,8 +54,8 @@ export class DonateForm extends React.Component {
     @computed get stripeItem() {
         if (!this.amount) return undefined
         return this.interval === "monthly"
-            ? { plan: 'donation', quantity: this.amount * 100 }
-            : { sku: 'sku_ERSZdVx0XkO7tV', quantity: this.amount * 100 }
+            ? { plan: 'donation', quantity: Math.floor(this.amount * 100) }
+            : { sku: 'sku_ERSZdVx0XkO7tV', quantity: Math.floor(this.amount * 100) }
     }
 
     @computed get intervalAmounts(): number[] {
