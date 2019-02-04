@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import { observable, action, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { bind } from 'decko'
-import { BAKED_BASE_URL } from 'settings'
+import { BAKED_BASE_URL, STRIPE_ONE_TIME_DONATION_SKU } from 'settings'
 
 import stripe from './stripe'
 
@@ -55,7 +55,7 @@ export class DonateForm extends React.Component {
         if (!this.amount) return undefined
         return this.interval === "monthly"
             ? { plan: 'donation', quantity: Math.floor(this.amount * 100) }
-            : { sku: 'sku_ERSZdVx0XkO7tV', quantity: Math.floor(this.amount * 100) }
+            : { sku: STRIPE_ONE_TIME_DONATION_SKU, quantity: Math.floor(this.amount * 100) }
     }
 
     @computed get intervalAmounts(): number[] {
