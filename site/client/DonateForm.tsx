@@ -1,10 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { observable, runInAction, action, computed } from 'mobx'
+import { observable, action, computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSearch, faBars, faExternalLinkAlt, faEnvelope, faArrowDown, faAngleDown, faAngleUp, faEye } from '@fortawesome/free-solid-svg-icons'
-import classnames from 'classnames'
 import { bind } from 'decko'
 import { BAKED_BASE_URL } from 'settings'
 
