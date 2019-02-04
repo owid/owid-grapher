@@ -1,0 +1,77 @@
+.donate-page {
+    padding-bottom: 3rem;
+}
+
+.donate-form {
+    font-size: 1.125rem;
+
+    fieldset {
+        margin: 0 0 1rem;
+    }
+
+    h3 {
+        font-family: $sans-serif-font-stack;
+        font-size: 1rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: .03rem;
+        margin: 0 0 .75rem;
+    }
+
+    label {
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    input[type=radio] {
+        margin-right: .25rem;
+    }
+
+    button[type=submit] {
+        background-color: $secondary-color;
+        font-weight: 700;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: .8rem 1rem;
+    }
+
+    .note {
+        font-size: 0.875rem;
+        color: $primary-color-600;
+        margin-bottom: 0;
+    }
+
+    .error {
+        font-size: 0.875rem;
+        color: $error-text-color;
+    }
+}
+
+.custom-amount-input {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px dotted $primary-color;
+    width: 4.25rem;
+    outline: none;
+    color: inherit;
+    font-size: inherit;
+    font-weight: 700;
+
+    &::placeholder {
+        color: $primary-color-400;
+        transition: color 150ms linear;
+    }
+
+    &:focus::placeholder {
+        color: $primary-color-200;
+    }
+}
+
+.donate-success-page {
+    text-align: center;
+
+    h1 {
+        font-size: 3rem;
+    }
+}
