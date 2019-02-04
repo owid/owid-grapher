@@ -19,7 +19,7 @@ const MAX_DONATION = 100000
 export class DonateForm extends React.Component {
     @observable interval: Interval = "monthly"
     @observable presetAmount?: number = MONTHLY_DONATION_AMOUNTS[2]
-    @observable customAmount?: string
+    @observable customAmount: string = ""
     @observable isCustom: boolean = false
 
     @observable errorMessage?: string
@@ -34,7 +34,7 @@ export class DonateForm extends React.Component {
         this.isCustom = false
     }
 
-    @action.bound setCustomAmount(amount?: string) {
+    @action.bound setCustomAmount(amount: string) {
         this.customAmount = amount
         this.isCustom = true
     }
