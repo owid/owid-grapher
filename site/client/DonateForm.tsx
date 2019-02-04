@@ -62,7 +62,7 @@ export class DonateForm extends React.Component {
         return this.interval === "monthly" ? MONTHLY_DONATION_AMOUNTS : ONETIME_DONATION_AMOUNTS
     }
 
-    @bind submitDonation(event: React.FormEvent) {
+    @bind async submitDonation(event: React.FormEvent) {
         event.preventDefault()
 
         if (!this.amount || (this.amount > MAX_DONATION || this.amount < MIN_DONATION)) {
@@ -72,18 +72,20 @@ export class DonateForm extends React.Component {
 
         this.errorMessage = undefined
 
-        stripe.redirectToCheckout({
-            items: [this.stripeItem],
-            successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
-            cancelUrl: `${BAKED_BASE_URL}/donate`
-        })
-        .then((result: { error: any }) => {
+        try {
+            const result: { error: any } = await stripe.redirectToCheckout({
+                items: [this.stripeItem],
+                successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+                cancelUrl: `${BAKED_BASE_URL}/donate`
+            })
             if (result.error) {
                 // If `redirectToCheckout` fails due to a browser or network
                 // error, display the localized error message to your customer.
                 this.errorMessage = result.error.message
             }
-        })
+        } catch (error) {
+            this.errorMessage = error && error.message
+        }
     }
 
     render() {
