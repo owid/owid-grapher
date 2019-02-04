@@ -47,6 +47,7 @@ export const DonatePage = () => {
 
             <SiteFooter/>
 
+            <script src="https://js.stripe.com/v3/" />
             <script dangerouslySetInnerHTML={{__html: `
                 runDonateForm()
             `}}/>
