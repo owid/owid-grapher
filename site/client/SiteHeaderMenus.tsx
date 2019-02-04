@@ -237,9 +237,7 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
             </div>
             <div className="submenu" ref={this.submenuRef}>
                 {activeCategory && activeCategory.entries.map((entry) => <a key={entry.title} href={`/${entry.slug}`} className="item">
-                    <span className="label">
-                        { entry.slug === window.location.pathname.slice(1) && <FontAwesomeIcon icon={faEye} />} {entry.title}
-                    </span>
+                    <span className="label">{entry.title}</span>
                 </a>)}
             </div>
         </div>
