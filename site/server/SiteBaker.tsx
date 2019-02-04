@@ -14,16 +14,16 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, entriesByYearPage } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
 import * as React from 'react'
-import { embedSnippet } from './embedCharts';
-import { ChartConfigProps } from 'charts/ChartConfig';
-import { getVariableData } from 'db/model/Variable';
-import { ChartPage } from './views/ChartPage';
-import { bakeImageExports } from './svgPngExport';
-import { Post } from 'db/model/Post';
+import { embedSnippet } from './embedCharts'
+import { ChartConfigProps } from 'charts/ChartConfig'
+import { getVariableData } from 'db/model/Variable'
+import { ChartPage } from './views/ChartPage'
+import { bakeImageExports } from './svgPngExport'
+import { Post } from 'db/model/Post'
 
 // Static site generator using Wordpress
 
@@ -36,7 +36,7 @@ export class SiteBaker {
     grapherExports!: GrapherExports
     stagedFiles: string[] = []
     constructor(props: SiteBakerProps) {
-        this.props = props;
+        this.props = props
     }
 
     async bakeRedirects() {
@@ -168,6 +168,7 @@ export class SiteBaker {
     async bakeSpecialPages() {
         await this.stageWrite(`${BAKED_SITE_DIR}/index.html`, await renderFrontPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/subscribe.html`, await renderSubscribePage())
+        await this.stageWrite(`${BAKED_SITE_DIR}/donate.html`, await renderDonatePage())
         await this.stageWrite(`${BAKED_SITE_DIR}/charts.html`, await renderChartsPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/search.html`, await renderSearchPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())
@@ -371,7 +372,7 @@ export class SiteBaker {
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         // Ensure there is a git repo in there
         await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
-        
+
         // for (const files of chunk(this.stagedFiles, 100)) {
         //     this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
         // }

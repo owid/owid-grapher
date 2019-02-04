@@ -12,7 +12,7 @@ export const SiteFooter = () => {
             <a href="https://twitter.com/OurWorldInData">Twitter</a>
             <a href="https://www.facebook.com/OurWorldinData">Facebook</a>
             <a href="https://github.com/owid">GitHub</a>
-            <a href="/support">Donate</a>
+            <a href="/donate">Donate</a>
         </nav>
         <div className="feedbackPromptContainer"></div>
         <script src={webpack('commons.js', 'site')}/>

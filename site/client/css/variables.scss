@@ -12,12 +12,22 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 /* Oxford Blue */
 $primary-color: #002147;
-$primary-color-lighter-1: #193F6A;
-$primary-color-lighter-2: #31537D;
-$primary-color-lighter-3: #416592;
-$primary-color-lighter-4: #6382A8;
-$primary-color-lighter-5: #b5c6db;
-$primary-color-lighter-6: #E9EEF2;
+$primary-color-1000: $primary-color;
+$primary-color-900: #0D2E54;
+$primary-color-800: #1D3D63;
+$primary-color-700: #365578;
+$primary-color-600: #577291;
+$primary-color-500: #6E87A2;
+$primary-color-400: #92A5BB;
+$primary-color-300: #C0CCDA;
+$primary-color-200: #D8E0E9;
+$primary-color-100: #EBEEF2;
+
+/* Blood Orange */
+$secondary-color: #D42B21;
+
+/* Highlight color */
+$highlight-color: #F8C723;
 
 /* Category colors */
 $population-color: #2082a2;
@@ -39,7 +49,9 @@ $culture-color: #d76db6;
 
 $body-bg: #fafafa;
 
-$text-color: #2e4057;
+// $text-color: #2e4057;
+$text-color: $primary-color-800;
+$error-text-color: $secondary-color;
 
 
 /*******************************************************************************

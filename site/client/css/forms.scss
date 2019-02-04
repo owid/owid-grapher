@@ -1,0 +1,106 @@
+$radio-icon-size: 18px;
+$radio-bullet-size: 8px;
+
+.radios {
+    display: block;
+}
+
+.radio {
+    display: inline-block;
+    position: relative;
+    padding-left: $radio-icon-size;
+    margin-right: .5rem;
+    margin-bottom: .75rem;
+
+    input[type=radio] {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        width: $radio-icon-size;
+        height: $radio-icon-size;
+        cursor: pointer;
+        margin: 0;
+        opacity: 0;
+    }
+
+    input[type=radio] + label::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: $radio-icon-size;
+        height: $radio-icon-size;
+        margin-top: -$radio-icon-size / 2;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        background: transparent;
+    }
+
+    input[type=radio]:focus + label::before {
+        box-shadow: 0 0 0 4px $highlight-color;
+    }
+
+    input[type=radio]:checked + label::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: ($radio-icon-size - $radio-bullet-size) / 2;
+        width: $radio-bullet-size;
+        height: $radio-bullet-size;
+        margin-top: -$radio-bullet-size / 2;
+        border: 2px solid transparent;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    label {
+        padding: .5rem;
+    }
+}
+
+fieldset, legend {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.text-field-block {
+    label {
+        display: block;
+    }
+    input {
+        font-family: inherit;
+        font-size: 1.125rem;
+        font-weight: 700;
+        display: block;
+        color: inherit;
+        padding: .5rem;
+        border: 1px solid $primary-color-300;
+        outline: none;
+        &:focus {
+            border-color: $primary-color-300;
+        }
+    }
+}
+
+input, button {
+    font-family: $sans-serif-font-stack;
+}
+
+button {
+    cursor: pointer;
+    transition: opacity 150ms ease;
+
+    &:hover {
+        opacity: .85;
+    }
+    &:focus {
+        outline: 4px solid $highlight-color;
+    }
+}
+
+button[disabled] {
+    opacity: .5;
+    cursor: default;
+}

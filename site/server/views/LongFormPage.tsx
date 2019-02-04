@@ -41,9 +41,9 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                 <article className="page">
                     <header className="articleHeader">
                         <h1 className="entry-title">{post.title}</h1>
-                        <div className="authors-byline">
+                        {!formattingOptions.hideAuthors && <div className="authors-byline">
                             <a href="/about/#team">by {authorsText}</a>
-                        </div>
+                        </div>}
                     </header>
 
                     <div className="contentContainer">

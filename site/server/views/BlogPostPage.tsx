@@ -27,7 +27,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
                         <header className="articleHeader">
                             <h1 className="entry-title">{post.title}</h1>
                             <div className="entry-meta">
-                                <time>{formatDate(post.date)}</time> by {formatAuthors(post.authors)}
+                                <time>{formatDate(post.date)}</time> {!formattingOptions.hideAuthors && `by ${formatAuthors(post.authors)}`}
                             </div>
                         </header>
                         <div className="article-content" dangerouslySetInnerHTML={{__html: post.html}}/>

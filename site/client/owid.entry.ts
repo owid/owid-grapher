@@ -11,6 +11,7 @@ import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {runSearchPage} from './SearchPageMain'
 import {runFeedback} from './Feedback'
+import {runDonateForm} from './DonateForm'
 import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
@@ -23,6 +24,7 @@ window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
 window.runFeedback = runFeedback
+window.runDonateForm = runDonateForm
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 
@@ -52,4 +54,3 @@ if (trackedLinkExists) {
         }
     })
 }
-

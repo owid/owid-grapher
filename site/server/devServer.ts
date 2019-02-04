@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, entriesByYearPage} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
@@ -51,6 +51,10 @@ devServer.get('/grapher/:slug', async (req, res) => {
 
 devServer.get('/', async (req, res) => {
     res.send(await renderFrontPage())
+})
+
+devServer.get('/donate', async (req, res) => {
+    res.send(await renderDonatePage())
 })
 
 devServer.get('/charts', async (req, res) => {

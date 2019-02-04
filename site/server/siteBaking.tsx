@@ -6,6 +6,7 @@ import {BlogIndexPage} from './views/BlogIndexPage'
 import {FrontPage} from './views/FrontPage'
 import {ChartsIndexPage, ChartIndexItem} from './views/ChartsIndexPage'
 import {SearchPage} from './views/SearchPage'
+import {DonatePage} from './views/DonatePage'
 import SubscribePage from './views/SubscribePage'
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
@@ -20,11 +21,11 @@ import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
 import { JsonError } from "utils/server/serverUtil"
 import { Chart } from 'db/model/Chart'
-import { Post } from "db/model/Post";
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings";
+import { Post } from "db/model/Post"
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment = require("moment")
 import * as urljoin from 'url-join'
-import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage";
+import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -113,6 +114,9 @@ export async function renderFrontPage() {
     const entries = await wpdb.getEntriesByCategory()
     return renderToHtmlPage(<FrontPage entries={entries} posts={posts}/>)
 }
+export async function renderDonatePage() {
+    return renderToHtmlPage(<DonatePage/>)
+}
 
 export async function renderSubscribePage() {
     return renderToHtmlPage(<SubscribePage/>)
@@ -166,7 +170,7 @@ ${urls.map(url => `    <url>
         <lastmod>${url.lastmod}</lastmod>
     </url>`).join("\n")}
 </urlset>`
-    
+
     return sitemap
 }
 
