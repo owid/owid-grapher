@@ -13,7 +13,9 @@ export async function exec(command: string): Promise<string> {
     try {
         return await promisifiedExec(command)
     } catch (err) {
-        throw new Error(`Received exit code ${err} from: ${command}`)
+        const error = new Error(`Received exit code ${err} from: ${command}`);
+        (error as any).code = err
+        throw error
     }
 }
 
@@ -22,7 +24,7 @@ export async function tryExec(command: string): Promise<string> {
         return await exec(command)
     } catch (error) {
         console.error(error)
-        return error
+        return error.code
     }
 }
 
