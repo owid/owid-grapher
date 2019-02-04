@@ -8,7 +8,7 @@ describe('serverUtil', () => {
         })
 
         it('should reject when there is a non-zero exit code', () => {
-            expect(exec(`echo "does not work"; exit 1`)).rejects.toEqual(1)
+            expect(exec(`echo "does not work"; exit 1`)).rejects.toBeInstanceOf(Error)
         })
     })
 
