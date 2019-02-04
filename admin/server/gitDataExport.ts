@@ -2,7 +2,6 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 import {quote} from 'shell-quote'
 import * as util from 'util'
-
 import { JsonError, filenamify, exec } from 'utils/server/serverUtil'
 import { Dataset } from 'db/model/Dataset'
 import { Source } from 'db/model/Source'
@@ -30,7 +29,11 @@ export async function removeDatasetFromGitRepo(datasetName: string, namespace: s
         return
     }
 
-    await execFormatted(`cd %s && rm -rf %s && git add -A %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push`, [repoDir, `${repoDir}/datasets/${datasetName}`, `${repoDir}/datasets/${datasetName}`, `Removing ${datasetName}`])
+    if (!fs.existsSync(`${repoDir}/datasets/${datasetName}`)) {
+        return
+    }
+
+    await execFormatted(`cd %s && rm -rf %s && git add -A %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>" && git push()`, [repoDir, `${repoDir}/datasets/${datasetName}`, `${repoDir}/datasets/${datasetName}`, `Removing ${datasetName}`])
 }
 
 export async function syncDatasetToGitRepo(datasetId: number, options: { transaction?: db.TransactionContext, oldDatasetName?: string, commitName?: string, commitEmail?: string, commitOnly?: boolean } = {}) {
@@ -85,5 +88,5 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
     }
 
     const commitMsg = isNew ? `Adding ${dataset.filename}` : `Updating ${dataset.filename}`
-    await execFormatted(`cd %s && git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>"${commitOnly ? "" : " && git push"}`, [repoDir, commitMsg])
+    await execFormatted(`cd %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${commitName||GIT_DEFAULT_USERNAME} <${commitEmail||GIT_DEFAULT_EMAIL}>"${commitOnly ? "" : " && git push))"}`, [repoDir, commitMsg])
 }

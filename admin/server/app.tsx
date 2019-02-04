@@ -6,7 +6,6 @@ import "reflect-metadata"
 import { AdminSPA } from './AdminSPA'
 import {authMiddleware} from './authentication'
 import { api } from './api'
-// import { devServer } from '.site/devServer'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
 import {renderToHtmlPage} from 'utils/server/serverUtil'
@@ -28,7 +27,6 @@ app.use(authMiddleware)
 
 app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
-// app.use('/grapher', devServer)
 
 app.use('/admin/build', express.static('dist/webpack'))
 app.use('/admin', adminViews)
@@ -48,9 +46,9 @@ if (SLACK_ERRORS_WEBHOOK_URL) {
 app.use(async (err: any, req: any, res: express.Response, next: any) => {
     if (!res.headersSent) {
         res.status(err.status||500)
-        res.send({ error: { message: err.stack, status: err.status||500 } })
+        res.send({ error: { message: err.stack||err, status: err.status||500 } })
     } else {
-        res.write(JSON.stringify({ error: { message: err.stack, status: err.status||500 } }))
+        res.write(JSON.stringify({ error: { message: err.stack||err, status: err.status||500 } }))
         res.end()
     }
 })

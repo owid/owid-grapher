@@ -10,14 +10,18 @@ import * as shell from 'shelljs'
 export const promisifiedExec = util.promisify(shell.exec)
 
 export async function exec(command: string): Promise<string> {
-    return promisifiedExec(command)
+    try {
+        return await promisifiedExec(command)
+    } catch (err) {
+        throw new Error(`Received exit code ${err} from: ${command}`)
+    }
 }
 
 export async function tryExec(command: string): Promise<string> {
     try {
         return await exec(command)
     } catch (error) {
-        console.log(error)
+        console.error(error)
         return error
     }
 }
