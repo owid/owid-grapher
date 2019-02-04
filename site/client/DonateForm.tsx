@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { observable, action, computed } from 'mobx'
+import { observable, action, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { bind } from 'decko'
 import { BAKED_BASE_URL } from 'settings'
@@ -70,7 +70,7 @@ export class DonateForm extends React.Component {
             return
         }
 
-        this.errorMessage = undefined
+        runInAction(() => this.errorMessage = undefined)
 
         try {
             const result: { error: any } = await stripe.redirectToCheckout({
@@ -81,10 +81,10 @@ export class DonateForm extends React.Component {
             if (result.error) {
                 // If `redirectToCheckout` fails due to a browser or network
                 // error, display the localized error message to your customer.
-                this.errorMessage = result.error.message
+                runInAction(() => this.errorMessage = result.error.message)
             }
         } catch (error) {
-            this.errorMessage = error && error.message
+            runInAction(() => this.errorMessage = error && error.message)
         }
     }
 
