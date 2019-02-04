@@ -65,7 +65,7 @@ export class DonateForm extends React.Component {
     @bind submitDonation(event: React.FormEvent) {
         event.preventDefault()
 
-        if (this.amount !== undefined && (this.amount > MAX_DONATION || this.amount < MIN_DONATION)) {
+        if (!this.amount || (this.amount > MAX_DONATION || this.amount < MIN_DONATION)) {
             this.errorMessage = "You can only donate between $0.50 and $100,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
             return
         }
