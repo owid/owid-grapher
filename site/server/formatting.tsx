@@ -281,6 +281,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
 export interface FormattingOptions {
     toc?: boolean,
+    hideAuthors?: boolean,
     wpFormat?: boolean,
     bodyClassName?: string,
     [key: string]: string | boolean | undefined
