@@ -235,7 +235,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
 
     const pageRows = await wpdb.query(`
         SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
-        WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC
+        WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC, posts.post_title ASC
     `)
 
     const permalinks = await getPermalinks()
