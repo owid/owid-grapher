@@ -55,10 +55,15 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.tooltipTarget = undefined
     }
 
-    @action.bound onClick(d: GeoFeature) {
-        const { chartView, chart } = this.context
+    // Determine if we can go to line chart by clicking on a map entity
+    @computed get isEntityClickable() {
+        return this.context.chart.hasChartTab && !this.context.chartView.isMobile
+    }
 
-        if (chartView.isMobile || !chart.hasChartTab) return
+    @action.bound onClick(d: GeoFeature) {
+        if (!this.isEntityClickable) return
+
+        const { chart } = this.context
         const entity = this.props.mapToDataEntities[d.id as string]
         const datakeys = chart.data.availableKeysByEntity.get(entity)
 
@@ -133,6 +138,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                         <span>{formatYear(tooltipDatum.year)}</span>
                     </div>}
                 </p>
+                {this.isEntityClickable && <div className="tooltipHint">
+                    <hr/>
+                    <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>Click to see change over time</p>
+                </div>}
             </Tooltip>}
         </g>
     }
@@ -171,7 +180,7 @@ export class MapTab extends React.Component<MapTabProps> {
         const { bounds } = this.props
         const { header, footer } = this
 
-        return <g className="mapTab">
+        return <g className="MapTab">
             {header.render(bounds.x, bounds.y)}
             <MapWithLegend
                 bounds={bounds.padTop(header.height + 5).padBottom(footer.height)}

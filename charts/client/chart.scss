@@ -498,6 +498,14 @@ figure[data-grapher-src]:empty:after {
         }
     }
 
+    .tooltipHint {
+        hr {
+            margin-bottom: 0.2em;
+            margin-top: 0.2em;
+        }
+        opacity: 0.7;
+    }
+
     .DataSelectorSingle { 
         position: absolute;
         left: 0;
