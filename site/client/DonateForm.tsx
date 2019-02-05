@@ -95,14 +95,14 @@ export class DonateForm extends React.Component {
                 <legend>
                     <h3>Donation type</h3>
                 </legend>
-                <div className="radios">
-                    <div className="radio">
+                <div className="owid-radios">
+                    <div className="owid-radio">
                         <input type="radio" id="once" value="once" name="interval" onChange={() => this.setInterval("once")} checked={this.interval === "once"} />
                         <label htmlFor="once">
                             One time
                         </label>
                     </div>
-                    <div className="radio">
+                    <div className="owid-radio">
                         <input type="radio" id="monthly" value="monthly" name="interval" onChange={() => this.setInterval("monthly")} checked={this.interval === "monthly"} />
                         <label htmlFor="monthly">
                             Monthly
@@ -117,14 +117,14 @@ export class DonateForm extends React.Component {
                 </legend>
                 <div className="radios">
                     {this.intervalAmounts.map(amount =>
-                        <div key={amount} className="radio">
+                        <div key={amount} className="owid-radio">
                             <input type="radio" id={`amount-${amount}`} value={amount} name="amount" onChange={() => this.setPresetAmount(amount)} checked={amount === this.presetAmount && !this.isCustom} />
                             <label htmlFor={`amount-${amount}`}>
                                 ${amount}
                             </label>
                         </div>
                     )}
-                    <div className="radio custom-radio">
+                    <div className="owid-radio custom-radio">
                         <input type="radio" id="custom" name="amount" checked={this.isCustom} onChange={(event) => this.setIsCustom(event.target.checked)} />
                         <label htmlFor="custom">
                             $<input type="text" placeholder="Other" name="custom-amount" className="custom-amount-input" onChange={(event) => this.setCustomAmount(event.target.value)} value={this.customAmount} />
@@ -138,7 +138,7 @@ export class DonateForm extends React.Component {
                 <legend>
                     <h3>Your name</h3>
                 </legend>
-                <div className="text-field-block">
+                <div className="owid-block-field">
                     <input type="text" id="full-name" name="full-name" />
                     <p className="note">
                         We will not publish your name without your permission
@@ -150,7 +150,7 @@ export class DonateForm extends React.Component {
                 {this.errorMessage}
             </p>}
 
-            <button type="submit">
+            <button type="submit" className="owid-button">
                 Continue using credit card
             </button>
 

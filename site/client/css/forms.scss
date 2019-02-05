@@ -1,11 +1,23 @@
+/* Reset
+   ========================================================================== */
+
+fieldset, legend {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* Radio buttons
+   ========================================================================== */
+
 $radio-icon-size: 18px;
 $radio-bullet-size: 8px;
 
-.radios {
+.owid-radios {
     display: block;
 }
 
-.radio {
+.owid-radio {
     display: inline-block;
     position: relative;
     padding-left: $radio-icon-size;
@@ -59,38 +71,36 @@ $radio-bullet-size: 8px;
     }
 }
 
-fieldset, legend {
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
+/* Text fields
+   ========================================================================== */
 
-.text-field-block {
-    label {
-        display: block;
-    }
-    input {
-        font-family: inherit;
-        font-size: 1.125rem;
-        font-weight: 700;
-        display: block;
-        color: inherit;
-        padding: .5rem;
-        border: 1px solid $primary-color-300;
-        outline: none;
-        &:focus {
-            border-color: $primary-color-300;
-        }
-    }
-}
-
-input, button {
+.owid-text-field {
     font-family: $sans-serif-font-stack;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: inherit;
+    padding: .5rem;
+    border: 1px solid $primary-color-300;
+    outline: none;
+    &:focus {
+        border-color: $primary-color-300;
+    }
 }
 
-button {
-    cursor: pointer;
+.owid-block-field {
+    .owid-block-label {
+        display: block;
+    }
+    .owid-block-input {
+        display: block;
+        font-family: inherit;
+    }
+}
+
+.owid-button {
+    font-family: $sans-serif-font-stack;
     transition: opacity 150ms ease;
+    cursor: pointer;
 
     &:hover {
         opacity: .85;
@@ -100,7 +110,7 @@ button {
     }
 }
 
-button[disabled] {
+.owid-button[disabled], .owid-button.disabled {
     opacity: .5;
     cursor: default;
 }
