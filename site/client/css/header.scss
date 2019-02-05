@@ -56,7 +56,7 @@
     }
 
     a {
-        color: #B0C2D6;
+        color: $primary-color-300;
         &:hover { color: white; }
     }
 }
@@ -447,7 +447,7 @@
     li a {
         color: $primary-color-800;
         padding: .5rem 1rem;
-        border-bottom: 1px solid $primary-color-100;
+        border-bottom: 1px solid rgba($primary-color, .08);
         display: block;
         text-align: center;
 
@@ -478,7 +478,7 @@
         a {
             color: $primary-color;
             padding-left: 1.5rem;
-            border-bottom-color: $primary-color-200;
+            &:hover { background-color: $primary-color-200; }
         }
     }
 }
