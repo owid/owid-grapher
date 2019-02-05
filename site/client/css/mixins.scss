@@ -1,9 +1,10 @@
 @mixin owid-link {
-	color: #3366cc;
-	&:visited {
-		color: #5a3696;
-	}
-	&:hover {
-		text-decoration: underline;
-	}
+    color: $link-color;
+    &:visited {
+        color: $link-visited-color;
+    }
+    &:hover {
+        color: $link-hover-color;
+        text-decoration: underline;
+    }
 }

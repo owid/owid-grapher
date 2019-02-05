@@ -29,6 +29,19 @@ $secondary-color: #D42B21;
 /* Highlight color */
 $highlight-color: #F8C723;
 
+/* Default background color */
+$body-bg: #fafafa;
+
+/* Text colors */
+$text-color: $primary-color-800;
+$secondary-text-color: $primary-color-600;
+$error-text-color: $secondary-color;
+
+/* Hyperlink colors */
+$link-color: #3366cc;
+$link-hover-color: $link-color;
+$link-visited-color: #5a3696;
+
 /* Category colors */
 $population-color: #2082a2;
 $health-color: #cc0000;
@@ -46,12 +59,6 @@ $violence-and-rights-color: #cc235c;
 $education-color: #012d8e;
 $media-color: #0089be;
 $culture-color: #d76db6;
-
-$body-bg: #fafafa;
-
-// $text-color: #2e4057;
-$text-color: $primary-color-800;
-$error-text-color: $secondary-color;
 
 
 /*******************************************************************************

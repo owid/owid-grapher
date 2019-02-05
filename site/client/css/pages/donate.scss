@@ -38,7 +38,7 @@
 
     .note {
         font-size: 0.875rem;
-        color: $primary-color-600;
+        color: $secondary-text-color;
         margin-bottom: 0;
     }
 
@@ -55,6 +55,7 @@
     width: 4.25rem;
     outline: none;
     color: inherit;
+    font-family: inherit;
     font-size: inherit;
     font-weight: 700;
 
