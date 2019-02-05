@@ -8,7 +8,9 @@ import { SiteFooter } from './SiteFooter'
 
 export const DonatePage = () => {
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/donate`} pageTitle="Donate"/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/donate`} pageTitle="Donate">
+            <script src="https://js.stripe.com/v3/" />
+        </Head>
         <body>
             <SiteHeader/>
             <main>
