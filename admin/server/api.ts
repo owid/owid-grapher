@@ -78,7 +78,15 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
 
     if (lastSubprocess) {
         // Terminate any existing build in favor of this new one
-        process.kill(-lastSubprocess.pid)
+        try {
+            process.kill(-lastSubprocess.pid)
+        } catch (err) {
+            // Ignore error if it can't find the process group to kill
+            // It's fine if the previous build already finished
+            if (err.message !== "kill ESRCH") {
+                throw err
+            }
+        }
     }
 
     const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
