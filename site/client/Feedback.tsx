@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { observable, action, runInAction } from "mobx";
 import classnames from 'classnames'
+import { Analytics } from "./Analytics";
 
 @observer
 class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
@@ -17,10 +18,12 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
     dismissable: boolean = true
 
     async sendFeedback() {
+        const sessionId = Analytics.amplitudeSessionId()
+        const message = this.message + `\n\n-----\nCurrent Url: ${window.location.href}` + (sessionId ? `\nAmplitude Session ID: ${sessionId}` : "")
         const feedback = {
             name: this.name,
             email: this.email,
-            message: this.message
+            message: message
         }
         const req = new XMLHttpRequest()
 

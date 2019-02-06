@@ -1,6 +1,10 @@
 declare var window: any
 
 export class Analytics {
+    static amplitudeSessionId(): string|undefined {
+        return window.amplitude ? window.amplitude.getSessionId() : undefined
+    }
+
     static logEvent(name: string, props?: any): Promise<void> {
         props = Object.assign({}, { context: { pageHref: window.location.href, pagePath: window.location.pathname, pageTitle: document.title.replace(/ - [^-]+/, '') } }, props)
 
