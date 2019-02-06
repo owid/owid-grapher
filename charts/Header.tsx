@@ -35,8 +35,8 @@ class Logo {
         return 35
     }
 
-    @computed get origWidth() { return 211 }
-    @computed get origHeight() { return 130 }
+    @computed get origWidth() { return 210 }
+    @computed get origHeight() { return 120 }
 
     @computed get scale(): number {
         return this.origHeight === 0 ? 1 : this.targetHeight / this.origHeight
@@ -83,7 +83,7 @@ export class Header {
         const { props, logoWidth } = this
         let { titleText } = this
 
-        const maxWidth = props.maxWidth - logoWidth - 15
+        const maxWidth = props.maxWidth - logoWidth - 20
         // HACK (Mispy): Stop the title jumping around during timeline transitions
         if (props.chart.data.minYear === props.chart.data.maxYear && props.chart.data.isShowingTimeline) {
             titleText = titleText + " in 2000"
