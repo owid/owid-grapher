@@ -1,7 +1,7 @@
 import * as express from 'express'
 import {Router} from 'express'
 import * as _ from 'lodash'
-import {spawn} from 'child_process'
+import {spawn, ChildProcess} from 'child_process'
 import * as path from 'path'
 import {getConnection} from 'typeorm'
 import * as bodyParser from 'body-parser'
@@ -60,6 +60,8 @@ class FunctionalRouter {
 
 const api = new FunctionalRouter()
 
+let lastSubprocess: ChildProcess|undefined
+
 // Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     if (!BAKE_ON_CHANGE) {
@@ -73,8 +75,15 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
 
     const bakeSite = path.join(BASE_DIR, 'scripts/bakeSite.ts')
     const cmd = `yarn tsn ${bakeSite} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
+
+    if (lastSubprocess) {
+        // Terminate any existing build in favor of this new one
+        process.kill(-lastSubprocess.pid)
+    }
+
     const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
     subprocess.unref()
+    lastSubprocess = subprocess
 }
 
 async function getChartById(chartId: number): Promise<ChartConfigProps|undefined> {
