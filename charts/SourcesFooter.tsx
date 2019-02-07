@@ -155,3 +155,32 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
         </g>
     }
 }
+
+@observer
+export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig }> {
+    base: React.RefObject<SVGGElement> = React.createRef()
+    @observable.ref tooltipTarget?: { x: number, y: number }
+
+    @action.bound onMouseMove(e: MouseEvent) {
+        const cc = this.base.current!.querySelector(".cclogo")
+        if (cc && cc.matches(':hover')) {
+            const mouse = getRelativeMouse(this.base.current, e)
+            this.tooltipTarget = { x: mouse.x, y: mouse.y }
+        } else
+            this.tooltipTarget = undefined
+    }
+
+    componentDidMount() {
+        window.addEventListener("mousemove", this.onMouseMove)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("mousemove", this.onMouseMove)
+    }
+
+    render() {
+        return <footer className="SourcesFooterHTML">
+            <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>            
+        </footer>
+    }
+}

@@ -115,6 +115,44 @@ figure[data-grapher-src]:empty:after {
         fill: #0645ad;
         border-bottom: none;
     }
+
+    /* Chart Layout
+    --------------------------------------------- */
+
+    .HeaderHTML, .SourcesFooterHTML {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 16px; 
+        text-rendering: optimizelegibility; 
+        -webkit-font-smoothing: antialiased;        
+    }
+
+    .HeaderHTML {
+        padding: 15px;
+
+        a {
+            text-decoration: none;
+        }
+
+        h1 {
+            color: #555;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        p {
+            color: #666;
+            margin: 0;
+        }
+
+        .logo {
+            float: right;
+
+            svg {
+                height: 35px !important;
+                width: auto !important;
+            }
+        }
+    }
     
     
     /* Controls Footer

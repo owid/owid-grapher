@@ -102,6 +102,10 @@ export class Header {
         return new TextWrap({ maxWidth: maxWidth, fontSize: fontScale*props.chart.baseFontSize, text: this.titleText, lineHeight: 1 })
     }
 
+    @computed get titleMarginBottom(): number {
+        return 2
+    }
+
     @computed get subtitleWidth() {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight ? this.props.maxWidth : this.props.maxWidth - this.logoWidth - 10
@@ -146,18 +150,25 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
             <a href={chart.url.canonicalUrl} target="_blank">
                 {title.render(props.x, props.y, { fill: "#555" })}
             </a>
-            {subtitle.render(props.x, props.y + title.height + 2, { fill: "#666" })}
+            {subtitle.render(props.x, props.y + title.height + props.header.titleMarginBottom, { fill: "#666" })}
         </g>
     }
 }
 
 @observer
-export class ChartHeader extends React.Component<{ chart: ChartConfig }> {
+export class HeaderHTML extends React.Component<{ chart: ChartConfig, header: Header }> {
     render() {
-        const {chart} = this.props
-        return <div className="ChartHeader">
-            <h1>{chart.data.currentTitle}</h1>
-            <p>{chart.props.subtitle}</p>
+
+
+        const {chart, header} = this.props
+        const logoScale = header.logo && parseFloat(header.logo.scale.toFixed(2))
+    
+        return <div className="HeaderHTML">
+            {logoScale && <div className="logo" dangerouslySetInnerHTML={{ __html: LOGO_SVG }}/>}
+            <a href={chart.url.canonicalUrl} target="_blank">
+                <h1 style={{ fontSize: header.title.fontSize, lineHeight: header.title.lineHeight, marginBottom: header.titleMarginBottom }}>{header.titleText}</h1>
+            </a>
+            <p style={{ fontSize: header.subtitle.fontSize, lineHeight: header.title.lineHeight }}>{header.subtitleText}</p>
         </div>
     }
 }
