@@ -57,7 +57,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     // Determine if we can go to line chart by clicking on a map entity
     @computed get isEntityClickable() {
-        return this.context.chart.hasChartTab && !this.context.chartView.isMobile
+        return this.context.chart.hasChartTab && this.context.chart.isLineChart && !this.context.chartView.isMobile
     }
 
     @action.bound onClick(d: GeoFeature) {
