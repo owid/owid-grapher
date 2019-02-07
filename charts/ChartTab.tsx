@@ -12,30 +12,21 @@ import { LineChart } from './LineChart'
 import { StackedArea } from './StackedArea'
 import { DiscreteBarChart } from './DiscreteBarChart'
 import { StackedBarChart } from './StackedBarChart'
+import { ChartLayout, ChartLayoutView } from './ChartLayout';
 
 @observer
 export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
-    @computed get header() {
+    @computed get layout() {
         const that = this
-
-        return new Header({
+        return new ChartLayout({
             get chart() { return that.props.chart },
-            get maxWidth() { return that.props.bounds.width }
-        })
-    }
-
-    @computed get footer() {
-        const that = this
-        return new SourcesFooter({
-            get chart() { return that.props.chart },
-            get maxWidth() { return that.props.bounds.width }
+            get bounds() { return that.props.bounds }
         })
     }
 
     renderChart() {
         const { chart, chartView } = this.props
-        const { header, footer } = this
-        const bounds = this.props.bounds.padTop(header.height).padBottom(footer.height)
+        const bounds = this.layout.innerBounds
 
         if (chart.isSlopeChart)
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
@@ -54,12 +45,10 @@ export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: C
     }
 
     render() {
-        const { header, footer, props } = this
+        const { chart, bounds } = this.props
 
-        return <g className="ChartTab">
-            {header.render(props.bounds.x, props.bounds.y)}
+        return <ChartLayoutView layout={this.layout}>
             {this.renderChart()}
-            {footer.render(props.bounds.x, props.bounds.bottom - footer.height)}
-        </g>
+        </ChartLayoutView>
     }
 }

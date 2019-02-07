@@ -101,12 +101,8 @@ export class ChartView extends React.Component<ChartViewProps> {
         })
     }
 
-    @computed get svgBounds() {
+    @computed get tabBounds() {
         return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
-    }
-
-    @computed get svgInnerBounds() {
-        return new Bounds(0, 0, this.svgBounds.width, this.svgBounds.height).pad(15)
     }
 
     @observable.ref popups: VNode[] = []
@@ -148,12 +144,12 @@ export class ChartView extends React.Component<ChartViewProps> {
         }
     }
 
-    renderPrimaryTab(bounds: Bounds): JSX.Element | undefined {
-        const { chart } = this
+    renderPrimaryTab(): JSX.Element | undefined {
+        const { chart, tabBounds } = this
         if (chart.primaryTab === 'chart')
-            return <ChartTab bounds={bounds} chartView={this} chart={this.chart} />
+            return <ChartTab bounds={tabBounds} chartView={this} chart={this.chart} />
         else if (chart.primaryTab === 'map')
-            return <MapTab bounds={bounds} chart={this.chart} />
+            return <MapTab bounds={tabBounds} chart={this.chart} />
         else
             return undefined
     }
@@ -171,28 +167,16 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderSVG() {
-        const { chart, svgBounds, svgInnerBounds } = this
-
-        const svgStyle = {
-            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: chart.baseFontSize,
-            backgroundColor: "white",
-            textRendering: "optimizeLegibility",
-            WebkitFontSmoothing: "antialiased"
-        }
-
-        return <svg key="chartSVG" xmlns="http://www.w3.org/2000/svg" version="1.1" style={svgStyle as any} width={svgBounds.width} height={svgBounds.height}>
-            {this.renderPrimaryTab(svgInnerBounds)}
-        </svg>
+        return this.renderPrimaryTab()
     }
 
     renderReady() {
-        const { svgBounds, chart } = this
+        const { tabBounds, chart } = this
 
         return <React.Fragment>
             {this.hasBeenVisible && this.renderSVG()}
             <ControlsFooterView controlsFooter={this.controlsFooter}/>
-            {this.renderOverlayTab(svgBounds)}
+            {this.renderOverlayTab(tabBounds)}
             {this.popups}
             <TooltipView/>
             {this.isSelectingData && <DataSelector key="dataSelector" chart={chart} chartView={this} onDismiss={action(() => this.isSelectingData = false)} />}

@@ -150,3 +150,14 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
         </g>
     }
 }
+
+@observer
+export class ChartHeader extends React.Component<{ chart: ChartConfig }> {
+    render() {
+        const {chart} = this.props
+        return <div className="ChartHeader">
+            <h1>{chart.data.currentTitle}</h1>
+            <p>{chart.props.subtitle}</p>
+        </div>
+    }
+}
