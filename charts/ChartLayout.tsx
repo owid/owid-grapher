@@ -17,7 +17,7 @@ export class ChartLayout {
         this.props = props
     }
 
-    @computed get bounds() {
+    @computed get paddedBounds() {
         return this.props.bounds.pad(15)
     }
 
@@ -26,7 +26,7 @@ export class ChartLayout {
 
         return new Header({
             get chart() { return that.props.chart },
-            get maxWidth() { return that.bounds.width }
+            get maxWidth() { return that.paddedBounds.width }
         })
     }
 
@@ -34,12 +34,24 @@ export class ChartLayout {
         const that = this
         return new SourcesFooter({
             get chart() { return that.props.chart },
-            get maxWidth() { return that.bounds.width }
+            get maxWidth() { return that.paddedBounds.width }
         })
     }
 
+    @computed get isHTML(): boolean {
+        return true
+    }
+
+    @computed get svgWidth() {
+        return this.props.bounds.width
+    }
+
+    @computed get svgHeight() {
+        return this.isHTML ? this.props.bounds.height-this.header.height-this.footer.height-30 : this.props.bounds.height
+    }
+
     @computed get innerBounds() {
-        return this.bounds.padTop(this.header.height).padBottom(this.footer.height)
+        return this.isHTML ? new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15) : this.paddedBounds.padTop(this.header.height).padBottom(this.footer.height)
     }
 }
 
@@ -56,26 +68,24 @@ export class ChartLayoutView extends React.Component<{ layout: ChartLayout, chil
 
     renderWithSVGText() {
         const { layout } = this.props
-        const { bounds } = layout
+        const { paddedBounds } = layout
 
-        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.props.bounds.width} height={layout.props.bounds.height}>
-            {layout.header.render(bounds.x, bounds.y)}
+        return <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.svgWidth} height={layout.svgHeight}>
+            {layout.header.render(paddedBounds.x, paddedBounds.y)}
             {this.props.children}
-            {layout.footer.render(bounds.x, bounds.bottom-layout.footer.height)}
+            {layout.footer.render(paddedBounds.x, paddedBounds.bottom-layout.footer.height)}
         </svg>
     }
 
     renderWithHTMLText() {
         const { layout } = this.props
-        const { bounds } = layout
 
         return <div>
             <HeaderHTML chart={layout.props.chart} header={layout.header}/>
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.props.bounds.width} height={layout.props.bounds.height}>
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.svgWidth} height={layout.svgHeight}>
                 {this.props.children}
-                {layout.footer.render(bounds.x, bounds.bottom-layout.footer.height)}
             </svg>
-            <SourcesFooterHTML chart={layout.props.chart}/>
+            <SourcesFooterHTML chart={layout.props.chart} footer={layout.footer}/>
         </div> 
     }
 

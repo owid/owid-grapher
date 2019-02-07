@@ -7,7 +7,7 @@ import {renderToHtmlPage} from 'utils/server/serverUtil'
 import {chartToSVG} from 'site/server/svgPngExport'
 import { OldChart, Chart } from 'db/model/Chart'
 import * as db from 'db/db'
-import {ADMIN_BASE_URL, BAKED_GRAPHER_URL} from 'settings'
+import {ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL} from 'settings'
 import {expectInt} from 'utils/server/serverUtil'
 import * as querystring from 'querystring'
 import * as _ from 'lodash'
@@ -88,7 +88,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             <div className="row">
                 <div className="side-by-side">
                     <h3>ourworldindata.org</h3>
-                    {!IS_LIVE && <h3>{ADMIN_BASE_URL}</h3>}
+                    {!IS_LIVE && <h3>{BAKED_BASE_URL}</h3>}
                 </div>
             </div>
             {props.charts.map(chart =>
