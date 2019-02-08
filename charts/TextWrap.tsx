@@ -89,11 +89,11 @@ export class TextWrap {
         return <React.Fragment>
             {lines.map((line, i) => {
                 if (props.raw)
-                    return <React.Fragment>
-                        <span key={i} dangerouslySetInnerHTML={{ __html: line.text }} /><br/>
+                    return <React.Fragment key={i}>
+                        <span dangerouslySetInnerHTML={{ __html: line.text }} /><br/>
                     </React.Fragment>
                 else
-                    return <React.Fragment>
+                    return <React.Fragment key={i}>
                         {strip(line.text)}<br/>
                     </React.Fragment>
             })}
