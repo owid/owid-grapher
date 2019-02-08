@@ -176,7 +176,7 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
 
         return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{color: "#777"}}>
             {footer.isCompact && license}
-            <p style={footer.sources.htmlStyle}>{footer.sources.renderHTML()}</p>
+            <p style={footer.sources.htmlStyle} className="clickable" onClick={footer.onSourcesClick}>{footer.sources.renderHTML()}</p>
             {footer.note && <p style={footer.note.htmlStyle}>{footer.note.renderHTML()}</p>}
             {!footer.isCompact && license}
             {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
