@@ -4,6 +4,7 @@ import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartConfig } from './ChartConfig'
 const isNode: boolean = require('detect-node')
+const linkifyHtml = require('linkifyjs/html')
 
 interface LogoProps {
     svg: string
@@ -69,7 +70,7 @@ export class Header {
     }
 
     @computed get subtitleText() {
-        return this.props.chart.subtitle
+        return linkifyHtml(this.props.chart.subtitle)
     }
 
     @computed get logo(): Logo|undefined {
@@ -102,6 +103,10 @@ export class Header {
         return new TextWrap({ maxWidth: maxWidth, fontSize: fontScale*props.chart.baseFontSize, text: this.titleText, lineHeight: 1 })
     }
 
+    @computed get titleMarginBottom(): number {
+        return 2
+    }
+
     @computed get subtitleWidth() {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight ? this.props.maxWidth : this.props.maxWidth - this.logoWidth - 10
@@ -120,7 +125,7 @@ export class Header {
         if (this.props.chart.isMediaCard)
             return 0
         else
-            return Math.max(this.title.height + this.subtitle.height + 2, this.logoHeight)
+            return Math.max(this.title.height + this.subtitle.height, this.logoHeight)
     }
 
     render(x: number, y: number) {
@@ -146,7 +151,27 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
             <a href={chart.url.canonicalUrl} target="_blank">
                 {title.render(props.x, props.y, { fill: "#555" })}
             </a>
-            {subtitle.render(props.x, props.y + title.height + 2, { fill: "#666" })}
+            {subtitle.render(props.x, props.y + title.height + props.header.titleMarginBottom, { fill: "#666" })}
         </g>
+    }
+}
+
+@observer
+export class HeaderHTML extends React.Component<{ chart: ChartConfig, header: Header }> {
+    render() {
+
+
+        const {chart, header} = this.props
+        const logoScale = header.logo && parseFloat(header.logo.scale.toFixed(2))
+
+        // const linkifySubtitle = linkifyHtml(header.subtitleText)
+        
+        return <div className="HeaderHTML">
+            {logoScale && <div className="logo" dangerouslySetInnerHTML={{ __html: LOGO_SVG }}/>}
+            <a href={chart.url.canonicalUrl} target="_blank">
+                <h1 style={header.title.htmlStyle}>{header.title.renderHTML()}</h1>
+            </a>
+            <p style={header.subtitle.htmlStyle}>{header.subtitle.renderHTML()}</p>
+        </div>
     }
 }

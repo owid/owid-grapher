@@ -219,7 +219,7 @@ export class ChartConfig {
 
     ensureValidConfig() {
         autorun(() => {
-            if (!includes(this.availableTabs, this.props.tab)) {
+            if (!this.availableTabs.includes(this.props.tab)) {
                 runInAction(() => this.props.tab = this.availableTabs[0])
             }
         })

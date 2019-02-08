@@ -45,7 +45,7 @@ export class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize})
+            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize })
 
             if (nextBounds.width > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
@@ -70,6 +70,36 @@ export class TextWrap {
         return defaultTo(max(this.lines.map(l => l.width)), 0)
     }
 
+    @computed get htmlStyle(): any {
+        const { fontSize, lineHeight } = this
+        return {fontSize: fontSize.toFixed(2)+'px', lineHeight: lineHeight, overflowY: 'visible'}
+    }
+
+    renderHTML() {
+        const { props, lines } = this
+
+        if (lines.length === 0)
+            return null
+
+        // if (props.raw)
+        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options} dangerouslySetInnerHTML={{__html: text}}/>
+        // else
+        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options}>{strip(text)}</p>
+
+        return <React.Fragment>
+            {lines.map((line, i) => {
+                if (props.raw)
+                    return <React.Fragment>
+                        <span key={i} dangerouslySetInnerHTML={{ __html: line.text }} /><br/>
+                    </React.Fragment>
+                else
+                    return <React.Fragment>
+                        {strip(line.text)}<br/>
+                    </React.Fragment>
+            })}
+        </React.Fragment>
+    }
+
     render(x: number, y: number, options?: any) {//React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, lineHeight } = this
 
@@ -78,7 +108,7 @@ export class TextWrap {
 
         const yOffset = y + lines[0].height - lines[0].height * 0.2
         return <text fontSize={fontSize.toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
-            {map(lines, (line, i) => {
+            {lines.map((line, i) => {
                 if (props.raw)
                     return <tspan key={i} x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
                 else

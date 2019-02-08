@@ -43,28 +43,38 @@ export class SourcesFooter {
         return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
     }
 
-    @computed get licenseSvg(): string {
-        if (this.props.chart.isNativeEmbed)
-            return this.ccSvg
-
+    @computed get finalUrl(): string {
         const { originUrl } = this.props.chart.data
-        let licenseSvg = `*data-entry* • ${this.ccSvg}`
+        const url = parseUrl(originUrl)
+        return `https://${url.hostname}${url.pathname}`
+    }
+
+    @computed get finalUrlText(): string|undefined {
+        const { originUrl } = this.props.chart.data
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
         if (originUrl && originUrl.toLowerCase().match(/^https?:\/\/./)) {
             const url = parseUrl(originUrl)
-            const finalUrl = `https://${url.hostname}${url.pathname}`
             const finalUrlText = `${url.hostname}${url.pathname}`.replace("ourworldindata.org", "OurWorldInData.org")
-            if (Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
-                return this.ccSvg
+            if (this.props.chart.isNativeEmbed || Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
+                return undefined
+            else
+                return finalUrlText
+        } else {
+            return undefined
+        }
+    }
 
+    @computed get licenseSvg(): string {
+        const { finalUrl, finalUrlText } = this
+        if (finalUrlText) {
+            let licenseSvg = `*data-entry* • ${this.ccSvg}`
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + finalUrlText + "</a>")
+            return licenseSvg
         } else {
             return this.ccSvg
         }
-
-        return licenseSvg
     }
 
     @computed get fontSize() {
@@ -117,7 +127,24 @@ export class SourcesFooter {
 
 @observer
 class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX: number, targetY: number }> {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    render() {
+        const { targetX, targetY } = this.props
+        const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this.props.footer
+
+        return <g className="SourcesFooter" style={{ fill: "#777" }}>
+            <g className="clickable" onClick={onSourcesClick} style={{ fill: "#777" }}>{sources.render(targetX, targetY)}</g>
+            {note.render(targetX, targetY + sources.height + paraMargin)}
+            {isCompact
+                ? license.render(targetX + maxWidth - license.width, targetY)
+                : license.render(targetX, targetY + sources.height + paraMargin + (note.height ? note.height + paraMargin : 0))
+            }
+        </g>
+    }
+}
+
+@observer
+export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, footer: SourcesFooter }> {
+    base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref tooltipTarget?: { x: number, y: number }
 
     @action.bound onMouseMove(e: MouseEvent) {
@@ -138,20 +165,23 @@ class SourcesFooterView extends React.Component<{ footer: SourcesFooter, targetX
     }
 
     render() {
-        const { targetX, targetY } = this.props
-        const { sources, note, license, maxWidth, isCompact, paraMargin, onSourcesClick } = this.props.footer
+        const { footer } = this.props
         const { tooltipTarget } = this
 
-        return <g ref={this.base} className="SourcesFooter" style={{ fill: "#777" }}>
-            <g className="clickable" onClick={onSourcesClick} style={{ fill: "#777" }}>{sources.render(targetX, targetY)}</g>
-            {note.render(targetX, targetY + sources.height + paraMargin)}
-            {isCompact
-                ? license.render(targetX + maxWidth - license.width, targetY)
-                : license.render(targetX, targetY + sources.height + paraMargin + (note.height ? note.height + paraMargin : 0))
-            }
+        const license = <div className="license" style={{ fontSize: footer.license.fontSize, lineHeight: footer.sources.lineHeight }}>
+            {footer.finalUrlText && <a href={footer.finalUrl}>{footer.finalUrlText} • </a>}
+            <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>  
+        </div>
+
+
+        return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{color: "#777"}}>
+            {footer.isCompact && license}
+            <p style={footer.sources.htmlStyle}>{footer.sources.renderHTML()}</p>
+            {footer.note && <p style={footer.note.htmlStyle}>{footer.note.renderHTML()}</p>}
+            {!footer.isCompact && license}
             {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
                 <p>Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY-SA page for more information.</p>
             </Tooltip>}
-        </g>
+        </footer>
     }
 }

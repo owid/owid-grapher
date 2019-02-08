@@ -5,10 +5,10 @@ import { observer } from 'mobx-react'
 import { Bounds } from './Bounds'
 import { ChartConfig } from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
-const linkifyHtml = require('linkifyjs/html')
 import * as Cookies from 'js-cookie'
 import { ADMIN_BASE_URL } from 'settings'
 
+const linkifyHtml = require('linkifyjs/html')
 function linkify(s: string) {
     return linkifyHtml(s).replace(/(?:\r\n|\r|\n)/g, '<br/>')
 }
