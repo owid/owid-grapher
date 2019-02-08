@@ -386,26 +386,26 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         // Draw the largest points first so that smaller ones can sit on top of them
         const renderData = cloneDeep(sortBy(initialRenderData, d => -d.size))
 
-        each(renderData, series => {
-            series.isHover = includes(hoverKeys, series.key)
-            series.isFocus = includes(focusKeys, series.key)
+        for (const series of renderData) {
+            series.isHover = hoverKeys.includes(series.key)
+            series.isFocus = focusKeys.includes(series.key)
             series.isForeground = series.isHover || series.isFocus
             if (series.isHover)
                 series.size += 1
-        })
+        }
 
-        each(renderData, series => {
+        for (const series of renderData) {
             series.startLabel = this.makeStartLabel(series)
             series.midLabels = this.makeMidLabels(series)
             series.endLabel = this.makeEndLabel(series)
-            series.allLabels = filter([series.startLabel].concat(series.midLabels).concat([series.endLabel])) as ScatterLabel[]
-        })
+            series.allLabels = [series.startLabel].concat(series.midLabels).concat([series.endLabel]).filter(x => x) as ScatterLabel[]
+        }
 
         const allLabels = flatten(renderData.map(series => series.allLabels))
 
         // Ensure labels fit inside bounds
         // Must do before collision detection since it'll change the positions
-        each(allLabels, l => {
+        for (const l of allLabels) {
             if (l.bounds.left < bounds.left - 1) {
                 l.bounds = l.bounds.extend({ x: l.bounds.x + l.bounds.width })
             } else if (l.bounds.right > bounds.right + 1) {
@@ -417,7 +417,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             } else if (l.bounds.bottom > bounds.bottom + 1) {
                 l.bounds = l.bounds.extend({ y: bounds.bottom - l.bounds.height })
             }
-        })
+        }
 
         // Main collision detection
         const labelsByPriority = sortBy(allLabels, l => -labelPriority(l))
@@ -492,11 +492,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get backgroundGroups(): ScatterRenderSeries[] {
-        return filter(this.renderData, group => !group.isForeground)
+        return this.renderData.filter(group => !group.isForeground)
     }
 
     @computed get foregroundGroups(): ScatterRenderSeries[] {
-        return filter(this.renderData, group => !!group.isForeground)
+        return this.renderData.filter(group => !!group.isForeground)
     }
 
     renderBackgroundGroups() {
