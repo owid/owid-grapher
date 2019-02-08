@@ -39,7 +39,7 @@ export class ChartLayout {
     }
 
     @computed get isHTML(): boolean {
-        return true
+        return !this.props.chart.isLocalExport
     }
 
     @computed get svgWidth() {
@@ -51,7 +51,7 @@ export class ChartLayout {
     }
 
     @computed get innerBounds() {
-        return this.isHTML ? new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15) : this.paddedBounds.padTop(this.header.height).padBottom(this.footer.height)
+        return this.isHTML ? new Bounds(0, 2, this.svgWidth, this.svgHeight).padWidth(15) : this.paddedBounds.padTop(this.header.height).padBottom(this.footer.height)
     }
 }
 
@@ -80,17 +80,16 @@ export class ChartLayoutView extends React.Component<{ layout: ChartLayout, chil
     renderWithHTMLText() {
         const { layout } = this.props
 
-        return <div>
+        return <React.Fragment>
             <HeaderHTML chart={layout.props.chart} header={layout.header}/>
             <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.svgWidth} height={layout.svgHeight}>
                 {this.props.children}
             </svg>
             <SourcesFooterHTML chart={layout.props.chart} footer={layout.footer}/>
-        </div> 
+        </React.Fragment> 
     }
 
     render() {
-        const isHtml = true
-        return isHtml ? this.renderWithHTMLText() : this.renderWithSVGText()
+        return this.props.layout.isHTML ? this.renderWithHTMLText() : this.renderWithSVGText()
     }
 }

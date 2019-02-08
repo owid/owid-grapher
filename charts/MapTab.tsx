@@ -16,6 +16,7 @@ import { NoData } from './NoData'
 import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
 import { ChartViewContext } from './ChartViewContext'
+import { ChartLayout, ChartLayoutView } from './ChartLayout';
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -156,19 +157,11 @@ interface MapTabProps {
 export class MapTab extends React.Component<MapTabProps> {
     @computed get map(): MapConfig { return (this.props.chart.map as MapConfig) }
 
-    @computed get header() {
+    @computed get layout() {
         const that = this
-        return new Header({
+        return new ChartLayout({
             get chart() { return that.props.chart },
-            get maxWidth() { return that.props.bounds.width }
-        })
-    }
-
-    @computed get footer() {
-        const that = this
-        return new SourcesFooter({
-            get chart() { return that.props.chart },
-            get maxWidth() { return that.props.bounds.width }
+            get bounds() { return that.props.bounds }
         })
     }
 
@@ -177,13 +170,11 @@ export class MapTab extends React.Component<MapTabProps> {
         if (!map.data.isReady)
             return <NoData bounds={this.props.bounds} />
 
-        const { bounds } = this.props
-        const { header, footer } = this
+        const { layout } = this
 
-        return <g className="MapTab">
-            {header.render(bounds.x, bounds.y)}
+        return <ChartLayoutView layout={this.layout}>
             <MapWithLegend
-                bounds={bounds.padTop(header.height + 5).padBottom(footer.height)}
+                bounds={layout.innerBounds}
                 choroplethData={map.data.choroplethData}
                 years={map.data.timelineYears}
                 inputYear={map.data.targetYear}
@@ -193,8 +184,6 @@ export class MapTab extends React.Component<MapTabProps> {
                 defaultFill={map.noDataColor}
                 mapToDataEntities={map.data.mapToDataEntities}
             />
-            {footer.render(bounds.x, bounds.bottom - footer.height)}
-        </g>
-
+        </ChartLayoutView>
     }
 }

@@ -57,7 +57,7 @@ export class SourcesFooter {
         if (originUrl && originUrl.toLowerCase().match(/^https?:\/\/./)) {
             const url = parseUrl(originUrl)
             const finalUrlText = `${url.hostname}${url.pathname}`.replace("ourworldindata.org", "OurWorldInData.org")
-            if (Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
+            if (this.props.chart.isNativeEmbed || Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width > 0.7*this.maxWidth)
                 return undefined
             else
                 return finalUrlText
@@ -67,13 +67,9 @@ export class SourcesFooter {
     }
 
     @computed get licenseSvg(): string {
-        if (this.props.chart.isNativeEmbed)
-            return this.ccSvg
-
-        let licenseSvg = `*data-entry* • ${this.ccSvg}`
-
         const { finalUrl, finalUrlText } = this
         if (finalUrlText) {
+            let licenseSvg = `*data-entry* • ${this.ccSvg}`
             licenseSvg = licenseSvg.replace(/\*data-entry\*/, "<a target='_blank' style='fill: #777;' href='" + finalUrl + "'>" + finalUrlText + "</a>")
             return licenseSvg
         } else {
@@ -172,16 +168,16 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
         const { footer } = this.props
         const { tooltipTarget } = this
 
-        const license = <div className="license" style={{lineHeight: footer.sources.lineHeight}}>
+        const license = <div className="license" style={{ fontSize: footer.license.fontSize, lineHeight: footer.sources.lineHeight }}>
             {footer.finalUrlText && <a href={footer.finalUrl}>{footer.finalUrlText} • </a>}
             <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>  
         </div>
 
 
-        return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{fontSize: footer.fontSize, color: "#777"}}>
+        return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{color: "#777"}}>
             {footer.isCompact && license}
-            <p className="clickable" onClick={footer.onSourcesClick} style={{lineHeight: footer.sources.lineHeight}}>{footer.sourcesText}</p>
-            {footer.noteText && <p style={{ lineHeight: footer.note.lineHeight }}>{footer.noteText}</p>}
+            <p style={footer.sources.htmlStyle}>{footer.sources.renderHTML()}</p>
+            {footer.note && <p style={footer.note.htmlStyle}>{footer.note.renderHTML()}</p>}
             {!footer.isCompact && license}
             {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
                 <p>Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY-SA page for more information.</p>

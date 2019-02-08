@@ -128,7 +128,7 @@ figure[data-grapher-src]:empty:after {
 
     .HeaderHTML {
         padding: 15px;
-        padding-bottom: 0;
+        padding-bottom: 2px;
         text-align: left;
 
         a {
@@ -159,10 +159,14 @@ figure[data-grapher-src]:empty:after {
     .SourcesFooterHTML {
         padding: 15px;
         padding-top: 0;
+        text-align: left;
 
         a {
             color: #777;
             text-decoration: none;
+            &:visited {
+                color: #777;
+            }
         }
 
         p {
