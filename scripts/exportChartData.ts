@@ -14,9 +14,7 @@ async function dataExport() {
 
     const variablesToExportQuery = `
         SELECT DISTINCT cd.variableId FROM chart_dimensions cd
-        JOIN variables v ON cd.variableId = v.id
-        JOIN datasets d ON v.datasetId = d.id
-        WHERE d.isPrivate IS FALSE
+        WHERE NOT EXISTS (select * from tags t join chart_tags ct on ct.tagId = t.id where ct.chartId=cd.chartId and t.name='Private')
     `
 
     const variableIds = (await db.query(variablesToExportQuery)).map((row: any) => row.variableId)
