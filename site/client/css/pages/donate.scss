@@ -20,7 +20,6 @@
 
     label {
         font-weight: 700;
-        cursor: pointer;
     }
 
     input[type=radio] {
@@ -46,26 +45,26 @@
         font-size: 0.875rem;
         color: $error-text-color;
     }
-}
 
-.custom-amount-input {
-    background-color: transparent;
-    border: none;
-    border-bottom: 1px dotted $primary-color;
-    width: 4.25rem;
-    outline: none;
-    color: inherit;
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: 700;
+    .custom-amount-input {
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px dotted $primary-color;
+        width: 4.25rem;
+        outline: none;
+        color: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: 700;
 
-    &::placeholder {
-        color: $primary-color-400;
-        transition: color 150ms linear;
-    }
+        &::placeholder {
+            color: $primary-color-400;
+            transition: color 150ms linear;
+        }
 
-    &:focus::placeholder {
-        color: $primary-color-200;
+        &:focus::placeholder {
+            color: $primary-color-200;
+        }
     }
 }
 

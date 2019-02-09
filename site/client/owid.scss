@@ -50,7 +50,7 @@
     position: fixed;
     top: 0;
     right: 0;
-    z-index: 99999;
+    z-index: $zindex-adminbar;
     font-size: 13px;
     font-weight: 400;
 	line-height: 32px;
@@ -436,18 +436,6 @@ h6:hover .deep-link {
 /* Homepage
 --------------------------------------------- */
 
-.title-author-byline {
-	margin-top: 2rem;
-	font-size: 1rem;
-	text-align: right;
-	color: white;
-}
-
-.title-author-byline a {
-	color: #FF4012;
-	font-weight: 400;
-}
-
 #homepage-content {
 	padding: 30px 0;
 }
@@ -528,48 +516,7 @@ h6:hover .deep-link {
 	font-size: 17px;
 }
 
-#homepage-cover {
-	background-image: url(../images/WorldMapDark2.png);
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
 @include desktop {
-	#homepage-cover .mobile {
-		display: none;
-	}
-
-	#homepage-cover {
-	    background-position: 50% 0px;
-	    background-size: cover;
-		height: 600px;
-		padding: 140px 100px;
-		text-align: center;
-	}
-
-	#homepage-cover .lead-in {
-		color: rgb(255, 203, 31);
-	    max-width: 1140px;
-	    margin: 0 auto;
-	}
-
-	#homepage-cover h1 {
-		font-family: $serif-font-stack;
-		font-weight: 400;
-		font-size: 4rem;
-		line-height: 0.9;
-	}
-
-	#homepage-cover .down-arrow {
-		margin-top: 20px;
-	}
-
-	#homepage-cover .subheading {
-		font-size: 25px;
-		line-height: 1.2;
-		max-width: 780px;
-		margin: auto;
-	}
-
 	#homepage-blog {
 		float: right;
 		width: 30%;
@@ -639,44 +586,6 @@ h6:hover .deep-link {
 }
 
 @include mobile {
-	#homepage-cover {
-		background-image: url(../images/WorldMapDark2.png);
-	    background-position: 50% 0px;
-	    background-size: cover;
-		padding: 50px 1rem;
-		text-align: center;
-	}
-
-	#homepage-cover .lead-in {
-		color: rgb(255, 203, 31);
-	    max-width: 1140px;
-	    margin: 0 auto;
-	}
-
-	#homepage-cover h1 {
-		font-family: $serif-font-stack;
-		font-weight: 400;
-		font-size: 2.25rem;
-		line-height: 0.9;
-	}
-
-	#homepage-cover .subheading {
-		font-size: 25px;
-		line-height: 1.2;
-		max-width: 500px;
-		margin: auto;
-	}
-
-	#homepage-cover .down-arrow {
-		display: none;
-	}
-
-	#homepage-cover .title-author-byline {
-		margin-top: 10px;
-		color: white;
-		text-align: center;
-	}
-
 	#homepage-twitter {
 		display: none;
 	}
@@ -1376,7 +1285,7 @@ article.page {
 /* Taken from Bootstrap tooltip css */
 .tooltip {
   position: absolute;
-  z-index: 1070;
+  z-index: $zindex-tooltip;
   display: block;
   font-family: $sans-serif-font-stack;
   font-style: normal;
@@ -1493,7 +1402,7 @@ a.ref sup::after {
     height: 100%;
     min-width: 1.875rem;
     min-height: 1.875rem;
-    z-index: 10;
+    z-index: $zindex-footnote;
     border-radius: 100%;
 }
 a.ref sup {
@@ -1621,7 +1530,7 @@ html:not(.js) {
     > form > .inputWrapper svg {
         position: absolute;
         left: 10px;
-        top: 12px;        
+        top: 12px;
     }
 
     > form > button {
@@ -1656,7 +1565,7 @@ html:not(.js) {
 		max-width: 80rem;
 		margin: auto;
 		display: flex;
-		flex-direction: row;	
+		flex-direction: row;
 	}
 
 	> .container > :first-child {
@@ -1665,7 +1574,7 @@ html:not(.js) {
 
 	.postResults, .chartResults {
         width: 50%;
-        
+
         > h2 {
             color: #666;
             font-weight: normal;
@@ -1673,7 +1582,7 @@ html:not(.js) {
             border-bottom: 1px solid #ccc;
         }
     }
-    
+
     .postResults li {
         list-style-type: none;
 
@@ -1725,7 +1634,7 @@ html:not(.js) {
     position: fixed;
     right: 20px;
     bottom: 20px;
-    z-index: 100;
+    z-index: $zindex-popover;
 }
 
 .FeedbackPrompt {
@@ -1756,12 +1665,12 @@ html:not(.js) {
 
     > header {
         background: #002147;
-        color: white;        
+        color: white;
         font-size: 18px;
         text-align: center;
 
         padding-top: 1.07143rem;
-        padding-bottom: 1.07143rem;    
+        padding-bottom: 1.07143rem;
         padding-left: 1.42857rem;
         padding-right: 1.42857rem;
         margin-bottom: 1rem;
@@ -1775,13 +1684,13 @@ html:not(.js) {
 
         > div {
             margin-bottom: 1.42857rem;
-    
+
             label {
                 vertical-align: middle;
                 line-height: 2.14286;
                 color: #555;
             }
-    
+
             input {
                 -webkit-appearance: none;
                 -moz-appearance: none;
@@ -1799,9 +1708,9 @@ html:not(.js) {
                 line-height: 1.28571;
                 color: #2f3941;
                 font-family: inherit;
-                font-size: 14px;            
+                font-size: 14px;
             }
-    
+
             textarea {
                 -webkit-appearance: none;
                 -moz-appearance: none;
@@ -1819,9 +1728,9 @@ html:not(.js) {
                 line-height: 1.28571;
                 color: #2f3941;
                 font-family: inherit;
-                font-size: 14px;            
+                font-size: 14px;
             }
-        }    
+        }
     }
 
     > footer {
@@ -1833,7 +1742,7 @@ html:not(.js) {
         justify-content: flex-end;
         padding-left: 1.42857rem;
         padding-right: 1.42857rem;
-    
+
         button {
             display: inline-block;
             transition: border-color .25s ease-in-out,box-shadow .1s ease-in-out,background-color .25s ease-in-out,color .25s ease-in-out;

@@ -23,10 +23,6 @@
     padding-right: 20px;
 }
 
-.site-navigation-wrapper.mobile {
-    flex-direction: column;
-}
-
 .site-navigation {
     display: flex;
 }
@@ -101,7 +97,7 @@
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $primary-color-900;
+            color: $primary-color-800;
         }
     }
 
@@ -112,7 +108,7 @@
         bottom: 0;
         display: flex;
         align-items: center;
-        color: $primary-color-700;
+        color: $primary-color-600;
     }
 }
 
@@ -125,7 +121,7 @@
 	color: black;
 	background: white;
 	/* Needs to go over the charts */
-	z-index: 2;
+	z-index: $zindex-search-overlay;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: scroll;
@@ -222,7 +218,7 @@
     position: absolute;
     top: 100%;
     left: 0;
-    z-index: 100;
+    z-index: $zindex-nav-dropdown;
     margin-top: -5px;
     box-shadow: 0px 6px 11px rgba(0, 0, 0, 0.15);
     border-radius: 6px;

@@ -26,6 +26,12 @@ $primary-color-100: #EBEEF2;
 /* Blood Orange */
 $secondary-color: #D42B21;
 
+/* Yellow */
+$tertiary-color: #F8C723;
+$tertiary-color-100: #F4EDDB;
+$tertiary-color-400: $tertiary-color;
+$tertiary-color-700: #d8b43b;
+
 /* Highlight color */
 $highlight-color: #F8C723;
 
@@ -35,10 +41,11 @@ $body-bg: #fafafa;
 /* Text colors */
 $text-color: $primary-color-800;
 $secondary-text-color: $primary-color-600;
+$tertiary-text-color: $tertiary-color;
 $error-text-color: $secondary-color;
 
 /* Hyperlink colors */
-$link-color: #3366cc;
+$link-color: #2162e6;
 $link-hover-color: $link-color;
 $link-visited-color: #5a3696;
 
@@ -78,3 +85,16 @@ $desktop-min-width: 960px;
         @content;
     }
 }
+
+/*******************************************************************************
+ * Z-index
+ */
+
+$zindex-input: 1;
+$zindex-article-image: 10;
+$zindex-footnote: 10;
+$zindex-popover: 100;
+$zindex-search-overlay: 100;
+$zindex-nav-dropdown: 101;
+$zindex-tooltip: 1070;
+$zindex-adminbar: 99999;

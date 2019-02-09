@@ -3,3 +3,28 @@
 	margin: 0 auto;
 	padding: 0 1rem;
 }
+
+.owid-row {
+    margin: 0 -1rem;
+    display: flex;
+}
+
+.flex-align-center {
+    align-items: center;
+}
+
+.owid-column,
+.owid-column--1,
+.owid-column--2,
+.owid-column--3,
+.owid-column--4,
+.owid-column--5 {
+    margin: 0 1rem;
+}
+
+.owid-column,
+.owid-column--1 { flex: 1; }
+.owid-column--2 { flex: 2; }
+.owid-column--3 { flex: 3; }
+.owid-column--4 { flex: 4; }
+.owid-column--5 { flex: 5; }

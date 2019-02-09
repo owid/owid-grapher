@@ -133,19 +133,6 @@ export class DonateForm extends React.Component {
                 </div>
             </fieldset>
 
-            {/* We cannot ask for a name yet because we need a server & database to store it */}
-            {/* <fieldset className="donate-form-details">
-                <legend>
-                    <h3>Your name</h3>
-                </legend>
-                <div className="owid-block-field">
-                    <input type="text" id="full-name" name="full-name" />
-                    <p className="note">
-                        We will not publish your name without your permission
-                    </p>
-                </div>
-            </fieldset> */}
-
             {this.errorMessage && <p className="error">
                 {this.errorMessage}
             </p>}
