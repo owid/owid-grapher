@@ -70,7 +70,7 @@ export class Header {
     }
 
     @computed get subtitleText() {
-        return linkifyHtml(this.props.chart.subtitle)
+        return this.props.chart.subtitle
     }
 
     @computed get logo(): Logo|undefined {
