@@ -100,7 +100,7 @@ export class ChartEditor {
         } else {
             const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
             if (this.chart.hasMapTab) tabs.push('map')
-            if (this.chart.isScatter) tabs.push('scatter')
+            if (this.chart.isScatter || this.chart.isTimeScatter) tabs.push('scatter')
             tabs.push('revisions')
             return tabs
         }

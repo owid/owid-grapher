@@ -61,7 +61,7 @@ export class DimensionSlot {
     }
 
     @computed get allowMultiple(): boolean {
-        return this.property === "y" && !(this.chart.isScatter || this.chart.isSlopeChart)
+        return this.property === "y" && !(this.chart.isScatter || this.chart.isTimeScatter || this.chart.isSlopeChart)
     }
 
     @computed get isOptional(): boolean {
@@ -291,6 +291,8 @@ export class ChartConfig {
 
         if (this.isScatter)
             return [yAxis, xAxis, size, color]
+        else if (this.isTimeScatter)
+            return [yAxis, xAxis]
         else if (this.isSlopeChart)
             return [yAxis, size, color]
         else
@@ -361,6 +363,7 @@ export class ChartConfig {
 
     @computed get isLineChart() { return this.props.type === ChartType.LineChart }
     @computed get isScatter() { return this.props.type === ChartType.ScatterPlot }
+    @computed get isTimeScatter() { return this.props.type === ChartType.TimeScatter }
     @computed get isStackedArea() { return this.props.type === ChartType.StackedArea }
     @computed get isSlopeChart() { return this.props.type === ChartType.SlopeChart }
     @computed get isDiscreteBar() { return this.props.type === ChartType.DiscreteBar }
@@ -377,7 +380,7 @@ export class ChartConfig {
     @computed get activeTransform(): IChartTransform {
         if (this.isLineChart)
             return this.lineChart
-        else if (this.isScatter)
+        else if (this.isScatter || this.isTimeScatter)
             return this.scatter
         else if (this.isStackedArea)
             return this.stackedArea
