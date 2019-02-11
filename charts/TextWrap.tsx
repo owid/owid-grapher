@@ -47,7 +47,7 @@ export class TextWrap {
             const nextLine = line.concat([word])
             const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize })
 
-            if (nextBounds.width > maxWidth && line.length >= 1) {
+            if (nextBounds.width+10 > maxWidth && line.length >= 1) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
                 lineBounds = Bounds.forText(strip(word), { fontSize: fontSize })
