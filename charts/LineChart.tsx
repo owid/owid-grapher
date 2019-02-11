@@ -59,19 +59,20 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
         return toShow.map(d => {
             const lastValue = (last(d.values) as LineChartValue).y
+            const valueStr = this.transform.yAxis.tickFormat(lastValue)
+            
+
             return {
                 color: d.color,
                 key: d.key,
-                label: `${this.transform.yAxis.tickFormat(lastValue)} ${this.chart.data.formatKey(d.key)}`,
+                // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
+                label: this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
                 yValue: lastValue
             }
         })
     }
 
     @computed get legend(): HeightedLegend | undefined {
-        if (this.chart.hideLegend)
-            return undefined
-
         const that = this
         return new HeightedLegend({
             get maxWidth() { return that.bounds.width / 3 },
