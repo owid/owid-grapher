@@ -51,18 +51,21 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems() {
-        // Only show projection legends if there are any projections
+        // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.transform.groupedData
         if (toShow.some(g => !!g.isProjection))
             toShow = this.transform.groupedData.filter(g => g.isProjection)
 
-        return toShow.map(d => ({
-            color: d.color,
-            key: d.key,
-            label: this.chart.data.formatKey(d.key),
-            yValue: (last(d.values) as LineChartValue).y
-        }))
+        return toShow.map(d => {
+            const lastValue = (last(d.values) as LineChartValue).y
+            return {
+                color: d.color,
+                key: d.key,
+                label: `${this.transform.yAxis.tickFormat(lastValue)} ${this.chart.data.formatKey(d.key)}`,
+                yValue: lastValue
+            }
+        })
     }
 
     @computed get legend(): HeightedLegend | undefined {
