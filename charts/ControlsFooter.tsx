@@ -274,7 +274,7 @@ export class ControlsFooter {
 
     @computed get hasTimeline(): boolean {
         const {chart} = this.props
-        return (chart.tab === 'map' && chart.map.data.hasTimeline) || (chart.tab === 'chart' && chart.isScatter && chart.scatter.hasTimeline)
+        return (chart.tab === 'map' && chart.map.data.hasTimeline) || (chart.tab === 'chart' && (chart.isTimeScatter || chart.isScatter) && chart.scatter.hasTimeline)
     }
 
     @computed get hasInlineControls(): boolean {

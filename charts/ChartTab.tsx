@@ -13,6 +13,7 @@ import { StackedArea } from './StackedArea'
 import { DiscreteBarChart } from './DiscreteBarChart'
 import { StackedBarChart } from './StackedBarChart'
 import { ChartLayout, ChartLayoutView } from './ChartLayout';
+import { TimeScatter } from './TimeScatter';
 
 @observer
 export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {
@@ -32,6 +33,8 @@ export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: C
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
         else if (chart.isScatter)
             return <ScatterPlot bounds={bounds.padTop(20).padBottom(15)} config={chart} isStatic={chartView.isExport} />
+        else if (chart.isTimeScatter)
+            return <TimeScatter bounds={bounds.padTop(20).padBottom(15)} config={chart} isStatic={chartView.isExport} />
         else if (chart.isLineChart)
             return <LineChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
         else if (chart.isStackedArea)
