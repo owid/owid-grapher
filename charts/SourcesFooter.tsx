@@ -40,7 +40,11 @@ export class SourcesFooter {
     }
 
     @computed get ccSvg(): string {
-        return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+        if (this.props.chart.props.hideLogo) {
+            return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+        } else {
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+        }
     }
 
     @computed get finalUrl(): string {
@@ -165,12 +169,13 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
     }
 
     render() {
-        const { footer } = this.props
+        const { footer, chart } = this.props
         const { tooltipTarget } = this
 
         const license = <div className="license" style={{ fontSize: footer.license.fontSize, lineHeight: footer.sources.lineHeight }}>
-            {footer.finalUrlText && <a href={footer.finalUrl}>{footer.finalUrlText} • </a>}
-            <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>  
+            {footer.finalUrlText && <a href={footer.finalUrl} target="_blank">{footer.finalUrlText} • </a>}
+            {!chart.props.hideLogo && <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>}
+            {chart.props.hideLogo && <a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>}
         </div>
 
 

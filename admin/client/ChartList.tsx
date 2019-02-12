@@ -10,7 +10,7 @@ import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
 import { bind } from 'decko'
 import { BAKED_GRAPHER_URL } from 'settings'
-import { ChartTypeDefs, ChartTypeDefsByKey } from 'charts/ChartType';
+import { ChartTypeDefsByKey } from 'charts/ChartType'
 
 export interface ChartListItem {
     id: number
