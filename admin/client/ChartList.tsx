@@ -10,6 +10,7 @@ import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
 import { bind } from 'decko'
 import { BAKED_GRAPHER_URL } from 'settings'
+import { ChartTypeDefs, ChartTypeDefsByKey } from 'charts/ChartType';
 
 export interface ChartListItem {
     id: number
@@ -31,16 +32,7 @@ export interface ChartListItem {
 }
 
 function showChartType(chart: ChartListItem) {
-    const displayNames: {[key: string]: string} = {
-        LineChart: "Line Chart",
-        ScatterPlot: "Scatter Plot",
-        StackedArea: "Stacked Area",
-        DiscreteBar: "Discrete Bar",
-        SlopeChart: "Slope Chart",
-        StackedBar: "Stacked Bar"
-    }
-
-    const displayType = displayNames[chart.type] || "Unknown"
+    const displayType = ChartTypeDefsByKey[chart.type].label || "Unknown"
 
     if (chart.tab === "map") {
         if (chart.hasChartTab)
