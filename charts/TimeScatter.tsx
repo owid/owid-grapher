@@ -338,6 +338,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         if (closestPoint && Vector2.distanceSq(closestPoint.position, mousePos) < (this.bounds.width/3)**2) {
             return closestPoint
+        } else {
+            return undefined
         }
     }
 
