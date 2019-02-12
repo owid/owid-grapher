@@ -475,7 +475,7 @@ export class ScatterTransform implements IChartTransform {
             const group = {
                 key: datakey,
                 label: chart.data.formatKey(datakey),
-                color: "#000",
+                color: "#ffcb1f", // Default color
                 size: 0,
                 values: []
             } as ScatterSeries
