@@ -93,7 +93,7 @@
         outline: none;
 
         &::placeholder {
-            color: $primary-color-600;
+            color: $primary-color-500;
             transition: color 150ms ease;
         }
         &:focus::placeholder {
