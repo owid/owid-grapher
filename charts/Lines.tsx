@@ -8,14 +8,15 @@ import { Vector2 } from './Vector2'
 import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
 import { Bounds } from './Bounds'
 import { DataKey } from './DataKey'
+import { AxisBox } from './AxisBox';
 
 export interface LinesProps {
+    axisBox: AxisBox,
     xScale: AxisScale,
     yScale: AxisScale,
     data: LineChartSeries[],
     focusKeys: DataKey[],
-    onHoverPoint?: (target: HoverTarget) => void,
-    onHoverStop?: () => void
+    onHover: (hoverX: number|undefined) => void,
 }
 
 interface LineRenderSeries {
@@ -52,7 +53,7 @@ export class Lines extends React.Component<LinesProps> {
                 values: series.values.map(v => {
                     return new Vector2(Math.round(xScale.place(v.x)), Math.round(yScale.place(v.y)))
                 }),
-                isFocus: includes(focusKeys, series.key),
+                isFocus: !focusKeys.length || includes(focusKeys, series.key),
                 isProjection: series.isProjection
             }
         })
@@ -61,6 +62,16 @@ export class Lines extends React.Component<LinesProps> {
     @computed get isFocusMode(): boolean {
         return some(this.renderData, d => d.isFocus)
     }
+
+    @computed get allValues(): LineChartValue[] {
+        const values = []
+        for (const series of this.props.data) {
+            values.push(...series.values)
+        }
+        return values
+    }
+
+
 
     @computed get hoverData(): HoverTarget[] {
         const { data } = this.props
@@ -75,22 +86,19 @@ export class Lines extends React.Component<LinesProps> {
         }))
     }
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound onMouseMove(ev: MouseEvent) {
+        // const {axisBox, data} = this.props
+        const {axisBox, xScale, yScale} = this.props
+
         const mouse = getRelativeMouse(this.base.current, ev)
-        const { hoverData } = this
 
-        const value = sortBy(hoverData, v => Vector2.distanceSq(v.pos, mouse))[0]
-        if (Vector2.distance(value.pos, mouse) < 100) {
-            this.hover = value
-            if (this.props.onHoverPoint) this.props.onHoverPoint(value)
-        } else {
-            this.onMouseLeave()
+        let hoverX = undefined
+        if (axisBox.innerBounds.contains(mouse)) {
+            const closestValue = sortBy(this.allValues, d => Math.abs(xScale.place(d.x) - mouse.x))[0]
+            hoverX = closestValue.x
         }
-    }
 
-    @action.bound onMouseLeave() {
-        if (this.hover && this.props.onHoverStop) this.props.onHoverStop()
-        this.hover = null
+        this.props.onHover(hoverX)
     }
 
     @computed get bounds() {
@@ -146,10 +154,26 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
+    container?: SVGElement
+    componentDidMount() {
+        const base = this.base.current as SVGGElement
+        this.container = base.closest('svg') as SVGElement
+
+        this.container.addEventListener('mousemove', this.onMouseMove)
+        this.container.addEventListener('mouseleave', this.onMouseMove)
+    }
+
+    componentWillUnmount() {
+        if (this.container) {
+            this.container.removeEventListener('mousemove', this.onMouseMove)
+            this.container.removeEventListener('mouseleave', this.onMouseMove)
+        }
+    }
+
     render() {
         const { hover, bounds } = this
 
-        return <g ref={this.base} className="Lines" onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave}>
+        return <g ref={this.base} className="Lines">
             <rect x={Math.round(bounds.x)} y={Math.round(bounds.y)} width={Math.round(bounds.width)} height={Math.round(bounds.height)} fill="rgba(255,255,255,0)" opacity={0} />
             {this.renderBackgroundGroups()}
             {this.renderFocusGroups()}

@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react'
-import { last, guid } from './Util'
+import { last, guid, sortBy } from './Util'
 import { computed, action, observable } from 'mobx'
 import { observer } from 'mobx-react'
 import { select } from 'd3-selection'
@@ -21,7 +21,6 @@ import { HeightedLegend, HeightedLegendView } from './HeightedLegend'
 import { ComparisonLine } from './ComparisonLine'
 import { HoverTarget } from './Lines'
 import { Tooltip } from './Tooltip'
-import { DataKey } from './DataKey'
 import { NoData } from './NoData'
 import { formatYear } from './Util'
 
@@ -43,6 +42,11 @@ export interface LineChartSeries {
 @observer
 export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    @observable hoverX?: number
+    @action.bound onHover(hoverX: number|undefined) {
+        this.hoverX = hoverX
+    }
 
     @computed get chart() { return this.props.chart }
     @computed get bounds() { return this.props.bounds }
@@ -81,32 +85,36 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         })
     }
 
-    @observable hoverTarget?: HoverTarget
-    @observable hoverKey?: string
-    @action.bound onHoverPoint(target: HoverTarget) {
-        this.hoverTarget = target
-        this.hoverKey = target.series.key
-    }
-    @action.bound onHoverStop() {
-        this.hoverTarget = undefined
-        this.hoverKey = undefined
-    }
+    @computed get tooltip(): JSX.Element|undefined {
+        const {transform, hoverX, axisBox, chart} = this
 
-    @computed get focusKeys(): DataKey[] {
-        return this.hoverKey ? [this.hoverKey] : this.chart.data.selectedKeys
-    }
+        if (hoverX === undefined) 
+            return undefined
 
-    @computed get tooltip() {
-        const { hoverTarget, chart } = this
-        if (hoverTarget === undefined) return
+        const sortedData = sortBy(transform.groupedData, series => {
+            const value = series.values.find(v => v.x === hoverX)
+            return value ? -value.y : -Infinity
+        })
 
-        return <Tooltip x={hoverTarget.pos.x} y={hoverTarget.pos.y} style={{ textAlign: "center" }}>
-            <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{chart.data.formatKey(hoverTarget.series.key)}</h3>
-            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
-                <span>{hoverTarget.series.formatValue(hoverTarget.value.y)}</span><br />
-                in<br />
-                <span>{formatYear(hoverTarget.value.x)}</span>
-            </p>
+        return <Tooltip x={axisBox.xScale.place(hoverX)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
+            <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
+                <tbody>
+                    <tr>
+                        <td><strong>{formatYear(hoverX)}</strong></td>
+                        <td>
+                        </td>
+                    </tr>
+                    {sortedData.map(series => {
+                        const value = series.values.find(v => v.x === hoverX)
+                        return value ? <tr key={series.key}>
+                            <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
+                                <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                            </td>
+                            <td>{!value ? "No data" : transform.yAxis.tickFormat(value.y)}</td>
+                        </tr> : null
+                    })}
+                </tbody>
+            </table>
         </Tooltip>
     }
 
@@ -120,6 +128,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         })
     }
 
+    @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
         if (this.chart.addCountryMode === 'add-country') {
             this.chart.data.toggleKey(datakey)
@@ -163,7 +172,8 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         if (this.transform.failMessage)
             return <NoData bounds={this.props.bounds} message={this.transform.failMessage} />
 
-        const { chart, transform, bounds, legend, tooltip, focusKeys, axisBox, renderUid } = this
+        const { chart, transform, bounds, legend, tooltip, axisBox, renderUid, hoverX } = this
+        const { xScale, yScale } = axisBox
         const { groupedData } = transform
 
         return <g ref={this.base} className="LineChart">
@@ -176,10 +186,21 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {chart.comparisonLines && chart.comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
-                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
-                <Lines xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHoverPoint={this.onHoverPoint} onHoverStop={this.onHoverStop} focusKeys={focusKeys} />
+                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={[]} yScale={axisBox.yScale} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
+                <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={[]} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
+            {hoverX && <g className="hoverIndicator">
+                {transform.groupedData.map(series => {
+                    const value = series.values.find(v => v.x === hoverX)
+                    if (!value)
+                        return null
+                    else
+                        return <circle key={series.key} cx={xScale.place(value.x)} cy={yScale.place(value.y)} r={5} fill={series.color}/>
+                })}
+                <line x1={xScale.place(hoverX)} y1={yScale.range[0]} x2={xScale.place(hoverX)} y2={yScale.range[1]} stroke="#ccc"/>
+            </g>}
+
             {tooltip}
         </g>
     }
