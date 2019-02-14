@@ -17,6 +17,19 @@ interface TouchListLike {
     }
 }
 
+export function getAbsoluteMouse(event: { clientX: number, clientY: number }|{ targetTouches: TouchListLike }): Vector2 {
+    let clientX, clientY
+    if ((event as any).clientX != null) {
+        clientX = (event as any).clientX
+        clientY = (event as any).clientY
+    } else {
+        clientX = (event as any).targetTouches[0].clientX
+        clientY = (event as any).targetTouches[0].clientY
+    }
+
+    return new Vector2(clientX, clientY)
+}
+
 export function getRelativeMouse(node: SVGElement, event: { clientX: number, clientY: number }|{ targetTouches: TouchListLike }): Vector2 {
     let clientX, clientY
     if ((event as any).clientX != null) {

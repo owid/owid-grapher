@@ -154,7 +154,8 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
     @action.bound onMouseMove(e: MouseEvent) {
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(':hover')) {
-            const mouse = getRelativeMouse(this.base.current, e)
+            const div = this.base.current as HTMLDivElement
+            const mouse = getRelativeMouse(div.closest('.chart'), e)
             this.tooltipTarget = { x: mouse.x, y: mouse.y }
         } else
             this.tooltipTarget = undefined
