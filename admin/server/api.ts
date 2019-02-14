@@ -24,7 +24,8 @@ import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from 'admin/server/git
 import { ChartRevision } from 'db/model/ChartRevision'
 import { Post } from 'db/model/Post'
 import { camelCaseProperties } from 'utils/object'
-    
+import { log } from 'utils/server/log'
+
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
 class FunctionalRouter {
@@ -703,7 +704,12 @@ api.put('/datasets/:datasetId', async (req: Request, res: Response) => {
     })
 
     // Note: not currently in transaction
-    await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+    try {
+        await syncDatasetToGitRepo(datasetId, { oldDatasetName: dataset.name, commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+    } catch (err) {
+        log.error(err)
+        // Continue
+    }
 
     return { success: true }
 })
@@ -741,7 +747,12 @@ api.delete('/datasets/:datasetId', async (req: Request, res: Response) => {
         await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
     })
 
-    await removeDatasetFromGitRepo(dataset.name, dataset.namespace, { commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+    try {
+        await removeDatasetFromGitRepo(dataset.name, dataset.namespace, { commitName: res.locals.user.fullName, commitEmail: res.locals.user.email })
+    } catch (err) {
+        log.error(err)
+        // Continue
+    }
 
     return { success: true }
 })
@@ -1077,8 +1088,8 @@ api.post('/importDataset', async (req: Request, res: Response) => {
                     valueRows.push([value, years[i], entityIdLookup[entities[i]], variableId])
                 }
             }
-            await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
 
+            await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
         }
 
         return datasetId
