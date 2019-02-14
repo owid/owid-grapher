@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import { observable, action, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { bind } from 'decko'
-import { DONATE_API_URL } from 'settings'
+import { DONATE_API_URL, BAKED_BASE_URL } from 'settings'
 
 import stripe from './stripe'
 
@@ -86,7 +86,9 @@ export class DonateForm extends React.Component {
                     name: this.name,
                     showOnList: this.showOnList,
                     amount: Math.floor(this.amount * 100),
-                    interval: this.interval
+                    interval: this.interval,
+                    successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+                    cancelUrl: `${BAKED_BASE_URL}/donate`
                 })
             })
             const session = await response.json()
@@ -162,7 +164,7 @@ export class DonateForm extends React.Component {
                 <div className="owid-checkboxes">
                     <div className="owid-checkbox-inline">
                         <input type="checkbox" id="showOnList" value="showOnList" name="type" checked={this.showOnList} onChange={(event) => this.setShowOnList(event.target.checked)} />
-                        <label htmlFor="showOnList">Include me on the public <a href="/about#supporters">list of donors</a></label>
+                        <label htmlFor="showOnList">Include me on the public <a href="/about#supporters" target="_blank">list of donors</a></label>
                     </div>
                 </div>
             </fieldset>
