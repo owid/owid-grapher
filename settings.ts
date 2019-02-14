@@ -24,4 +24,4 @@ export const ALGOLIA_ID: string = process.env.ALGOLIA_ID||""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY||""
 
 export const STRIPE_PUBLIC_KEY: string = process.env.STRIPE_PUBLIC_KEY||"pk_test_nIHvmH37zsoltpw3xMssPIYq"
-export const STRIPE_ONE_TIME_DONATION_SKU: string = process.env.STRIPE_ONE_TIME_DONATION_SKU||"sku_ERSZdVx0XkO7tV"
+export const DONATE_API_URL: string = process.env.DONATE_API_URL||"https://owid-donate.netlify.com/.netlify/functions/donate"

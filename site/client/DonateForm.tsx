@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import { observable, action, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { bind } from 'decko'
-import { BAKED_BASE_URL, STRIPE_ONE_TIME_DONATION_SKU } from 'settings'
+import { DONATE_API_URL } from 'settings'
 
 import stripe from './stripe'
 
@@ -21,6 +21,8 @@ export class DonateForm extends React.Component {
     @observable presetAmount?: number = MONTHLY_DONATION_AMOUNTS[2]
     @observable customAmount: string = ""
     @observable isCustom: boolean = false
+    @observable name: string = ""
+    @observable showOnList: boolean = true
 
     @observable errorMessage?: string
 
@@ -43,19 +45,20 @@ export class DonateForm extends React.Component {
         this.isCustom = isCustom
     }
 
+    @action.bound setName(name: string) {
+        this.name = name
+    }
+
+    @action.bound setShowOnList(showOnList: boolean) {
+        this.showOnList = showOnList
+    }
+
     @action.bound setErrorMessage(message?: string) {
         this.errorMessage = message
     }
 
     @computed get amount(): number | undefined {
         return this.isCustom ? parseFloat(this.customAmount || "") : this.presetAmount
-    }
-
-    @computed get stripeItem() {
-        if (!this.amount) return undefined
-        return this.interval === "monthly"
-            ? { plan: 'donation', quantity: Math.floor(this.amount * 100) }
-            : { sku: STRIPE_ONE_TIME_DONATION_SKU, quantity: Math.floor(this.amount * 100) }
     }
 
     @computed get intervalAmounts(): number[] {
@@ -73,10 +76,23 @@ export class DonateForm extends React.Component {
         runInAction(() => this.errorMessage = undefined)
 
         try {
+            const response = await fetch(DONATE_API_URL, {
+                method: "POST",
+                credentials: 'same-origin',
+                headers: {
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    name: this.name,
+                    showOnList: this.showOnList,
+                    amount: Math.floor(this.amount * 100),
+                    interval: this.interval
+                })
+            })
+            const session = await response.json()
+            if (!response.ok) throw session
             const result: { error: any } = await stripe.redirectToCheckout({
-                items: [this.stripeItem],
-                successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
-                cancelUrl: `${BAKED_BASE_URL}/donate`
+                sessionId: session.id
             })
             if (result.error) {
                 // If `redirectToCheckout` fails due to a browser or network
@@ -84,7 +100,7 @@ export class DonateForm extends React.Component {
                 runInAction(() => this.errorMessage = result.error.message)
             }
         } catch (error) {
-            runInAction(() => this.errorMessage = error && error.message)
+            runInAction(() => this.errorMessage = (error && error.message) || "Something went wrong. Please get in touch with us at donate@ourworldindata.org")
         }
     }
 
@@ -129,6 +145,24 @@ export class DonateForm extends React.Component {
                         <label htmlFor="custom">
                             $<input type="text" placeholder="Other" name="custom-amount" className="custom-amount-input" onChange={(event) => this.setCustomAmount(event.target.value)} value={this.customAmount} />
                         </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div className="owid-block-field">
+                    <label htmlFor="name">
+                        <h3>Your name</h3>
+                    </label>
+                    <input id="name" type="text" className="owid-input" value={this.name} onChange={(event) => this.setName(event.target.value)} />
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div className="owid-checkboxes">
+                    <div className="owid-checkbox-inline">
+                        <input type="checkbox" id="showOnList" value="showOnList" name="type" checked={this.showOnList} onChange={(event) => this.setShowOnList(event.target.checked)} />
+                        <label htmlFor="showOnList">Include me on the public <a href="/about#supporters">list of donors</a></label>
                     </div>
                 </div>
             </fieldset>

@@ -175,10 +175,10 @@ $checkbox-check-height: 4px;
 %owid-input {
     font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
-    color: $text-color;
+    color: $primary-color;
     background-color: white;
     padding: .625rem .75rem;
-    border: 1px solid $primary-color-400;
+    border: 2px solid $primary-color;
     outline: none;
 
     &:focus {
@@ -245,7 +245,19 @@ $checkbox-check-height: 4px;
     font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
     padding: .75rem 1rem;
-    border: 2px solid $primary-color;
+}
+
+.owid-block-field {
+    display: block;
+
+    label {
+        display: block;
+    }
+}
+
+.owid-input {
+    @extend %owid-input;
+    width: 100%;
 }
 
 .owid-inline-field {
@@ -257,8 +269,6 @@ $checkbox-check-height: 4px;
     @extend %inline-spacing;
 
     flex: 1;
-    color: $primary-color;
-    background-color: white;
     outline: none;
     display: inline-block;
 }
