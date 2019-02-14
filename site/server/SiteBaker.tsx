@@ -14,7 +14,7 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 
 import * as React from 'react'
@@ -208,35 +208,7 @@ export class SiteBaker {
 
     // Bake the RSS feed
     async bakeRSS() {
-        const postRows = await wpdb.query(`SELECT * FROM wp_posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 10`)
-
-        const posts: FormattedPost[] = []
-        for (const row of postRows) {
-            const fullPost = await wpdb.getFullPost(row)
-            const formattingOptions = extractFormattingOptions(fullPost.content)
-            posts.push(await formatPost(fullPost, formattingOptions))
-        }
-
-        const feed = `<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-    <title>Our World in Data</title>
-    <subtitle>Living conditions around the world are changing rapidly. Explore how and why.</subtitle>
-    <id>${BAKED_BASE_URL}/</id>
-    <link type="text/html" rel="alternate" href="${BAKED_BASE_URL}"/>
-    <link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
-    <updated>${posts[0].date.toISOString()}</updated>
-    ${posts.map(post => `<entry>
-        <title>${post.title}</title>
-    <id>${BAKED_BASE_URL}/${post.slug}</id>
-        <link rel="alternate" href="${BAKED_BASE_URL}/${post.slug}"/>
-        <published>${post.date.toISOString()}</published>
-        <updated>${post.modifiedDate.toISOString()}</updated>
-        ${post.authors.map(author => `<author><name>${author}</name></author>`).join("")}
-        <summary>${post.excerpt}</summary>
-    </entry>`).join("\n")}
-</feed>
-`
-        await this.stageWrite(`${BAKED_SITE_DIR}/atom.xml`, feed)
+        await this.stageWrite(`${BAKED_SITE_DIR}/atom.xml`, await makeAtomFeed())
     }
 
     // Bake the static assets
