@@ -34,6 +34,12 @@ export interface HoverTarget {
     value: LineChartValue
 }
 
+// Metadata reflection hack - Mispy
+declare const global: any
+if (typeof(global) !== "undefined") {
+    global.MouseEvent = {}
+}
+
 @observer
 export class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
