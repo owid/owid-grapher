@@ -16,7 +16,7 @@ import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as fs from 'fs-extra'
 import { WORDPRESS_DIR } from 'serverSettings'
-import { formatPost, extractFormattingOptions } from './formatting'
+import { formatPost, extractFormattingOptions, FormattedPost } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
 import { JsonError } from "utils/server/serverUtil"
@@ -172,6 +172,39 @@ ${urls.map(url => `    <url>
 </urlset>`
 
     return sitemap
+}
+
+export async function makeAtomFeed() {
+    const postRows = await wpdb.query(`SELECT * FROM wp_posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 10`)
+
+    const posts: FormattedPost[] = []
+    for (const row of postRows) {
+        const fullPost = await wpdb.getFullPost(row)
+        const formattingOptions = extractFormattingOptions(fullPost.content)
+        posts.push(await formatPost(fullPost, formattingOptions))
+    }
+
+    const feed = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Our World in Data</title>
+<subtitle>Living conditions around the world are changing rapidly. Explore how and why.</subtitle>
+<id>${BAKED_BASE_URL}/</id>
+<link type="text/html" rel="alternate" href="${BAKED_BASE_URL}"/>
+<link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
+<updated>${posts[0].date.toISOString()}</updated>
+${posts.map(post => `<entry>
+    <title><![CDATA[${post.title}]]></title>
+    <id>${BAKED_BASE_URL}/${post.slug}</id>
+    <link rel="alternate" href="${BAKED_BASE_URL}/${post.slug}"/>
+    <published>${post.date.toISOString()}</published>
+    <updated>${post.modifiedDate.toISOString()}</updated>
+    ${post.authors.map(author => `<author><name>${author}</name></author>`).join("")}
+    <summary><![CDATA[${post.excerpt}]]></summary>
+</entry>`).join("\n")}
+</feed>
+`
+
+    return feed
 }
 
 // These pages exist largely just for Google Scholar
