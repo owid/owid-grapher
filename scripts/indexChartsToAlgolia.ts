@@ -7,7 +7,7 @@ import { ALGOLIA_SECRET_KEY } from 'serverSettings'
 import { getIndexableCharts } from 'site/server/grapherUtil'
 
 async function indexChartsToAlgolia() {
-    const chartItems = await db.query(`
+    const allCharts = await db.query(`
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName
         FROM charts 
         WHERE publishedAt IS NOT NULL
@@ -19,20 +19,23 @@ async function indexChartsToAlgolia() {
         JOIN tags t ON t.id=ct.tagId
     `)
 
-    for (const c of chartItems) {
+    for (const c of allCharts) {
         c.tags = []
     }
 
-    const chartsById = _.keyBy(chartItems, c => c.id)
+    const chartsById = _.keyBy(allCharts, c => c.id)
 
+    const chartsToIndex = []
     for (const ct of chartTags) {
         // XXX hardcoded filtering to public parent tags
         if ([1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510].indexOf(ct.tagParentId) === -1)
             continue
 
         const c = chartsById[ct.chartId]
-        if (c)
+        if (c) {
             c.tags.push({ id: ct.tagId, name: ct.tagName })
+            chartsToIndex.push(c)
+        }
     }
 
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
@@ -41,7 +44,7 @@ async function indexChartsToAlgolia() {
     index.setSettings({ attributeForDistinct: 'id' })
 
     const records = []
-    for (const c of chartItems) {
+    for (const c of chartsToIndex) {
         if (!c.tags) continue
 
         records.push({
