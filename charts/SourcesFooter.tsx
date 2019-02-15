@@ -43,7 +43,7 @@ export class SourcesFooter {
         if (this.props.chart.props.hideLogo) {
             return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
         } else {
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>`
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
         }
     }
 
@@ -175,7 +175,7 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
 
         const license = <div className="license" style={{ fontSize: footer.license.fontSize, lineHeight: footer.sources.lineHeight }}>
             {footer.finalUrlText && <a href={footer.finalUrl} target="_blank">{footer.finalUrlText} • </a>}
-            {!chart.props.hideLogo && <a className="cclogo" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">CC BY-SA</a>}
+            {!chart.props.hideLogo && <a className="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>}
             {chart.props.hideLogo && <a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>}
         </div>
 
@@ -186,7 +186,7 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
             {footer.note && <p style={footer.note.htmlStyle}>{footer.note.renderHTML()}</p>}
             {!footer.isCompact && license}
             {tooltipTarget && <Tooltip x={tooltipTarget.x} y={tooltipTarget.y} style={{ textAlign: "center", maxWidth: "300px", whiteSpace: 'inherit', padding: '10px', fontSize: '0.8em' }}>
-                <p>Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY-SA page for more information.</p>
+                <p>Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY page for more information.</p>
             </Tooltip>}
         </footer>
     }
