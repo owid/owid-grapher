@@ -153,7 +153,7 @@ export async function renderSearchPage() {
 
 export async function makeSitemap() {
     const posts = await Post.select('slug', 'updated_at').from(db.table(Post.table).where({ status: 'publish' }))
-    const charts = await db.table(Chart.table).select(db.raw(`updatedAt, config->>"$.slug" AS slug`)) as { updatedAt: Date, slug: string }[]
+    const charts = await db.table(Chart.table).select(db.raw(`updatedAt, config->>"$.slug" AS slug`)).whereRaw('config->"$.isPublished" = true') as { updatedAt: Date, slug: string }[]
 
     const urls = posts.map(p => ({
         loc: urljoin(BAKED_BASE_URL, p.slug),
