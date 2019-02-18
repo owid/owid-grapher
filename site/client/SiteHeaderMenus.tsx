@@ -96,7 +96,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         Our World<br /> in Data
                     </a>
                 </div>
-                <nav className="site-navigation desktop-only">
+                <nav className="site-navigation lg-only">
                     <div className="topics-button-wrapper">
                         <a
                             href="/#entries"
@@ -132,7 +132,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         </div>
                     </div>
                 </nav>
-                <ul className="site-social-links desktop-only">
+                <ul className="site-social-links lg-only">
                     <li>
                         <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter">
                             <FontAwesomeIcon icon={faTwitter} />
@@ -149,7 +149,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         </a>
                     </li>
                 </ul>
-                <div className="site-navigation mobile-only">
+                <div className="site-navigation sm-only">
                     <button className="button" onClick={this.onToggleSearch}>
                         <FontAwesomeIcon icon={faSearch}/>
                     </button>
@@ -158,7 +158,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </button>
                 </div>
             </div>
-            {this.showSearch && <div className="search-dropdown mobile-only">
+            {this.showSearch && <div className="search-dropdown sm-only">
                 <form id="search-nav" action="https://google.com/search" method="GET">
                     <input type="hidden" name="sitesearch" value="ourworldindata.org" />
                     <input type="search" name="q" placeholder="Search..." autoFocus />
@@ -258,7 +258,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
     render() {
         const {categories} = this.props
         const {activeCategory} = this
-        return <div className="mobile-topics-dropdown mobile-only">
+        return <div className="mobile-topics-dropdown sm-only">
             <ul>
                 <li className="header">
                     <h2>Topics</h2>

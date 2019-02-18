@@ -36,16 +36,15 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-masthead">
                 <div className="wrapper">
                     <div className="homepage-masthead--main">
-                        <h1 className="desktop-only">Know the world you live in</h1>
+                        <h1 className="lg-only">Know the world you live in</h1>
                         <div className="subheading">Understand how the world is changing through research and interactive data visualizations.</div>
-                        {/* <div className="title-author-byline">A web publication by <a href="https://www.MaxRoser.com/about" target="_blank" rel="noopener">Max Roser</a>.</div> */}
                     </div>
                     <div className="homepage-masthead--search">
                         <form action="/search" method="get">
-                            <h2>Search across <em>2700 charts</em>, <em>100 entries</em> and <em>127 blog posts</em></h2>
+                            <h2>Search across <em>2700 charts</em> and <em>316 topics</em></h2>
                             <div className="search-input-wrapper">
                                 <div className="icon"><FontAwesomeIcon icon={faSearch} /></div>
-                                <input type="search" placeholder="Try &quot;poverty&quot; or &quot;population growth&quot;" name="q" />
+                                <input type="search" placeholder="Try &quot;poverty&quot; or &quot;air pollution&quot;" name="q" />
                             </div>
                         </form>
                         {/* <div className="columns counts">
@@ -63,115 +62,161 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             </div>
                         </div> */}
                     </div>
-                </div>
-            </section>
-
-            <section className="homepage-featured">
-                <div className="wrapper">
-                    <div className="shaded-box">
-                        <h2>Our most important research</h2>
-                        <div className="list">
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                </div>
-                                <div className="label">
-                                    The short history of global living conditions
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    Extreme Poverty
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    World Population Growth
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    CO₂ and other Greenhouse Gas Emissions
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    Life expectancy
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                </div>
-                                <div className="label">
-                                    Why do women live longer?
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    Hunger and malnourishment
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    Income inequality
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                </div>
-                                <div className="label">
-                                    FAQs on plastics pollution
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faBook} />
-                                </div>
-                                <div className="label">
-                                    Global rise of education
-                                </div>
-                            </a>
-                            <a href="#" className="list-item">
-                                <div className="icon">
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                </div>
-                                <div className="label">
-                                    The world is much better; The world is awful; The world can be much better
-                                </div>
-                            </a>
-                        </div>
-                    </div>
+                    <p className="open-access">All our content is free: <strong>open access</strong> and <strong>open source</strong></p>
                 </div>
             </section>
 
             <section className="homepage-coverage">
                 <div className="wrapper">
-                    <div className="owid-row flex-align-center">
-                        <div className="owid-column--1">
-                            <p className="lead">Read by more than <strong>10 million people per year</strong>, from every country in the world.</p>
+                    <div className="inner-wrapper">
+                        <p className="lead lead--first">More than <strong>10 million readers</strong> every year</p>
+                        <div className="owid-row owid-spacing--3">
+                            <div className="owid-col owid-col--lg-auto">
+                                <section>
+                                    <h3 className="align-center">Trusted in <strong>research and media</strong></h3>
+                                    <a href="/about/coverage#magazines-newspapers-blogs" className="coverage-link">
+                                        <img src="/media-logos.png" alt="Logos of the publications that have used our content" />
+                                        <div className="hover-note">
+                                            <p>Find out how our work is used by journalists and researchers</p>
+                                        </div>
+                                    </a>
+                                </section>
+                                <section>
+                                    <h3 className="align-center">Used in <strong>teaching</strong></h3>
+                                    <a href="/about/coverage#lectures-and-teaching-material" className="coverage-link">
+                                        <img src="/university-logos.png" alt="Logos of the universities that have used our content" />
+                                        <div className="hover-note">
+                                            <p>Find out how our work is used in teaching</p>
+                                        </div>
+                                    </a>
+                                </section>
+                            </div>
+                            <div className="owid-col owid-col--lg-shrink lg-only flex-row">
+                                <div className="divider"></div>
+                            </div>
+                            <div className="owid-col owid-col--lg-auto">
+                                <section>
+                                    <h3><strong>Authored by</strong></h3>
+                                    <ul>
+                                        <li><strong>Max Roser</strong> &ndash; Founder and editor</li>
+                                        <li><strong>Esteban Ortiz-Ospina</strong> &ndash; Social science</li>
+                                        <li><strong>Hannah Ritchie</strong> &ndash; Environmental science</li>
+                                        <li><strong>Joe Hasell</strong> &ndash; Social science</li>
+                                        <li><strong>Jaiden Mispy</strong> &ndash; Lead developer</li>
+                                        <li><strong>Daniel Gavrilov</strong> &ndash; Web developer</li>
+                                    </ul>
+                                </section>
+                                <section>
+                                    <h3>Based at University of Oxford</h3>
+                                    <img className="oxford-logo" src="/oxford-logo-rect.png" alt="University of Oxford logo" />
+                                </section>
+                            </div>
                         </div>
-                        <div className="owid-column--1">
-                            <img src="/coverage-logos.png" alt="" />
+                    </div>
+                </div>
+            </section>
+
+            <section className="homepage-featured">
+                <div className="wrapper">
+                    <div className="inner-wrapper">
+                        <h2>Our most popular research</h2>
+                        <div className="owid-row owid-spacing--1">
+                            <div className="owid-col owid-col--lg-auto">
+                                <div className="list">
+                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            CO₂ and other Greenhouse Gas Emissions
+                                        </div>
+                                    </a>
+                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faFileAlt} />
+                                        </div>
+                                        <div className="label">
+                                            The short history of global living conditions
+                                        </div>
+                                    </a>
+                                    <a href="/literacy" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            Literacy
+                                        </div>
+                                    </a>
+                                    <a href="/world-population-growth" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            World Population Growth
+                                        </div>
+                                    </a>
+                                    <a href="/life-expectancy" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            Life expectancy
+                                        </div>
+                                    </a>
+                                    <a href="/why-do-women-live-longer-than-men" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faFileAlt} />
+                                        </div>
+                                        <div className="label">
+                                            Why do women live longer?
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div className="owid-col owid-col--lg-auto">
+                                <div className="list">
+                                    <a href="/hunger-and-undernourishment" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            Hunger and undernourishment
+                                        </div>
+                                    </a>
+                                    <a href="/income-inequality" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            Income inequality
+                                        </div>
+                                    </a>
+                                    <a href="/faq-on-plastics" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faFileAlt} />
+                                        </div>
+                                        <div className="label">
+                                            FAQs on plastics pollution
+                                        </div>
+                                    </a>
+                                    <a href="/global-rise-of-education" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faBook} />
+                                        </div>
+                                        <div className="label">
+                                            Global rise of education
+                                        </div>
+                                    </a>
+                                    <a href="/much-better-awful-can-be-better" className="list-item">
+                                        <div className="icon">
+                                            <FontAwesomeIcon icon={faFileAlt} />
+                                        </div>
+                                        <div className="label">
+                                            The world is much better; The world is awful; The world can be much better
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -179,8 +224,8 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-posts">
                 <div className="wrapper">
-                    <div className="owid-row">
-                        <div className="owid-column--1">
+                    <div className="owid-row owid-spacing--3">
+                        <div className="owid-col owid-col--lg-1 flex-row">
                             <div className="homepage-posts--updates">
                                 <div className="header">
                                     <h2>Short updates and facts</h2>
@@ -202,10 +247,13 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </a>
                             </div>
                         </div>
-                        <div className="owid-column--2">
+                        <div className="owid-col owid-col--lg-shrink lg-only flex-row">
+                            <div className="divider"></div>
+                        </div>
+                        <div className="owid-col owid-col--lg-2 flex-row">
                             <div className="homepage-posts--explainers">
                                 <div className="header">
-                                    <h2>Explainers</h2>
+                                    <h2>Recent explainers</h2>
                                 </div>
                                 <div className="list">
                                     {posts.slice(6,12).map(post => <div key={post.slug} className="list-item-wrapper">
@@ -231,13 +279,14 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-subscribe">
                 <div className="wrapper">
-                    <div className="owid-row flex-stretch">
-                        <div className="owid-column--2">
+                    <div className="owid-row">
+                        <div className="owid-col owid-col--lg-2 flex-row">
                             <div className="homepage-subscribe--newsletter">
                                 <div className="shaded-box">
                                     <h2>Subscribe to our newsletter</h2>
-                                    <form>
-                                        <fieldset>
+                                    <form action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" target="_blank">
+                                        <p>Receive an email every two weeks on our latest research.</p>
+                                        {/* <fieldset>
                                             <div className="owid-checkboxes">
                                                 <div className="owid-checkbox-block">
                                                     <input type="checkbox" id="weekly" value="weekly" name="type" defaultChecked />
@@ -254,33 +303,34 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                                     </label>
                                                 </div>
                                             </div>
-                                        </fieldset>
+                                        </fieldset> */}
                                         <div className="owid-inline-field">
-                                            <input placeholder="Your email address" type="email" className="owid-inline-input" />
+                                            <input placeholder="Your email address" type="email" className="owid-inline-input" name="EMAIL" />
                                             <button type="submit" className="owid-inline-button">Subscribe</button>
                                         </div>
+                                        <input type="hidden" name="b_18058af086319ba6afad752ec_2e166c1fc1" tabIndex={-1}/>
                                     </form>
                                 </div>
                             </div>
                         </div>
-                        <div className="owid-column--1">
+                        <div className="owid-col owid-col--lg-1">
                             <div className="homepage-subscribe--social-media">
                                 <div className="shaded-box">
                                     <h2>Follow us</h2>
                                     <div className="list">
-                                        <a href="#" className="list-item">
+                                        <a href="https://twitter.com/ourworldindata" className="list-item" title="Twitter">
                                             <div className="icon">
                                                 <FontAwesomeIcon icon={faTwitter} />
                                             </div>
                                             <div className="label">Twitter</div>
                                         </a>
-                                        <a href="#" className="list-item">
+                                        <a href="https://facebook.com/ourworldindata" className="list-item" title="Facebook">
                                             <div className="icon">
                                                 <FontAwesomeIcon icon={faFacebook} />
                                             </div>
                                             <div className="label">Facebook</div>
                                         </a>
-                                        <a href="#" className="list-item">
+                                        <a href="/feed" className="list-item" title="RSS">
                                             <div className="icon">
                                                 <FontAwesomeIcon icon={faRss} />
                                             </div>
@@ -296,11 +346,10 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-projects">
                 <div className="wrapper">
-                    <h2>Our other projects</h2>
                     <div className="list">
-                        <a href="#" className="list-item">
+                        <a href="https://sdg-tracker.org" className="list-item">
                             <div className="icon-left">
-                                <img src="" alt=""/>
+                                <img src="/sdg-wheel.png" alt="SDG Tracker logo"/>
                             </div>
                             <div className="content">
                                 <h3>Sustainable Development Goals Tracker</h3>
@@ -310,9 +359,9 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
-                        <a href="#" className="list-item">
+                        <a href="/teaching" className="list-item">
                             <div className="icon-left">
-                                <img src="" alt=""/>
+                                <img src="/teaching-hub.svg" alt="Teaching Hub logo"/>
                             </div>
                             <div className="content">
                                 <h3>Teaching Hub</h3>
@@ -328,15 +377,15 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-about"></section>
 
-            <section className="homepage-entries">
+            <section id="entries" className="homepage-entries">
                 <div className="wrapper">
                     <h2>All topics</h2>
                     {entries.map(category => <div key={category.slug} className="category-wrapper">
-                        <div className="category-name">
+                        <div className={`category-name ${category.slug}-color`}>
                             <h3>{category.name}</h3>
                         </div>
                         <div className="category-entries">
-                            {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className="entry-wrapper">
+                            {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className={`entry ${category.slug}-color`}>
                                 <h4>{entry.title}</h4>
                             </a>)}
                         </div>

@@ -21,12 +21,7 @@
         flex: 1;
     }
 
-    @include mobile {
+    @include sm-only {
         display: block;
     }
-}
-
-.shaded-box {
-    background-color: $primary-color-100;
-    padding: 2rem;
 }

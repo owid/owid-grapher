@@ -1,5 +1,10 @@
 .donate-page {
     padding-bottom: 3rem;
+
+    .shaded-box {
+        border: 2px solid $primary-color;
+        padding: 2rem;
+    }
 }
 
 .donate-form {
@@ -15,7 +20,7 @@
         text-transform: uppercase;
         font-weight: 700;
         letter-spacing: .03rem;
-        margin: 0 0 .75rem;
+        margin: 0 0 .5rem;
     }
 
     label {
@@ -32,11 +37,10 @@
     }
 
     button[type=submit] {
-        background-color: $secondary-color;
+        background-color: $primary-color;
         font-weight: 700;
         color: white;
         border: none;
-        border-radius: 3px;
         padding: .8rem 1rem;
     }
 

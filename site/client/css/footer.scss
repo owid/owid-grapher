@@ -1,0 +1,42 @@
+.site-footer {
+    background-color: $primary-color;
+    padding: 3rem 0;
+    color: $primary-color-500;
+
+    a {
+        color: $primary-color-400;
+        text-decoration: underline;
+    }
+
+    .owid-logo {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 300;
+        text-decoration: none;
+        color: $primary-color-700;
+        text-align: right;
+    }
+
+    ul {
+        list-style-type: none;
+
+        a {
+            text-decoration: none;
+        }
+    }
+
+    .legal {
+        color: $primary-color-600;
+        font-size: .875rem;
+
+        p {
+            margin: 0 0 1rem;
+        }
+    }
+
+    .partner-logo {
+        max-width: 10rem;
+        display: block;
+        margin-bottom: .25rem;
+    }
+}
