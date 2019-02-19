@@ -215,7 +215,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get labelFontFamily(): string {
-        return "Arial Narrow, Arial, sans-serif"
+        return "Arial, sans-serif"
     }
 
     // Used if no color is specified for a series
