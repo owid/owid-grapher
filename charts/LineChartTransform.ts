@@ -1,5 +1,5 @@
 import { computed } from 'mobx'
-import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq } from './Util'
+import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq, last, clone, formatValue } from './Util'
 import { ChartConfig } from './ChartConfig'
 import { DataKey } from './DataKey'
 import { LineChartSeries, LineChartValue } from './LineChart'
@@ -18,7 +18,7 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === 'y')
+        return this.chart.dimensions.some(d => d.property === 'y')
     }
 
     @computed get failMessage(): string | undefined {
@@ -115,9 +115,26 @@ export class LineChartTransform implements IChartTransform {
         return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
     }
 
+    @computed get predomainData() {
+        if (this.isRelativeMode) {
+            const data = cloneDeep(this.initialData)
+            for (const g of data) {
+                const indexValue = clone(g.values.find(v => v.time >= this.startYear))
+                if (!indexValue) continue
+
+                for (const v of g.values) {
+                    v.y = cagrY(indexValue, v)
+                }
+            }
+            return data
+        } else {
+            return this.initialData
+        }
+    }
+
     @computed get allValues(): LineChartValue[] {
         const allValues: LineChartValue[] = []
-        this.initialData.forEach(series => allValues.push(...series.values))
+        this.predomainData.forEach(series => allValues.push(...series.values))
         return allValues
     }
 
@@ -139,7 +156,7 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get yDimensionFirst(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'y')
+        return this.chart.data.filledDimensions.find(d => d.property === 'y')
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -158,26 +175,62 @@ export class LineChartTransform implements IChartTransform {
         ]
     }
 
+    @computed get yScaleType() {
+        return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
+    }
+
+    @computed get yTickFormat() {
+        if (this.isRelativeMode) {
+            return (v: number) => formatValue(v, { unit: "%" })
+        } else {
+            return this.yDimensionFirst ? this.yDimensionFirst.formatValueShort : identity
+        }
+    }
+
     @computed get yAxis(): AxisSpec {
-        const { chart, yDomain, yDimensionFirst } = this
+        const { chart, yDomain, yScaleType, yTickFormat, isRelativeMode } = this
         return {
             label: "",
-            tickFormat: yDimensionFirst ? yDimensionFirst.formatValueShort : identity,
+            tickFormat: yTickFormat,
             domain: yDomain,
-            scaleType: chart.yAxis.scaleType,
-            scaleTypeOptions: chart.yAxis.scaleTypeOptions
+            scaleType: yScaleType,
+            scaleTypeOptions: isRelativeMode ? ['linear'] : chart.yAxis.scaleTypeOptions
         }
+    }
+
+    @computed get hasTimeline(): boolean {
+        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
+    }
+
+    @computed get isRelativeMode(): boolean {
+        return this.chart.props.stackMode === 'relative'
+    }
+
+    @computed get canToggleRelative(): boolean {
+        return this.hasTimeline && !this.chart.props.hideRelativeToggle
     }
 
     // Filter the data so it fits within the domains
     @computed get groupedData(): LineChartSeries[] {
-        const { initialData, xAxis, yAxis } = this
-        const groupedData = cloneDeep(initialData)
+        const { xAxis, yAxis } = this
+        const groupedData = cloneDeep(this.predomainData)
 
-        groupedData.forEach(g => {
+        for (const g of groupedData) {
             g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && d.y >= yAxis.domain[0] && d.y <= yAxis.domain[1])
-        })
+        }
 
         return groupedData.filter(g => g.values.length > 0)
+    }
+}
+
+function cagrY(indexValue: LineChartValue, targetValue: LineChartValue) {
+    if (targetValue.time - indexValue.time === 0)
+        return 0
+    else {
+        const frac = targetValue.y / indexValue.y
+        if (frac < 0)
+            return -(Math.pow(-frac, 1 / (targetValue.time - indexValue.time)) - 1) * 100
+        else
+            return (Math.pow(frac, 1 / (targetValue.time - indexValue.time)) - 1) * 100
     }
 }

@@ -365,6 +365,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
             {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}
             {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart} />}
             {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart} />}
+            {chart.isLineChart && chart.lineChart.canToggleRelative && <AbsRelToggle chart={chart} />}
         </div>
 
         return <div className="ControlsFooter" style={{ height: props.controlsFooter.height }}>

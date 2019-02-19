@@ -115,7 +115,9 @@ export function formatValue(value: number, options: { numDecimalPlaces?: number,
 
     const absValue = Math.abs(value)
     if (!isNoSpaceUnit && absValue >= 1e6) {
-        if (absValue >= 1e12)
+        if (!isFinite(absValue))
+            output = "Infinity"
+        else if (absValue >= 1e12)
             output = formatValue(value / 1e12, extend({}, options, { unit: "trillion", numDecimalPlaces: 2 }))
         else if (absValue >= 1e9)
             output = formatValue(value / 1e9, extend({}, options, { unit: "billion", numDecimalPlaces: 2 }))

@@ -122,6 +122,7 @@ export class URLBinder {
         const { chart, origChart } = this
 
         const { minTime, maxTime } = chart.props
+        // console.log(origChart.minTime, origChart.maxTime, minTime, maxTime)
         if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
             if (isFinite(minTime) && isFinite(maxTime) && minTime !== maxTime) {
                 return `${minTime}..${maxTime}`
