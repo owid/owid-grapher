@@ -3,7 +3,7 @@ import { first, last, sortBy, find } from './Util'
 import * as React from 'react'
 import { Bounds } from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
-import { observable, computed, autorun, action } from 'mobx'
+import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartViewContext } from './ChartViewContext'
 import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
@@ -36,10 +36,10 @@ export class Timeline extends React.Component<TimelineProps> {
 
     constructor(props: TimelineProps) {
         super(props)
-        action(() => {
+        runInAction(() => {
             this.startYearInput = props.startYear
             this.endYearInput = props.endYear
-        })()
+        })
     }
 
     componentWillMount() {

@@ -252,8 +252,10 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         if (chart.props.tab === 'map') {
             const {map} = chart
             return <Timeline years={map.data.timelineYears} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
-        } else {
+        } else if (chart.isScatter) {
             return <Timeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+        } else {
+            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>            
         }
     }
 }
@@ -274,7 +276,14 @@ export class ControlsFooter {
 
     @computed get hasTimeline(): boolean {
         const {chart} = this.props
-        return (chart.tab === 'map' && chart.map.data.hasTimeline) || (chart.tab === 'chart' && (chart.isTimeScatter || chart.isScatter) && chart.scatter.hasTimeline)
+        if (chart.tab === 'map' && chart.map.data.hasTimeline)
+            return true
+        else if (chart.tab === 'chart' && (chart.isTimeScatter || chart.isScatter) && chart.scatter.hasTimeline)
+            return true
+        else if (chart.tab === 'chart' && chart.isLineChart)
+            return true
+        else
+            return false
     }
 
     @computed get hasInlineControls(): boolean {
