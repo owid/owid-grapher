@@ -125,7 +125,7 @@ export class ChartData {
 
 
             if (chart.isLineChart && chart.lineChart.isRelativeMode) {
-                text = "Average annual change in " + (text.charAt(1).match(/[A-Z]/) ? text : text.charAt(0).toLowerCase() + text.slice(1))
+                text = "Change in " + (text.charAt(1).match(/[A-Z]/) ? text : text.charAt(0).toLowerCase() + text.slice(1))
             }
 
             // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe

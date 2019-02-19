@@ -123,7 +123,7 @@ export class LineChartTransform implements IChartTransform {
                 if (!indexValue) continue
 
                 for (const v of g.values) {
-                    v.y = cagrY(indexValue, v)
+                    v.y = (v.y-indexValue.y)/indexValue.y
                 }
             }
             return data
@@ -181,7 +181,7 @@ export class LineChartTransform implements IChartTransform {
 
     @computed get yTickFormat() {
         if (this.isRelativeMode) {
-            return (v: number) => formatValue(v, { unit: "%" })
+            return (v: number) => (v > 0 ? "+" : "") + formatValue(v, { unit: "%" })
         } else {
             return this.yDimensionFirst ? this.yDimensionFirst.formatValueShort : identity
         }
