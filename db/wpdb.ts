@@ -8,6 +8,7 @@ import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as db from 'db/db'
+import { Post } from 'db/model/Post'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
@@ -339,7 +340,8 @@ export interface PostInfo {
     date: Date
     slug: string
     authors: string[]
-    imageUrl?: string
+    imageUrl?: string,
+    tags: { id: number; name: string; }[]
 }
 
 let cachedPosts: PostInfo[]
@@ -354,6 +356,7 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
     const permalinks = await getPermalinks()
     const authorship = await getAuthorship()
     const featuredImages = await getFeaturedImages()
+    const tagsByPostId = await Post.tagsByPostId()
 
     cachedPosts = rows.map(row => {
         return {
@@ -361,7 +364,8 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
             date: new Date(row.post_date),
             slug: permalinks.get(row.ID, row.post_name),
             authors: authorship.get(row.ID)||[],
-            imageUrl: featuredImages.get(row.ID)
+            imageUrl: featuredImages.get(row.ID),
+            tags: tagsByPostId.get(row.ID)||[]
         }
     })
 
