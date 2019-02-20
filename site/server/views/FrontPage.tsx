@@ -232,7 +232,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <div className="list">
                                     {shortPosts.slice(0,6).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
                                         <div className="thumbnail">
-                                            <div className="cover-image" style={{ backgroundImage: `url(${post.imageUrl})` }} />
+                                            <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                         </div>
                                         <div className="info">
                                             <time className="date">{formatDate(post.date)}</time>
@@ -258,7 +258,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     {explainerPosts.slice(0,6).map(post => <div key={post.slug} className="list-item-wrapper">
                                         <a href={`/${post.slug}`} className="list-item">
                                             <div className="thumbnail">
-                                                <div className="cover-image" style={{ backgroundImage: `url(${post.imageUrl})` }} />
+                                                <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                             </div>
                                             <div className="info">
                                                 <h3 className="title">{post.title}</h3>
