@@ -224,7 +224,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-posts">
                 <div className="wrapper">
                     <div className="owid-row owid-spacing--3">
-                        <div className="owid-col owid-col--lg-1 flex-row owid-padding-bottom--sm-6">
+                        <div className="owid-col owid-col--lg-1 flex-row">
                             <div className="homepage-posts--updates">
                                 <div className="header">
                                     <h2>Short updates and facts</h2>

@@ -301,7 +301,6 @@
 
 .homepage-posts {
     background-color: $primary-color-900;
-    padding: 1.75rem 0 2rem;
 
     h2 {
         font-family: $serif-font-stack;
@@ -325,6 +324,7 @@
         background-repeat: no-repeat;
         background-position: center center;
         background-size: cover;
+        background-color: rgba(white, .05);
     }
 
     .see-all {
@@ -354,6 +354,11 @@
 .homepage-posts--updates,
 .homepage-posts--explainers {
     flex: 1;
+    padding: 1.5rem 0 1.75rem;
+
+    @include lg-only {
+        padding: 1.75rem 0 2rem;
+    }
 }
 
 .homepage-posts--updates {
@@ -531,10 +536,15 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        border: 1px solid $primary-color-300;
         padding: 1.5rem;
         margin-bottom: 1rem;
         color: $text-color;
+        border: 2px solid $primary-color-300;
+        transition: border-color 150ms ease;
+
+        &:hover {
+            border-color: $primary-color-400;
+        }
 
         @include lg-only {
             align-items: center;
@@ -547,11 +557,6 @@
 
         .content {
             flex: 1;
-            transition: opacity 150ms ease;
-        }
-
-        &:hover .content {
-            opacity: .7;
         }
 
         .icon-left {
