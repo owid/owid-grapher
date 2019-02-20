@@ -898,7 +898,7 @@ api.delete('/redirects/:id', async (req: Request, res: Response) => {
 })
 
 api.get('/posts.json', async req => {
-    const rows = await Post.select('id', 'title', 'type', 'status', 'updated_at').from(db.knex().from(Post.table))
+    const rows = await Post.select('id', 'title', 'type', 'status', 'updated_at').from(db.knex().from(Post.table).orderBy('updated_at', 'desc'))
 
     const tagsByPostId = await Post.tagsByPostId()
 
