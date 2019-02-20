@@ -508,6 +508,11 @@
 .homepage-projects {
     padding: 3rem 0;
     background-color: $primary-color-100;
+    text-align: center;
+
+    @include lg-only {
+        text-align: left;
+    }
 
     .wrapper {
         max-width: 50rem;
