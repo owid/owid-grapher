@@ -10,8 +10,8 @@ import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { BAKED_GRAPHER_URL } from 'settings'
 
-export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[] }) => {
-    const { entries, posts } = props
+export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], shortPosts: PostInfo[], explainerPosts: PostInfo[] }) => {
+    const { entries, posts, shortPosts, explainerPosts } = props
 
     // Structured data for google
     const structuredMarkup = {
@@ -230,7 +230,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     <h2>Short updates and facts</h2>
                                 </div>
                                 <div className="list">
-                                    {posts.slice(1,6).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
+                                    {shortPosts.slice(0,6).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
                                         <div className="thumbnail">
                                             <div className="cover-image" style={{ backgroundImage: `url(${post.imageUrl})` }} />
                                         </div>
@@ -255,7 +255,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     <h2>Recent explainers</h2>
                                 </div>
                                 <div className="list">
-                                    {posts.slice(6,12).map(post => <div key={post.slug} className="list-item-wrapper">
+                                    {explainerPosts.slice(0,6).map(post => <div key={post.slug} className="list-item-wrapper">
                                         <a href={`/${post.slug}`} className="list-item">
                                             <div className="thumbnail">
                                                 <div className="cover-image" style={{ backgroundImage: `url(${post.imageUrl})` }} />
