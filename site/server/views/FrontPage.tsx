@@ -43,7 +43,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             <h2>Search across <em>2700 charts</em> and <em>316 topics</em></h2>
                             <div className="search-input-wrapper">
                                 <div className="icon"><FontAwesomeIcon icon={faSearch} /></div>
-                                <input type="search" placeholder="Try &quot;poverty&quot; or &quot;air pollution&quot;" name="q" />
+                                <input type="search" placeholder="Try &quot;life expectancy&quot; or &quot;air pollution&quot;" name="q" />
                             </div>
                         </form>
                         {/* <div className="columns counts">
