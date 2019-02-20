@@ -6,11 +6,13 @@ import * as _ from 'lodash'
 
 import { Link } from './Link'
 import { Tag } from './TagBadge'
+import { bind } from 'decko'
 import { EditableTags } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
-import { bind } from 'decko'
 import { BAKED_GRAPHER_URL } from 'settings'
 import { ChartTypeDefsByKey } from 'charts/ChartType'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faStar } from '@fortawesome/free-solid-svg-icons'
 
 export interface ChartListItem {
     id: number
@@ -71,7 +73,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
         return <tr>
             <td>
                 <a title="Show this chart on the front page of the website." onClick={() => this.props.onStar(chart)}>
-                    {chart.isStarred ? <i className="fa fa-star"/> : <i className="fa fa-star-o"/>}
+                    {chart.isStarred ? <FontAwesomeIcon icon={faStar}/> : <i className="fa fa-star-o"/>}
                 </a>
             </td>
             {chart.isPublished ? <td>

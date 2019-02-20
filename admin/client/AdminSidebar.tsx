@@ -1,22 +1,24 @@
 import { Link } from './Link'
 import * as React from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChartBar, faFile, faUpload, faTable, faDatabase, faGlobe, faTag, faUser, faArrowRight, faEye } from '@fortawesome/free-solid-svg-icons'
 
 export function AdminSidebar(props: { onDismiss: () => void }) {
     return <aside className="AdminSidebar">
         <ul className="sidebar-menu">
             <li className="header">SITE</li>
-            <li><Link to="/charts"><i className="fa fa-bar-chart"></i> Charts</Link></li>
-            <li><Link to="/posts"><i className="fa fa-file"></i> Posts</Link></li>
+            <li><Link to="/charts"><FontAwesomeIcon icon={faChartBar}/> Charts</Link></li>
+            <li><Link to="/posts"><FontAwesomeIcon icon={faFile}/> Posts</Link></li>
             <li className="header">DATA</li>
-            <li><Link to="/import"><i className="fa fa-upload"></i> Import CSV</Link></li>
-            <li><Link to="/datasets"><i className="fa fa-table"></i> Datasets</Link></li>
-            <li><Link to="/variables"><i className="fa fa-database"></i> Variables</Link></li>
-            <li><Link to="/standardize"><i className="fa fa-globe"></i> Country tool</Link></li>
-            <li><Link to="/tags"><i className="fa fa-tag"></i> Tags</Link></li>
+            <li><Link to="/import"><FontAwesomeIcon icon={faUpload}/> Import CSV</Link></li>
+            <li><Link to="/datasets"><FontAwesomeIcon icon={faTable}/> Datasets</Link></li>
+            <li><Link to="/variables"><FontAwesomeIcon icon={faDatabase}/> Variables</Link></li>
+            <li><Link to="/standardize"><FontAwesomeIcon icon={faGlobe}/> Country tool</Link></li>
+            <li><Link to="/tags"><FontAwesomeIcon icon={faTag}/> Tags</Link></li>
             <li className="header">SETTINGS</li>
-            <li><Link to="/users/"><i className="fa fa-users"></i> Users</Link></li>
-            <li><Link to="/redirects"><i className="fa fa-arrow-right"></i> Redirects</Link></li>
-            <li><Link to="/test"><i className="fa fa-eye"/> Test</Link></li>
+            <li><Link to="/users/"><FontAwesomeIcon icon={faUser}/> Users</Link></li>
+            <li><Link to="/redirects"><FontAwesomeIcon icon={faArrowRight}/> Redirects</Link></li>
+            <li><Link to="/test"><FontAwesomeIcon icon={faEye}/> Test</Link></li>
         </ul>
     </aside>
 }

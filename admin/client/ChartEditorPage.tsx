@@ -20,6 +20,8 @@ import { SaveButtons } from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMobile, faDesktop } from '@fortawesome/free-solid-svg-icons';
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -169,11 +171,11 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                 <div className="btn-group" data-toggle="buttons">
                     <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview">
                         <input type="radio" onChange={action(_ => editor.previewMode = 'mobile')} name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
-                        <i className="fa fa-mobile"/>
+                        <FontAwesomeIcon icon={faMobile}/>
                     </label>
                     <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview">
                         <input onChange={action(_ => editor.previewMode = 'desktop')} type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
-                        <i className="fa fa-desktop"/>
+                        <FontAwesomeIcon icon={faDesktop}/>
                     </label>
                 </div>
             </div>
