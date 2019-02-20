@@ -12,14 +12,14 @@
 	display: table;
 }
 
-@include desktop {
-    .mobile-only {
+@include lg-only {
+    .sm-only {
         display: none !important;
     }
 }
 
-@include mobile {
-    .desktop-only {
+@include sm-only {
+    .lg-only {
         display: none !important;
     }
 }
@@ -27,3 +27,7 @@
 .nowrap {
     white-space: nowrap;
 }
+
+.align-left { text-align: left; }
+.align-center { text-align: center; }
+.align-right { text-align: right; }

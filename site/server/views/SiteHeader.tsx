@@ -12,7 +12,7 @@ export const SiteHeader = () => {
                     Our World<br /> in Data
                 </a>
             </div>
-            <nav className="site-navigation desktop-only">
+            <nav className="site-navigation lg-only">
                 <div className="topics-button-wrapper">
                     <a href="/#entries" className="topics-button">
                         <div className="label">
@@ -46,7 +46,7 @@ export const SiteHeader = () => {
                     </div>
                 </div>
             </nav>
-            <ul className="site-social-links desktop-only">
+            <ul className="site-social-links lg-only">
                 <li>
                     <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter">
                         <FontAwesomeIcon icon={faTwitter} />
@@ -63,7 +63,7 @@ export const SiteHeader = () => {
                     </a>
                 </li>
             </ul>
-            <div className="site-navigation mobile-only">
+            <div className="site-navigation sm-only">
                 <button className="button">
                     <FontAwesomeIcon icon={faSearch}/>
                 </button>

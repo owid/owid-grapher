@@ -26,6 +26,12 @@ $primary-color-100: #EBEEF2;
 /* Blood Orange */
 $secondary-color: #D42B21;
 
+/* Yellow */
+$tertiary-color: #F8C723;
+$tertiary-color-100: #F4EDDB;
+$tertiary-color-400: $tertiary-color;
+$tertiary-color-700: #d8b43b;
+
 /* Highlight color */
 $highlight-color: #F8C723;
 
@@ -35,16 +41,17 @@ $body-bg: #fafafa;
 /* Text colors */
 $text-color: $primary-color-800;
 $secondary-text-color: $primary-color-600;
+$tertiary-text-color: $tertiary-color;
 $error-text-color: $secondary-color;
 
 /* Hyperlink colors */
-$link-color: #3366cc;
+$link-color: #2162e6;
 $link-hover-color: $link-color;
 $link-visited-color: #5a3696;
 
 /* Category colors */
 $population-color: #2082a2;
-$health-color: #cc0000;
+$health-color: #bf1b1b;
 $food-color: #689920;
 $energy-color: #e37f3f;
 $environment-color: #013220;
@@ -56,7 +63,7 @@ $global-connections-color: #17393d;
 $war-and-peace-color: #660000;
 $politics-color: #1b0655;
 $violence-and-rights-color: #cc235c;
-$education-color: #012d8e;
+$education-color: #253f77;
 $media-color: #0089be;
 $culture-color: #d76db6;
 
@@ -65,16 +72,30 @@ $culture-color: #d76db6;
  * Breakpoints
  */
 
-$desktop-min-width: 960px;
+$lg-min-width: 960px;
+// we only have "sm" and "lg" right now. Everything below "lg" is "sm".
 
-@mixin mobile {
-    @media (max-width: #{$desktop-min-width - 1px}) {
+@mixin sm-only {
+    @media (max-width: #{$lg-min-width - 1px}) {
         @content;
     }
 }
 
-@mixin desktop {
-    @media (min-width: #{$desktop-min-width}) {
+@mixin lg-only {
+    @media (min-width: #{$lg-min-width}) {
         @content;
     }
 }
+
+/*******************************************************************************
+ * Z-index
+ */
+
+$zindex-input: 1;
+$zindex-article-image: 10;
+$zindex-footnote: 10;
+$zindex-popover: 100;
+$zindex-search-overlay: 100;
+$zindex-nav-dropdown: 101;
+$zindex-tooltip: 1070;
+$zindex-adminbar: 99999;

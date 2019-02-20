@@ -27,7 +27,7 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
         <meta name="twitter:title" content={pageTitle}/>
         <meta name="twitter:description" content={pageDesc}/>
         <meta name="twitter:image" content={imageUrl}/>
-        <link href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700" rel="stylesheet" />
         <link rel="stylesheet" href={webpack('commons.css', 'site')}/>
         <link rel="stylesheet" href={webpack('owid.css', 'site')}/>
         {props.children}

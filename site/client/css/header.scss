@@ -17,14 +17,10 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: 13px;
-    padding-bottom: 10px;
+    padding-top: 14px;
+    padding-bottom: 11px;
     padding-left: 20px;
     padding-right: 20px;
-}
-
-.site-navigation-wrapper.mobile {
-    flex-direction: column;
 }
 
 .site-navigation {
@@ -46,7 +42,7 @@
 }
 
 .site-primary-links {
-    font-size: 1rem;
+    font-size: 1.0625rem;
     margin-top: .1em;
 
     li {
@@ -66,7 +62,7 @@
 }
 
 .site-secondary-links {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
 
     li {
         list-style-type: none;
@@ -86,6 +82,7 @@
 
     > input {
         font-family: inherit;
+        font-size: 1.0625rem;
         line-height: 1.375;
         color: white;
         background-color: transparent;
@@ -97,11 +94,11 @@
         outline: none;
 
         &::placeholder {
-            color: $primary-color-700;
+            color: $primary-color-400;
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $primary-color-900;
+            color: $primary-color-800;
         }
     }
 
@@ -112,7 +109,7 @@
         bottom: 0;
         display: flex;
         align-items: center;
-        color: $primary-color-700;
+        color: $primary-color-600;
     }
 }
 
@@ -125,7 +122,7 @@
 	color: black;
 	background: white;
 	/* Needs to go over the charts */
-	z-index: 2;
+	z-index: $zindex-search-overlay;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: scroll;
@@ -155,93 +152,19 @@
     }
 }
 
-.site-masthead {
-    font-family: $serif-font-stack;
-    padding: 2rem 0;
-
-    h1 {
-        font-size: 2.75rem;
-        font-weight: 400;
-        color: white;
-        text-align: center;
-        margin: 0 0 1.5rem;
-        line-height: 1.2;
-    }
-
-    p {
-        font-size: 1.625rem;
-        margin: 0 auto 1.25rem;
-        max-width: 36rem; /* TODO standardise */
-        color: #7CA3D0;
-        line-height: 1.6;
-        text-align: center;
-    }
-
-    p em {
-        font-style: normal;
-        color: #78c7ff;
-    }
-
-    .author-byline {
-        font-size: 1.25rem;
-    }
-}
-
-.masthead-search {
-    text-align: center;
-    max-width: 40rem;
-    margin: 0 auto;
-
-    .input-wrapper {
-        position: relative;
-        .icon {
-            position: absolute;
-            top: 0;
-            left: .75rem;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            color: rgba(black, .2);
-        }
-    }
-
-    input {
-        font-family: inherit;
-        font-size: 1.25rem;
-        line-height: 1.375;
-        color: white;
-        background-color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 100px;
-        padding: .5em 1em .5em 2.25em;
-        display: block;
-        width: 100%;
-        outline: none;
-        margin: 0 auto;
-        color: black;
-
-        &::placeholder {
-            color: rgba(white, .3);
-            transition: color 150ms ease;
-        }
-        &:focus::placeholder {
-            color: rgba(white, .1);
-        }
-    }
-}
-
 /* Topics dropdown menu */
 
 .topics-button-wrapper {
     display: flex;
     align-items: stretch;
     margin-right: 1.5rem;
-    margin-bottom: .3em;
+    margin-bottom: .25em;
     position: relative;
 }
 
 .topics-button {
     font-family: inherit;
+    font-size: 1.0625rem;
     line-height: 1.35;
     color: $primary-color-400;
     border: 1px solid $primary-color-700;
@@ -264,7 +187,7 @@
     }
 
     .icon {
-        color: $primary-color-700;
+        color: $primary-color-600;
         flex: 0;
         display: flex;
         padding-left: 3px;
@@ -280,7 +203,7 @@
         }
 
         .icon {
-            color: $primary-color-500;
+            color: $primary-color-300;
         }
     }
 }
@@ -297,7 +220,7 @@
     position: absolute;
     top: 100%;
     left: 0;
-    z-index: 100;
+    z-index: $zindex-nav-dropdown;
     margin-top: -5px;
     box-shadow: 0px 6px 11px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
@@ -393,7 +316,7 @@
 
 /* Mobile navigation */
 
-@include mobile {
+@include sm-only {
     .site-header .wrapper {
         padding: 0;
     }

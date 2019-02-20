@@ -8,10 +8,11 @@ import * as path from 'path'
 import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as db from 'db/db'
+import { Post } from 'db/model/Post'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
-import { Chart } from 'charts/Chart';
+import { Chart } from 'charts/Chart'
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -26,10 +27,10 @@ class WPDB {
                     password: DB_PASS,
                     database: WORDPRESS_DB_NAME
                 }
-            })    
+            })
         }
-    
-        return knexInstance(tableName) 
+
+        return knexInstance(tableName)
     }
 
     async connect() {
@@ -133,7 +134,7 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
 
     const authorRows = await wpdb.query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
-        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id 
+        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
         WHERE terms.taxonomy='author'
         ORDER BY rels.term_order ASC
     `)
@@ -231,7 +232,6 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         "Media",
         "Culture"
     ]
-
 
     const pageRows = await wpdb.query(`
         SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
@@ -340,7 +340,8 @@ export interface PostInfo {
     date: Date
     slug: string
     authors: string[]
-    imageUrl?: string
+    imageUrl?: string,
+    tags: { id: number; name: string; }[]
 }
 
 let cachedPosts: PostInfo[]
@@ -355,6 +356,7 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
     const permalinks = await getPermalinks()
     const authorship = await getAuthorship()
     const featuredImages = await getFeaturedImages()
+    const tagsByPostId = await Post.tagsByPostId()
 
     cachedPosts = rows.map(row => {
         return {
@@ -362,7 +364,8 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
             date: new Date(row.post_date),
             slug: permalinks.get(row.ID, row.post_name),
             authors: authorship.get(row.ID)||[],
-            imageUrl: featuredImages.get(row.ID)
+            imageUrl: featuredImages.get(row.ID),
+            tags: tagsByPostId.get(row.ID)||[]
         }
     })
 

@@ -1,0 +1,86 @@
+.site-footer {
+    background-color: $primary-color;
+    padding: 3rem 0;
+    color: $primary-color-500;
+
+    @include sm-only {
+        text-align: center;
+        padding: 2rem 0;
+    }
+
+    a {
+        color: $primary-color-400;
+        transition: color 150ms ease;
+
+        &:hover {
+            color: $primary-color-300;
+        }
+    }
+
+    .owid-logo {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 300;
+        text-decoration: none;
+        color: $primary-color-700;
+        text-align: right;
+    }
+
+    ul {
+        list-style-type: none;
+        margin-bottom: 1rem;
+
+        a {
+            display: block;
+            text-decoration: none;
+
+            @include sm-only {
+                padding: .5rem;
+            }
+        }
+
+        @include sm-only {
+            margin-bottom: 2rem;
+            border-top: 1px solid $primary-color-800;
+
+            li {
+                border-bottom: 1px solid $primary-color-800;
+            }
+        }
+    }
+
+    .legal {
+        font-size: .875rem;
+        color: $primary-color-600;
+        text-align: left;
+
+        p {
+            margin: 0 0 1rem;
+        }
+    }
+
+    .partner-logo {
+        max-width: 10rem;
+        display: block;
+        margin-bottom: .25rem;
+
+        @include sm-only {
+            margin: 0 auto .5rem;
+        }
+    }
+
+    .donate-link {
+        border: 2px solid $primary-color-600;
+        padding: .5rem;
+    }
+
+    .logos a {
+        display: block;
+        transition: opacity 150ms ease;
+        &:hover { opacity: .8; }
+    }
+
+    .logos img {
+        display: inline-block;
+    }
+}
