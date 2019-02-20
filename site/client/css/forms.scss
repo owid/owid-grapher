@@ -179,6 +179,7 @@ $checkbox-check-height: 4px;
     background-color: white;
     padding: .625rem .75rem;
     border: 2px solid $primary-color;
+    border-radius: 0;
     outline: none;
 
     &:focus {
