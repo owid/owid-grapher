@@ -38,7 +38,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         <h1 className="lg-only">Know the world you live in</h1>
                         <div className="subheading">Understand how the world is changing through research and interactive data visualizations.</div>
                     </div>
-                    <div className="homepage-masthead--search">
+                    <div className="homepage-masthead--search lg-only">
                         <form action="/search" method="get">
                             <h2>Search across <em>2700 charts</em> and <em>316 topics</em></h2>
                             <div className="search-input-wrapper">
@@ -61,7 +61,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             </div>
                         </div> */}
                     </div>
-                    <p className="open-access">All our content is free: <strong>open access</strong> and <strong>open source</strong></p>
+                    <p className="open-access lg-only">All our content is free: <strong>open access</strong> and <strong>open source</strong></p>
                 </div>
             </section>
 
@@ -70,7 +70,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                     <div className="inner-wrapper">
                         <p className="lead lead--first">More than <strong>10 million readers</strong> every year</p>
                         <div className="owid-row owid-spacing--3">
-                            <div className="owid-col owid-col--lg-auto">
+                            <div className="owid-col owid-col--lg-auto owid-padding-bottom--sm-5">
                                 <section>
                                     <h3 className="align-center">Trusted in <strong>research and media</strong></h3>
                                     <a href="/about/coverage#magazines-newspapers-blogs" className="coverage-link">
@@ -224,7 +224,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-posts">
                 <div className="wrapper">
                     <div className="owid-row owid-spacing--3">
-                        <div className="owid-col owid-col--lg-1 flex-row">
+                        <div className="owid-col owid-col--lg-1 flex-row owid-padding-bottom--sm-6">
                             <div className="homepage-posts--updates">
                                 <div className="header">
                                     <h2>Short updates and facts</h2>
@@ -279,7 +279,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-subscribe">
                 <div className="wrapper">
                     <div className="owid-row">
-                        <div className="owid-col owid-col--lg-2 flex-row">
+                        <div className="owid-col owid-col--lg-2 flex-row owid-padding-bottom--sm-3">
                             <div className="homepage-subscribe--newsletter">
                                 <div className="shaded-box">
                                     <h2>Subscribe to our newsletter</h2>
@@ -354,7 +354,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <h3>Sustainable Development Goals Tracker</h3>
                                 <p>Is the world on track to reach the Sustainable Development Goals?</p>
                             </div>
-                            <div className="icon-right">
+                            <div className="icon-right lg-only">
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
@@ -366,7 +366,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <h3>Teaching Hub</h3>
                                 <p>Slides, research, and visualizations for teaching and learning about global development</p>
                             </div>
-                            <div className="icon-right">
+                            <div className="icon-right lg-only">
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
@@ -381,7 +381,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                     <h2>All topics</h2>
                     {entries.map(category => <div key={category.slug} className="category-wrapper">
                         <div className={`category-name ${category.slug}-color`}>
-                            <h3>{category.name}</h3>
+                            <h3 id={category.slug}>{category.name}</h3>
                         </div>
                         <div className="category-entries">
                             {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className={`entry ${category.slug}-color`}>

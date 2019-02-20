@@ -262,6 +262,9 @@ $checkbox-check-height: 4px;
 
 .owid-inline-field {
     display: flex;
+    @include sm-only {
+        flex-direction: column;
+    }
 }
 
 .owid-inline-input {
