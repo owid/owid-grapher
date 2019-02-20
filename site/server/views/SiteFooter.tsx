@@ -35,7 +35,7 @@ export const SiteFooter = () => {
                         <a href="https://global-change-data-lab.org/" className="partner-logo">
                             <img src="/gcdl-logo.png" alt="Global Change Data Lab logo"/>
                         </a>
-                        <a href="https://ourworldindata.org/owid-at-ycombinator" className="partner-logo">
+                        <a href="/owid-at-ycombinator" className="partner-logo">
                             <img src="/yc-logo.png" alt="Y Combinator logo"/>
                         </a>
                     </div>
