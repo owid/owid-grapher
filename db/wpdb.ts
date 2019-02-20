@@ -11,7 +11,7 @@ import * as db from 'db/db'
 
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
-import { Chart } from 'charts/Chart';
+import { Chart } from 'charts/Chart'
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -26,10 +26,10 @@ class WPDB {
                     password: DB_PASS,
                     database: WORDPRESS_DB_NAME
                 }
-            })    
+            })
         }
-    
-        return knexInstance(tableName) 
+
+        return knexInstance(tableName)
     }
 
     async connect() {
@@ -133,7 +133,7 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
 
     const authorRows = await wpdb.query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
-        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id 
+        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
         WHERE terms.taxonomy='author'
         ORDER BY rels.term_order ASC
     `)
@@ -231,7 +231,6 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         "Media",
         "Culture"
     ]
-
 
     const pageRows = await wpdb.query(`
         SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
