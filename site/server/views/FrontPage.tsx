@@ -36,7 +36,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                 <div className="wrapper">
                     <div className="homepage-masthead--main">
                         <h1 className="lg-only">Know the world you live in</h1>
-                        <div className="subheading">Understand how the world is changing through research and interactive data visualizations.</div>
+                        <div className="subheading">Understand the world's largest problems through research and interactive data visualizations</div>
                     </div>
                     <div className="homepage-masthead--search lg-only">
                         <form action="/search" method="get">
