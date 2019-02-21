@@ -230,7 +230,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     <h2>Short updates and facts</h2>
                                 </div>
                                 <div className="list">
-                                    {shortPosts.slice(0,6).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
+                                    {shortPosts.slice(0,5).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
                                         <div className="thumbnail">
                                             <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                         </div>
