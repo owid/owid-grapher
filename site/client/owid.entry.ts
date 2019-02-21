@@ -37,7 +37,7 @@ if (search) {
     })
 }
 
-const trackedLinkExists: boolean = !!document.querySelector("a[data-track-click]")
+const trackedLinkExists: boolean = !!document.querySelector("[data-track-click]")
 
 if (trackedLinkExists) {
     document.addEventListener("click", (ev) => {
