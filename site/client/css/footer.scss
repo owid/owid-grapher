@@ -76,8 +76,14 @@
 
     .logos a {
         display: block;
-        transition: opacity 150ms ease;
-        &:hover { opacity: .8; }
+        transition: opacity 150ms ease, filter 150ms ease;
+        filter: grayscale(1);
+        opacity: .5;
+
+        &:hover {
+            filter: grayscale(0);
+            opacity: 1;
+        }
     }
 
     .logos img {
