@@ -47,7 +47,7 @@ function createFunctionWithTimeout(callback: () => void, timeout?: number) {
             callback()
         }
     }
-    setTimeout(fn, timeout || 500)
+    setTimeout(fn, timeout || 350)
     return fn
 }
 
