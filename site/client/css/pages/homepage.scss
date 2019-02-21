@@ -605,6 +605,7 @@
 
         @include lg-only {
             display: flex;
+            align-items: baseline;
         }
     }
 
