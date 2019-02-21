@@ -39,7 +39,7 @@ if (search) {
 
 const trackedLinkExists: boolean = !!document.querySelector("[data-track-click]")
 
-function createFunctionWithTimeout(callback: () => void, timeout?: number) {
+function createFunctionWithTimeout(callback: () => void, timeout: number = 350) {
     let called = false
     function fn() {
         if (!called) {
@@ -47,7 +47,7 @@ function createFunctionWithTimeout(callback: () => void, timeout?: number) {
             callback()
         }
     }
-    setTimeout(fn, timeout || 350)
+    setTimeout(fn, timeout)
     return fn
 }
 
