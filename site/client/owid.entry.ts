@@ -39,19 +39,44 @@ if (search) {
 
 const trackedLinkExists: boolean = !!document.querySelector("[data-track-click]")
 
+function createFunctionWithTimeout(callback: () => void, timeout?: number) {
+    let called = false
+    function fn() {
+        if (!called) {
+            called = true
+            callback()
+        }
+    }
+    setTimeout(fn, timeout || 500)
+    return fn
+}
+
 if (trackedLinkExists) {
     document.addEventListener("click", (ev) => {
         const targetElement = ev.target as HTMLElement
         const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
         if (trackedElement) {
-            // Note this will not work on anchor tags without target=_blank, as
-            // they immediately navigate away before the event can be sent.
-            // To handle those we need to wait before navigating.
-            Analytics.logEvent("OWID_SITE_CLICK", {
-                text: trackedElement.innerText,
-                href: trackedElement.getAttribute("href"),
-                note: trackedElement.getAttribute("data-track-note")
-            })
+            // In order for events to be send for all anchor tags, there needs
+            // to be a delay to send the event to amplitude before navigating
+            // away from the page.
+            const href = trackedElement.getAttribute("href")
+            const target = trackedElement.getAttribute("target")
+            if (href && target !== "_blank") {
+                ev.preventDefault() // prevent immediate redirect
+                Analytics.logEvent("OWID_SITE_CLICK", {
+                    text: trackedElement.innerText,
+                    href: href,
+                    note: trackedElement.getAttribute("data-track-note")
+                }).then(createFunctionWithTimeout(() => {
+                    window.location = href
+                }))
+            } else {
+                Analytics.logEvent("OWID_SITE_CLICK", {
+                    text: trackedElement.innerText,
+                    href: href,
+                    note: trackedElement.getAttribute("data-track-note")
+                })
+            }
         }
     })
 }
