@@ -73,7 +73,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             <div className="owid-col owid-col--lg-auto owid-padding-bottom--sm-5">
                                 <section>
                                     <h3 className="align-center">Trusted in <strong>research and media</strong></h3>
-                                    <a href="/about/coverage#magazines-newspapers-blogs" className="coverage-link">
+                                    <a href="/about/coverage#coverage" className="coverage-link">
                                         <img src="/media-logos.png" alt="Logos of the publications that have used our content" />
                                         <div className="hover-note">
                                             <p>Find out how our work is used by journalists and researchers</p>
@@ -82,7 +82,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </section>
                                 <section>
                                     <h3 className="align-center">Used in <strong>teaching</strong></h3>
-                                    <a href="/about/coverage#lectures-and-teaching-material" className="coverage-link">
+                                    <a href="/about/coverage#teaching" className="coverage-link">
                                         <img src="/university-logos.png" alt="Logos of the universities that have used our content" />
                                         <div className="hover-note">
                                             <p>Find out how our work is used in teaching</p>
