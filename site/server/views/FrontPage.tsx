@@ -73,7 +73,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             <div className="owid-col owid-col--lg-auto owid-padding-bottom--sm-5">
                                 <section>
                                     <h3 className="align-center">Trusted in <strong>research and media</strong></h3>
-                                    <a href="/about/coverage#coverage" className="coverage-link">
+                                    <a href="/about/coverage#coverage" className="coverage-link" data-track-click data-track-note="trust-media">
                                         <img src="/media-logos.png" alt="Logos of the publications that have used our content" />
                                         <div className="hover-note">
                                             <p>Find out how our work is used by journalists and researchers</p>
@@ -82,7 +82,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </section>
                                 <section>
                                     <h3 className="align-center">Used in <strong>teaching</strong></h3>
-                                    <a href="/about/coverage#teaching" className="coverage-link">
+                                    <a href="/about/coverage#teaching" className="coverage-link" data-track-click data-track-note="trust-teaching">
                                         <img src="/university-logos.png" alt="Logos of the universities that have used our content" />
                                         <div className="hover-note">
                                             <p>Find out how our work is used in teaching</p>
@@ -106,7 +106,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     </ul>
                                 </section>
                                 <section>
-                                    <h3>Based at University of Oxford</h3>
+                                    <h3>Based at the University of Oxford</h3>
                                     <img className="oxford-logo" src="/oxford-logo-rect.png" alt="University of Oxford logo" />
                                 </section>
                             </div>
@@ -122,7 +122,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         <div className="owid-row owid-spacing--1">
                             <div className="owid-col owid-col--lg-auto">
                                 <div className="list">
-                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item">
+                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -130,7 +130,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             CO₂ and other Greenhouse Gas Emissions
                                         </div>
                                     </a>
-                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item">
+                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -138,7 +138,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             The short history of global living conditions
                                         </div>
                                     </a>
-                                    <a href="/literacy" className="list-item">
+                                    <a href="/literacy" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -146,7 +146,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             Literacy
                                         </div>
                                     </a>
-                                    <a href="/world-population-growth" className="list-item">
+                                    <a href="/world-population-growth" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -154,7 +154,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             World Population Growth
                                         </div>
                                     </a>
-                                    <a href="/life-expectancy" className="list-item">
+                                    <a href="/life-expectancy" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -162,7 +162,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             Life expectancy
                                         </div>
                                     </a>
-                                    <a href="/why-do-women-live-longer-than-men" className="list-item">
+                                    <a href="/why-do-women-live-longer-than-men" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -174,7 +174,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             </div>
                             <div className="owid-col owid-col--lg-auto">
                                 <div className="list">
-                                    <a href="/hunger-and-undernourishment" className="list-item">
+                                    <a href="/hunger-and-undernourishment" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -182,7 +182,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             Hunger and undernourishment
                                         </div>
                                     </a>
-                                    <a href="/income-inequality" className="list-item">
+                                    <a href="/income-inequality" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -190,7 +190,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             Income inequality
                                         </div>
                                     </a>
-                                    <a href="/faq-on-plastics" className="list-item">
+                                    <a href="/faq-on-plastics" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -198,7 +198,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             FAQs on plastics pollution
                                         </div>
                                     </a>
-                                    <a href="/global-rise-of-education" className="list-item">
+                                    <a href="/global-rise-of-education" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -206,7 +206,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                             Global rise of education
                                         </div>
                                     </a>
-                                    <a href="/much-better-awful-can-be-better" className="list-item">
+                                    <a href="/much-better-awful-can-be-better" className="list-item" data-track-click data-track-note="popular-research">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -230,7 +230,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     <h2>Short updates and facts</h2>
                                 </div>
                                 <div className="list">
-                                    {shortPosts.slice(0,5).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item">
+                                    {shortPosts.slice(0,5).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item" data-track-click data-track-note="short-post">
                                         <div className="thumbnail">
                                             <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                         </div>
@@ -240,7 +240,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                         </div>
                                     </a>)}
                                 </div>
-                                <a href="/blog" className="see-all">
+                                <a href="/blog" className="see-all" data-track-click data-track-note="see-all-short-posts">
                                     <div className="label">See all short updates and facts</div>
                                     <div className="icon"><FontAwesomeIcon icon={faAngleRight} /></div>
                                 </a>
@@ -256,7 +256,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </div>
                                 <div className="list">
                                     {explainerPosts.slice(0,6).map(post => <div key={post.slug} className="list-item-wrapper">
-                                        <a href={`/${post.slug}`} className="list-item">
+                                        <a href={`/${post.slug}`} className="list-item" data-track-click data-track-note="explainer">
                                             <div className="thumbnail">
                                                 <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                             </div>
@@ -266,7 +266,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                         </a>
                                     </div>)}
                                 </div>
-                                <a href="/blog" className="see-all">
+                                <a href="/blog" className="see-all" data-track-click data-track-note="see-all-explainers">
                                     <div className="label">See all explainers</div>
                                     <div className="icon"><FontAwesomeIcon icon={faAngleRight} /></div>
                                 </a>
@@ -346,7 +346,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-projects">
                 <div className="wrapper">
                     <div className="list">
-                        <a href="https://sdg-tracker.org" className="list-item">
+                        <a href="https://sdg-tracker.org" className="list-item" data-track-click data-track-note="popular-research">
                             <div className="icon-left">
                                 <img src="/sdg-wheel.png" alt="SDG Tracker logo"/>
                             </div>
@@ -358,7 +358,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
-                        <a href="/teaching" className="list-item">
+                        <a href="/teaching" className="list-item" data-track-click data-track-note="popular-research">
                             <div className="icon-left">
                                 <img src="/teaching-hub.svg" alt="Teaching Hub logo"/>
                             </div>
