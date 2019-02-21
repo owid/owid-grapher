@@ -6,6 +6,7 @@ import { observer } from 'mobx-react'
 import { getRelativeMouse } from './Util'
 import { MapLegendBin, NumericBin, CategoricalBin, MapDataValue } from './MapData'
 import { TextWrap } from './TextWrap'
+import { sum } from 'd3';
 
 interface NumericMapLegendProps {
     width: number,
@@ -50,27 +51,27 @@ class NumericMapLegend {
         return Bounds.forText("No data", { fontSize: this.tickFontSize }).width
     }
     @computed get categoryBinMargin(): number { return this.rectHeight * 1.5 }
-    @computed get totalDefaultWidth(): number {
-        return reduce(
-            this.props.legendData.map(d => d instanceof CategoricalBin ? this.categoryBinWidth + this.categoryBinMargin : 0),
-            (m, n) => m + n, 0
-        )
+    @computed get totalCategoricalWidth(): number {
+        const { legendData } = this.props
+        const { categoryBinWidth, categoryBinMargin } = this
+        const widths = legendData.map(d => d instanceof CategoricalBin ? categoryBinWidth + categoryBinMargin : 0)
+        return sum(widths)
     }
-    @computed get availableWidth(): number {
-        return this.props.width - this.totalDefaultWidth
+    @computed get availableNumericWidth(): number {
+        return this.props.width - this.totalCategoricalWidth
     }
 
     @computed get positionedBins(): PositionedBin[] {
-        const { props, rangeSize, categoryBinWidth, categoryBinMargin, availableWidth } = this
+        const { props, rangeSize, categoryBinWidth, categoryBinMargin, availableNumericWidth, numericBins } = this
         let xOffset = 0
 
-        return map(props.legendData, d => {
+        return props.legendData.map(d => {
             let width = categoryBinWidth, margin = categoryBinMargin
             if (d instanceof NumericBin) {
                 if (props.equalSizeBins)
-                    width = availableWidth/props.legendData.length
+                    width = availableNumericWidth/numericBins.length
                 else
-                    width = ((d.max - d.min) / rangeSize) * availableWidth
+                    width = ((d.max - d.min) / rangeSize) * availableNumericWidth
                 margin = 0
             }
 
@@ -117,7 +118,7 @@ class NumericMapLegend {
         }
 
         let labels: NumericLabel[] = []
-        each(positionedBins, d => {
+        for (const d of positionedBins) {
             if (d.bin.text)
                 labels.push(makeRangeLabel(d))
             else if (d.bin instanceof NumericBin) {
@@ -125,7 +126,7 @@ class NumericMapLegend {
                 if (d === last(positionedBins))
                     labels.push(makeBoundaryLabel(d, 'max', d.bin.maxText))
             }
-        })
+        }
 
         for (let i = 0; i < labels.length; i++) {
             const l1 = labels[i]
@@ -162,7 +163,9 @@ class NumericMapLegend {
         return labels
     }
 
-    @computed get height(): number { return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number) }
+    @computed get height(): number { 
+        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number) 
+    }
 
     @computed get width(): number {
         return this.props.width
@@ -438,7 +441,7 @@ export class MapLegend {
         const that = this
         return this.hasNumeric ? new NumericMapLegend({
             get legendData() { return that.numericLegendData },
-            get width() { return that.props.bounds.width * 0.5 },
+            get width() { return that.props.bounds.width * 0.8 },
             get equalSizeBins() { return that.props.equalSizeBins },
             get focusBracket() { return that.numericFocusBracket },
             get fontSize() { return that.props.fontSize }
