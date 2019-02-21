@@ -374,8 +374,6 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                 </div>
             </section>
 
-            <section className="homepage-about"></section>
-
             <section id="entries" className="homepage-entries">
                 <div className="wrapper">
                     <h2>All topics</h2>
