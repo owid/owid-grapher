@@ -1,7 +1,7 @@
 const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 import {observable, computed, action, autorun} from 'mobx'
-import { ALGOLIA_SEARCH_KEY } from 'settings'
+import { Analytics } from './Analytics';
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -20,7 +20,7 @@ function decodeHashSafe(s: string) {
     return decodeURIComponent(s).replace(/-/g, " ")
 }
 
-class ChartSearcher {
+class ChartFilter {
     searchInput: HTMLInputElement
     chartItems: ChartItem[] = []
     chartItemsByTitle: {[key: string]: ChartItem} = {}
@@ -55,8 +55,18 @@ class ChartSearcher {
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 
+    @action.bound logSearchQuery() {
+        Analytics.logEvent("Charts Page Filter", { query: this.query })
+    }
+
+    timeout?: NodeJS.Timeout
     @action.bound onSearchInput() {
         this.query = this.searchInput.value
+
+        if (this.timeout !== undefined) {
+            clearTimeout(this.timeout)
+        }
+        this.timeout = setTimeout(this.logSearchQuery, 500)
     }
 
     /*@action.bound onKeydown(ev: KeyboardEvent) {
@@ -122,7 +132,6 @@ class ChartSearcher {
 }
 
 export function runChartsIndexPage() {
-    const searcher = new ChartSearcher()
+    const searcher = new ChartFilter()
     searcher.run()
-    console.log(ALGOLIA_SEARCH_KEY)
 }
