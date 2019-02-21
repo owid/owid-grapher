@@ -56,9 +56,8 @@ if (trackedLinkExists) {
         const targetElement = ev.target as HTMLElement
         const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
         if (trackedElement) {
-            // In order for events to be send for all anchor tags, there needs
-            // to be a delay to send the event to amplitude before navigating
-            // away from the page.
+            // In order for events to be sent for anchor tags, there needs to be
+            // a delay before navigating away from the page.
             const href = trackedElement.getAttribute("href")
             const target = trackedElement.getAttribute("target")
             if (href && target !== "_blank") {
