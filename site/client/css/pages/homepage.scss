@@ -621,6 +621,10 @@
 
         h3 {
             margin: 0 0 1.5rem;
+
+            @include lg-only {
+                margin-bottom: 0;
+            }
         }
     }
 
