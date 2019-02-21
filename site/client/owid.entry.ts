@@ -52,7 +52,7 @@ function createFunctionWithTimeout(callback: () => void, timeout?: number) {
 }
 
 if (trackedLinkExists) {
-    document.addEventListener("click", (ev) => {
+    document.addEventListener("click", async (ev) => {
         const targetElement = ev.target as HTMLElement
         const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
         if (trackedElement) {
@@ -63,13 +63,18 @@ if (trackedLinkExists) {
             const target = trackedElement.getAttribute("target")
             if (href && target !== "_blank") {
                 ev.preventDefault() // prevent immediate redirect
-                Analytics.logEvent("OWID_SITE_CLICK", {
-                    text: trackedElement.innerText,
-                    href: href,
-                    note: trackedElement.getAttribute("data-track-note")
-                }).then(createFunctionWithTimeout(() => {
+                const redirect = createFunctionWithTimeout(() => {
                     window.location = href
-                }))
+                })
+                try {
+                    await Analytics.logEvent("OWID_SITE_CLICK", {
+                        text: trackedElement.innerText,
+                        href: href,
+                        note: trackedElement.getAttribute("data-track-note")
+                    })
+                } finally {
+                    redirect()
+                }
             } else {
                 Analytics.logEvent("OWID_SITE_CLICK", {
                     text: trackedElement.innerText,
