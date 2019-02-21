@@ -49,7 +49,8 @@ if (trackedLinkExists) {
             // To handle those we need to wait before navigating.
             Analytics.logEvent("OWID_SITE_CLICK", {
                 text: trackedElement.innerText,
-                href: trackedElement.getAttribute("href")
+                href: trackedElement.getAttribute("href"),
+                note: trackedElement.getAttribute("data-track-note")
             })
         }
     })
