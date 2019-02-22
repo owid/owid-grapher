@@ -567,12 +567,12 @@
         .icon-left {
             flex: 0 0 4rem;
             max-width: 5rem;
-            margin-right: 1.5rem;
             text-align: center;
             align-self: center;
             margin-bottom: 1rem;
 
             @include lg-only {
+                margin-right: 1.5rem;
                 margin-bottom: 0;
             }
 
