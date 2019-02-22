@@ -58,7 +58,9 @@ class ClientVariableCountryPage extends React.Component<{ variable: Variable, co
     }
 
     render() {
+        const {variable, country} = this.props
         return <React.Fragment>
+            <h1>{variable.name} in {country.name}</h1>
             {this.chart && <ChartFigureView chart={this.chart}/>}
         </React.Fragment>
     }

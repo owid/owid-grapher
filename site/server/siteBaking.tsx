@@ -19,7 +19,7 @@ import { WORDPRESS_DIR } from 'serverSettings'
 import { formatPost, extractFormattingOptions, FormattedPost } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
-import { JsonError } from "utils/server/serverUtil"
+import { JsonError, slugify } from "utils/server/serverUtil"
 import { Chart } from 'db/model/Chart'
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
@@ -27,6 +27,8 @@ import moment = require("moment")
 import * as urljoin from 'url-join'
 import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage";
+import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage";
+import { ChartConfigProps } from "charts/ChartConfig";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -248,4 +250,77 @@ export async function pagePerVariable(variableId: number, countryName: string) {
     const country = await db.table('entities').select('id', 'name').whereRaw('lower(name) = ?', [countryName]).first()
 
     return renderToHtmlPage(<VariableCountryPage variable={variable} country={country}/>)
+}
+
+interface Stat {
+    value: number
+    year: number
+}
+
+async function getLatestDataForVariables(entityId: number, variableIds: number[]): Promise<{[variableId: number]: Stat}> {
+   const dataValues = await db.table("data_values").whereIn("variableId", variableIds).andWhere({ entityId: entityId }).orderBy("year", "DESC")
+
+   const result: {[variableId: number]: Stat} = {}
+
+   for (const dv of dataValues) {
+        if (result[dv.variableId])
+            continue
+
+        result[dv.variableId] = {
+            value: dv.value,
+            year: dv.year
+        }
+   }
+
+   return result
+}
+
+
+export async function countryProfilePage(countryName: string) {
+    // Find the country
+    const country = await db.table('entities').select('id', 'name').whereRaw('lower(name) = ?', [countryName]).first()
+    country.slug = slugify(country.name)
+
+    // Find the data
+    let charts = (await db.table("charts")).map((c: any) => JSON.parse(c.config)) as ChartConfigProps[]
+    
+    charts = charts.filter(c => c.hasChartTab && c.type === "LineChart" && c.dimensions.length === 1)
+
+    const variableIds = charts.map(c => c.dimensions[0].variableId)
+
+    const dataValues = await db.table("data_values").select("variableId", "value", "year").whereIn("variableId", variableIds).andWhere({ entityId: country.id }).orderBy("year", "DESC") as { variableId: number, value: string, year: number }[]
+    const valuesByVariableId = _.groupBy(dataValues, v => v.variableId)
+
+    let indicators: CountryProfileIndicator[] = []
+    for (const c of charts) {
+        const vid = c.dimensions[0] && c.dimensions[0].variableId
+        const values = valuesByVariableId[vid]
+
+        if (values && values.length) {
+            const latestValue = values[0]
+            indicators.push({
+                year: latestValue.year,
+                value: latestValue.value,
+                name: c.title as string,
+                slug: `/grapher/${c.slug}?tab=chart&country=${country.name}`
+            })
+        }
+    }
+ 
+    indicators = _.sortBy(indicators, i => i.name.trim())
+
+
+
+    // const keyVariableIds: {[key: string]: number} = {
+    //     population: 97373
+    // }
+
+    // const keyStats: any = {}
+
+    // const latestData = await getLatestDataForVariables(country.id, _.values(keyVariableIds))
+    // for (const key in keyVariableIds) {
+    //     keyStats[key] = latestData[keyVariableIds[key]]
+    // }
+
+    return renderToHtmlPage(<CountryProfilePage keyStats={{} as any} indicators={indicators} country={country}/>)
 }
