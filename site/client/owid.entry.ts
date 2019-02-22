@@ -15,6 +15,7 @@ import {runDonateForm} from './DonateForm'
 import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
+import { runVariableCountryPage } from './runVariableCountryPage'
 
 declare var window: any
 window.Grapher = Grapher
@@ -25,6 +26,7 @@ window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
 window.runFeedback = runFeedback
 window.runDonateForm = runDonateForm
+window.runVariableCountryPage = runVariableCountryPage
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 

@@ -26,6 +26,7 @@ import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment = require("moment")
 import * as urljoin from 'url-join'
 import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
+import { VariableCountryPage } from "./views/VariableCountryPage";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -225,4 +226,26 @@ export async function entriesByYearPage(year?: number) {
         return renderToHtmlPage(<EntriesForYearPage entries={entries} year={year}/>)
     else
         return renderToHtmlPage(<EntriesByYearPage entries={entries}/>)
+}
+
+export async function pagePerVariable(variableId: number, countryName: string) {
+    const variable = await db.get(`
+        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+        FROM variables v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
+        WHERE v.id = ?
+    `, [variableId])
+
+    if (!variable) {
+        throw new JsonError(`No variable by id '${variableId}'`, 404)
+    }
+
+    variable.display = JSON.parse(variable.display)
+    variable.source = await db.get(`SELECT id, name FROM sources AS s WHERE id = ?`, variable.sourceId)
+
+    const country = await db.table('entities').select('id', 'name').whereRaw('lower(name) = ?', [countryName]).first()
+
+    return renderToHtmlPage(<VariableCountryPage variable={variable} country={country}/>)
 }

@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
@@ -79,6 +79,12 @@ devServer.use('/', express.static(path.join(BASE_DIR, 'public')))
 
 devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))
+})
+
+devServer.get('/indicator/:variableId/:country', async (req, res) => {
+    const variableId = expectInt(req.params.variableId)
+
+    res.send(await pagePerVariable(variableId, req.params.country))
 })
 
 async function main() {
