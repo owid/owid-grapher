@@ -90,3 +90,38 @@
         display: inline-block;
     }
 }
+
+.donate-footer {
+    background-color: $tertiary-color;
+    padding: 1.25rem 0;
+    text-align: center;
+    margin-top: 2rem;
+
+    @include lg-only {
+        text-align: left;
+    }
+
+    .wrapper {
+        max-width: 50rem;
+    }
+
+    p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: .5rem 0;
+    }
+
+    .donate-button {
+        background-color: $secondary-color;
+        font-size: 1.125rem;
+        display: block;
+
+        @include lg-only {
+            display: inline-block;
+        }
+
+        .icon {
+            margin-left: .5rem;
+        }
+    }
+}
