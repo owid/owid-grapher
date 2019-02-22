@@ -32,8 +32,8 @@ Analytics.logEvent("OWID_PAGE_LOAD")
 
 // tslint:disable-next-line:no-unused-expression
 new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
-    speed: 300,
-    durationMax: 500,
+    speed: 600,
+    durationMax: 800,
     durationMin: 100,
     popstate: false
 })
