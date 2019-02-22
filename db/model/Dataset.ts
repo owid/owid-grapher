@@ -23,12 +23,6 @@ export class Dataset extends BaseEntity {
     @Column() dataEditedByUserId!: number
     @Column({ default: false }) isPrivate!: boolean
 
-    @OneToMany(type => Variable, variable => variable.dataset)
-    variables!: Variable[]
-
-    @OneToMany(type => Source, source => source.dataset)
-    sources!: Source[]
-
     @ManyToOne(type => User, user => user.createdDatasets)
     createdByUser!: User
 
@@ -104,7 +98,7 @@ export class Dataset extends BaseEntity {
     async toDatapackage(): Promise<any> {
         // XXX
         const sources = await Source.find({ datasetId: this.id })
-        const variables = await Variable.find({ datasetId: this.id })
+        const variables = await db.table(Variable.table).where({ datasetId: this.id }) as Variable.Row[]
         const tags = await db.query(`SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`, [this.id])
 
         const initialFields = [

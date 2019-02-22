@@ -1798,6 +1798,17 @@ html:not(.js) {
         margin: auto;
         max-width: 1100px;
 
+        header {
+            display: flex;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+            img.flag {
+                max-height: 100px;
+                margin-right: 20px;
+            }
+        }
+
         ul {
             li {
                 display: flex;

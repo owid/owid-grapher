@@ -78,7 +78,7 @@ export class DimensionWithData {
         }
     }
 
-    @computed get formatValueLong(): (value: number) => string {
+    @computed get formatValueLong(): (value: number | string) => string {
         const { unit, numDecimalPlaces } = this
         return value => {
             if (isString(value))

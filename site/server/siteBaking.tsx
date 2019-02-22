@@ -29,6 +29,8 @@ import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage
 import { VariableCountryPage } from "./views/VariableCountryPage";
 import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage";
 import { ChartConfigProps } from "charts/ChartConfig";
+import { DimensionWithData } from "charts/DimensionWithData";
+import { Variable } from "db/model/Variable";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -275,10 +277,9 @@ async function getLatestDataForVariables(entityId: number, variableIds: number[]
    return result
 }
 
-
 export async function countryProfilePage(countryName: string) {
     // Find the country
-    const country = await db.table('entities').select('id', 'name').whereRaw('lower(name) = ?', [countryName]).first()
+    const country = await db.table('entities').whereRaw('lower(name) = ?', [countryName]).first()
     country.slug = slugify(country.name)
 
     // Find the data
@@ -287,6 +288,9 @@ export async function countryProfilePage(countryName: string) {
     charts = charts.filter(c => c.hasChartTab && c.type === "LineChart" && c.dimensions.length === 1)
 
     const variableIds = charts.map(c => c.dimensions[0].variableId)
+
+    const variables = Variable.rows(await db.table(Variable.table).whereIn("id", variableIds))
+    const variablesById = _.keyBy(variables, v => v.id)
 
     const dataValues = await db.table("data_values").select("variableId", "value", "year").whereIn("variableId", variableIds).andWhere({ entityId: country.id }).orderBy("year", "DESC") as { variableId: number, value: string, year: number }[]
     const valuesByVariableId = _.groupBy(dataValues, v => v.variableId)
@@ -298,9 +302,16 @@ export async function countryProfilePage(countryName: string) {
 
         if (values && values.length) {
             const latestValue = values[0]
+
+            const dim = new DimensionWithData(0, c.dimensions[0], variablesById[vid] as any)
+            
+
+            const floatValue = parseFloat(latestValue.value)
+            const value = isNaN(floatValue) ? latestValue.value : floatValue
+
             indicators.push({
                 year: latestValue.year,
-                value: latestValue.value,
+                value: dim.formatValueLong(value),
                 name: c.title as string,
                 slug: `/grapher/${c.slug}?tab=chart&country=${country.name}`
             })
@@ -308,8 +319,6 @@ export async function countryProfilePage(countryName: string) {
     }
  
     indicators = _.sortBy(indicators, i => i.name.trim())
-
-
 
     // const keyVariableIds: {[key: string]: number} = {
     //     population: 97373

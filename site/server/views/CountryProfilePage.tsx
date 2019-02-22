@@ -26,6 +26,7 @@ export interface CountryProfilePageProps {
         id: number
         name: string
         slug: string
+        code: string
     },
     keyStats: CountryProfileKeyStats,
     indicators: CountryProfileIndicator[]
@@ -57,7 +58,10 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
         <body className="CountryProfilePage">
             <SiteHeader/>
             <main>
-                <h1>{country.name}</h1>
+                <header>
+                    <img className="flag" src={`/images/flags/${country.code}.svg`}/>
+                    <h1>{country.name}</h1>
+                </header>
                 {/* <ul className="keyStats">
                     <li>
                         <span>Population, persons:</span> {keyStats.population.value} ({keyStats.population.year})
