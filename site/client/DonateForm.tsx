@@ -154,7 +154,7 @@ export class DonateForm extends React.Component {
             <fieldset>
                 <div className="owid-block-field">
                     <label htmlFor="name">
-                        <h3>Your name</h3>
+                        <h3>Your name (optional)</h3>
                     </label>
                     <input id="name" type="text" className="owid-input" value={this.name} onChange={(event) => this.setName(event.target.value)} />
                 </div>
