@@ -32,42 +32,42 @@ export const SiteHeader = () => {
                             </div>
                         </form>
                         <ul className="site-primary-links">
-                            <li><a href="/blog">Blog</a></li>
-                            <li><a href="/about">About</a></li>
-                            <li><a href="/donate">Donate</a></li>
+                            <li><a href="/blog" data-track-click data-track-note="header-navigation">Blog</a></li>
+                            <li><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
+                            <li><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
                         </ul>
                     </div>
                     <div className="site-secondary-navigation">
                         <ul className="site-secondary-links">
-                            <li><a href="/charts">All charts</a></li>
-                            <li><a href="/teaching">Teaching material</a></li>
-                            <li><a href="https://sdg-tracker.org">Sustainable Development Goals</a></li>
+                            <li><a href="/charts" data-track-click data-track-note="header-navigation">All charts</a></li>
+                            <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching material</a></li>
+                            <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals</a></li>
                         </ul>
                     </div>
                 </div>
             </nav>
             <ul className="site-social-links lg-only">
                 <li>
-                    <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter">
+                    <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter" data-track-click data-track-note="header-navigation">
                         <FontAwesomeIcon icon={faTwitter} />
                     </a>
                 </li>
                 <li>
-                    <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page">
+                    <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page" data-track-click data-track-note="header-navigation">
                         <FontAwesomeIcon icon={faFacebook} />
                     </a>
                 </li>
                 <li>
-                    <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter">
+                    <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter" data-track-click data-track-note="header-navigation">
                         <FontAwesomeIcon icon={faEnvelope} />
                     </a>
                 </li>
             </ul>
             <div className="site-navigation sm-only">
-                <button className="button">
+                <button className="button" data-track-click data-track-note="mobile-search-button">
                     <FontAwesomeIcon icon={faSearch}/>
                 </button>
-                <button className="button">
+                <button className="button" data-track-click data-track-note="mobile-hamburger-button">
                     <FontAwesomeIcon icon={faBars}/>
                 </button>
             </div>

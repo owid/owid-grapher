@@ -7,35 +7,35 @@ export const SiteFooter = () => {
             <div className="owid-row">
                 <div className="owid-col owid-col--lg-1">
                     <ul>
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/about#contact">Contact</a></li>
-                        <li><a href="/jobs">Jobs</a></li>
-                        <li><a href="/about#supporters">Supporters</a></li>
-                        <li><a href="/about/how-to-use-our-world-in-data">How to use</a></li>
-                        <li><a href="/donate">Donate</a></li>
+                        <li><a href="/about" data-track-click data-track-note="footer-navigation">About</a></li>
+                        <li><a href="/about#contact" data-track-click data-track-note="footer-navigation">Contact</a></li>
+                        <li><a href="/jobs" data-track-click data-track-note="footer-navigation">Jobs</a></li>
+                        <li><a href="/about#supporters" data-track-click data-track-note="footer-navigation">Supporters</a></li>
+                        <li><a href="/about/how-to-use-our-world-in-data" data-track-click data-track-note="footer-navigation">How to use</a></li>
+                        <li><a href="/donate" data-track-click data-track-note="footer-navigation">Donate</a></li>
                     </ul>
                 </div>
                 <div className="owid-col owid-col--lg-1">
                     <ul>
-                        <li><a href="/blog">Blog</a></li>
-                        <li><a href="/charts">All charts</a></li>
+                        <li><a href="/blog" data-track-click data-track-note="footer-navigation">Blog</a></li>
+                        <li><a href="/charts" data-track-click data-track-note="footer-navigation">All charts</a></li>
                     </ul>
                     <ul>
-                        <li><a href="https://twitter.com/OurWorldInData">Twitter</a></li>
-                        <li><a href="https://www.facebook.com/OurWorldinData">Facebook</a></li>
-                        <li><a href="https://github.com/owid">GitHub</a></li>
-                        <li><a href="/feed">RSS Feed</a></li>
+                        <li><a href="https://twitter.com/OurWorldInData" data-track-click data-track-note="footer-navigation">Twitter</a></li>
+                        <li><a href="https://www.facebook.com/OurWorldinData" data-track-click data-track-note="footer-navigation">Facebook</a></li>
+                        <li><a href="https://github.com/owid" data-track-click data-track-note="footer-navigation">GitHub</a></li>
+                        <li><a href="/feed" data-track-click data-track-note="footer-navigation">RSS Feed</a></li>
                     </ul>
                 </div>
                 <div className="owid-col owid-col--lg-1">
                     <div className="logos">
-                        <a href="https://www.oxfordmartin.ox.ac.uk/research/programmes/global-development" className="partner-logo">
+                        <a href="https://www.oxfordmartin.ox.ac.uk/research/programmes/global-development" className="partner-logo" data-track-click data-track-note="footer-navigation">
                             <img src="/oxford-logo-rect.png" alt="University of Oxford logo"/>
                         </a>
-                        <a href="https://global-change-data-lab.org/" className="partner-logo">
+                        <a href="https://global-change-data-lab.org/" className="partner-logo" data-track-click data-track-note="footer-navigation">
                             <img src="/gcdl-logo.png" alt="Global Change Data Lab logo"/>
                         </a>
-                        <a href="/owid-at-ycombinator" className="partner-logo">
+                        <a href="/owid-at-ycombinator" className="partner-logo" data-track-click data-track-note="footer-navigation">
                             <img src="/yc-logo.png" alt="Y Combinator logo"/>
                         </a>
                     </div>

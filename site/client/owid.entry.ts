@@ -37,20 +37,50 @@ if (search) {
     })
 }
 
-const trackedLinkExists: boolean = !!document.querySelector("a[data-track-click]")
+const trackedLinkExists: boolean = !!document.querySelector("[data-track-click]")
+
+function createFunctionWithTimeout(callback: () => void, timeout: number = 350) {
+    let called = false
+    function fn() {
+        if (!called) {
+            called = true
+            callback()
+        }
+    }
+    setTimeout(fn, timeout)
+    return fn
+}
 
 if (trackedLinkExists) {
-    document.addEventListener("click", (ev) => {
+    document.addEventListener("click", async (ev) => {
         const targetElement = ev.target as HTMLElement
         const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
         if (trackedElement) {
-            // Note this will not work on anchor tags without target=_blank, as
-            // they immediately navigate away before the event can be sent.
-            // To handle those we need to wait before navigating.
-            Analytics.logEvent("OWID_SITE_CLICK", {
-                text: trackedElement.innerText,
-                href: trackedElement.getAttribute("href")
-            })
+            // In order for events to be sent for anchor tags, there needs to be
+            // a delay before navigating away from the page.
+            const href = trackedElement.getAttribute("href")
+            const target = trackedElement.getAttribute("target")
+            if (href && target !== "_blank") {
+                ev.preventDefault() // prevent immediate redirect
+                const redirect = createFunctionWithTimeout(() => {
+                    window.location = href
+                })
+                try {
+                    await Analytics.logEvent("OWID_SITE_CLICK", {
+                        text: trackedElement.innerText,
+                        href: href,
+                        note: trackedElement.getAttribute("data-track-note")
+                    })
+                } finally {
+                    redirect()
+                }
+            } else {
+                Analytics.logEvent("OWID_SITE_CLICK", {
+                    text: trackedElement.innerText,
+                    href: href,
+                    note: trackedElement.getAttribute("data-track-note")
+                })
+            }
         }
     })
 }
