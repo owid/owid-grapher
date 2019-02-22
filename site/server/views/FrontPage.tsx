@@ -68,7 +68,6 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-coverage">
                 <div className="wrapper">
                     <div className="inner-wrapper">
-                        <p className="lead lead--first">More than <strong>10 million readers</strong> every year</p>
                         <div className="owid-row owid-spacing--3">
                             <div className="owid-col owid-col--lg-auto owid-padding-bottom--sm-5">
                                 <section>
