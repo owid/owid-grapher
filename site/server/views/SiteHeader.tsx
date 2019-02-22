@@ -64,10 +64,10 @@ export const SiteHeader = () => {
                 </li>
             </ul>
             <div className="site-navigation sm-only">
-                <button className="button" data-track-click data-track-note="mobile-search-button">
+                <button data-track-click data-track-note="mobile-search-button">
                     <FontAwesomeIcon icon={faSearch}/>
                 </button>
-                <button className="button" data-track-click data-track-note="mobile-hamburger-button">
+                <button data-track-click data-track-note="mobile-hamburger-button">
                     <FontAwesomeIcon icon={faBars}/>
                 </button>
             </div>

@@ -150,10 +150,10 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </li>
                 </ul>
                 <div className="site-navigation sm-only">
-                    <button className="button" onClick={this.onToggleSearch} data-track-click  data-track-note="mobile-search-button">
+                    <button onClick={this.onToggleSearch} data-track-click  data-track-note="mobile-search-button">
                         <FontAwesomeIcon icon={faSearch}/>
                     </button>
-                    <button className="button" onClick={this.onToggleCategories} data-track-click  data-track-note="mobile-hamburger-button">
+                    <button onClick={this.onToggleCategories} data-track-click  data-track-note="mobile-hamburger-button">
                         <FontAwesomeIcon icon={faBars}/>
                     </button>
                 </div>
