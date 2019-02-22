@@ -6,6 +6,8 @@ import './oldScripts.js'
 // from a very large icon down to a properly sized one a moment later."
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
+const SmoothScroll = require('smooth-scroll')
+
 import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
@@ -27,6 +29,14 @@ window.runFeedback = runFeedback
 window.runDonateForm = runDonateForm
 
 Analytics.logEvent("OWID_PAGE_LOAD")
+
+// tslint:disable-next-line:no-unused-expression
+new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
+    speed: 300,
+    durationMax: 500,
+    durationMin: 100,
+    popstate: false
+})
 
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
