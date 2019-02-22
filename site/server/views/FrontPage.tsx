@@ -35,7 +35,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             <section className="homepage-masthead">
                 <div className="wrapper">
                     <h1>Research and interactive data visualizations to understand the world’s largest problems.</h1>
-                    <a href="#entries" data-smooth-scroll className="see-all">
+                    <a href="#entries" className="see-all" data-smooth-scroll data-track-click data-track-note="homepage-scroll">
                         Scroll to see all topics
                         <span className="icon"><FontAwesomeIcon icon={faAngleDoubleDown} /></span>
                     </a>
