@@ -3,9 +3,9 @@ import { webpack } from 'utils/server/staticGen'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 
-export const SiteFooter = () => {
+export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
     return <React.Fragment>
-        <section className="donate-footer">
+        {!hideDonate && <section className="donate-footer">
             <div className="wrapper">
                 <div className="owid-row flex-align-center">
                     <div className="owid-col owid-col--lg-3 owid-padding-bottom--sm-3">
@@ -20,7 +20,7 @@ export const SiteFooter = () => {
                     </div>
                 </div>
             </div>
-        </section>
+        </section> }
         <footer className="site-footer">
             <div className="wrapper">
                 <div className="owid-row">

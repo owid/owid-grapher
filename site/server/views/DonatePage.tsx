@@ -47,7 +47,7 @@ export const DonatePage = () => {
                 </article>
             </main>
 
-            <SiteFooter/>
+            <SiteFooter hideDonate={true} />
 
             <script dangerouslySetInnerHTML={{__html: `
                 runDonateForm()
