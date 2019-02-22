@@ -38,7 +38,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         <h1 className="lg-only">Know the world you live in</h1>
                         <div className="subheading">Research and interactive data visualizations to understand the world’s largest problems.</div>
                     </div>
-                    <div className="homepage-masthead--search lg-only">
+                    {/* <div className="homepage-masthead--search lg-only">
                         <form action="/search" method="get">
                             <h2>Search across <em>2700 charts</em> and <em>316 topics</em></h2>
                             <div className="search-input-wrapper">
@@ -46,22 +46,8 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 <input type="search" placeholder="Try &quot;life expectancy&quot; or &quot;air pollution&quot;" name="q" />
                             </div>
                         </form>
-                        {/* <div className="columns counts">
-                            <div className="column">
-                                <div className="number">2700</div>
-                                <div className="label">charts</div>
-                            </div>
-                            <div className="column">
-                                <div className="number">100</div>
-                                <div className="label">entries</div>
-                            </div>
-                            <div className="column">
-                                <div className="number">127</div>
-                                <div className="label">posts</div>
-                            </div>
-                        </div> */}
                     </div>
-                    <p className="open-access lg-only">All our content is free: <strong>open access</strong> and <strong>open source</strong></p>
+                    <p className="open-access lg-only">All our content is free: <strong>open access</strong> and <strong>open source</strong></p> */}
                 </div>
             </section>
 
