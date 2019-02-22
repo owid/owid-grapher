@@ -5,7 +5,7 @@ import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { CategoryWithEntries, PostInfo } from 'db/wpdb'
 import { formatDate } from '../formatting'
-import { faRss, faSearch, faBook, faAngleRight, faExternalLinkAlt, faFileAlt } from '@fortawesome/free-solid-svg-icons'
+import { faRss, faSearch, faBook, faAngleRight, faExternalLinkAlt, faFileAlt, faAngleDoubleDown } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { BAKED_GRAPHER_URL } from 'settings'
@@ -34,20 +34,13 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-masthead">
                 <div className="wrapper">
-                    <div className="homepage-masthead--main">
-                        <h1 className="lg-only">Know the world you live in</h1>
-                        <div className="subheading">Research and interactive data visualizations to understand the world’s largest problems.</div>
-                    </div>
-                    {/* <div className="homepage-masthead--search lg-only">
-                        <form action="/search" method="get">
-                            <h2>Search across <em>2700 charts</em> and <em>316 topics</em></h2>
-                            <div className="search-input-wrapper">
-                                <div className="icon"><FontAwesomeIcon icon={faSearch} /></div>
-                                <input type="search" placeholder="Try &quot;life expectancy&quot; or &quot;air pollution&quot;" name="q" />
-                            </div>
-                        </form>
-                    </div>
-                    <p className="open-access lg-only">All our content is free: <strong>open access</strong> and <strong>open source</strong></p> */}
+                    <h1>Research and interactive data visualizations to understand the world’s largest problems.</h1>
+                    <a href="#entries" data-smooth-scroll className="see-all">
+                        Scroll to see all topics
+                        <span className="icon"><FontAwesomeIcon icon={faAngleDoubleDown} /></span>
+                    </a>
+                    <p>2746 charts and 316 topics</p>
+                    <p>All free: open access and open source</p>
                 </div>
             </section>
 
