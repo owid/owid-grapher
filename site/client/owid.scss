@@ -1796,7 +1796,7 @@ html:not(.js) {
 .CountryProfilePage {
     main {
         margin: auto;
-        max-width: 1100px;
+        max-width: 900px;
 
         header {
             display: flex;
@@ -1807,6 +1807,11 @@ html:not(.js) {
                 max-height: 100px;
                 margin-right: 20px;
             }
+        }
+
+        input[type=search] {
+            width: 100%;
+            padding: 10px;
         }
 
         ul {

@@ -51,7 +51,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
 
     // const displayName = defaultTo(variable.display.name, variable.name)
 
-    const script = `window.runCountryProfilePage(${JSON.stringify(props)})`
+    const script = `window.runCountryProfilePage()`
 
     return <html>
         <Head canonicalUrl={`${settings.BAKED_BASE_URL}/country/${country.slug}`} pageTitle={`${country.name} | Data and Statistics`} pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}/>
@@ -67,17 +67,22 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                         <span>Population, persons:</span> {keyStats.population.value} ({keyStats.population.year})
                     </li>
                 </ul> */}
-                <ul className="indicators">
-                    {indicators.map(indicator => <li>
-                        <div className="indicatorName">
-                            <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}</a>
-                        </div>
-                        <div className="indicatorValue">{indicator.value}</div>
-                    </li>)}
-                </ul>
+                <div>
+                    <input type="search" className="chartsSearchInput" placeholder={`Filter indicators for ${country.name}`}/>
+                </div>
+                <section>
+                    <ul className="indicators">
+                        {indicators.map(indicator => <li>
+                            <div className="indicatorName">
+                                <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}</a>
+                            </div>
+                            <div className="indicatorValue">{indicator.value}</div>
+                        </li>)}
+                    </ul>
+                </section>
             </main>
             <SiteFooter/>
-            {/* <script dangerouslySetInnerHTML={{__html: script}}/> */}
+            <script dangerouslySetInnerHTML={{__html: script}}/>
         </body>
     </html>
 }

@@ -31,6 +31,7 @@ import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } f
 import { ChartConfigProps } from "charts/ChartConfig";
 import { DimensionWithData } from "charts/DimensionWithData";
 import { Variable } from "db/model/Variable";
+import { CountriesIndexPage } from "./views/CountriesIndexPage";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -275,6 +276,14 @@ async function getLatestDataForVariables(entityId: number, variableIds: number[]
    }
 
    return result
+}
+
+export async function countriesIndexPage() {
+    const countries = await db.table('entities').whereRaw("validated is true and code is not null")
+    for (const country of countries) {
+        country.slug = slugify(country.name)
+    }
+    return renderToHtmlPage(<CountriesIndexPage countries={countries}/>)
 }
 
 export async function countryProfilePage(countryName: string) {
