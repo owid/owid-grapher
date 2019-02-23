@@ -76,7 +76,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                             <div className="indicatorName">
                                 <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}</a>
                             </div>
-                            <div className="indicatorValue">{indicator.value}</div>
+                            <div className="indicatorValue">{indicator.value} (in {indicator.year})</div>
                         </li>)}
                     </ul>
                 </section>

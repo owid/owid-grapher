@@ -77,8 +77,6 @@ devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/up
 
 devServer.use('/', express.static(path.join(BASE_DIR, 'public')))
 
-
-
 devServer.get('/indicator/:variableId/:country', async (req, res) => {
     const variableId = expectInt(req.params.variableId)
 
