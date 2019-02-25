@@ -173,11 +173,6 @@ class SettingsMenu extends React.Component<{ chart: ChartConfig, onDismiss: () =
     }
 }
 
-interface ControlsFooterProps {
-    chart: ChartConfig,
-    chartView: ChartView,
-}
-
 @observer
 class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightToggle: HighlightToggleConfig }> {
     @computed get chart() { return this.props.chart }
