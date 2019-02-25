@@ -36,10 +36,10 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                 <div className="wrapper">
                     <h1>Research and interactive data visualizations to understand the world’s largest problems.</h1>
                     <a href="#entries" className="see-all" data-smooth-scroll data-track-click data-track-note="homepage-scroll">
-                        Scroll to see all topics
+                        Scroll to see all entries
                         <span className="icon"><FontAwesomeIcon icon={faAngleDoubleDown} /></span>
                     </a>
-                    <p>2746 charts and 316 topics</p>
+                    <p>2746 charts and 92 entries</p>
                     <p>All free: open access and open source</p>
                 </div>
             </section>
@@ -354,7 +354,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section id="entries" className="homepage-entries">
                 <div className="wrapper">
-                    <h2>All topics</h2>
+                    <h2>All entries</h2>
                     {entries.map(category => <div key={category.slug} className="category-wrapper">
                         <div className={`category-name ${category.slug}-color`}>
                             <h3 id={category.slug}>{category.name}</h3>
