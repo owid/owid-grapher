@@ -37,16 +37,16 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         return this.availableData.filter(d => this.props.chart.data.selectedKeysByKey[d.key])
     }
 
-    @computed get unselectedData() {
-        return this.availableData.filter(d => !this.props.chart.data.selectedKeysByKey[d.key])
-    }
-
     @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
-        return new FuzzySearch(this.unselectedData, 'label')
+        return new FuzzySearch(this.availableData, 'label')
     }
 
     @computed get searchResults(): DataKeyInfo[] {
-        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.unselectedData
+        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.availableData
+    }
+
+    isSelectedKey(key: string): boolean {
+        return !!this.props.chart.data.selectedKeysByKey[key]
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -87,7 +87,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {searchResults.map(d => {
                             return <li key={d.entityId}>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={false} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
+                                    <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
                             </li>
                         })}
@@ -98,7 +98,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                         {selectedData.map(d => {
                             return <li key={d.entityId}>
                                 <label className="clickable">
-                                    <input type="checkbox" checked={true} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
+                                    <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
                             </li>
                         })}
