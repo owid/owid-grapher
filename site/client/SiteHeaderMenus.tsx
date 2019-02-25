@@ -126,8 +126,8 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         <div className="site-secondary-navigation">
                             <ul className="site-secondary-links">
                                 <li><a href="/charts" data-track-click data-track-note="header-navigation">All charts</a></li>
-                                <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching material</a></li>
-                                <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals</a></li>
+                                <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li>
+                                <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
                             </ul>
                         </div>
                     </div>
@@ -283,7 +283,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
                     </li>
                 )}
                 <li className="end-link"><a href="/charts" data-track-click data-track-note="header-navigation">Charts</a></li>
-                <li className="end-link"><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching material</a></li>
+                <li className="end-link"><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li>
                 <li className="end-link"><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals</a></li>
                 <li className="end-link"><a href="/blog" data-track-click data-track-note="header-navigation">Blog</a></li>
                 <li className="end-link"><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
