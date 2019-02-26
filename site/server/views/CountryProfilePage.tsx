@@ -28,26 +28,11 @@ export interface CountryProfilePageProps {
         slug: string
         code: string
     },
-    keyStats: CountryProfileKeyStats,
     indicators: CountryProfileIndicator[]
-    // variable: {
-    //     id: number
-    //     name: string
-    //     unit: string
-    //     shortUnit: string
-    //     description: string
-    //     display: VariableDisplaySettings
-    
-    //     datasetId: number
-    //     datasetName: string
-    //     datasetNamespace: string
-    
-    //     source: { id: number, name: string }
-    // }
 }
 
 export const CountryProfilePage = (props: CountryProfilePageProps) => {
-    const {country, keyStats, indicators} = props
+    const {country, indicators} = props
 
     // const displayName = defaultTo(variable.display.name, variable.name)
 

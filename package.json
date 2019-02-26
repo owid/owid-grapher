@@ -15,7 +15,8 @@
     "test": "jest",
     "testcheck": "npm-run-all --parallel typecheck test",
     "deploy": "./bin/deploy.sh",
-    "serve": "yarn tsn admin/server/server.tsx"
+    "serve": "yarn tsn admin/server/server.tsx",
+    "bake": "yarn tsn scripts/bakeSite.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.12",
