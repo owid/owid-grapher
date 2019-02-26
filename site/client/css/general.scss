@@ -1,17 +1,21 @@
 html {
-	line-height: 1.6;
-	font-weight: 400;
-	font-family: $sans-serif-font-stack;
+    line-height: 1.6;
+    font-weight: 400;
+    font-family: $sans-serif-font-stack;
     text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
-	-webkit-text-size-adjust: 100%;
-	word-wrap: break-word;
+    -webkit-text-size-adjust: 100%;
+    word-wrap: break-word;
 }
 
 body {
-	background-color: $body-bg;
-	color: $text-color;
+    background-color: $body-bg;
+    color: $text-color;
     margin: 0;
+}
+
+button, input, optgroup, select, textarea {
+    font-family: $sans-serif-font-stack;
 }
 
 
@@ -19,59 +23,58 @@ body {
 --------------------------------------------- */
 
 ::-moz-selection {
-	background-color: #4979D4; /* helles blau*/
-	color: #fff;
+    background-color: #4979D4; /* helles blau*/
+    color: #fff;
 }
 
 ::selection {
-	background-color: #4979D4;
-	color: #fff;
+    background-color: #4979D4;
+    color: #fff;
 }
 
 a {
-	color: #1059E5;
-	text-decoration: none;
-	cursor: pointer;
+    color: #1059E5;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 ol,
 ul {
-	margin: 0;
-	padding: 0;
+    margin: 0;
+    padding: 0;
 
 }
 
 b,
 strong {
-	font-weight: 700;
+    font-weight: 700;
 }
 
 cite,
 em,
 i {
-	font-style: italic;
+    font-style: italic;
 }
 
 /* ----------------------------------------------------------- */
 
 
 h6 {
-	color: #000;
-	line-height: 1.2;
+    color: #000;
+    line-height: 1.2;
 
-	margin-bottom: 0px;
-	margin-top: 10px;
+    margin-bottom: 0px;
+    margin-top: 10px;
 
-	font-family: $sans-serif-font-stack;
-	font-size: 15px;
-	font-weight: 400;
-	font-style: italic;
-	opacity: 0.8;
-	text-align: center;
+    font-size: 15px;
+    font-weight: 400;
+    font-style: italic;
+    opacity: 0.8;
+    text-align: center;
 }
 
 h6 a.ref sup {
-	font-size: 12px !important;
+    font-size: 12px !important;
 }
 
 
@@ -81,46 +84,46 @@ h6 a.ref sup {
 /* MISPY: This styling is for mainly for the old non-grapher nvd3 stuff. */
 
 .narrow_iframe {
-	display: block;
-	margin: 0 auto;
-	max-width: 750px;
+    display: block;
+    margin: 0 auto;
+    max-width: 750px;
 }
 
 address {
-	padding-left: 8px;
-	padding-top: 7px !important;
-	margin-top: -32px !important;
-	margin-bottom: 30px;
+    padding-left: 8px;
+    padding-top: 7px !important;
+    margin-top: -32px !important;
+    margin-bottom: 30px;
 
-	font-family: $sans-serif-font-stack;
-	font-style: normal !important;
-	line-height: 14px !important;
-	font-size: 10px !important;
+    font-family: $sans-serif-font-stack;
+    font-style: normal !important;
+    line-height: 14px !important;
+    font-size: 10px !important;
 
-	color: #1059E5;
-	background-color:#FAFAFA;
-	text-align: left;
+    color: #1059E5;
+    background-color:#FAFAFA;
+    text-align: left;
 
 }
 
 .narrow_iframe address {
-	margin-top: -10px !important;
+    margin-top: -10px !important;
 }
 
 address a {
-	color: #1059E5;
-	padding-right: 30px;
+    color: #1059E5;
+    padding-right: 30px;
 }
 
 address a:hover {
-	color: #FF4012;
+    color: #FF4012;
 }
 
 /* Box Sizing
 --------------------------------------------- */
 
 * {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing:    border-box;
-	box-sizing:         border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing:    border-box;
+    box-sizing:         border-box;
 }

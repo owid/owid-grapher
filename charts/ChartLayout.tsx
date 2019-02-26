@@ -5,7 +5,6 @@ import { Header, HeaderHTML } from "./Header"
 import { SourcesFooter, SourcesFooterHTML } from "./SourcesFooter"
 import { Bounds } from "./Bounds"
 
-
 export interface ChartLayoutProps {
     chart: ChartConfig
     bounds: Bounds
@@ -58,12 +57,12 @@ export class ChartLayout {
 export class ChartLayoutView extends React.Component<{ layout: ChartLayout, children: any }> {
     @computed get svgStyle() {
         return {
-            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: this.props.layout.props.chart.baseFontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased"
-        }        
+        }
     }
 
     renderWithSVGText() {
@@ -86,7 +85,7 @@ export class ChartLayoutView extends React.Component<{ layout: ChartLayout, chil
                 {this.props.children}
             </svg>
             <SourcesFooterHTML chart={layout.props.chart} footer={layout.footer}/>
-        </React.Fragment> 
+        </React.Fragment>
     }
 
     render() {

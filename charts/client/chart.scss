@@ -1,3 +1,5 @@
+$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
+
 figure[data-grapher-src]:empty {
     display: flex;
     align-items: center;
@@ -11,7 +13,7 @@ figure[data-grapher-src]:empty:after {
     height: 30px;
     width: 30px;
     opacity: 0;
- 
+
     animation: pulsate 1s ease-out;
     animation-iteration-count: infinite;
 }
@@ -30,6 +32,13 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
+.chart,
+.chart p,
+.chart ul,
+.chart ol {
+    font-family: $sans-serif-font-stack;
+}
+
 .chart {
     display: inline-block;
     border-bottom: none;
@@ -38,7 +47,6 @@ figure[data-grapher-src]:empty:after {
     line-height: 1em;
 
     background: white;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #333;
 
     position: relative;
@@ -50,7 +58,7 @@ figure[data-grapher-src]:empty:after {
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px;
     z-index: 1;
-    
+
     * {
         box-sizing: border-box;
     }
@@ -59,12 +67,12 @@ figure[data-grapher-src]:empty:after {
         background: none;
         border: none;
     }
-    
+
     .btn {
         font-size: 0.8em;
         white-space: normal;
     }
-    
+
     .flash {
         margin: 10px;
     }
@@ -86,29 +94,29 @@ figure[data-grapher-src]:empty:after {
     input[type=checkbox] {
         cursor: pointer;
     }
-    
+
     /* Make World line slightly thicker */
     svg .key-World_0 polyline {
         stroke-width: 2 !important;
     }
-    
+
     .projection .nv-line {
         stroke-dasharray: 3, 3;
     }
-    
+
     .projection .nv-point {
         fill: #fff;
         stroke-width: 1;
         opacity: 0.5;
     }
-    
+
     .projection .nv-point.hover {
         stroke-width: 4;
     }
-    
+
     /* Chart General
     --------------------------------------------- */
-        
+
     a {
         cursor: pointer;
         color: #0645ad;
@@ -120,10 +128,10 @@ figure[data-grapher-src]:empty:after {
     --------------------------------------------- */
 
     .HeaderHTML, .SourcesFooterHTML {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 16px; 
-        text-rendering: optimizelegibility; 
-        -webkit-font-smoothing: antialiased;        
+        font-family: $sans-serif-font-stack;
+        font-size: 16px;
+        text-rendering: optimizelegibility;
+        -webkit-font-smoothing: antialiased;
     }
 
     .HeaderHTML {
@@ -155,7 +163,7 @@ figure[data-grapher-src]:empty:after {
             }
         }
     }
-    
+
     .SourcesFooterHTML {
         padding: 15px;
         padding-top: 0;
@@ -173,14 +181,14 @@ figure[data-grapher-src]:empty:after {
             margin: 0;
         }
     }
-    
+
     .SourcesFooterHTML.compact .license {
         float: right;
     }
 
     /* Controls Footer
     --------------------------------------------- */
-    
+
     $footerRowHeight: 40px;
 
     .ControlsFooter {
@@ -194,7 +202,7 @@ figure[data-grapher-src]:empty:after {
             border-top: 1px solid #e1e1e1;
             box-sizing: content-box;
             width: 100%;
-            height: $footerRowHeight - 1px;    
+            height: $footerRowHeight - 1px;
         }
 
         .footerRowSingle > * {
@@ -207,14 +215,14 @@ figure[data-grapher-src]:empty:after {
             > * {
                 width: 50%;
             }
-        }    
+        }
 
         .extraControls {
             display: flex;
             height: 100%;
             align-items: center;
             font-size: 0.8em;
-        }    
+        }
 
         .footerRowMulti .extraControls {
             padding-left: 0.5em;
@@ -229,13 +237,13 @@ figure[data-grapher-src]:empty:after {
             padding-left: 0.5em;
             padding-right: 0.5em;
         }
-        
+
         .extraControls button {
             margin: 0;
             font-size: 1em;
             color: #666;
         }
-    
+
         nav.tabs ul {
             margin: 0;
             padding: 0;
@@ -243,7 +251,7 @@ figure[data-grapher-src]:empty:after {
             width: 100%;
             text-align: center;
         }
-    
+
         nav.tabs li {
             list-style-type: none;
             border-left: 1px solid #e1e1e1;
@@ -254,7 +262,7 @@ figure[data-grapher-src]:empty:after {
         .footerRowSingle nav.tabs li:first-child {
             border-left: none;
         }
-        
+
         nav.tabs li > a {
             display: block;
             text-transform: uppercase;
@@ -264,20 +272,20 @@ figure[data-grapher-src]:empty:after {
             line-height: $footerRowHeight;
             border-bottom: 2px solid rgba(0,0,0,0);
         }
-        
+
         nav.tabs li.icon > a {
             padding: 0 0.4em;
         }
-        
+
         nav.tabs li > a:hover {
             text-decoration: none;
         }
-        
+
         nav.tabs li.active > a {
             border-bottom-color: rgba(0,33,71,.9);
         }
     }
-        
+
     /* The little loading icon on the download tab */
     .loadingIcon {
         position: absolute;
@@ -290,20 +298,20 @@ figure[data-grapher-src]:empty:after {
         justify-content: center;
         font-size: 1.3em;
     }
-    
+
     /* Axis Scale Selectors
     --------------------------------------------- */
-    
+
     .scaleSelector {
         position: absolute;
         font-size: 0.7em;
         color: black;
         text-transform: uppercase;
     }
-    
+
     /* Data Tab
     --------------------------------------------- */
-    
+
     .dataTab {
         display: flex;
         align-items: center;
@@ -313,7 +321,7 @@ figure[data-grapher-src]:empty:after {
         padding: 1em;
         text-align: center;
     }
-    
+
     .dataTab .btn {
         color: #fff;
         background-color: #0275d8;
@@ -334,13 +342,13 @@ figure[data-grapher-src]:empty:after {
         border-radius: .25rem;
         text-decoration: none;
     }
-    
+
     .dataTab .btn:hover {
         color: #fff;
         background-color: #025aa5;
-        border-color: #01549b;    
+        border-color: #01549b;
     }
-    
+
     h2 {
         font-size: 2em;
         margin-top: 0;
@@ -348,23 +356,23 @@ figure[data-grapher-src]:empty:after {
         font-weight: 500;
         line-height: 1.1;
     }
-    
+
     /* Sources Tab
     --------------------------------------------- */
-    
+
     .sourcesTab,
     .DownloadTab {
         padding: 1em;
         text-align: left;
         background: rgba(255,255,255,0.95);
     }
-    
+
     .sourcesTab > div,
     .DownloadTab > div {
         height: 100%;
         overflow-y: auto;
     }
-    
+
     .datasource-wrapper {
         font-size: 0.8em;
         max-width: 1024px;
@@ -392,14 +400,14 @@ figure[data-grapher-src]:empty:after {
         font-size: 0.9em;
         font-weight: bold;
     }
-    
+
     .datasource-wrapper td {
         padding: 8px;
         line-height: 1.42857143;
         vertical-align: top;
         border-top: 1px solid #ddd;
     }
-    
+
     .datasource-property {
         display: inline-block;
         width: 150px;
@@ -428,7 +436,7 @@ figure[data-grapher-src]:empty:after {
     .SettingsMenu h2 {
         font-size: 1em;
     }
-    
+
     .SettingsMenu label {
         display: block;
         font-size: 0.8em;
@@ -438,7 +446,7 @@ figure[data-grapher-src]:empty:after {
 
     /* Share Menu
     --------------------------------------------- */
-    
+
     .ShareMenu {
         position: absolute;
         right: 1em;
@@ -462,7 +470,7 @@ figure[data-grapher-src]:empty:after {
         margin: 0;
         font-size: 1em;
     }
-    
+
     .ShareMenu .btn {
         display: block;
         padding: 1em 1.5em;
@@ -471,7 +479,7 @@ figure[data-grapher-src]:empty:after {
         color: #333;
         text-decoration: none;
     }
-    
+
     .ShareMenu .btn > i {
         background-color: #333;
         color: white;
@@ -484,24 +492,24 @@ figure[data-grapher-src]:empty:after {
         border-radius: 2px;
         position: relative;
     }
-    
+
     .ShareMenu .btn:hover {
         text-decoration: none;
         background-color: #eee;
     }
-    
+
     .ShareMenu section.share a {
         display: block;
         text-align: left;
     }
-    
-    
+
+
     .ShareMenu textarea {
         width: 30em;
         height: 20em;
         font-size: 0.8em;
     }
-        
+
     .embedMenu {
         position: absolute;
         left: 5%;
@@ -515,45 +523,45 @@ figure[data-grapher-src]:empty:after {
         text-align: left;
         z-index: 12;
     }
-    
+
     .embedMenu p {
         margin-bottom: 0;
         margin-bottom: 0.5em;
     }
-    
+
     .embedMenu textarea {
         width: 100%;
         height: 80%;
     }
-    
-    
+
+
     /* Miscellaneous
     --------------------------------------------- */
 
     .unstroked {
         display: none;
     }
-    
+
     .DownloadTab,
     .dataTab,
     .sourcesTab {
         z-index: 1;
     }
-    
+
     .DownloadTab {
         display: flex;
         flex-direction: column;
         justify-content: center;
-    
+
         a {
             color: #333;
             text-decoration: none;
         }
-    
+
         > a:hover > div {
             text-decoration: underline;
         }
-    
+
         aside {
             margin: 1em;
         }
@@ -567,7 +575,7 @@ figure[data-grapher-src]:empty:after {
         opacity: 0.7;
     }
 
-    .DataSelectorSingle { 
+    .DataSelectorSingle {
         position: absolute;
         left: 0;
         top: 0;
@@ -578,18 +586,18 @@ figure[data-grapher-src]:empty:after {
         z-index: 10;
         overflow-y: scroll;
         text-align: left;
-    
+
         & h2 button {
             line-height: 1.15;
             margin: 0;
             font-size: 1em;
         }
-    
+
         & ul {
             margin: 0;
             padding: 0;
         }
-        
+
         & li {
             list-style-type: none;
             padding: 0.5em;
@@ -597,11 +605,11 @@ figure[data-grapher-src]:empty:after {
             cursor: pointer;
             margin-bottom: 0.3em;
         }
-    
+
         & li:hover {
             background-color: #eee;
         }
-    
+
         & input[type=search] {
             width: 100%;
             font-size: 0.9em;
@@ -610,8 +618,8 @@ figure[data-grapher-src]:empty:after {
             border: 1px solid #ccc;
         }
     }
-    
-    .DataSelectorMulti { 
+
+    .DataSelectorMulti {
         position: absolute;
         left: 0;
         top: 0;
@@ -622,48 +630,48 @@ figure[data-grapher-src]:empty:after {
         z-index: 10;
         overflow-y: scroll;
         text-align: left;
-    
+
         & h2 button {
             float: right;
             line-height: 1.15;
-            margin-right: 1em; 
+            margin-right: 1em;
             font-size: 1em;
         }
-    
+
         & > div {
             display: flex;
             justify-content: space-between;
         }
-    
+
         & .selectedData {
             min-width: 25%;
             padding-left: 1em;
         }
-    
+
         & .searchResults {
             width: 100%;
         }
-    
+
         & .searchResults ul {
             display: flex;
             flex-wrap: wrap;
         }
-    
+
         & ul {
-            margin: 0;        
+            margin: 0;
             padding: 0;
         }
-        
+
         & li {
             list-style-type: none;
             flex: 1 0 15em;
             margin-bottom: 0.3em;
         }
-    
+
         & li > label {
             width: 100%;
         }
-    
+
         & input[type=search] {
             width: 100%;
             font-size: 0.9em;
@@ -681,11 +689,11 @@ figure[data-grapher-src]:empty:after {
         justify-content: center;
         font-size: 1em;
         padding: 0 1em;
-    
+
         > div {
             margin-right: 0.5em;
         }
-    
+
         .slider {
             height: 0.6em;
             flex-grow: 1;
@@ -695,7 +703,7 @@ figure[data-grapher-src]:empty:after {
             display: flex;
             align-items: center;
         }
-    
+
         .handle {
             height: 1em;
             width: 0.5em;
