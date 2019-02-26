@@ -22,6 +22,7 @@ import { ComparisonLine } from './ComparisonLine'
 import { Tooltip } from './Tooltip'
 import { NoData } from './NoData'
 import { formatYear } from './Util'
+import { ChartViewContext } from './ChartViewContext'
 
 export interface LineChartValue {
     x: number,
@@ -41,6 +42,8 @@ export interface LineChartSeries {
 @observer
 export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    static contextType = ChartViewContext
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number|undefined) {
@@ -63,7 +66,6 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         return toShow.map(d => {
             const lastValue = (last(d.values) as LineChartValue).y
             const valueStr = this.transform.yAxis.tickFormat(lastValue)
-            
 
             return {
                 color: d.color,
@@ -87,7 +89,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     @computed get tooltip(): JSX.Element|undefined {
         const {transform, hoverX, axisBox, chart} = this
 
-        if (hoverX === undefined) 
+        if (hoverX === undefined)
             return undefined
 
         const sortedData = sortBy(transform.groupedData, series => {
@@ -130,7 +132,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
         if (this.chart.addCountryMode === 'add-country') {
-            this.chart.data.toggleKey(datakey)
+            this.context.chartView.isSelectingData = true
             this.onLegendMouseLeave()
         }
     }

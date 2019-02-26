@@ -13,6 +13,7 @@ import { Tooltip } from './Tooltip'
 import {select} from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 import {rgb} from 'd3-color'
+import { ChartViewContext } from './ChartViewContext'
 
 export interface StackedAreaValue {
     x: number,
@@ -128,6 +129,8 @@ export class Areas extends React.Component<AreasProps> {
 export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
+    static contextType = ChartViewContext
+
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }
     @computed get transform() { return this.props.chart.stackedArea }
@@ -178,6 +181,12 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
     @observable hoverIndex?: number
     @action.bound onHover(hoverIndex: number|undefined) {
         this.hoverIndex = hoverIndex
+    }
+
+    @action.bound onLegendClick(datakey: string) {
+        if (this.chart.addCountryMode === 'add-country') {
+            this.context.chartView.isSelectingData = true
+        }
     }
 
     @computed get tooltip(): JSX.Element|undefined {
@@ -253,7 +262,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]}/>}
+                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]} onClick={this.onLegendClick} />}
                 <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
             </g>
             {this.tooltip}
