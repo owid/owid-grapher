@@ -311,18 +311,18 @@ export async function countryProfilePage(countryName: string) {
 
         if (values && values.length) {
             const latestValue = values[0]
+            const variable = variablesById[vid]
 
-            const dim = new DimensionWithData(0, c.dimensions[0], variablesById[vid] as any)
-            
+            const dim = new DimensionWithData(0, c.dimensions[0], variable as any)
 
             const floatValue = parseFloat(latestValue.value)
             const value = isNaN(floatValue) ? latestValue.value : floatValue
 
             indicators.push({
                 year: latestValue.year,
-                value: dim.formatValueLong(value),
+                value: dim.formatValueShort(value),
                 name: c.title as string,
-                slug: `/grapher/${c.slug}?tab=chart&country=${country.name}`
+                slug: `/grapher/${c.slug}?tab=chart&country=${country.code}`
             })
         }
     }

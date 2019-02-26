@@ -68,7 +68,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     </li>
                 </ul> */}
                 <div>
-                    <input type="search" className="chartsSearchInput" placeholder={`Filter indicators for ${country.name}`}/>
+                    <input type="search" className="chartsSearchInput" placeholder={`Filter ${indicators.length} indicators for ${country.name}`}/>
                 </div>
                 <section>
                     <ul className="indicators">
@@ -76,7 +76,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                             <div className="indicatorName">
                                 <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}</a>
                             </div>
-                            <div className="indicatorValue">{indicator.value} (in {indicator.year})</div>
+                            <div className="indicatorValue">{indicator.value} ({indicator.year})</div>
                         </li>)}
                     </ul>
                 </section>
