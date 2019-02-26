@@ -66,31 +66,15 @@ if (trackedLinkExists) {
         const targetElement = ev.target as HTMLElement
         const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
         if (trackedElement) {
-            // In order for events to be sent for anchor tags, there needs to be
-            // a delay before navigating away from the page.
-            const href = trackedElement.getAttribute("href")
-            const target = trackedElement.getAttribute("target")
-            if (href && target !== "_blank") {
-                ev.preventDefault() // prevent immediate redirect
-                const redirect = createFunctionWithTimeout(() => {
-                    window.location = href
-                })
-                try {
-                    await Analytics.logEvent("OWID_SITE_CLICK", {
-                        text: trackedElement.innerText,
-                        href: href,
-                        note: trackedElement.getAttribute("data-track-note")
-                    })
-                } finally {
-                    redirect()
-                }
-            } else {
-                Analytics.logEvent("OWID_SITE_CLICK", {
-                    text: trackedElement.innerText,
-                    href: href,
-                    note: trackedElement.getAttribute("data-track-note")
-                })
-            }
+            // Note that browsers will cancel all pending requests once a user
+            // navigates away from a page. An earlier implementation had a
+            // timeout to send the event before navigating, but it broke
+            // CMD+CLICK for opening a new tab.
+            Analytics.logEvent("OWID_SITE_CLICK", {
+                text: trackedElement.innerText,
+                href: trackedElement.getAttribute("href"),
+                note: trackedElement.getAttribute("data-track-note")
+            })
         }
     })
 }
