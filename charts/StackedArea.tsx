@@ -13,7 +13,7 @@ import { Tooltip } from './Tooltip'
 import {select} from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 import {rgb} from 'd3-color'
-import { ChartViewContext } from './ChartViewContext'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 
 export interface StackedAreaValue {
     x: number,
@@ -130,6 +130,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
     base: React.RefObject<SVGGElement> = React.createRef()
 
     static contextType = ChartViewContext
+    context!: ChartViewContextType
 
     @computed get chart(): ChartConfig { return this.props.chart }
     @computed get bounds(): Bounds { return this.props.bounds }

@@ -22,7 +22,7 @@ import { ComparisonLine } from './ComparisonLine'
 import { Tooltip } from './Tooltip'
 import { NoData } from './NoData'
 import { formatYear } from './Util'
-import { ChartViewContext } from './ChartViewContext'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 
 export interface LineChartValue {
     x: number,
@@ -44,6 +44,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     base: React.RefObject<SVGGElement> = React.createRef()
 
     static contextType = ChartViewContext
+    context!: ChartViewContextType
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number|undefined) {

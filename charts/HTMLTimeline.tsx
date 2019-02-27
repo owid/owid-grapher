@@ -5,7 +5,7 @@ import { Bounds } from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
 import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
-import { ChartViewContext } from './ChartViewContext'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -23,7 +23,9 @@ interface TimelineProps {
 @observer
 export class Timeline extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
     static contextType = ChartViewContext
+    context!: ChartViewContextType
 
     @observable startYearInput: number = 1900
     @observable endYearInput: number = 2000
