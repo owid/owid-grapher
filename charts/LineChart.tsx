@@ -192,7 +192,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                 <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={[]} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
-            {hoverX && <g className="hoverIndicator">
+            {hoverX != null && <g className="hoverIndicator">
                 {transform.groupedData.map(series => {
                     const value = series.values.find(v => v.x === hoverX)
                     if (!value)
