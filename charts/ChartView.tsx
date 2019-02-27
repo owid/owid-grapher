@@ -6,7 +6,7 @@ import { select } from 'd3-selection'
 import 'd3-transition'
 
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
-import {ControlsFooter, ControlsFooterView} from './ControlsFooter'
+import {Controls, ControlsFooterView} from './Controls'
 import { ChartTab } from './ChartTab'
 import { DataTab } from './DataTab'
 import { MapTab } from './MapTab'
@@ -92,9 +92,9 @@ export class ChartView extends React.Component<ChartViewProps> {
     @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 5) : this.idealWidth }
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
-    @computed get controlsFooter(): ControlsFooter {
+    @computed get controls(): Controls {
         const that = this
-        return new ControlsFooter({
+        return new Controls({
             get chart() { return that.props.chart },
             get chartView() { return that },
             get width() { return that.renderWidth }
@@ -102,7 +102,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get tabBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controls.height)
     }
 
     @observable.ref popups: VNode[] = []
@@ -175,7 +175,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
         return <React.Fragment>
             {this.hasBeenVisible && this.renderSVG()}
-            <ControlsFooterView controlsFooter={this.controlsFooter}/>
+            <ControlsFooterView controls={this.controls}/>
             {this.renderOverlayTab(tabBounds)}
             {this.popups}
             <TooltipView/>

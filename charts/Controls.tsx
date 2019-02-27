@@ -218,7 +218,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 
     render() {
         const { chart } = this.props
-        
+
         let label = "Relative"
         if (chart.isScatter || chart.isTimeScatter)
             label = "Average annual change"
@@ -257,12 +257,12 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         } else if (chart.isScatter) {
             return <Timeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         } else {
-            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>            
+            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         }
     }
 }
 
-export class ControlsFooter {
+export class Controls {
     props: { chart: ChartConfig, chartView: ChartView, width: number }
     constructor(props: { chart: ChartConfig, chartView: ChartView, width: number }) {
         this.props = props
@@ -315,23 +315,23 @@ export class ControlsFooter {
 }
 
 @observer
-export class ControlsFooterView extends React.Component<{ controlsFooter: ControlsFooter }> {
+export class ControlsFooterView extends React.Component<{ controls: Controls }> {
     @action.bound onShareMenu() {
-        this.props.controlsFooter.isShareMenuActive = !this.props.controlsFooter.isShareMenuActive
+        this.props.controls.isShareMenuActive = !this.props.controls.isShareMenuActive
     }
 
     @action.bound onSettingsMenu() {
-        this.props.controlsFooter.isSettingsMenuActive = !this.props.controlsFooter.isSettingsMenuActive
+        this.props.controls.isSettingsMenuActive = !this.props.controls.isSettingsMenuActive
     }
 
     @action.bound onDataSelect() {
-        this.props.controlsFooter.props.chartView.isSelectingData = true
+        this.props.controls.props.chartView.isSelectingData = true
     }
 
     render() {
         const { props } = this
-        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, addDataTerm, hasSpace} = props.controlsFooter
-        const {chart, chartView} = props.controlsFooter.props
+        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, addDataTerm, hasSpace} = props.controls
+        const {chart, chartView} = props.controls.props
 
         const tabs = <nav className="tabs">
             <ul>
@@ -370,7 +370,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
             {/* {chart.isLineChart && chart.lineChart.canToggleRelative && <AbsRelToggle chart={chart} />} */}
         </div>
 
-        return <div className="ControlsFooter" style={{ height: props.controlsFooter.height }}>
+        return <div className="ControlsFooter" style={{ height: props.controls.height }}>
             {hasTimeline && (hasInlineControls || !hasSpace) && <div className="footerRowSingle">
                 {timeline}
             </div>}
