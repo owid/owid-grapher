@@ -7,6 +7,7 @@ import { SiteFooter } from './SiteFooter'
 export interface Country {
     name: string
     slug: string
+    code: string
 }
 
 export const CountriesIndexPage = (props: { countries: Country[] }) => {
@@ -17,8 +18,10 @@ export const CountriesIndexPage = (props: { countries: Country[] }) => {
         <body className="CountriesIndexPage">
             <SiteHeader/>
             <main>
+                <h1>Data by country</h1>
                 <ul>
                     {countries.map(country => <li>
+                        <img className="flag" src={`/images/flags/${country.code}.svg`}/>
                         <a href={`/country/${country.slug}`}>{country.name}</a>
                     </li>)}
                 </ul>

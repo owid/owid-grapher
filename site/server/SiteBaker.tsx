@@ -156,7 +156,7 @@ export class SiteBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('country') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`

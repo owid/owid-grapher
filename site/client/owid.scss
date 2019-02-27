@@ -1747,3 +1747,27 @@ html:not(.js) {
         }
     }
 }
+
+.CountriesIndexPage > main {
+    max-width: 1100px;
+    margin: auto;
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(16rem,1fr));
+        grid-column-gap: 1rem;
+    }
+
+    li {
+        width: 100%;
+        list-style-type: none;
+        padding-right: 1em;
+        font-size: .8em;
+        max-width: 90vw;        
+    }
+
+    .flag {
+        width: 16px;
+        margin-right: 4px;
+    }
+}

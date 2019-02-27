@@ -12,7 +12,7 @@ import { BAKED_SITE_DIR } from 'serverSettings';
 import { SiteBaker } from './SiteBaker';
 
 export async function countriesIndexPage() {
-    const countries = await db.table('entities').whereRaw("validated is true and code is not null")
+    const countries = (await db.table('entities').whereRaw("validated is true and code is not null")).filter((c: any) => c.code.length === 3)
     for (const country of countries) {
         country.slug = slugify(country.name)
     }
@@ -48,13 +48,16 @@ async function countryIndicatorVariables(): Promise<Variable.Row[]> {
 }
 
 async function countryIndicatorLatestData(entityId: number) {
-    const variables = await countryIndicatorVariables()
-    const variableIds = variables.map(v => v.id)
-    const dataValues = await db.table("data_values").select("variableId", "value", "year")
-        .whereIn("variableId", variableIds)
-        .andWhere({ entityId: entityId })
-        .orderBy("year", "DESC") as { variableId: number, value: string, year: number }[]
-    return dataValues
+    const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
+        const variables = await countryIndicatorVariables()
+        const variableIds = variables.map(v => v.id)
+        const dataValues = await db.table("data_values").select("variableId", "entityId", "value", "year")
+            .whereIn("variableId", variableIds)
+            .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]    
+        return _.groupBy(dataValues, dv => dv.entityId)
+    })
+
+    return dataValuesByEntityId[entityId]
 }
 
 export async function countryProfilePage(countryName: string) {
