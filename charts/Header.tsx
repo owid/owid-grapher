@@ -160,12 +160,11 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
 export class HeaderHTML extends React.Component<{ chart: ChartConfig, header: Header }> {
     render() {
 
-
         const {chart, header} = this.props
         const logoScale = header.logo && parseFloat(header.logo.scale.toFixed(2))
 
         // const linkifySubtitle = linkifyHtml(header.subtitleText)
-        
+
         return <div className="HeaderHTML">
             {logoScale && <div className="logo" dangerouslySetInnerHTML={{ __html: LOGO_SVG }}/>}
             <a href={chart.url.canonicalUrl} target="_blank">
