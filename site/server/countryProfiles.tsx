@@ -45,13 +45,13 @@ async function countryIndicatorVariables(): Promise<Variable.Row[]> {
 }
 
 async function countryIndicatorLatestData(countryCode: string) {
-    const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
-
-    const entitiesByCode = _.keyBy(entities, e => e.code)
-    const entitiesById = _.keyBy(entities, e => e.id)
-    const entityIds = countries.map(c => entitiesByCode[c.code].id)
-
     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
+        const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+
+        const entitiesByCode = _.keyBy(entities, e => e.code)
+        const entitiesById = _.keyBy(entities, e => e.id)
+        const entityIds = countries.map(c => entitiesByCode[c.code].id)    
+    
         const variables = await countryIndicatorVariables()
         const variableIds = variables.map(v => v.id)
         // const dataValues = await db.table("entities")
@@ -113,10 +113,13 @@ export async function countryProfilePage(countrySlug: string) {
 }
 
 export async function bakeCountries(baker: SiteBaker) {
+    const html = await countriesIndexPage()
+    await baker.writeFile('/countries.html', html)
+
     await baker.ensureDir('/country')
     for (const country of countries) {
         const path = `/country/${country.slug}.html`
-        const html = await countryProfilePage(country.code)
+        const html = await countryProfilePage(country.slug)
         await baker.writeFile(path, html)
     }
 }

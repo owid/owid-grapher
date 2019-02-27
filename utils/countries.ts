@@ -25,11 +25,11 @@ export const countries = [
         "code": "AIA",
         "slug": "anguilla"
     },
-    {
-        "name": "Åland Islands",
-        "code": "ALA",
-        "slug": "aland-islands"
-    },
+    // {
+    //     "name": "Åland Islands",
+    //     "code": "ALA",
+    //     "slug": "aland-islands"
+    // },
     {
         "name": "Albania",
         "code": "ALB",
@@ -40,11 +40,11 @@ export const countries = [
         "code": "AND",
         "slug": "andorra"
     },
-    {
-        "name": "Netherlands Antilles",
-        "code": "ANT",
-        "slug": "netherlands-antilles"
-    },
+    // {
+    //     "name": "Netherlands Antilles",
+    //     "code": "ANT",
+    //     "slug": "netherlands-antilles"
+    // },
     {
         "name": "United Arab Emirates",
         "code": "ARE",
@@ -70,11 +70,11 @@ export const countries = [
         "code": "ATA",
         "slug": "antarctica"
     },
-    {
-        "name": "French Southern Territories",
-        "code": "ATF",
-        "slug": "french-southern-territories"
-    },
+    // {
+    //     "name": "French Southern Territories",
+    //     "code": "ATF",
+    //     "slug": "french-southern-territories"
+    // },
     {
         "name": "Antigua and Barbuda",
         "code": "ATG",
@@ -190,11 +190,11 @@ export const countries = [
         "code": "BTN",
         "slug": "bhutan"
     },
-    {
-        "name": "Bouvet Island",
-        "code": "BVT",
-        "slug": "bouvet-island"
-    },
+    // {
+    //     "name": "Bouvet Island",
+    //     "code": "BVT",
+    //     "slug": "bouvet-island"
+    // },
     {
         "name": "Botswana",
         "code": "BWA",
@@ -210,11 +210,11 @@ export const countries = [
         "code": "CAN",
         "slug": "canada"
     },
-    {
-        "name": "Cocos Islands",
-        "code": "CCK",
-        "slug": "cocos-islands"
-    },
+    // {
+    //     "name": "Cocos Islands",
+    //     "code": "CCK",
+    //     "slug": "cocos-islands"
+    // },
     {
         "name": "Switzerland",
         "code": "CHE",
@@ -250,11 +250,11 @@ export const countries = [
         "code": "COG",
         "slug": "congo"
     },
-    {
-        "name": "Cook Islands",
-        "code": "COK",
-        "slug": "cook-islands"
-    },
+    // {
+    //     "name": "Cook Islands",
+    //     "code": "COK",
+    //     "slug": "cook-islands"
+    // },
     {
         "name": "Colombia",
         "code": "COL",
@@ -350,11 +350,11 @@ export const countries = [
         "code": "ERI",
         "slug": "eritrea"
     },
-    {
-        "name": "Western Sahara",
-        "code": "ESH",
-        "slug": "western-sahara"
-    },
+    // {
+    //     "name": "Western Sahara",
+    //     "code": "ESH",
+    //     "slug": "western-sahara"
+    // },
     {
         "name": "Spain",
         "code": "ESP",
@@ -415,11 +415,11 @@ export const countries = [
         "code": "GEO",
         "slug": "georgia"
     },
-    {
-        "name": "Guernsey",
-        "code": "GGY",
-        "slug": "guernsey"
-    },
+    // {
+    //     "name": "Guernsey",
+    //     "code": "GGY",
+    //     "slug": "guernsey"
+    // },
     {
         "name": "Ghana",
         "code": "GHA",
@@ -435,11 +435,11 @@ export const countries = [
         "code": "GIN",
         "slug": "guinea"
     },
-    {
-        "name": "Guadeloupe",
-        "code": "GLP",
-        "slug": "guadeloupe"
-    },
+    // {
+    //     "name": "Guadeloupe",
+    //     "code": "GLP",
+    //     "slug": "guadeloupe"
+    // },
     {
         "name": "Gambia",
         "code": "GMB",
@@ -495,11 +495,11 @@ export const countries = [
         "code": "HKG",
         "slug": "hong-kong"
     },
-    {
-        "name": "Heard Island and McDonald Islands",
-        "code": "HMD",
-        "slug": "heard-island-and-mcdonald-islands"
-    },
+    // {
+    //     "name": "Heard Island and McDonald Islands",
+    //     "code": "HMD",
+    //     "slug": "heard-island-and-mcdonald-islands"
+    // },
     {
         "name": "Honduras",
         "code": "HND",
@@ -535,11 +535,11 @@ export const countries = [
         "code": "IND",
         "slug": "india"
     },
-    {
-        "name": "British Indian Ocean Territory",
-        "code": "IOT",
-        "slug": "british-indian-ocean-territory"
-    },
+    // {
+    //     "name": "British Indian Ocean Territory",
+    //     "code": "IOT",
+    //     "slug": "british-indian-ocean-territory"
+    // },
     {
         "name": "Ireland",
         "code": "IRL",
@@ -690,11 +690,11 @@ export const countries = [
         "code": "MAC",
         "slug": "macao"
     },
-    {
-        "name": "Saint Martin (French part)",
-        "code": "MAF",
-        "slug": "saint-martin-french-part"
-    },
+    // {
+    //     "name": "Saint Martin (French part)",
+    //     "code": "MAF",
+    //     "slug": "saint-martin-french-part"
+    // },
     {
         "name": "Morocco",
         "code": "MAR",
@@ -775,11 +775,11 @@ export const countries = [
         "code": "MRT",
         "slug": "mauritania"
     },
-    {
-        "name": "Montserrat",
-        "code": "MSR",
-        "slug": "montserrat"
-    },
+    // {
+    //     "name": "Montserrat",
+    //     "code": "MSR",
+    //     "slug": "montserrat"
+    // },
     {
         "name": "Martinique",
         "code": "MTQ",
@@ -990,16 +990,16 @@ export const countries = [
     //     "code": "SGS",
     //     "slug": "south-georgia-and-the-south-sandwich-islands"
     // },
-    {
-        "name": "Saint Helena",
-        "code": "SHN",
-        "slug": "saint-helena"
-    },
-    {
-        "name": "Svalbard and Jan Mayen",
-        "code": "SJM",
-        "slug": "svalbard-and-jan-mayen"
-    },
+    // {
+    //     "name": "Saint Helena",
+    //     "code": "SHN",
+    //     "slug": "saint-helena"
+    // },
+    // {
+    //     "name": "Svalbard and Jan Mayen",
+    //     "code": "SJM",
+    //     "slug": "svalbard-and-jan-mayen"
+    // },
     {
         "name": "Solomon Islands",
         "code": "SLB",
@@ -1165,11 +1165,11 @@ export const countries = [
         "code": "UKR",
         "slug": "ukraine"
     },
-    {
-        "name": "United States Minor Outlying Islands",
-        "code": "UMI",
-        "slug": "united-states-minor-outlying-islands"
-    },
+    // {
+    //     "name": "United States Minor Outlying Islands",
+    //     "code": "UMI",
+    //     "slug": "united-states-minor-outlying-islands"
+    // },
     {
         "name": "Uruguay",
         "code": "URY",
@@ -1220,11 +1220,11 @@ export const countries = [
         "code": "VUT",
         "slug": "vanuatu"
     },
-    {
-        "name": "Wallis and Futuna",
-        "code": "WLF",
-        "slug": "wallis-and-futuna"
-    },
+    // {
+    //     "name": "Wallis and Futuna",
+    //     "code": "WLF",
+    //     "slug": "wallis-and-futuna"
+    // },
     {
         "name": "Samoa",
         "code": "WSM",
