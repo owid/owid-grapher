@@ -14,7 +14,7 @@ export const CountriesIndexPage = (props: { countries: Country[] }) => {
     const { countries } = props
 
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/charts`} pageTitle="Charts" pageDesc="All of the interactive charts on Our World in Data."/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/countries`} pageTitle="Countries" pageDesc="Data by individual country on Our World in Data."/>
         <body className="CountriesIndexPage">
             <SiteHeader/>
             <main>

@@ -23,7 +23,6 @@ export interface CountryProfileKeyStats {
 
 export interface CountryProfilePageProps {
     country: {
-        id: number
         name: string
         slug: string
         code: string
@@ -39,7 +38,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
     const script = `window.runCountryProfilePage()`
 
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/country/${country.slug}`} pageTitle={`${country.name} | Data and Statistics`} pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/country/${country.slug}`} pageTitle={`${country.name}`} pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}/>
         <body className="CountryProfilePage">
             <SiteHeader/>
             <main>

@@ -1,5 +1,5 @@
 import db = require('db/db')
-import { slugify, renderToHtmlPage } from 'utils/server/serverUtil';
+import { slugify, renderToHtmlPage, JsonError } from 'utils/server/serverUtil';
 import React = require('react');
 import { CountriesIndexPage } from './views/CountriesIndexPage';
 import { ChartConfigProps } from 'charts/ChartConfig';
@@ -10,12 +10,9 @@ import { Variable } from 'db/model/Variable';
 import fs = require('fs-extra')
 import { BAKED_SITE_DIR } from 'serverSettings';
 import { SiteBaker } from './SiteBaker';
+import { countries } from 'utils/countries'
 
 export async function countriesIndexPage() {
-    const countries = (await db.table('entities').whereRaw("validated is true and code is not null")).filter((c: any) => c.code.length === 3)
-    for (const country of countries) {
-        country.slug = slugify(country.name)
-    }
     return renderToHtmlPage(<CountriesIndexPage countries={countries}/>)
 }
 
@@ -47,27 +44,43 @@ async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     })
 }
 
-async function countryIndicatorLatestData(entityId: number) {
+async function countryIndicatorLatestData(countryCode: string) {
+    const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+
+    const entitiesByCode = _.keyBy(entities, e => e.code)
+    const entitiesById = _.keyBy(entities, e => e.id)
+    const entityIds = countries.map(c => entitiesByCode[c.code].id)
+
     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
         const variables = await countryIndicatorVariables()
         const variableIds = variables.map(v => v.id)
+        // const dataValues = await db.table("entities")
+        //     .select("data_values.variableId", "data_values.entityId", "data_values.value", "data_values.year")
+        //     .join("data_values", "data_values.entityId", "=", "entities.id")
+        //     .whereIn("entities.code", countryCodes)
+        //     .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]  
+            
         const dataValues = await db.table("data_values").select("variableId", "entityId", "value", "year")
             .whereIn("variableId", variableIds)
+            .whereRaw(`entityId in (?)`, [entityIds])
+            .andWhere("year", ">", 2010)
             .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]    
-        return _.groupBy(dataValues, dv => dv.entityId)
+        return _.groupBy(dataValues, dv => entitiesById[dv.entityId].code)
     })
 
-    return dataValuesByEntityId[entityId]
+    return dataValuesByEntityId[countryCode]
 }
 
-export async function countryProfilePage(countryName: string) {
-    const country = await db.table('entities').whereRaw('lower(name) = ?', [countryName.toLowerCase()]).first()
-    country.slug = slugify(country.name)
+export async function countryProfilePage(countrySlug: string) {
+    const country = countries.find(c => c.slug === countrySlug)
+    if (!country) {
+        throw new JsonError(`No such country ${countrySlug}`, 404)
+    }
 
     const charts = await countryIndicatorCharts()
     const variables = await countryIndicatorVariables()
     const variablesById = _.keyBy(variables, v => v.id)
-    const dataValues = await countryIndicatorLatestData(country.id)
+    const dataValues = await countryIndicatorLatestData(country.code)
 
     const valuesByVariableId = _.groupBy(dataValues, v => v.variableId)
 
@@ -100,13 +113,10 @@ export async function countryProfilePage(countryName: string) {
 }
 
 export async function bakeCountries(baker: SiteBaker) {
-    const countries = await db.table('entities').where({ validated: true })
-
     await baker.ensureDir('/country')
     for (const country of countries) {
-        const slug = slugify(country.name)
-        const path = `/country/${slug}.html`
-        const html = await countryProfilePage(country.name)
+        const path = `/country/${country.slug}.html`
+        const html = await countryProfilePage(country.code)
         await baker.writeFile(path, html)
     }
 }
