@@ -19,13 +19,19 @@ import { WORDPRESS_DIR } from 'serverSettings'
 import { formatPost, extractFormattingOptions, FormattedPost } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
-import { JsonError } from "utils/server/serverUtil"
+import { JsonError, slugify } from "utils/server/serverUtil"
 import { Chart } from 'db/model/Chart'
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment = require("moment")
 import * as urljoin from 'url-join'
 import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
+import { VariableCountryPage } from "./views/VariableCountryPage";
+import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage";
+import { ChartConfigProps } from "charts/ChartConfig";
+import { DimensionWithData } from "charts/DimensionWithData";
+import { Variable } from "db/model/Variable";
+import { CountriesIndexPage } from "./views/CountriesIndexPage";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -35,7 +41,7 @@ export function renderToHtmlPage(element: any) {
 type wpPostRow = any
 
 export async function renderChartsPage() {
-    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts`) as ChartIndexItem[]
+    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts where is_indexable is true`) as ChartIndexItem[]
 
     const chartTags = await db.query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
@@ -50,10 +56,6 @@ export async function renderChartsPage() {
     const chartsById = _.keyBy(chartItems, c => c.id)
 
     for (const ct of chartTags) {
-        // XXX hardcoded filtering to public parent tags
-        if ([1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510].indexOf(ct.tagParentId) === -1)
-            continue
-
         const c = chartsById[ct.chartId]
         if (c)
             c.tags.push({ id: ct.tagId, name: ct.tagName })
@@ -225,4 +227,49 @@ export async function entriesByYearPage(year?: number) {
         return renderToHtmlPage(<EntriesForYearPage entries={entries} year={year}/>)
     else
         return renderToHtmlPage(<EntriesByYearPage entries={entries}/>)
+}
+
+export async function pagePerVariable(variableId: number, countryName: string) {
+    const variable = await db.get(`
+        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+        FROM variables v
+        JOIN datasets d ON d.id=v.datasetId
+        JOIN users u ON u.id=d.dataEditedByUserId
+        WHERE v.id = ?
+    `, [variableId])
+
+    if (!variable) {
+        throw new JsonError(`No variable by id '${variableId}'`, 404)
+    }
+
+    variable.display = JSON.parse(variable.display)
+    variable.source = await db.get(`SELECT id, name FROM sources AS s WHERE id = ?`, variable.sourceId)
+
+    const country = await db.table('entities').select('id', 'name').whereRaw('lower(name) = ?', [countryName]).first()
+
+    return renderToHtmlPage(<VariableCountryPage variable={variable} country={country}/>)
+}
+
+interface Stat {
+    value: number
+    year: number
+}
+
+async function getLatestDataForVariables(entityId: number, variableIds: number[]): Promise<{[variableId: number]: Stat}> {
+   const dataValues = await db.table("data_values").whereIn("variableId", variableIds).andWhere({ entityId: entityId }).orderBy("year", "DESC")
+
+   const result: {[variableId: number]: Stat} = {}
+
+   for (const dv of dataValues) {
+        if (result[dv.variableId])
+            continue
+
+        result[dv.variableId] = {
+            value: dv.value,
+            year: dv.year
+        }
+   }
+
+   return result
 }

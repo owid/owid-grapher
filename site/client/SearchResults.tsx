@@ -1,4 +1,4 @@
-import { SiteSearchResults, PostHit, ChartHit } from "site/siteSearch"
+import { SiteSearchResults, PageHit, ChartHit, CountryHit, ArticleHit } from "site/siteSearch"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import React = require("react")
@@ -11,10 +11,32 @@ class ChartResult extends React.Component<{ hit: ChartHit }> {
         return <li className="ChartResult">
             {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
             <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>{hit.title}</a>
-            {hit.variantName ? <span className="chartVariantName"> {hit.variantName}</span> : undefined}
+            {hit.variantName ? <span className="variantName"> {hit.variantName}</span> : undefined}
             {hit.subtitle ? <p dangerouslySetInnerHTML={{ __html: hit._snippetResult.subtitle.value }}/> : undefined}
         </li>
     }
+}
+
+class CountryResult extends React.Component<{ hit: CountryHit }> {
+    render() {
+        const {hit} = this.props
+        return <li>
+            {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
+            <a href={`/country/${hit.slug}`}>{hit.title}</a> <span className="variantName">Country</span>
+            <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
+        </li>
+    }    
+}
+
+class ArticleResult extends React.Component<{ hit: ArticleHit }> {
+    render() {
+        const {hit} = this.props
+        return <li>
+            {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
+            <a href={`/${hit.slug}`}>{hit.title}</a>
+            <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
+        </li>        
+    }    
 }
 
 @observer
@@ -24,27 +46,25 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
     }
 
     @computed get entries() {
-        return this.props.results.posts.filter(p => p.postType === 'page')
+        return this.props.results.pages.filter(p => p.type === 'page')
     }
 
     @computed get blogposts() {
-        return this.props.results.posts.filter(p => p.postType === 'post')
+        return this.props.results.pages.filter(p => p.type === 'post')
     }
 
     render() {
         const {results} = this.props
 
+        console.log(results.charts)
+
         return <div className="SearchResults">
             <div className="container">
                 <div className="postResults">
-                    <h2>Articles</h2>
-                    {!results.posts.length ? <p>No matching articles.</p> : undefined}
+                    <h2>Pages</h2>
+                    {!results.pages.length ? <p>No matching pages.</p> : undefined}
                     <ul>
-                        {results.posts.map(hit => <li key={hit.postId}>
-                            {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-                            <a href={`/${hit.slug}`}>{hit.title}</a>
-                            <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
-                        </li>)}
+                        {results.pages.map(hit => hit.type === 'country' ? <CountryResult key={hit.objectID} hit={hit}/> : <ArticleResult key={hit.objectID} hit={hit}/>)}
                     </ul>
                 </div>
                 <div className="chartResults">

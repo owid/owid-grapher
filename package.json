@@ -9,13 +9,15 @@
     "dev-webpack": "webpack-dev-server -d",
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
     "typeorm": "yarn tsn node_modules/.bin/typeorm",
+    "migrate": "yarn typeorm migration:run",
     "lint": "tslint --project . -t verbose",
     "typecheck": "tsc --noEmit",
     "build": "rm -rf dist && ENV=production webpack -p --progress",
     "test": "jest",
     "testcheck": "npm-run-all --parallel typecheck test",
     "deploy": "./bin/deploy.sh",
-    "serve": "yarn tsn admin/server/server.tsx"
+    "serve": "yarn tsn admin/server/server.tsx",
+    "bake": "yarn tsn scripts/bakeSite.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.12",

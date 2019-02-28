@@ -69,93 +69,6 @@
     color: #3366cc;
 }
 
-
-/* Site Footer
---------------------------------------------- */
-
-.SiteFooter {
-	background: $primary-color;
-	border-top: 1px solid rgba(0, 0, 0, 0.1);
-	color: rgba(255, 255, 255, 0.5);
-	text-align: center;
-	padding: 40px 24px;
-	font-weight: 300;
-	word-wrap: initial;
-
-	a {
-		color: rgba(255, 255, 255, 0.8);
-		text-decoration: underline;
-		display: inline-block;
-	}
-
-	.logo {
-		text-decoration: none;
-		font-size: 1.1em;
-	}
-
-	nav {
-		margin-top: 12px;
-	}
-
-	nav a {
-		margin-right: 10px;
-	}
-}
-
-@media screen and (max-width: 950px) {
-	.SiteFooter .column {
-		width: 100%;
-	}
-
-	.SiteFooter hr {
-		border: 1px solid #aaa;
-		border-top: none;
-		margin-top: 14px;
-		margin-bottom: 14px;
-	}
-
-	.SiteFooter p {
-		font-size: 14px;
-	}
-}
-
-@media screen and (min-width: 950px) {
-	.SiteFooter hr {
-		display: none;
-	}
-
-	.SiteFooter .column.subscribe {
-		max-width: 400px;
-	}
-
-	.SiteFooter .clearfix {
-		padding-bottom: 30px;
-		border-bottom: 1px solid #ccc;
-		margin-bottom: 30px;
-	}
-
-	.SiteFooter .donation-thanks {
-		font-size: 16px;
-		padding-bottom: 30px;
-		border-bottom: 1px solid #ccc;
-		margin-bottom: 30px;
-	}
-}
-
-@media screen and (max-width: 480px) {
-	.SiteFooter .supporters-left, .SiteFooter .supporters-right {
-		display: block;
-		width: 100%;
-		margin: 0;
-	}
-
-	.SiteFooter .supporters-right {
-		margin-top: 14px;
-		border-top: 1px solid #aaa;
-		padding-top: 14px;
-	}
-}
-
 /* Blog posts and blog index page (on /blog)
 --------------------------------------------- */
 
@@ -1620,7 +1533,8 @@ html:not(.js) {
     }
 }
 
-.chartVariantName {
+.variantName {
+    margin-left: 3px;
     color: rgb(170, 170, 170);
     font-size: 0.9em;
 }
@@ -1790,5 +1704,71 @@ html:not(.js) {
                 color: white;
             }
         }
+    }
+}
+
+.CountryProfilePage {
+    main {
+        margin: auto;
+        max-width: 900px;
+
+        header {
+            display: flex;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+            img.flag {
+                max-height: 100px;
+                margin-right: 20px;
+            }
+        }
+
+        input[type=search] {
+            width: 100%;
+            padding: 10px;
+        }
+
+        ul {
+            li {
+                display: flex;
+                list-style-type: none;
+                border-bottom: 1px solid #c5c9d3;
+                font-size: 14px;
+            }
+
+            .indicatorName {    
+                line-height: 32px;
+                flex-grow: 1;
+            }
+
+            .indicatorValue {
+                line-height: 32px;
+                text-align: right;
+            }
+        }
+    }
+}
+
+.CountriesIndexPage > main {
+    max-width: 1100px;
+    margin: auto;
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(16rem,1fr));
+        grid-column-gap: 1rem;
+    }
+
+    li {
+        width: 100%;
+        list-style-type: none;
+        padding-right: 1em;
+        font-size: .8em;
+        max-width: 90vw;        
+    }
+
+    .flag {
+        width: 16px;
+        margin-right: 4px;
     }
 }

@@ -5,18 +5,26 @@ import * as db from 'db/db'
 import { Dataset } from './Dataset'
 import { VariableDisplaySettings } from "charts/VariableData"
 
-@Entity("variables")
-export class Variable extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column() datasetId!: number
-    @Column() name!: string
-    @Column({ default: "" }) unit!: string
-    @Column() description!: string
-    @Column() columnOrder!: number
-    @Column({ default: "{}", type: 'json' }) display!: VariableDisplaySettings
+export namespace Variable {
+    export interface Row {
+        id: number
+        name: string
+        unit: string
+        description: string
+        columnOrder: number
+        display: VariableDisplaySettings
+    }
+    
+    export type Field = keyof Row
 
-    @ManyToOne(type => Dataset, dataset => dataset.variables) @JoinColumn({ name: 'datasetId' })
-    dataset!: Dataset
+    export const table = "variables"
+
+    export function rows(plainRows: any): Variable.Row[] {
+        for (const row of plainRows) {
+            row.display = row.display ? JSON.parse(row.display) : undefined
+        }
+        return plainRows
+    }
 }
 
 export async function getVariableData(variableIds: number[]): Promise<any> {

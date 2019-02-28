@@ -24,6 +24,7 @@ import { getVariableData } from 'db/model/Variable'
 import { ChartPage } from './views/ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { Post } from 'db/model/Post'
+import { bakeCountries } from './countryProfiles';
 
 // Static site generator using Wordpress
 
@@ -155,7 +156,7 @@ export class SiteBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('countries') && !path.startsWith('country') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
@@ -317,6 +318,7 @@ export class SiteBaker {
         await this.bakeRedirects()
         await this.bakeEmbeds()
         await this.bakeBlogIndex()
+        await bakeCountries(this)
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeSpecialPages()
@@ -324,6 +326,18 @@ export class SiteBaker {
         await this.bakePosts()
         await this.bakeCharts()
     }
+
+    async ensureDir(relPath: string) {
+        const outPath = path.join(BAKED_SITE_DIR, relPath)
+        await fs.mkdirp(outPath)
+    }
+
+    async writeFile(relPath: string, content: string) {
+        const outPath = path.join(BAKED_SITE_DIR, relPath)
+        await fs.writeFile(outPath, content)
+        this.stage(outPath)
+    }
+
 
     async stageWrite(outPath: string, content: string) {
         await fs.mkdirp(path.dirname(outPath))

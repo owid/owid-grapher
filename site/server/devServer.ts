@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR} from 'serverSettings'
@@ -10,6 +10,7 @@ import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { expectInt, JsonError } from 'utils/server/serverUtil'
 import { embedSnippet } from 'site/server/embedCharts'
+import { countryProfilePage, countriesIndexPage } from './countryProfiles';
 
 const devServer = express()
 
@@ -76,6 +77,20 @@ devServer.get('/headerMenu.json', async (req, res) => {
 devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/uploads')))
 
 devServer.use('/', express.static(path.join(BASE_DIR, 'public')))
+
+devServer.get('/indicator/:variableId/:country', async (req, res) => {
+    const variableId = expectInt(req.params.variableId)
+
+    res.send(await pagePerVariable(variableId, req.params.country))
+})
+
+devServer.get('/countries', async (req, res) => {
+    res.send(await countriesIndexPage())
+})
+
+devServer.get('/country/:countrySlug', async (req, res) => {
+    res.send(await countryProfilePage(req.params.countrySlug))
+})
 
 devServer.get('/:slug', async (req, res) => {
     res.send(await renderPageBySlug(req.params.slug))
