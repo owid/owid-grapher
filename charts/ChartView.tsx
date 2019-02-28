@@ -12,7 +12,7 @@ import { DataTab } from './DataTab'
 import { MapTab } from './MapTab'
 import { SourcesTab } from './SourcesTab'
 import { DownloadTab } from './DownloadTab'
-import { VNode, throttle, isMobile } from './Util'
+import { VNode, throttle, isMobile, isTouchDevice } from './Util'
 import { Bounds } from './Bounds'
 import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
@@ -119,7 +119,8 @@ export class ChartView extends React.Component<ChartViewProps> {
             this.isEditor && "editor",
             this.isEmbed && "embed",
             this.isPortrait && "portrait",
-            this.isLandscape && "landscape"
+            this.isLandscape && "landscape",
+            isTouchDevice() && "is-touch"
         ]
 
         return classNames.filter(n => !!n).join(' ')
