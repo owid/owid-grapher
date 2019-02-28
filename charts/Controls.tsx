@@ -272,8 +272,8 @@ export class Controls {
     @observable isSettingsMenuActive: boolean = false
 
     legendButtonHeight: number = 21
-    @observable legendButtonBottom: number = 0
-    @observable legendButtonLeft: number = 0
+    @observable legendButtonBottom?: number
+    @observable legendButtonLeft?: number
 
     @computed get addDataTerm() {
         const { chart } = this.props
@@ -348,21 +348,29 @@ export class ControlsOverlayView extends React.Component<{ controls: Controls }>
             height: `${controls.controlsPaddingTop}px`,
             position: "relative"
         }
-        const buttonStyle: React.CSSProperties = {
-            position: "absolute",
-            bottom: `-${controls.legendButtonBottom}px`,
-            left: `${controls.legendButtonLeft}px`
-        }
         return <div className="ControlsOverlay" style={wrapperStyle}>
-            {controls.hasLegendButton && controls.legendButtonBottom && <button className="addDataButton clickable" onClick={this.onDataSelect} style={buttonStyle}>
+            {this.renderLegendButton()}
+        </div>
+    }
+
+    renderLegendButton() {
+        const { controls } = this.props
+        if (controls.hasLegendButton && controls.legendButtonBottom != null && controls.legendButtonLeft != null) {
+            const buttonStyle: React.CSSProperties = {
+                position: "absolute",
+                bottom: `-${controls.legendButtonBottom}px`,
+                left: `${controls.legendButtonLeft}px`
+            }
+            return <button className="addDataButton clickable" onClick={this.onDataSelect} style={buttonStyle}>
                 <span className="icon">
                     <svg width={16} height={16}>
                         <path d="M3,8 h10 m-5,-5 v10" />
                     </svg>
                 </span>
                 <span className="label">Add {this.props.controls.addDataTerm}</span>
-            </button>}
-        </div>
+            </button>
+        }
+        return null
     }
 }
 
