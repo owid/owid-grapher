@@ -129,13 +129,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                     // Cap bottom to 0 because in some cases, like when toggling relative/absolute on a
                     // stacked area, the minimum of bounds.top ends up being some large negative number,
                     // which breaks the chart by setting a negative height.
-                    const buttonBottom = Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))
-                    const buttonLeft = this.props.x + (this.needsLines ? this.props.legend.leftPadding : 5)
-
-                    if (controls.hasLegendButton) {
-                        controls.legendButtonBottom = buttonBottom
-                        controls.legendButtonLeft = buttonLeft
-                    }
+                    controls.legendButtonBottom = Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))
+                    controls.legendButtonLeft = this.props.x + (this.needsLines ? this.props.legend.leftPadding : 5)
                 }
             },
             { fireImmediately: true }
