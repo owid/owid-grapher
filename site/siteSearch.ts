@@ -52,7 +52,7 @@ export interface SiteSearchResults {
 
 export async function siteSearch(query: string): Promise<SiteSearchResults> {
     const json = await getClient().search([
-        { indexName: 'articles', query: query, params: { distinct: true } },
+        { indexName: 'pages', query: query, params: { distinct: true } },
         { indexName: 'charts', query: query, params: {} }
     ])
     

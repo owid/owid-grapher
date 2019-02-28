@@ -41,7 +41,7 @@ export function renderToHtmlPage(element: any) {
 type wpPostRow = any
 
 export async function renderChartsPage() {
-    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts`) as ChartIndexItem[]
+    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts where is_indexable is true`) as ChartIndexItem[]
 
     const chartTags = await db.query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
@@ -56,10 +56,6 @@ export async function renderChartsPage() {
     const chartsById = _.keyBy(chartItems, c => c.id)
 
     for (const ct of chartTags) {
-        // XXX hardcoded filtering to public parent tags
-        if ([1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510].indexOf(ct.tagParentId) === -1)
-            continue
-
         const c = chartsById[ct.chartId]
         if (c)
             c.tags.push({ id: ct.tagId, name: ct.tagName })

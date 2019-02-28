@@ -15,14 +15,16 @@ async function configureAlgolia() {
         searchableAttributes: ["unordered(title)", "unordered(variantName)", "unordered(subtitle)", "unordered(tagsText)"],
         ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         customRanking: ["asc(numDimensions)", "asc(titleLength)"],
-        attributesToSnippet: ["subtitle:24"]
+        attributesToSnippet: ["subtitle:24"],
+        attributeForDistinct: 'id'
     })
 
     const pagesIndex = client.initIndex('pages')
     
     await pagesIndex.setSettings({
         searchableAttributes: ["title", "content"],
-        attributesToSnippet: ["content:24"]
+        attributesToSnippet: ["content:24"],
+        attributeForDistinct: 'slug'
     })
 
     const synonyms = [

@@ -10,10 +10,16 @@ import { htmlToPlaintext } from 'utils/string'
 
 async function indexToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex('articles')
+    const finalIndex = await client.initIndex('pages')
+    const tmpIndex = await client.initIndex('pages_tmp')
 
-    index.setSettings({ attributeForDistinct: 'slug' })
-
+    // 2. Copy the settings, synonyms and rules (but not the records)
+    await client.copyIndex(finalIndex.indexName, tmpIndex.indexName, [
+        'settings',
+        'synonyms',
+        'rules'
+    ]);
+  
     const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
 
     const records = []
@@ -51,11 +57,10 @@ async function indexToAlgolia() {
         }
     }
 
-    // await index.saveObjects(records)
-
-    for (let i = 0; i < records.length; i += 1000) {
-        await index.saveObjects(records.slice(i, i+1000))
-    }
+    // for (let i = 0; i < records.length; i += 1000) {
+    //     await tmpIndex.saveObjects(records.slice(i, i+1000))
+    // }
+    // await client.moveIndex(tmpIndex.indexName, finalIndex.indexName);
 
     wpdb.end()
 }

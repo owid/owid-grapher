@@ -25,3 +25,6 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY||""
 
 export const STRIPE_PUBLIC_KEY: string = process.env.STRIPE_PUBLIC_KEY||"pk_test_nIHvmH37zsoltpw3xMssPIYq"
 export const DONATE_API_URL: string = process.env.DONATE_API_URL||"http://localhost:9000/donate"
+
+// XXX hardcoded filtering to public parent tags
+export const PUBLIC_TAG_PARENT_IDS: number[] = [1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510]
