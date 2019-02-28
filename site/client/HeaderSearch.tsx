@@ -2,14 +2,9 @@ import * as React from 'react'
 import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { SearchResults } from './SearchResults'
-import { SiteSearchResults, PostHit, ChartHit, siteSearch } from 'site/siteSearch'
+import { SiteSearchResults, PageHit, ChartHit, siteSearch } from 'site/siteSearch'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-
-interface Results {
-    posts: PostHit[]
-    charts: ChartHit[]
-}
 
 class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }> {
     componentDidMount() {
@@ -27,7 +22,7 @@ class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }
 
 @observer
 export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
-    @observable.ref results?: Results
+    @observable.ref results?: SiteSearchResults
     lastQuery?: string
 
     async runSearch(query: string) {
