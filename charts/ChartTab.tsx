@@ -21,6 +21,7 @@ export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: C
         const that = this
         return new ChartLayout({
             get chart() { return that.props.chart },
+            get chartView() { return that.props.chartView },
             get bounds() { return that.props.bounds }
         })
     }

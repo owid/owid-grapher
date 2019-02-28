@@ -4,13 +4,14 @@
  */
 
 import * as React from 'react'
-import { some, noop, includes, cloneDeep, max, sortBy } from './Util'
+import { some, noop, includes, cloneDeep, max, min, sortBy } from './Util'
 import { defaultTo } from './Util'
-import { computed } from 'mobx'
+import { computed, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { TextWrap } from './TextWrap'
 import { AxisScale } from './AxisScale'
 import { Bounds } from './Bounds'
+import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
 
 export interface HeightedLegendProps {
     items: HeightedLegendItem[],
@@ -113,6 +114,38 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
 
 @observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
+    dispose!: IReactionDisposer
+
+    static contextType = ChartViewContext
+    context!: ChartViewContextType
+
+    componentDidMount() {
+        // Adding padding to make space for "Add entity" button in legend
+        this.dispose = reaction(
+            () => this.placedMarks,
+            () => {
+                const { controls } = this.context.chartView
+                if (controls.hasLegendButton) {
+                    // Cap bottom to 0 because in some cases, like when toggling relative/absolute on a
+                    // stacked area, the minimum of bounds.top ends up being some large negative number,
+                    // which breaks the chart by setting a negative height.
+                    const buttonBottom = Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))
+                    const buttonLeft = this.props.x + (this.needsLines ? this.props.legend.leftPadding : 5)
+
+                    if (controls.hasLegendButton) {
+                        controls.legendButtonBottom = buttonBottom
+                        controls.legendButtonLeft = buttonLeft
+                    }
+                }
+            },
+            { fireImmediately: true }
+        )
+    }
+
+    componentWillUnmount() {
+        this.dispose()
+    }
+
     @computed get onMouseOver(): any { return defaultTo(this.props.onMouseOver, noop) }
     @computed get onMouseLeave(): any { return defaultTo(this.props.onMouseLeave, noop) }
     @computed get onClick(): any { return defaultTo(this.props.onClick, noop) }

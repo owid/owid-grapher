@@ -6,7 +6,7 @@ import { select } from 'd3-selection'
 import 'd3-transition'
 
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
-import {Controls, ControlsFooterView} from './Controls'
+import { Controls, ControlsFooterView } from './Controls'
 import { ChartTab } from './ChartTab'
 import { DataTab } from './DataTab'
 import { MapTab } from './MapTab'
@@ -102,7 +102,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get tabBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controls.height)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controls.footerHeight)
     }
 
     @observable.ref popups: VNode[] = []
@@ -147,9 +147,9 @@ export class ChartView extends React.Component<ChartViewProps> {
     renderPrimaryTab(): JSX.Element | undefined {
         const { chart, tabBounds } = this
         if (chart.primaryTab === 'chart')
-            return <ChartTab bounds={tabBounds} chartView={this} chart={this.chart} />
+            return <ChartTab bounds={tabBounds} chart={this.chart} chartView={this} />
         else if (chart.primaryTab === 'map')
-            return <MapTab bounds={tabBounds} chart={this.chart} />
+            return <MapTab bounds={tabBounds} chart={this.chart} chartView={this} />
         else
             return undefined
     }

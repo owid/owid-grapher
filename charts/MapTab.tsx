@@ -17,6 +17,7 @@ import { select } from 'd3-selection'
 import { easeCubic } from 'd3-ease'
 import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 import { ChartLayout, ChartLayoutView } from './ChartLayout'
+import { ChartView } from './ChartView'
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -151,6 +152,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
 interface MapTabProps {
     chart: ChartConfig
+    chartView: ChartView
     bounds: Bounds
 }
 
@@ -162,6 +164,7 @@ export class MapTab extends React.Component<MapTabProps> {
         const that = this
         return new ChartLayout({
             get chart() { return that.props.chart },
+            get chartView() { return that.props.chartView },
             get bounds() { return that.props.bounds }
         })
     }
