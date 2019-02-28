@@ -40,7 +40,7 @@ async function countryIndicatorCharts(): Promise<ChartConfigProps[]> {
 async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     return bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorCharts()).map(c => c.dimensions[0].variableId)
-        return Variable.rows(await db.table(Variable.table).whereIn("id", variableIds))    
+        return Variable.rows(await db.table(Variable.table).whereIn("id", variableIds))
     })
 }
 
@@ -64,6 +64,7 @@ async function countryIndicatorLatestData(countryCode: string) {
             .whereIn("variableId", variableIds)
             .whereRaw(`entityId in (?)`, [entityIds])
             .andWhere("year", ">", 2010)
+            .andWhere("year", "<", 2020)
             .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]    
         return _.groupBy(dataValues, dv => entitiesById[dv.entityId].code)
     })
