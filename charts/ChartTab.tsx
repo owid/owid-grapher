@@ -12,8 +12,8 @@ import { LineChart } from './LineChart'
 import { StackedArea } from './StackedArea'
 import { DiscreteBarChart } from './DiscreteBarChart'
 import { StackedBarChart } from './StackedBarChart'
-import { ChartLayout, ChartLayoutView } from './ChartLayout';
-import { TimeScatter } from './TimeScatter';
+import { ChartLayout, ChartLayoutView } from './ChartLayout'
+import { TimeScatter } from './TimeScatter'
 
 @observer
 export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: ChartView, bounds: Bounds }> {

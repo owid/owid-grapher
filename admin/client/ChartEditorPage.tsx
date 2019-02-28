@@ -20,8 +20,8 @@ import { SaveButtons } from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMobile, faDesktop } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMobile, faDesktop } from '@fortawesome/free-solid-svg-icons'
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
