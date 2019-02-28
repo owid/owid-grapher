@@ -2,12 +2,6 @@ import * as algoliasearch from 'algoliasearch'
 
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
 
-interface SearchQuery {
-    indexName: 'articles'|'charts'
-    query: string
-    params: algoliasearch.QueryParameters
-}
-
 let algolia: algoliasearch.Client|undefined
 
 function getClient() {
@@ -16,11 +10,29 @@ function getClient() {
     return algolia
 }
 
-export interface PostHit {
+export type PageHit = ArticleHit | CountryHit
+
+export interface CountryHit {
+    objectID: string,
+    type: 'country',
+    slug: string
+    title: string
+    code: string
+    content: string
+    _highlightResult: any
+    _snippetResult: {
+        content: {
+            value: string
+        }
+    }
+}
+
+export interface ArticleHit {
+    objectID: string,
     postId: number
     slug: string
     title: string
-    postType: 'post'|'page'
+    type: 'post'|'page'
     content: string
     excerpt: string
     _highlightResult: any
@@ -46,7 +58,7 @@ export interface ChartHit {
 }
 
 export interface SiteSearchResults {
-    posts: PostHit[]
+    pages: PageHit[]
     charts: ChartHit[]
 }
 
@@ -57,7 +69,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     ])
     
     return {
-        posts: json.results[0].hits,
+        pages: json.results[0].hits,
         charts: json.results[1].hits
     }
 }

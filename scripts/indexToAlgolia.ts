@@ -7,6 +7,7 @@ import { ALGOLIA_SECRET_KEY } from 'serverSettings'
 import { formatPost } from 'site/server/formatting'
 import { chunkParagraphs } from 'utils/search'
 import { htmlToPlaintext } from 'utils/string'
+import { countries } from 'utils/countries'
 
 async function indexToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
@@ -23,6 +24,16 @@ async function indexToAlgolia() {
     const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
 
     const records = []
+
+    for (const country of countries) {
+        records.push({
+            objectID: country.slug,
+            type: 'country',
+            slug: country.slug,
+            title: country.name,
+            content: `All available indicators for ${country.name}.`
+        })
+    }
 
     for (const row of rows) {
         const rawPost = await wpdb.getFullPost(row)
@@ -57,10 +68,10 @@ async function indexToAlgolia() {
         }
     }
 
-    // for (let i = 0; i < records.length; i += 1000) {
-    //     await tmpIndex.saveObjects(records.slice(i, i+1000))
-    // }
-    // await client.moveIndex(tmpIndex.indexName, finalIndex.indexName);
+    for (let i = 0; i < records.length; i += 1000) {
+        await tmpIndex.saveObjects(records.slice(i, i+1000))
+    }
+    await client.moveIndex(tmpIndex.indexName, finalIndex.indexName);
 
     wpdb.end()
 }

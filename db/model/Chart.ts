@@ -53,8 +53,7 @@ export class Chart extends BaseEntity {
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [tagRows])
-
-            
+        
             const tags = tagIds.length ? await t.query("select parentId from tags where id in (?)", [tagIds]) as { parentId: number }[] : []
             const isIndexable = tags.some(t => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
 

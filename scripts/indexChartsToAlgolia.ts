@@ -11,10 +11,11 @@ async function indexChartsToAlgolia() {
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName
         FROM charts 
         WHERE publishedAt IS NOT NULL
+        AND is_indexable IS TRUE
     `)
 
     const chartTags = await db.query(`
-        SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
+        SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
     `)
@@ -27,9 +28,6 @@ async function indexChartsToAlgolia() {
 
     const chartsToIndex = []
     for (const ct of chartTags) {
-        if (PUBLIC_TAG_PARENT_IDS.indexOf(ct.tagParentId) === -1)
-            continue
-
         const c = chartsById[ct.chartId]
         if (c) {
             c.tags.push({ id: ct.tagId, name: ct.tagName })
@@ -40,6 +38,12 @@ async function indexChartsToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     const finalIndex = await client.initIndex('charts')
     const tmpIndex = await client.initIndex('charts_tmp')
+
+    await client.copyIndex(finalIndex.indexName, tmpIndex.indexName, [
+        'settings',
+        'synonyms',
+        'rules'
+    ])
 
     const records = []
     for (const c of chartsToIndex) {
