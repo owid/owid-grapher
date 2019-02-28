@@ -131,7 +131,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                     // narrow, we want to move it right so that the icon doesn't overlap the chart.
                     const leftOffset = this.needsLines
                         ? this.props.legend.leftPadding
-                        : this.props.legend.width > 100 ? 21 : 5
+                        : this.props.legend.width > 70 ? 21 : 5
                     // Cap bottom to 0 because in some cases, like when toggling relative/absolute on a
                     // stacked area, the minimum of bounds.top ends up being some large negative number,
                     // which breaks the chart by setting a negative height.
