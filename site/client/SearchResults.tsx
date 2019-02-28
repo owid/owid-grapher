@@ -56,8 +56,6 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
     render() {
         const {results} = this.props
 
-        console.log(results.charts)
-
         return <div className="SearchResults">
             <div className="container">
                 <div className="postResults">
