@@ -10,6 +10,7 @@ export interface CountryProfileIndicator {
     slug: string
     value: string
     year: number
+    variantName?: string
 }
 
 export interface Stat {
@@ -58,9 +59,8 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     <ul className="indicators">
                         {indicators.map(indicator => <li>
                             <div className="indicatorName">
-                                <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}</a>
+                                <a href={urljoin(settings.BAKED_BASE_URL, indicator.slug)}>{indicator.name}{indicator.variantName ? " ("+indicator.variantName+")" : ""}</a>
                             </div>
-                            <div className="indicatorValue">{indicator.value} ({indicator.year})</div>
                         </li>)}
                     </ul>
                 </section>

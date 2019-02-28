@@ -102,7 +102,8 @@ export async function countryProfilePage(countrySlug: string) {
                 year: latestValue.year,
                 value: dim.formatValueShort(value),
                 name: c.title as string,
-                slug: `/grapher/${c.slug}?tab=chart&country=${country.code}`
+                slug: `/grapher/${c.slug}?tab=chart&country=${country.code}`,
+                variantName: c.variantName
             })
         }
     }
