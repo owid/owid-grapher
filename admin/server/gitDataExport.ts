@@ -43,7 +43,7 @@ export async function syncDatasetToGitRepo(datasetId: number, options: { transac
 
     const datasetRepo = options.transaction ? options.transaction.manager.getRepository(Dataset) : Dataset.getRepository()
 
-    const dataset = await datasetRepo.findOne({ id: datasetId }, { relations: ['variables'] })
+    const dataset = await datasetRepo.findOne({ id: datasetId })
     if (!dataset) {
         throw new JsonError(`No such dataset ${datasetId}`, 404)
     }

@@ -10,7 +10,7 @@
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
     "typeorm": "yarn tsn node_modules/.bin/typeorm",
     "knex": "yarn tsn node_modules/.bin/knex",
-    "migrate": "yarn typeorm migration:run",
+    "migrate": "yarn knex migrate:latest",
     "lint": "tslint --project . -t verbose",
     "typecheck": "tsc --noEmit",
     "build": "rm -rf dist && ENV=production webpack -p --progress",

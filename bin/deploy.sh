@@ -55,6 +55,7 @@ then
   cd $TMP_NEW
   yarn install --production
   yarn build
+  yarn typeorm migration:run
   yarn migrate
 
   # Atomically swap the old and new versions
