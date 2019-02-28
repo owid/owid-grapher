@@ -14,8 +14,9 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, makeSitemap, renderDonatePage, entriesByYearPage, makeAtomFeed } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
+import { makeSitemap } from './sitemap'
 
 import * as React from 'react'
 import { embedSnippet } from './embedCharts'
