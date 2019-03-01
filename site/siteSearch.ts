@@ -85,7 +85,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
 
             const newQuery = chartQuery.replace(r, (substring, ...args) => {
                 return args[0]+args[2]
-            })
+            }).trim()
 
             if (newQuery !== chartQuery) {
                 matchCountries.push(country)

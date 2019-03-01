@@ -27,7 +27,7 @@ class ChartResult extends React.Component<{ hit: ChartHit, queryCountries: Count
         if (!entities.length)
             return hit.title
         else
-            return hit.title + ` in ${entities.join(", ")}`
+            return hit.title.trim() + `, ${entities.join(", ")}`
     }
 
     render() {
