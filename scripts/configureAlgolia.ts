@@ -6,7 +6,7 @@ import { ALGOLIA_SECRET_KEY } from 'serverSettings'
 import { countries } from 'utils/countries';
 
 // This function initializes and applies settings to the Algolia search indices
-// Algolia settings should be configured here rather than in the Algolia dashboard UI, as then
+// Algolia settings should be configured here rather than   in the Algolia dashboard UI, as then
 // they are recorded and transferrable across dev/prod instances
 export async function configureAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
@@ -33,7 +33,9 @@ export async function configureAlgolia() {
     const synonyms = [
         ['kids', 'children'],
         ['pork', 'pigmeat'],
-        ['atomic', 'nuclear']
+        ['atomic', 'nuclear'],
+        ['pop', 'population'],
+        ['cheese', 'dairy']
     ]
 
     // Send all our country variant names to algolia as synonyms
