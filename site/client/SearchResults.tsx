@@ -5,13 +5,38 @@ import React = require("react")
 import { EmbedChart } from "./EmbedChart";
 import { BAKED_GRAPHER_URL } from "settings";
 import { uniq } from "charts/Util";
+import { Country } from "utils/countries";
 
-class ChartResult extends React.Component<{ hit: ChartHit }> {
+class ChartResult extends React.Component<{ hit: ChartHit, queryCountries: Country[] }> {
+    @computed get entities() {
+        return pickEntitiesForChart(this.props.hit, this.props.queryCountries)
+    }
+
+    @computed get slug() {
+        const {hit} = this.props
+        const {entities} = this
+        if (!entities.length)
+            return hit.slug
+        else
+            return hit.slug + `?tab=chart&country=${entities.map(e => encodeURIComponent(e)).join("+")}`
+    }
+
+    @computed get title() {
+        const {hit} = this.props
+        const {entities} = this
+        if (!entities.length)
+            return hit.title
+        else
+            return hit.title + ` in ${entities.join(", ")}`
+    }
+
     render() {
         const {hit} = this.props
+        const {slug, title} = this
+
         return <li className="ChartResult">
             {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-            <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>{hit.title}</a>
+            <a href={`${BAKED_GRAPHER_URL}/${slug}`}>{title}</a>
             {hit.variantName ? <span className="variantName"> {hit.variantName}</span> : undefined}
             {hit._snippetResult ? <p dangerouslySetInnerHTML={{ __html: hit._snippetResult.subtitle.value }}/> : undefined}
         </li>
@@ -40,6 +65,19 @@ class ArticleResult extends React.Component<{ hit: ArticleHit }> {
     }    
 }
 
+function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
+    const entities = []
+    const availableEntities = hit._highlightResult ? hit._highlightResult.availableEntities : []
+    for (const res of availableEntities) {
+        const entity = res.value.replace(/<\/?em>/g, '')
+        if (res.matchLevel != "none" || queryCountries.some(c => c.name === entity)) {
+            entities.push(entity)
+        }
+    }
+
+    return uniq(entities)
+}
+
 @observer
 export class SearchResults extends React.Component<{ results: SiteSearchResults }> {
     @computed get bestChartHit(): ChartHit|undefined {
@@ -58,18 +96,7 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
         const hit = this.bestChartHit
         if (!hit) return []
 
-        const matchCountries = this.props.results.countries
-
-        const entities = []
-        const availableEntities = hit._highlightResult ? hit._highlightResult.availableEntities : []
-        for (const res of availableEntities) {
-            const entity = res.value.replace(/<\/?em>/g, '')
-            if (res.matchLevel != "none" || matchCountries.some(c => c.name === entity)) {
-                entities.push(entity)
-            }
-        }
-
-        return uniq(entities)
+        return pickEntitiesForChart(hit, this.props.results.countries)
     }
 
     @computed get bestChartSlug() {
@@ -100,7 +127,7 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
                     {!results.charts.length ? <p>No matching charts.</p> : undefined}
                     {this.bestChartSlug && <EmbedChart src={`${BAKED_GRAPHER_URL}/${this.bestChartSlug}`}/>}
                     <ul>
-                        {results.charts.map(hit => <ChartResult key={hit.chartId} hit={hit}/>)}
+                        {results.charts.map(hit => <ChartResult key={hit.chartId} hit={hit} queryCountries={results.countries}/>)}
                     </ul>
                 </div>
             </div>
