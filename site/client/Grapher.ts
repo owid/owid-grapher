@@ -18,7 +18,8 @@ export function readConfigFromHTML(html: string): any {
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
 export function shouldProgressiveEmbed() {
-    return !isMobile()
+    // 680px is also used in CSS – keep it in sync if you change this
+    return !isMobile() || window.screen.width > 680
 }
 
 export class MultiEmbedder {

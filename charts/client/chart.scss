@@ -1,4 +1,5 @@
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
+$controls-color: #3F9EFF;
 
 figure[data-grapher-src]:empty {
     display: flex;
@@ -711,14 +712,14 @@ figure[data-grapher-src]:empty:after {
             width: 0.5em;
             border-radius: 0.2em;
             margin-left: -5px;
-            background: #3F9EFF;
+            background: $controls-color;
             position: absolute;
         }
 
         .interval {
             position: absolute;
             height: 0.6em;
-            background: #3F9EFF;
+            background: $controls-color;
         }
     }
 }
@@ -812,7 +813,7 @@ figure[data-grapher-src]:empty:after {
             top: 0;
             width: 16px;
             height: 16px;
-            background-color: #3f9eff;
+            background-color: $controls-color;
             border-radius: 100%;
             transform: scale(0);
             transform-origin: center;
@@ -828,7 +829,7 @@ figure[data-grapher-src]:empty:after {
 .ChartPlotArea:hover, .is-touch {
     .ControlsOverlay .addDataButton {
         transition: color 200ms cubic-bezier(0, 0, 0.4, 1);
-        color: #3f9eff;
+        color: $controls-color;
 
         .icon {
             path {

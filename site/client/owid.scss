@@ -946,7 +946,38 @@ figure[data-grapher-src] {
 		padding: 0;
 		width: 100%;
 		max-width: 850px;
-	}
+    }
+
+    .interactionNotice {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.2;
+        color: rgba(black, .4);
+        display: none;
+        background-color: rgba(black, .03);
+        padding: 12px 30px;
+        position: relative;
+        text-decoration: none;
+
+        // Anything >680px will get the interactive graphics in-place.
+        // 680px is a breakpoint also used in the JavaScript code – keep it in sync.
+        @media screen and (max-device-width: 680px) {
+            display: block;
+        }
+
+        .icon {
+            font-size: 21px;
+            line-height: 28px;
+            margin-top: -15px;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+        }
+
+        .label {
+            display: block;
+        }
+    }
 }
 
 figure[data-grapher-src].grapherPreview {
