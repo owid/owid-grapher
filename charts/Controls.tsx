@@ -295,7 +295,7 @@ export class Controls {
     @computed get hasInlineControls(): boolean {
         const {chart} = this.props
         return chart.tab === 'chart' && (
-            (chart.data.canAddData && !this.hasLegendButton && !this.hasSpace) ||
+            (chart.data.canAddData && !this.hasLegendButton) ||
             chart.isScatter ||
             chart.data.canChangeEntity ||
             (chart.isStackedArea && chart.stackedArea.canToggleRelative)
