@@ -1,6 +1,14 @@
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $controls-color: #3F9EFF;
 
+$zindex-chart: 1;
+$zindex-tab: 1;
+$zindex-ControlsFooter: 2;
+$zindex-ControlsFooterMenu: 3;
+$zindex-embedMenu: 12;
+$zindex-Tooltip: 100;
+$zindex-DataSelector: 110;
+
 figure[data-grapher-src]:empty {
     display: flex;
     align-items: center;
@@ -58,7 +66,7 @@ figure[data-grapher-src]:empty:after {
     border: 1px solid #f0f0f0;
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px;
-    z-index: 1;
+    z-index: $zindex-chart;
 
     * {
         box-sizing: border-box;
@@ -196,7 +204,7 @@ figure[data-grapher-src]:empty:after {
         width: 100%;
         position: absolute;
         bottom: 0;
-        z-index: 2;
+        z-index: $zindex-ControlsFooter;
         color: #777;
 
         .footerRowSingle, .footerRowMulti {
@@ -431,7 +439,7 @@ figure[data-grapher-src]:empty:after {
         padding: 0.8em 1em;
         padding-bottom: 0.5em;
         width: 15em;
-        z-index: 2;
+        z-index: $zindex-ControlsFooterMenu;
     }
 
     .SettingsMenu h2 {
@@ -458,7 +466,7 @@ figure[data-grapher-src]:empty:after {
         box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
         padding-bottom: 0.5em;
         width: 15em;
-        z-index: 2;
+        z-index: $zindex-ControlsFooterMenu;
     }
 
     .ShareMenu.disabled a {
@@ -522,7 +530,7 @@ figure[data-grapher-src]:empty:after {
         background: rgba(255,255,255,0.95);
         padding: 1em;
         text-align: left;
-        z-index: 12;
+        z-index: $zindex-embedMenu;
     }
 
     .embedMenu p {
@@ -546,7 +554,7 @@ figure[data-grapher-src]:empty:after {
     .DownloadTab,
     .dataTab,
     .sourcesTab {
-        z-index: 1;
+        z-index: $zindex-tab;
     }
 
     .DownloadTab {
@@ -584,7 +592,7 @@ figure[data-grapher-src]:empty:after {
         height: 100%;
         background: rgba(255,255,255,0.9);
         padding: 1em;
-        z-index: 10;
+        z-index: $zindex-DataSelector;
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
         text-align: left;
@@ -629,7 +637,7 @@ figure[data-grapher-src]:empty:after {
         height: 100%;
         background: rgba(255,255,255,0.9);
         padding: 1em;
-        z-index: 10;
+        z-index: $zindex-DataSelector;
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
         text-align: left;
@@ -842,4 +850,8 @@ figure[data-grapher-src]:empty:after {
             }
         }
     }
+}
+
+.Tooltip {
+    z-index: $zindex-Tooltip;
 }

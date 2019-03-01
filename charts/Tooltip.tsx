@@ -40,9 +40,9 @@ export class TooltipView extends React.Component {
                 y = 0
         }
 
-        const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: `${x}px`, top: `${y}px`, backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em", zIndex: 100 }
+        const style = { position: 'absolute', whiteSpace: 'nowrap', pointerEvents: 'none', left: `${x}px`, top: `${y}px`, backgroundColor: "white", border: "1px solid #ccc", textAlign: 'left', fontSize: "0.9em" }
 
-        return <div ref={this.base} style={extend(style, tooltip.style || {})}>
+        return <div ref={this.base} className="Tooltip" style={extend(style, tooltip.style || {})}>
             {tooltip.children}
         </div>
     }
