@@ -4,6 +4,7 @@
  */
 
 import * as React from 'react'
+import classnames from 'classnames'
 import { some, noop, includes, cloneDeep, max, min, sortBy } from './Util'
 import { defaultTo } from './Util'
 import { computed, reaction, IReactionDisposer } from 'mobx'
@@ -86,6 +87,7 @@ export interface HeightedLegendViewProps {
     legend: HeightedLegend,
     yScale: AxisScale,
     focusKeys: string[],
+    clickableMarks: boolean,
     onMouseOver?: (key: string) => void,
     onClick?: (key: string) => void,
     onMouseLeave?: () => void
@@ -353,7 +355,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     render() {
-        return <g className="HeightedLegend clickable" onMouseLeave={() => this.onMouseLeave()}>
+        return <g className={classnames("HeightedLegend", {"clickable": this.props.clickableMarks})} onMouseLeave={() => this.onMouseLeave()}>
             {this.renderBackground()}
             {this.renderFocus()}
         </g>

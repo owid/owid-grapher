@@ -263,7 +263,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]} onClick={this.onLegendClick} />}
+                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]} onClick={this.onLegendClick} clickableMarks={this.chart.data.canAddData} />}
                 <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
             </g>
             {this.tooltip}
