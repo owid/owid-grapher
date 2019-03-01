@@ -790,7 +790,9 @@ figure[data-grapher-src]:empty:after {
         height: 16px;
 
         svg {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             z-index: 1;
         }
 
