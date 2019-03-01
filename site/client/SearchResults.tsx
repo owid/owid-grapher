@@ -4,7 +4,7 @@ import { computed } from "mobx"
 import React = require("react")
 import { EmbedChart } from "./EmbedChart";
 import { BAKED_GRAPHER_URL } from "settings";
-import { uniq } from "charts/Util";
+import { uniq, capitalize } from "charts/Util";
 import { Country } from "utils/countries";
 
 class ChartResult extends React.Component<{ hit: ChartHit, queryCountries: Country[] }> {
@@ -57,9 +57,12 @@ class CountryResult extends React.Component<{ hit: CountryHit }> {
 class ArticleResult extends React.Component<{ hit: ArticleHit }> {
     render() {
         const {hit} = this.props
+
+        const showType = hit.type === 'entry'
+
         return <li>
             {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-            <a href={`/${hit.slug}`}>{hit.title}</a>
+            <a href={`/${hit.slug}`}>{hit.title}</a> {showType ? <span className="variantName">{capitalize(hit.type)}</span> : undefined}
             <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
         </li>        
     }    

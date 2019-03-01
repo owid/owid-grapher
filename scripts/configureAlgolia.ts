@@ -18,16 +18,23 @@ export async function configureAlgolia() {
         customRanking: ["asc(numDimensions)", "asc(titleLength)"],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: 'id',
-        alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"]
+        alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"],
+        exactOnSingleWordQuery: 'none',
+        disableExactOnAttributes: ['_tags']
     })
 
     const pagesIndex = client.initIndex('pages')
-    
+
     await pagesIndex.setSettings({
-        searchableAttributes: ["title", "content"],
+        searchableAttributes: ["unordered(title)", "unordered(content)", "unordered(_tags)", "unordered(authors)"],
+        ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
+        customRanking: ["desc(importance)"],
         attributesToSnippet: ["content:24"],
         attributeForDistinct: 'slug',
-        alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"]
+        alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"],
+        attributesForFaceting: ['searchable(_tags)', 'searchable(authors)'],
+        exactOnSingleWordQuery: 'none',
+        disableExactOnAttributes: ['_tags']
     })
 
     const synonyms = [

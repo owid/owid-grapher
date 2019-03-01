@@ -34,7 +34,7 @@ export interface ArticleHit {
     postId: number
     slug: string
     title: string
-    type: 'post'|'page'
+    type: 'post'|'page'|'entry'|'explainer'|'fact'
     content: string
     _snippetResult: {
         content: {
