@@ -81,9 +81,11 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
             variants = variants.concat(country.variantNames)
         }
         for (const variant of variants) {
-            const r = new RegExp(`(?<=^|\\W)${variant}(?=$|\\W)`, 'gi')
+            const r = new RegExp(`(^|\\W)(${variant})($|\\W)`, 'gi')
 
-            const newQuery = chartQuery.replace(r, '')
+            const newQuery = chartQuery.replace(r, (substring, ...args) => {
+                return args[0]+args[2]
+            })
 
             if (newQuery !== chartQuery) {
                 matchCountries.push(country)

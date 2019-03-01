@@ -57,6 +57,7 @@ then
   yarn build
   yarn typeorm migration:run
   yarn migrate
+  yarn tsn scripts/configureAlgolia.ts
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

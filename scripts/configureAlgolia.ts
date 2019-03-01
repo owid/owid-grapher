@@ -32,7 +32,8 @@ export async function configureAlgolia() {
 
     const synonyms = [
         ['kids', 'children'],
-        ['pork', 'pigmeat']
+        ['pork', 'pigmeat'],
+        ['atomic', 'nuclear']
     ]
 
     // Send all our country variant names to algolia as synonyms
