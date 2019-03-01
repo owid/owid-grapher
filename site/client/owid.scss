@@ -1532,6 +1532,23 @@ html:not(.js) {
     }
 }
 
+@media (max-width: 768px) {
+    .SearchPage {
+        > main {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        .SearchResults > .container {
+            display: block;
+        }
+
+        .postResults, .chartResults {
+            width: 100%;
+        }
+    }
+}
+
 .variantName {
     margin-left: 3px;
     color: rgb(170, 170, 170);

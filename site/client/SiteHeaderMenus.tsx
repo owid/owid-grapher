@@ -159,8 +159,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                 </div>
             </div>
             {this.showSearch && <div className="search-dropdown sm-only">
-                <form id="search-nav" action="https://google.com/search" method="GET">
-                    <input type="hidden" name="sitesearch" value="ourworldindata.org" />
+                <form id="search-nav" action="/search" method="GET">
                     <input type="search" name="q" placeholder="Search..." autoFocus />
                 </form>
             </div>}
