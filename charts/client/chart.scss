@@ -585,6 +585,7 @@ figure[data-grapher-src]:empty:after {
         padding: 1em;
         z-index: 10;
         overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
         text-align: left;
 
         & h2 button {
@@ -629,6 +630,7 @@ figure[data-grapher-src]:empty:after {
         padding: 1em;
         z-index: 10;
         overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
         text-align: left;
 
         & h2 button {
