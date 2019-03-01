@@ -119,8 +119,6 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
         }
     ])
 
-    console.log(chartQuery)
-
     return {
         pages: json.results[0].hits,
         charts: json.results[1].hits,
