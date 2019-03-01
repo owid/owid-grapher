@@ -80,6 +80,21 @@ export class Chart extends BaseEntity {
                 chart.tags.push({ id: ct.tagId, name: ct.tagName })
         }        
     }
+
+    static async all(): Promise<ChartRow[]> {
+        const rows = await db.table(Chart.table)
+
+        for (const row of rows) {
+            row.config = JSON.parse(row.config)
+        }
+
+        return rows
+    }
+}
+
+interface ChartRow {
+    id: number
+    config: ChartConfigProps
 }
 
 // TODO integrate this old logic with typeorm

@@ -157,6 +157,8 @@ export class ChartConfigProps {
     @observable excludedEntities?: number[] = undefined
 
     @observable map?: MapConfigProps = undefined
+
+    data?: { availableEntities: string[] } = undefined
 }
 
 // TODO: this really represents more than just the configuration state and should be split
@@ -357,6 +359,10 @@ export class ChartConfig {
         if (!this.props.slug) {
             json.slug = this.data.slug
             json.isAutoSlug = true
+        }
+
+        json.data = {
+            availableEntities: this.data.availableEntities
         }
 
         return json

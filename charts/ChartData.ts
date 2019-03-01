@@ -1,5 +1,5 @@
 import { map, every, keyBy, includes, uniqWith, cloneDeep, intersection, union, each, sortBy, without, find, extend, uniq, formatYear } from './Util'
-import { computed } from 'mobx'
+import { computed, toJS } from 'mobx'
 import { ChartConfig } from './ChartConfig'
 import { DataKey } from './DataKey'
 import { Color } from './Color'
@@ -265,6 +265,10 @@ export class ChartData {
         return union(...entitiesForDimensions)
     }
 
+    @computed get availableEntitiesToReader(): string[] {
+        return this.chart.props.addCountryMode === "disabled" ? [] : this.availableEntities
+    }
+
     switchEntity(entityId: number) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => d.entityId = entityId)
@@ -397,5 +401,11 @@ export class ChartData {
                 sources.push(extend({}, variable.source, { dimension: dim }))
         })
         return sources
+    }
+
+    @computed get json() {
+        return toJS({
+            availableEntities: this.availableEntitiesToReader
+        })
     }
 }

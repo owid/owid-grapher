@@ -2,6 +2,7 @@ export interface Country {
     name: string
     code: string
     slug: string
+    variantNames?: string[]
 }
 
 export const countries = [
@@ -408,7 +409,8 @@ export const countries = [
     {
         "name": "United Kingdom",
         "code": "GBR",
-        "slug": "united-kingdom"
+        "slug": "united-kingdom",
+        "variantNames": ["UK"]
     },
     {
         "name": "Georgia",
@@ -1178,7 +1180,8 @@ export const countries = [
     {
         "name": "United States",
         "code": "USA",
-        "slug": "united-states"
+        "slug": "united-states",
+        "variantNames": ["US", "USA"]
     },
     {
         "name": "Uzbekistan",
@@ -1250,4 +1253,4 @@ export const countries = [
         "code": "ZWE",
         "slug": "zimbabwe"
     }
-]
+] as Country[]

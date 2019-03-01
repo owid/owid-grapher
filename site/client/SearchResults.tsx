@@ -4,6 +4,7 @@ import { computed } from "mobx"
 import React = require("react")
 import { EmbedChart } from "./EmbedChart";
 import { BAKED_GRAPHER_URL } from "settings";
+import { uniq } from "charts/Util";
 
 class ChartResult extends React.Component<{ hit: ChartHit }> {
     render() {
@@ -12,7 +13,7 @@ class ChartResult extends React.Component<{ hit: ChartHit }> {
             {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
             <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>{hit.title}</a>
             {hit.variantName ? <span className="variantName"> {hit.variantName}</span> : undefined}
-            {hit.subtitle ? <p dangerouslySetInnerHTML={{ __html: hit._snippetResult.subtitle.value }}/> : undefined}
+            {hit._snippetResult ? <p dangerouslySetInnerHTML={{ __html: hit._snippetResult.subtitle.value }}/> : undefined}
         </li>
     }
 }
@@ -41,8 +42,8 @@ class ArticleResult extends React.Component<{ hit: ArticleHit }> {
 
 @observer
 export class SearchResults extends React.Component<{ results: SiteSearchResults }> {
-    @computed get bestChartSlug() {
-        return this.props.results.charts.length ? this.props.results.charts[0].slug : undefined
+    @computed get bestChartHit(): ChartHit|undefined {
+        return this.props.results.charts.length ? this.props.results.charts[0] : undefined
     }
 
     @computed get entries() {
@@ -53,9 +54,39 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
         return this.props.results.pages.filter(p => p.type === 'post')
     }
 
+    @computed get bestChartEntities() {
+        const hit = this.bestChartHit
+        if (!hit) return []
+
+        const matchCountries = this.props.results.countries
+
+        const entities = []
+        const availableEntities = hit._highlightResult ? hit._highlightResult.availableEntities : []
+        for (const res of availableEntities) {
+            const entity = res.value.replace(/<\/?em>/g, '')
+            if (res.matchLevel != "none" || matchCountries.some(c => c.name === entity)) {
+                entities.push(entity)
+            }
+        }
+
+        return uniq(entities)
+    }
+
+    @computed get bestChartSlug() {
+        const {bestChartHit, bestChartEntities} = this
+        if (!bestChartHit) return undefined
+
+        if (!bestChartEntities.length)
+            return bestChartHit.slug
+        else
+            return bestChartHit.slug + `?tab=chart&country=${bestChartEntities.map(e => encodeURIComponent(e)).join("+")}`
+    }
+
+
     render() {
         const {results} = this.props
 
+        console.log(this.bestChartSlug)
         return <div className="SearchResults">
             <div className="container">
                 <div className="postResults">

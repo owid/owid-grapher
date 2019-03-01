@@ -7,7 +7,7 @@ import { ChartFigureView } from './ChartFigureView';
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
     @computed get configUrl(): string { return this.props.src.split(/\?/)[0] }
-    @computed get queryStr(): string { return this.props.src.split(/\?/)[0] }
+    @computed get queryStr(): string { return this.props.src.split(/\?/)[1] }
     @observable chart?: ChartConfig
 
     async loadConfig() {

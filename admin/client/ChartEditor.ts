@@ -11,6 +11,8 @@ import { ChartConfig } from 'charts/ChartConfig'
 import { EditorFeatures } from './EditorFeatures'
 import { Admin } from './Admin'
 import { BAKED_GRAPHER_URL } from 'settings'
+import { chartDataJson } from 'site/server/chartBaking';
+import _ = require('lodash');
 
 export type EditorTab = string
 
@@ -74,12 +76,16 @@ export class ChartEditor {
         this.previewMode = localStorage.getItem('editorPreviewMode') === 'desktop' ? 'desktop' : 'mobile'
         when(
             () => this.chart.data.isReady,
-            () => this.savedChartConfig = JSON.stringify(this.chart.json)
+            () => this.savedChartConfig = JSON.stringify(this.currentChartJson)
         )
     }
 
+    @computed get currentChartJson() {
+        return this.chart.json
+    }
+
     @computed get isModified(): boolean {
-        return JSON.stringify(this.chart.json) !== this.savedChartConfig
+        return JSON.stringify(this.currentChartJson) !== this.savedChartConfig
     }
 
     @computed get chart(): ChartConfig {
@@ -125,11 +131,11 @@ export class ChartEditor {
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {
-        const { chart, isNewChart } = this
+        const { chart, isNewChart, currentChartJson } = this
 
         const targetUrl = isNewChart ? "/api/charts" : `/api/charts/${chart.props.id}`
 
-        const json = await this.props.admin.requestJSON(targetUrl, chart.json, isNewChart ? 'POST' : 'PUT')
+        const json = await this.props.admin.requestJSON(targetUrl, currentChartJson, isNewChart ? 'POST' : 'PUT')
 
         if (json.success) {
             if (isNewChart) {
@@ -138,7 +144,7 @@ export class ChartEditor {
                 runInAction(() => {
                     chart.props.version += 1
                     this.logs.unshift(json.newLog)
-                    this.savedChartConfig = JSON.stringify(chart.json)
+                    this.savedChartConfig = JSON.stringify(currentChartJson)
                 })
             }
         } else {
@@ -147,9 +153,9 @@ export class ChartEditor {
     }
 
     async saveAsNewChart() {
-        const { chart } = this
+        const { currentChartJson } = this
 
-        const chartJson = extend({}, chart.json)
+        const chartJson = extend({}, currentChartJson)
         delete chartJson.id
         delete chartJson.isPublished
 
