@@ -85,7 +85,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                     <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
                     <ul>
                         {searchResults.map(d => {
-                            return <li key={d.entityId}>
+                            return <li key={d.key}>
                                 <label className="clickable">
                                     <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
@@ -96,7 +96,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                 <div className="selectedData">
                     <ul>
                         {selectedData.map(d => {
-                            return <li key={d.entityId}>
+                            return <li key={d.key}>
                                 <label className="clickable">
                                     <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
                                 </label>
