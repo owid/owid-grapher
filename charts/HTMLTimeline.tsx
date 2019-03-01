@@ -3,9 +3,9 @@ import { first, last, sortBy, find } from './Util'
 import * as React from 'react'
 import { Bounds } from './Bounds'
 import { getRelativeMouse, formatYear } from './Util'
-import { observable, computed, autorun, action, runInAction } from 'mobx'
+import { observable, computed, autorun, action, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import { ChartViewContext } from './ChartViewContext'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -23,7 +23,11 @@ interface TimelineProps {
 @observer
 export class Timeline extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
     static contextType = ChartViewContext
+    context!: ChartViewContextType
+
+    disposers!: IReactionDisposer[]
 
     @observable startYearInput: number = 1900
     @observable endYearInput: number = 2000
@@ -42,37 +46,14 @@ export class Timeline extends React.Component<TimelineProps> {
         })
     }
 
-    componentWillMount() {
-        autorun(() => {
-            const { isPlaying } = this
-
-            if (isPlaying)
-                this.onStartPlaying()
-            else
-                this.onStopPlaying()
-        })
-
-        const { onStartDrag, onStopDrag } = this.props
-        autorun(() => {
-            const { isPlaying, isDragging } = this
-            if (isPlaying || isDragging) {
-                this.context.chart.url.debounceMode = true
-                if (onStartDrag) onStartDrag()
-            } else {
-                this.context.chart.url.debounceMode = false
-                if (onStopDrag) onStopDrag()
-            }
-        })
-
-        autorun(() => {
-            if (this.props.onInputChange)
-                this.props.onInputChange({ startYear: this.startYear, endYear: this.endYear })
-        }, { delay: 0 })
-
-        autorun(() => {
-            if (this.props.onTargetChange)
-                this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
-        }, { delay: 0 })
+    componentDidUpdate() {
+        const { isPlaying, isDragging } = this
+        if (!isPlaying && !isDragging) {
+            runInAction(() => {
+                this.startYearInput = this.props.startYear
+                this.endYearInput = this.props.endYear
+            })
+        }
     }
 
     @computed get years(): number[] {
@@ -126,14 +107,6 @@ export class Timeline extends React.Component<TimelineProps> {
             sortBy(years, year => Math.abs(year - endYear)),
             year => year <= endYear
         ) as number)
-    }
-
-    @action.bound componentWillReceiveProps(nextProps: TimelineProps) {
-        const { isPlaying, isDragging } = this
-        if (!isPlaying && !isDragging) {
-            this.startYearInput = nextProps.startYear
-            this.endYearInput = nextProps.endYear
-        }
     }
 
     animRequest?: number
@@ -280,16 +253,45 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.addEventListener('touchend', this.onMouseUp)
         document.documentElement.addEventListener('touchmove', this.onMouseMove)
 
-        autorun(() => {
-            // If we're not playing or dragging, lock the input to the closest year (no interpolation)
-            const { isPlaying, isDragging, roundedStartYear, roundedEndYear } = this
-            if (!isPlaying && !isDragging) {
-                action(() => {
-                    this.startYearInput = roundedStartYear
-                    this.endYearInput = roundedEndYear
-                })()
-            }
-        })
+        this.disposers = [
+            autorun(() => {
+                const { isPlaying } = this
+
+                if (isPlaying)
+                    this.onStartPlaying()
+                else
+                    this.onStopPlaying()
+            }),
+            autorun(() => {
+                const { isPlaying, isDragging } = this
+                const { onStartDrag, onStopDrag } = this.props
+                if (isPlaying || isDragging) {
+                    this.context.chart.url.debounceMode = true
+                    if (onStartDrag) onStartDrag()
+                } else {
+                    this.context.chart.url.debounceMode = false
+                    if (onStopDrag) onStopDrag()
+                }
+            }),
+            autorun(() => {
+                if (this.props.onInputChange)
+                    this.props.onInputChange({ startYear: this.startYear, endYear: this.endYear })
+            }, { delay: 0 }),
+            autorun(() => {
+                if (this.props.onTargetChange)
+                    this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
+            }, { delay: 0 }),
+            autorun(() => {
+                // If we're not playing or dragging, lock the input to the closest year (no interpolation)
+                const { isPlaying, isDragging, roundedStartYear, roundedEndYear } = this
+                if (!isPlaying && !isDragging) {
+                    action(() => {
+                        this.startYearInput = roundedStartYear
+                        this.endYearInput = roundedEndYear
+                    })()
+                }
+            })
+        ]
     }
 
     componentWillUnmount() {
@@ -298,6 +300,7 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.removeEventListener('mousemove', this.onMouseMove)
         document.documentElement.removeEventListener('touchend', this.onMouseUp)
         document.documentElement.removeEventListener('touchmove', this.onMouseMove)
+        this.disposers.forEach(dispose => dispose())
     }
 
     @action.bound onTogglePlay() {

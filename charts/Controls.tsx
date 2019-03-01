@@ -173,11 +173,6 @@ class SettingsMenu extends React.Component<{ chart: ChartConfig, onDismiss: () =
     }
 }
 
-interface ControlsFooterProps {
-    chart: ChartConfig,
-    chartView: ChartView,
-}
-
 @observer
 class HighlightToggle extends React.Component<{ chart: ChartConfig, highlightToggle: HighlightToggleConfig }> {
     @computed get chart() { return this.props.chart }
@@ -223,7 +218,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 
     render() {
         const { chart } = this.props
-        
+
         let label = "Relative"
         if (chart.isScatter || chart.isTimeScatter)
             label = "Average annual change"
@@ -262,12 +257,12 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         } else if (chart.isScatter) {
             return <Timeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         } else {
-            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>            
+            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         }
     }
 }
 
-export class ControlsFooter {
+export class Controls {
     props: { chart: ChartConfig, chartView: ChartView, width: number }
     constructor(props: { chart: ChartConfig, chartView: ChartView, width: number }) {
         this.props = props
@@ -275,6 +270,10 @@ export class ControlsFooter {
 
     @observable isShareMenuActive: boolean = false
     @observable isSettingsMenuActive: boolean = false
+
+    legendButtonHeight: number = 21
+    @observable legendButtonBottom?: number
+    @observable legendButtonLeft?: number
 
     @computed get addDataTerm() {
         const { chart } = this.props
@@ -295,7 +294,12 @@ export class ControlsFooter {
 
     @computed get hasInlineControls(): boolean {
         const {chart} = this.props
-        return chart.tab === 'chart' && (chart.data.canAddData || chart.isScatter || chart.data.canChangeEntity || (chart.isStackedArea && chart.stackedArea.canToggleRelative))
+        return chart.tab === 'chart' && (
+            (chart.data.canAddData && !this.hasLegendButton && !this.hasSpace) ||
+            chart.isScatter ||
+            chart.data.canChangeEntity ||
+            (chart.isStackedArea && chart.stackedArea.canToggleRelative)
+        )
     }
 
     @computed get hasSettingsMenu(): boolean {
@@ -306,7 +310,12 @@ export class ControlsFooter {
         return this.props.width > 700
     }
 
-    @computed get numLines(): number {
+    @computed get hasLegendButton(): boolean {
+        const { chart } = this.props
+        return chart.tab === "chart" && chart.data.canAddData && (chart.isLineChart || chart.isStackedArea)
+    }
+
+    @computed get footerLines(): number {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
@@ -314,29 +323,75 @@ export class ControlsFooter {
         return numLines
     }
 
-    @computed get height(): number {
-        return this.numLines*40
+    @computed get controlsPaddingTop(): number {
+        if (this.legendButtonBottom != null && this.legendButtonHeight > this.legendButtonBottom) {
+            return this.legendButtonHeight - this.legendButtonBottom
+        } else {
+            return 0
+        }
+    }
+
+    @computed get footerHeight(): number {
+        return this.footerLines*40
     }
 }
 
 @observer
-export class ControlsFooterView extends React.Component<{ controlsFooter: ControlsFooter }> {
+export class ControlsOverlayView extends React.Component<{ controls: Controls }> {
+    @action.bound onDataSelect() {
+        this.props.controls.props.chartView.isSelectingData = true
+    }
+
+    render() {
+        const { controls } = this.props
+        const wrapperStyle: React.CSSProperties = {
+            height: `${controls.controlsPaddingTop}px`,
+            position: "relative"
+        }
+        return <div className="ControlsOverlay" style={wrapperStyle}>
+            {this.renderLegendButton()}
+        </div>
+    }
+
+    renderLegendButton() {
+        const { controls } = this.props
+        if (controls.hasLegendButton && controls.legendButtonBottom != null && controls.legendButtonLeft != null) {
+            const buttonStyle: React.CSSProperties = {
+                position: "absolute",
+                bottom: `-${controls.legendButtonBottom}px`,
+                left: `${controls.legendButtonLeft}px`
+            }
+            return <button className="addDataButton clickable" onClick={this.onDataSelect} style={buttonStyle}>
+                <span className="icon">
+                    <svg width={16} height={16}>
+                        <path d="M3,8 h10 m-5,-5 v10" />
+                    </svg>
+                </span>
+                <span className="label">Add {this.props.controls.addDataTerm}</span>
+            </button>
+        }
+        return null
+    }
+}
+
+@observer
+export class ControlsFooterView extends React.Component<{ controls: Controls }> {
     @action.bound onShareMenu() {
-        this.props.controlsFooter.isShareMenuActive = !this.props.controlsFooter.isShareMenuActive
+        this.props.controls.isShareMenuActive = !this.props.controls.isShareMenuActive
     }
 
     @action.bound onSettingsMenu() {
-        this.props.controlsFooter.isSettingsMenuActive = !this.props.controlsFooter.isSettingsMenuActive
+        this.props.controls.isSettingsMenuActive = !this.props.controls.isSettingsMenuActive
     }
 
     @action.bound onDataSelect() {
-        this.props.controlsFooter.props.chartView.isSelectingData = true
+        this.props.controls.props.chartView.isSelectingData = true
     }
 
     render() {
         const { props } = this
-        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, addDataTerm, hasSpace} = props.controlsFooter
-        const {chart, chartView} = props.controlsFooter.props
+        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, hasLegendButton, addDataTerm, hasSpace} = props.controls
+        const {chart, chartView} = props.controls.props
 
         const tabs = <nav className="tabs">
             <ul>
@@ -361,7 +416,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
         const timeline = hasTimeline && <TimelineControl chart={chart}/>
 
         const extraControls = hasInlineControls && <div className="extraControls">
-            {chart.data.canAddData && <button type="button" onClick={this.onDataSelect}>
+            {chart.data.canAddData && !hasLegendButton && <button type="button" onClick={this.onDataSelect}>
                 {(chart.isScatter || chart.isSlopeChart) ? <span><FontAwesomeIcon icon={faSearch}/> Search</span> : <span><FontAwesomeIcon icon={faPlus}/> Add {addDataTerm}</span>}
             </button>}
 
@@ -375,7 +430,7 @@ export class ControlsFooterView extends React.Component<{ controlsFooter: Contro
             {/* {chart.isLineChart && chart.lineChart.canToggleRelative && <AbsRelToggle chart={chart} />} */}
         </div>
 
-        return <div className="ControlsFooter" style={{ height: props.controlsFooter.height }}>
+        return <div className="ControlsFooter" style={{ height: props.controls.footerHeight }}>
             {hasTimeline && (hasInlineControls || !hasSpace) && <div className="footerRowSingle">
                 {timeline}
             </div>}

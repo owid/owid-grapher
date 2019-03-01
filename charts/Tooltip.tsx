@@ -1,6 +1,6 @@
 import { extend } from './Util'
 import * as React from 'react'
-import { ChartViewContext } from './ChartViewContext'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 import { observable, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { Bounds } from './Bounds'
@@ -8,12 +8,14 @@ import { Bounds } from './Bounds'
 export interface TooltipProps {
     x: number
     y: number,
-    style?: React.CSSProperties
+    style?: React.CSSProperties,
+    children?: React.ReactNode
 }
 
 @observer
 export class TooltipView extends React.Component {
     static contextType = ChartViewContext
+    context!: ChartViewContextType
 
     @computed get rendered() {
         const { bounds } = this
@@ -21,7 +23,7 @@ export class TooltipView extends React.Component {
 
         if (!chart.tooltip) return null
 
-        const tooltip  = chart.tooltip
+        const tooltip = chart.tooltip
 
         let x = tooltip.x as number
         let y = tooltip.y as number
@@ -66,6 +68,7 @@ export class TooltipView extends React.Component {
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
     static contextType = ChartViewContext
+    context!: ChartViewContextType
 
     componentDidMount() {
         this.componentDidUpdate()
@@ -76,7 +79,7 @@ export class Tooltip extends React.Component<TooltipProps> {
     }
 
     componentWillUnmount() {
-        runInAction(() => this.context.chart.tooltip = null)
+        runInAction(() => this.context.chart.tooltip = undefined)
     }
 
     render() {

@@ -6,13 +6,13 @@ import { select } from 'd3-selection'
 import 'd3-transition'
 
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
-import {ControlsFooter, ControlsFooterView} from './ControlsFooter'
+import { Controls, ControlsFooterView } from './Controls'
 import { ChartTab } from './ChartTab'
 import { DataTab } from './DataTab'
 import { MapTab } from './MapTab'
 import { SourcesTab } from './SourcesTab'
 import { DownloadTab } from './DownloadTab'
-import { VNode, throttle, isMobile } from './Util'
+import { VNode, throttle, isMobile, isTouchDevice } from './Util'
 import { Bounds } from './Bounds'
 import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
@@ -92,9 +92,9 @@ export class ChartView extends React.Component<ChartViewProps> {
     @computed get renderWidth() { return this.fitBounds ? this.containerBounds.width - (this.isExport ? 0 : 5) : this.idealWidth }
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
-    @computed get controlsFooter(): ControlsFooter {
+    @computed get controls(): Controls {
         const that = this
-        return new ControlsFooter({
+        return new Controls({
             get chart() { return that.props.chart },
             get chartView() { return that },
             get width() { return that.renderWidth }
@@ -102,7 +102,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get tabBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controlsFooter.height)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controls.footerHeight)
     }
 
     @observable.ref popups: VNode[] = []
@@ -119,7 +119,8 @@ export class ChartView extends React.Component<ChartViewProps> {
             this.isEditor && "editor",
             this.isEmbed && "embed",
             this.isPortrait && "portrait",
-            this.isLandscape && "landscape"
+            this.isLandscape && "landscape",
+            isTouchDevice() && "is-touch"
         ]
 
         return classNames.filter(n => !!n).join(' ')
@@ -147,9 +148,9 @@ export class ChartView extends React.Component<ChartViewProps> {
     renderPrimaryTab(): JSX.Element | undefined {
         const { chart, tabBounds } = this
         if (chart.primaryTab === 'chart')
-            return <ChartTab bounds={tabBounds} chartView={this} chart={this.chart} />
+            return <ChartTab bounds={tabBounds} chart={this.chart} chartView={this} />
         else if (chart.primaryTab === 'map')
-            return <MapTab bounds={tabBounds} chart={this.chart} />
+            return <MapTab bounds={tabBounds} chart={this.chart} chartView={this} />
         else
             return undefined
     }
@@ -175,7 +176,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
         return <React.Fragment>
             {this.hasBeenVisible && this.renderSVG()}
-            <ControlsFooterView controlsFooter={this.controlsFooter}/>
+            <ControlsFooterView controls={this.controls}/>
             {this.renderOverlayTab(tabBounds)}
             {this.popups}
             <TooltipView/>

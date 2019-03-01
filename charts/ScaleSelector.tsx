@@ -12,6 +12,7 @@ import * as React from 'react'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ScaleType } from './ScaleType'
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 
 interface ScaleSelectorProps {
     x: number
@@ -23,6 +24,10 @@ interface ScaleSelectorProps {
 
 @observer
 export class ScaleSelector extends React.Component<ScaleSelectorProps> {
+
+    static contextType = ChartViewContext
+    context!: ChartViewContextType
+
     @computed get x(): number { return this.props.x }
     @computed get y(): number { return this.props.y }
 

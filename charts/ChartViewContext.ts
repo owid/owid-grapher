@@ -3,12 +3,14 @@ import { ChartConfig } from 'charts/ChartConfig'
 import { ChartView } from 'charts/ChartView'
 import { VNode } from 'charts/Util'
 
-const ChartViewContext: React.Context<{
+export interface ChartViewContextType {
     chart: ChartConfig
     chartView: ChartView
     baseFontSize: number
     isStatic: boolean
     addPopup: (vnode: VNode) => void,
     removePopup: (vnode: VNode) => void
-}> = React.createContext({}) as any
+}
+
+const ChartViewContext: React.Context<ChartViewContextType> = React.createContext({}) as any
 export { ChartViewContext }

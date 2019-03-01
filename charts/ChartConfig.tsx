@@ -24,6 +24,7 @@ import { Bounds } from "./Bounds"
 import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import * as md5 from 'md5'
+import { TooltipProps } from "./Tooltip"
 
 declare const App: any
 declare const window: any
@@ -163,11 +164,11 @@ export class ChartConfigProps {
 export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
-    @observable.ref tooltip: React.ReactNode
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
     @observable.ref isLocalExport?: boolean
+    @observable.ref tooltip?: TooltipProps
 
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
