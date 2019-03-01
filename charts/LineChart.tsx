@@ -132,7 +132,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.addCountryMode === 'add-country') {
+        if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
             this.onLegendMouseLeave()
         }

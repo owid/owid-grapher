@@ -185,7 +185,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
     }
 
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.addCountryMode === 'add-country') {
+        if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
         }
     }
