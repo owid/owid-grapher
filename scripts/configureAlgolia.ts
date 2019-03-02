@@ -20,7 +20,9 @@ export async function configureAlgolia() {
         attributeForDistinct: 'id',
         alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"],
         exactOnSingleWordQuery: 'none',
-        disableExactOnAttributes: ['_tags']
+        disableExactOnAttributes: ['_tags'],
+        optionalWords: ['vs'],
+        removeStopWords: ['en']
     })
 
     const pagesIndex = client.initIndex('pages')
@@ -34,7 +36,8 @@ export async function configureAlgolia() {
         alternativesAsExact: ["ignorePlurals", "singleWordSynonym", "multiWordsSynonym"],
         attributesForFaceting: ['searchable(_tags)', 'searchable(authors)'],
         exactOnSingleWordQuery: 'none',
-        disableExactOnAttributes: ['_tags']
+        disableExactOnAttributes: ['_tags'],
+        removeStopWords: ['en']
     })
 
     const synonyms = [
