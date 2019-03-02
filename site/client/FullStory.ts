@@ -50,6 +50,10 @@ function annotateKeyTypes(obj: { [key: string]: any }) {
 export class FullStory {
     static event(name: string, props: { [key: string]: any }) {
         if (!window.FS) return
-        window.FS.event(name, annotateKeyTypes(props))
+        try {
+            window.FS.event(name, annotateKeyTypes(props))
+        } catch (error) {
+            console.error(error)
+        }
     }
 }
