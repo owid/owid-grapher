@@ -269,12 +269,12 @@ export class ChartConfig {
     }
 
     @computed get timeDomain(): [number | undefined, number | undefined] {
-        return [this.props.minTime || undefined, this.props.maxTime || undefined]
+        return [defaultTo(this.props.minTime, undefined), defaultTo(this.props.maxTime, undefined)]
     }
 
     set timeDomain(value: [number | undefined, number | undefined]) {
-        this.props.minTime = value[0] || undefined
-        this.props.maxTime = value[1] || undefined
+        this.props.minTime = defaultTo(value[0], undefined)
+        this.props.maxTime = defaultTo(value[1], undefined)
     }
 
     @computed get xAxis() {
