@@ -596,7 +596,7 @@ figure[data-grapher-src]:empty:after {
     .DataSelectorSingle,
     .DataSelectorMulti {
         z-index: $zindex-DataSelector;
-        background: rgba(255,255,255,.96);
+        background: rgba(255,255,255,.94);
         border: 1px solid rgba(0,0,0,.3);
         box-shadow: 0 2px 6px rgba(0,0,0,.2);
         overflow-y: scroll;
@@ -702,6 +702,23 @@ figure[data-grapher-src]:empty:after {
             padding: 0.4em;
             margin-bottom: 0.4em;
             border: 1px solid #ccc;
+        }
+
+        input[type=checkbox],
+        .clearSelection .icon {
+            margin: 0 .1em 0 0;
+        }
+
+        .clearSelection {
+            font-size: 1em;
+            padding: 0;
+            margin: .5em 0 0;
+            color: rgba(black, .4);
+            transition: color 150ms ease;
+
+            &:hover {
+                color: $controls-color;
+            }
         }
     }
 

@@ -34,7 +34,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @computed get selectedData() {
-        return this.availableData.filter(d => this.props.chart.data.selectedKeysByKey[d.key])
+        return this.availableData.filter(d => this.isSelectedKey(d.key))
     }
 
     @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
@@ -74,6 +74,10 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
             this.props.onDismiss()
     }
 
+    @action.bound onClear() {
+        this.props.chart.data.selectedKeys = []
+    }
+
     render() {
         const { chart } = this.props
         const { selectedData, searchResults, searchInput } = this
@@ -106,6 +110,9 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
                                 </li>
                             })}
                         </ul>
+                        {(selectedData && selectedData.length > 1) ? <button className="clearSelection" onClick={this.onClear}>
+                            <span className="icon"><FontAwesomeIcon icon={faTimes} /></span> Unselect all
+                        </button> : undefined}
                     </div>
                 </div>
             </div>
