@@ -139,6 +139,8 @@ export async function syncPostToGrapher(postId: number): Promise<string|undefine
             return t.table(Post.table).insert(postRow)
         } else if (postRow && existsInGrapher) {
             return t.table(Post.table).where('id', '=', postRow.id).update(postRow)
+        } else {
+            return undefined
         }
     })
 
