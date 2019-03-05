@@ -116,7 +116,8 @@ export async function syncPostTagsToGrapher() {
 export async function syncPostToGrapher(postId: number): Promise<string|undefined> {
     const rows = await wpdb.query("SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'", [postId])
 
-    const existsInGrapher = (await Post.select('id').from(db.table(Post.table))).length
+    const matchingRows = await db.table(Post.table).where({ id: postId })
+    const existsInGrapher = !!matchingRows.length
 
     const wpPost = rows[0]
     const postRow = wpPost ? {
@@ -130,17 +131,14 @@ export async function syncPostToGrapher(postId: number): Promise<string|undefine
         updated_at: wpPost.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : wpPost.post_modified_gmt    
     } as Post.Row : undefined
 
-    // TODO implement this with async/await
-    await db.knex().transaction(t => {
+    await db.knex().transaction(async t => {
         if (!postRow && existsInGrapher) {
             // Delete from grapher
-            return t.table(Post.table).where({ 'id': postId }).delete()
+            await t.table(Post.table).where({ 'id': postId }).delete()
         } else if (postRow && !existsInGrapher) {
-            return t.table(Post.table).insert(postRow)
+            await t.table(Post.table).insert(postRow)
         } else if (postRow && existsInGrapher) {
-            return t.table(Post.table).where('id', '=', postRow.id).update(postRow)
-        } else {
-            return undefined
+            await t.table(Post.table).where('id', '=', postRow.id).update(postRow)
         }
     })
 
