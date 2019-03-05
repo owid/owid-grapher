@@ -58,24 +58,9 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
 
     return <html>
-        <Head canonicalUrl={canonicalUrl}>
-            <meta name="viewport" content="width=device-width, initial-scale=1"/>
-            <title>{pageTitle} - Our World in Data</title>
-            <meta name="description" content={pageDesc}/>
-            <meta property="fb:app_id" content="1149943818390250"/>
-            <meta property="og:url" content={canonicalUrl}/>
-            <meta property="og:title" content={pageTitle}/>
-            <meta property="og:description" content={pageDesc}/>
-            <meta property="og:image" content={imageUrl}/>
+        <Head canonicalUrl={canonicalUrl} pageTitle={pageTitle} pageDesc={pageDesc} imageUrl={imageUrl}>
             <meta property="og:image:width" content="850"/>
             <meta property="og:image:height" content="600"/>
-            <meta property="og:site_name" content="Our World in Data"/>
-            <meta name="twitter:card" content="summary_large_image"/>
-            <meta name="twitter:site" content="@OurWorldInData"/>
-            <meta name="twitter:creator" content="@OurWorldInData"/>
-            <meta name="twitter:title" content={pageTitle}/>
-            <meta name="twitter:description" content={pageDesc}/>
-            <meta name="twitter:image" content={imageUrl}/>
             <style dangerouslySetInnerHTML={{__html: style}}/>
             <script dangerouslySetInnerHTML={{__html: iframeScript}}/>
             <noscript>
@@ -89,12 +74,15 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         <body className="ChartPage">
             <SiteHeader/>
             <main>
-                <figure data-grapher-src={`/grapher/${chart.slug}`}/>
+                <figure data-grapher-src={`/grapher/${chart.slug}`}>
+                </figure>
+                <noscript id="fallback">
+                    <h1>{chart.title}</h1>
+                    <p>{chart.subtitle}</p>
+                    <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
+                    <p>Interactive visualization requires JavaScript</p>
+                </noscript>
             </main>
-            <noscript id="fallback">
-                <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
-                <p>Interactive visualization requires JavaScript</p>
-            </noscript>
             <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch"/>
             <script src={webpack("commons.js")}/>
             <script src={webpack("owid.js")}/>

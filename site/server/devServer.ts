@@ -12,6 +12,8 @@ import { expectInt, JsonError } from 'utils/server/serverUtil'
 import { embedSnippet } from 'site/server/embedCharts'
 import { countryProfilePage, countriesIndexPage } from './countryProfiles';
 import { makeSitemap } from './sitemap';
+import { OldChart } from 'db/model/Chart';
+import { chartToSVG } from './svgPngExport';
 
 const devServer = express()
 
@@ -79,6 +81,13 @@ devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/up
 devServer.use('/wp-content/uploads', express.static(path.join(WORDPRESS_DIR, 'wp-content/uploads')))
 
 devServer.use('/exports', express.static(path.join(BAKED_SITE_DIR, 'exports')))
+
+devServer.use('/grapher/exports/:slug.svg', async (req, res) => {
+    const chart = await OldChart.getBySlug(req.params.slug)
+    const vardata = await chart.getVariableData()
+    res.setHeader('Content-Type', 'image/svg+xml')
+    res.send(await chartToSVG(chart.config, vardata))
+})
 
 devServer.use('/', express.static(path.join(BASE_DIR, 'public')))
 
