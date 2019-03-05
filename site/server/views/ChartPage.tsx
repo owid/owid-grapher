@@ -25,7 +25,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
 `
 
     const style = `
-        figure[data-grapher-src], #fallback {
+        .ChartPage main figure[data-grapher-src], #fallback {
             display: flex;
             align-items: center;
             justify-content: center;

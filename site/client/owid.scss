@@ -917,7 +917,7 @@ img {
     padding: 10px;
 }
 
-.article-content figure[data-grapher-src] {
+.article-content figure[data-grapher-src], .SearchResults figure[data-grapher-src] {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1em;
@@ -981,11 +981,11 @@ img {
     }
 }
 
-.article-content figure[data-grapher-src].grapherPreview {
+.article-content figure[data-grapher-src].grapherPreview, .SearchResults figure[data-grapher-src].grapherPreview {
     padding: 1em 0;
 }
 
-.article-content figure[data-grapher-src]:not(.grapherPreview) {
+.article-content figure[data-grapher-src]:not(.grapherPreview), .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
     height: 575px;
 }
 
