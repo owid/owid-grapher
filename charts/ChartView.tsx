@@ -17,6 +17,7 @@ import { Bounds } from './Bounds'
 import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
 import { TooltipView } from './Tooltip'
+import { FullStory } from 'site/client/FullStory';
 
 declare const window: any
 
@@ -51,6 +52,27 @@ export class ChartView extends React.Component<ChartViewProps> {
 
         render()
         window.addEventListener('resize', throttle(render))
+
+        FullStory.event("Loaded chart", {
+            type_str: chart.props.type,
+            id_int: chart.props.id,
+            slug_str: chart.props.slug,
+            originUrl_str: chart.props.originUrl,
+            addCountryMode_str: chart.props.addCountryMode,
+            stackMode_str: chart.props.stackMode,
+            hideLegend_bool: chart.props.hideLegend,
+            hideRelativeToggle_bool: chart.props.hideRelativeToggle,
+            hideTimeline_bool: chart.props.hideTimeline,
+            hideConnectedScatterLines_bool: chart.props.hideConnectedScatterLines,
+            compareEndPointsOnly_bool: chart.props.compareEndPointsOnly,
+            entityType_str: chart.entityType,
+            isSinglePage_bool: chart.isSinglePage,
+            hasChartTab_bool: chart.hasChartTab,
+            hasMapTab_bool: chart.hasMapTab,
+            tab_str: chart.tab,
+            totalSelectedEntities: chart.props.selectedData.length
+        })
+
         return chartView
     }
 
