@@ -130,15 +130,15 @@ export async function syncPostToGrapher(postId: number): Promise<string|undefine
         updated_at: wpPost.post_modified_gmt === "0000-00-00 00:00:00" ? "1970-01-01 00:00:00" : wpPost.post_modified_gmt    
     } as Post.Row : undefined
 
-
-    await db.knex().transaction(async t => {
+    // TODO implement this with async/await
+    await db.knex().transaction(t => {
         if (!postRow && existsInGrapher) {
             // Delete from grapher
-            await t.table(Post.table).where({ 'id': postId }).delete()
+            return t.table(Post.table).where({ 'id': postId }).delete()
         } else if (postRow && !existsInGrapher) {
-            await t.table(Post.table).insert(postRow)
+            return t.table(Post.table).insert(postRow)
         } else if (postRow && existsInGrapher) {
-            await t.table(Post.table).where('id', '=', postRow.id).update(postRow)
+            return t.table(Post.table).where('id', '=', postRow.id).update(postRow)
         }
     })
 
