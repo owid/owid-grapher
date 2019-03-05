@@ -1,12 +1,8 @@
 import * as React from 'react'
 import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
-const fuzzysort = require("fuzzysort")
 import * as _ from 'lodash'
 
-import { Admin } from './Admin'
 import { AdminLayout } from './AdminLayout'
-import { SearchField, FieldsRow, SelectField } from './Forms'
 import { Link } from './Link'
 import { AdminAppContext } from './AdminAppContext'
 
@@ -27,6 +23,7 @@ export class TestIndexPage extends React.Component {
                     <li><Link native target="_blank" to="/test/embeds?type=ScatterPlot">Scatter Plot</Link></li>
                     <li><Link native target="_blank" to="/test/embeds?type=StackedArea">Stacked Area</Link></li>
                     <li><Link native target="_blank" to="/test/embeds?type=StackedBar">Stacked Bar</Link></li>
+                    <li><Link native target="_blank" to="/test/embedVariants">Embed Variants</Link></li>
                 </ul>
             </main>
         </AdminLayout>

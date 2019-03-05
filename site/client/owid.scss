@@ -917,7 +917,7 @@ img {
     padding: 10px;
 }
 
-figure[data-grapher-src] {
+.article-content figure[data-grapher-src] {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1em;
@@ -981,15 +981,13 @@ figure[data-grapher-src] {
     }
 }
 
-figure[data-grapher-src].grapherPreview {
+.article-content figure[data-grapher-src].grapherPreview {
     padding: 1em 0;
 }
 
-figure[data-grapher-src]:not(.grapherPreview) {
+.article-content figure[data-grapher-src]:not(.grapherPreview) {
     height: 575px;
 }
-
-
 
 article.page h1.entry-title {
     text-align: center;

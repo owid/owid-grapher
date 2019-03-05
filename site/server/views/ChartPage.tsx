@@ -6,6 +6,9 @@ import * as _ from 'lodash'
 
 import { webpack } from 'utils/server/staticGen'
 import { ChartConfigProps } from 'charts/ChartConfig'
+import { SiteHeader } from './SiteHeader';
+import { SiteFooter } from './SiteFooter';
+import { Head } from './Head';
 
 export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const {chart} = props
@@ -15,12 +18,13 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const canonicalUrl = urljoin(BAKED_GRAPHER_URL, chart.slug as string)
     const imageUrl = urljoin(BAKED_GRAPHER_URL, "exports", `${chart.slug}.png?v=${chart.version}`)
 
-    const style = `
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+    const iframeScript = `
+    if (window != window.top) {
+        document.documentElement.classList.add('iframe')
+    }
+`
 
+    const style = `
         figure[data-grapher-src], #fallback {
             display: flex;
             align-items: center;
@@ -40,6 +44,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const script = `
         var jsonConfig = ${JSON.stringify(chart)};
         var figure = document.getElementsByTagName("figure")[0];
+
         try {
             window.App = {};
             window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure });
@@ -53,11 +58,10 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
     const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
 
     return <html>
-        <head>
+        <Head canonicalUrl={canonicalUrl}>
             <meta name="viewport" content="width=device-width, initial-scale=1"/>
             <title>{pageTitle} - Our World in Data</title>
             <meta name="description" content={pageDesc}/>
-            <link rel="canonical" href={canonicalUrl}/>
             <meta property="fb:app_id" content="1149943818390250"/>
             <meta property="og:url" content={canonicalUrl}/>
             <meta property="og:title" content={pageTitle}/>
@@ -73,6 +77,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             <meta name="twitter:description" content={pageDesc}/>
             <meta name="twitter:image" content={imageUrl}/>
             <style dangerouslySetInnerHTML={{__html: style}}/>
+            <script dangerouslySetInnerHTML={{__html: iframeScript}}/>
             <noscript>
                 <style>{`
                     figure { display: none !important; }
@@ -80,9 +85,12 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             </noscript>
             <link rel="stylesheet" href={webpack("commons.css")}/>
             <link rel="preload" href={`/grapher/data/variables/${variableIds.join("+")}.json?v=${chart.version}`} as="fetch" crossOrigin="anonymous"/>
-        </head>
-        <body className="singleChart">
-            <figure data-grapher-src={`/grapher/${chart.slug}`}/>
+        </Head>
+        <body className="ChartPage">
+            <SiteHeader/>
+            <main>
+                <figure data-grapher-src={`/grapher/${chart.slug}`}/>
+            </main>
             <noscript id="fallback">
                 <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}/>
                 <p>Interactive visualization requires JavaScript</p>
@@ -91,6 +99,7 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             <script src={webpack("commons.js")}/>
             <script src={webpack("owid.js")}/>
             <script dangerouslySetInnerHTML={{__html: script}}/>
+            <SiteFooter/>
         </body>
     </html>
 }

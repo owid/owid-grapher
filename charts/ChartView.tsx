@@ -32,7 +32,6 @@ interface ChartViewProps {
 @observer
 export class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({ jsonConfig, containerNode, isEditor, isEmbed, queryStr }: { jsonConfig: ChartConfigProps, containerNode: HTMLElement, isEditor?: boolean, isEmbed?: true, queryStr?: string }) {
-        select(containerNode).classed('chart-container', true)
         let chartView
         const chart = new ChartConfig(jsonConfig, { isEmbed: isEmbed, queryStr: queryStr })
 
@@ -115,6 +114,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     @computed get renderHeight() { return this.fitBounds ? this.containerBounds.height - (this.isExport ? 0 : 5) : this.idealHeight }
 
     @computed get controls(): Controls {
+        console.log(this.containerBounds)
         const that = this
         return new Controls({
             get chart() { return that.props.chart },

@@ -224,11 +224,94 @@ function PreviewTestPage(props: { charts: any[] }) {
     </html>
 }
 
+function EmbedVariantsTestPage(props: EmbedTestPageProps) {
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: #f1f1f1;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        figure, iframe {
+            border: 0;
+            flex: 1;
+            height: 450px;
+            margin: 10px;
+        }
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        h3 {
+            width: 50%;
+            text-align: center;
+            margin: 0;
+        }
+
+        nav.pagination {
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .chart-id {
+            font-size: 18px;
+            font-weight: bold;
+            padding-top: 10px;
+            text-align: center;
+        }
+    `
+    return <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <title>Test Embed Variants</title>
+            <style dangerouslySetInnerHTML={{__html: style}}/>
+        </head>
+        <body>
+            {props.charts.map(chart =>
+                <div className="row">
+                    <div className="chart-id">{chart.id}</div>
+                    <div className="side-by-side">
+                        <iframe src={`${BAKED_GRAPHER_URL}/${chart.slug}`}/>
+                        {!IS_LIVE && <figure data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}/>}
+                    </div>
+                </div>
+            )}
+            <nav className="pagination">
+                {props.prevPageUrl && <a href={props.prevPageUrl}>&lt;&lt; Prev</a>}
+                {" "}
+                {props.currentPage !== undefined && props.totalPages !== undefined && `Page ${props.currentPage} of ${props.totalPages}`}
+                {" "}
+                {props.nextPageUrl && <a href={props.nextPageUrl}>Next &gt;&gt;</a>}
+            </nav>
+            <script src={`${BAKED_GRAPHER_URL}/embedCharts.js`}/>
+        </body>
+    </html>
+}
+
 testPages.get('/previews', async (req, res) => {
     const rows = await db.query(`SELECT config FROM charts LIMIT 200`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<PreviewTestPage charts={charts}/>))
+})
+
+testPages.get('/embedVariants', async (req, res) => {
+    const rows = await db.query(`SELECT config FROM charts WHERE id=64`)
+    const charts = rows.map((row: any) => JSON.parse(row.config))
+
+    res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts}/>))
 })
 
 testPages.get('/:slug.svg', async (req, res) => {

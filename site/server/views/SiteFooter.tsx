@@ -78,7 +78,9 @@ export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
             <script dangerouslySetInnerHTML={{__html: `
                 runHeaderMenus();
                 runFeedback();
-                Grapher.embedAll();
+                if (!document.querySelector(".ChartPage")) {
+                    Grapher.embedAll();
+                }
             `}}/>
         </footer>
     </React.Fragment>

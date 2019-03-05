@@ -855,3 +855,28 @@ figure[data-grapher-src]:empty:after {
 .Tooltip {
     z-index: $zindex-Tooltip;
 }
+
+.ChartPage main {
+    height: calc(100vh - 100px);
+}
+
+html.iframe .ChartPage {
+    background-color: inherit;
+
+    main {
+        height: 100vh;
+        min-height: inherit;
+    }
+
+    .site-header {
+        display: none;
+    }
+
+    .donate-footer {
+        display: none;
+    }
+
+    .site-footer {
+        display: none;
+    }
+}
