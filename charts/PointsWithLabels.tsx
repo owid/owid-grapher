@@ -232,7 +232,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { data, xScale, yScale, defaultColorScale, sizeScale, fontScale } = this
         return sortBy(data.map(d => {
             const values = d.values.map(v => {
-                const area = sizeScale(v.size || 1)
+                const area = sizeScale(v.size || 4)
                 return {
                     position: new Vector2(
                         Math.floor(xScale.place(v.x)),
