@@ -44,6 +44,54 @@ async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     })
 }
 
+export async function denormalizeLatestCountryData(variableIds?: number[]) {
+    const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+
+    const entitiesByCode = _.keyBy(entities, e => e.code)
+    const entitiesById = _.keyBy(entities, e => e.id)
+    const entityIds = countries.map(c => entitiesByCode[c.code].id)    
+
+    if (!variableIds) {
+        variableIds = (await countryIndicatorVariables()).map(v => v.id)
+    }
+
+    let dataValuesQuery = db.table("data_values").select("variableId", "entityId", "value", "year")
+        .whereIn('variableId', variableIds)
+        .whereRaw(`entityId in (?)`, [entityIds])
+        .andWhere("year", ">", 2010)
+        .andWhere("year", "<", 2020)
+        .orderBy("year", "DESC")
+        
+    let dataValues = await dataValuesQuery as { variableId: number, entityId: number, value: string, year: number }[]
+    dataValues = _.uniqBy(dataValues, dv => `${dv.variableId}-${dv.entityId}`)
+    const rows = dataValues.map(dv => ({
+        variable_id: dv.variableId,
+        country_code: entitiesById[dv.entityId].code,
+        year: dv.year,
+        value: dv.value
+    }))
+
+    db.knex().transaction(async t => {
+        // Remove existing values
+        await t.table('country_latest_data').whereIn('variable_id', variableIds as number[]).delete()
+
+        // Insert new ones
+        await t.table('country_latest_data').insert(rows)
+    })
+}
+
+
+// async function countryIndicatorLatestData(countryCode: string) {
+//     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
+//         const dataValues =await db.table('country_latest_data')
+//             .select('variable_id AS variableId', 'country_code AS code', 'year', 'value')
+
+//         return _.groupBy(dataValues, dv => dv.code)
+//     })
+
+//     return dataValuesByEntityId[countryCode]
+// }
+
 async function countryIndicatorLatestData(countryCode: string) {
     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
         const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]

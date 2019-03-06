@@ -25,6 +25,7 @@ import { ChartRevision } from 'db/model/ChartRevision'
 import { Post } from 'db/model/Post'
 import { camelCaseProperties } from 'utils/object'
 import { log } from 'utils/server/log'
+import { denormalizeLatestCountryData } from 'site/server/countryProfiles';
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -203,6 +204,11 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
 
                 await t.execute(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
             }
+        }
+
+        // So we can generate country profiles including this chart data
+        if (newConfig.isPublished) {
+            await denormalizeLatestCountryData(newConfig.dimensions.map(d => d.variableId))
         }
 
         if (newConfig.isPublished && (!existingConfig || !existingConfig.isPublished)) {
