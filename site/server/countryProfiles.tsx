@@ -83,8 +83,8 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
 
 async function countryIndicatorLatestData(countryCode: string) {
     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
-        const dataValues =await db.table('country_latest_data')
-            .select('variable_id AS variableId', 'country_code AS code', 'year', 'value')
+        const dataValues = await db.table('country_latest_data')
+            .select('variable_id AS variableId', 'country_code AS code', 'year', 'value') as { variableId: number, code: string, year: number, value: string }[]
 
         return _.groupBy(dataValues, dv => dv.code)
     })
