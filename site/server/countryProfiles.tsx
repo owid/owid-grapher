@@ -81,44 +81,44 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
 }
 
 
-// async function countryIndicatorLatestData(countryCode: string) {
-//     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
-//         const dataValues =await db.table('country_latest_data')
-//             .select('variable_id AS variableId', 'country_code AS code', 'year', 'value')
-
-//         return _.groupBy(dataValues, dv => dv.code)
-//     })
-
-//     return dataValuesByEntityId[countryCode]
-// }
-
 async function countryIndicatorLatestData(countryCode: string) {
     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
-        const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+        const dataValues =await db.table('country_latest_data')
+            .select('variable_id AS variableId', 'country_code AS code', 'year', 'value')
 
-        const entitiesByCode = _.keyBy(entities, e => e.code)
-        const entitiesById = _.keyBy(entities, e => e.id)
-        const entityIds = countries.map(c => entitiesByCode[c.code].id)    
-    
-        const variables = await countryIndicatorVariables()
-        const variableIds = variables.map(v => v.id)
-        // const dataValues = await db.table("entities")
-        //     .select("data_values.variableId", "data_values.entityId", "data_values.value", "data_values.year")
-        //     .join("data_values", "data_values.entityId", "=", "entities.id")
-        //     .whereIn("entities.code", countryCodes)
-        //     .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]  
-            
-        const dataValues = await db.table("data_values").select("variableId", "entityId", "value", "year")
-            .whereIn("variableId", variableIds)
-            .whereRaw(`entityId in (?)`, [entityIds])
-            .andWhere("year", ">", 2010)
-            .andWhere("year", "<", 2020)
-            .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]    
-        return _.groupBy(dataValues, dv => entitiesById[dv.entityId].code)
+        return _.groupBy(dataValues, dv => dv.code)
     })
 
     return dataValuesByEntityId[countryCode]
 }
+
+// async function countryIndicatorLatestData(countryCode: string) {
+//     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
+//         const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+
+//         const entitiesByCode = _.keyBy(entities, e => e.code)
+//         const entitiesById = _.keyBy(entities, e => e.id)
+//         const entityIds = countries.map(c => entitiesByCode[c.code].id)    
+    
+//         const variables = await countryIndicatorVariables()
+//         const variableIds = variables.map(v => v.id)
+//         // const dataValues = await db.table("entities")
+//         //     .select("data_values.variableId", "data_values.entityId", "data_values.value", "data_values.year")
+//         //     .join("data_values", "data_values.entityId", "=", "entities.id")
+//         //     .whereIn("entities.code", countryCodes)
+//         //     .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]  
+            
+//         const dataValues = await db.table("data_values").select("variableId", "entityId", "value", "year")
+//             .whereIn("variableId", variableIds)
+//             .whereRaw(`entityId in (?)`, [entityIds])
+//             .andWhere("year", ">", 2010)
+//             .andWhere("year", "<", 2020)
+//             .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]    
+//         return _.groupBy(dataValues, dv => entitiesById[dv.entityId].code)
+//     })
+
+//     return dataValuesByEntityId[countryCode]
+// }
 
 export async function countryProfilePage(countrySlug: string) {
     const country = countries.find(c => c.slug === countrySlug)
