@@ -3,13 +3,9 @@ import ReactDOM = require("react-dom")
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { observable, action, runInAction, toJS } from "mobx";
+import { observable, action, toJS } from "mobx";
 import classnames from 'classnames'
 import { Analytics } from "./Analytics";
-import { Head } from "site/server/views/Head";
-import { SiteFooter } from "site/server/views/SiteFooter";
-import { SiteHeader } from "site/server/views/SiteHeader";
-import { BAKED_BASE_URL } from "settings";
 
 function sendFeedback(feedback: Feedback) {
     return new Promise((resolve, reject) => {

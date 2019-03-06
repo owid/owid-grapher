@@ -8,7 +8,7 @@ import { FeedbackForm } from "site/client/Feedback";
 export class FeedbackPage extends React.Component {
     render() {
         return <html>
-            <Head canonicalUrl={`${BAKED_BASE_URL}/feedback`} pageTitle="Feedback"/>
+            <Head canonicalUrl={`${BAKED_BASE_URL}/feedback`} pageTitle="Feedback" pageDesc="Do you have feedback or suggestions for improving Our World in Data? Let us know!"/>
             <body className="FeedbackPage">
                 <SiteHeader/>
                 <main>
