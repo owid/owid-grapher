@@ -151,7 +151,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             </a>]
     }
 
-    componentWillMount() {
+    componentDidMount() {
         this.export()
     }
 
