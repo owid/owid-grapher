@@ -3,36 +3,27 @@ import ReactDOM = require("react-dom")
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { observable, action, runInAction } from "mobx";
+import { observable, action, runInAction, toJS } from "mobx";
 import classnames from 'classnames'
 import { Analytics } from "./Analytics";
+import { Head } from "site/server/views/Head";
+import { SiteFooter } from "site/server/views/SiteFooter";
+import { SiteHeader } from "site/server/views/SiteHeader";
+import { BAKED_BASE_URL } from "settings";
 
-@observer
-class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
-    @observable name: string = ""
-    @observable email: string = ""
-    @observable message: string = ""
-    @observable loading: boolean = false
-    @observable done: boolean = false
-    @observable error: string|undefined
-    dismissable: boolean = true
-
-    async sendFeedback() {
+function sendFeedback(feedback: Feedback) {
+    return new Promise((resolve, reject) => {
+        const json = toJS(feedback)
         const sessionId = Analytics.amplitudeSessionId()
-        const message = this.message + `\n\n-----\nCurrent Url: ${window.location.href}` + (sessionId ? `\nAmplitude Session ID: ${sessionId}` : "")
-        const feedback = {
-            name: this.name,
-            email: this.email,
-            message: message
-        }
+        const message = feedback.message + `\n\n-----\nCurrent Url: ${window.location.href}` + (sessionId ? `\nAmplitude Session ID: ${sessionId}` : "")
         const req = new XMLHttpRequest()
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
                 if (req.status !== 200) {
-                    runInAction(() => { this.loading = false; this.error = `${req.status} ${req.statusText}` })
+                    reject(`${req.status} ${req.statusText}`)
                 } else {
-                    runInAction(() => { this.loading = false; this.done = true; this.name = ""; this.email = ""; this.message = "" })
+                    resolve()
                 }    
             }
         })
@@ -40,7 +31,33 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
         req.open("POST", `https://owid-feedback.netlify.com/.netlify/functions/hello`)
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
         
-        req.send(JSON.stringify(feedback))
+        req.send(JSON.stringify(json))
+    })
+}
+
+class Feedback {
+    @observable name: string = ""
+    @observable email: string = ""
+    @observable message: string = ""
+}
+
+@observer
+export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
+    feedback: Feedback = new Feedback()
+    @observable loading: boolean = false
+    @observable done: boolean = false
+    @observable error: string|undefined
+    dismissable: boolean = true
+
+    async submit() {
+        try {
+            await sendFeedback(this.feedback)
+            this.done = true
+        } catch (err) {
+            this.error = err
+        } finally {
+            this.loading = false
+        }
     }
 
     @action.bound onClickSomewhere() {
@@ -64,19 +81,19 @@ class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
         this.done = false
         this.error = undefined
         this.loading = true
-        this.sendFeedback()
+        this.submit()
     }
 
     @action.bound onName(e: React.ChangeEvent<HTMLInputElement>) {
-        this.name = e.currentTarget.value
+        this.feedback.name = e.currentTarget.value
     }
 
     @action.bound onEmail(e: React.ChangeEvent<HTMLInputElement>) {
-        this.email = e.currentTarget.value
+        this.feedback.email = e.currentTarget.value
     }
 
     @action.bound onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        this.message = e.currentTarget.value
+        this.feedback.message = e.currentTarget.value
     }
 
     render() {
@@ -126,4 +143,8 @@ class FeedbackPrompt extends React.Component {
 
 export function runFeedback() {
     ReactDOM.render(<FeedbackPrompt/>, document.querySelector(".feedbackPromptContainer"))
+}
+
+export function runFeedbackPage() {
+    ReactDOM.render(<FeedbackForm onDismiss={() => undefined}/>, document.querySelector(".FeedbackPage main"))
 }

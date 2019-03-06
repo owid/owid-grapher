@@ -14,7 +14,7 @@ import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from 'serverSettings'
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
-import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed } from './siteBaking'
+import { renderToHtmlPage, renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed, feedbackPage } from './siteBaking'
 import { bakeGrapherUrls, getGrapherExportsByUrl, GrapherExports } from './grapherUtil'
 import { makeSitemap } from './sitemap'
 
@@ -157,7 +157,7 @@ export class SiteBaker {
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
-            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('countries') && !path.startsWith('country') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
+            .filter(path => !path.startsWith('uploads') && !path.startsWith('grapher') && !path.startsWith('countries') && !path.startsWith('country') && !path.startsWith('subscribe') && !path.startsWith('blog') && !path.startsWith('entries-by-year') && path !== "donate" && path !== "feedback" && path !== "charts" && path !== "search" && path !== "index" && path !== "identifyadmin" && path !== "404" && path !== "google8272294305985984")
         const toRemove = without(existingSlugs, ...postSlugs)
         for (const slug of toRemove) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
@@ -171,6 +171,7 @@ export class SiteBaker {
         await this.stageWrite(`${BAKED_SITE_DIR}/index.html`, await renderFrontPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/subscribe.html`, await renderSubscribePage())
         await this.stageWrite(`${BAKED_SITE_DIR}/donate.html`, await renderDonatePage())
+        await this.stageWrite(`${BAKED_SITE_DIR}/feedback.html`, await feedbackPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/charts.html`, await renderChartsPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/search.html`, await renderSearchPage())
         await this.stageWrite(`${BAKED_SITE_DIR}/headerMenu.json`, await renderMenuJson())

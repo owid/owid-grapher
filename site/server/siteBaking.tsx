@@ -32,6 +32,7 @@ import { ChartConfigProps } from "charts/ChartConfig";
 import { DimensionWithData } from "charts/DimensionWithData";
 import { Variable } from "db/model/Variable";
 import { CountriesIndexPage } from "./views/CountriesIndexPage";
+import { FeedbackPage } from "./views/FeedbackPage";
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -228,25 +229,6 @@ export async function pagePerVariable(variableId: number, countryName: string) {
     return renderToHtmlPage(<VariableCountryPage variable={variable} country={country}/>)
 }
 
-interface Stat {
-    value: number
-    year: number
-}
-
-async function getLatestDataForVariables(entityId: number, variableIds: number[]): Promise<{[variableId: number]: Stat}> {
-   const dataValues = await db.table("data_values").whereIn("variableId", variableIds).andWhere({ entityId: entityId }).orderBy("year", "DESC")
-
-   const result: {[variableId: number]: Stat} = {}
-
-   for (const dv of dataValues) {
-        if (result[dv.variableId])
-            continue
-
-        result[dv.variableId] = {
-            value: dv.value,
-            year: dv.year
-        }
-   }
-
-   return result
+export async function feedbackPage() {
+    return renderToHtmlPage(<FeedbackPage/>)
 }

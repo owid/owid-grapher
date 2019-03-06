@@ -12,7 +12,7 @@ import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {runSearchPage} from './SearchPageMain'
-import {runFeedback} from './Feedback'
+import {runFeedback, runFeedbackPage} from './Feedback'
 import {runDonateForm} from './DonateForm'
 import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
@@ -28,6 +28,7 @@ window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
 window.runFeedback = runFeedback
+window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
