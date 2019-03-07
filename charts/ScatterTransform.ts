@@ -384,7 +384,7 @@ export class ScatterTransform implements IChartTransform {
         const sizeValues: number[] = []
         this.allPoints.forEach(g => g.size && sizeValues.push(g.size))
         if (sizeValues.length === 0)
-            return [1, 1]
+            return [1, 100]
         else
             return domainExtent(sizeValues, 'linear')
     }
