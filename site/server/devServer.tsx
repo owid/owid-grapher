@@ -109,8 +109,9 @@ devServer.get('/feedback', async (req, res) => {
     res.send(await feedbackPage())
 })
 
-devServer.get('/:slug', async (req, res) => {
-    res.send(await renderPageBySlug(req.params.slug))
+devServer.get('/*', async (req, res) => {
+    const slug = req.path.replace(/^\//, "").replace("/", "__")
+    res.send(await renderPageBySlug(slug))
 })
 
 async function main() {
