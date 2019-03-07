@@ -23,7 +23,7 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
     ]
 }
 
-export class AboutSubnavigation extends React.Component<{ subnavId: string, subnavCurrentId?: string }> {
+export class SiteSubnavigation extends React.Component<{ subnavId: string, subnavCurrentId?: string }> {
     render() {
         const { subnavId, subnavCurrentId } = this.props
         const subnavLinks = subnavs[subnavId]
