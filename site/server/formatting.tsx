@@ -298,6 +298,8 @@ export interface FormattingOptions {
     hideAuthors?: boolean,
     wpFormat?: boolean,
     bodyClassName?: string,
+    subnavId?: string,
+    subnavCurrentId?: string,
     raw?: boolean,
     [key: string]: string | boolean | undefined
 }

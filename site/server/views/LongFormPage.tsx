@@ -7,6 +7,7 @@ import { SiteFooter } from './SiteFooter'
 import { formatAuthors, FormattedPost, FormattingOptions } from '../formatting'
 import { CategoryWithEntries } from 'db/wpdb'
 import * as _ from 'lodash'
+import { AboutSubnavigation } from './SiteSubnavigation'
 
 export const LongFormPage = (props: { entries: CategoryWithEntries[], post: FormattedPost, formattingOptions: FormattingOptions }) => {
     const {entries, post, formattingOptions} = props
@@ -37,6 +38,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
         </Head>
         <body className={classes.join(" ")}>
             <SiteHeader/>
+            {formattingOptions.subnavId && <AboutSubnavigation subnavId={formattingOptions.subnavId} subnavCurrentId={formattingOptions.subnavCurrentId} />}
             <main>
                 <article className="page">
                     <header className="articleHeader">
