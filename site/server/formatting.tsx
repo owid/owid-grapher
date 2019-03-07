@@ -298,6 +298,7 @@ export interface FormattingOptions {
     hideAuthors?: boolean,
     wpFormat?: boolean,
     bodyClassName?: string,
+    raw?: boolean,
     [key: string]: string | boolean | undefined
 }
 
@@ -338,7 +339,7 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
 
     // If <!--raw--> appears at the top of a post, it signals that the author
     // wants to bypass the formatting and just write plain HTML
-    const isRaw = html.match(/<!--raw-->/)
+    const isRaw = html.match(/<!--raw-->/) || formattingOptions.raw
 
     if (isRaw) {
         return {
