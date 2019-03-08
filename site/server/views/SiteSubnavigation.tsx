@@ -15,9 +15,10 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         { label: "Team", href: "/team", id: "team" },
         { label: "Jobs", href: "/jobs", id: "jobs" },
         { label: "Audience & Coverage", href: "/coverage", id: "coverage" },
+        // { label: "History", href: "/history", id: "history" },
         { label: "Supporters", href: "/supporters", id: "supporters" },
         { label: "FAQs", href: "/faqs", id: "faqs" },
-        { label: "How Tos", href: "/how-to-use-our-world-in-data", id: "how-tos" },
+        // { label: "How Tos", href: "/how-to-use-our-world-in-data", id: "how-tos" },
         { label: "Grapher", href: "/owid-grapher", id: "grapher" },
         { label: "Contact", href: "/about#contact", id: "contact" }
     ]
