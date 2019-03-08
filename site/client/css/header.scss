@@ -189,6 +189,7 @@
 
     @include sm-only {
         overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
@@ -200,27 +201,31 @@
     justify-content: center;
     list-style-type: none;
     padding: 0 .5rem;
+    font-size: 16px;
 
     @include sm-only {
+        font-size: 15px;
         flex-wrap: nowrap;
         justify-content: left;
     }
 
     li {
         padding: 0 .75rem;
+
+        @include sm-only {
+            padding: 0 .5rem;
+        }
     }
 
     a {
-        font-size: 1rem;
         font-weight: 700;
         color: $primary-color-600;
         text-decoration: none;
         display: block;
-        padding: .75rem 0;
-        // letter-spacing: .05em;
-        // text-transform: uppercase;
         transition: color 200ms ease;
         white-space: nowrap;
+        padding-top: 12px;
+        padding-bottom: 12px;
 
         &:hover {
             color: $primary-color;
@@ -229,6 +234,7 @@
 
     .current a {
         border-bottom: 3px solid $secondary-color;
+        padding-bottom: 9px;
         color: $primary-color;
     }
 
