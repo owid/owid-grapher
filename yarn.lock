@@ -734,6 +734,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-recaptcha@^2.3.3":
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@types/react-recaptcha/-/react-recaptcha-2.3.3.tgz#700369afa4d32e6e1fa08166fe73a717931fe8e0"
+  integrity sha512-1IdhJxBbPN+QL/eARSl/qwV2+03kwewJmZ43CWJJoGVZd4S4wGiascCl1HVe8PRtNPzXDqAi+nXIufvEDIsAPg==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-router-dom@^4.2.7":
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/@types/react-router-dom/-/react-router-dom-4.3.1.tgz#71fe2918f8f60474a891520def40a63997dafe04"
@@ -8914,6 +8921,11 @@ react-modal@^3.7.1:
     prop-types "^15.5.10"
     react-lifecycles-compat "^3.0.0"
     warning "^3.0.0"
+
+react-recaptcha@^2.3.10:
+  version "2.3.10"
+  resolved "https://registry.yarnpkg.com/react-recaptcha/-/react-recaptcha-2.3.10.tgz#1f7a001f24ab7e1a323fcf1fd8644afecb56f7da"
+  integrity sha512-IyanbozsYCuHvTYDuskZTIEcRAMG/sdvAu5b29iQWoC8Kd3Zk9WGCv2oNxh6RfGHvSvgHAyaLjmC6ei/yMsJ7g==
 
 react-router-dom@^4.3.1:
   version "4.3.1"

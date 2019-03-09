@@ -1,9 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import classnames from 'classnames'
 import { observable, action, computed, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { bind } from 'decko'
-import { DONATE_API_URL, BAKED_BASE_URL } from 'settings'
+import * as Recaptcha from 'react-recaptcha'
+import { DONATE_API_URL, BAKED_BASE_URL, RECAPTCHA_SITE_KEY } from 'settings'
 
 import stripe from './stripe'
 
@@ -12,7 +14,7 @@ type Interval = "once" | "monthly"
 const ONETIME_DONATION_AMOUNTS = [10,50,100,500,1000]
 const MONTHLY_DONATION_AMOUNTS = [5,10,20,50,100]
 
-const MIN_DONATION = 0.5
+const MIN_DONATION = 1
 const MAX_DONATION = 100000
 
 @observer
@@ -23,8 +25,11 @@ export class DonateForm extends React.Component {
     @observable isCustom: boolean = false
     @observable name: string = ""
     @observable showOnList: boolean = true
-
     @observable errorMessage?: string
+    @observable isSubmitting: boolean = false
+
+    captchaInstance?: Recaptcha | null
+    @observable.ref captchaPromiseHandlers?: { resolve: (value: any) => void, reject: (value: any) => void }
 
     @action.bound setInterval(interval: Interval) {
         this.interval = interval
@@ -65,49 +70,67 @@ export class DonateForm extends React.Component {
         return this.interval === "monthly" ? MONTHLY_DONATION_AMOUNTS : ONETIME_DONATION_AMOUNTS
     }
 
-    @bind async submitDonation(event: React.FormEvent) {
-        event.preventDefault()
-
+    async submitDonation(): Promise<void> {
         if (!this.amount || (this.amount > MAX_DONATION || this.amount < MIN_DONATION)) {
-            this.errorMessage = "You can only donate between $0.50 and $100,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
-            return
+            throw new Error("You can only donate between $1 and $100,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org.")
         }
 
-        runInAction(() => this.errorMessage = undefined)
+        const captchaToken = await this.getCaptchaToken()
+        const response = await fetch(DONATE_API_URL, {
+            method: "POST",
+            credentials: 'same-origin',
+            headers: {
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                name: this.name,
+                showOnList: this.showOnList,
+                amount: Math.floor(this.amount * 100),
+                interval: this.interval,
+                successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+                cancelUrl: `${BAKED_BASE_URL}/donate`,
+                captchaToken: captchaToken
+            })
+        })
+        const session = await response.json()
+        if (!response.ok) throw session
+        const result: { error: any } = await stripe.redirectToCheckout({
+            sessionId: session.id
+        })
+        if (result.error) {
+            // If `redirectToCheckout` fails due to a browser or network
+            // error, display the localized error message to your customer.
+            throw result.error
+        }
+    }
 
+    @bind async getCaptchaToken() {
+        return new Promise((resolve, reject) => {
+            if (!this.captchaInstance) return reject(new Error("Could not load reCAPTCHA. Please try again. If the problem persists, please get in touch with us at donate@ourworldindata.org"))
+            this.captchaPromiseHandlers = { resolve, reject }
+            this.captchaInstance.reset()
+            this.captchaInstance.execute()
+        })
+    }
+
+    @bind onCaptchaVerify(token: string) {
+        if (this.captchaPromiseHandlers) this.captchaPromiseHandlers.resolve(token)
+    }
+
+    @bind async onSubmit(event: React.FormEvent) {
+        event.preventDefault()
+        this.isSubmitting = true
+        this.errorMessage = undefined
         try {
-            const response = await fetch(DONATE_API_URL, {
-                method: "POST",
-                credentials: 'same-origin',
-                headers: {
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    name: this.name,
-                    showOnList: this.showOnList,
-                    amount: Math.floor(this.amount * 100),
-                    interval: this.interval,
-                    successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
-                    cancelUrl: `${BAKED_BASE_URL}/donate`
-                })
-            })
-            const session = await response.json()
-            if (!response.ok) throw session
-            const result: { error: any } = await stripe.redirectToCheckout({
-                sessionId: session.id
-            })
-            if (result.error) {
-                // If `redirectToCheckout` fails due to a browser or network
-                // error, display the localized error message to your customer.
-                runInAction(() => this.errorMessage = result.error.message)
-            }
+            await this.submitDonation()
         } catch (error) {
+            this.isSubmitting = false
             runInAction(() => this.errorMessage = (error && error.message) || "Something went wrong. Please get in touch with us at donate@ourworldindata.org")
         }
     }
 
     render() {
-        return <form className="donate-form" onSubmit={this.submitDonation}>
+        return <form className="donate-form" onSubmit={this.onSubmit}>
 
             <fieldset className="donate-form-interval">
                 <legend>
@@ -173,12 +196,24 @@ export class DonateForm extends React.Component {
                 {this.errorMessage}
             </p>}
 
-            <button type="submit" className="owid-button">
+            <Recaptcha
+                ref={inst => this.captchaInstance = inst}
+                sitekey={RECAPTCHA_SITE_KEY}
+                size="invisible"
+                verifyCallback={this.onCaptchaVerify}
+                badge="bottomleft"
+            />
+
+            <button type="submit" className={classnames("owid-button", { "disabled": this.isSubmitting })}>
                 Continue using credit card
             </button>
 
             <p className="note">
-                You will be redirected to a secure page to enter your payment details. We will not share any of your details with any third parties.
+                You will be redirected to a secure page to enter your payment details. We will not share any details you enter with any third parties.
+            </p>
+
+            <p className="note">
+                This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply.
             </p>
         </form>
     }

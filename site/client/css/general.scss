@@ -127,3 +127,10 @@ address a:hover {
     -moz-box-sizing:    border-box;
     box-sizing:         border-box;
 }
+
+/* Hide reCAPTCHA badge.
+ * This means we have to manually write a notice.
+---------------------------------------------------- */
+.grecaptcha-badge {
+    display: none;
+}
