@@ -187,7 +187,7 @@ export class DonateForm extends React.Component {
                 <div className="owid-checkboxes">
                     <div className="owid-checkbox-inline">
                         <input type="checkbox" id="showOnList" value="showOnList" name="type" checked={this.showOnList} onChange={(event) => this.setShowOnList(event.target.checked)} />
-                        <label htmlFor="showOnList">Include me on the public <a href="/about#supporters" target="_blank">list of donors</a></label>
+                        <label htmlFor="showOnList">Include me on the public <a href="/supporters" target="_blank">list of donors</a></label>
                     </div>
                 </div>
             </fieldset>
