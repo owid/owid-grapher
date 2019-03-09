@@ -27,6 +27,7 @@ export class DonateForm extends React.Component {
     @observable showOnList: boolean = true
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
+    @observable isLoading: boolean = true
 
     captchaInstance?: Recaptcha | null
     @observable.ref captchaPromiseHandlers?: { resolve: (value: any) => void, reject: (value: any) => void }
@@ -111,6 +112,10 @@ export class DonateForm extends React.Component {
             this.captchaInstance.reset()
             this.captchaInstance.execute()
         })
+    }
+
+    @bind onCaptchaLoad() {
+        this.isLoading = false
     }
 
     @bind onCaptchaVerify(token: string) {
@@ -200,11 +205,13 @@ export class DonateForm extends React.Component {
                 ref={inst => this.captchaInstance = inst}
                 sitekey={RECAPTCHA_SITE_KEY}
                 size="invisible"
-                verifyCallback={this.onCaptchaVerify}
                 badge="bottomleft"
+                render="explicit"
+                onloadCallback={this.onCaptchaLoad}
+                verifyCallback={this.onCaptchaVerify}
             />
 
-            <button type="submit" className={classnames("owid-button", { "disabled": this.isSubmitting })}>
+            <button type="submit" className={classnames("owid-button", { "disabled": this.isSubmitting })} disabled={this.isLoading}>
                 Continue using credit card
             </button>
 
