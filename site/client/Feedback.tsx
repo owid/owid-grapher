@@ -56,6 +56,11 @@ export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
         }
     }
 
+    @action.bound onDismiss(e: React.MouseEvent<HTMLButtonElement>) {
+        e.preventDefault()
+        this.props.onDismiss()
+    }
+
     @action.bound onClickSomewhere() {
         if (this.dismissable) {
             this.props.onDismiss()
@@ -115,7 +120,7 @@ export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
                 {this.done ? <div style={{ color: 'green' }}>Thanks for your feedback!</div> : undefined}
             </div>
             <footer>
-                <button onClick={this.props.onDismiss} disabled={loading}>Close</button>
+                <button onClick={this.onDismiss} disabled={loading}>Close</button>
                 <button type="submit" disabled={loading}>Send</button>
             </footer>
         </form>
