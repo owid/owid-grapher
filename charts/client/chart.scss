@@ -63,7 +63,6 @@ figure[data-grapher-src]:empty:after {
     /* Hidden overflow x so that tooltips don't cause scrollbars */
     overflow: hidden;
 
-    border: 1px solid #f0f0f0;
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.117647) 0px 0px 2px 0px, rgba(0, 0, 0, 0.239216) 0px 2px 2px 0px;
     z-index: $zindex-chart;
