@@ -5,7 +5,7 @@ import { AxisConfig, AxisConfigProps } from './AxisConfig'
 import { ChartType, ChartTypeType } from './ChartType'
 import { ChartTabOption } from './ChartTabOption'
 import { defaultTo } from './Util'
-import { VariableData } from './VariableData'
+import { VariableData, DataForChart } from './VariableData'
 import { ChartData } from './ChartData'
 import { DimensionWithData } from './DimensionWithData'
 import { MapConfig, MapConfigProps } from './MapConfig'
@@ -23,7 +23,6 @@ import * as ReactDOMServer from "react-dom/server"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
-import * as md5 from 'md5'
 import { TooltipProps } from "./Tooltip"
 
 declare const App: any
@@ -417,5 +416,9 @@ export class ChartConfig {
 
     @computed get cacheTag(): string {
         return this.props.version.toString()
+    }
+
+    receiveData(data: DataForChart) {
+        this.vardata.receiveData(data)
     }
 }

@@ -8,6 +8,35 @@ declare var window: { admin: any }
 
 declare var App: { isEditor: boolean }
 
+export interface DataForChart {
+    variables: {[id: string]: {
+        id: number
+        name: string    
+        description: string
+        unit: string
+        shortUnit: string
+        datasetName: string
+        datasetId: string
+    
+        display: VariableDisplaySettings
+    
+        source: {
+            id: number,
+            name: string,
+            dataPublishedBy: string,
+            dataPublisherSource: string,
+            link: string,
+            retrievedDate: string,
+            additionalInfo: string,
+        }
+    
+        years: number[]
+        entities: number[]
+        values: (number|string)[]
+    }}
+    entityKey: {[id: string]: EntityMeta}
+}
+
 export class VariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
@@ -24,8 +53,6 @@ export class Variable {
     @observable.ref description!: string
     @observable.ref unit!: string
     @observable.ref shortUnit!: string
-    @observable.ref coverage!: string
-    @observable.ref timespan!: string
     @observable.ref datasetName!: string
     @observable.ref datasetId!: string
 
@@ -128,7 +155,7 @@ export class VariableData {
     }
 
     @computed get cacheTag(): string|undefined {
-        return App.isEditor ? undefined : this.chart.cacheTag
+        return (typeof(App) !== "undefined" && App.isEditor) ? undefined : this.chart.cacheTag
     }
 
     @computed get availableEntities(): string[] {
@@ -158,14 +185,13 @@ export class VariableData {
             req.open("GET", `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join("+")}.json?v=${cacheTag}`)
             req.send()
         }
-
     }
 
-    @action.bound receiveData(json: any) {
-        const variablesById: { [id: string]: Variable } = json.variables
+    @action.bound receiveData(json: DataForChart) {
+        const variablesById: { [id: string]: Variable } = {}
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
-        for (const key in variablesById) {
-            const variable = new Variable(variablesById[key])
+        for (const key in json.variables) {
+            const variable = new Variable(json.variables[key])
             variable.entities = variable.entities.map(id => entityMetaById[id].name)
             variablesById[key] = variable
         }

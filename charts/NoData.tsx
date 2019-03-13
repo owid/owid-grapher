@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Bounds } from './Bounds'
 import { TextWrap } from './TextWrap'
-import { ChartConfig } from './ChartConfig'
 import {observer} from 'mobx-react'
 import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 

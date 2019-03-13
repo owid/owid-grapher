@@ -62,7 +62,7 @@ export class URLBinder {
     }
 
     @computed get origChart() {
-        if (App.isEditor) {
+        if (typeof(App) !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.chart.props)
         } else {
