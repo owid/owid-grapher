@@ -53,8 +53,8 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener('resize', throttle(render))
 
         FullStory.event("Loaded chart", {
-            type_str: chart.props.type,
-            id_int: chart.props.id,
+            chart_type_str: chart.props.type,
+            chart_id_int: chart.props.id,
             slug_str: chart.props.slug,
             originUrl_str: chart.props.originUrl,
             addCountryMode_str: chart.props.addCountryMode,
