@@ -53,6 +53,14 @@ export namespace Post {
                 await t.execute(`INSERT INTO post_tags (tag_id, post_id) VALUES ?`, [tagRows])
         })
     }
+
+    export async function bySlug(slug: string): Promise<Post.Row|undefined> {
+        return Post.rows(await db.table('posts').where({ slug: slug }))[0]
+    }
+
+    export function rows(plainRows: any): Post.Row[] {
+        return plainRows
+    }
 }
 
 export async function syncPostsToGrapher() {

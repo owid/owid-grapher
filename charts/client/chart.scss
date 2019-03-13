@@ -885,8 +885,25 @@ figure[data-grapher-src]:empty:after {
     z-index: $zindex-Tooltip;
 }
 
+.ChartPage main figure[data-grapher-src], #fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0;
+    width: 100%;
+    height: calc(100vh - 150px);
+}
+
+#fallback > img {
+    max-width: 100%;
+    border: 1px solid #ccc;
+}
+
 .ChartPage main {
-    height: calc(100vh - 100px);
+    .originReference {
+        text-align: center;
+    }
 }
 
 html.iframe .ChartPage {

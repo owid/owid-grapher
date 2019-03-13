@@ -9,9 +9,11 @@ import { ChartConfigProps } from 'charts/ChartConfig'
 import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
 import { Head } from './Head';
+import { urlToSlug } from 'charts/Util';
+import { Post } from 'db/model/Post';
 
-export const ChartPage = (props: { chart: ChartConfigProps }) => {
-    const {chart} = props
+export const ChartPage = (props: { chart: ChartConfigProps, post?: Post.Row }) => {
+    const {chart, post} = props
 
     const pageTitle = chart.title
     const pageDesc = chart.subtitle || "An interactive visualization from Our World in Data."
@@ -24,22 +26,6 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
     }
 `
 
-    const style = `
-        .ChartPage main figure[data-grapher-src], #fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        #fallback > img {
-            max-width: 100%;
-            border: 1px solid #ccc;
-        }
-    `
 
     const script = `
         var jsonConfig = ${JSON.stringify(chart)};
@@ -61,7 +47,6 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
         <Head canonicalUrl={canonicalUrl} pageTitle={pageTitle} pageDesc={pageDesc} imageUrl={imageUrl}>
             <meta property="og:image:width" content="850"/>
             <meta property="og:image:height" content="600"/>
-            <style dangerouslySetInnerHTML={{__html: style}}/>
             <script dangerouslySetInnerHTML={{__html: iframeScript}}/>
             <noscript>
                 <style>{`
@@ -76,6 +61,10 @@ export const ChartPage = (props: { chart: ChartConfigProps }) => {
             <main>
                 <figure data-grapher-src={`/grapher/${chart.slug}`}>
                 </figure>
+
+                {post && <div className="originReference">
+                    This chart is part of a collection of research. For more information, see <a href={chart.originUrl}>{post.title}</a>.
+                </div>}
                 <noscript id="fallback">
                     <h1>{chart.title}</h1>
                     <p>{chart.subtitle}</p>

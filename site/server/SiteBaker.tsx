@@ -26,6 +26,7 @@ import { ChartPage } from './views/ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { Post } from 'db/model/Post'
 import { bakeCountries } from './countryProfiles';
+import { chartPage } from './chartBaking';
 
 // Static site generator using Wordpress
 
@@ -234,7 +235,7 @@ export class SiteBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
-        await fs.writeFile(outPath, renderToHtmlPage(<ChartPage chart={chart}/>))
+        await fs.writeFile(outPath, chartPage(chart.slug as string))
         this.stage(outPath)
     }
 

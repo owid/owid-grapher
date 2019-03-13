@@ -271,3 +271,11 @@ export function csvEscape(value: any): string {
     else
         return value
 }
+
+import * as parseUrl from 'url-parse'
+
+export function urlToSlug(url: string): string {
+    const urlobj = parseUrl(url)
+    const slug = last(urlobj.pathname.split('/').filter(x => x)) as string
+    return slug
+}
