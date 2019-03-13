@@ -235,7 +235,7 @@ export class SiteBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
-        await fs.writeFile(outPath, chartPage(chart.slug as string))
+        await fs.writeFile(outPath, await chartPage(chart.slug as string))
         this.stage(outPath)
     }
 
