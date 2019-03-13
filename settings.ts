@@ -23,6 +23,7 @@ export const BLOG_POSTS_PER_PAGE: number = 21
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID||""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY||""
 
+export const STRIPE_SECRET_KEY: string = process.env.STRIPE_SECRET_KEY||""
 export const STRIPE_PUBLIC_KEY: string = process.env.STRIPE_PUBLIC_KEY||"pk_test_nIHvmH37zsoltpw3xMssPIYq"
 export const DONATE_API_URL: string = process.env.DONATE_API_URL||"http://localhost:9000/donate"
 export const RECAPTCHA_SITE_KEY: string = process.env.RECAPTCHA_SITE_KEY||"6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
