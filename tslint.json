@@ -36,7 +36,8 @@
         "eofline": false,
         "no-return-await": false,
         "await-promise": true,
-        "no-shadowed-variable": false
+        "no-shadowed-variable": false,
+        "no-namespace": false
     },
     "rulesDirectory": []
 }
