@@ -6,7 +6,7 @@ import { observer } from 'mobx-react'
 import { getRelativeMouse } from './Util'
 import { MapLegendBin, NumericBin, CategoricalBin, MapDataValue } from './MapData'
 import { TextWrap } from './TextWrap'
-import { sum } from 'd3';
+import { sum } from 'd3-array'
 
 interface NumericMapLegendProps {
     width: number,
