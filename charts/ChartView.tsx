@@ -45,7 +45,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                 chart.baseFontSize = 16
             else if (containerBounds.width >= 1080)
                 chart.baseFontSize = 18
-            Bounds.baseFontFamily = "Helvetica, Arial"
+
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} isEmbed={isEmbed} />, containerNode)
         }
 

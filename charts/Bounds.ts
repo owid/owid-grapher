@@ -9,7 +9,6 @@ const pixelWidth = require('string-pixel-width')
 export class Bounds {
     static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
-    static baseFontFamily: string = "Helvetica, Arial"
 
     static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
         const { x, y, width, height } = props
