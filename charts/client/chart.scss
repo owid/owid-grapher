@@ -892,7 +892,7 @@ figure[data-grapher-src]:empty:after {
     flex-direction: column;
     margin: 0;
     width: 100%;
-    height: calc(100vh - 150px);
+    height: calc(100vh - 140px);
 }
 
 #fallback > img {
@@ -902,6 +902,7 @@ figure[data-grapher-src]:empty:after {
 
 .ChartPage main {
     .originReference {
+        margin-top: .5rem;
         text-align: center;
     }
 }
