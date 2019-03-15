@@ -48,10 +48,7 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
     @action.bound onSlopeClick() {
         const { chart, hoverKey } = this
         if (chart.addCountryMode === 'disabled' || hoverKey === undefined) {
-            console.log("hoverkey is undefined :( " + hoverKey)
             return
-        } else {
-            console.log("hoverkey exists! " + hoverKey)
         }
 
         this.chart.data.toggleKey(hoverKey)

@@ -8,7 +8,6 @@ import { FeedbackForm } from 'site/client/Feedback'
 import { ChartStoryView } from 'site/client/ChartStoryView'
 import 'site/client/owid.scss'
 import 'charts/client/chart.scss'
-import { ChartConfig } from 'charts/ChartConfig'
 
 storiesOf('FeedbackForm', module)
     .add('normal', () => <FeedbackForm onDismiss={action('dismissed')}/>)

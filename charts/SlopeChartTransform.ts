@@ -92,15 +92,17 @@ export class SlopeChartTransform implements IChartTransform {
     // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
     // this returns that data in the form { Afghanistan => Asia }
     @computed get colorByEntity(): Map<string, any> {
-        const { colorDimension: colorDim, colors }= this
+        const { colorDimension, colors } = this
         const colorByEntity = new Map<string, any>()
 
-        if (colorDim !== undefined) {
-            colorDim.valueByEntityAndYear.forEach((yearToColorMap, entity) => {
+        if (colorDimension !== undefined) {
+            colorDimension.valueByEntityAndYear.forEach((yearToColorMap, entity) => {
                 const values = Array.from(yearToColorMap.values())
-                colorByEntity.set(entity, colors.get(values[0].toString()))
+                const key = values[0].toString()
+                colorByEntity.set(entity, colors.get(key))
             })
         }
+
         return colorByEntity
     }
 
@@ -138,6 +140,7 @@ export class SlopeChartTransform implements IChartTransform {
         if (!this.yDimension) return []
 
         const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
+        const { keyColors } = chart.data
         const entityKey = this.chart.vardata.entityMetaByKey
 
         const minYear = Math.max(xDomain[0])
@@ -157,10 +160,12 @@ export class SlopeChartTransform implements IChartTransform {
                     }
                 })
             }
+
+            const key = chart.data.keyFor(entity, yDimension.index)
             return {
-                key: chart.data.keyFor(entity, yDimension.index),
+                key: key,
                 label: entityKey[entity].name,
-                color: colorByEntity.get(entity) || "#ff7f0e",
+                color: keyColors[key] || colorByEntity.get(entity) || "#ff7f0e",
                 size: sizeByEntity.get(entity) || 1,
                 values: slopeValues
             }

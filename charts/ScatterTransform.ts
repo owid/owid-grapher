@@ -63,13 +63,13 @@ export class ScatterTransform implements IChartTransform {
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
     @computed get yDimension(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'y')
+        return this.chart.data.filledDimensions.find(d => d.property === 'y')
     }
     @computed get xDimension(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'x')
+        return this.chart.data.filledDimensions.find(d => d.property === 'x')
     }
     @computed get colorDimension(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'color')
+        return this.chart.data.filledDimensions.find(d => d.property === 'color')
     }
     @computed get axisDimensions(): DimensionWithData[] {
         const dimensions = []

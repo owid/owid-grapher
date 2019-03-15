@@ -82,8 +82,8 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         const textColor = '#666'
 
         return <g className="axis" fontSize="0.8em">
-            {ticks.map(tick => {
-                return <text x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" textAnchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
+            {ticks.map((tick, i) => {
+                return <text key={i} x={orient === 'left' ? bounds.left : bounds.right} y={scale(tick)} fill={textColor} dominantBaseline="middle" textAnchor={orient === 'left' ? 'start' : 'end'}>{tickFormat(tick)}</text>
             })}
         </g>
     }
@@ -127,7 +127,7 @@ class Slope extends React.Component<SlopeProps> {
     }
 
     render() {
-        const { key, x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused, isHovered } = this.props
+        const { x1, y1, x2, y2, color, size, hasLeftLabel, hasRightLabel, leftValueStr, rightValueStr, leftLabel, rightLabel, labelFontSize, leftLabelBounds, rightLabelBounds, isFocused, isHovered } = this.props
         const { isInBackground } = this
 
         const lineColor = isInBackground ? '#e2e2e2' : color //'#89C9CF'
@@ -383,7 +383,6 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     mouseFrame?: number
     @action.bound onMouseLeave() {
-
         if (this.mouseFrame !== undefined)
             cancelAnimationFrame(this.mouseFrame)
 
@@ -392,17 +391,23 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>) {
-        const mouse = getRelativeMouse(this.base.current, ev)
+        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
         this.mouseFrame = requestAnimationFrame(() => {
             if (this.props.bounds.contains(mouse)) {
-                const slope = sortBy(this.slopeData, s => {
-                    const distToLine = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
-                    return distToLine
-                })[0]
 
-                if (slope && this.props.onMouseOver) {
-                    this.props.onMouseOver(slope)
+                const distToSlope = new Map<SlopeProps, number>()
+                for (const s of this.slopeData) {
+                    const dist = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
+                    distToSlope.set(s, dist)
+                }
+    
+                const closestSlope = sortBy(this.slopeData, s => distToSlope.get(s))[0]
+
+                if (closestSlope && distToSlope.get(closestSlope) as number < 20 && this.props.onMouseOver) {
+                    this.props.onMouseOver(closestSlope)
+                } else {
+                    this.props.onMouseLeave()
                 }
             }
         })
@@ -432,20 +437,19 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     render() {
         const { yTickFormat, yScaleType, yScaleTypeOptions, onScaleTypeChange, fontSize } = this.props
-        const { bounds, slopeData, isPortrait, xDomain, yScale } = this
+        const { bounds, slopeData, isPortrait, xDomain, yScale, onMouseMove } = this
 
         if (isEmpty(slopeData))
             return <NoData bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
-        const onMouseMove = throttle(this.onMouseMove, 100)
 
-        return <g className="LabelledSlopes" ref={this.base}>
-            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(0,0,0,0)" opacity={0} />
+        return <g className="LabelledSlopes" ref={this.base} onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" opacity={0} />
             <g className="gridlines">
-                {SlopeChartAxis.getTicks(yScale, yScaleType).map(tick => {
-                    return <line x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" strokeDasharray="3,2" />
+                {SlopeChartAxis.getTicks(yScale, yScaleType).map((tick, i) => {
+                    return <line key={i} x1={x1} y1={yScale(tick)} x2={x2} y2={yScale(tick)} stroke="#eee" strokeDasharray="3,2" />
                 })}
             </g>
             {!isPortrait && <SlopeChartAxis orient="left" tickFormat={yTickFormat} scale={yScale} scaleType={yScaleType} bounds={bounds} />}
@@ -455,7 +459,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             {yScaleTypeOptions.length > 1 && <ScaleSelector x={x1 + 5} y={y2 - 8} scaleType={yScaleType} scaleTypeOptions={yScaleTypeOptions} onChange={onScaleTypeChange} />}
             <Text x={x1} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[0].toString()}</Text>
             <Text x={x2} y={y1 + 10} textAnchor="middle" fill="#666" fontSize={fontSize}>{xDomain[1].toString()}</Text>
-            <g className="slopes" onMouseMove={onMouseMove} onTouchMove={onMouseMove} onTouchStart={onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+            <g className="slopes">
                 {this.renderBackgroundGroups()}
                 {this.renderForegroundGroups()}
             </g>
