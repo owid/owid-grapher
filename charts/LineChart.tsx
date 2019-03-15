@@ -72,7 +72,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                 color: d.color,
                 key: d.key,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                label: this.chart.hideLegend ? "" : `${this.chart.data.formatKey(d.key)}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
                 yValue: lastValue
             }
         })
