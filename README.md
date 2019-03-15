@@ -6,7 +6,7 @@ This is the project we use at the University of Oxford to create embeddable visu
 
 An example of what this can make (click for interactive):
 
-[![Life expectancy at birth](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/exports/life-expectancy)
+[![Life expectancy at birth](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
 The owid-grapher visualization frontend code can run isomorphically under node to render data directly to an SVG string, which is how the above image works!
 
