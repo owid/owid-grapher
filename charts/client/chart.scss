@@ -910,9 +910,12 @@ figure[data-grapher-src]:empty:after {
 html.iframe .ChartPage {
     background-color: inherit;
 
+    > main {
+        min-height: inherit;
+    }
+
     figure {
         height: 100vh;
-        min-height: inherit;
     }
 
     .site-header {
