@@ -56,6 +56,9 @@ export class Variable {
     @observable.ref datasetName!: string
     @observable.ref datasetId!: string
 
+    @observable.ref coverage?: string
+    @observable.ref timespan?: string
+
     @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
     @observable.struct source!: {
