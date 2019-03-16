@@ -8,6 +8,11 @@
         font-size: 2.5rem;
         color: $text-color;
         margin: 0 0 2rem;
+
+        @include sm-only {
+            font-size: 2rem;
+            margin: 0 0 1.5rem;
+        }
     }
 }
 

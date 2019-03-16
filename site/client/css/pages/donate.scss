@@ -4,6 +4,10 @@
     .shaded-box {
         border: 2px solid $primary-color;
         padding: 2rem;
+
+        @include sm-only {
+            padding: 1.5rem;
+        }
     }
 }
 

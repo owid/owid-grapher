@@ -15,7 +15,7 @@ export const DonatePage = () => {
         <body>
             <SiteHeader/>
             <main>
-                <article className="page donate-page">
+                <article className="donate-page">
                     <div className="page-header">
                         <div className="wrapper">
                             <h1 className="page-heading">Help us do more</h1>
