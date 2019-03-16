@@ -11,16 +11,19 @@ import stripe from './stripe'
 
 type Interval = "once" | "monthly"
 
-const ONETIME_DONATION_AMOUNTS = [10,50,100,500,1000]
-const MONTHLY_DONATION_AMOUNTS = [5,10,20,50,100]
+const ONETIME_DONATION_AMOUNTS = [50,100,500,1000,10000]
+const MONTHLY_DONATION_AMOUNTS = [20,50,100,200,500]
+
+const ONETIME_DEFAULT_INDEX = 2
+const MONTHLY_DEFAULT_INDEX = 2
 
 const MIN_DONATION = 1
 const MAX_DONATION = 100000
 
 @observer
 export class DonateForm extends React.Component {
-    @observable interval: Interval = "monthly"
-    @observable presetAmount?: number = MONTHLY_DONATION_AMOUNTS[2]
+    @observable interval: Interval = "once"
+    @observable presetAmount?: number = ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
     @observable customAmount: string = ""
     @observable isCustom: boolean = false
     @observable name: string = ""
@@ -34,7 +37,7 @@ export class DonateForm extends React.Component {
 
     @action.bound setInterval(interval: Interval) {
         this.interval = interval
-        this.presetAmount = this.intervalAmounts[2]
+        this.presetAmount = this.intervalAmounts[interval === "monthly" ? MONTHLY_DEFAULT_INDEX : ONETIME_DEFAULT_INDEX]
     }
 
     @action.bound setPresetAmount(amount?: number) {
