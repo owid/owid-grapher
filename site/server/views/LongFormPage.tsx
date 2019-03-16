@@ -121,7 +121,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                     </ul>
                 </div>
             </div>
-            <SiteFooter/>
+            <SiteFooter hideDonate={formattingOptions.hideDonateFooter} />
         </body>
     </html>
 }

@@ -54,7 +54,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
                     </ul>
                 </div>
             </div>
-            <SiteFooter/>
+            <SiteFooter hideDonate={formattingOptions.hideDonateFooter} />
         </body>
     </html>
 }

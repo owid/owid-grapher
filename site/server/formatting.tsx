@@ -301,6 +301,7 @@ export interface FormattingOptions {
     subnavId?: string,
     subnavCurrentId?: string,
     raw?: boolean,
+    hideDonateFooter?: boolean,
     [key: string]: string | boolean | undefined
 }
 
