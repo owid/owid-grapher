@@ -34,7 +34,8 @@ export interface ChartListItem {
 }
 
 function showChartType(chart: ChartListItem) {
-    const displayType = ChartTypeDefsByKey[chart.type].label || "Unknown"
+    const chartTypeDefs = ChartTypeDefsByKey[chart.type]
+    const displayType = chartTypeDefs && chartTypeDefs.label || "Unknown"
 
     if (chart.tab === "map") {
         if (chart.hasChartTab)
