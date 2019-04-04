@@ -79,7 +79,6 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                         <li><strong>Esteban Ortiz-Ospina</strong> &ndash; Social science</li>
                                         <li><strong>Hannah Ritchie</strong> &ndash; Environmental science</li>
                                         <li><strong>Joe Hasell</strong> &ndash; Social science</li>
-                                        <li><strong>Jaiden Mispy</strong> &ndash; Lead developer</li>
                                         <li><strong>Daniel Gavrilov</strong> &ndash; Web developer</li>
                                     </ul>
                                 </section>
