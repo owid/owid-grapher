@@ -130,7 +130,7 @@ class EditVariable extends React.Component<{ variable: EditableVariable, dataset
                 <select onChange={e => { variable.overwriteId = e.target.value ? parseInt(e.target.value) : undefined }} value={variable.overwriteId||""}>
                     <option value="">Create new variable</option>
                     {dataset.existingVariables.map(v =>
-                        <option value={v.id}>Overwrite {v.name}</option>
+                        <option key={v.id} value={v.id}>Overwrite {v.name}</option>
                     )}
                 </select>
             </FieldsRow>
