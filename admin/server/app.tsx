@@ -20,7 +20,7 @@ app.use(cookieParser())
 
 app.use(express.urlencoded({ extended: true }))
 
-// Require authentication for all requests by default
+// Require authentication (only for /admin requests)
 app.use(authMiddleware)
 
 //app.use(express.urlencoded())
@@ -32,7 +32,7 @@ app.use('/admin/build', express.static('dist/webpack'))
 app.use('/admin', adminViews)
 
 // Default route: single page admin app
-app.get('*', (req, res) => {
+app.get('/admin/*', (req, res) => {
     res.send(renderToHtmlPage(<AdminSPA username={res.locals.user.fullName}/>))
 })
 
