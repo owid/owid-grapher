@@ -40,7 +40,7 @@ export const SiteHeader = () => {
                     <div className="site-secondary-navigation">
                         <ul className="site-secondary-links">
                             <li><a href="/charts" data-track-click data-track-note="header-navigation">All charts</a></li>
-                            <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li>
+                            {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
                             <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
                         </ul>
                     </div>
