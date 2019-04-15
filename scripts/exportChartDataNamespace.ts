@@ -7,18 +7,20 @@ import { DB_NAME } from 'serverSettings'
 
 import { exec } from 'utils/server/serverUtil'
 
-const namespace = process.argv[2]
+const namespacesArg: string = process.argv[2]
 
-if (!namespace) {
+if (!namespacesArg) {
     const programName = path.basename(process.argv[1])
-    console.log(`Usage:\n${programName} [namespace]`)
+    console.log(`Usage:\n${programName} [namespaces]`)
     process.exit(1)
 }
+
+const namespaces: string[] = namespacesArg.split(",")
 
 async function dataExport() {
     await db.connect()
 
-    const tmpFile = `/tmp/owid_chartdata_${namespace}.sql`
+    const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(",")}.sql`
 
     // This will also retrieve variables that are not in the specified namespace
     // but are used in a chart that has at least one variable from the specified
@@ -34,19 +36,19 @@ async function dataExport() {
             JOIN chart_dimensions ON chart_dimensions.chartId = charts.id
             JOIN variables ON variables.id = chart_dimensions.variableId
             JOIN datasets ON datasets.id = variables.datasetId
-            WHERE datasets.namespace = ?
+            WHERE datasets.namespace IN (?)
         )
-    `, [namespace])
+    `, [namespaces])
 
     const variableIds = rows.map((row: any) => row.variableId)
 
-    console.log(`Exporting data for ${variableIds.length} variables to ${tmpFile}`)
+    console.log(`Exporting data for ${variableIds.length} variables to ${tmpFilename}`)
 
-    await exec(`rm -f ${tmpFile}`)
+    await exec(`rm -f ${tmpFilename}`)
 
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --no-create-info ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFile}`)
+        await exec(`mysqldump --no-create-info ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
 
         count += chunk.length
         console.log(count)
