@@ -26,7 +26,7 @@ function getPostType(post: FormattedPost, tags: Tag[]) {
     if (post.slug.startsWith("about/")) {
         return "about"
     } if (post.type === 'post') {
-        if (tags.some(t => t.name === "Explainer"))
+        if (tags.some(t => t.name === "Explainers"))
             return "explainer"
         else if (tags.some(t => t.name === "Short updates and facts"))
             return "fact"
@@ -53,7 +53,7 @@ async function indexToAlgolia() {
         'synonyms',
         'rules'
     ])
-  
+
     const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
 
     const records = []
