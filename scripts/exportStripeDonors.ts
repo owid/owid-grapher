@@ -11,7 +11,7 @@ interface CustomerWithCharges extends Stripe.customers.ICustomer {
     charges: Stripe.charges.ICharge[]
 }
 
-async function getAll(getter: ({ limit, starting_after }: { limit: any, starting_after: any }) => Promise<Stripe.IList<any>>): Promise<any[]> {
+async function getAll(getter: ({ limit, starting_after }: any) => Promise<Stripe.IList<any>>): Promise<any[]> {
     const result = []
     let firstRun = true
     let startingAfter
