@@ -6,6 +6,7 @@ import * as React from 'react'
 import {renderToHtmlPage} from 'utils/server/serverUtil'
 import {chartToSVG} from 'site/server/svgPngExport'
 import { OldChart, Chart } from 'db/model/Chart'
+import { Head } from 'site/server/views/Head'
 import * as db from 'db/db'
 import {ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL} from 'settings'
 import {expectInt} from 'utils/server/serverUtil'
@@ -79,11 +80,9 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         }
     `
     return <html>
-        <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1"/>
-            <title>Test Embeds</title>
+        <Head canonicalUrl="" pageTitle="Test Embeds">
             <style dangerouslySetInnerHTML={{__html: style}}/>
-        </head>
+        </Head>
         <body>
             <div className="row">
                 <div className="side-by-side">
