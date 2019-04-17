@@ -101,7 +101,7 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
         const markerX1 = x+5
         const markerX2 = x+legend.leftPadding-5
         const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
-        const lineColor = isFocus ? "#666" : "#ccc"
+        const lineColor = isFocus ? "#666" : "#ddd"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
             {needsLines && <g className="indicator">
                 <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
@@ -109,7 +109,7 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
                 <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
             </g>}
             <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
-            {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ccc" })}
+            {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ddd" })}
         </g>
     }
 }
