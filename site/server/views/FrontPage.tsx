@@ -339,8 +339,11 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                             <h3 id={category.slug}>{category.name}</h3>
                         </div>
                         <div className="category-entries">
-                            {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className={`entry ${category.slug}-color`} data-track-click data-track-note="homepage-entries">
-                                <h4>{entry.title}</h4>
+                            {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className={`entry-item-container ${category.slug}-color`} data-track-click data-track-note="homepage-entries">
+                                <div className="entry-item">
+                                    <h4>{entry.title}</h4>
+                                    <p className="excerpt">{entry.excerpt}</p>
+                                </div>
                             </a>)}
                         </div>
                     </div>)}
@@ -348,6 +351,10 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
             </section>
 
             <SiteFooter />
+
+            <script dangerouslySetInnerHTML={{__html: `
+                runEntryExcerptLinks()
+            `}}/>
         </body>
     </html>
 }

@@ -157,6 +157,7 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
 export interface EntryMeta {
     slug: string
     title: string
+    excerpt: string
 }
 
 export interface CategoryWithEntries {
@@ -235,7 +236,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     ]
 
     const pageRows = await wpdb.query(`
-        SELECT posts.ID, post_title, post_date, post_name FROM wp_posts AS posts
+        SELECT posts.ID, post_title, post_date, post_name, post_excerpt FROM wp_posts AS posts
         WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC, posts.post_title ASC
     `)
 
@@ -252,7 +253,8 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         const entries = rows.map(row => {
             return {
                 slug: permalinks.get(row.ID, row.post_name),
-                title: row.post_title
+                title: row.post_title,
+                excerpt: row.post_excerpt
             }
         })
 
