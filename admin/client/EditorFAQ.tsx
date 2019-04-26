@@ -24,7 +24,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                 <h6>Why does it say "No matching data"?</h6>
                 <p>Check the data selection on the "Data" tab and the specified year range on the "Customize" tab. Alternatively, you might be trying to show a categorical variable on a numeric chart type or vice versa, which won't work.</p>
                 <h6>Other questions or bug reports</h6>
-                <p>Fastest way to get support is to ask in <a href="https://owid.slack.com/messages/tiny-tech-problems/">#tiny-tech-problems</a> on the OWID Slack!</p>
+                <p>Fastest way to get support is to ask in <a href="https://owid.slack.com/messages/tech-issues/">#tech-issues</a> on the OWID Slack!</p>
             </div>
         </Modal>
     }

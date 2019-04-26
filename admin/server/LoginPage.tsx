@@ -40,7 +40,7 @@ export function LoginPage(props: { next?: string, errorMessage?: string }) {
                 </div>
                 <input type="hidden" name="next" value={props.next}/>
                 {props.errorMessage && <div className="alert alert-danger">{props.errorMessage}</div>}
-                <p>Having trouble logging in? Go to <a href="https://owid.slack.com/messages/tiny-tech-problems/">#tiny-tech-problems</a>.</p>
+                <p>Having trouble logging in? Go to <a href="https://owid.slack.com/messages/tech-issues/">#tech-issues</a>.</p>
                 <button type="submit" className="btn btn-primary">Login</button>
             </form>
         </body>

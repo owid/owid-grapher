@@ -35,7 +35,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
             <div className="modal-header">
                 <div>
                     <h5 className="modal-title" style={error.isFatal ? { color: 'red' } : undefined}>{error.title}</h5>
-                    {error.isFatal && <p>Please screenshot this error message and report it in <a href="https://owid.slack.com/messages/tiny-tech-problems/">#tiny-tech-problems</a></p>}
+                    {error.isFatal && <p>Please screenshot this error message and report it in <a href="https://owid.slack.com/messages/tech-issues/">#tech-issues</a></p>}
                 </div>
             </div>
             <div className="modal-body">
