@@ -52,7 +52,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         render()
         window.addEventListener('resize', throttle(render))
 
-        FullStory.event("Loaded chart", {
+        FullStory.event("Loaded chart v2", {
             chart_type_str: chart.props.type,
             chart_id_int: chart.props.id,
             slug_str: chart.props.slug,
@@ -69,7 +69,7 @@ export class ChartView extends React.Component<ChartViewProps> {
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.tab,
-            totalSelectedEntities: chart.props.selectedData.length
+            totalSelectedEntities_int: chart.props.selectedData.length
         })
 
         return chartView

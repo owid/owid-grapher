@@ -24,7 +24,7 @@ function getType(value: any): ValueType {
     else return "" // assume it's nested object
 }
 
-function getTypedKey(key: string, value: any): string {
+function getTypedKey(value: any, key: string): string {
     if (alreadyTyped.test(key)) {
         return key
     } else if (Array.isArray(value)) {
