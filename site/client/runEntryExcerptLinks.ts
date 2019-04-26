@@ -1,4 +1,4 @@
-import { select, selectAll, BaseType } from 'd3-selection'
+import { select, selectAll } from 'd3-selection'
 
 export function runEntryExcerptLinks() {
     const container = selectAll("#entries")
@@ -6,7 +6,7 @@ export function runEntryExcerptLinks() {
         const element = this as Element
         if (element.parentNode) {
             const elementCopy = element.parentNode.insertBefore(element.cloneNode(true), element)
-            select(elementCopy as BaseType).classed("floating", true)
+            select(elementCopy as Element).classed("floating", true)
         }
     })
 }
