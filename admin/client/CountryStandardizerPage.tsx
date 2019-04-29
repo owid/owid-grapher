@@ -92,7 +92,10 @@ class CSV {
         }
 
         const entriesByCountry = new Map<string, CountryEntry>()
-        const countries = rows.slice(1).map((row: string[]) => unidecode(row[countryColumnIndex] as string))
+        const countries = rows
+            .slice(1) // remove header row
+            .map((row: string[]) => unidecode(row[countryColumnIndex] as string))
+            .filter((country?: string) => country !== "" && country !== undefined) // exclude empty strings
 
         // for fuzzy-match, use the input and output values as target to improve matching potential
         const inputCountries = Object.keys(mapCountriesInputToOutput).filter(key => mapCountriesInputToOutput[key] !== undefined)
@@ -276,7 +279,7 @@ export class CountryStandardizerPage extends React.Component {
             results.countries.forEach((countryFormat: any) => {
                 if (countryFormat.input === null) return
                 countryMap[countryFormat.input.toLowerCase()] = toString(countryFormat.output)
-            })    
+            })
 
             this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
         })
