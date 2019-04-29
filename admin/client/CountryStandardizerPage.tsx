@@ -7,9 +7,9 @@ const unidecode = require("unidecode")
 const FuzzySet = require("fuzzyset")
 
 import { AdminLayout } from './AdminLayout'
-import { SelectField } from './Forms'
+import { SelectField, SelectGroupsField, SelectGroup } from './Forms'
 import { CountryNameFormat, CountryNameFormatDefs, CountryDefByKey } from 'admin/CountryNameFormat'
-import { uniq, toString, csvEscape } from 'charts/Util'
+import { uniq, toString, csvEscape, values, sortBy } from 'charts/Util'
 import { AdminAppContext } from './AdminAppContext'
 
 class CSV {
@@ -25,6 +25,11 @@ class CSV {
         this.countryEntriesMap = new Map<string, CountryEntry>()
         this.rows = []
         this.mapCountriesInputToOutput = {}
+    }
+
+    @computed get allCountries(): string[] {
+        const standardNames = values(this.mapCountriesInputToOutput).filter((value: string|undefined) => value !== undefined) as string[]
+        return uniq(sortBy(standardNames)) as string[]
     }
 
     @computed get countryColumnIndex() {
@@ -142,7 +147,7 @@ export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> 
 }
 
 @observer
-export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void } > {
+export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, allCountries: string[], onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void } > {
     @observable selectedStandardName!: string
 
     @computed get defaultOption() {
@@ -175,16 +180,25 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
     }
 
     render() {
-        const { entry, onUpdate } = this.props
+        const { entry, allCountries, onUpdate } = this.props
         const { defaultOption, defaultValue, isMatched } = this
+
+        const optgroups: SelectGroup[] = []
+
+        if (entry.approximatedMatches.length > 0) {
+            const options = entry.approximatedMatches.map(countryName => ({ value: countryName, label: countryName }))
+            optgroups.push({ title: "Likely matches", options: options })
+        }
+
+        optgroups.push({
+            title: "All standard names",
+            options: allCountries.map(countryName => ({ value: countryName, label: countryName }))
+        })
 
         return <tr>
             <td><span style={{color: isMatched ? "black" : "red"}}>{ entry.originalName }</span></td>
             <td>{ entry.standardizedName }</td>
-            <td>{ entry.approximatedMatches.length > 0 ?
-                <SelectField value={defaultValue} onValue={this.onEntrySelected} options={[defaultOption].concat(entry.approximatedMatches)} optionLabels={[defaultOption].concat(entry.approximatedMatches)} /> :
-                <span>No candidates found</span> }
-            </td>
+            <td><SelectGroupsField value={defaultValue} onValue={this.onEntrySelected} options={[{ value: defaultOption, label: defaultOption }]} groups={optgroups} /></td>
             <td><input type="text" className="form-control" value={entry.customName} onChange={e => onUpdate(e.currentTarget.value, entry.originalName, true) } /></td>
         </tr>
     }
@@ -472,7 +486,7 @@ export class CountryStandardizerPage extends React.Component {
                         </thead>
                         <tbody>
                             {entriesToShow.map((entry, i) =>
-                                <CountryEntryRowRenderer key={i} entry={entry} onUpdate={this.onUpdateRow}/>
+                                <CountryEntryRowRenderer key={i} entry={entry} allCountries={this.csv.allCountries} onUpdate={this.onUpdateRow}/>
                             )}
                         </tbody>
                     </table>

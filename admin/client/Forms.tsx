@@ -159,6 +159,48 @@ export class SelectField extends React.Component<SelectFieldProps> {
     }
 }
 
+interface Option {
+    value: string,
+    label?: string
+}
+
+export interface SelectGroup {
+    title: string,
+    options: Option[]
+}
+
+export interface SelectGroupsFieldProps {
+    label?: string,
+    value: string | undefined,
+    onValue: (value: string) => void,
+    options: Option[],
+    groups: SelectGroup[],
+    helpText?: string
+}
+
+export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
+    render() {
+        const { props } = this
+
+        return <div className="form-group">
+            {props.label && <label>{props.label}</label>}
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)} value={props.value}>
+                {props.options.map(opt =>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                )}
+                {props.groups.map(group =>
+                    <optgroup key={group.title} label={group.title}>
+                        {group.options.map(opt =>
+                            <option key={opt.value} value={opt.value}>{opt.label || opt.value}</option>
+                        )}
+                    </optgroup>
+                )}
+            </select>
+            {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
+        </div>
+    }
+}
+
 export interface NumericSelectFieldProps {
     label?: string,
     value: number|undefined,
