@@ -620,7 +620,7 @@
 
         @include lg-only {
             display: flex;
-            align-items: baseline;
+            align-items: flex-start;
         }
     }
 
@@ -655,53 +655,69 @@
     .entry-item-container {
         display: block;
         position: relative;
-
-        &:hover .floating {
-            z-index: 100;
-        }
-
-        &:hover .floating {
-            opacity: 1;
-            max-height: none;
-            -webkit-mask-image: none;
-            mask-image: none;
-            box-shadow: 0 2px 3px rgba(0,0,0,.2), 0 3px 9px rgba(0,0,0,.15);
-        }
-    }
-
-    .entry-item {
-        display: block;
-        padding: .375rem .75rem;
-        border: 1px solid currentColor;
-        background-color: white;
-        transition: opacity 150ms ease;
+        height: 5rem;
         margin-bottom: .5rem;
-        overflow: hidden;
-
-        max-height: 80px;
-        transition: height 300ms ease, box-shadow 300ms ease, mask-image 300ms ease;
 
         @include lg-only {
             margin-bottom: 0;
         }
 
+        &:hover .entry-item {
+            z-index: 100;
+            box-shadow: 0 2px 3px rgba(0,0,0,.2), 0 4px 10px rgba(0,0,0,.15);
+
+            .excerpt {
+                opacity: 1;
+            }
+
+            .entry-item-contents:after {
+                background: transparent;
+            }
+        }
+    }
+
+    .entry-item {
+        display: block;
+        line-height: 1.3;
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        pointer-events: none;
+        height: 5rem;
+        transition: height 300ms ease, box-shadow 300ms ease, mask-image 300ms ease;
+
         h4 {
-            margin: 0;
+            margin: 0 0 .25rem;
         }
 
         .excerpt {
             font-size: 14px;
             line-height: 1.3;
-            margin: .2em 0;
-            // color: rgba(0,0,0,.5);
+            margin: .2em 0 .75em;
+            opacity: .7;
+            transition: opacity 300ms ease;
         }
 
-        &.floating {
-            position: absolute;
-            left: 0;
-            top: 0;
-            right: 0;
-            pointer-events: none;
+        .entry-item-contents {
+            border: 1px solid currentColor;
+            background-color: white;
+            padding: .5rem .75rem;
+            height: 100%;
+            position: relative;
+
+            &:after {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 1.5rem;
+                background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1));
+                transition: background 300ms ease;
+                z-index: 1;
+            }
         }
     }
 }

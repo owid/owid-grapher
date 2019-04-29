@@ -341,8 +341,10 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         <div className="category-entries">
                             {category.entries.map(entry => <a key={entry.slug} href={`/${entry.slug}`} className={`entry-item-container ${category.slug}-color`} data-track-click data-track-note="homepage-entries">
                                 <div className="entry-item">
-                                    <h4>{entry.title}</h4>
-                                    <p className="excerpt">{entry.excerpt}</p>
+                                    <div className="entry-item-contents">
+                                        <h4>{entry.title}</h4>
+                                        <p className="excerpt">{entry.excerpt}</p>
+                                    </div>
                                 </div>
                             </a>)}
                         </div>
