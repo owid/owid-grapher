@@ -1107,4 +1107,27 @@ api.post('/importDataset', async (req: Request, res: Response) => {
     return { success: true, datasetId: newDatasetId }
 })
 
+api.get('/sources/:sourceId.json', async (req: Request) => {
+    const sourceId = expectInt(req.params.sourceId)
+    const source = await db.get(`
+        SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
+        FROM sources AS s
+        JOIN datasets AS d ON d.id=s.datasetId
+        WHERE s.id=?`, [sourceId])
+    console.log(source.description)
+    source.description = JSON.parse(source.description)
+    source.variables = await db.query(`SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`, [sourceId])
+
+    return { source: source }
+})
+
+// Legacy code, preventing modification, just in case
+//
+// api.put('/sources/:sourceId', async (req: Request) => {
+//     const sourceId = expectInt(req.params.sourceId)
+//     const source = (req.body as { source: any }).source
+//     await db.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
+//     return { success: true }
+// })
+
 export { api }

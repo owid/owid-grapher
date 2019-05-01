@@ -84,13 +84,13 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
             <section>
                 <form onSubmit={e => { e.preventDefault(); this.save() }}>
                     {isBulkImport && <p>This source is associated with a bulk import, so we can't change it manually.</p>}
-                    <BindString field="name" store={newSource} label="Name" disabled={isBulkImport}/>
-                    <BindString field="dataPublishedBy" store={newSource.description} label="Data published by" disabled={isBulkImport}/>
-                    <BindString field="dataPublisherSource" store={newSource.description} label="Data publisher's source" disabled={isBulkImport}/>
-                    <BindString field="link" store={newSource.description} label="Link" disabled={isBulkImport}/>
-                    <BindString field="retrievedDate" store={newSource.description} label="Retrieved" disabled={isBulkImport}/>
-                    <BindString field="additionalInfo" store={newSource.description} label="Additional information" textarea disabled={isBulkImport}/>
-                    <input type="submit" className="btn btn-success" value="Update source"/>
+                    <BindString field="name" store={newSource} label="Name" disabled={true}/>
+                    <BindString field="dataPublishedBy" store={newSource.description} label="Data published by" disabled={true}/>
+                    <BindString field="dataPublisherSource" store={newSource.description} label="Data publisher's source" disabled={true}/>
+                    <BindString field="link" store={newSource.description} label="Link" disabled={true}/>
+                    <BindString field="retrievedDate" store={newSource.description} label="Retrieved" disabled={true}/>
+                    <BindString field="additionalInfo" store={newSource.description} label="Additional information" textarea disabled={true}/>
+                    <input type="submit" className="btn btn-success" value="Update source" disabled={true} />
                 </form>
             </section>
             <section>
