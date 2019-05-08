@@ -1095,7 +1095,9 @@ api.post('/importDataset', async (req: Request, res: Response) => {
                 }
             }
 
-            await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
+            if (valueRows.length) {
+                await t.execute(`INSERT INTO data_values (value, year, entityId, variableId) VALUES ?`, [valueRows])
+            }
         }
 
         return datasetId
