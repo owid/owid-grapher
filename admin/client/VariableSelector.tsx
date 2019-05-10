@@ -83,13 +83,9 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return variables
     }
 
-    @computed get unselectedVariables(): Variable[] {
-        return this.availableVariables.filter(v => !this.chosenVariables.some(v2 => v.id === v2.id))
-    }
-
     @computed get searchResults(): Variable[] {
         const results = this.searchInput && fuzzysort.go(this.searchInput, this.availableVariables, { key: 'searchKey' })
-        return (results && results.length) ? results.map((result: any) => result.obj) : this.unselectedVariables
+        return (results && results.length) ? results.map((result: any) => result.obj) : this.availableVariables
     }
 
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
@@ -149,8 +145,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                 <h5>{highlight(dataset.name)}{dataset.isPrivate ? <span className="text-danger"> (unpublished)</span> : ""}</h5>
                                             </li>
                                         } else {
-                                            return d.map(v => <li key={v.id} style={{ minWidth: '50%' }}>
-                                                <Toggle value={false} onValue={() => this.selectVariable(v)} label={highlight(v.name)}/>
+                                            return d.map(v => <li key={`${v.id}-${v.name}`} style={{ minWidth: '50%' }}>
+                                                <Toggle value={this.chosenVariables.includes(v)} onValue={() => this.toggleVariable(v)} label={highlight(v.name)}/>
                                             </li>)
                                         }
                                     })}
@@ -205,6 +201,14 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound unselectVariable(variable: Variable) {
         this.chosenVariables = this.chosenVariables.filter(v => v.id !== variable.id)
+    }
+
+    @action.bound toggleVariable(variable: Variable) {
+        if (this.chosenVariables.includes(variable)) {
+            this.unselectVariable(variable)
+        } else {
+            this.selectVariable(variable)
+        }
     }
 
     @action.bound onSearchEnter() {
