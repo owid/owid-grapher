@@ -39,6 +39,8 @@ export class EditorFeatures {
 
     @computed get timeDomain() { return !this.chart.isDiscreteBar }
 
+    @computed get timelineRange() { return !this.chart.isDiscreteBar }
+
     @computed get hideLegend() {
         return this.chart.isLineChart || this.chart.isStackedArea
     }

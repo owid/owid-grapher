@@ -80,31 +80,13 @@ class ColorsSection extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
-class TimeSection extends React.Component<{ editor: ChartEditor }> {
+class TimelineSelectionSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get chart() { return this.props.editor.chart }
 
-    @computed get isDynamicTime() {
-        return this.chart.timeDomain[0] === undefined && this.chart.timeDomain[1] === undefined
-    }
-
     @computed get minTime() { return this.chart.props.minTime }
     @computed get maxTime() { return this.chart.props.maxTime }
-    @computed get minPossibleTime() {
-        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.minYear : 1900
-    }
-    @computed get maxPossibleTime() {
-        return this.chart.data.primaryVariable ? this.chart.data.primaryVariable.maxYear : 2015
-    }
-
-    @action.bound onToggleDynamicTime() {
-        if (this.isDynamicTime) {
-            this.chart.timeDomain = [this.minPossibleTime, this.maxPossibleTime]
-        } else {
-            this.chart.timeDomain = [undefined, undefined]
-        }
-    }
 
     @action.bound onMinTime(value: number | undefined) {
         this.chart.props.minTime = value
@@ -118,10 +100,37 @@ class TimeSection extends React.Component<{ editor: ChartEditor }> {
         const { features } = this.props.editor
         const { chart } = this
 
-        return <Section name="Time range">
+        return <Section name="Timeline selection">
             <FieldsRow>
                 {features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)} />}
                 <NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)} />
+            </FieldsRow>
+        </Section>
+    }
+}
+
+@observer
+class TimelineRangeSection extends React.Component<{ editor: ChartEditor }> {
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed get chart() { return this.props.editor.chart }
+
+    @computed get minTime() { return this.chart.props.timelineMinTime }
+    @computed get maxTime() { return this.chart.props.timelineMaxTime }
+
+    @action.bound onMinTime(value: number | undefined) {
+        this.chart.props.timelineMinTime = value
+    }
+
+    @action.bound onMaxTime(value: number | undefined) {
+        this.chart.props.timelineMaxTime = value
+    }
+
+    render() {
+        return <Section name="Timeline limits">
+            <FieldsRow>
+                <NumberField label="Min year" value={this.minTime} onValue={debounce(this.onMinTime)} />
+                <NumberField label="Max year" value={this.maxTime} onValue={debounce(this.onMaxTime)} />
             </FieldsRow>
         </Section>
     }
@@ -201,7 +210,8 @@ export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }>
                 </React.Fragment>}
                 {features.customXAxisLabel && <BindString label="Label" field="label" store={xAxis}/>}
             </Section>}
-            {!chart.isScatter && <TimeSection editor={this.props.editor} />}
+            {!chart.isScatter && <TimelineSelectionSection editor={this.props.editor} />}
+            {features.timelineRange && <TimelineRangeSection editor={this.props.editor} />}
             <ColorsSection chart={chart}/>
             {(features.hideLegend || features.relativeModeToggle || features.entityType) && <Section name="Legend">
                 <FieldsRow>

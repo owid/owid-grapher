@@ -118,6 +118,9 @@ export class ChartConfigProps {
     @observable.ref minTime?: number = undefined
     @observable.ref maxTime?: number = undefined
 
+    @observable.ref timelineMinTime?: number = undefined
+    @observable.ref timelineMaxTime?: number = undefined
+
     @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 

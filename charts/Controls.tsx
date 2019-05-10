@@ -231,6 +231,14 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     }
 }
 
+function boundRange(range: number[], start?: number, end?: number): number[] {
+    return range.filter(n => {
+        if (start !== undefined && n < start) return false
+        if (end !== undefined && n > end) return false
+        return true
+    })
+}
+
 @observer
 class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMapTargetChange({ targetStartYear }: { targetStartYear: number }) {
@@ -251,13 +259,15 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
 
     render() {
         const {chart} = this.props
+        const timelineMinTime = chart.props.timelineMinTime
+        const timelineMaxTime = chart.props.timelineMaxTime
         if (chart.props.tab === 'map') {
             const {map} = chart
-            return <Timeline years={map.data.timelineYears} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
+            return <Timeline years={boundRange(map.data.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
         } else if (chart.isScatter) {
-            return <Timeline years={chart.scatter.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+            return <Timeline years={boundRange(chart.scatter.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         } else {
-            return <Timeline years={chart.lineChart.timelineYears} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+            return <Timeline years={boundRange(chart.lineChart.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
         }
     }
 }
