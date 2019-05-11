@@ -146,7 +146,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                             </li>
                                         } else {
                                             return d.map(v => <li key={`${v.id}-${v.name}`} style={{ minWidth: '50%' }}>
-                                                <Toggle value={this.chosenVariables.includes(v)} onValue={() => this.toggleVariable(v)} label={highlight(v.name)}/>
+                                                <Toggle value={this.chosenVariables.map(cv => cv.id).includes(v.id)} onValue={() => this.toggleVariable(v)} label={highlight(v.name)}/>
                                             </li>)
                                         }
                                     })}
