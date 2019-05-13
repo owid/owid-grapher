@@ -181,7 +181,7 @@ export class LineChartTransform implements IChartTransform {
 
     @computed get yTickFormat() {
         if (this.isRelativeMode) {
-            return (v: number) => (v > 0 ? "+" : "") + formatValue(v, { unit: "%" })
+            return (v: number) => (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
         } else {
             return this.yDimensionFirst ? this.yDimensionFirst.formatValueShort : identity
         }
