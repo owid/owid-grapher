@@ -221,7 +221,7 @@ export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }>
             </Section>}
             {features.relativeModeToggle && <Section name="Controls">
                 <FieldsRow>
-                    {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
+                    {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || false} />}
                 </FieldsRow>
             </Section>}
             {features.comparisonLine && <ComparisonLineSection editor={this.props.editor}/>}
