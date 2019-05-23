@@ -85,7 +85,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
             <SelectField onValue={this.onAddKey} value="Select data" options={["Select data"].concat(remainingKeys)} optionLabels={["Select data"].concat(keyLabels)}/>
             <EditableList>
                 {map(selectedKeys, datakey =>
-                    <DataKeyItem chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />
+                    <DataKeyItem key={datakey} chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />
                 )}
             </EditableList>
         </Section>
