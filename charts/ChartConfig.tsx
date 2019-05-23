@@ -129,7 +129,7 @@ export class ChartConfigProps {
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
     @observable hideLogo?: boolean = undefined
-    @observable.ref hideRelativeToggle?: true = undefined
+    @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
 
     @observable.ref hasChartTab: boolean = true
