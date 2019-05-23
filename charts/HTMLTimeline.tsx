@@ -228,16 +228,15 @@ export class Timeline extends React.Component<TimelineProps> {
         this.endYearInput = inputYear
     }
 
-    mouseFrameQueued?: boolean
+    queuedAnimationFrame?: number
 
     @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
-        const { dragTarget, mouseFrameQueued } = this
-        if (!dragTarget || mouseFrameQueued) return
+        const { dragTarget, queuedAnimationFrame } = this
+        if (!dragTarget) return
+        if (queuedAnimationFrame) cancelAnimationFrame(queuedAnimationFrame)
 
-        this.mouseFrameQueued = true
-        requestAnimationFrame(() => {
+        this.queuedAnimationFrame = requestAnimationFrame(() => {
             this.onDrag(this.getInputYearFromMouse(ev as any))
-            this.mouseFrameQueued = false
         })
     }
 
