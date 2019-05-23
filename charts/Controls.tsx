@@ -223,7 +223,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
         if (chart.isScatter || chart.isTimeScatter)
             label = "Average annual change"
         else if (chart.isLineChart)
-            label = "Show relative change"
+            label = "Relative change"
 
         return <label className="clickable">
             <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle} /> {label}
