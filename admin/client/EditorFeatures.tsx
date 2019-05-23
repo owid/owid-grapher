@@ -54,7 +54,7 @@ export class EditorFeatures {
     }
 
     @computed get relativeModeToggle() {
-        return this.chart.isStackedArea || (this.chart.isScatter && this.chart.scatter.hasTimeline)
+        return this.chart.isStackedArea || this.chart.isLineChart || (this.chart.isScatter && this.chart.scatter.hasTimeline)
     }
 
     @computed get comparisonLine() {

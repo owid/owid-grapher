@@ -213,12 +213,16 @@ export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }>
             {!chart.isScatter && <TimelineSelectionSection editor={this.props.editor} />}
             {features.timelineRange && <TimelineRangeSection editor={this.props.editor} />}
             <ColorsSection chart={chart}/>
-            {(features.hideLegend || features.relativeModeToggle || features.entityType) && <Section name="Legend">
+            {(features.hideLegend || features.entityType) && <Section name="Legend">
                 <FieldsRow>
                     {features.hideLegend && <Toggle label={`Hide legend`} value={!!chart.hideLegend} onValue={(value) => chart.props.hideLegend = value || undefined} />}
-                    {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
                 </FieldsRow>
                 {features.entityType && <BindAutoString label="Entity name" field="entityType" store={chart.props} auto="country"/>}
+            </Section>}
+            {features.relativeModeToggle && <Section name="Controls">
+                <FieldsRow>
+                    {features.relativeModeToggle && <Toggle label={`Hide relative toggle`} value={!!chart.props.hideRelativeToggle} onValue={value => chart.props.hideRelativeToggle = value || undefined} />}
+                </FieldsRow>
             </Section>}
             {features.comparisonLine && <ComparisonLineSection editor={this.props.editor}/>}
         </div>

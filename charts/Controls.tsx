@@ -308,7 +308,8 @@ export class Controls {
             (chart.data.canAddData && !this.hasLegendButton) ||
             chart.isScatter ||
             chart.data.canChangeEntity ||
-            (chart.isStackedArea && chart.stackedArea.canToggleRelative)
+            (chart.isStackedArea && chart.stackedArea.canToggleRelative) ||
+            (chart.isLineChart && chart.lineChart.canToggleRelative)
         )
     }
 
@@ -437,7 +438,7 @@ export class ControlsFooterView extends React.Component<{ controls: Controls }> 
             {chart.isScatter && chart.highlightToggle && <HighlightToggle chart={chart} highlightToggle={chart.highlightToggle} />}
             {chart.isStackedArea && chart.stackedArea.canToggleRelative && <AbsRelToggle chart={chart} />}
             {chart.isScatter && chart.scatter.canToggleRelative && <AbsRelToggle chart={chart} />}
-            {/* {chart.isLineChart && chart.lineChart.canToggleRelative && <AbsRelToggle chart={chart} />} */}
+            {chart.isLineChart && chart.lineChart.canToggleRelative && <AbsRelToggle chart={chart} />}
         </div>
 
         return <div className="ControlsFooter" style={{ height: props.controls.footerHeight }}>
