@@ -119,7 +119,7 @@ export class LineChartTransform implements IChartTransform {
         if (this.isRelativeMode) {
             const data = cloneDeep(this.initialData)
             for (const g of data) {
-                const indexValue = clone(g.values.find(v => v.time >= this.startYear))
+                const indexValue = clone(g.values.find(v => v.time >= this.startYear && v.y !== 0))
                 if (!indexValue) continue
 
                 for (const v of g.values) {
