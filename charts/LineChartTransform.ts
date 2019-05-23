@@ -8,6 +8,7 @@ import { defaultTo, formatYear, findClosest } from './Util'
 import { ColorSchemes, ColorScheme } from './ColorSchemes'
 import { IChartTransform } from './IChartTransform'
 import { DimensionWithData } from './DimensionWithData'
+import { findIndex } from 'lodash'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -117,16 +118,23 @@ export class LineChartTransform implements IChartTransform {
 
     @computed get predomainData() {
         if (this.isRelativeMode) {
-            const data = cloneDeep(this.initialData)
-            for (const g of data) {
-                const indexValue = clone(g.values.find(v => v.time >= this.startYear && v.y !== 0))
-                if (!indexValue) continue
-
-                for (const v of g.values) {
-                    v.y = (v.y-indexValue.y)/indexValue.y
-                }
-            }
-            return data
+            return cloneDeep(this.initialData)
+                .map(series => {
+                    const startIndex = findIndex(series.values, v => v.time >= this.startYear && v.y !== 0)
+                    if (startIndex < 0) {
+                        series.values = []
+                        return series
+                    } else {
+                        const relativeValues = series.values.slice(startIndex)
+                        // Clone to avoid overwriting in next loop
+                        const indexValue = clone(relativeValues[0])
+                        series.values = relativeValues.map(v => {
+                            v.y = (v.y-indexValue.y) / indexValue.y
+                            return v
+                        })
+                    }
+                    return series
+                })
         } else {
             return this.initialData
         }
