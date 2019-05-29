@@ -8,7 +8,7 @@ import { Bounds } from 'charts/Bounds'
 import {includes, capitalize} from 'charts/Util'
 import { ChartConfig } from 'charts/ChartConfig'
 
-import { ChartEditor, EditorDatabase, Log} from './ChartEditor'
+import { ChartEditor, EditorDatabase, Log, PostReference} from './ChartEditor'
 import { EditorBasicTab } from './EditorBasicTab'
 import { EditorDataTab } from './EditorDataTab'
 import { EditorTextTab } from './EditorTextTab'
@@ -16,6 +16,7 @@ import { EditorCustomizeTab } from './EditorCustomizeTab'
 import { EditorScatterTab } from './EditorScatterTab'
 import { EditorMapTab } from './EditorMapTab'
 import { EditorHistoryTab } from './EditorHistoryTab'
+import { EditorReferencesTab } from './EditorReferencesTab'
 import { SaveButtons } from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import { AdminLayout } from './AdminLayout'
@@ -60,6 +61,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
     @observable.ref chart?: ChartConfig
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]
+    @observable references?: PostReference[]
     static contextType = AdminAppContext
 
     async fetchChart() {
@@ -82,6 +84,13 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
         runInAction(() => this.logs = json.logs)
     }
 
+    async fetchRefs() {
+        const { chartId } = this.props
+        const { admin } = this.context
+        const json = chartId === undefined ? [] : await admin.getJSON(`/api/charts/${chartId}.references.json`)
+        runInAction(() => this.references = json.references)
+    }
+
     @computed get editor(): ChartEditor|undefined {
         if (this.chart === undefined || this.database === undefined) {
             return undefined
@@ -91,7 +100,8 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                 get admin() { return that.context.admin },
                 get chart() { return that.chart as ChartConfig },
                 get database() { return that.database as EditorDatabase },
-                get logs() { return that.logs as Log[] }
+                get logs() { return that.logs as Log[] },
+                get references() { return that.references as PostReference[] }
             })
         }
     }
@@ -100,6 +110,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
         this.fetchChart()
         this.fetchData()
         this.fetchLogs()
+        this.fetchRefs()
     }
 
     dispose!: IReactionDisposer
@@ -147,7 +158,10 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                     <ul className="nav nav-tabs">
                         {availableTabs.map(tab =>
                             <li key={tab} className="nav-item">
-                                <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>{capitalize(tab)}</a>
+                                <a className={"nav-link" + (tab === editor.tab ? " active" : "")} onClick={() => editor.tab = tab}>
+                                    {capitalize(tab)}
+                                    {(tab === 'refs' && this.references) ? ` (${this.references.length})` : ""}
+                                </a>
                             </li>
                         )}
                     </ul>
@@ -160,6 +174,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                     {editor.tab === 'scatter' && <EditorScatterTab chart={chart} />}
                     {editor.tab === 'map' && <EditorMapTab editor={editor} />}
                     {editor.tab === 'revisions' && <EditorHistoryTab editor={editor} />}
+                    {editor.tab === 'refs' && <EditorReferencesTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
             </form>

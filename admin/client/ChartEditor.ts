@@ -35,6 +35,13 @@ export interface Log {
     createdAt: string
 }
 
+export interface PostReference {
+    id: number
+    title: string
+    slug: string
+    url: string
+}
+
 // This contains the dataset/variable metadata for the entire database
 // Used for variable selector interface
 
@@ -56,6 +63,7 @@ export interface ChartEditorProps {
     chart: ChartConfig
     database: EditorDatabase
     logs: Log[]
+    references: PostReference[]
 }
 
 export class ChartEditor {
@@ -100,6 +108,10 @@ export class ChartEditor {
         return this.props.logs
     }
 
+    @computed get references(): PostReference[] {
+        return this.props.references
+    }
+
     @computed get availableTabs(): EditorTab[] {
         if (!this.chart.activeTransform.isValidConfig) {
             return ['basic']
@@ -108,6 +120,7 @@ export class ChartEditor {
             if (this.chart.hasMapTab) tabs.push('map')
             if (this.chart.isScatter || this.chart.isTimeScatter) tabs.push('scatter')
             tabs.push('revisions')
+            tabs.push('refs')
             return tabs
         }
     }
@@ -177,7 +190,9 @@ export class ChartEditor {
     }
 
     unpublishChart() {
-        if (window.confirm("Really unpublish chart?")) {
+        if (this.references && this.references.length > 0) {
+            window.alert("ERROR: This chart is referenced from a public post and cannot be unpublished. Please remove all references first.")
+        } else if (window.confirm("Really unpublish chart?")) {
             this.chart.props.isPublished = undefined
             this.saveChart({ onError: () => this.chart.props.isPublished = true })
         }

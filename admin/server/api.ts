@@ -26,6 +26,8 @@ import { Post } from 'db/model/Post'
 import { camelCaseProperties } from 'utils/object'
 import { log } from 'utils/server/log'
 import { denormalizeLatestCountryData } from 'site/server/countryProfiles';
+import { BAKED_BASE_URL } from 'settings'
+import { PostReference } from 'admin/client/ChartEditor'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -116,6 +118,39 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
         ORDER BY l.id DESC
         LIMIT 50`, [chartId]))
     return logs
+}
+
+async function getReferencesByChartId(chartId: number): Promise<PostReference[]> {
+    const rows = await db.query(`
+        SELECT config->"$.slug" AS slug
+        FROM charts
+        WHERE id = ?
+        UNION
+        SELECT slug AS slug
+        FROM chart_slug_redirects
+        WHERE chart_id = ?
+    `, [chartId, chartId])
+    const slugs = rows.map((row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, ''))
+    const posts = await wpdb.query(`
+        SELECT ID, post_title, post_name
+        FROM wp_posts
+        WHERE
+            (post_type='page' OR post_type='post')
+            AND post_status='publish'
+            AND (
+                ${slugs.map((_: any) => `INSTR(post_content, ?)`).join(" OR ")}
+            )
+    `, slugs)
+    const permalinks = await wpdb.getPermalinks()
+    return posts.map(post => {
+        const slug = permalinks.get(post.ID, post.post_name)
+        return {
+            id: post.ID,
+            title: post.post_title,
+            slug: slug,
+            url: `${BAKED_BASE_URL}/${slug}`
+        }
+    })
 }
 
 async function expectChartById(chartId: any): Promise<ChartConfigProps> {
@@ -259,6 +294,13 @@ api.get('/charts/:chartId.logs.json', async (req: Request, res: Response) => {
     const logs = await getLogsByChartId(req.params.chartId)
     return {
         logs: logs
+    }
+})
+
+api.get('/charts/:chartId.references.json', async (req: Request, res: Response) => {
+    const references = await getReferencesByChartId(req.params.chartId)
+    return {
+        references: references
     }
 })
 
