@@ -138,7 +138,7 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
             (post_type='page' OR post_type='post')
             AND post_status='publish'
             AND (
-                ${slugs.map((_: any) => `INSTR(post_content, ?)`).join(" OR ")}
+                ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
             )
     `, slugs)
     const permalinks = await wpdb.getPermalinks()
