@@ -35,7 +35,7 @@ curl -Lo /tmp/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartd
 gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
 ```
 
-Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:jaiden@ourworldindata.org).
+Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
 
 ## Development server
 
