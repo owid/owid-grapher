@@ -979,8 +979,7 @@ api.get('/newsletterPosts.json', async req => {
             post_status AS status,
             post_excerpt AS excerpt
         FROM wp_posts
-        WHERE (post_type='post' OR post_type='page')
-            AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
+        WHERE (post_type='post' OR post_type='page') AND post_status='publish'
         ORDER BY post_date_gmt DESC`)
 
     const permalinks = await wpdb.getPermalinks()
