@@ -20,6 +20,7 @@ import { TestIndexPage } from './TestIndexPage'
 import { ImportPage } from './ImportPage'
 import { NotFoundPage } from './NotFoundPage'
 import { PostEditorPage } from './PostEditorPage'
+import { NewsletterPage } from './NewsletterPage'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import { LoadingBlocker, Modal } from './Forms'
 import { AdminAppContext } from './AdminAppContext'
@@ -87,6 +88,7 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                         <Route exact path="/posts" component={PostsIndexPage}/>
                         <Route exact path="/posts/:postId/edit" render={({ match }) => <PostEditorPage postId={parseInt(match.params.postId)}/>}/>
                         <Route exact path="/test" component={TestIndexPage}/>
+                        <Route exact path="/newsletter" component={NewsletterPage}/>
                         <Route exact path="/" render={() => <Redirect to="/charts"/>}/>
                         <Route component={NotFoundPage}/>
                     </Switch>

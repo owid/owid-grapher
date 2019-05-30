@@ -1,7 +1,7 @@
 import { Link } from './Link'
 import * as React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartBar, faFile, faUpload, faTable, faDatabase, faGlobe, faTag, faUser, faArrowRight, faEye } from '@fortawesome/free-solid-svg-icons'
+import { faChartBar, faFile, faUpload, faTable, faDatabase, faGlobe, faTag, faUser, faArrowRight, faEye, faNewspaper } from '@fortawesome/free-solid-svg-icons'
 
 export function AdminSidebar(props: { onDismiss: () => void }) {
     return <aside className="AdminSidebar">
@@ -19,6 +19,8 @@ export function AdminSidebar(props: { onDismiss: () => void }) {
             <li><Link to="/users/"><FontAwesomeIcon icon={faUser}/> Users</Link></li>
             <li><Link to="/redirects"><FontAwesomeIcon icon={faArrowRight}/> Redirects</Link></li>
             <li><Link to="/test"><FontAwesomeIcon icon={faEye}/> Test</Link></li>
+            <li className="header">UTILITIES</li>
+            <li><Link to="/newsletter"><FontAwesomeIcon icon={faNewspaper}/> Newsletter</Link></li>
         </ul>
     </aside>
 }
