@@ -6,7 +6,8 @@ import { ChartConfig } from 'charts/ChartConfig'
 import { DataKey } from 'charts/DataKey'
 import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
 import { ChartEditor } from './ChartEditor'
-import { faArrowsAltV, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faArrowsAltV } from '@fortawesome/free-solid-svg-icons/faArrowsAltV'
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface DataKeyItemProps extends EditableListItemProps {

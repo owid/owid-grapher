@@ -2,16 +2,23 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { observable, action, reaction, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { HeaderSearch } from './HeaderSearch'
-import { faSearch, faBars, faExternalLinkAlt, faEnvelope, faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons'
 import { CategoryWithEntries } from 'db/wpdb'
 import classnames from 'classnames'
 import { find } from 'lodash'
 import { bind } from 'decko'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
+import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons/faExternalLinkAlt'
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
+import { faAngleDown } from '@fortawesome/free-solid-svg-icons/faAngleDown'
+import { faAngleUp } from '@fortawesome/free-solid-svg-icons/faAngleUp'
+
 import { AmazonMenu } from './AmazonMenu'
-import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
+import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 
 @observer
 export class Header extends React.Component<{ categories: CategoryWithEntries[] }> {

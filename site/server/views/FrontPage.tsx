@@ -5,10 +5,15 @@ import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { CategoryWithEntries, PostInfo } from 'db/wpdb'
 import { formatDate } from '../formatting'
-import { faRss, faSearch, faBook, faAngleRight, faExternalLinkAlt, faFileAlt, faAngleDoubleDown } from '@fortawesome/free-solid-svg-icons'
-import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
+import { faRss } from '@fortawesome/free-solid-svg-icons/faRss'
+import { faBook } from '@fortawesome/free-solid-svg-icons/faBook'
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight'
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons/faExternalLinkAlt'
+import { faFileAlt } from '@fortawesome/free-solid-svg-icons/faFileAlt'
+import { faAngleDoubleDown } from '@fortawesome/free-solid-svg-icons/faAngleDoubleDown'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
+import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { BAKED_GRAPHER_URL } from 'settings'
 
 export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], shortPosts: PostInfo[], explainerPosts: PostInfo[] }) => {
     const { entries, posts, shortPosts, explainerPosts } = props

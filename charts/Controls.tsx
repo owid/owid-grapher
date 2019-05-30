@@ -10,10 +10,20 @@ import { HighlightToggleConfig } from './ChartConfig'
 import { Timeline } from './HTMLTimeline'
 import { extend, keys } from './Util'
 import { worldRegions, labelsByRegion } from './WorldRegions'
-import { faCode, faEdit, faDownload, faShareAlt, faCog, faExpand, faPlus, faSearch, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
-import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ADMIN_BASE_URL } from 'settings'
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCode } from '@fortawesome/free-solid-svg-icons/faCode'
+import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { faShareAlt } from '@fortawesome/free-solid-svg-icons/faShareAlt'
+import { faCog } from '@fortawesome/free-solid-svg-icons/faCog'
+import { faExpand } from '@fortawesome/free-solid-svg-icons/faExpand'
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
+import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
+import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
+import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 
 @observer
 class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string }> {

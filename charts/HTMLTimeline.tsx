@@ -6,7 +6,8 @@ import { getRelativeMouse, formatYear } from './Util'
 import { observable, computed, autorun, action, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
-import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
+import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay'
+import { faPause } from '@fortawesome/free-solid-svg-icons/faPause'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface TimelineProps {

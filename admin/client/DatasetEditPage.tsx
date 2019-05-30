@@ -20,8 +20,9 @@ import { VariableList, VariableListItem } from './VariableList'
 import { AdminAppContext } from './AdminAppContext'
 import { Base64 } from 'js-base64'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faDownload, faUpload } from '@fortawesome/free-solid-svg-icons'
-import { faGithub } from '@fortawesome/free-brands-svg-icons'
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload'
+import { faGithub } from '@fortawesome/free-brands-svg-icons/faGithub'
 
 class VariableEditable {
     @observable name: string = ""

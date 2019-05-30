@@ -6,7 +6,7 @@ import { SearchResults } from 'site/client/SearchResults'
 import { observer } from "mobx-react"
 import { action, observable, autorun, IReactionDisposer, runInAction } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 @observer
 export class SearchPageMain extends React.Component {

@@ -4,7 +4,7 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { Bounds } from './Bounds'
 import { ChartConfig } from './ChartConfig'
-import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface DownloadTabProps {

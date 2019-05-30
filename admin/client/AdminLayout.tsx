@@ -6,7 +6,7 @@ import { Link } from './Link'
 import { EditorFAQ } from './EditorFAQ'
 import { AdminSidebar } from './AdminSidebar'
 import { AdminAppContext } from './AdminAppContext'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer

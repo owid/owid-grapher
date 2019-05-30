@@ -7,7 +7,7 @@ import { ChartConfig } from './ChartConfig'
 import { DataKeyInfo } from './ChartData'
 import { ChartView } from './ChartView'
 import { FuzzySearch } from './FuzzySearch'
-import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 // Metadata reflection hack - Mispy

@@ -3,8 +3,8 @@ import { observable, computed, autorun, action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import { SearchResults } from './SearchResults'
 import { SiteSearchResults, PageHit, ChartHit, siteSearch } from 'site/siteSearch'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
 
 class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }> {
     componentDidMount() {
@@ -13,7 +13,7 @@ class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }
 
     componentWillUnmount() {
         document.body.style.overflowY = null
-    }    
+    }
 
     render() {
         return <SearchResults results={this.props.results}/>

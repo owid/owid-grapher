@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { webpack } from 'utils/server/staticGen'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight'
 
 export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
     return <React.Fragment>

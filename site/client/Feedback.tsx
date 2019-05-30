@@ -1,11 +1,11 @@
 import React = require("react")
 import ReactDOM = require("react-dom")
 import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { observable, action, toJS } from "mobx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { observable, action, toJS } from "mobx"
 import classnames from 'classnames'
-import { Analytics } from "./Analytics";
+import { Analytics } from "./Analytics"
 
 function sendFeedback(feedback: Feedback) {
     return new Promise((resolve, reject) => {
@@ -20,13 +20,13 @@ function sendFeedback(feedback: Feedback) {
                     reject(`${req.status} ${req.statusText}`)
                 } else {
                     resolve()
-                }    
+                }
             }
         })
 
         req.open("POST", `https://owid-feedback.netlify.com/.netlify/functions/hello`)
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
-        
+
         req.send(JSON.stringify(json))
     })
 }

@@ -1,7 +1,17 @@
 import { Link } from './Link'
 import * as React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartBar, faFile, faUpload, faTable, faDatabase, faGlobe, faTag, faUser, faArrowRight, faEye, faNewspaper } from '@fortawesome/free-solid-svg-icons'
+import { faChartBar } from '@fortawesome/free-solid-svg-icons/faChartBar'
+import { faFile } from '@fortawesome/free-solid-svg-icons/faFile'
+import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload'
+import { faTable } from '@fortawesome/free-solid-svg-icons/faTable'
+import { faDatabase } from '@fortawesome/free-solid-svg-icons/faDatabase'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons/faGlobe'
+import { faTag } from '@fortawesome/free-solid-svg-icons/faTag'
+import { faUser } from '@fortawesome/free-solid-svg-icons/faUser'
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
+import { faEye } from '@fortawesome/free-solid-svg-icons/faEye'
+import { faNewspaper } from '@fortawesome/free-solid-svg-icons/faNewspaper'
 
 export function AdminSidebar(props: { onDismiss: () => void }) {
     return <aside className="AdminSidebar">

@@ -1,8 +1,11 @@
 import * as React from 'react'
 import * as _ from 'lodash'
-import { faSearch, faBars, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
+import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
+import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 
 export const SiteHeader = () => {
     return <header className="site-header">
