@@ -165,6 +165,12 @@ export class HeaderHTML extends React.Component<{ chart: ChartConfig, header: He
             marginBottom: header.titleMarginBottom
         }
 
+        const subtitleStyle = {
+            ...header.subtitle.htmlStyle,
+            // make sure there are no scrollbars on subtitle
+            overflowY: 'hidden'
+        }
+
         // const linkifySubtitle = linkifyHtml(header.subtitleText)
 
         return <div className="HeaderHTML">
@@ -172,7 +178,7 @@ export class HeaderHTML extends React.Component<{ chart: ChartConfig, header: He
             <a href={chart.url.canonicalUrl} target="_blank">
                 <h1 style={titleStyle}>{header.title.renderHTML()}</h1>
             </a>
-            <p style={header.subtitle.htmlStyle}>{header.subtitle.renderHTML()}</p>
+            <p style={subtitleStyle}>{header.subtitle.renderHTML()}</p>
         </div>
     }
 
