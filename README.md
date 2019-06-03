@@ -41,7 +41,7 @@ Since the full data_values table (including everything we haven't visualized yet
 
 `cp .env.example .env` and populate `.env` with your database details.
 
-Finally, run `yarn dev` and head to `localhost:3030`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
 ## Migrations
 
