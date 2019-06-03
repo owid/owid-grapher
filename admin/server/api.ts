@@ -130,27 +130,33 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
         FROM chart_slug_redirects
         WHERE chart_id = ?
     `, [chartId, chartId])
+
     const slugs = rows.map((row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, ''))
-    const posts = await wpdb.query(`
-        SELECT ID, post_title, post_name
-        FROM wp_posts
-        WHERE
-            (post_type='page' OR post_type='post')
-            AND post_status='publish'
-            AND (
-                ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
-            )
-    `, slugs)
-    const permalinks = await wpdb.getPermalinks()
-    return posts.map(post => {
-        const slug = permalinks.get(post.ID, post.post_name)
-        return {
-            id: post.ID,
-            title: post.post_title,
-            slug: slug,
-            url: `${BAKED_BASE_URL}/${slug}`
-        }
-    })
+
+    if (slugs && slugs.length > 0) {
+        const posts = await wpdb.query(`
+            SELECT ID, post_title, post_name
+            FROM wp_posts
+            WHERE
+                (post_type='page' OR post_type='post')
+                AND post_status='publish'
+                AND (
+                    ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
+                )
+        `, slugs)
+        const permalinks = await wpdb.getPermalinks()
+        return posts.map(post => {
+            const slug = permalinks.get(post.ID, post.post_name)
+            return {
+                id: post.ID,
+                title: post.post_title,
+                slug: slug,
+                url: `${BAKED_BASE_URL}/${slug}`
+            }
+        })
+    } else {
+        return []
+    }
 }
 
 async function expectChartById(chartId: any): Promise<ChartConfigProps> {
