@@ -12,11 +12,17 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-You will need: [MySQL](https://www.mysql.com/), [Node 10.9+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
+You will need: [MySQL 5.7](https://www.mysql.com/), [Node 10.9+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
 
 Running `yarn` in the repo root will grab the remaining dependencies.
 
 ## Database setup
+
+Remove the password for root:
+
+```sh
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY ''
+```
 
 Daily exports from the live OWID database are published here and can be used for testing:
 
