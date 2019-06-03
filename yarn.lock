@@ -2452,10 +2452,10 @@
   resolved "https://registry.yarnpkg.com/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
 
-"@types/stripe@^6.25.3":
-  version "6.25.3"
-  resolved "https://registry.yarnpkg.com/@types/stripe/-/stripe-6.25.3.tgz#260dfef7a1072cfed40bfdfaa3740c20770951ae"
-  integrity sha512-aUMqN7ClWuBR3SvjmhEcFpX209wxafx2cdK+KOFinnfPnK69DU5/pCR46M8rFbLHY7Y9jLgsK26ch28ZAA11Gg==
+"@types/stripe@^6.26.5":
+  version "6.26.5"
+  resolved "https://registry.yarnpkg.com/@types/stripe/-/stripe-6.26.5.tgz#94ff3fb6cc9304e7ee5647d9f69a97ffac7e8e1a"
+  integrity sha512-L7yMWsmduBKjupcNL1N4GeLHcOKdqgPvhxuWUzf60Tda/O8yFkaNYtgeC0iqPID8a180NzjpnPN9bJbq1gCLxg==
   dependencies:
     "@types/node" "*"
 
@@ -15202,10 +15202,10 @@ strip-outer@^1.0.0:
   dependencies:
     escape-string-regexp "^1.0.2"
 
-stripe@^6.26.0:
-  version "6.26.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-6.26.0.tgz#fb35034e9a47419145dddaaea9b5438760b8a5f4"
-  integrity sha512-8mRXKsSyaItmQ323/FWa207wvsR2FIwLywCYc3iYXBmX3dO0XOBtsYdXpR8Y9+Fuyb5rdsCGRbaFU2QCjIMs7w==
+stripe@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-7.1.0.tgz#8e6ba9eefd9947c7e051b7cce23d224148293d1b"
+  integrity sha512-5xZE/HrQ1WjEds5+z6JfcLtXoEbOV5LxfIE0x8YACqqvelNVyW0aErfeUIFSjSgniEDLWvQalb1l2Bx2LQqV0w==
   dependencies:
     lodash.isplainobject "^4.0.6"
     qs "^6.6.0"
