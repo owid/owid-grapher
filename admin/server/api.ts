@@ -790,6 +790,7 @@ api.delete('/datasets/:datasetId', async (req: Request, res: Response) => {
 
     await db.transaction(async t => {
         await t.execute(`DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
+        await t.execute(`DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
         await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
