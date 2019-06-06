@@ -2,6 +2,7 @@ import { Variable } from './VariableData'
 import { observable, computed } from 'mobx'
 import { defaultTo, formatValue, some, isString, sortBy, isNumber } from './Util'
 import { ChartDimension } from './ChartDimension'
+import { TickFormattingOptions } from './TickFormattingOptions'
 
 export class DimensionWithData {
     props: ChartDimension
@@ -68,23 +69,23 @@ export class DimensionWithData {
         }
     }
 
-    @computed get formatValueShort(): (value: number | string) => string {
+    @computed get formatValueShort(): (value: number | string, options?: TickFormattingOptions) => string {
         const { shortUnit, numDecimalPlaces } = this
-        return value => {
+        return (value, options) => {
             if (isString(value))
                 return value
             else
-                return formatValue(value, { unit: shortUnit, numDecimalPlaces: numDecimalPlaces })
+                return formatValue(value, { unit: shortUnit, numDecimalPlaces: numDecimalPlaces, ...options })
         }
     }
 
-    @computed get formatValueLong(): (value: number | string) => string {
+    @computed get formatValueLong(): (value: number | string, options?: TickFormattingOptions) => string {
         const { unit, numDecimalPlaces } = this
-        return value => {
+        return (value, options) => {
             if (isString(value))
                 return value
             else
-                return formatValue(value, { unit: unit, numDecimalPlaces: numDecimalPlaces })
+                return formatValue(value, { unit: unit, numDecimalPlaces: numDecimalPlaces, ...options })
         }
     }
 

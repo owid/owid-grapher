@@ -6,10 +6,11 @@
  */
 
 import { ScaleType } from './ScaleType'
+import { TickFormattingOptions } from './TickFormattingOptions'
 
 export interface AxisSpec {
     label: string
-    tickFormat: (d: number) => string
+    tickFormat: (d: number, options?: TickFormattingOptions) => string
     domain: [number, number]
     scaleType: ScaleType
     scaleTypeOptions: ScaleType[],

@@ -10,6 +10,7 @@ import { Color } from './Color'
 import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
 import { AxisGridLines } from './AxisBox'
 import { NoData } from './NoData'
+import { TickFormattingOptions } from './TickFormattingOptions'
 
 export interface DiscreteBarDatum {
     key: string
@@ -17,7 +18,7 @@ export interface DiscreteBarDatum {
     year: number
     label: string
     color: Color
-    formatValue: (value: number) => string
+    formatValue: (value: number, options?: TickFormattingOptions) => string
 }
 
 @observer

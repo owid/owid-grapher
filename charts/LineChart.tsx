@@ -98,7 +98,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
             return value ? -value.y : -Infinity
         })
 
-        return <Tooltip x={axisBox.xScale.place(hoverX)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
+        return <Tooltip x={axisBox.xScale.place(hoverX)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}} offsetX={5}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tbody>
                     <tr>
@@ -110,9 +110,9 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                         const value = series.values.find(v => v.x === hoverX)
                         return value ? <tr key={series.key}>
                             <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
-                                <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                                <div style={{width: '10px', height: '10px', borderRadius: '5px', backgroundColor: series.color, display: 'inline-block', marginRight: '2px'}}/> {chart.data.formatKey(series.key)}
                             </td>
-                            <td>{!value ? "No data" : transform.yAxis.tickFormat(value.y)}</td>
+                            <td style={{textAlign: "right"}}>{!value ? "No data" : transform.yAxis.tickFormat(value.y, { noTrailingZeroes: false })}</td>
                         </tr> : null
                     })}
                 </tbody>
@@ -198,9 +198,9 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                     if (!value)
                         return null
                     else
-                        return <circle key={series.key} cx={xScale.place(value.x)} cy={yScale.place(value.y)} r={5} fill={series.color}/>
+                        return <circle key={series.key} cx={xScale.place(value.x)} cy={yScale.place(value.y)} r={4} fill={series.color}/>
                 })}
-                <line x1={xScale.place(hoverX)} y1={yScale.range[0]} x2={xScale.place(hoverX)} y2={yScale.range[1]} stroke="#ccc"/>
+                <line x1={xScale.place(hoverX)} y1={yScale.range[0]} x2={xScale.place(hoverX)} y2={yScale.range[1]} stroke="rgba(180,180,180,.4)"/>
             </g>}
 
             {tooltip}

@@ -117,9 +117,9 @@ export class Areas extends React.Component<AreasProps> {
             {this.borders}
             {hoverIndex !== undefined && <g className="hoverIndicator">
                 {data.map(series => {
-                    return <circle key={series.key} cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={5} fill={series.color}/>
+                    return <circle key={series.key} cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={2} fill={series.color}/>
                 })}
-                <line x1={xScale.place(data[0].values[hoverIndex].x)} y1={yScale.range[0]} x2={xScale.place(data[0].values[hoverIndex].x)} y2={yScale.range[1]} stroke="#ccc"/>
+                <line x1={xScale.place(data[0].values[hoverIndex].x)} y1={yScale.range[0]} x2={xScale.place(data[0].values[hoverIndex].x)} y2={yScale.range[1]} stroke="rgba(180,180,180,.4)"/>
             </g>}
         </g>
     }
@@ -201,27 +201,35 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
         // If some data is missing, don't calculate a total
         const someMissing = transform.stackedData.some(g => !!g.values[hoverIndex].isFake)
 
-        return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}}>
+        const legendBlockStyle = { width: '10px', height: '10px', display: 'inline-block', marginRight: '2px' }
+
+        return <Tooltip x={axisBox.xScale.place(refValue.x)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}} offsetX={5}>
             <table style={{fontSize: "0.9em", lineHeight: "1.4em"}}>
                 <tbody>
                     <tr>
                         <td><strong>{formatYear(refValue.x)}</strong></td>
-                        <td>
-                            {/* Total */}
-                            {!transform.isRelative && !someMissing && <span>
-                                <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y)}</strong>
-                            </span>}
-                        </td>
+                        <td></td>
                     </tr>
                     {reverse(clone(transform.stackedData)).map(series => {
                         const value = series.values[hoverIndex]
                         return <tr key={series.key}>
                             <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
-                                <div style={{width: '10px', height: '10px', backgroundColor: series.color, border: "1px solid #ccc", display: 'inline-block'}}/> {chart.data.formatKey(series.key)}
+                                <div style={{...legendBlockStyle, backgroundColor: series.color}}/> {chart.data.formatKey(series.key)}
                             </td>
-                            <td>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number)}</td>
+                            <td style={{textAlign: "right"}}>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number, { noTrailingZeroes: false })}</td>
                         </tr>
                     })}
+                    {/* Total */}
+                    <tr>
+                        <td style={{fontSize: "0.9em"}}>
+                            <div style={{...legendBlockStyle, backgroundColor: 'transparent'}}/> <strong>Total</strong>
+                        </td>
+                        <td style={{textAlign: "right"}}>
+                            {!transform.isRelative && !someMissing && <span>
+                                <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y, { noTrailingZeroes: false })}</strong>
+                            </span>}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </Tooltip>

@@ -5,6 +5,7 @@ import { DiscreteBarDatum } from './DiscreteBarChart'
 import { IChartTransform } from './IChartTransform'
 import { DimensionWithData } from './DimensionWithData'
 import { ColorSchemes } from './ColorSchemes'
+import { TickFormattingOptions } from './TickFormattingOptions'
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -53,7 +54,7 @@ export class DiscreteBarTransform implements IChartTransform {
         }
     }
 
-    @computed get tickFormat(): (d: number) => string {
+    @computed get tickFormat(): (d: number, options?: TickFormattingOptions) => string {
         const {primaryDimension} = this
         return primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
     }

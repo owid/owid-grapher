@@ -6,6 +6,7 @@ import { format } from 'd3-format'
 import { extent } from 'd3-array'
 
 import { Vector2 } from './Vector2'
+import { TickFormattingOptions } from './TickFormattingOptions'
 
 export type SVGElement = any
 export type VNode = any
@@ -105,8 +106,8 @@ export function precisionRound(num: number, precision: number) {
     return Math.round(num * factor) / factor
 }
 
-export function formatValue(value: number, options: { numDecimalPlaces?: number, unit?: string }): string {
-    const noTrailingZeroes = true
+export function formatValue(value: number, options: TickFormattingOptions): string {
+    const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
     const isNoSpaceUnit = unit[0] === "%"
@@ -132,8 +133,7 @@ export function formatValue(value: number, options: { numDecimalPlaces?: number,
             else
                 output = `<${targetDigits}`
         } else {
-            const rounded = precisionRound(value, numDecimalPlaces)
-            output = format(`,`)(rounded)
+            output = format(`,.${numDecimalPlaces}f`)(value)
         }
 
         if (noTrailingZeroes) {
