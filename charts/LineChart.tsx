@@ -146,7 +146,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         this.hoverKey = undefined
     }
 
-    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
+    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
     componentDidMount() {
         // Fancy intro animation
 
@@ -192,7 +192,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                 <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={[]} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
-            {hoverX != null && <g className="hoverIndicator">
+            {hoverX !== undefined && <g className="hoverIndicator">
                 {transform.groupedData.map(series => {
                     const value = series.values.find(v => v.x === hoverX)
                     if (!value)
