@@ -235,7 +235,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
         </Tooltip>
     }
 
-    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
+    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
     componentDidMount() {
         // Fancy intro animation
 
