@@ -87,7 +87,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
     @computed get xDomainDefault(): [number, number] {
         const allValues = this.data.map(d => d.value)
         const minX = Math.min(0, min(allValues) as number)
-        const maxX = max(allValues) as number
+        const maxX = Math.max(0, max(allValues) as number)
         return [minX, maxX]
     }
 
