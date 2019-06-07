@@ -327,8 +327,8 @@ class ValidationView extends React.Component<{ validation: ValidationResults }> 
         const { validation } = this.props
 
         return <section className="ValidationView">
-            {validation.results.map((v: any) =>
-                <div className={`alert alert-${v.class}`}>{v.message}</div>
+            {validation.results.map((v: any, index: number) =>
+                <div key={index} className={`alert alert-${v.class}`}>{v.message}</div>
             )}
         </section>
     }
