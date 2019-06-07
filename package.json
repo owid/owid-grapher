@@ -59,6 +59,7 @@
     "express-error-slack": "^1.1.1",
     "express-promise-router": "^3.0.3",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^4.0.0",
     "filenamify": "^4.1.0",
     "font-awesome": "^4.7.0",
     "fs-extra": "^8.0.1",
