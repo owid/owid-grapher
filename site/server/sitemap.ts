@@ -1,9 +1,9 @@
 import { Post } from "db/model/Post";
 import { Chart } from "db/model/Chart";
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings";
-import moment = require("moment");
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
+import moment = require("moment")
 import db = require('db/db')
-import { countries } from "utils/countries";
+import { countries } from "utils/countries"
 import urljoin = require('url-join')
 
 interface SitemapUrl {
@@ -39,7 +39,7 @@ export async function makeSitemap() {
         loc: urljoin(BAKED_GRAPHER_URL, c.slug),
         lastmod: moment(c.updatedAt).format("YYYY-MM-DD")
     }))) as SitemapUrl[]
-    
+
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

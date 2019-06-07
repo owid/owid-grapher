@@ -8,14 +8,14 @@ export namespace log {
     export async function sendErrorToSlack(err: any) {
         const slack = new Slack()
         slack.setWebhook(SLACK_ERRORS_WEBHOOK_URL)
-    
+
         function createCodeBlock(title: string, code: any) {
             if (_.isEmpty(code)) return ''
             code = (typeof code === 'string') ? code.trim() : JSON.stringify(code, null, 2)
             const tripleBackticks = '```'
             return `_${title}_${tripleBackticks}${code}${tripleBackticks}\n`
         }
-      
+
         const attachment = {
           fallback: `${err.name}: ${err.message}`,
           color: (err.status < 500) ? 'warning' : 'danger',
@@ -34,16 +34,16 @@ export namespace log {
           footer: 'sendErrorToSlack',
           ts: Math.floor(Date.now() / 1000)
         }
-      
-        slack.webhook({ attachments: [attachment] }, (error, response) => { if (error) console.error(error) })  
+
+        slack.webhook({ attachments: [attachment] }, (error, response) => { if (error) console.error(error) })
     }
-    
+
     export async function error(err: any) {
         if (SLACK_ERRORS_WEBHOOK_URL)
             sendErrorToSlack(err)
         console.error(err)
     }
-    
+
     export async function warn(err: any) {
         console.warn(err)
     }

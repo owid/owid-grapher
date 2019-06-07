@@ -1,6 +1,4 @@
-import { BAKED_BASE_URL } from 'settings'
 import { webpack } from 'utils/server/staticGen'
-import * as urljoin from 'url-join'
 
 export function embedSnippet(): string {
     return `

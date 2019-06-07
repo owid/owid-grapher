@@ -11,8 +11,7 @@ import { ChartConfig } from 'charts/ChartConfig'
 import { EditorFeatures } from './EditorFeatures'
 import { Admin } from './Admin'
 import { BAKED_GRAPHER_URL } from 'settings'
-import { chartDataJson } from 'site/server/chartBaking';
-import _ = require('lodash');
+import _ = require('lodash')
 
 export type EditorTab = string
 

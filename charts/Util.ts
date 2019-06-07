@@ -93,13 +93,13 @@ export function numberOnly(value: any): number | undefined {
 
 // Bind a "mobx component"
 // Still working out exactly how this pattern goes
-export function component<T extends { [key: string]: any }>(current: T | undefined, klass: { new(): T }, props: Partial<T>): T {
-    const instance = current || new klass()
-    each(keys(props), (key: string) => {
-        instance[key] = props[key]
-    })
-    return instance
-}
+// export function component<T extends { [key: string]: any }>(current: T | undefined, klass: { new(): T }, props: Partial<T>): T {
+//     const instance = current || new klass()
+//     each(keys(props), (key: string) => {
+//         instance[key] = props[key]
+//     })
+//     return instance
+// }
 
 export function precisionRound(num: number, precision: number) {
     const factor = Math.pow(10, precision)

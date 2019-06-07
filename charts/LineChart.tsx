@@ -146,7 +146,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         this.hoverKey = undefined
     }
 
-    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
+    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
     componentDidMount() {
         // Fancy intro animation
 

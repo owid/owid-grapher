@@ -17,7 +17,7 @@ import { Bounds } from './Bounds'
 import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
 import { TooltipView } from './Tooltip'
-import { FullStory } from 'site/client/FullStory';
+import { FullStory } from 'site/client/FullStory'
 
 declare const window: any
 

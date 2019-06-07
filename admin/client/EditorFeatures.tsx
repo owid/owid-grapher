@@ -21,7 +21,7 @@ export class EditorFeatures {
         return this.chart.isScatter
     }
 
-    @computed get customYAxisLabel(){
+    @computed get customYAxisLabel() {
         return this.chart.isScatter
     }
 

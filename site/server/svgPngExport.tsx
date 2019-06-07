@@ -23,6 +23,10 @@ export async function bakeImageExports(outDir: string, jsonConfig: ChartConfigPr
 
     return Promise.all([
         fs.writeFile(`${outPath}.svg`, chart.staticSVG).then(_ => console.log(`${outPath}.svg`)),
-        sharp(Buffer.from(chart.staticSVG), { density: 144 }).png().resize(chart.idealBounds.width, chart.idealBounds.height).flatten().background('#ffffff').toFile(`${outPath}.png`)
+        sharp(Buffer.from(chart.staticSVG), { density: 144 })
+            .png()
+            .resize(chart.idealBounds.width, chart.idealBounds.height)
+            .flatten({ background: '#ffffff' })
+            .toFile(`${outPath}.png`)
     ])
 }

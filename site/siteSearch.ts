@@ -97,19 +97,19 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     }
 
     const json = await getClient().search([
-        { 
-            indexName: 'pages', 
-            query: query, 
-            params: { 
+        {
+            indexName: 'pages',
+            query: query,
+            params: {
                 attributesToRetrieve: ['objectID', 'postId', 'slug', 'title', 'type', 'code', 'content'],
                 attributesToSnippet: ['content:24'],
                 distinct: true,
                 hitsPerPage: 10
-            } 
+            }
         },
-        { 
-            indexName: 'charts', 
-            query: chartQuery, 
+        {
+            indexName: 'charts',
+            query: chartQuery,
             params: {
                 attributesToRetrieve: ['chartId', 'slug', 'title', 'variantName'],
                 attributesToSnippet: ['subtitle:24'],

@@ -8,16 +8,12 @@ import { AxisBox, AxisBoxView } from './AxisBox'
 import { ComparisonLine } from './ComparisonLine'
 import { ScaleType } from './AxisScale'
 
-
 import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, min, find, first, isEmpty, guid, formatYear } from './Util'
 import { AxisScale } from './AxisScale'
 import { getRelativeMouse, makeSafeForCSS } from './Util'
 import { Vector2 } from './Vector2'
-import { Triangle } from './Marks'
 import { select } from 'd3-selection'
-import { valueFromAST } from 'graphql';
-import { Tooltip } from './Tooltip';
-
+import { Tooltip } from './Tooltip'
 
 export interface ScatterSeries {
     color: string
@@ -389,11 +385,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return guid()
     }
 
-    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
+    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
     componentDidMount() {
         const radiuses: string[] = []
         this.animSelection = select(this.base.current).selectAll("circle")
-        
+
         this.animSelection.each(function() {
             const circle = this as SVGCircleElement
             radiuses.push(circle.getAttribute('r') as string)

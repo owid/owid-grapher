@@ -1,7 +1,7 @@
 import {BAKED_GRAPHER_URL} from 'settings'
 
 import * as React from 'react'
-import * as urljoin from 'url-join'
+import urljoin = require('url-join')
 import * as _ from 'lodash'
 
 import { webpack } from 'utils/server/staticGen'

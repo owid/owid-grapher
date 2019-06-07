@@ -24,7 +24,7 @@ import { Chart } from 'db/model/Chart'
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment = require("moment")
-import * as urljoin from 'url-join'
+import urljoin = require('url-join')
 import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage";
 import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage";

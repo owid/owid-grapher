@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import * as _ from 'lodash'
 import {quote} from 'shell-quote'
-import * as urljoin from 'url-join'
+import urljoin = require('url-join')
 import * as settings from 'settings'
 import * as util from 'util'
 import * as shell from 'shelljs'
@@ -16,15 +16,6 @@ export async function exec(command: string): Promise<string> {
         const error = new Error(`Received exit code ${err} from: ${command}`);
         (error as any).code = err
         throw error
-    }
-}
-
-export async function tryExec(command: string): Promise<string> {
-    try {
-        return await exec(command)
-    } catch (error) {
-        console.error(error)
-        return error.code
     }
 }
 

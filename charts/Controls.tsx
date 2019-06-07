@@ -345,7 +345,7 @@ export class Controls {
     }
 
     @computed get controlsPaddingTop(): number {
-        if (this.legendButtonBottom != null && this.legendButtonHeight > this.legendButtonBottom) {
+        if (this.legendButtonBottom !== undefined && this.legendButtonHeight > this.legendButtonBottom) {
             return this.legendButtonHeight - this.legendButtonBottom
         } else {
             return 0
@@ -376,7 +376,7 @@ export class ControlsOverlayView extends React.Component<{ controls: Controls }>
 
     renderLegendButton() {
         const { controls } = this.props
-        if (controls.hasLegendButton && controls.legendButtonBottom != null && controls.legendButtonLeft != null) {
+        if (controls.hasLegendButton && controls.legendButtonBottom !== undefined && controls.legendButtonLeft !== undefined) {
             const buttonStyle: React.CSSProperties = {
                 position: "absolute",
                 bottom: `-${controls.legendButtonBottom}px`,

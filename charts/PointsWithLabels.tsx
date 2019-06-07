@@ -9,8 +9,9 @@
  */
 
 import * as React from 'react'
-import { scaleLinear, scaleOrdinal, ScaleOrdinal, schemeCategory20 } from 'd3-scale'
-import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
+import { scaleLinear, scaleOrdinal, ScaleOrdinal } from 'd3-scale'
+import { schemeCategory10 } from 'd3-scale-chromatic'
+import { some, last, sortBy, cloneDeep, flatten, uniq, min, find, first, isEmpty, guid } from './Util'
 import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { Bounds } from './Bounds'
@@ -220,7 +221,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     // Used if no color is specified for a series
     @computed get defaultColorScale(): ScaleOrdinal<string, string> {
-        return scaleOrdinal(schemeCategory20)
+        return scaleOrdinal(schemeCategory10)
     }
 
     @computed get hideLines(): boolean {
@@ -584,11 +585,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
-    animSelection?: d3.Selection<d3.BaseType, {}, SVGGElement | null, {}>
+    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
     componentDidMount() {
         const radiuses: string[] = []
         this.animSelection = select(this.base.current).selectAll("circle")
-        
+
         this.animSelection.each(function() {
             const circle = this as SVGCircleElement
             radiuses.push(circle.getAttribute('r') as string)
