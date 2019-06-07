@@ -10,7 +10,7 @@ import { HighlightToggleConfig } from './ChartConfig'
 import { Timeline } from './HTMLTimeline'
 import { extend, keys } from './Util'
 import { worldRegions, labelsByRegion } from './WorldRegions'
-import { ADMIN_BASE_URL } from 'settings'
+import { ADMIN_BASE_URL, ENV } from 'settings'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCode } from '@fortawesome/free-solid-svg-icons/faCode'
@@ -73,7 +73,7 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
     }
 
     @computed get editUrl(): string | undefined {
-        return Cookies.get('isAdmin') ? `${ADMIN_BASE_URL}/admin/charts/${this.props.chart.props.id}/edit` : undefined
+        return (Cookies.get('isAdmin') || ENV === "development") ? `${ADMIN_BASE_URL}/admin/charts/${this.props.chart.props.id}/edit` : undefined
     }
 
     @computed get canonicalUrl(): string | undefined {
