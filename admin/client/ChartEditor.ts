@@ -42,6 +42,11 @@ export interface PostReference {
     url: string
 }
 
+export interface Namespace {
+    name: string
+    description?: string
+}
+
 // This contains the dataset/variable metadata for the entire database
 // Used for variable selector interface
 
@@ -50,7 +55,7 @@ interface NamespaceData {
 }
 
 export class EditorDatabase {
-    @observable.ref namespaces: string[]
+    @observable.ref namespaces: Namespace[]
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {

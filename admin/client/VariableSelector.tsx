@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import { groupBy, each, isString, sortBy } from 'charts/Util'
 import { computed, action, observable, autorun, runInAction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
-import { ChartEditor, Dataset } from './ChartEditor'
+import { ChartEditor, Dataset, Namespace } from './ChartEditor'
 import { DimensionSlot } from 'charts/ChartConfig'
 import { defaultTo } from 'charts/Util'
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from './Forms'
@@ -25,7 +25,7 @@ interface Variable {
 
 @observer
 export class VariableSelector extends React.Component<VariableSelectorProps> {
-    @observable.ref chosenNamespace: string | undefined
+    @observable.ref chosenNamespace: Namespace | undefined
     @observable.ref searchInput?: string
     @observable.ref isProjection?: true
     @observable.ref tolerance?: number
@@ -42,11 +42,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get currentNamespace() {
-        return defaultTo(this.chosenNamespace, this.database.namespaces[0])
+        return defaultTo(this.chosenNamespace, this.database.namespaces.find(n => n.name === 'owid') as Namespace)
     }
 
     @computed get editorData() {
-        return this.database.dataByNamespace.get(this.currentNamespace)
+        return this.database.dataByNamespace.get(this.currentNamespace.name)
     }
 
     @computed get datasets() {
@@ -54,7 +54,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
         const datasets = this.editorData.datasets
 
-        if (this.currentNamespace !== 'owid') {
+        if (this.currentNamespace.name !== 'owid') {
             // The default temporal ordering has no real use for bulk imports
             return sortBy(datasets, d => d.name)
         } else {
@@ -132,7 +132,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 <div>
                     <div className="searchResults">
                         <FieldsRow>
-                            <SelectField label="Database" options={database.namespaces} value={currentNamespace} onValue={this.onNamespace}/>
+                            <SelectField label="Database" options={database.namespaces.map(n => n.name)} optionLabels={database.namespaces.map(n => n.description || n.name)} value={currentNamespace.name} onValue={this.onNamespace}/>
                             <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} onEscape={this.onDismiss} autofocus/>
                         </FieldsRow>
                         <div style={{ height: numVisibleRows * rowHeight, overflowY: 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
@@ -183,7 +183,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound onNamespace(namespace: string|undefined) {
-        this.chosenNamespace = namespace
+        this.chosenNamespace = this.database.namespaces.find(n => n.name === namespace)
     }
 
     @action.bound onSearchInput(input: string) {
@@ -226,7 +226,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     componentDidMount() {
         this.dispose = autorun(() => {
             if (!this.editorData)
-                runInAction(() => this.props.editor.loadNamespace(this.currentNamespace))
+                runInAction(() => this.props.editor.loadNamespace(this.currentNamespace.name))
         })
 
         this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({

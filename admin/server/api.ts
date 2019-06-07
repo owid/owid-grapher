@@ -289,10 +289,10 @@ api.get('/charts/:chartId.config.json', async (req: Request, res: Response) => {
 })
 
 api.get('/editorData/namespaces.json', async (req: Request, res: Response) => {
-    const rows = await db.query(`SELECT DISTINCT namespace FROM datasets`) as { namespace: string }[]
+    const rows = await db.query(`SELECT DISTINCT namespace AS name, namespaces.description FROM datasets JOIN namespaces ON namespaces.name = datasets.namespace`) as { name: string, description: string }[]
 
     return {
-        namespaces: rows.map(row => row.namespace)
+        namespaces: _.sortBy(rows, row => row.description)
     }
 })
 
