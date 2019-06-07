@@ -124,6 +124,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 return text
         }
 
+        const getOptionLabel = (namespace: Namespace) => {
+            if (namespace.description) return `${namespace.description} — ${namespace.name}`
+            else return namespace.name
+        }
+
         return <Modal onClose={this.onDismiss} className="VariableSelector">
             <div className="modal-header">
                 <h5 className="modal-title">Set variable{slot.allowMultiple && 's'} for {slot.name}</h5>
@@ -132,7 +137,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 <div>
                     <div className="searchResults">
                         <FieldsRow>
-                            <SelectField label="Database" options={database.namespaces.map(n => n.name)} optionLabels={database.namespaces.map(n => n.description || n.name)} value={currentNamespace.name} onValue={this.onNamespace}/>
+                            <SelectField label="Database" options={database.namespaces.map(n => n.name)} optionLabels={database.namespaces.map(getOptionLabel)} value={currentNamespace.name} onValue={this.onNamespace}/>
                             <TextField placeholder="Search..." value={searchInput} onValue={this.onSearchInput} onEnter={this.onSearchEnter} onEscape={this.onDismiss} autofocus/>
                         </FieldsRow>
                         <div style={{ height: numVisibleRows * rowHeight, overflowY: 'scroll' }} onScroll={this.onScroll} ref={e => this.scrollElement = (e as HTMLDivElement)}>
