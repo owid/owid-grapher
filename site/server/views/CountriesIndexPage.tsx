@@ -20,7 +20,7 @@ export const CountriesIndexPage = (props: { countries: Country[] }) => {
             <main>
                 <h1>Data by country</h1>
                 <ul>
-                    {countries.map(country => <li>
+                    {countries.map(country => <li key={country.code}>
                         <img className="flag" src={`/images/flags/${country.code}.svg`}/>
                         <a href={`/country/${country.slug}`}>{country.name}</a>
                     </li>)}
