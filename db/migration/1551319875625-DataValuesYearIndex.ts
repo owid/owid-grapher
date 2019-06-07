@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import {MigrationInterface, QueryRunner} from "typeorm"
 
 export class DataValuesYearIndex1551319875625 implements MigrationInterface {
 

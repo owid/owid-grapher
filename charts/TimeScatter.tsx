@@ -108,7 +108,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.props.hideLines
     }
 
-
     @computed get transform() {
         return this.props.chart.scatter
     }
@@ -163,7 +162,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     labelPriority(l: ScatterLabel) {
-        let priority = l.fontSize
+        const priority = l.fontSize
 
         // if (l.series.isHover)
         //     priority += 10000
@@ -251,7 +250,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     //         }
     //     })
     // }
-
 
     // Make the end label (entity label) for a series. Will be pushed
     // slightly out based on the direction of the series if multiple values
@@ -458,7 +456,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         </g>
     }
 }
-
 
 @observer
 export class TimeScatter extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {

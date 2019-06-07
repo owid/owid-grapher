@@ -9,7 +9,7 @@ export namespace Tag {
         specialType: string
         isBulkImport: boolean
     }
-    
+
     export type Field = keyof Row
 
     export const table = "tags"

@@ -3,7 +3,7 @@ import { observer } from 'mobx-react'
 import { Grapher, readConfigFromHTML } from 'site/client/Grapher'
 import { computed, observable, runInAction, autorun, IReactionDisposer } from 'mobx'
 import { ChartConfig } from 'charts/ChartConfig'
-import { ChartFigureView } from './ChartFigureView';
+import { ChartFigureView } from './ChartFigureView'
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
     @computed get configUrl(): string { return this.props.src.split(/\?/)[0] }

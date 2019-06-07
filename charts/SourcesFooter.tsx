@@ -179,7 +179,6 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
             {chart.props.hideLogo && <a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>}
         </div>
 
-
         return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{color: "#777"}}>
             {footer.isCompact && license}
             <p style={footer.sources.htmlStyle} className="clickable" onClick={footer.onSourcesClick}>{footer.sources.renderHTML()}</p>

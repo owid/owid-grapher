@@ -1,7 +1,7 @@
 import glob = require('glob')
 import fs = require('fs-extra')
 
-var countryISOMapping = {
+const countryISOMapping = {
     AF: 'AFG',
     AX: 'ALA',
     AL: 'ALB',

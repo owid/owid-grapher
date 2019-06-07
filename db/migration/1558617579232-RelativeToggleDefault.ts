@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import {MigrationInterface, QueryRunner} from "typeorm"
 
 export class RelativeToggleDefault1558617579232 implements MigrationInterface {
 

@@ -10,10 +10,10 @@ import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
 import { expectInt, JsonError } from 'utils/server/serverUtil'
 import { embedSnippet } from 'site/server/embedCharts'
-import { countryProfilePage, countriesIndexPage } from './countryProfiles';
-import { makeSitemap } from './sitemap';
-import { OldChart } from 'db/model/Chart';
-import { chartToSVG } from './svgPngExport';
+import { countryProfilePage, countriesIndexPage } from './countryProfiles'
+import { makeSitemap } from './sitemap'
+import { OldChart } from 'db/model/Chart'
+import { chartToSVG } from './svgPngExport'
 
 const devServer = express()
 

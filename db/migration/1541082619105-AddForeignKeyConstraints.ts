@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import {MigrationInterface, QueryRunner} from "typeorm"
 
 export class AddForeignKeyConstraints1541082619105 implements MigrationInterface {
 
@@ -17,5 +17,3 @@ export class AddForeignKeyConstraints1541082619105 implements MigrationInterface
     }
 
 }
-
-

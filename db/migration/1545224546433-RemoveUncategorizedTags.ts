@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import {MigrationInterface, QueryRunner} from "typeorm"
 
 export class RemoveUncategorizedTags1545224546433 implements MigrationInterface {
 

@@ -7,8 +7,8 @@ import { ChartConfigProps } from 'charts/ChartConfig'
 import { ChartPage } from 'site/server/views/ChartPage'
 import { renderToHtmlPage } from 'site/server/siteBaking'
 import { getVariableData } from 'db/model/Variable'
-import { Post } from 'db/model/Post';
-import { urlToSlug } from 'charts/Util';
+import { Post } from 'db/model/Post'
+import { urlToSlug } from 'charts/Util'
 
 export async function chartDataJson(variableIds: number[]) {
     return await getVariableData(variableIds)

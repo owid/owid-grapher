@@ -18,7 +18,7 @@ import {getParent} from './utils'
 import {Grapher} from 'site/client/Grapher'
 import {ChartView} from 'charts/ChartView'
 import { runVariableCountryPage } from './runVariableCountryPage'
-import { runCountryProfilePage } from './runCountryProfilePage';
+import { runCountryProfilePage } from './runCountryProfilePage'
 
 declare var window: any
 window.Grapher = Grapher

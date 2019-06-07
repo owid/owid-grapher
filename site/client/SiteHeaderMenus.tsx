@@ -86,7 +86,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
     @action.bound onDropdownButtonClick(event: React.MouseEvent<HTMLAnchorElement>) {
         event.preventDefault()
         // Only close the menu if it's been open for a while, to avoid accidentally closing it while it's appearing.
-        if (this.dropdownIsOpen && this.dropdownLastOpened != null && this.dropdownLastOpened + 500 < Date.now()) {
+        if (this.dropdownIsOpen && this.dropdownLastOpened !== undefined && this.dropdownLastOpened + 500 < Date.now()) {
             this.setOpen(false)
         } else {
             this.setOpen(true)

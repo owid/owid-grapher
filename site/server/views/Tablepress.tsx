@@ -9,7 +9,7 @@ export default function Tablepress(props: { data: string[][] }) {
             </tr>
         </thead>
         <tbody className="row-hover">
-            {data.slice(1).map((row, i) => 
+            {data.slice(1).map((row, i) =>
                 <tr key={i}>
                     {row.map((value, j) => <td key={j} dangerouslySetInnerHTML={{__html: value}}/>)}
                 </tr>

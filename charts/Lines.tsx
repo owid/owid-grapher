@@ -8,7 +8,7 @@ import { Vector2 } from './Vector2'
 import { getRelativeMouse, makeSafeForCSS, pointsToPath } from './Util'
 import { Bounds } from './Bounds'
 import { DataKey } from './DataKey'
-import { AxisBox } from './AxisBox';
+import { AxisBox } from './AxisBox'
 
 export interface LinesProps {
     axisBox: AxisBox,
@@ -77,8 +77,6 @@ export class Lines extends React.Component<LinesProps> {
         return values
     }
 
-
-
     @computed get hoverData(): HoverTarget[] {
         const { data } = this.props
         return flatten(this.renderData.map((series, i) => {
@@ -98,7 +96,7 @@ export class Lines extends React.Component<LinesProps> {
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
-        let hoverX = undefined
+        let hoverX
         if (axisBox.innerBounds.contains(mouse)) {
             const closestValue = sortBy(this.allValues, d => Math.abs(xScale.place(d.x) - mouse.x))[0]
             hoverX = closestValue.x

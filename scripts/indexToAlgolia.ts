@@ -25,7 +25,7 @@ async function getPostTags(postId: number) {
 function getPostType(post: FormattedPost, tags: Tag[]) {
     if (post.slug.startsWith("about/")) {
         return "about"
-    } if (post.type === 'post') {
+    } else if (post.type === 'post') {
         if (tags.some(t => t.name === "Explainers"))
             return "explainer"
         else if (tags.some(t => t.name === "Short updates and facts"))
@@ -105,11 +105,10 @@ async function indexToAlgolia() {
         }
     }
 
-
     for (let i = 0; i < records.length; i += 1000) {
         await tmpIndex.saveObjects(records.slice(i, i+1000))
     }
-    await client.moveIndex(tmpIndex.indexName, finalIndex.indexName);
+    await client.moveIndex(tmpIndex.indexName, finalIndex.indexName)
 
     await wpdb.end()
     await db.end()

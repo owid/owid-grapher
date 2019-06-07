@@ -163,8 +163,8 @@ class NumericMapLegend {
         return labels
     }
 
-    @computed get height(): number { 
-        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number) 
+    @computed get height(): number {
+        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number)
     }
 
     @computed get width(): number {

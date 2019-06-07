@@ -6,7 +6,6 @@ async function main() {
     await db.end()
 }
 
-
 if (require.main === module) {
     main()
 }

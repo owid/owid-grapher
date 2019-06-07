@@ -401,7 +401,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                     const dist = Math.abs((s.y2 - s.y1) * mouse.x - (s.x2 - s.x1) * mouse.y + s.x2 * s.y1 - s.y2 * s.x1) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
                     distToSlope.set(s, dist)
                 }
-    
+
                 const closestSlope = sortBy(this.slopeData, s => distToSlope.get(s))[0]
 
                 if (closestSlope && distToSlope.get(closestSlope) as number < 20 && this.props.onMouseOver) {

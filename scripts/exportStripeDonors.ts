@@ -3,7 +3,7 @@ import * as Stripe from 'stripe'
 import { groupBy, sum } from 'lodash'
 
 import { STRIPE_SECRET_KEY } from 'settings'
-import { csvRow } from 'utils/server/serverUtil';
+import { csvRow } from 'utils/server/serverUtil'
 
 const stripe = new Stripe(STRIPE_SECRET_KEY)
 

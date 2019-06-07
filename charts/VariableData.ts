@@ -11,15 +11,15 @@ declare var App: { isEditor: boolean }
 export interface DataForChart {
     variables: {[id: string]: {
         id: number
-        name: string    
+        name: string
         description: string
         unit: string
         shortUnit: string
         datasetName: string
         datasetId: string
-    
+
         display: VariableDisplaySettings
-    
+
         source: {
             id: number,
             name: string,
@@ -29,7 +29,7 @@ export interface DataForChart {
             retrievedDate: string,
             additionalInfo: string,
         }
-    
+
         years: number[]
         entities: number[]
         values: (number|string)[]

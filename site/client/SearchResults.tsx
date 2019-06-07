@@ -2,10 +2,10 @@ import { SiteSearchResults, PageHit, ChartHit, CountryHit, ArticleHit } from "si
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import React = require("react")
-import { EmbedChart } from "./EmbedChart";
-import { BAKED_GRAPHER_URL } from "settings";
-import { uniq, capitalize } from "charts/Util";
-import { Country } from "utils/countries";
+import { EmbedChart } from "./EmbedChart"
+import { BAKED_GRAPHER_URL } from "settings"
+import { uniq, capitalize } from "charts/Util"
+import { Country } from "utils/countries"
 
 class ChartResult extends React.Component<{ hit: ChartHit, queryCountries: Country[] }> {
     @computed get entities() {
@@ -51,7 +51,7 @@ class CountryResult extends React.Component<{ hit: CountryHit }> {
             <a href={`/country/${hit.slug}`}>{hit.title}</a> <span className="variantName">Country</span>
             <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
         </li>
-    }    
+    }
 }
 
 class ArticleResult extends React.Component<{ hit: ArticleHit }> {
@@ -64,8 +64,8 @@ class ArticleResult extends React.Component<{ hit: ArticleHit }> {
             {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
             <a href={`/${hit.slug}`}>{hit.title}</a> {showType ? <span className="variantName">{capitalize(hit.type)}</span> : undefined}
             <p dangerouslySetInnerHTML={{__html: hit._snippetResult.content.value}}/>
-        </li>        
-    }    
+        </li>
+    }
 }
 
 function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
@@ -73,7 +73,7 @@ function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const availableEntities = hit._highlightResult ? hit._highlightResult.availableEntities : []
     for (const res of availableEntities) {
         const entity = res.value.replace(/<\/?em>/g, '')
-        if (res.matchLevel != "none" || queryCountries.some(c => c.name === entity)) {
+        if (res.matchLevel !== "none" || queryCountries.some(c => c.name === entity)) {
             entities.push(entity)
         }
     }
@@ -111,7 +111,6 @@ export class SearchResults extends React.Component<{ results: SiteSearchResults 
         else
             return bestChartHit.slug + `?tab=chart&country=${bestChartEntities.map(e => encodeURIComponent(e)).join("+")}`
     }
-
 
     render() {
         const {results} = this.props

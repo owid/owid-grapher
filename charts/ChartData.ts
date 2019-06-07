@@ -123,7 +123,6 @@ export class ChartData {
                 }
             }
 
-
             if (chart.isLineChart && chart.lineChart.isRelativeMode) {
                 text = "Change in " + (text.charAt(1).match(/[A-Z]/) ? text : text.charAt(0).toLowerCase() + text.slice(1))
             }

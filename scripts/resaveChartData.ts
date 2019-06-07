@@ -1,8 +1,8 @@
 import db = require('db/db')
-import { Chart } from 'db/model/Chart';
-import { ChartConfig } from 'charts/ChartConfig';
-import _ = require('lodash');
-import { getVariableData } from 'db/model/Variable';
+import { Chart } from 'db/model/Chart'
+import { ChartConfig } from 'charts/ChartConfig'
+import _ = require('lodash')
+import { getVariableData } from 'db/model/Variable'
 
 async function main() {
     (global as any).window = {};

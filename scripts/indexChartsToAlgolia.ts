@@ -11,7 +11,7 @@ async function indexChartsToAlgolia() {
 
     const allCharts = await db.query(`
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName, config->>"$.data.availableEntities" as availableEntitiesStr
-        FROM charts 
+        FROM charts
         WHERE publishedAt IS NOT NULL
         AND is_indexable IS TRUE
     `)
@@ -68,9 +68,9 @@ async function indexChartsToAlgolia() {
     }
 
     console.log(records.length)
-    
+
     await tmpIndex.saveObjects(records)
-    await client.moveIndex(tmpIndex.indexName, finalIndex.indexName);
+    await client.moveIndex(tmpIndex.indexName, finalIndex.indexName)
     // for (let i = 0; i < records.length; i += 1000) {
     //     console.log(i)
     //     await index.saveObjects(records.slice(i, i+1000))

@@ -5,7 +5,7 @@ import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { VariableDisplaySettings } from 'charts/VariableData'
-import { defaultTo } from 'charts/Util';
+import { defaultTo } from 'charts/Util'
 
 export interface VariableCountryPageProps {
     country: {
@@ -19,11 +19,11 @@ export interface VariableCountryPageProps {
         shortUnit: string
         description: string
         display: VariableDisplaySettings
-    
+
         datasetId: number
         datasetName: string
         datasetNamespace: string
-    
+
         source: { id: number, name: string }
     }
 }

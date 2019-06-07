@@ -14,7 +14,7 @@ export namespace Variable {
         columnOrder: number
         display: VariableDisplaySettings
     }
-    
+
     export type Field = keyof Row
 
     export const table = "variables"

@@ -6,11 +6,11 @@ import * as _ from 'lodash'
 
 import { webpack } from 'utils/server/staticGen'
 import { ChartConfigProps } from 'charts/ChartConfig'
-import { SiteHeader } from './SiteHeader';
-import { SiteFooter } from './SiteFooter';
-import { Head } from './Head';
-import { urlToSlug } from 'charts/Util';
-import { Post } from 'db/model/Post';
+import { SiteHeader } from './SiteHeader'
+import { SiteFooter } from './SiteFooter'
+import { Head } from './Head'
+import { urlToSlug } from 'charts/Util'
+import { Post } from 'db/model/Post'
 
 export const ChartPage = (props: { chart: ChartConfigProps, post?: Post.Row }) => {
     const {chart, post} = props
@@ -25,7 +25,6 @@ export const ChartPage = (props: { chart: ChartConfigProps, post?: Post.Row }) =
         document.documentElement.classList.add('iframe')
     }
 `
-
 
     const script = `
         var jsonConfig = ${JSON.stringify(chart)};

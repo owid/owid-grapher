@@ -5,7 +5,7 @@ import { ChartConfig, ChartConfigProps } from 'charts/ChartConfig'
 import {getVariableData} from './Variable'
 import { User } from './User'
 import { ChartRevision } from './ChartRevision'
-import { PUBLIC_TAG_PARENT_IDS } from "settings";
+import { PUBLIC_TAG_PARENT_IDS } from "settings"
 
 @Entity("charts")
 export class Chart extends BaseEntity {
@@ -53,7 +53,7 @@ export class Chart extends BaseEntity {
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [tagRows])
-        
+
             const tags = tagIds.length ? await t.query("select parentId from tags where id in (?)", [tagIds]) as { parentId: number }[] : []
             const isIndexable = tags.some(t => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
 
@@ -78,7 +78,7 @@ export class Chart extends BaseEntity {
             const chart = chartsById[ct.chartId]
             if (chart)
                 chart.tags.push({ id: ct.tagId, name: ct.tagName })
-        }        
+        }
     }
 
     static async all(): Promise<ChartRow[]> {

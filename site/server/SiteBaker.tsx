@@ -25,8 +25,8 @@ import { getVariableData } from 'db/model/Variable'
 import { ChartPage } from './views/ChartPage'
 import { bakeImageExports } from './svgPngExport'
 import { Post } from 'db/model/Post'
-import { bakeCountries } from './countryProfiles';
-import { chartPage } from './chartBaking';
+import { bakeCountries } from './countryProfiles'
+import { chartPage } from './chartBaking'
 
 // Static site generator using Wordpress
 
@@ -340,7 +340,6 @@ export class SiteBaker {
         await fs.writeFile(outPath, content)
         this.stage(outPath)
     }
-
 
     async stageWrite(outPath: string, content: string) {
         await fs.mkdirp(path.dirname(outPath))

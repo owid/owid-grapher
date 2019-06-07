@@ -2,14 +2,15 @@ import * as React from 'react'
 import moment = require('moment')
 
 export const CitationMeta = (props: { id: number, title: string, authors: string[], date: Date, canonicalUrl: string }) => {
-    let {id, title, authors, date, canonicalUrl} = props
+    const {id, title, date, canonicalUrl} = props
+    let {authors} = props
 
     if (authors.indexOf("Max Roser") === -1)
         authors = authors.concat(["Max Roser"])
 
     return <React.Fragment>
         <meta name="citation_title" content={title}/>
-        <meta name="citation_fulltext_html_url" content={canonicalUrl}/>		
+        <meta name="citation_fulltext_html_url" content={canonicalUrl}/>
         <meta name="citation_fulltext_world_readable" content=""/>
         {/* <meta name="citation_volume" content="1"/>
         <meta name="citation_issue" content="1"/>

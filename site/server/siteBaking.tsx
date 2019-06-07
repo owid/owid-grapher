@@ -26,13 +26,13 @@ import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment = require("moment")
 import urljoin = require('url-join')
 import { EntriesByYearPage, EntriesForYearPage } from "./views/EntriesByYearPage"
-import { VariableCountryPage } from "./views/VariableCountryPage";
-import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage";
-import { ChartConfigProps } from "charts/ChartConfig";
-import { DimensionWithData } from "charts/DimensionWithData";
-import { Variable } from "db/model/Variable";
-import { CountriesIndexPage } from "./views/CountriesIndexPage";
-import { FeedbackPage } from "./views/FeedbackPage";
+import { VariableCountryPage } from "./views/VariableCountryPage"
+import { CountryProfilePage, CountryProfileKeyStats, CountryProfileIndicator } from "./views/CountryProfilePage"
+import { ChartConfigProps } from "charts/ChartConfig"
+import { DimensionWithData } from "charts/DimensionWithData"
+import { Variable } from "db/model/Variable"
+import { CountriesIndexPage } from "./views/CountriesIndexPage"
+import { FeedbackPage } from "./views/FeedbackPage"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {

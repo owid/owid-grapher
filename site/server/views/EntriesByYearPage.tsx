@@ -29,7 +29,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                         </li>)}
                     </ul>
                 </section>)}
-                
+
             </main>
             <SiteFooter/>
         </body>

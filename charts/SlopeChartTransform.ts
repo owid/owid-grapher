@@ -7,7 +7,7 @@ import { DimensionWithData } from './DimensionWithData'
 import { SlopeChartSeries, SlopeChartValue } from './LabelledSlopes'
 import { IChartTransform } from './IChartTransform'
 import { ColorSchemes } from './ColorSchemes'
-import { Colorizer, Colorable } from './Colorizer';
+import { Colorizer, Colorable } from './Colorizer'
 
 // Responsible for translating chart configuration into the form
 // of a line chart
