@@ -35,7 +35,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
                             <h2 id="footnotes">Footnotes</h2>
                             <ol className="footnotes">
                                 {post.footnotes.map((footnote, i) =>
-                                    <li id={`note-${i+1}`}>
+                                    <li key={i} id={`note-${i+1}`}>
                                         <p dangerouslySetInnerHTML={{__html: footnote}}/>
                                     </li>
                                 )}

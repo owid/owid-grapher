@@ -84,7 +84,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                                     <h3 id="references">References</h3>
                                     <ol className="references">
                                         {post.footnotes.map((footnote, i) =>
-                                            <li key={`note-${i+1}`} id={`note-${i+1}`}>
+                                            <li key={i} id={`note-${i+1}`}>
                                                 <p dangerouslySetInnerHTML={{__html: footnote}}/>
                                             </li>
                                         )}
