@@ -64,10 +64,16 @@ async function formatLatex(html: string, latexBlocks?: string[]): Promise<string
     const compiled: string[] = []
     for (const latex of latexBlocks) {
         try {
-            const result = await mjAPI.typeset({ math: latex, format: "TeX", svg: true })
+            const result = await mjAPI.typeset({
+                useFontCache: false,
+                useGlobalCache: false,
+                math: latex,
+                format: "TeX",
+                svg: true
+            })
             compiled.push(result.svg.replace("<svg", `<svg class="latex"`))
         } catch (err) {
-            compiled.push(`${latex} (parse error: ${err})`)
+            compiled.push(`${latex} (Could not format equation due to MathJax error)`)
         }
     }
 
