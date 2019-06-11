@@ -9,7 +9,7 @@
     "dev-webpack": "webpack-dev-server -d",
     "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
     "typeorm": "yarn tsn node_modules/.bin/typeorm",
-    "knex": "yarn tsn node_modules/.bin/knex",
+    "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
     "migrate": "yarn knex migrate:latest",
     "lint": "tslint --project . -t verbose",
     "typecheck": "tsc --noEmit",

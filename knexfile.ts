@@ -18,7 +18,7 @@ const dbConfig = {
     }
 }
 
-module.exports = {
+export = {
   development: dbConfig,
   staging: dbConfig,
   production: dbConfig
