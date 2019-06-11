@@ -184,13 +184,15 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                     {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 360, 500) : new Bounds(0, 0, 800, 600)}/>}
                     {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
                 </figure>
-                <div className="btn-group" data-toggle="buttons">
+                <div className="btn-group" data-toggle="buttons" style={{ whiteSpace: 'nowrap' }}>
                     <label className={"btn btn-light" + (previewMode === "mobile" ? " active" : "")} title="Mobile preview">
                         <input type="radio" onChange={action(_ => editor.previewMode = 'mobile')} name="previewSize" id="mobile" checked={previewMode === "mobile"}/>
+                        {" "}
                         <FontAwesomeIcon icon={faMobile}/>
                     </label>
                     <label className={"btn btn-light" + (previewMode === "desktop" ? " active" : "")} title="Desktop preview">
                         <input onChange={action(_ => editor.previewMode = 'desktop')} type="radio" name="previewSize" id="desktop" checked={previewMode === "desktop"}/>
+                        {" "}
                         <FontAwesomeIcon icon={faDesktop}/>
                     </label>
                 </div>
