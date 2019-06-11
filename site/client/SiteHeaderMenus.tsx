@@ -18,7 +18,7 @@ import { faAngleUp } from '@fortawesome/free-solid-svg-icons/faAngleUp'
 
 import { AmazonMenu } from './AmazonMenu'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
-import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
+import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
 
 @observer
 export class Header extends React.Component<{ categories: CategoryWithEntries[] }> {
@@ -147,7 +147,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                     </li>
                     <li>
                         <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page" data-track-click data-track-note="header-navigation">
-                            <FontAwesomeIcon icon={faFacebook} />
+                            <FontAwesomeIcon icon={faFacebookSquare} />
                         </a>
                     </li>
                     <li>

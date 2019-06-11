@@ -5,7 +5,7 @@ import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
-import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
+import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
 
 export const SiteHeader = () => {
     return <header className="site-header">
@@ -57,7 +57,7 @@ export const SiteHeader = () => {
                 </li>
                 <li>
                     <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page" data-track-click data-track-note="header-navigation">
-                        <FontAwesomeIcon icon={faFacebook} />
+                        <FontAwesomeIcon icon={faFacebookSquare} />
                     </a>
                 </li>
                 <li>
