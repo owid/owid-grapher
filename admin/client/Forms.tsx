@@ -201,6 +201,30 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
     }
 }
 
+export interface RadioGroupOption {
+    label?: string
+    value: string
+}
+
+export interface RadioGroupProps {
+    options: RadioGroupOption[]
+    value?: string
+    onChange: (value: string) => void
+}
+
+export class RadioGroup extends React.Component<RadioGroupProps> {
+    render() {
+        return <div className="RadioGroup">
+            {this.props.options.map(option => {
+                return <div key={option.value} className="radioOption">
+                    <input type="radio" id={option.value} checked={option.value === this.props.value} onChange={() => this.props.onChange(option.value)} />
+                    <label htmlFor={option.value}>{option.label || option.value}</label>
+                </div>
+            })}
+        </div>
+    }
+}
+
 export interface NumericSelectFieldProps {
     label?: string,
     value: number|undefined,
