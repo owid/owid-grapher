@@ -24,6 +24,7 @@ import { Bounds } from "./Bounds"
 import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
+import { LogoOption } from "./Logos"
 
 declare const App: any
 declare const window: any
@@ -128,7 +129,8 @@ export class ChartConfigProps {
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
-    @observable hideLogo?: boolean = undefined
+    @observable.ref logo?: LogoOption = undefined
+    @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
 

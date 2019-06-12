@@ -40,10 +40,10 @@ export class SourcesFooter {
     }
 
     @computed get ccSvg(): string {
-        if (this.props.chart.props.hideLogo) {
-            return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
-        } else {
+        if (this.props.chart.props.logo === "owid" && !this.props.chart.props.hideLogo) {
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+        } else {
+            return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
         }
     }
 
@@ -175,8 +175,9 @@ export class SourcesFooterHTML extends React.Component<{ chart: ChartConfig, foo
 
         const license = <div className="license" style={{ fontSize: footer.license.fontSize, lineHeight: footer.sources.lineHeight }}>
             {footer.finalUrlText && <a href={footer.finalUrl} target="_blank">{footer.finalUrlText} • </a>}
-            {!chart.props.hideLogo && <a className="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>}
-            {chart.props.hideLogo && <a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>}
+            {chart.props.logo === "owid" && !chart.props.hideLogo
+                ? <a className="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>
+                : <a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>}
         </div>
 
         return <footer className={"SourcesFooterHTML" + (footer.isCompact ? " compact" : "")} ref={this.base} style={{color: "#777"}}>
