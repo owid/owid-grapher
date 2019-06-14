@@ -210,6 +210,10 @@ export class ChartConfig {
         return !this.isNode && !this.isEmbed
     }
 
+    @computed get hasOWIDLogo(): boolean {
+        return !this.props.hideLogo && (this.props.logo === undefined || this.props.logo === "owid")
+    }
+
     constructor(props?: ChartConfigProps, options: { isEmbed?: boolean, isMediaCard?: boolean, queryStr?: string } = {}) {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
