@@ -127,7 +127,7 @@
     "mkdirp": "^0.5.1",
     "mobx": "^5.10.0",
     "mobx-formatters": "^1.0.2",
-    "mobx-react": "5",
+    "mobx-react": "6",
     "module-alias": "^2.2.0",
     "moment": "^2.24.0",
     "mysql": "^2.17.1",
