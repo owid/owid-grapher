@@ -38,14 +38,6 @@ export class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-
-            if (containerBounds.width <= 400)
-                chart.baseFontSize = 14
-            else if (containerBounds.width < 1080)
-                chart.baseFontSize = 16
-            else if (containerBounds.width >= 1080)
-                chart.baseFontSize = 18
-
             chartView = ReactDOM.render(<ChartView bounds={containerBounds} chart={chart} isEditor={isEditor} isEmbed={isEmbed} />, containerNode)
         }
 
@@ -240,9 +232,17 @@ export class ChartView extends React.Component<ChartViewProps> {
         }
     }
 
+    @action.bound setBaseFontSize() {
+        if (this.renderWidth <= 400)
+            this.props.chart.baseFontSize = 14
+        else if (this.renderWidth < 1080)
+            this.props.chart.baseFontSize = 16
+        else if (this.renderWidth >= 1080)
+            this.props.chart.baseFontSize = 18
+    }
+
     componentDidMount() {
         window.chartView = this
-
         window.addEventListener('scroll', this.checkVisibility)
     }
 
@@ -251,6 +251,8 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     componentDidUpdate() {
+        // handler always runs on resize and resets the base font size
+        this.setBaseFontSize()
         if (this.chart.data.isReady && this.hasBeenVisible && !this.hasFadedIn) {
             select(this.base.current!).selectAll(".chart > *").style('opacity', 0).transition().style('opacity', null)
             this.hasFadedIn = true
