@@ -76,7 +76,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     @computed get containerBounds() { return this.props.bounds }
 
-    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height }
+    @computed get isPortrait() { return this.containerBounds.width < this.containerBounds.height && this.containerBounds.width < 850 }
     @computed get isLandscape() { return !this.isPortrait }
 
     @computed get authorWidth() { return this.isPortrait ? 400 : 850 }
