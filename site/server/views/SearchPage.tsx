@@ -21,7 +21,7 @@ export const SearchPage = () => {
                 </form>
                 <div className="searchResults"></div>
             </main>
-            <SiteFooter/>
+            <SiteFooter hideDonate={true} />
             <script>{`window.runSearchPage()`}</script>
         </body>
     </html>

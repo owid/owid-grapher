@@ -14,7 +14,7 @@ export class FeedbackPage extends React.Component {
                 <main>
                     <FeedbackForm onDismiss={() => undefined}/>
                 </main>
-                <SiteFooter/>
+                <SiteFooter hideDonate={true} />
             </body>
             <script>{`window.runFeedbackPage()`}</script>
         </html>

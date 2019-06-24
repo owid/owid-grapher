@@ -31,7 +31,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                 </section>)}
 
             </main>
-            <SiteFooter/>
+            <SiteFooter hideDonate={true} />
         </body>
     </html>
 }
@@ -55,7 +55,7 @@ export const EntriesForYearPage = (props: { entries: Entry[], year: number }) =>
                     </ul>
                 </section>)}
             </main>
-            <SiteFooter/>
+            <SiteFooter hideDonate={true} />
         </body>
     </html>
 }
