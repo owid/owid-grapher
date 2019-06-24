@@ -1452,7 +1452,8 @@ html:not(.js) {
     }
 }
 
-.SearchPage > main {
+.SearchPage > main,
+.NotFoundPage > main {
     > form {
         max-width: 1200px;
         margin: 0 auto;
@@ -1482,8 +1483,6 @@ html:not(.js) {
     > form > button {
         width: 160px;
         height: 40px;
-
-
         margin: 0px;
         position: relative;
         align-items: center;
@@ -1501,6 +1500,21 @@ html:not(.js) {
         touch-action: manipulation;
         background: #1865f2;
         color: #ffffff;
+    }
+}
+
+.NotFoundPage {
+    main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    footer {
+        // Hide the header, we need to include it for scripts but don't want to
+        // show it because it does not go to the bottom of the page and looks weird
+        display: none;
     }
 }
 

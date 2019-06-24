@@ -6,6 +6,7 @@ import {BlogIndexPage} from './views/BlogIndexPage'
 import {FrontPage} from './views/FrontPage'
 import {ChartsIndexPage, ChartIndexItem} from './views/ChartsIndexPage'
 import {SearchPage} from './views/SearchPage'
+import {NotFoundPage} from './views/NotFoundPage'
 import {DonatePage} from './views/DonatePage'
 import SubscribePage from './views/SubscribePage'
 import * as React from 'react'
@@ -157,6 +158,10 @@ export async function renderBlogByPageNum(pageNum: number) {
 
 export async function renderSearchPage() {
     return renderToHtmlPage(<SearchPage/>)
+}
+
+export async function renderNotFoundPage() {
+    return renderToHtmlPage(<NotFoundPage/>)
 }
 
 export async function makeAtomFeed() {

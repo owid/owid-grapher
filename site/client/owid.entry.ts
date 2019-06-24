@@ -12,6 +12,7 @@ import {Analytics} from './Analytics'
 import {runChartsIndexPage} from './runChartsIndexPage'
 import {runHeaderMenus} from './SiteHeaderMenus'
 import {runSearchPage} from './SearchPageMain'
+import {runNotFoundPage} from './NotFoundPageMain'
 import {runFeedback, runFeedbackPage} from './Feedback'
 import {runDonateForm} from './DonateForm'
 import {getParent} from './utils'
@@ -27,6 +28,7 @@ window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
+window.runNotFoundPage = runNotFoundPage
 window.runFeedback = runFeedback
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm

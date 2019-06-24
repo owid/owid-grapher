@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable, renderToHtmlPage, feedbackPage} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable, renderToHtmlPage, feedbackPage, renderNotFoundPage} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR} from 'serverSettings'
@@ -111,7 +111,11 @@ devServer.get('/feedback', async (req, res) => {
 
 devServer.get('/*', async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
-    res.send(await renderPageBySlug(slug))
+    try {
+        res.send(await renderPageBySlug(slug))
+    } catch (e) {
+        res.send(await renderNotFoundPage())
+    }
 })
 
 async function main() {
