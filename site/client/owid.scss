@@ -1034,9 +1034,11 @@ article.post {
     margin-bottom: 5px;
 }
 
-/* For wide tables and such on mobile */
 .article-content p {
-    overflow-x: auto;
+    // This used to be set to 'auto' with the comment: "For wide tables and such on mobile"
+    // Now removed because scrollbars appear on paragraphs in IE Edge.
+    // overflow-x: auto;
+    overflow-x: visible;
     overflow-y: hidden;
 }
 
