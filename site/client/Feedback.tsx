@@ -5,14 +5,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
 import { observable, action, toJS } from "mobx"
 import classnames from 'classnames'
-import { Analytics } from "./Analytics"
 
 function sendFeedback(feedback: Feedback) {
     return new Promise((resolve, reject) => {
         const json = toJS(feedback)
-        const sessionId = Analytics.amplitudeSessionId()
-        const message = feedback.message + `\n\n-----\nCurrent Url: ${window.location.href}` + (sessionId ? `\nAmplitude Session ID: ${sessionId}` : "")
         const req = new XMLHttpRequest()
+
+        json.message = feedback.message + `\n\n-----\nCurrent URL: ${window.location.href}`
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
