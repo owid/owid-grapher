@@ -206,7 +206,7 @@ export class URLBinder {
 
         const time = params.time
         if (time !== undefined) {
-            const m = time.match(/^(\d+)\.\.(\d+)$/)
+            const m = time.match(/^(\-?\d+)\.\.(\-?\d+)$/)
             if (m) {
                 chart.timeDomain = [parseInt(m[1]), parseInt(m[2])]
             } else {
