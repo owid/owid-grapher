@@ -166,7 +166,6 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
         const bars = select(this.base.current).selectAll("g.bar > rect")
         bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
 
-        // Adding padding to make space for "Add entity" button in legend
         this.dispose = reaction(
             () => this.barPlacements,
             () => {
