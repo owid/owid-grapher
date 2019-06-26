@@ -177,7 +177,7 @@ export class Timeline extends React.Component<TimelineProps> {
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
 
-        if (props.singleYearMode) {
+        if (props.singleYearMode || (this.isPlaying && this.props.singleYearPlay)) {
             this.startYearInput = inputYear
             this.endYearInput = inputYear
         } else if (dragTarget === 'start')
