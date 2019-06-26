@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { select } from 'd3-selection'
 import { sortBy, some, min, max } from './Util'
-import { computed, autorun, runInAction, IReactionDisposer } from 'mobx'
+import { computed, autorun, runInAction, IReactionDisposer, reaction } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartConfig } from './ChartConfig'
 import { Bounds } from './Bounds'
@@ -11,6 +11,7 @@ import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
 import { AxisGridLines } from './AxisBox'
 import { NoData } from './NoData'
 import { TickFormattingOptions } from './TickFormattingOptions'
+import { ChartViewContextType, ChartViewContext } from './ChartViewContext';
 
 export interface DiscreteBarDatum {
     key: string
@@ -25,6 +26,9 @@ export interface DiscreteBarDatum {
 export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
+    static contextType = ChartViewContext
+    context!: ChartViewContextType
+
     @computed get chart() { return this.props.chart }
     @computed.struct get bounds() { return this.props.bounds.padRight(10) }
 
@@ -32,8 +36,16 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
         return this.chart.discreteBar.failMessage
     }
 
-    @computed get data() {
-        return this.chart.discreteBar.data
+    @computed get hasTimeline() {
+        return this.chart.discreteBar.hasTimeline
+    }
+
+    @computed get currentData() {
+        return this.chart.discreteBar.currentData
+    }
+
+    @computed get allData() {
+        return this.chart.discreteBar.allData
     }
 
     @computed get legendFontSize() {
@@ -42,7 +54,9 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
 
     // Account for the width of the legend
     @computed get legendWidth() {
-        const longestLabel = sortBy(this.data, d => -d.label.length)[0].label
+        const labels = this.currentData.map(d => d.label)
+        if (this.hasAddButton) labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
+        const longestLabel = sortBy(labels, d => -d.length)[0]
         return Bounds.forText(longestLabel, { fontSize: this.legendFontSize }).width
     }
 
@@ -52,17 +66,17 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
     }
 
     @computed get hasPositive() {
-        return this.data.some(d => d.value >= 0)
+        return this.allData.some(d => d.value >= 0)
     }
 
     @computed get hasNegative() {
-        return this.data.some(d => d.value < 0)
+        return this.allData.some(d => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed get rightEndLabelWidth(): number {
         if (this.hasPositive) {
-            const positiveLabels = this.data.filter(d => d.value >= 0).map(d => this.barValueFormat(d))
+            const positiveLabels = this.allData.filter(d => d.value >= 0).map(d => this.barValueFormat(d))
             const longestPositiveLabel = sortBy(positiveLabels, l => -l.length)[0]
             return Bounds.forText(longestPositiveLabel, { fontSize: this.endLabelFontSize }).width
         } else {
@@ -75,7 +89,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
     // We pad this a little so it doesn't run directly up against the bar labels themselves
     @computed get leftEndLabelWidth(): number {
         if (this.hasNegative) {
-            const negativeLabels = this.data.filter(d => d.value < 0).map(d => this.barValueFormat(d))
+            const negativeLabels = this.allData.filter(d => d.value < 0).map(d => this.barValueFormat(d))
             const longestNegativeLabel = sortBy(negativeLabels, l => -l.length)[0]
             return Bounds.forText(longestNegativeLabel, { fontSize: this.endLabelFontSize }).width + 10
         } else {
@@ -85,7 +99,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = this.data.map(d => d.value)
+        const allValues = this.allData.map(d => d.value)
         const minX = Math.min(0, min(allValues) as number)
         const maxX = Math.max(0, max(allValues) as number)
         return [minX, maxX]
@@ -116,17 +130,28 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
         return this.bounds.padLeft(this.legendWidth + this.leftEndLabelWidth).padBottom(this.xAxis.height).padRight(this.rightEndLabelWidth)
     }
 
+    @computed get hasAddButton() {
+        return this.context.chartView.controls.hasAddButton
+    }
+
+    // Leave space for extra bar at bottom to show "Add country" button
+    @computed get totalBars() {
+        return this.hasAddButton
+            ? this.currentData.length + 1
+            : this.currentData.length
+    }
+
     @computed get barHeight() {
-        return 0.8 * this.innerBounds.height / this.data.length
+        return 0.8 * this.innerBounds.height / this.totalBars
     }
 
     @computed get barSpacing() {
-        return (this.innerBounds.height / this.data.length) - this.barHeight
+        return (this.innerBounds.height / this.totalBars) - this.barHeight
     }
 
     @computed get barPlacements() {
-        const { data, xScale } = this
-        return data.map(d => {
+        const { currentData, xScale } = this
+        return currentData.map(d => {
             const isNegative = d.value < 0
             const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
             const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
@@ -137,15 +162,27 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.dispose = autorun(() => {
-            if (this.failMessage) return
+        const widths = this.barPlacements.map(b => b.width)
+        const bars = select(this.base.current).selectAll("g.bar > rect")
+        bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
 
-            const widths = this.barPlacements.map(b => b.width)
-            runInAction(() => {
-                const bars = select(this.base.current).selectAll("g.bar > rect")
-                bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
-            })
-        })
+        // Adding padding to make space for "Add entity" button in legend
+        this.dispose = reaction(
+            () => this.barPlacements,
+            () => {
+                const { controls } = this.context.chartView
+                if (this.hasAddButton) {
+                    controls.setAddButtonPosition({
+                        x: this.bounds.left + this.legendWidth,
+                        y: this.bounds.top + (this.barHeight + this.barSpacing) * (this.totalBars - 1) + this.barHeight / 2,
+                        align: 'right',
+                        verticalAlign: 'middle',
+                        height: this.barHeight
+                    })
+                }
+            },
+            { fireImmediately: true }
+        )
     }
 
     componentWillUnmount() {
@@ -160,7 +197,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
 
-        const { data, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, endLabelFontSize, barValueFormat } = this
+        const { currentData, bounds, legendWidth, xAxis, xScale, innerBounds, barHeight, barSpacing, endLabelFontSize, barValueFormat } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
@@ -168,7 +205,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
             <rect x={bounds.left} y={bounds.top} width={bounds.width} height={bounds.height} opacity={0} fill="rgba(255,255,255,0)" />
             <HorizontalAxisView bounds={bounds} axis={xAxis} />
             <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />
-            {data.map(d => {
+            {currentData.map(d => {
                 const isNegative = d.value < 0
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX

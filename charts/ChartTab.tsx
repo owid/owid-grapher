@@ -37,7 +37,10 @@ export class ChartTab extends React.Component<{ chart: ChartConfig, chartView: C
         else if (chart.isTimeScatter)
             return <TimeScatter bounds={bounds.padTop(20).padBottom(15)} config={chart} isStatic={chartView.isExport} />
         else if (chart.isLineChart)
-            return <LineChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
+            // Switch to bar chart if a single year is selected
+            return chart.lineChart.isSingleYear
+                ? <DiscreteBarChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
+                : <LineChart bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
         else if (chart.isStackedArea)
             return <StackedArea bounds={bounds.padTop(20).padBottom(15)} chart={chart} />
         else if (chart.isDiscreteBar)

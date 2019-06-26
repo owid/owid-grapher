@@ -1,11 +1,12 @@
 import { computed } from 'mobx'
-import { some, isEmpty, find, sortBy, max, values } from './Util'
+import { some, isEmpty, find, sortBy, max, values, defaultTo, flatten } from './Util'
 import { ChartConfig } from './ChartConfig'
 import { DiscreteBarDatum } from './DiscreteBarChart'
 import { IChartTransform } from './IChartTransform'
 import { DimensionWithData } from './DimensionWithData'
 import { ColorSchemes } from './ColorSchemes'
 import { TickFormattingOptions } from './TickFormattingOptions'
+import { LineChartSeries } from './LineChart';
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -24,30 +25,33 @@ export class DiscreteBarTransform implements IChartTransform {
         const { filledDimensions } = this.chart.data
         if (!some(filledDimensions, d => d.property === 'y'))
             return "Missing variable"
-        else if (isEmpty(this.data))
+        else if (isEmpty(this.currentData))
             return "No matching data"
         else
             return undefined
     }
 
-    @computed get primaryDimension(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+    @computed get primaryDimensions(): DimensionWithData[] {
+        return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
     @computed get targetYear(): number {
         const maxYear = this.chart.timeDomain[1]
-        if (!this.primaryDimension) return 1900
+        if (this.primaryDimensions.length === 0) return 1900
 
-        const { variable } = this.primaryDimension
+        const yearsUniq = flatten(this.primaryDimensions.map(dim => dim.variable.yearsUniq))
         if (maxYear !== undefined)
-            return sortBy(variable.yearsUniq, year => Math.abs(year - maxYear))[0]
+            return sortBy(yearsUniq, year => Math.abs(year - maxYear))[0]
         else
-            return max(variable.yearsUniq) as number
+            return max(yearsUniq) as number
+    }
 
+    @computed get hasTimeline(): boolean {
+        return this.chart.isLineChart && !this.chart.props.hideTimeline
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const { primaryDimension, targetYear } = this
+        const { targetYear } = this
 
         return (datum: DiscreteBarDatum) => {
             return datum.formatValue(datum.value) + (datum.year !== targetYear ? ` (in ${datum.year})` : "")
@@ -55,11 +59,15 @@ export class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get tickFormat(): (d: number, options?: TickFormattingOptions) => string {
-        const {primaryDimension} = this
-        return primaryDimension ? primaryDimension.formatValueShort : (d: number) => `${d}`
+        const {primaryDimensions} = this
+        return primaryDimensions[0] ? primaryDimensions[0].formatValueShort : (d: number) => `${d}`
     }
 
-    @computed get data(): DiscreteBarDatum[] {
+    @computed get currentData(): DiscreteBarDatum[] {
+        return this.chart.isLineChart ? this.fromLineData : this.fromBarData
+    }
+
+    @computed get fromBarData(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
         const { filledDimensions, selectedKeysByKey } = chart.data
         const dataByKey: { [key: string]: DiscreteBarDatum } = {}
@@ -94,6 +102,90 @@ export class DiscreteBarTransform implements IChartTransform {
         })
 
         const data = sortBy(values(dataByKey), d => d.value)
+
+        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
+        const colors = colorScheme ? colorScheme.getColors(data.length) : []
+        if (chart.props.invertColorScheme)
+            colors.reverse()
+
+        data.forEach((d, i) => {
+            d.color = chart.data.keyColors[d.key] || colors[i] || d.color
+        })
+
+        return sortBy(data, d => -d.value)
+    }
+
+    @computed get fromLineData(): DiscreteBarDatum[] {
+        const { chart, targetYear } = this
+        const { filledDimensions, selectedKeysByKey } = chart.data
+        const lineData = this.chart.lineChart.predomainData
+        const dataByKey: { [key: string]: DiscreteBarDatum } = {}
+
+        filledDimensions.forEach((dimension, dimIndex) => {
+            const { tolerance } = dimension
+
+            for (let i = 0; i < dimension.years.length; i++) {
+                const year = dimension.years[i]
+                const entity = dimension.entities[i]
+                const datakey = chart.data.keyFor(entity, dimIndex)
+                const lineSeries = lineData.find(series => series.key === datakey)
+
+                if (year < targetYear - tolerance || year > targetYear + tolerance || !selectedKeysByKey[datakey])
+                    continue
+
+                const currentDatum = dataByKey[datakey]
+                // Make sure we use the closest value to the target year within tolerance (preferring later)
+                if (currentDatum && Math.abs(currentDatum.year - targetYear) < Math.abs(year - targetYear))
+                    continue
+
+                const datum = {
+                    key: datakey,
+                    value: +dimension.values[i],
+                    year: year,
+                    label: chart.data.formatKey(datakey),
+                    color: defaultTo(lineSeries && lineSeries.color, "#2E5778"),
+                    formatValue: dimension.formatValueShort
+                }
+
+                dataByKey[datakey] = datum
+            }
+        })
+
+        return sortBy(values(dataByKey), d => -d.value)
+    }
+
+    @computed get allData(): DiscreteBarDatum[] {
+        if (!this.hasTimeline) {
+            return this.currentData
+        }
+
+        const { chart } = this
+        const { filledDimensions, selectedKeysByKey } = chart.data
+        const allData: DiscreteBarDatum[] = []
+
+        filledDimensions.forEach((dimension, dimIndex) => {
+            for (let i = 0; i < dimension.years.length; i++) {
+                const year = dimension.years[i]
+                const entity = dimension.entities[i]
+                const datakey = chart.data.keyFor(entity, dimIndex)
+
+                if (!selectedKeysByKey[datakey])
+                    continue
+
+                const datum = {
+                    key: datakey,
+                    value: +dimension.values[i],
+                    year: year,
+                    label: chart.data.formatKey(datakey),
+                    color: "#2E5778",
+                    formatValue: dimension.formatValueShort
+                }
+
+                allData.push(datum)
+            }
+        })
+
+        const data = sortBy(allData, d => d.value)
 
         const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
         const colors = colorScheme ? colorScheme.getColors(data.length) : []

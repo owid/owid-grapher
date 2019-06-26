@@ -18,7 +18,8 @@ interface TimelineProps {
     onInputChange?: ({ startYear, endYear }: { startYear: number, endYear: number }) => void,
     onStartDrag?: () => void,
     onStopDrag?: () => void,
-    singleYearMode?: boolean
+    singleYearMode?: boolean,
+    singleYearPlay?: boolean
 }
 
 @observer
@@ -136,7 +137,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     const yearsToNext = nextYear - endYear
 
                     this.endYearInput = endYear + (Math.max(yearsToNext / 3, 1) * elapsed * ticksPerSec / 1000)
-                    if (this.props.singleYearMode)
+                    if (this.props.singleYearMode || this.props.singleYearPlay)
                         this.startYearInput = this.endYearInput
                 }
             }

@@ -811,10 +811,11 @@ figure[data-grapher-src]:empty:after {
     border: none;
     color: rgba(black, .22);
     transition: color 1s cubic-bezier(0, 0, 0.4, 1);
-    line-height: 16px;
+    line-height: 21px;
     text-align: left;
     white-space: nowrap;
-    padding: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
     margin-left: -25px;
     outline: none;
 

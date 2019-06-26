@@ -90,6 +90,8 @@ export class ChartData {
             return chart.scatter.startYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
+        else if (chart.isLineChart && chart.lineChart.isSingleYear && !chart.discreteBar.failMessage)
+            return chart.lineChart.startYear
         else
             return null
     }
@@ -104,6 +106,8 @@ export class ChartData {
             return chart.scatter.endYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
+        else if (chart.isLineChart && chart.lineChart.isSingleYear && !chart.discreteBar.failMessage)
+            return chart.lineChart.endYear
         else
             return null
     }

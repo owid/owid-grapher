@@ -32,6 +32,10 @@ export class LineChartTransform implements IChartTransform {
             return undefined
     }
 
+    @computed get isSingleYear(): boolean {
+        return this.chart.timeDomain[0] === this.chart.timeDomain[1]
+    }
+
     @computed get colorScheme(): ColorScheme {
         const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
         return colorScheme !== undefined ? colorScheme : ColorSchemes["owid-distinct"] as ColorScheme
@@ -45,6 +49,7 @@ export class LineChartTransform implements IChartTransform {
         let chartData: LineChartSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
+
             const seriesByKey = new Map<DataKey, LineChartSeries>()
 
             for (let i = 0; i < dimension.years.length; i++) {

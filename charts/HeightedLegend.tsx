@@ -127,7 +127,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
             () => this.placedMarks,
             () => {
                 const { controls } = this.context.chartView
-                if (controls.hasLegendButton) {
+                if (controls.hasAddButton) {
                     // If there are lines in the legend, we want the button label to be aligned
                     // with the legend labels. If there aren't lines and the legend is not too
                     // narrow, we want to move it right so that the icon doesn't overlap the chart.
@@ -137,8 +137,13 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                     // Cap bottom to 0 because in some cases, like when toggling relative/absolute on a
                     // stacked area, the minimum of bounds.top ends up being some large negative number,
                     // which breaks the chart by setting a negative height.
-                    controls.legendButtonBottom = Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))
-                    controls.legendButtonLeft = this.props.x + leftOffset
+                    controls.setAddButtonPosition({
+                        x: this.props.x + leftOffset,
+                        y: Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0)),
+                        align: 'left',
+                        verticalAlign: 'bottom',
+                        height: 30
+                    })
                 }
             },
             { fireImmediately: true }

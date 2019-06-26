@@ -25,6 +25,11 @@ import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 
+type HorizontalAlign = 'left' | 'right'
+type VerticalAlign = 'top' | 'middle' | 'bottom'
+
+const DEFAULT_ADD_BUTTON_HEIGHT = 21
+
 @observer
 class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string }> {
     dismissable = true
@@ -273,11 +278,42 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         const timelineMaxTime = chart.props.timelineMaxTime
         if (chart.props.tab === 'map') {
             const {map} = chart
-            return <Timeline years={boundRange(map.data.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onMapTargetChange} startYear={map.data.targetYear} endYear={map.data.targetYear} singleYearMode={true}/>
+            return <Timeline
+                years={boundRange(map.data.timelineYears, timelineMinTime, timelineMaxTime)}
+                onTargetChange={this.onMapTargetChange}
+                startYear={map.data.targetYear}
+                endYear={map.data.targetYear}
+                singleYearMode={true}
+            />
         } else if (chart.isScatter) {
-            return <Timeline years={boundRange(chart.scatter.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onScatterTargetChange} startYear={chart.scatter.startYear} endYear={chart.scatter.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+            return <Timeline
+                years={boundRange(chart.scatter.timelineYears, timelineMinTime, timelineMaxTime)}
+                onTargetChange={this.onScatterTargetChange}
+                startYear={chart.scatter.startYear}
+                endYear={chart.scatter.endYear}
+                onStartDrag={this.onTimelineStart}
+                onStopDrag={this.onTimelineStop}
+            />
+        } else if (chart.isLineChart) {
+            console.log(chart.lineChart.isSingleYear)
+            return <Timeline
+                years={boundRange(chart.lineChart.timelineYears, timelineMinTime, timelineMaxTime)}
+                onTargetChange={this.onScatterTargetChange}
+                startYear={chart.lineChart.startYear}
+                endYear={chart.lineChart.endYear}
+                onStartDrag={this.onTimelineStart}
+                onStopDrag={this.onTimelineStop}
+                singleYearPlay={true}
+            />
         } else {
-            return <Timeline years={boundRange(chart.lineChart.timelineYears, timelineMinTime, timelineMaxTime)} onTargetChange={this.onScatterTargetChange} startYear={chart.lineChart.startYear} endYear={chart.lineChart.endYear} onStartDrag={this.onTimelineStart} onStopDrag={this.onTimelineStop}/>
+            return <Timeline
+                years={boundRange(chart.lineChart.timelineYears, timelineMinTime, timelineMaxTime)}
+                onTargetChange={this.onScatterTargetChange}
+                startYear={chart.lineChart.startYear}
+                endYear={chart.lineChart.endYear}
+                onStartDrag={this.onTimelineStart}
+                onStopDrag={this.onTimelineStop}
+            />
         }
     }
 }
@@ -291,13 +327,20 @@ export class Controls {
     @observable isShareMenuActive: boolean = false
     @observable isSettingsMenuActive: boolean = false
 
-    legendButtonHeight: number = 21
-    @observable legendButtonBottom?: number
-    @observable legendButtonLeft?: number
+    addButtonHeight: number = DEFAULT_ADD_BUTTON_HEIGHT
+
+    @observable addButtonX?: number
+    @observable addButtonY?: number
+    @observable addButtonAlign?: HorizontalAlign
+    @observable addButtonVerticalAlign?: VerticalAlign
 
     @computed get addDataTerm() {
         const { chart } = this.props
         return chart.data.isSingleEntity ? "data" : chart.entityType
+    }
+
+    @computed get addButtonLabel() {
+        return `Add ${this.addDataTerm}`
     }
 
     @computed get hasTimeline(): boolean {
@@ -315,7 +358,7 @@ export class Controls {
     @computed get hasInlineControls(): boolean {
         const {chart} = this.props
         return chart.tab === 'chart' && (
-            (chart.data.canAddData && !this.hasLegendButton) ||
+            (chart.data.canAddData && !this.hasAddButton) ||
             chart.isScatter ||
             chart.data.canChangeEntity ||
             (chart.isStackedArea && chart.stackedArea.canToggleRelative) ||
@@ -331,9 +374,9 @@ export class Controls {
         return this.props.width > 700
     }
 
-    @computed get hasLegendButton(): boolean {
+    @computed get hasAddButton(): boolean {
         const { chart } = this.props
-        return chart.tab === "chart" && chart.data.canAddData && (chart.isLineChart || chart.isStackedArea)
+        return chart.tab === "chart" && chart.data.canAddData && (chart.isLineChart || chart.isStackedArea || chart.isDiscreteBar)
     }
 
     @computed get footerLines(): number {
@@ -345,8 +388,8 @@ export class Controls {
     }
 
     @computed get controlsPaddingTop(): number {
-        if (this.legendButtonBottom !== undefined && this.legendButtonHeight > this.legendButtonBottom) {
-            return this.legendButtonHeight - this.legendButtonBottom
+        if (this.addButtonY !== undefined && this.addButtonHeight > this.addButtonY) {
+            return this.addButtonHeight - this.addButtonY
         } else {
             return 0
         }
@@ -354,6 +397,14 @@ export class Controls {
 
     @computed get footerHeight(): number {
         return this.footerLines*40
+    }
+
+    setAddButtonPosition({ x, y, align='left', verticalAlign='bottom', height=DEFAULT_ADD_BUTTON_HEIGHT}: { x: number, y: number, align?: HorizontalAlign, verticalAlign?: VerticalAlign, height?: number }) {
+        this.addButtonX = x
+        this.addButtonY = y
+        this.addButtonAlign = align
+        this.addButtonVerticalAlign = verticalAlign
+        this.addButtonHeight = height
     }
 }
 
@@ -367,28 +418,44 @@ export class ControlsOverlayView extends React.Component<{ controls: Controls }>
         const { controls } = this.props
         const wrapperStyle: React.CSSProperties = {
             height: `${controls.controlsPaddingTop}px`,
-            position: "relative"
+            position: 'relative',
+            width: '1px'
         }
         return <div className="ControlsOverlay" style={wrapperStyle}>
-            {this.renderLegendButton()}
+            {this.renderAddButton()}
         </div>
     }
 
-    renderLegendButton() {
+    renderAddButton() {
         const { controls } = this.props
-        if (controls.hasLegendButton && controls.legendButtonBottom !== undefined && controls.legendButtonLeft !== undefined) {
+        if (controls.hasAddButton && controls.addButtonY !== undefined && controls.addButtonX !== undefined) {
+
             const buttonStyle: React.CSSProperties = {
                 position: "absolute",
-                bottom: `-${controls.legendButtonBottom}px`,
-                left: `${controls.legendButtonLeft}px`
+                lineHeight: `${controls.addButtonHeight}px`
             }
+
+            if (controls.addButtonVerticalAlign === 'top') {
+                buttonStyle.top = `${controls.addButtonY}px`
+            } else if (controls.addButtonVerticalAlign === 'bottom') {
+                buttonStyle.bottom = `${-controls.addButtonY}px`
+            } else {
+                buttonStyle.top = `${controls.addButtonY - controls.addButtonHeight / 2}px`
+            }
+
+            if (controls.addButtonAlign === 'left') {
+                buttonStyle.left = `${controls.addButtonX}px`
+            } else if (controls.addButtonAlign === 'right') {
+                buttonStyle.right = `${-controls.addButtonX}px`
+            }
+
             return <button className="addDataButton clickable" onClick={this.onDataSelect} style={buttonStyle}>
                 <span className="icon">
                     <svg width={16} height={16}>
                         <path d="M3,8 h10 m-5,-5 v10" />
                     </svg>
                 </span>
-                <span className="label">Add {this.props.controls.addDataTerm}</span>
+                <span className="label">{this.props.controls.addButtonLabel}</span>
             </button>
         }
         return null
@@ -411,7 +478,7 @@ export class ControlsFooterView extends React.Component<{ controls: Controls }> 
 
     render() {
         const { props } = this
-        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, hasLegendButton, addDataTerm, hasSpace} = props.controls
+        const {isShareMenuActive, isSettingsMenuActive, hasSettingsMenu, hasTimeline, hasInlineControls, hasAddButton, hasSpace} = props.controls
         const {chart, chartView} = props.controls.props
 
         const tabs = <nav className="tabs">
@@ -437,8 +504,8 @@ export class ControlsFooterView extends React.Component<{ controls: Controls }> 
         const timeline = hasTimeline && <TimelineControl chart={chart}/>
 
         const extraControls = hasInlineControls && <div className="extraControls">
-            {chart.data.canAddData && !hasLegendButton && <button type="button" onClick={this.onDataSelect}>
-                {(chart.isScatter || chart.isSlopeChart) ? <span><FontAwesomeIcon icon={faSearch}/> Search</span> : <span><FontAwesomeIcon icon={faPlus}/> Add {addDataTerm}</span>}
+            {chart.data.canAddData && !hasAddButton && <button type="button" onClick={this.onDataSelect}>
+                {(chart.isScatter || chart.isSlopeChart) ? <span><FontAwesomeIcon icon={faSearch}/> Search</span> : <span><FontAwesomeIcon icon={faPlus}/> {this.props.controls.addButtonLabel}</span>}
             </button>}
 
             {chart.data.canChangeEntity && <button type="button" onClick={this.onDataSelect}>
