@@ -64,10 +64,6 @@ export class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get currentData(): DiscreteBarDatum[] {
-        return this.chart.isLineChart ? this.fromLineData : this.fromBarData
-    }
-
-    @computed get fromBarData(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
         const { filledDimensions, selectedKeysByKey } = chart.data
         const dataByKey: { [key: string]: DiscreteBarDatum } = {}
@@ -101,57 +97,25 @@ export class DiscreteBarTransform implements IChartTransform {
             }
         })
 
-        const data = sortBy(values(dataByKey), d => d.value)
-
-        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
-        const colors = colorScheme ? colorScheme.getColors(data.length) : []
-        if (chart.props.invertColorScheme)
-            colors.reverse()
-
-        data.forEach((d, i) => {
-            d.color = chart.data.keyColors[d.key] || colors[i] || d.color
-        })
-
-        return sortBy(data, d => -d.value)
-    }
-
-    @computed get fromLineData(): DiscreteBarDatum[] {
-        const { chart, targetYear } = this
-        const { filledDimensions, selectedKeysByKey } = chart.data
-        const lineData = this.chart.lineChart.predomainData
-        const dataByKey: { [key: string]: DiscreteBarDatum } = {}
-
-        filledDimensions.forEach((dimension, dimIndex) => {
-            const { tolerance } = dimension
-
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
-                const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
-                const lineSeries = lineData.find(series => series.key === datakey)
-
-                if (year < targetYear - tolerance || year > targetYear + tolerance || !selectedKeysByKey[datakey])
-                    continue
-
-                const currentDatum = dataByKey[datakey]
-                // Make sure we use the closest value to the target year within tolerance (preferring later)
-                if (currentDatum && Math.abs(currentDatum.year - targetYear) < Math.abs(year - targetYear))
-                    continue
-
-                const datum = {
-                    key: datakey,
-                    value: +dimension.values[i],
-                    year: year,
-                    label: chart.data.formatKey(datakey),
-                    color: defaultTo(lineSeries && lineSeries.color, "#2E5778"),
-                    formatValue: dimension.formatValueShort
-                }
-
-                dataByKey[datakey] = datum
+        if (this.chart.isLineChart) {
+            // If derived from line chart, use line chart colors
+            for (const key in dataByKey) {
+                const lineSeries = this.chart.lineChart.predomainData.find(series => series.key === key)
+                if (lineSeries) dataByKey[key].color = lineSeries.color
             }
-        })
+        } else {
+            const data = sortBy(values(dataByKey), d => d.value)
+            const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
+            const colors = colorScheme ? colorScheme.getColors(data.length) : []
+            if (chart.props.invertColorScheme)
+                colors.reverse()
 
-        return orderBy(values(dataByKey), ['value', 'key'], ['desc', 'asc'])
+            data.forEach((d, i) => {
+                d.color = chart.data.keyColors[d.key] || colors[i] || d.color
+            })
+        }
+
+        return sortBy(values(dataByKey), d => -d.value)
     }
 
     @computed get allData(): DiscreteBarDatum[] {
