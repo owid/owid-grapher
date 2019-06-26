@@ -209,10 +209,11 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
 
+                // Using transforms for positioning to enable better (subpixel) transitions
                 const result = <g key={d.key} className="bar" transform={`translate(0, ${yOffset})`} style={{ transition: 'transform 200ms ease' }}>
-                    <text x={bounds.left + legendWidth - 5} y={0} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize}>{d.label}</text>
-                    <rect x={barX} y={-barHeight / 2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} style={{ transition: 'height 200ms ease' }} />
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={0} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
+                    <text x={0} y={0} transform={`translate(${bounds.left + legendWidth - 5}, 0)`} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize} style={{ transition: 'transform 70ms linear' }}>{d.label}</text>
+                    <rect x={0} y={0} transform={`translate(${barX}, ${-barHeight / 2})`} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} style={{ transition: 'height 200ms ease, width 70ms linear, transform 70ms linear' }} />
+                    <text x={0} y={0} transform={`translate(${xScale.place(d.value) + (isNegative ? -5 : 5)}, 0)`} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize} style={{ transition: 'transform 70ms linear' }}>{barValueFormat(d)}</text>
                 </g>
 
                 yOffset += barHeight + barSpacing
