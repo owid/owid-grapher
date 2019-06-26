@@ -80,13 +80,16 @@ class ColorsSection extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
-class TimelineSelectionSection extends React.Component<{ editor: ChartEditor }> {
+class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get chart() { return this.props.editor.chart }
 
     @computed get minTime() { return this.chart.props.minTime }
     @computed get maxTime() { return this.chart.props.maxTime }
+
+    @computed get timelineMinTime() { return this.chart.props.timelineMinTime }
+    @computed get timelineMaxTime() { return this.chart.props.timelineMaxTime }
 
     @action.bound onMinTime(value: number | undefined) {
         this.chart.props.minTime = value
@@ -96,42 +99,32 @@ class TimelineSelectionSection extends React.Component<{ editor: ChartEditor }> 
         this.chart.props.maxTime = value
     }
 
+    @action.bound onTimelineMinTime(value: number | undefined) {
+        this.chart.props.timelineMinTime = value
+    }
+
+    @action.bound onTimelineMaxTime(value: number | undefined) {
+        this.chart.props.timelineMaxTime = value
+    }
+
+    @action.bound onToggleHideTimeline(value: boolean) {
+        this.chart.props.hideTimeline = value||undefined
+    }
+
     render() {
         const { features } = this.props.editor
         const { chart } = this
 
         return <Section name="Timeline selection">
-            <FieldsRow>
-                {features.timeDomain && <NumberField label="Min year" value={chart.props.minTime} onValue={debounce(this.onMinTime)} />}
-                <NumberField label={features.timeDomain ? "Max year" : "Target year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)} />
-            </FieldsRow>
-        </Section>
-    }
-}
-
-@observer
-class TimelineRangeSection extends React.Component<{ editor: ChartEditor }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
-
-    @computed get chart() { return this.props.editor.chart }
-
-    @computed get minTime() { return this.chart.props.timelineMinTime }
-    @computed get maxTime() { return this.chart.props.timelineMaxTime }
-
-    @action.bound onMinTime(value: number | undefined) {
-        this.chart.props.timelineMinTime = value
-    }
-
-    @action.bound onMaxTime(value: number | undefined) {
-        this.chart.props.timelineMaxTime = value
-    }
-
-    render() {
-        return <Section name="Timeline limits">
-            <FieldsRow>
-                <NumberField label="Min year" value={this.minTime} onValue={debounce(this.onMinTime)} />
-                <NumberField label="Max year" value={this.maxTime} onValue={debounce(this.onMaxTime)} />
-            </FieldsRow>
+            {!chart.isScatter && <FieldsRow>
+                {features.timeDomain && <NumberField label="Selection start" value={chart.props.minTime} onValue={debounce(this.onMinTime)} />}
+                <NumberField label={features.timeDomain ? "Selection end" : "Selected year"} value={chart.props.maxTime} onValue={debounce(this.onMaxTime)} />
+            </FieldsRow>}
+            {features.timelineRange && <FieldsRow>
+                <NumberField label="Timeline min" value={this.timelineMinTime} onValue={debounce(this.onTimelineMinTime)} />
+                <NumberField label="Timeline max" value={this.timelineMaxTime} onValue={debounce(this.onTimelineMaxTime)} />
+            </FieldsRow>}
+            <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
         </Section>
     }
 }
@@ -210,8 +203,7 @@ export class EditorCustomizeTab extends React.Component<{ editor: ChartEditor }>
                 </React.Fragment>}
                 {features.customXAxisLabel && <BindString label="Label" field="label" store={xAxis}/>}
             </Section>}
-            {!chart.isScatter && <TimelineSelectionSection editor={this.props.editor} />}
-            {features.timelineRange && <TimelineRangeSection editor={this.props.editor} />}
+            <TimelineSection editor={this.props.editor} />
             <ColorsSection chart={chart}/>
             {(features.hideLegend || features.entityType) && <Section name="Legend">
                 <FieldsRow>
