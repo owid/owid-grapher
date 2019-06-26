@@ -115,7 +115,7 @@ export class DiscreteBarTransform implements IChartTransform {
             })
         }
 
-        return sortBy(values(dataByKey), d => -d.value)
+        return orderBy(values(dataByKey), ['value', 'key'], ['desc', 'asc'])
     }
 
     @computed get allData(): DiscreteBarDatum[] {
