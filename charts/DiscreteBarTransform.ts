@@ -1,5 +1,5 @@
 import { computed } from 'mobx'
-import { some, isEmpty, find, sortBy, max, values, defaultTo, flatten } from './Util'
+import { some, isEmpty, find, sortBy, orderBy, max, values, defaultTo, flatten } from './Util'
 import { ChartConfig } from './ChartConfig'
 import { DiscreteBarDatum } from './DiscreteBarChart'
 import { IChartTransform } from './IChartTransform'
@@ -151,7 +151,7 @@ export class DiscreteBarTransform implements IChartTransform {
             }
         })
 
-        return sortBy(values(dataByKey), d => -d.value)
+        return orderBy(values(dataByKey), ['value', 'key'], ['desc', 'asc'])
     }
 
     @computed get allData(): DiscreteBarDatum[] {
