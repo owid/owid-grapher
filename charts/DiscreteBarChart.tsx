@@ -11,7 +11,7 @@ import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
 import { AxisGridLines } from './AxisBox'
 import { NoData } from './NoData'
 import { TickFormattingOptions } from './TickFormattingOptions'
-import { ChartViewContextType, ChartViewContext } from './ChartViewContext';
+import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
 
 export interface DiscreteBarDatum {
     key: string
@@ -210,12 +210,14 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
                 const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
 
-                const result = <g key={d.key} className="bar">
-                    <text x={bounds.left + legendWidth - 5} y={yOffset} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize}>{d.label}</text>
-                    <rect x={barX} y={yOffset - barHeight / 2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} />
-                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={yOffset} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
+                const result = <g key={d.key} className="bar" transform={`translate(0, ${yOffset})`} style={{ transition: `transform 200ms ease` }}>
+                    <text x={bounds.left + legendWidth - 5} y={0} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize}>{d.label}</text>
+                    <rect x={barX} y={-barHeight / 2} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} />
+                    <text x={xScale.place(d.value) + (isNegative ? -5 : 5)} y={0} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
                 </g>
+
                 yOffset += barHeight + barSpacing
+
                 return result
             })}
         </g>
