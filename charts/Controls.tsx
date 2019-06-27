@@ -376,7 +376,7 @@ export class Controls {
 
     @computed get hasAddButton(): boolean {
         const { chart } = this.props
-        return chart.tab === "chart" && chart.data.canAddData && (chart.isLineChart || chart.isStackedArea || chart.isDiscreteBar)
+        return chart.primaryTab === "chart" && !chart.isLocalExport && chart.data.canAddData && (chart.isLineChart || chart.isStackedArea || chart.isDiscreteBar)
     }
 
     @computed get footerLines(): number {
