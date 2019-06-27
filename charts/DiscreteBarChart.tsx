@@ -210,10 +210,12 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
                 const barWidth = isNegative ? xScale.place(0) - barX : xScale.place(d.value) - barX
 
                 // Using transforms for positioning to enable better (subpixel) transitions
+                // Width transitions don't work well on iOS Safari – they get interrupted and
+                // it appears very slow.
                 const result = <g key={d.key} className="bar" transform={`translate(0, ${yOffset})`} style={{ transition: 'transform 200ms ease' }}>
                     <text x={0} y={0} transform={`translate(${bounds.left + legendWidth - 5}, 0)`} fill="#666" dominantBaseline="middle" textAnchor="end" fontSize={endLabelFontSize} style={{ transition: 'transform 70ms linear' }}>{d.label}</text>
-                    <rect x={0} y={0} transform={`translate(${barX}, ${-barHeight / 2})`} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} style={{ transition: 'height 200ms ease, width 70ms linear, transform 70ms linear' }} />
-                    <text x={0} y={0} transform={`translate(${xScale.place(d.value) + (isNegative ? -5 : 5)}, 0)`} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize} style={{ transition: 'transform 70ms linear' }}>{barValueFormat(d)}</text>
+                    <rect x={0} y={0} transform={`translate(${barX}, ${-barHeight / 2})`} width={barWidth} height={barHeight} fill={d.color} opacity={0.85} style={{ transition: 'height 200ms ease, transform 70ms linear' }} />
+                    <text x={0} y={0} transform={`translate(${xScale.place(d.value) + (isNegative ? -5 : 5)}, 0)`} fill="#666" dominantBaseline="middle" textAnchor={isNegative ? "end" : "start"} fontSize={endLabelFontSize}>{barValueFormat(d)}</text>
                 </g>
 
                 yOffset += barHeight + barSpacing
