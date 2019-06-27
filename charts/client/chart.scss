@@ -149,6 +149,11 @@ figure[data-grapher-src]:empty:after {
 
         a {
             text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+                text-decoration-color: rgba(0,0,0,.2);
+            }
         }
 
         h1 {
