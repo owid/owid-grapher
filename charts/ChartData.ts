@@ -117,8 +117,6 @@ export class ChartData {
         let text = this.title
 
         if (!chart.props.hideTitleAnnotation) {
-            const { minYear, maxYear } = this
-
             if (chart.props.tab === "chart" && chart.addCountryMode !== "add-country" && chart.data.selectedEntities.length === 1) {
                 const { selectedEntities } = chart.data
                 const entityStr = selectedEntities.join(', ')
@@ -136,7 +134,10 @@ export class ChartData {
                 const label = labelsByRegion[chart.map.props.projection]
                 text = text + ` in ${label}`
             }*/
+        }
 
+        if (!chart.props.hideTitleAnnotation || (this.chart.isLineChart && this.chart.lineChart.isSingleYear)) {
+            const { minYear, maxYear } = this
             if (minYear !== null) {
                 const timeFrom = formatYear(minYear)
                 const timeTo = formatYear(maxYear !== null ? maxYear : minYear)
