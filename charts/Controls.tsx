@@ -297,7 +297,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 onStopDrag={this.onTimelineStop}
             />
         } else if (chart.isLineChart) {
-            console.log(chart.lineChart.isSingleYear)
             return <Timeline
                 years={boundRange(chart.lineChart.timelineYears, timelineMinTime, timelineMaxTime)}
                 onTargetChange={this.onScatterTargetChange}
