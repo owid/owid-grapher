@@ -240,8 +240,10 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
         else if (chart.isLineChart)
             label = "Relative change"
 
+        const supported = !(chart.isLineChart && chart.lineChart.isSingleYear)
+
         return <label className="clickable">
-            <input type="checkbox" checked={chart.stackedArea.isRelative} onChange={this.onToggle} /> {label}
+            <input type="checkbox" checked={supported ? chart.stackedArea.isRelative : false} onChange={this.onToggle} disabled={!supported}/> {label}
         </label>
     }
 }
