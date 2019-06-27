@@ -54,7 +54,8 @@ export class DiscreteBarTransform implements IChartTransform {
         const { targetYear } = this
 
         return (datum: DiscreteBarDatum) => {
-            return datum.formatValue(datum.value) + (datum.year !== targetYear ? ` (in ${datum.year})` : "")
+            const showYearLabels = this.chart.props.showYearLabels || datum.year !== targetYear
+            return datum.formatValue(datum.value) + (showYearLabels ? ` (in ${datum.year})` : "")
         }
     }
 

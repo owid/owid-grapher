@@ -111,6 +111,10 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
         this.chart.props.hideTimeline = value||undefined
     }
 
+    @action.bound onToggleShowYearLabels(value: boolean) {
+        this.chart.props.showYearLabels = value||undefined
+    }
+
     render() {
         const { features } = this.props.editor
         const { chart } = this
@@ -124,7 +128,10 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                 <NumberField label="Timeline min" value={this.timelineMinTime} onValue={debounce(this.onTimelineMinTime)} />
                 <NumberField label="Timeline max" value={this.timelineMaxTime} onValue={debounce(this.onTimelineMaxTime)} />
             </FieldsRow>}
-            <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
+            <FieldsRow>
+                <Toggle label="Hide timeline" value={!!chart.props.hideTimeline} onValue={this.onToggleHideTimeline}/>
+                {features.showYearLabels && <Toggle label="Always show year labels" value={!!chart.props.showYearLabels} onValue={this.onToggleShowYearLabels}/>}
+            </FieldsRow>
         </Section>
     }
 }

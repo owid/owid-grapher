@@ -41,6 +41,8 @@ export class EditorFeatures {
 
     @computed get timelineRange() { return !this.chart.isDiscreteBar }
 
+    @computed get showYearLabels() { return this.chart.isDiscreteBar }
+
     @computed get hideLegend() {
         return this.chart.isLineChart || this.chart.isStackedArea
     }

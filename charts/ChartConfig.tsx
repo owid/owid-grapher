@@ -134,6 +134,9 @@ export class ChartConfigProps {
     @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
 
+    // Always show year in labels for bar charts
+    @observable.ref showYearLabels?: boolean = undefined
+
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab: ChartTabOption = "chart"
