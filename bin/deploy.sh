@@ -4,9 +4,9 @@ RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-fr
 HOST="owid@terra"
 ROOT="/home/owid"
 
-if [ "$1" == "mispytest" ]; then
-  NAME="mispytest"
-  WORDPRESS_DIR="/home/owid/mispytest-wordpress"
+if [ "$1" == "staging" ]; then
+  NAME="staging"
+  WORDPRESS_DIR="/home/owid/staging-wordpress"
 elif [ "$1" == "danieltest" ]; then
   NAME="danieltest"
   WORDPRESS_DIR="/home/owid/danieltest-wordpress"
