@@ -2,7 +2,7 @@ import * as express from 'express'
 require('express-async-errors')
 import * as path from 'path'
 
-import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable, renderToHtmlPage, feedbackPage, renderNotFoundPage} from 'site/server/siteBaking'
+import {renderFrontPage, renderPageBySlug, renderChartsPage, renderMenuJson, renderSearchPage, renderDonatePage, entriesByYearPage, makeAtomFeed, pagePerVariable, renderToHtmlPage, feedbackPage, renderNotFoundPage, renderBlogByPageNum} from 'site/server/siteBaking'
 import {chartPage, chartDataJson} from 'site/server/chartBaking'
 import {BAKED_DEV_SERVER_PORT, BAKED_DEV_SERVER_HOST, BAKED_GRAPHER_URL} from 'settings'
 import {WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR} from 'serverSettings'
@@ -71,6 +71,19 @@ devServer.get('/charts', async (req, res) => {
 
 devServer.get('/search', async (req, res) => {
     res.send(await renderSearchPage())
+})
+
+devServer.get('/blog', async (req, res) => {
+    res.send(await renderBlogByPageNum(1))
+})
+
+devServer.get('/blog/:pageno', async (req, res) => {
+    const pagenum = parseInt(req.params.pageno, 10)
+    if (!isNaN(pagenum)) {
+        res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
+    } else {
+        throw new Error("invalid page number")
+    }
 })
 
 devServer.get('/headerMenu.json', async (req, res) => {

@@ -205,39 +205,14 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
 
             <section className="homepage-posts">
                 <div className="wrapper">
-                    <div className="owid-row owid-spacing--3">
-                        <div className="owid-col owid-col--lg-1 flex-row">
-                            <div className="homepage-posts--updates">
-                                <div className="header">
-                                    <h2>Short updates and facts</h2>
-                                </div>
-                                <div className="list">
-                                    {shortPosts.slice(0,5).map(post => <a key={post.slug} href={`/${post.slug}`} className="list-item" data-track-click data-track-note="homepage-short-post">
-                                        <div className="thumbnail">
-                                            <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
-                                        </div>
-                                        <div className="info">
-                                            <time className="date">{formatDate(post.date)}</time>
-                                            <h3 className="title">{post.title}</h3>
-                                        </div>
-                                    </a>)}
-                                </div>
-                                <a href="/blog" className="see-all" data-track-click data-track-note="homepage-see-all-short-posts">
-                                    <div className="label">See all short updates and facts</div>
-                                    <div className="icon"><FontAwesomeIcon icon={faAngleRight} /></div>
-                                </a>
-                            </div>
-                        </div>
-                        <div className="owid-col owid-col--lg-shrink lg-only flex-row">
-                            <div className="divider"></div>
-                        </div>
-                        <div className="owid-col owid-col--lg-2 flex-row">
+                    <div className="owid-row">
+                        <div className="owid-col flex-row">
                             <div className="homepage-posts--explainers">
                                 <div className="header">
-                                    <h2>Recent explainers</h2>
+                                    <h2>Recent posts</h2>
                                 </div>
                                 <div className="list">
-                                    {explainerPosts.slice(0,6).map(post => <div key={post.slug} className="list-item-wrapper">
+                                    {posts.slice(0,8).map(post => <div key={post.slug} className="list-item-wrapper">
                                         <a href={`/${post.slug}`} className="list-item" data-track-click data-track-note="homepage-explainer">
                                             <div className="thumbnail">
                                                 <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
@@ -249,7 +224,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                     </div>)}
                                 </div>
                                 <a href="/blog" className="see-all" data-track-click data-track-note="homepage-see-all-explainers">
-                                    <div className="label">See all explainers</div>
+                                    <div className="label">See all posts</div>
                                     <div className="icon"><FontAwesomeIcon icon={faAngleRight} /></div>
                                 </a>
                             </div>
