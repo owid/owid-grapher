@@ -3,6 +3,10 @@ import { ChartConfig } from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 import { BAKED_GRAPHER_URL } from 'settings'
 
+function formatYear(year) {
+    return year < 0 ? `${Math.abs(year)} BCE` : `${year}`
+}
+
 // XXX
 declare var window: { admin: any }
 
@@ -57,7 +61,6 @@ export class Variable {
     @observable.ref datasetId!: string
 
     @observable.ref coverage?: string
-    @observable.ref timespan?: string
 
     @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
@@ -84,6 +87,15 @@ export class Variable {
                 }
             }
         }
+    }
+
+    @computed get timespan(): string {
+        if (this.years.length >= 1) {
+            const minYear = min(this.years)
+            const maxYear = max(this.years)
+            return `${formatYear(minYear)} – ${formatYear(maxYear)}`
+        }
+        return ""
     }
 
     @computed get hasNumericValues(): boolean {
