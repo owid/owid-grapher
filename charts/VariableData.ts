@@ -3,7 +3,7 @@ import { ChartConfig } from './ChartConfig'
 import { observable, computed, action, reaction } from 'mobx'
 import { BAKED_GRAPHER_URL } from 'settings'
 
-function formatYear(year) {
+function formatYear(year: number): string {
     return year < 0 ? `${Math.abs(year)} BCE` : `${year}`
 }
 
@@ -90,9 +90,9 @@ export class Variable {
     }
 
     @computed get timespan(): string {
-        if (this.years.length >= 1) {
-            const minYear = min(this.years)
-            const maxYear = max(this.years)
+        const minYear = min(this.years)
+        const maxYear = max(this.years)
+        if (minYear !== undefined && maxYear !== undefined) {
             return `${formatYear(minYear)} – ${formatYear(maxYear)}`
         }
         return ""
