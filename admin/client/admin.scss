@@ -525,6 +525,11 @@ main:not(.ChartEditorPage) {
     padding: 2em;
 }
 
+.chartPreview {
+    width: 130px;
+    height: auto;
+}
+
 .ChartIndexPage, .UsersIndexPage {
     .topRow {
         display: flex;

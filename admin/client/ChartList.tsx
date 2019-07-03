@@ -73,9 +73,9 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 
         return <tr>
             <td>
-                <a title="Show this chart on the front page of the website." onClick={() => this.props.onStar(chart)}>
-                    {chart.isStarred ? <FontAwesomeIcon icon={faStar}/> : <i className="fa fa-star-o"/>}
-                </a>
+                {chart.isPublished && <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
+                    <img src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`} className="chartPreview" />
+                </a>}
             </td>
             {chart.isPublished ? <td>
                 <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{highlight(chart.title)}</a> {chart.variantName ? <span style={{ color: '#aaa' }}>({highlight(chart.variantName)})</span> : undefined}
@@ -151,7 +151,7 @@ export class ChartList extends React.Component<{ charts: ChartListItem[], search
         return <table className="table table-bordered">
             <thead>
                 <tr>
-                    <th><i className="fa fa-star"/></th>
+                    <th></th>
                     <th>Chart</th>
                     <th>Type</th>
                     <th>Notes</th>
