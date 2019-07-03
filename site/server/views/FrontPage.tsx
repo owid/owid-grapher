@@ -15,8 +15,8 @@ import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], shortPosts: PostInfo[], explainerPosts: PostInfo[] }) => {
-    const { entries, posts, shortPosts, explainerPosts } = props
+export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[] }) => {
+    const { entries, posts } = props
 
     // Structured data for google
     const structuredMarkup = {

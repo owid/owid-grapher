@@ -13,6 +13,7 @@ import { Post } from 'db/model/Post'
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
+import { defaultTo } from 'charts/Util';
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -364,7 +365,7 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
             date: new Date(row.post_date),
             slug: permalinks.get(row.ID, row.post_name),
             authors: authorship.get(row.ID)||[],
-            imageUrl: featuredImages.get(row.ID),
+            imageUrl: defaultTo(featuredImages.get(row.ID), "/default-thumbnail.jpg"),
             tags: tagsByPostId.get(row.ID)||[]
         }
     })

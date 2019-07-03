@@ -116,12 +116,7 @@ async function renderPage(postRow: wpPostRow) {
 export async function renderFrontPage() {
     const entries = await wpdb.getEntriesByCategory()
     const posts = await wpdb.getBlogIndex()
-    const shortPosts = posts.filter(post =>
-        post.tags.map(tag => tag.name).includes("Short updates and facts"))
-    const explainerPosts = posts.filter(post =>
-        post.tags.map(tag => tag.name).includes("Explainers"))
-
-    return renderToHtmlPage(<FrontPage entries={entries} posts={posts} shortPosts={shortPosts} explainerPosts={explainerPosts} />)
+    return renderToHtmlPage(<FrontPage entries={entries} posts={posts} />)
 }
 export async function renderDonatePage() {
     return renderToHtmlPage(<DonatePage/>)
