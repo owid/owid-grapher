@@ -2649,10 +2649,10 @@
   resolved "https://registry.yarnpkg.com/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
 
-"@types/stripe@^6.26.7":
-  version "6.26.7"
-  resolved "https://registry.yarnpkg.com/@types/stripe/-/stripe-6.26.7.tgz#a18ad54b760b0a423c91dcd841585fb36e569584"
-  integrity sha512-h68z5PsctHhRgtyRkM0q4k/96hB+1GMy0G/Zp48hBAB8XLB/cu7qiRm87kfp0Vjcf49MOqCQSZlWy8UYEyQ8hg==
+"@types/stripe@^6.30.8":
+  version "6.30.8"
+  resolved "https://registry.yarnpkg.com/@types/stripe/-/stripe-6.30.8.tgz#c4d86d2c57c3cf22d07a82e3ec943ec1a99a16d0"
+  integrity sha512-5tbPflApznQ8XqZ5wd+zrdTlxebC8GzB5T3AqTkVpT+P6xJzVTs0qdA7GB/idfTONBXsR9+ixtk7hlTt9UN4oA==
   dependencies:
     "@types/node" "*"
 
