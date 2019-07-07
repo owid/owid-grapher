@@ -220,16 +220,16 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
                         </tr>
                     })}
                     {/* Total */}
-                    <tr>
+                    {!someMissing && <tr>
                         <td style={{fontSize: "0.9em"}}>
                             <div style={{...legendBlockStyle, backgroundColor: 'transparent'}}/> <strong>Total</strong>
                         </td>
                         <td style={{textAlign: "right"}}>
-                            {!transform.isRelative && !someMissing && <span>
+                            <span>
                                 <strong>{transform.yAxis.tickFormat(transform.stackedData[transform.stackedData.length-1].values[hoverIndex].y, { noTrailingZeroes: false })}</strong>
-                            </span>}
+                            </span>
                         </td>
-                    </tr>
+                    </tr>}
                 </tbody>
             </table>
         </Tooltip>
