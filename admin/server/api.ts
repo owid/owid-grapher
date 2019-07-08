@@ -240,7 +240,7 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
                 const display = JSON.parse((await t.query(`SELECT display FROM variables WHERE id=?`, [dim.variableId]))[0].display)
 
                 for (const key in dim.display) {
-                    display[key] = (dim as any)[key]
+                    display[key] = (dim.display as any)[key]
                 }
 
                 await t.execute(`UPDATE variables SET display=? WHERE id=?`, [JSON.stringify(display), dim.variableId])
