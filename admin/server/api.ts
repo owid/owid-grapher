@@ -169,6 +169,14 @@ async function expectChartById(chartId: any): Promise<ChartConfigProps> {
     }
 }
 
+function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {
+    const newConfig = _.clone(config)
+    newConfig.dimensions = newConfig.dimensions.map(dim => {
+        return _.omit(dim, ['saveToVariable'])
+    })
+    return newConfig
+}
+
 async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existingConfig?: ChartConfigProps) {
     return db.transaction(async t => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
@@ -206,15 +214,21 @@ async function saveChart(user: CurrentUser, newConfig: ChartConfigProps, existin
         // Execute the actual database update or creation
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
+
+        // We shouldn't store the 'saveToVariable' setting in the database.
+        // It is a one-off setting to apply the settings to the variable, it
+        // should not be ticked after a refresh.
+        const newJsonConfig = JSON.stringify(omitSaveToVariable(newConfig))
+
         if (existingConfig) {
             await t.query(
                 `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
-                [JSON.stringify(newConfig), now, now, user.id, chartId]
+                [newJsonConfig, now, now, user.id, chartId]
             )
         } else {
             const result = await t.execute(
                 `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
-                [[JSON.stringify(newConfig), now, now, now, user.id, false]]
+                [[newJsonConfig, now, now, now, user.id, false]]
             )
             chartId = result.insertId
         }
