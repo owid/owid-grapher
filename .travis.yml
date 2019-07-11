@@ -19,4 +19,7 @@ script:
 cache: yarn
 notifications:
   email:
-    - tech@ourworldindata.org
+    recipients:
+      - tech@ourworldindata.org
+    on_success: never
+    on_failure: always
