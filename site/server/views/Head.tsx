@@ -15,6 +15,7 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
         <meta name="description" content={pageDesc}/>
         <link rel="canonical" href={canonicalUrl}/>
         <link rel="alternate" type="application/atom+xml" href="/atom.xml"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
         <meta property="fb:app_id" content="1149943818390250"/>
         <meta property="og:url" content={canonicalUrl}/>
         <meta property="og:title" content={pageTitle}/>
