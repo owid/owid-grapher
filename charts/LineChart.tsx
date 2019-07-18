@@ -66,7 +66,6 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
         return toShow.map(d => {
             const lastValue = (last(d.values) as LineChartValue).y
-            const valueStr = this.transform.yAxis.tickFormat(lastValue)
 
             return {
                 color: d.color,
