@@ -892,6 +892,21 @@ figure[data-grapher-src]:empty:after {
     z-index: $zindex-Tooltip;
 }
 
+.NoData {
+    background-color: rgba(#fff,.6);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .action {
+        background-color: $controls-color;
+        border-radius: 2px;
+        padding: 8px 10px;
+        color: #fff;
+    }
+}
+
 .ChartPage main figure[data-grapher-src], #fallback {
     display: flex;
     align-items: center;
