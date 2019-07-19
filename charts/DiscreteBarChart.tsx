@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { select } from 'd3-selection'
-import { sortBy, some, min, max } from './Util'
-import { computed, autorun, runInAction, IReactionDisposer, reaction } from 'mobx'
+import { sortBy, min, max } from './Util'
+import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartConfig } from './ChartConfig'
 import { Bounds } from './Bounds'
@@ -12,6 +12,7 @@ import { AxisGridLines } from './AxisBox'
 import { NoData } from './NoData'
 import { TickFormattingOptions } from './TickFormattingOptions'
 import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
+import { ControlsOverlay, AddEntityButton } from './Controls';
 
 export interface DiscreteBarDatum {
     key: string
@@ -160,36 +161,18 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
         })
     }
 
-    dispose!: IReactionDisposer
     componentDidMount() {
         const widths = this.barPlacements.map(b => b.width)
         const bars = select(this.base.current).selectAll("g.bar > rect")
         bars.attr('width', 0).transition().attr('width', (_, i) => widths[i])
-
-        this.dispose = reaction(
-            () => this.barPlacements,
-            () => {
-                const { controls } = this.context.chartView
-                if (this.hasAddButton) {
-                    controls.setAddButtonPosition({
-                        x: this.bounds.left + this.legendWidth,
-                        y: this.bounds.top + (this.barHeight + this.barSpacing) * (this.totalBars - 1) + this.barHeight / 2,
-                        align: 'right',
-                        verticalAlign: 'middle',
-                        height: this.barHeight
-                    })
-                }
-            },
-            { fireImmediately: true }
-        )
-    }
-
-    componentWillUnmount() {
-        this.dispose()
     }
 
     @computed get barValueFormat() {
         return this.chart.discreteBar.barValueFormat
+    }
+
+    @action.bound onAddClick() {
+        this.context.chartView.isSelectingData = true
     }
 
     render() {
@@ -222,6 +205,17 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
 
                 return result
             })}
+            {this.props.chart.data.canAddData && <ControlsOverlay id="add-country">
+                <AddEntityButton
+                    x={this.bounds.left + this.legendWidth}
+                    y={this.bounds.top + (this.barHeight + this.barSpacing) * (this.totalBars - 1) + this.barHeight / 2}
+                    align='right'
+                    verticalAlign='middle'
+                    height={this.barHeight}
+                    label={`Add ${this.context.chart.entityType}`}
+                    onClick={this.onAddClick}
+                />
+            </ControlsOverlay>}
         </g>
     }
 }

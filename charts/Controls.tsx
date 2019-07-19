@@ -8,7 +8,7 @@ import { getQueryParams } from 'utils/client/url'
 import { ChartView } from './ChartView'
 import { HighlightToggleConfig } from './ChartConfig'
 import { Timeline } from './HTMLTimeline'
-import { extend, keys } from './Util'
+import { extend, keys, entries, VNode } from './Util'
 import { worldRegions, labelsByRegion } from './WorldRegions'
 import { ADMIN_BASE_URL, ENV } from 'settings'
 
@@ -24,11 +24,7 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
-
-type HorizontalAlign = 'left' | 'right'
-type VerticalAlign = 'top' | 'middle' | 'bottom'
-
-const DEFAULT_ADD_BUTTON_HEIGHT = 21
+import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
 
 @observer
 class EmbedMenu extends React.Component<{ chartView: ChartView, embedUrl: string }> {
@@ -327,13 +323,7 @@ export class Controls {
 
     @observable isShareMenuActive: boolean = false
     @observable isSettingsMenuActive: boolean = false
-
-    addButtonHeight: number = DEFAULT_ADD_BUTTON_HEIGHT
-
-    @observable addButtonX?: number
-    @observable addButtonY?: number
-    @observable addButtonAlign?: HorizontalAlign
-    @observable addButtonVerticalAlign?: VerticalAlign
+    @observable paddingTop: number = 0
 
     @computed get addDataTerm() {
         const { chart } = this.props
@@ -388,78 +378,134 @@ export class Controls {
         return numLines
     }
 
-    @computed get controlsPaddingTop(): number {
-        if (this.addButtonY !== undefined && this.addButtonHeight > this.addButtonY) {
-            return this.addButtonHeight - this.addButtonY
-        } else {
-            return 0
-        }
-    }
-
     @computed get footerHeight(): number {
         return this.footerLines*40
     }
+}
 
-    setAddButtonPosition({ x, y, align='left', verticalAlign='bottom', height=DEFAULT_ADD_BUTTON_HEIGHT}: { x: number, y: number, align?: HorizontalAlign, verticalAlign?: VerticalAlign, height?: number }) {
-        this.addButtonX = x
-        this.addButtonY = y
-        this.addButtonAlign = align
-        this.addButtonVerticalAlign = verticalAlign
-        this.addButtonHeight = height
+type HorizontalAlign = 'left' | 'right'
+type VerticalAlign = 'top' | 'middle' | 'bottom'
+
+@observer
+export class AddEntityButton extends React.Component<{ x: number, y: number, align: HorizontalAlign, verticalAlign: VerticalAlign, height: number, label: string, onClick: () => void }> {
+    static contextType = ChartViewContext
+    context!: ChartViewContextType
+
+    static defaultProps = {
+        align: "left",
+        verticalAlign: "bottom",
+        height: 21,
+        label: "Add country"
+    }
+
+    @action setControlsPaddingTop(value: number) {
+        this.context.chartView.controls.paddingTop = value
+    }
+
+    calcPaddingTop(): number {
+        const { y, verticalAlign, height } = this.props
+        const realY = verticalAlign === 'bottom' ? (y - height)
+            : verticalAlign === 'middle' ? (y - height / 2)
+            : y
+        return Math.max(0, -realY)
+    }
+
+    // A hacky way to add padding at the top of the graph if there is no space
+    // for the "Add country" button
+
+    componentDidMount() {
+        this.setControlsPaddingTop(this.calcPaddingTop())
+    }
+
+    componentDidUpdate() {
+        this.setControlsPaddingTop(this.calcPaddingTop())
+    }
+
+    componentWillUnmount() {
+        this.setControlsPaddingTop(0)
+    }
+
+    render() {
+        const { x, y, align, verticalAlign, height, label, onClick } = this.props
+
+        const buttonStyle: React.CSSProperties = {
+            position: "absolute",
+            lineHeight: `${height}px`
+        }
+
+        if (verticalAlign === 'top') {
+            buttonStyle.top = `${y}px`
+        } else if (verticalAlign === 'bottom') {
+            buttonStyle.bottom = `${-y}px`
+        } else {
+            buttonStyle.top = `${y - height / 2}px`
+        }
+
+        if (align === 'left') {
+            buttonStyle.left = `${x}px`
+        } else if (align === 'right') {
+            buttonStyle.right = `${-x}px`
+        }
+
+        return <button className="addDataButton clickable" onClick={onClick} style={buttonStyle}>
+            <span className="icon">
+                <svg width={16} height={16}>
+                    <path d="M3,8 h10 m-5,-5 v10" />
+                </svg>
+            </span>
+            <span className="label">{label}</span>
+        </button>
     }
 }
 
 @observer
-export class ControlsOverlayView extends React.Component<{ controls: Controls }> {
+export class ControlsOverlay extends React.Component<{ id: string, children: VNode }> {
+
+    static contextType = ChartViewContext
+    context!: ChartViewContextType
+
+    get controlOverlays() {
+        return this.context.chartView.overlays
+    }
+
+    @action setOverlay(children: VNode) {
+        this.controlOverlays[this.props.id] = children
+    }
+
+    componentDidMount() {
+        this.setOverlay(this.props.children)
+    }
+
+    componentDidUpdate() {
+        this.setOverlay(this.props.children)
+    }
+
+    componentWillUnmount() {
+        this.setOverlay(undefined)
+    }
+
+    render() {
+        return null
+    }
+}
+
+@observer
+export class ControlsOverlayView extends React.Component<{ chartView: ChartView, controls: Controls }> {
     @action.bound onDataSelect() {
         this.props.controls.props.chartView.isSelectingData = true
     }
 
     render() {
-        const { controls } = this.props
         const wrapperStyle: React.CSSProperties = {
-            height: `${controls.controlsPaddingTop}px`,
             position: 'relative',
-            width: '1px'
+            width: '1px',
+            height: `${this.props.controls.paddingTop}px`
         }
         return <div className="ControlsOverlay" style={wrapperStyle}>
-            {this.renderAddButton()}
+            {entries(this.props.chartView.overlays).map(([key, children]) => <React.Fragment key={key}>
+                {children}
+            </React.Fragment>)}
         </div>
-    }
-
-    renderAddButton() {
-        const { controls } = this.props
-        if (controls.hasAddButton && controls.addButtonY !== undefined && controls.addButtonX !== undefined) {
-
-            const buttonStyle: React.CSSProperties = {
-                position: "absolute",
-                lineHeight: `${controls.addButtonHeight}px`
-            }
-
-            if (controls.addButtonVerticalAlign === 'top') {
-                buttonStyle.top = `${controls.addButtonY}px`
-            } else if (controls.addButtonVerticalAlign === 'bottom') {
-                buttonStyle.bottom = `${-controls.addButtonY}px`
-            } else {
-                buttonStyle.top = `${controls.addButtonY - controls.addButtonHeight / 2}px`
-            }
-
-            if (controls.addButtonAlign === 'left') {
-                buttonStyle.left = `${controls.addButtonX}px`
-            } else if (controls.addButtonAlign === 'right') {
-                buttonStyle.right = `${-controls.addButtonX}px`
-            }
-
-            return <button className="addDataButton clickable" onClick={this.onDataSelect} style={buttonStyle}>
-                <span className="icon">
-                    <svg width={16} height={16}>
-                        <path d="M3,8 h10 m-5,-5 v10" />
-                    </svg>
-                </span>
-                <span className="label">{this.props.controls.addButtonLabel}</span>
-            </button>
-        }
-        return null
     }
 }
 

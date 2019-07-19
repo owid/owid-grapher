@@ -49,7 +49,7 @@ export class ChartLayout {
     }
 
     @computed get svgHeight() {
-        return this.isHTML ? this.props.bounds.height - this.header.height - this.footer.height - this.props.chartView.controls.controlsPaddingTop - 30 : this.props.bounds.height
+        return this.isHTML ? this.props.bounds.height - this.header.height - this.footer.height - 30 : this.props.bounds.height
     }
 
     @computed get innerBounds() {
@@ -91,7 +91,7 @@ export class ChartLayoutView extends React.Component<{ layout: ChartLayout, chil
             {/* The "chart plot area" div helps highlight the overlay controls on hover,
                 as we don't want to show them when the cursor is over the tabs */}
             <div className="ChartPlotArea">
-                <ControlsOverlayView controls={this.context.chartView.controls} />
+                <ControlsOverlayView chartView={this.context.chartView} controls={this.context.chartView.controls} />
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={this.svgStyle as any} width={layout.svgWidth} height={layout.svgHeight}>
                     {this.props.children}
                 </svg>

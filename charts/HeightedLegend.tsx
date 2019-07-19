@@ -7,12 +7,13 @@ import * as React from 'react'
 import classnames from 'classnames'
 import { some, noop, includes, cloneDeep, max, min, sortBy } from './Util'
 import { defaultTo } from './Util'
-import { computed, reaction, IReactionDisposer } from 'mobx'
+import { computed, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
 import { TextWrap } from './TextWrap'
 import { AxisScale } from './AxisScale'
 import { Bounds } from './Bounds'
 import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
+import { ControlsOverlay, AddEntityButton } from './Controls'
 
 export interface HeightedLegendProps {
     items: HeightedLegendItem[],
@@ -116,43 +117,8 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
 
 @observer
 export class HeightedLegendView extends React.Component<HeightedLegendViewProps> {
-    dispose!: IReactionDisposer
-
     static contextType = ChartViewContext
     context!: ChartViewContextType
-
-    componentDidMount() {
-        // Adding padding to make space for "Add entity" button in legend
-        this.dispose = reaction(
-            () => this.placedMarks,
-            () => {
-                const { controls } = this.context.chartView
-                if (controls.hasAddButton) {
-                    // If there are lines in the legend, we want the button label to be aligned
-                    // with the legend labels. If there aren't lines and the legend is not too
-                    // narrow, we want to move it right so that the icon doesn't overlap the chart.
-                    const leftOffset = this.needsLines
-                        ? this.props.legend.leftPadding
-                        : this.props.legend.width > 70 ? 21 : 5
-                    // Cap bottom to 0 because in some cases, like when toggling relative/absolute on a
-                    // stacked area, the minimum of bounds.top ends up being some large negative number,
-                    // which breaks the chart by setting a negative height.
-                    controls.setAddButtonPosition({
-                        x: this.props.x + leftOffset,
-                        y: Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0)),
-                        align: 'left',
-                        verticalAlign: 'bottom',
-                        height: 30
-                    })
-                }
-            },
-            { fireImmediately: true }
-        )
-    }
-
-    componentWillUnmount() {
-        this.dispose()
-    }
 
     @computed get onMouseOver(): any { return defaultTo(this.props.onMouseOver, noop) }
     @computed get onMouseLeave(): any { return defaultTo(this.props.onMouseLeave, noop) }
@@ -359,10 +325,29 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         )
     }
 
+    @action.bound onAddClick() {
+        this.context.chartView.isSelectingData = true
+    }
+
     render() {
+        const leftOffset = this.needsLines
+            ? this.props.legend.leftPadding
+            : this.props.legend.width > 70 ? 21 : 5
+
         return <g className={classnames("HeightedLegend", {"clickable": this.props.clickableMarks})} onMouseLeave={() => this.onMouseLeave()}>
             {this.renderBackground()}
             {this.renderFocus()}
+            {this.context.chart.data.canAddData && <ControlsOverlay id="add-country">
+                <AddEntityButton
+                    x={this.props.x + leftOffset}
+                    y={Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))}
+                    align='left'
+                    verticalAlign='bottom'
+                    height={30}
+                    label={`Add ${this.context.chart.entityType}`}
+                    onClick={this.onAddClick}
+                />
+            </ControlsOverlay>}
         </g>
     }
 }

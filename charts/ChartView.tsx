@@ -115,8 +115,12 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get tabBounds() {
-        return (new Bounds(0, 0, this.renderWidth, this.renderHeight)).padBottom(this.isExport ? 0 : this.controls.footerHeight)
+        return (new Bounds(0, 0, this.renderWidth, this.renderHeight))
+            .padTop(this.isExport ? 0 : this.controls.paddingTop)
+            .padBottom(this.isExport ? 0 : this.controls.footerHeight)
     }
+
+    @observable overlays: { [id: string]: VNode } = {}
 
     @observable.ref popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
