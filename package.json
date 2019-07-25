@@ -67,7 +67,7 @@
     "@types/shell-quote": "^1.6.1",
     "@types/shelljs": "^0.8.5",
     "@types/slack-node": "^0.1.2",
-    "@types/stripe": "^6.26.7",
+    "@types/stripe": "^6.31.6",
     "@types/topojson": "^3.2.2",
     "@types/url-join": "^4.0.0",
     "@types/url-parse": "^1.4.3",
