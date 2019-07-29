@@ -341,7 +341,7 @@ export class Controls {
         else if (chart.tab === 'chart' && (chart.isTimeScatter || chart.isScatter) && chart.scatter.hasTimeline)
             return true
         else if (chart.tab === 'chart' && chart.isLineChart)
-            return true
+            return !chart.props.hideTimeline
         else
             return false
     }
