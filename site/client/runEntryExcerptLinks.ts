@@ -20,8 +20,11 @@ export function runEntryExcerptLinks() {
 
     container.selectAll(".entry-item-container").on("mouseenter", function() {
         const entryItem = select(this).select(".entry-item")
-        const contentsEl = (entryItem.select(".entry-item-contents").node() as HTMLElement)
-        const targetHeight = Math.max(contentsEl.scrollHeight, contentsEl.offsetHeight)
+        const heading = entryItem.select("h4").node() as HTMLElement
+        const excerpt = entryItem.select(".excerpt").node() as HTMLElement
+        const targetHeight = heading.offsetHeight + excerpt.offsetHeight + 23
+        // NOTE: we add heading and excerpt heights because getting the overall
+        // scrollHeight of the container is not consistent across browsers.
         entryItem
             .style("height", `${targetHeight}px`)
             .style("z-index", zIndex++)
