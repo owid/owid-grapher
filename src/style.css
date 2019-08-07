@@ -1,3 +1,7 @@
 .owid-deep-link-content {
   padding: 16px;
 }
+
+.owid-deep-link-content .components-spinner {
+  float: none;
+}
