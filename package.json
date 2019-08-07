@@ -1,0 +1,16 @@
+{
+  "name": "owid-wordpress-admin",
+  "version": "0.1.0",
+  "description": "Custom dashboard behaviours and widgets for ourworldindata.org wordpress admin panel",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "wp-scripts start",
+    "build": "wp-scripts build"
+  },
+  "author": "Matthieu Bergel <hello@matthieubergel.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "@wordpress/scripts": "3.4.0"
+  }
+}
