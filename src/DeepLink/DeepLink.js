@@ -6,6 +6,8 @@ const { useEffect, useState } = wp.element;
 
 const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
   const [entriesOptions, setEntriesOptions] = useState([]);
+  // transientEntryId is used to remember the id of the entry selected during an
+  // editing session, when switching between reading contexts (blog or entry).
   const [transientEntryId, setTransientEntryId] = useState();
 
   useEffect(() => {
@@ -16,7 +18,7 @@ const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
           value: entry.id
         }))
       );
-      setTransientEntryId(entries[0].id);
+      setTransientEntryId(metaFieldValue || entries[0].id);
     });
   }, []);
 
