@@ -4,21 +4,23 @@ const { withSelect, withDispatch } = wp.data;
 const { compose } = wp.compose;
 const { useEffect, useState } = wp.element;
 
+const IN_SITU = 0;
+
 const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
   const [entriesOptions, setEntriesOptions] = useState([]);
   // transientEntryId is used to remember the id of the entry selected during an
   // editing session, when switching between reading contexts (blog or entry).
-  const [transientEntryId, setTransientEntryId] = useState();
+  const [transientEntryId, setTransientEntryId] = useState(0);
 
   useEffect(() => {
     apiFetch({ path: "/wp/v2/posts" }).then(entries => {
       setEntriesOptions(
         entries.map(entry => ({
           label: entry.title.rendered,
-          value: entry.id
+          value: entry.id.toString()
         }))
       );
-      setTransientEntryId(metaFieldValue || entries[0].id);
+      setTransientEntryId(metaFieldValue || entries[0].id.toString());
     });
   }, []);
 
@@ -28,18 +30,18 @@ const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
     <>
       <RadioControl
         label="Reading context"
-        selected={metaFieldValue}
+        selected={metaFieldValue.toString()}
         options={[
-          { label: "Read on blog post", value: 0 },
-          { label: "Read on entry", value: transientEntryId }
+          { label: "Read in situ", value: IN_SITU.toString() },
+          { label: "Read on entry", value: transientEntryId.toString() }
         ]}
         onChange={option => {
           setMetaFieldValue(parseInt(option));
         }}
       />
-      {metaFieldValue !== 0 ? (
+      {metaFieldValue !== IN_SITU ? (
         <SelectControl
-          value={metaFieldValue}
+          value={metaFieldValue.toString()}
           options={entriesOptions}
           onChange={entryId => {
             const entryIdInt = parseInt(entryId);

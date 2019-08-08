@@ -28,7 +28,7 @@ function owid_plugin_register() {
 	register_post_meta( 'post', 'owid_plugin_deep_link_meta_field', array(
 		'show_in_rest' => true,
 		'single' => true,
-		'type' => number,
+		'type' => 'integer',
 		) 
 	);
 }
