@@ -1,15 +1,19 @@
-import DeepLink from "./DeepLink/DeepLink";
+import ReadingContext from "./ReadingContext/ReadingContext";
 const { registerPlugin } = wp.plugins;
 const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editPost;
 
-registerPlugin("owid-deep-link", {
-  icon: "admin-links",
+const READING_CONTEXT_META_FIELD = "owid_reading_context_meta_field";
+const ICON = "screenoptions";
+const TITLE = "Reading context";
+
+registerPlugin("owid-reading-context", {
+  icon: ICON,
   render: () => (
     <>
-      <PluginSidebarMoreMenuItem target="owid-deep-link">Deep link</PluginSidebarMoreMenuItem>
-      <PluginSidebar name="owid-deep-link" icon="admin-post" title="Deep link">
-        <div className="owid-deep-link-content">
-          <DeepLink fieldName="owid_plugin_deep_link_meta_field" />
+      <PluginSidebarMoreMenuItem target="owid-reading-context">{TITLE}</PluginSidebarMoreMenuItem>
+      <PluginSidebar name="owid-reading-context" icon={ICON} title={TITLE}>
+        <div className="owid-reading-context-content">
+          <ReadingContext fieldName="owid_reading_context_meta_field" />
         </div>
       </PluginSidebar>
     </>

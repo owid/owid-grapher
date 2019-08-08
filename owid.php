@@ -11,6 +11,8 @@ Plugin Name: Our World In Data
  *  https://developer.wordpress.org/block-editor/tutorials/metabox/meta-block-1-intro/
  */
 
+const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
+
 function owid_plugin_register()
 {
 	wp_register_script(
@@ -28,7 +30,7 @@ function owid_plugin_register()
 	// separately from the serialized HTML
 	register_post_meta(
 		'post',
-		'owid_plugin_deep_link_meta_field',
+		READING_CONTEXT_META_FIELD,
 		array(
 			'show_in_rest' => true,
 			'single' => true,
@@ -64,10 +66,10 @@ add_action(
 					// Compute the deep link if the blog post reading context is an
 					// entry (as opposed to its own page)
 
-					if (isset($outerPost['meta']['owid_plugin_deep_link_meta_field']) && $outerPost['meta']['owid_plugin_deep_link_meta_field'] !== 0) {
+					if (isset($outerPost['meta'][READING_CONTEXT_META_FIELD]) && $outerPost['meta'][READING_CONTEXT_META_FIELD] !== 0) {
 
 						// Get the entry link from the sidebar plugin
-						$entryLink = get_permalink($outerPost['meta']['owid_plugin_deep_link_meta_field']);
+						$entryLink = get_permalink($outerPost['meta'][READING_CONTEXT_META_FIELD]);
 
 						// Checking the first block of the post (outerPost) for a reusable
 						// block (innerPost). Then get the first heading.

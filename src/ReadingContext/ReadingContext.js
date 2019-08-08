@@ -6,11 +6,11 @@ const { useEffect, useState } = wp.element;
 
 const IN_SITU = 0;
 
-const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
+const DeepLink = ({ readingContext = 0, setReadingContext, editorBlocks }) => {
   const [entriesOptions, setEntriesOptions] = useState([]);
   // transientEntryId is used to remember the id of the entry selected during an
   // editing session, when switching between reading contexts (blog or entry).
-  const [transientEntryId, setTransientEntryId] = useState(0);
+  const [transientEntryId, setTransientEntryId] = useState(-1);
 
   useEffect(() => {
     apiFetch({ path: "/wp/v2/posts" }).then(entries => {
@@ -20,7 +20,7 @@ const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
           value: entry.id.toString()
         }))
       );
-      setTransientEntryId(metaFieldValue || entries[0].id.toString());
+      setTransientEntryId(readingContext || entries[0].id.toString());
     });
   }, []);
 
@@ -29,23 +29,22 @@ const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
   ) : (
     <>
       <RadioControl
-        label="Reading context"
-        selected={metaFieldValue.toString()}
+        selected={readingContext.toString()}
         options={[
           { label: "Read in situ", value: IN_SITU.toString() },
           { label: "Read on entry", value: transientEntryId.toString() }
         ]}
         onChange={option => {
-          setMetaFieldValue(parseInt(option));
+          setReadingContext(parseInt(option));
         }}
       />
-      {metaFieldValue !== IN_SITU ? (
+      {readingContext !== IN_SITU ? (
         <SelectControl
-          value={metaFieldValue.toString()}
+          value={readingContext.toString()}
           options={entriesOptions}
           onChange={entryId => {
             const entryIdInt = parseInt(entryId);
-            setMetaFieldValue(entryIdInt);
+            setReadingContext(entryIdInt);
             setTransientEntryId(entryIdInt);
           }}
         />
@@ -56,13 +55,13 @@ const DeepLink = ({ metaFieldValue, setMetaFieldValue, editorBlocks }) => {
 
 const mapSelectToProps = function(select, props) {
   return {
-    metaFieldValue: select("core/editor").getEditedPostAttribute("meta")[props.fieldName]
+    readingContext: select("core/editor").getEditedPostAttribute("meta")[props.fieldName]
   };
 };
 
 const mapDispatchToProps = function(dispatch, props) {
   return {
-    setMetaFieldValue: function(value) {
+    setReadingContext: function(value) {
       dispatch("core/editor").editPost({ meta: { [props.fieldName]: value } });
     }
   };
