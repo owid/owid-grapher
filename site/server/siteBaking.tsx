@@ -116,7 +116,8 @@ async function renderPage(postRow: wpPostRow) {
 export async function renderFrontPage() {
     const entries = await wpdb.getEntriesByCategory()
     const posts = await wpdb.getBlogIndex()
-    return renderToHtmlPage(<FrontPage entries={entries} posts={posts} />)
+    const totalCharts = (await db.query(`SELECT COUNT(*) as count FROM charts`))[0].count as number
+    return renderToHtmlPage(<FrontPage entries={entries} posts={posts} totalCharts={totalCharts} />)
 }
 export async function renderDonatePage() {
     return renderToHtmlPage(<DonatePage/>)

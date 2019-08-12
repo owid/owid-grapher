@@ -15,8 +15,8 @@ import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[] }) => {
-    const { entries, posts } = props
+export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], totalCharts: number }) => {
+    const { entries, posts, totalCharts } = props
 
     // Structured data for google
     const structuredMarkup = {
@@ -44,7 +44,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         Scroll to all research
                         <span className="icon"><FontAwesomeIcon icon={faAngleDoubleDown} /></span>
                     </a>
-                    <p>2746 charts across 297 topics</p>
+                    <p>{totalCharts} charts across 297 topics</p>
                     <p>All free: open access and open source</p>
                 </div>
             </section>
