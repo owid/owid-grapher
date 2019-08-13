@@ -173,7 +173,7 @@ export async function makeAtomFeed() {
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data</title>
-<subtitle>Living conditions around the world are changing rapidly. Explore how and why.</subtitle>
+<subtitle>Research and data to make progress against the world’s largest problems.</subtitle>
 <id>${BAKED_BASE_URL}/</id>
 <link type="text/html" rel="alternate" href="${BAKED_BASE_URL}"/>
 <link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>

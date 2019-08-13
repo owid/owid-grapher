@@ -6,7 +6,7 @@ export const Head = (props: { canonicalUrl: string, pageTitle?: string, pageDesc
     const {canonicalUrl} = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle ? `${props.pageTitle} - Our World in Data` : `Our World in Data`
-    const pageDesc = props.pageDesc || "Living conditions around the world are changing rapidly. Explore how and why."
+    const pageDesc = props.pageDesc || "Research and data to make progress against the world’s largest problems."
     const imageUrl = props.imageUrl || `${BAKED_BASE_URL}/wp-content/uploads/2016/06/OurWorldInData.png`
 
     return <head>
