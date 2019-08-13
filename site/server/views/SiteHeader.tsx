@@ -35,7 +35,7 @@ export const SiteHeader = () => {
                             </div>
                         </form>
                         <ul className="site-primary-links">
-                            <li><a href="/blog" data-track-click data-track-note="header-navigation">Blog</a></li>
+                            <li><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
                             <li><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
                             <li><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
                         </ul>

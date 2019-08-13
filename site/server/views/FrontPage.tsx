@@ -97,7 +97,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                 </div>
             </section>
 
-            <section className="homepage-featured">
+            {/* <section className="homepage-featured">
                 <div className="wrapper">
                     <div className="inner-wrapper">
                         <h2>Our most popular research</h2>
@@ -201,7 +201,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             <section className="homepage-posts">
                 <div className="wrapper">
@@ -209,7 +209,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                         <div className="owid-col flex-row">
                             <div className="homepage-posts--explainers">
                                 <div className="header">
-                                    <h2>Recent posts</h2>
+                                    <h2>Latest research</h2>
                                 </div>
                                 <div className="list">
                                     {posts.slice(0,8).map(post => <div key={post.slug} className="list-item-wrapper">

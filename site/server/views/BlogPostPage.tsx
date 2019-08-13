@@ -17,11 +17,6 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
         <body className={`single-post ${formattingOptions.bodyClassName || ""}`}>
             <SiteHeader/>
             <main>
-                <header className="blog-header">
-                    <h1>
-                        <a href="/blog">Blog</a>
-                    </h1>
-                </header>
                 <div className="site-content">
                     <article className="post">
                         <header className="articleHeader">

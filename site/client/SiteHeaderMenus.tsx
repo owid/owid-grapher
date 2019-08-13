@@ -125,7 +125,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         <div className="site-primary-navigation">
                             <HeaderSearch/>
                             <ul className="site-primary-links">
-                                <li><a href="/blog" data-track-click data-track-note="header-navigation">Blog</a></li>
+                                <li><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
                                 <li><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
                                 <li><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
                             </ul>
@@ -291,7 +291,7 @@ export class MobileTopicsMenu extends React.Component<{ categories: CategoryWith
                 <li className="end-link"><a href="/charts" data-track-click data-track-note="header-navigation">Charts</a></li>
                 <li className="end-link"><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li>
                 <li className="end-link"><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
-                <li className="end-link"><a href="/blog" data-track-click data-track-note="header-navigation">Blog</a></li>
+                <li className="end-link"><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
                 <li className="end-link"><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
                 <li className="end-link"><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
             </ul>

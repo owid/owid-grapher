@@ -20,13 +20,13 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
     const pageNums = _.range(1, numPages+1)
 
     return <html>
-        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")} pageTitle="Blog"/>
+        <Head canonicalUrl={`${settings.BAKED_BASE_URL}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")} pageTitle="Latest research"/>
         <body className="blog">
             <SiteHeader/>
 
             <main>
                 <div className="site-content">
-                    <h2>Latest Posts</h2>
+                    <h2>Latest research</h2>
                     <ul className="posts">
                         {posts.map(post =>
                             <li key={post.slug} className="post">
