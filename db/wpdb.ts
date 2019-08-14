@@ -2,7 +2,9 @@ import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
 import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS} from 'serverSettings'
+import {WORDPRESS_URL} from 'settings'
 import * as Knex from 'knex'
+import fetch from 'node-fetch'
 
 import * as path from 'path'
 import * as glob from 'glob'
@@ -354,24 +356,16 @@ let cachedPosts: PostInfo[]
 export async function getBlogIndex(): Promise<PostInfo[]> {
     if (cachedPosts) return cachedPosts
 
-    const rows = await wpdb.query(`
-        SELECT ID, post_title, post_date, post_name FROM wp_posts
-        WHERE post_status='publish' AND post_type='post' ORDER BY post_date DESC
-    `)
+    const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/posts?per_page=21`)
+    const posts = await response.json()
 
-    const permalinks = await getPermalinks()
-    const authorship = await getAuthorship()
-    const featuredImages = await getFeaturedImages()
-    const tagsByPostId = await Post.tagsByPostId()
-
-    cachedPosts = rows.map(row => {
+    cachedPosts = posts.map(post => {
         return {
-            title: row.post_title,
-            date: new Date(row.post_date),
-            slug: permalinks.get(row.ID, row.post_name),
-            authors: authorship.get(row.ID)||[],
-            imageUrl: defaultTo(featuredImages.get(row.ID), "/default-thumbnail.jpg"),
-            tags: tagsByPostId.get(row.ID)||[]
+            title: post.title_raw,
+            date: new Date(post.date),
+            slug: post.deep_link.slice(1),
+            authors: post.authors_name || [],
+            imageUrl: defaultTo(post.featured_media_path, '/default-thumbnail.jpg')
         }
     })
 
