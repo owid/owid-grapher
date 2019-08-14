@@ -204,6 +204,6 @@
     "react-docgen-typescript-loader": "^3.1.0",
     "source-map-support": "^0.5.12",
     "ts-jest": "^24.0.2",
-    "ts-node-dev": "^1.0.0-pre.39"
+    "ts-node-dev": "^1.0.0-pre.40"
   }
 }
