@@ -6,14 +6,14 @@ const { useEffect, useState } = wp.element;
 
 const IN_SITU = 0;
 
-const DeepLink = ({ readingContext = 0, setReadingContext, editorBlocks }) => {
+const ReadingContext = ({ readingContext = 0, setReadingContext, editorBlocks }) => {
   const [entriesOptions, setEntriesOptions] = useState([]);
   // transientEntryId is used to remember the id of the entry selected during an
   // editing session, when switching between reading contexts (blog or entry).
   const [transientEntryId, setTransientEntryId] = useState(-1);
 
   useEffect(() => {
-    apiFetch({ path: "/wp/v2/posts" }).then(entries => {
+    apiFetch({ path: "/wp/v2/pages?per_page=100&categories=44" }).then(entries => {
       setEntriesOptions(
         entries.map(entry => ({
           label: entry.title.rendered,
@@ -70,4 +70,4 @@ const mapDispatchToProps = function(dispatch, props) {
 export default compose(
   withDispatch(mapDispatchToProps),
   withSelect(mapSelectToProps)
-)(DeepLink);
+)(ReadingContext);
