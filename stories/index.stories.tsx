@@ -10,7 +10,7 @@ import 'site/client/owid.scss'
 import 'charts/client/chart.scss'
 
 storiesOf('FeedbackForm', module)
-    .add('normal', () => <FeedbackForm onDismiss={action('dismissed')}/>)
+    .add('normal', () => <FeedbackForm />)
 
 storiesOf('ChartStoryView', module)
     .add('normal', () => <ChartStoryView/>)
