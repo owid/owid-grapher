@@ -12,7 +12,7 @@ export class FeedbackPage extends React.Component {
             <body className="FeedbackPage">
                 <SiteHeader/>
                 <main>
-                    <FeedbackForm onDismiss={() => undefined}/>
+                    <FeedbackForm />
                 </main>
                 <SiteFooter hideDonate={true} />
             </body>

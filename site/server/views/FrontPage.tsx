@@ -12,7 +12,7 @@ import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons/faExternalL
 import { faFileAlt } from '@fortawesome/free-solid-svg-icons/faFileAlt'
 import { faAngleDoubleDown } from '@fortawesome/free-solid-svg-icons/faAngleDoubleDown'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
-import { faFacebook } from '@fortawesome/free-brands-svg-icons/faFacebook'
+import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], totalCharts: number }) => {
@@ -282,7 +282,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                         </a>
                                         <a href="https://facebook.com/ourworldindata" className="list-item" title="Facebook" target="_blank" rel="noopener noreferrer" data-track-click data-track-note="homepage-follow-us">
                                             <div className="icon">
-                                                <FontAwesomeIcon icon={faFacebook} />
+                                                <FontAwesomeIcon icon={faFacebookSquare} />
                                             </div>
                                             <div className="label">Facebook</div>
                                         </a>

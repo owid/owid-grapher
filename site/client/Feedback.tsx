@@ -3,6 +3,7 @@ import ReactDOM = require("react-dom")
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { observable, action, toJS } from "mobx"
 import classnames from 'classnames'
 
@@ -37,12 +38,11 @@ class Feedback {
 }
 
 @observer
-export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
+export class FeedbackForm extends React.Component {
     feedback: Feedback = new Feedback()
     @observable loading: boolean = false
     @observable done: boolean = false
     @observable error: string|undefined
-    dismissable: boolean = true
 
     async submit() {
         try {
@@ -53,27 +53,6 @@ export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
         } finally {
             this.loading = false
         }
-    }
-
-    @action.bound onDismiss(e: React.MouseEvent<HTMLButtonElement>) {
-        e.preventDefault()
-        this.props.onDismiss()
-    }
-
-    @action.bound onClickSomewhere() {
-        if (this.dismissable) {
-            this.props.onDismiss()
-        } else {
-            this.dismissable = true
-        }
-    }
-
-    componentDidMount() {
-        document.addEventListener('click', this.onClickSomewhere)
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('click', this.onClickSomewhere)
     }
 
     @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -98,20 +77,20 @@ export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
 
     render() {
         const {loading} = this
-        return <form className={classnames("FeedbackForm", { loading: this.loading })} onSubmit={this.onSubmit} onClick={action(() => this.dismissable = false)}>
+        return <form className={classnames("FeedbackForm", { loading: this.loading })} onSubmit={this.onSubmit}>
             <header>
                 Leave us feedback
             </header>
             <div className="formBody">
-                <div>
+                <div className="formSection">
                     <label htmlFor="feedback.name">Your name</label>
                     <input id="feedback.name" onChange={this.onName} autoFocus disabled={loading}/>
                 </div>
-                <div>
+                <div className="formSection">
                     <label htmlFor="feedback.email">Email address</label>
                     <input id="feedback.email" onChange={this.onEmail} type="email" required disabled={loading}/>
                 </div>
-                <div>
+                <div className="formSection formSectionExpand">
                     <label htmlFor="feedback.message">Message</label>
                     <textarea id="feedback.message" onChange={this.onMessage} rows={5} required disabled={loading}/>
                 </div>
@@ -119,8 +98,7 @@ export class FeedbackForm extends React.Component<{ onDismiss: () => void }> {
                 {this.done ? <div style={{ color: 'green' }}>Thanks for your feedback!</div> : undefined}
             </div>
             <footer>
-                <button onClick={this.onDismiss} disabled={loading}>Close</button>
-                <button type="submit" disabled={loading}>Send</button>
+                <button type="submit" disabled={loading}>Send message</button>
             </footer>
         </form>
     }
@@ -134,17 +112,31 @@ class FeedbackPrompt extends React.Component {
         this.isOpen = !this.isOpen
     }
 
+    @action.bound onClickOutside() {
+        this.isOpen = false
+    }
+
     render() {
-        return this.isOpen ? <FeedbackForm onDismiss={this.toggleOpen}/> : <button className="FeedbackPrompt" onClick={this.toggleOpen}>
-            <FontAwesomeIcon icon={faEnvelope}/> Feedback
-        </button>
+        return <React.Fragment>
+            <div onClick={this.onClickOutside} style={{ display: this.isOpen ? 'block' : 'none', position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,.05)' }} />
+            <div className="feedbackPromptContainer">
+                <div style={{ display: this.isOpen ? 'block' : 'none' }}>
+                    <FeedbackForm />
+                </div>
+                { this.isOpen ? <button className="FeedbackPrompt" onClick={this.toggleOpen}>
+                    <FontAwesomeIcon icon={faTimes}/> Close
+                </button> : <button className="FeedbackPrompt" onClick={this.toggleOpen}>
+                    <FontAwesomeIcon icon={faEnvelope}/> Feedback
+                </button> }
+            </div>
+        </React.Fragment>
     }
 }
 
 export function runFeedback() {
-    ReactDOM.render(<FeedbackPrompt/>, document.querySelector(".feedbackPromptContainer"))
+    ReactDOM.render(<FeedbackPrompt/>, document.querySelector(".injectFeedback"))
 }
 
 export function runFeedbackPage() {
-    ReactDOM.render(<FeedbackForm onDismiss={() => undefined}/>, document.querySelector(".FeedbackPage main"))
+    ReactDOM.render(<FeedbackForm />, document.querySelector(".FeedbackPage main"))
 }

@@ -72,7 +72,7 @@ export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
                     </div>
                 </div>
             </div>
-            <div className="feedbackPromptContainer"></div>
+            <div className="injectFeedback"></div>
             <script src={webpack('commons.js', 'site')}/>
             <script src={webpack('owid.js', 'site')}/>
             <script dangerouslySetInnerHTML={{__html: `
