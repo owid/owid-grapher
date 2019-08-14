@@ -117,7 +117,7 @@
     "linkifyjs": "^2.1.8",
     "localeval": "^15.2.3",
     "lockfile": "^1.0.4",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "lodash-es": "^4.17.14",
     "mathjax-node": "^2.1.1",
     "md5": "^2.2.1",
