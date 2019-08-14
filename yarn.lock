@@ -1973,6 +1973,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/bcrypt@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/bcrypt/-/bcrypt-3.0.0.tgz#851489a9065a067cb7f3c9cbe4ce9bed8bba0876"
+  integrity sha512-nohgNyv+1ViVcubKBh0+XiNJ3dO8nYu///9aJ4cgSqv70gBL+94SNy/iC2NLzKPT2Zt/QavrOkBVbZRLZmw6NQ==
+
 "@types/body-parser@*", "@types/body-parser@^1.17.0":
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.17.0.tgz#9f5c9d9bd04bb54be32d5eb9fc0d8c974e6cf58c"
@@ -3123,7 +3128,7 @@ ansicolors@~0.3.2:
   resolved "https://registry.yarnpkg.com/ansicolors/-/ansicolors-0.3.2.tgz#665597de86a9ffe3aa9bfbe6cae5c6ea426b4979"
   integrity sha1-ZlWX3oap/+Oqm/vmyuXG6kJrSXk=
 
-any-promise@^1.0.0, any-promise@^1.1.0:
+any-promise@^1.0.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-1.3.0.tgz#abc6afeedcea52e809cdc0376aed3ce39635d17f"
   integrity sha1-q8av7tzqUugJzcA3au0845Y10X8=
@@ -3201,15 +3206,6 @@ arg@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/arg/-/arg-4.1.0.tgz#583c518199419e0037abb74062c37f8519e575f0"
   integrity sha512-ZWc51jO3qegGkVh8Hwpv636EkbesNV5ZNQPCtRa+0qytRYPEs9IYT9qITY9buezqUH5uqyzlWLcufrzU2rffdg==
-
-argon2-ffi@^1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/argon2-ffi/-/argon2-ffi-1.1.2.tgz#9c113d0e073d123fffc2eca670188ab7c511eb70"
-  integrity sha512-X0IFE2R/pM7U0gD2SodcD4JeSJVvDJhPrSIUNYDL7fFwaVvXDUjqI04N5vE7KmGSKJ7g95ev7LabElLhTVkMyw==
-  dependencies:
-    any-promise "^1.1.0"
-    ffi-napi "^2.4.0"
-    ref-napi "^1.4.0"
 
 argparse@^1.0.7:
   version "1.0.10"
@@ -3367,7 +3363,7 @@ assert-plus@1.0.0, assert-plus@^1.0.0:
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"
   integrity sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
 
-assert@^1.1.1, assert@^1.4.1:
+assert@^1.1.1:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/assert/-/assert-1.5.0.tgz#55c109aaf6e0aefdb3dc4b71240c70bf574b18eb"
   integrity sha512-EDsgawzwoun2CZkCgtxJbv392v4nbk9XDD06zI+kQYoBM/3RBWLlEyJARDOmhAAosBjWACEkKL6S+lIZtcAubA==
@@ -3872,10 +3868,13 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bcryptjs@^2.3.0:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/bcryptjs/-/bcryptjs-2.4.3.tgz#9ab5627b93e60621ff7cdac5da9733027df1d0cb"
-  integrity sha1-mrVie5PmBiH/fNrF2pczAn3x0Ms=
+bcrypt@^3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/bcrypt/-/bcrypt-3.0.6.tgz#f607846df62d27e60d5e795612c4f67d70206eb2"
+  integrity sha512-taA5bCTfXe7FUjKroKky9EXpdhkVvhE5owfxfLYodbrAR1Ul3juLmIQmIQBK4L9a5BuUcE6cqmwT+Da20lF9tg==
+  dependencies:
+    nan "2.13.2"
+    node-pre-gyp "0.12.0"
 
 before-after-hook@^1.4.0:
   version "1.4.0"
@@ -3896,13 +3895,6 @@ binary-extensions@^1.0.0:
   version "1.13.1"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.13.1.tgz#598afe54755b2868a5330d2aff9d4ebb53209b65"
   integrity sha512-Un7MIEDdUC5gNpcGDV97op1Ywk748MpHcFTHoYs6qnj1Z3j7I53VG3nwZhKzoBZmbdRNnb6WRdFlwl7tSDuZGw==
-
-bindings@^1.3.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
-  integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
-  dependencies:
-    file-uri-to-path "1.0.0"
 
 bl@^1.0.0:
   version "1.2.2"
@@ -6911,18 +6903,6 @@ fd-slicer@~1.1.0:
   dependencies:
     pend "~1.2.0"
 
-ffi-napi@^2.4.0:
-  version "2.4.5"
-  resolved "https://registry.yarnpkg.com/ffi-napi/-/ffi-napi-2.4.5.tgz#12e807f238f8c68fc094fc46c1ce5193c2ab64f8"
-  integrity sha512-24Et/c5/sRvZvpOZ9nvkK0Be1S8A1Vkt6aJSKGaohOGb5FwV4+EmecaTtNhN4TCLJDjYC8z/k4X8W1SC5IK/fw==
-  dependencies:
-    bindings "^1.3.0"
-    debug "^3.1.0"
-    get-uv-event-loop-napi-h "^1.0.5"
-    node-addon-api "1.5.0"
-    ref-napi "^1.4.0"
-    ref-struct-di "^1.1.0"
-
 figgy-pudding@^3.5.1:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/figgy-pudding/-/figgy-pudding-3.5.1.tgz#862470112901c727a0e495a80744bd5baa1d6790"
@@ -6994,11 +6974,6 @@ file-type@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/file-type/-/file-type-8.1.0.tgz#244f3b7ef641bbe0cca196c7276e4b332399f68c"
   integrity sha512-qyQ0pzAy78gVoJsmYeNgl8uH8yKhr1lVhW7JbzJmnlRi0I4R2eEDEJZVKG8agpDnLpacwNbDhLNG/LMdxHD2YQ==
-
-file-uri-to-path@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
-  integrity sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==
 
 filename-reserved-regex@^2.0.0:
   version "2.0.0"
@@ -7490,18 +7465,6 @@ get-stream@^4.0.0:
   integrity sha512-GMat4EJ5161kIy2HevLlr4luNjBgvmj413KaQA7jt4V8B4RDsfpHk7WQ9GVqfYyyx8OS/L66Kox+rJRNklLK7w==
   dependencies:
     pump "^3.0.0"
-
-get-symbol-from-current-process-h@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/get-symbol-from-current-process-h/-/get-symbol-from-current-process-h-1.0.1.tgz#7e4809087e7d2f3a78a785b36f787e2183ba4c5d"
-  integrity sha512-QvP1+tCDjgTiu+akjdEYd8eK8MFYy6nRCRNjfiCeQB9RJEHQZpN+WE+CVqPRNqjIVMwSqd0WiD008B+b7iIdaA==
-
-get-uv-event-loop-napi-h@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/get-uv-event-loop-napi-h/-/get-uv-event-loop-napi-h-1.0.5.tgz#1904a1dc1fa6df7487c9e8eaf87302bcc9e33e47"
-  integrity sha512-uWDHId313vRTyqeLhlLWJS0CJOP8QXY5en/9Pv14dnPvAlRfKBfD6h2EDtoy7jxxOIWB9QgzYK16VCN3pCZOBg==
-  dependencies:
-    get-symbol-from-current-process-h "^1.0.1"
 
 get-value@^2.0.3, get-value@^2.0.6:
   version "2.0.6"
@@ -10477,6 +10440,11 @@ mz@^2.4.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
+nan@2.13.2:
+  version "2.13.2"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.13.2.tgz#f51dc7ae66ba7d5d55e1e6d4d8092e802c9aefe7"
+  integrity sha512-TghvYc72wlMGMVMluVo9WRJc0mB8KxxF/gZ4YYFy7V2ZQX9l7rgbPg7vjS9mt6U5HXODVFVI2bOduCzwOMv/lw==
+
 nan@^2.12.1, nan@^2.13.2:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
@@ -10725,32 +10693,12 @@ node-abi@^2.7.0:
   dependencies:
     semver "^5.4.1"
 
-node-addon-api@1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-1.5.0.tgz#55be6b3da36e746f4b1f2af16c2adf67647d1ff8"
-  integrity sha512-YsL/8dpBWxCFj3wAVAa/ceN4TlT8lACK8EgpuN0q/4ecflWHDuKpodb+tt7Rx22r/6FJ2f+IT25XSsXnZGwYgA==
-
-node-addon-api@^1.6.2:
-  version "1.6.3"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-1.6.3.tgz#3998d4593e2dca2ea82114670a4eb003386a9fe1"
-  integrity sha512-FXWH6mqjWgU8ewuahp4spec8LkroFZK2NicOv6bNwZC3kcwZUI8LeZdG80UzTSLLhK4T7MsgNwlYDVRlDdfTDg==
-
 node-dir@^0.1.10:
   version "0.1.17"
   resolved "https://registry.yarnpkg.com/node-dir/-/node-dir-0.1.17.tgz#5f5665d93351335caabef8f1c554516cf5f1e4e5"
   integrity sha1-X1Zl2TNRM1yqvvjxxVRRbPXx5OU=
   dependencies:
     minimatch "^3.0.2"
-
-node-django-hashers@^1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/node-django-hashers/-/node-django-hashers-1.1.6.tgz#2921920c6c6fba91f88b9fcc6bf9e35b66f1deec"
-  integrity sha512-A8+K/qBrAmvFBk4S+Nceg6wrFBWKxKjS3UvYRUxwEqIFSKUJv2YpZvqiBixD0Xp1ROuDaAGh7KQGNwV1tgucsA==
-  dependencies:
-    argon2-ffi "^1.1.0"
-    assert "^1.4.1"
-    bcryptjs "^2.3.0"
-    node-gyp "^3.7.0"
 
 node-fetch@^1.0.1:
   version "1.7.3"
@@ -10770,7 +10718,7 @@ node-forge@0.7.5:
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.7.5.tgz#6c152c345ce11c52f465c2abd957e8639cd674df"
   integrity sha512-MmbQJ2MTESTjt3Gi/3yG1wGpIMhUfcIypUCGtTizFR9IiccFwxSpfp0vtIZlkFclEqERemxfnSdZEMR9VqqEFQ==
 
-node-gyp@^3.7.0, node-gyp@^3.8.0:
+node-gyp@^3.8.0:
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-3.8.0.tgz#540304261c330e80d0d5edce253a68cb3964218c"
   integrity sha512-3g8lYefrRRzvGeSowdJKAKyks8oUpLEd/DyPV4eMhVlhJ0aNaZqIrNUIPuEWWTAoPqyFkfGrM67MC69baqn6vA==
@@ -10856,7 +10804,7 @@ node-pm@^0.11.9:
     uid-number "0.0.6"
     underscore "~1.5.2"
 
-node-pre-gyp@^0.12.0:
+node-pre-gyp@0.12.0, node-pre-gyp@^0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.12.0.tgz#39ba4bb1439da030295f899e3b520b7785766149"
   integrity sha512-4KghwV8vH5k+g2ylT+sLTjy5wmUOb9vPhnM8NHvRf9dHmnW/CndrFXy2aRPaPST6dugXSdHXfeaHQm77PIz/1A==
@@ -12735,22 +12683,6 @@ reduce@^1.0.1:
   integrity sha512-xX7Fxke/oHO5IfZSk77lvPa/7bjMh9BuCk4OOoX5XTXrM7s0Z+MkPfSDfz0q7r91BhhGSs8gii/VEN/7zhCPpQ==
   dependencies:
     object-keys "^1.1.0"
-
-ref-napi@^1.4.0:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/ref-napi/-/ref-napi-1.4.1.tgz#ab129c5d4c2b4ccbb50503c09c315334a5a3a77b"
-  integrity sha512-7AK1YNzEO2z8DLFPTf+AvOViCUgLK0stM4hnR0HWLb71Bo10UJWIpMDN3Tz7BNnUJhsj2pHWfjxugcaRvCF7zA==
-  dependencies:
-    bindings "^1.3.0"
-    debug "^3.1.0"
-    node-addon-api "^1.6.2"
-
-ref-struct-di@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/ref-struct-di/-/ref-struct-di-1.1.0.tgz#d252144eb449608ccf2e5c12fda35f8153bd3760"
-  integrity sha512-gghZITj/iQwdwFDduZ6T8kL2B2ogInlOz7AOB0ggFoEc7akAKMcDrbzh3OIPk13Kxy8U2bHPvN6nejcBh4jN7A==
-  dependencies:
-    debug "^3.1.0"
 
 reflect-metadata@^0.1.13:
   version "0.1.13"

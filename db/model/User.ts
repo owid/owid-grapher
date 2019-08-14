@@ -2,7 +2,7 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typ
 import { Chart } from './Chart'
 import { Dataset } from './Dataset'
 import { ChartRevision } from "./ChartRevision"
-const hashers = require('node-django-hashers')
+import { BCryptHasher } from '../../utils/hashers'
 
 @Entity("users")
 export class User extends BaseEntity {
@@ -30,7 +30,7 @@ export class User extends BaseEntity {
     createdDatasets!: Dataset[]
 
     async setPassword(password: string) {
-        const h = new hashers.BCryptPasswordHasher()
+        const h = new BCryptHasher()
         this.password = await h.encode(password)
     }
 }

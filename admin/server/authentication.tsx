@@ -1,11 +1,8 @@
-import * as React from 'react'
 import * as express from 'express'
 import * as crypto from 'crypto'
 import * as randomstring from 'randomstring'
 import { User } from 'db/model/User'
-
-// For backwards compatibility, we reimplement Django authentication and session code a bit
-const hashers = require('node-django-hashers')
+import { BCryptHasher } from '../../utils/hashers'
 
 import * as db from 'db/db'
 import { SECRET_KEY, SESSION_COOKIE_AGE } from 'serverSettings'
@@ -75,7 +72,7 @@ export async function tryLogin(email: string, password: string): Promise<Session
         throw new Error("No such user")
     }
 
-    const h = new hashers.BCryptPasswordHasher()
+    const h = new BCryptHasher()
     if (await h.verify(password, user.password)) {
         // Login successful
 
