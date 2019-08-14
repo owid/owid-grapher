@@ -4,6 +4,7 @@ import { observer } from 'mobx-react'
 import { DimensionWithData } from 'charts/DimensionWithData'
 import { ChartEditor } from './ChartEditor'
 import { Toggle, EditableListItem, BindAutoString, BindAutoFloat } from './Forms'
+import { Link } from './Link';
 
 @observer
 export class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
@@ -34,7 +35,9 @@ export class DimensionCard extends React.Component<{ dimension: DimensionWithDat
                 <div>
                     {this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')} /></span>}
                 </div>
-                <div>{dimension.variable.name}</div>
+                <div>
+                    <Link to={`/variables/${dimension.variableId}`} className="dimensionLink" target="_blank">{dimension.variable.name}</Link>
+                </div>
                 <div>
                     {this.props.onEdit && <div className="clickable" onClick={this.props.onEdit}><i className="fa fa-exchange" /></div>}
                     {this.props.onRemove && <div className="clickable" onClick={this.props.onRemove}><i className="fa fa-times" /></div>}

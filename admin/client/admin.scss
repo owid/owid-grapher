@@ -253,6 +253,16 @@ html, body {
         > div {
             margin: 1em 0;
         }
+
+        .dimensionLink {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(0,0,0,.2);
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
+        }
     }
 
     .dimensionSlot {
