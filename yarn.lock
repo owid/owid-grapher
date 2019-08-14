@@ -13571,10 +13571,10 @@ slugify@^1.3.4:
   resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.3.4.tgz#78d2792d7222b55cd9fc81fa018df99af779efeb"
   integrity sha512-KP0ZYk5hJNBS8/eIjGkFDCzGQIoZ1mnfQRYS5WM3273z+fxGWXeN0fkwf2ebEweydv9tioZIHGZKoF21U07/nw==
 
-smooth-scroll@^16.0.3:
-  version "16.0.3"
-  resolved "https://registry.yarnpkg.com/smooth-scroll/-/smooth-scroll-16.0.3.tgz#5914e0e4050a5313102d734140ddee0267526fd7"
-  integrity sha512-Wnhk3tWeqVJRrSUxeLQ4r7MNQvc9MNlswyWfKqAQ9cc37D8VqTco/CicWcdHzSFEC4/9/kPPK3uY6oyY+mdRYg==
+smooth-scroll@^16.1.0:
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/smooth-scroll/-/smooth-scroll-16.1.0.tgz#c811c63db67215d30847745ba0732feb3291947f"
+  integrity sha512-V5b8ekIekZ3xJ6f0sPsLgEbN5YT8gX0Q6yNjZXTKgqjH9dBGadZ0P50fhP0rLRBGifc44qfI3rnWNM+lebhJag==
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
