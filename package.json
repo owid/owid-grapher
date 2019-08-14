@@ -125,7 +125,7 @@
     "minimatch": "^3.0.4",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "mobx": "^5.10.0",
+    "mobx": "^5.13.0",
     "mobx-formatters": "^1.0.2",
     "mobx-react": "5",
     "module-alias": "^2.2.0",
