@@ -13,7 +13,7 @@ import { Post } from 'db/model/Post'
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
-import { defaultTo } from 'charts/Util';
+import { defaultTo } from 'charts/Util'
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -36,8 +36,8 @@ class WPDB {
 
     async connect() {
         this.conn = new DatabaseConnection({
-            host: 'localhost',
-            user: 'root',
+            host: DB_HOST,
+            user: DB_USER,
             database: WORDPRESS_DB_NAME
         })
         await this.conn.connect()
