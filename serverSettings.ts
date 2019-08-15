@@ -25,6 +25,13 @@ export const DB_PASS: string = process.env.DB_PASS || ""
 export const DB_HOST: string = process.env.DB_HOST || "localhost"
 export const DB_PORT: number = process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306
 
+// Wordpress database settings
+export const WORDPRESS_DB_NAME: string = process.env.WORDPRESS_DB_NAME || process.env.DB_NAME || ""
+export const WORDPRESS_DB_USER: string = process.env.WORDPRESS_DB_USER || process.env.DB_USER || "root"
+export const WORDPRESS_DB_PASS: string = process.env.WORDPRESS_DB_PASS || process.env.DB_PASS || ""
+export const WORDPRESS_DB_HOST: string = process.env.WORDPRESS_DB_HOST || process.env.DB_HOST || "localhost"
+export const WORDPRESS_DB_PORT: number = process.env.WORDPRESS_DB_PORT ? parseInt(process.env.WORDPRESS_DB_PORT) : process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306
+
 // Where the static build output goes
 export const BAKED_SITE_DIR: string = process.env.BAKED_SITE_DIR || path.join(BASE_DIR, 'bakedSite')
 export const WEBPACK_OUTPUT_PATH: string = process.env.WEBPACK_OUTPUT_PATH || path.join(BASE_DIR, 'dist/webpack')
@@ -36,7 +43,6 @@ export const EMAIL_HOST_USER: string = process.env.EMAIL_HOST_USER || 'user'
 export const EMAIL_HOST_PASSWORD: string = process.env.EMAIL_HOST_PASSWORD || 'password'
 
 // Wordpress target settings
-export const WORDPRESS_DB_NAME: string = process.env.WORDPRESS_DB_NAME || ""
 export const WORDPRESS_DIR: string = process.env.WORDPRESS_DIR || ""
 export const HTTPS_ONLY: boolean = true
 

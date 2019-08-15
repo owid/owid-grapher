@@ -1,7 +1,7 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR, DB_HOST, DB_USER, DB_PASS} from 'serverSettings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS} from 'serverSettings'
 import * as Knex from 'knex'
 
 import * as path from 'path'
@@ -13,7 +13,7 @@ import { Post } from 'db/model/Post'
 import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
-import { defaultTo } from 'charts/Util';
+import { defaultTo } from 'charts/Util'
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -23,9 +23,10 @@ class WPDB {
             knexInstance = Knex({
                 client: 'mysql',
                 connection: {
-                    host: DB_HOST,
-                    user: DB_USER,
-                    password: DB_PASS,
+                    host: WORDPRESS_DB_HOST,
+                    port: WORDPRESS_DB_PORT,
+                    user: WORDPRESS_DB_USER,
+                    password: WORDPRESS_DB_PASS,
                     database: WORDPRESS_DB_NAME
                 }
             })
@@ -36,8 +37,10 @@ class WPDB {
 
     async connect() {
         this.conn = new DatabaseConnection({
-            host: 'localhost',
-            user: 'root',
+            host: WORDPRESS_DB_HOST,
+            port: WORDPRESS_DB_PORT,
+            user: WORDPRESS_DB_USER,
+            password: WORDPRESS_DB_PASS,
             database: WORDPRESS_DB_NAME
         })
         await this.conn.connect()
