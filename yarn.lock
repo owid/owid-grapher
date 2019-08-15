@@ -15001,10 +15001,10 @@ url-parse@^1.4.3, url-parse@^1.4.7:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
 
-url-slug@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/url-slug/-/url-slug-2.1.1.tgz#462351e1ccbc4d294c9d1b1999b94b3be363e8cd"
-  integrity sha512-tY/LyM4yBSHUDOEDBqNqtO8BVMDHBcZZaFm2pECBQJIHWYtAh5Ebm6hfdOpuo9XGGoqiHKtQ2HG1Dg2n9as2wA==
+url-slug@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/url-slug/-/url-slug-2.1.3.tgz#09f0b7992c0f7beb3fbc4ed4479df624e297ba91"
+  integrity sha512-2xM1lF6j9yLxTj7vYdAjHgkaz3e7mLpT30sKjFTuSTT9v3YpogEmkACYqauQIyxYgh7d0laIqx08mTO5MLdfCg==
   dependencies:
     unidecode "^0.1.8"
 
