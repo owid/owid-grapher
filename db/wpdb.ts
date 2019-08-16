@@ -393,8 +393,7 @@ let cachedPosts: PostInfo[]
 export async function getBlogIndex(): Promise<PostInfo[]> {
     if (cachedPosts) return cachedPosts
 
-    const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/posts?per_page=21`)
-    const posts = await response.json()
+    const posts = await getPosts()
 
     cachedPosts = posts.map(post => {
         return {
