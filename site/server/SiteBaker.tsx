@@ -37,7 +37,6 @@ export interface SiteBakerProps {
 export class SiteBaker {
     props: SiteBakerProps
     grapherExports!: GrapherExports
-    stagedFiles: string[] = []
     constructor(props: SiteBakerProps) {
         this.props = props
     }
@@ -351,7 +350,6 @@ export class SiteBaker {
 
     stage(outPath: string, msg?: string) {
         console.log(msg||outPath)
-        this.stagedFiles.push(outPath)
     }
 
     exec(cmd: string) {
@@ -362,10 +360,6 @@ export class SiteBaker {
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         // Ensure there is a git repo in there
         await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
-
-        // for (const files of chunk(this.stagedFiles, 100)) {
-        //     this.exec(`cd ${BAKED_SITE_DIR} && git add -A ${files.join(" ")}`)
-        // }
 
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
             // Deploy directly to Netlify (faster than using the github hook)
