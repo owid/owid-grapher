@@ -3,6 +3,7 @@
 
 import { ENV } from 'settings'
 import * as path from 'path'
+import { parseBool } from 'utils/string'
 
 function expect(key: string): string {
     const val = process.env[key]
@@ -58,4 +59,4 @@ export const TMP_DIR: string = process.env.TMP_DIR || "/tmp"
 export const UNCATEGORIZED_TAG_ID: number = process.env.UNCATEGORIZED_TAG_ID ? parseInt(process.env.UNCATEGORIZED_TAG_ID as any) : 375
 
 // Should the static site output be baked when relevant database items change?
-export const BAKE_ON_CHANGE: boolean = process.env.BAKE_ON_CHANGE ? !!process.env.BAKE_ON_CHANGE : (ENV === 'production' ? true : false)
+export const BAKE_ON_CHANGE: boolean = process.env.BAKE_ON_CHANGE ? parseBool(process.env.BAKE_ON_CHANGE) : (ENV === 'production' ? true : false)

@@ -15,3 +15,8 @@ export function htmlToPlaintext(html: string): string {
         ignoreImage: true
     })
 }
+
+export function parseBool(input: string): boolean {
+    const normalized = input.trim().toLowerCase()
+    return normalized === "true" || normalized === "1"
+}
