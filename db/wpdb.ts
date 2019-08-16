@@ -63,6 +63,9 @@ class WPDB {
 
 const wpdb = new WPDB()
 
+const WP_API_ENDPOINT = '/wp-json/wp/v2'
+export const WP_API_POSTS_ENDPOINT = `${WORDPRESS_URL}${WP_API_ENDPOINT}/posts`
+
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
     return wpdb.query(queryStr, params)
 }
@@ -309,6 +312,25 @@ export async function getFeaturedImageUrl(postId: number): Promise<string|undefi
     }
 }
 
+export async function getPosts(): Promise<[]> {
+    const perPage = 50
+    let response = await fetch(
+        `${WP_API_POSTS_ENDPOINT}?per_page=1`
+      )
+    const count = response.headers.get("X-WP-TotalPages")
+    const posts = []
+
+    for (let page = 1; page <= Math.ceil(count / perPage); page++) {
+        response = await fetch(
+            `${WP_API_POSTS_ENDPOINT}?per_page=${perPage}&page=${page}`
+        )
+        const postsCurrentPage = await response.json()
+        posts.push(...postsCurrentPage)
+      }
+
+    return posts
+}
+
 export interface FullPost {
     id: number
     type: 'post'|'page'
@@ -320,6 +342,21 @@ export interface FullPost {
     content: string
     excerpt?: string
     imageUrl?: string
+}
+
+export function getFullPostApi(post: any): FullPost {
+    return {
+        id: post.id,
+        type: post.type,
+        slug: post.slug, // replace with deep_link (attn: __ needs to be replaced with /)
+        title: post.title_raw,
+        date: new Date(post.date),
+        modifiedDate: new Date(post.modified),
+        authors: post.authors_name,
+        content: post.content.rendered,
+        excerpt: post.excerpt.rendered,
+        imageUrl: post.featured_media_path
+    }
 }
 
 export async function getFullPost(row: any): Promise<FullPost> {
