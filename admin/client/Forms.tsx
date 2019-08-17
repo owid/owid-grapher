@@ -132,7 +132,8 @@ export interface SelectFieldProps {
     onValue: (value: string) => void,
     options: string[],
     optionLabels?: string[],
-    helpText?: string
+    helpText?: string,
+    placeholder?: string
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
@@ -149,7 +150,8 @@ export class SelectField extends React.Component<SelectFieldProps> {
 
         return <div className="form-group">
             {props.label && <label>{props.label}</label>}
-            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)} value={props.value}>
+            <select className="form-control" onChange={e => props.onValue(e.currentTarget.value as string)} value={props.value} defaultValue={undefined}>
+                {props.placeholder ? <option key={undefined} value={undefined} hidden={true}>{props.placeholder}</option> : null}
                 {options.map(opt =>
                     <option key={opt.value} value={opt.value}>{opt.text}</option>
                 )}
