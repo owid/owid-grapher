@@ -55,9 +55,24 @@ add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
  * API fields
  */
 
-function getDeepLink(array $outerPost)
+
+function convertToPath(string $link)
 {
-	$deepLink = $outerPost['link'];
+	$url = parse_url($link);
+
+	// Create hierarchy based on custom markers in the slug ('__'), but only apply
+	// to the path portion of the URL (the separator '__' should not be converted
+	// when found in the fragment).
+	$hierarchicalPath = str_replace('__', '/', $url['path'])
+		. (isset($url['fragment']) ? '#' . $url['fragment'] : '');
+
+	// Remove the leading slash (not expected by the JS clients)
+	return substr($hierarchicalPath, 1);
+}
+
+function getPath(array $outerPost)
+{
+	$link = $outerPost['link'];
 
 	// Compute the deep link if the blog post reading context is an
 	// entry (as opposed to its own page)
@@ -77,11 +92,12 @@ function getDeepLink(array $outerPost)
 				// Manually get the id (not exposed in block attributes)
 				$heading = $innerPostBlocks[0];
 				preg_match('/id="([^"]+)/', $heading['innerHTML'], $matches);
-				$deepLink = isset($matches[1]) ? $entryLink . "#" . $matches[1] : $deepLink;
+				$link = isset($matches[1]) ? $entryLink . "#" . $matches[1] : $link;
 			}
 		}
 	}
-	return wp_make_link_relative($deepLink);
+
+	return convertToPath($link);
 }
 
 function getAuthorsName(array $post)
@@ -114,8 +130,8 @@ add_action(
 	function () {
 		register_rest_field(
 			'post',
-			'deep_link',
-			['get_callback' => 'getDeepLink']
+			'path',
+			['get_callback' => 'getPath']
 		);
 		register_rest_field(
 			'post',
@@ -128,7 +144,7 @@ add_action(
 			['get_callback' => 'getFeaturedMediaPath']
 		);
 		register_rest_field(
-			'post',
+			['post', 'page'],
 			'title_raw',
 			['get_callback' => 'getTitleRaw']
 		);
