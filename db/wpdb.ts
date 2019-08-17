@@ -1,7 +1,7 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS} from 'serverSettings'
+import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER} from 'serverSettings'
 import {WORDPRESS_URL} from 'settings'
 import * as Knex from 'knex'
 import fetch from 'node-fetch'
@@ -16,6 +16,8 @@ import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
 import { defaultTo } from 'charts/Util'
+import { Base64 } from 'js-base64'
+
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -334,6 +336,24 @@ export async function getPosts(postTypes: string[]=['post', 'page']): Promise<[]
     return posts
 }
 
+export async function getPost(id: number): Promise<object> {
+    const response = await fetch(`${WP_API_ENDPOINT}/posts/${id}`)
+    const post = await response.json()
+
+    return post
+}
+
+export async function getLatestPostRevision(id: number): Promise<object> {
+    const response = await fetch(`${WP_API_ENDPOINT}/posts/${id}/revisions`, {
+        headers: [
+            ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
+        ]
+    })
+    const post = await response.json()
+
+    return post[0]
+}
+
 export interface FullPost {
     id: number
     type: 'post'|'page'
@@ -347,7 +367,7 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export function getFullPostApi(post: any): FullPost {
+export function getFullPostApi(post: object): FullPost {
     return {
         id: post.id,
         type: post.type,

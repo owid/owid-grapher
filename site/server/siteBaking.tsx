@@ -75,14 +75,14 @@ export async function renderPageBySlug(slug: string) {
 }
 
 export async function renderPageById(id: number, isPreview?: boolean): Promise<string> {
-    let rows
+    let postApi
     if (isPreview) {
-        rows = await wpdb.query(`SELECT post.*, parent.post_type FROM wp_posts AS post JOIN wp_posts AS parent ON parent.ID=post.post_parent WHERE post.post_parent=? AND post.post_type='revision' ORDER BY post_modified DESC`, [id])
+        postApi = await wpdb.getLatestPostRevision(id)
     } else {
-        rows = await wpdb.query(`SELECT * FROM wp_posts AS post WHERE ID=?`, [id])
+        postApi = await wpdb.getPost(id)
     }
 
-    return renderPage(rows[0])
+    return renderPage(postApi)
 }
 
 export async function renderMenuJson() {
@@ -90,8 +90,8 @@ export async function renderMenuJson() {
     return JSON.stringify({ categories: categories })
 }
 
-async function renderPage(postRow: wpPostRow) {
-    const post = await wpdb.getFullPost(postRow)
+async function renderPage(postApi: object) {
+    const post = await wpdb.getFullPostApi(postApi)
     const entries = await wpdb.getEntriesByCategory()
 
     const $ = cheerio.load(post.content)
@@ -107,7 +107,7 @@ async function renderPage(postRow: wpPostRow) {
     const formattingOptions = extractFormattingOptions(post.content)
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
-    if (postRow.post_type === 'post')
+    if (post.type === 'post')
         return renderToHtmlPage(<BlogPostPage post={formatted} formattingOptions={formattingOptions} />)
     else
         return renderToHtmlPage(<LongFormPage entries={entries} post={formatted} formattingOptions={formattingOptions} />)
