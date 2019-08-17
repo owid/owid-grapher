@@ -85,7 +85,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                 <Toggle label="Exclude observations for entities that are not countries" value={!!chart.props.matchingEntitiesOnly} onValue={action((value: boolean) => chart.props.matchingEntitiesOnly = value||undefined)}/>
                 <SelectField label="Exclude individual entities" placeholder="Select an entity to exclude" value={undefined} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/>
                 {chart.scatter.excludedEntities && <ul className="excludedEntities">
-                    {chart.scatter.excludedEntities.map(entity => <li>
+                    {chart.scatter.excludedEntities.map(entity => <li key={entity}>
                         <div className="clickable" onClick={() => this.onUnexcludeEntity(entity)}><i className="fa fa-remove"/></div>
                         {entity}
                     </li>)}
