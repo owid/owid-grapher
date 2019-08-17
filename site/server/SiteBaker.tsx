@@ -139,16 +139,15 @@ export class SiteBaker {
 
     // Bake all Wordpress posts, both blog posts and entry pages
     async bakePosts() {
-        // NB these are only posts of type post
         const posts = await wpdb.getPosts()
 
         const bakingPosts = []
         const postSlugs = []
         for (const post of posts) {
             // blog: handled separately
-            // #: deep_link found, the post will be embedded and displayed in
-            // the entry only (not on its own page)
-            if (post.slug === 'blog' || post.type === 'post' && post.deep_link.indexOf('#') !== -1 )
+            // #: deep link found, the post will be embedded and displayed in
+            // the entry only (not on its own page), skipping.
+            if (post.slug === 'blog' || (post.type === 'post' && post.path.indexOf("#") !== -1))
                 continue
 
             const fullPost = wpdb.getFullPostApi(post)
