@@ -371,7 +371,7 @@ export function getFullPostApi(post: object): FullPost {
     return {
         id: post.id,
         type: post.type,
-        slug: post.slug, // replace with deep_link (attn: __ needs to be replaced with /)
+        slug: post.slug,
         title: post.title_raw,
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
@@ -422,7 +422,7 @@ export async function getBlogIndex(): Promise<PostInfo[]> {
         return {
             title: post.title_raw,
             date: new Date(post.date),
-            slug: post.deep_link.slice(1),
+            slug: post.path,
             authors: post.authors_name || [],
             imageUrl: defaultTo(post.featured_media_path, '/default-thumbnail.jpg')
         }
