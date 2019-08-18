@@ -54,7 +54,7 @@ async function indexToAlgolia() {
         'rules'
     ])
 
-    const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
+    const postsApi = await wpdb.getPosts()
 
     const records = []
 
@@ -68,8 +68,8 @@ async function indexToAlgolia() {
         })
     }
 
-    for (const row of rows) {
-        const rawPost = await wpdb.getFullPost(row)
+    for (const postApi of postsApi) {
+        const rawPost = await wpdb.getFullPostApi(postApi)
         const post = await formatPost(rawPost, { footnotes: false })
         const postText = htmlToPlaintext(post.html)
         const chunks = chunkParagraphs(postText, 1000)
@@ -88,7 +88,7 @@ async function indexToAlgolia() {
         let i = 0
         for (const c of chunks) {
             records.push({
-                objectID: `${row.ID}-c${i}`,
+                objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
                 type: postType,
                 slug: post.slug,
