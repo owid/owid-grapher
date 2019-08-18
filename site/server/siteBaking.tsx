@@ -67,11 +67,11 @@ export async function renderChartsPage() {
 }
 
 export async function renderPageBySlug(slug: string) {
-    const rows = await wpdb.query(`SELECT * FROM wp_posts AS post WHERE post_name=?`, [slug])
-    if (!rows.length)
+    const postApiArray = await wpdb.getPostBySlug(slug)
+    if (!postApiArray.length)
         throw new JsonError(`No page found by slug ${slug}`, 404)
 
-    return renderPage(rows[0])
+    return renderPage(postApiArray[0])
 }
 
 export async function renderPageById(id: number, isPreview?: boolean): Promise<string> {

@@ -343,6 +343,13 @@ export async function getPost(id: number): Promise<object> {
     return post
 }
 
+export async function getPostBySlug(slug: string): Promise<object> {
+    const response = await fetch(`${WP_API_ENDPOINT}/posts?slug=${slug}`)
+    const postArray = await response.json()
+
+    return postArray
+}
+
 export async function getLatestPostRevision(id: number): Promise<object> {
     const response = await fetch(`${WP_API_ENDPOINT}/posts/${id}/revisions`, {
         headers: [
