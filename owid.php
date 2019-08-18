@@ -129,12 +129,12 @@ add_action(
 	'rest_api_init',
 	function () {
 		register_rest_field(
-			'post',
+			['post', 'page'],
 			'path',
 			['get_callback' => 'getPath']
 		);
 		register_rest_field(
-			'post',
+			['post', 'page'],
 			'authors_name',
 			['get_callback' => 'getAuthorsName']
 		);
@@ -144,7 +144,7 @@ add_action(
 			['get_callback' => 'getFeaturedMediaPath']
 		);
 		register_rest_field(
-			['post', 'page'],
+			['post', 'page', 'post-revision', 'page-revision'],
 			'title_raw',
 			['get_callback' => 'getTitleRaw']
 		);
