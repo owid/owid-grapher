@@ -125,6 +125,11 @@ function getTitleRaw(array $post)
 	return $post['title']['raw'];
 }
 
+function getExcerptRaw(array $post)
+{
+	return $post['excerpt']['raw'];
+}
+
 function getPostType($request)
 {
 	$post = NULL;
@@ -175,6 +180,11 @@ add_action(
 			['post', 'page', 'post-revision', 'page-revision'],
 			'title_raw',
 			['get_callback' => 'getTitleRaw']
+		);
+		register_rest_field(
+			['post'],
+			'excerpt_raw',
+			['get_callback' => 'getExcerptRaw']
 		);
 	}
 );
