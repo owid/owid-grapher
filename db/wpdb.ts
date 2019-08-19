@@ -66,6 +66,7 @@ class WPDB {
 const wpdb = new WPDB()
 
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
+const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
     return wpdb.query(queryStr, params)
@@ -313,13 +314,14 @@ export async function getFeaturedImageUrl(postId: number): Promise<string|undefi
     }
 }
 
-export async function getPosts(postTypes: string[]=['post', 'page']): Promise<[]> {
-    const perPage = 50
-    const posts = []
+function getEndpointSlugFromType($type) {
     const postTypeEndpointSlugs = {
         post: 'posts',
         page: 'pages'
     }
+    return postTypeEndpointSlugs[$type]
+}
+
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
@@ -347,14 +349,20 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
 }
 
 export async function getPost(id: number): Promise<object> {
-    const response = await fetch(`${WP_API_ENDPOINT}/posts/${id}`)
+    let response = await fetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
+    const type = await response.json()
+
+    response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
     const post = await response.json()
 
     return post
 }
 
 export async function getPostBySlug(slug: string): Promise<object> {
-    const response = await fetch(`${WP_API_ENDPOINT}/posts?slug=${slug}`)
+    let response = await fetch(`${OWID_API_ENDPOINT}/type?slug=${slug}`)
+    const type = await response.json()
+
+    response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
     const postArray = await response.json()
 
     return postArray
