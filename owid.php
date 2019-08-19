@@ -125,9 +125,37 @@ function getTitleRaw(array $post)
 	return $post['title']['raw'];
 }
 
+function getPostType($request)
+{
+	$post = NULL;
+	if ($request['slug']) {
+		$posts = get_posts(array(
+			'name' => $request['slug'],
+			'posts_per_page' => 1,
+			'post_type' => 'any',
+			'post_status' => 'publish'
+		));
+		if (!empty($posts)) {
+			$post = $posts[0];
+		}
+	} else if ($request['id']) {
+		$post = get_post($request['id']);
+	}
+
+	if ($post !== NULL) {
+		return $post->post_type;
+	} else {
+		return new WP_Error('no_post', 'No post found with these search criteria', array('status' => 404));
+	}
+}
+
 add_action(
 	'rest_api_init',
 	function () {
+		register_rest_route('owid/v1', '/type', array(
+			'methods' => 'GET',
+			'callback' => 'getPostType',
+		));
 		register_rest_field(
 			['post', 'page'],
 			'path',
