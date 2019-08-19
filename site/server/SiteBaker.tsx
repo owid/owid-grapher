@@ -82,7 +82,7 @@ export class SiteBaker {
 
         // Redirects from Wordpress admin UI
         const rows = await wpdb.query(`SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`)
-        redirects.push(...rows.map(row => `${row.url} ${row.action_data} ${row.action_code}`))
+        redirects.push(...rows.map(row => `${row.url.replace(/__/g, '/')} ${row.action_data} ${row.action_code}`))
 
         // Redirect /grapher/latest
         const latestRows = await db.query(`SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`)
