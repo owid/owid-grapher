@@ -402,7 +402,7 @@ export function getFullPostApi(post: object): FullPost {
         modifiedDate: new Date(post.modified),
         authors: post.authors_name || [],
         content: post.content.rendered,
-        excerpt: post.excerpt.rendered,
+        excerpt: post.excerpt_raw,
         imageUrl: post.featured_media_path
     }
 }
