@@ -179,6 +179,9 @@ export class ChartConfig {
     @observable.ref isLocalExport?: boolean
     @observable.ref tooltip?: TooltipProps
 
+    // at startDrag, we want to show the full axis
+    @observable.ref useTimelineDomains = false
+
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
         if (this.isMediaCard)

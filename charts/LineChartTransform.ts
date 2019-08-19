@@ -151,6 +151,12 @@ export class LineChartTransform implements IChartTransform {
         return allValues
     }
 
+    @computed get filteredValues(): LineChartValue[] {
+        const allValues: LineChartValue[] = []
+        this.groupedData.forEach(series => allValues.push(...series.values))
+        return allValues
+    }
+
     @computed get xDomain(): [number, number] {
         return [this.startYear, this.endYear]
     }
@@ -173,7 +179,7 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get yDomainDefault(): [number, number] {
-        const yValues = this.allValues.map(v => v.y)
+        const yValues = (this.chart.useTimelineDomains ? this.allValues : this.filteredValues).map(v => v.y)
         return [
             defaultTo(min(yValues), 0),
             defaultTo(max(yValues), 100)
@@ -225,11 +231,11 @@ export class LineChartTransform implements IChartTransform {
 
     // Filter the data so it fits within the domains
     @computed get groupedData(): LineChartSeries[] {
-        const { xAxis, yAxis } = this
+        const { xAxis } = this
         const groupedData = cloneDeep(this.predomainData)
 
         for (const g of groupedData) {
-            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && d.y >= yAxis.domain[0] && d.y <= yAxis.domain[1])
+            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1])
         }
 
         return groupedData.filter(g => g.values.length > 0)
