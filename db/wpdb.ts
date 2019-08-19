@@ -441,7 +441,7 @@ let cachedPosts: PostInfo[]
 export async function getBlogIndex(): Promise<PostInfo[]> {
     if (cachedPosts) return cachedPosts
 
-    const posts = await getPosts()
+    const posts = await getPosts(['post'])
 
     cachedPosts = posts.map(post => {
         return {

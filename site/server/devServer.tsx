@@ -77,7 +77,7 @@ devServer.get('/blog', async (req, res) => {
     res.send(await renderBlogByPageNum(1))
 })
 
-devServer.get('/blog/:pageno', async (req, res) => {
+devServer.get('/blog/page/:pageno', async (req, res) => {
     const pagenum = parseInt(req.params.pageno, 10)
     if (!isNaN(pagenum)) {
         res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
