@@ -320,11 +320,22 @@ export async function getPosts(postTypes: string[]=['post', 'page']): Promise<[]
         post: 'posts',
         page: 'pages'
     }
+// Limit not supported with multiple post types:
+// When passing multiple post types, the limit is applied to the resulting array
+// of sequentially sorted posts (all blog posts, then all pages, ...), so there
+// will be a predominance of a certain post type.
+export async function getPosts(postTypes: string[]=['post', 'page'], limit: number): Promise<[]> {
+    const perPage = 50
+    const posts = []
+    let response
 
     for(const postType of postTypes) {
-        const endpoint = `${WP_API_ENDPOINT}/${postTypeEndpointSlugs[postType]}`
-        let response = await fetch(`${endpoint}?per_page=1`)
-        const count = response.headers.get("X-WP-TotalPages")
+        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(postType)}`
+
+        // Get number of items to retrieve
+        response = await fetch(`${endpoint}?per_page=1`)
+        const maxAvailable = response.headers.get("X-WP-TotalPages")
+        const count = limit && limit < maxAvailable ? limit : maxAvailable
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
             response = await fetch(`${endpoint}?per_page=${perPage}&page=${page}`)
@@ -332,8 +343,7 @@ export async function getPosts(postTypes: string[]=['post', 'page']): Promise<[]
             posts.push(...postsCurrentPage)
         }
     }
-
-    return posts
+    return limit ? posts.slice(0, limit) : posts
 }
 
 export async function getPost(id: number): Promise<object> {

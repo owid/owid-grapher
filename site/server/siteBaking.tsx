@@ -159,11 +159,11 @@ export async function renderNotFoundPage() {
 }
 
 export async function makeAtomFeed() {
-    const postRows = await wpdb.query(`SELECT * FROM wp_posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 10`)
+    const postsApi = await wpdb.getPosts(['post'], 10)
 
     const posts: FormattedPost[] = []
-    for (const row of postRows) {
-        const fullPost = await wpdb.getFullPost(row)
+    for (const postApi of postsApi) {
+        const fullPost = await wpdb.getFullPostApi(postApi)
         const formattingOptions = extractFormattingOptions(fullPost.content)
         posts.push(await formatPost(fullPost, formattingOptions))
     }
