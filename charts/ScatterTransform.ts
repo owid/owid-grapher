@@ -16,8 +16,6 @@ import { Colorizer, Colorable } from './Colorizer'
 // of a scatter plot
 export class ScatterTransform implements IChartTransform {
     chart: ChartConfig
-    @observable.ref useTimelineDomains = false
-
     constructor(chart: ChartConfig) {
         this.chart = chart
     }
@@ -329,7 +327,7 @@ export class ScatterTransform implements IChartTransform {
 
     // domains across the entire timeline
     @computed get xDomainDefault(): [number, number] {
-        if (!this.useTimelineDomains) {
+        if (!this.chart.useTimelineDomains) {
             return domainExtent(this.currentValues.map(d => d.x), this.xScaleType)
         }
 
@@ -355,7 +353,7 @@ export class ScatterTransform implements IChartTransform {
     }
 
     @computed get yDomainDefault(): [number, number] {
-        if (!this.useTimelineDomains) {
+        if (!this.chart.useTimelineDomains) {
             return domainExtent(this.currentValues.map(d => d.y), this.yScaleType)
         }
 

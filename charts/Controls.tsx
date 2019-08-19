@@ -263,11 +263,11 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     }
 
     @action.bound onTimelineStart() {
-        this.props.chart.scatter.useTimelineDomains = true
+        this.props.chart.useTimelineDomains = true
     }
 
     @action.bound onTimelineStop() {
-        this.props.chart.scatter.useTimelineDomains = false
+        this.props.chart.useTimelineDomains = false
     }
 
     render() {
