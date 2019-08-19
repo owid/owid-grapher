@@ -396,7 +396,7 @@ export function getFullPostApi(post: object): FullPost {
     return {
         id: post.id,
         type: post.type,
-        slug: post.slug,
+        slug: post.path,
         title: post.title_raw,
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
