@@ -100,7 +100,7 @@ export class DiscreteBarChart extends React.Component<{ bounds: Bounds, chart: C
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = this.allData.map(d => d.value)
+        const allValues = (this.chart.useTimelineDomains ? this.allData : this.currentData).map(d => d.value)
         const minX = Math.min(0, min(allValues) as number)
         const maxX = Math.max(0, max(allValues) as number)
         return [minX, maxX]
