@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "downshift": "^3.2.12",
+    "entities": "^2.0.0",
     "match-sorter": "^4.0.1"
   }
 }

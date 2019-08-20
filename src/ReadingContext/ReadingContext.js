@@ -1,9 +1,9 @@
-import apiFetch from "@wordpress/api-fetch";
 import Autocomplete from "../Autocomplete/Autocomplete";
-const { RadioControl, SelectControl, Spinner } = wp.components;
+const { RadioControl, Spinner } = wp.components;
 const { withSelect, withDispatch } = wp.data;
 const { compose } = wp.compose;
 const { useEffect, useState } = wp.element;
+import { decodeHTML } from "entities";
 
 const IN_SITU = 0;
 
@@ -17,14 +17,45 @@ const ReadingContext = ({ readingContext = 0, setReadingContext, editorBlocks })
   const [entryId, setEntryId] = useState(readingContext || -1);
 
   useEffect(() => {
-    apiFetch({ path: "/wp/v2/pages?per_page=10&categories=44" }).then(entries => {
+    (async () => {
+      const first = 200; // Hardcoded number of entries to be retrieved.
+      // Considered acceptable given the nature of entries
+      // and how many are exposed at a given time on the frontend.
+      const where = { categoryId: 44 };
+      const query = `query GetEntries($first: Int, $where: RootQueryToPageConnectionWhereArgs!) {
+          pages(first: $first, where: $where) {
+            edges {
+              node {
+                pageId
+                title
+              }
+            }
+          }
+        }`;
+
+      const response = await fetch(`/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify({
+          query,
+          variables: { first, where }
+        })
+      });
+      const json = await response.json();
+
       setEntriesOptions(
-        entries.map(entry => ({
-          label: entry.title_raw,
-          value: entry.id
+        // decodeHTML is just for presentational purposes only as only the
+        // pageId is stored in the meta field.
+        // Wating for GraphQL endpoint to expose a rendered / raw (?) version of the title
+        json.data.pages.edges.map(edge => ({
+          label: decodeHTML(edge.node.title),
+          value: edge.node.pageId
         }))
       );
-    });
+    })();
   }, []);
 
   return entriesOptions.length === 0 ? (
