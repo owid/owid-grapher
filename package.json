@@ -12,5 +12,9 @@
   "license": "MIT",
   "devDependencies": {
     "@wordpress/scripts": "3.4.0"
+  },
+  "dependencies": {
+    "downshift": "^3.2.12",
+    "match-sorter": "^4.0.1"
   }
 }
