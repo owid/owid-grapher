@@ -20,11 +20,18 @@ export default ({ options, onSelect, initialValue }) => (
     }) => {
       return (
         <div>
-          <input
-            {...getInputProps({
-              placeholder: "Enter entry title..."
-            })}
-          />
+          {/* Mimic Wordpress <TextControl /> component (could not get it to integrate with Downshift)*/}
+          <div className="components-base-control">
+            <div class="components-base-control__field">
+              <input
+                type="text"
+                className="components-text-control__input"
+                {...getInputProps({
+                  placeholder: "Enter entry title..."
+                })}
+              />
+            </div>
+          </div>
           <ul {...getMenuProps()}>
             {isOpen
               ? matchSorter(options, inputValue, { keys: ["label"] }).map((item, index) => (
@@ -36,7 +43,8 @@ export default ({ options, onSelect, initialValue }) => (
                       style: {
                         backgroundColor: highlightedIndex === index ? "#f3f4f5" : null,
                         padding: "0.3rem 0.5rem",
-                        fontWeight: selectedItem === item ? "bold" : "normal"
+                        fontWeight: selectedItem === item ? "bold" : "normal",
+                        cursor: "pointer"
                       }
                     })}
                   >
