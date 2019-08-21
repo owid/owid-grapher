@@ -116,6 +116,16 @@ function getExcerptRaw(array $post)
 	return $post['excerpt']['raw'];
 }
 
+function permissionsCallbackGetPostType()
+{
+	// Restrict endpoint to only users who have the edit_posts capability.
+	if (!current_user_can('edit_posts')) {
+		return new WP_Error('rest_forbidden', esc_html__('Sorry, you are not allowed to do that.', 'my-text-domain'), array('status' => 401));
+	}
+
+	return true;
+}
+
 function getPostType($request)
 {
 	$post = NULL;
@@ -134,7 +144,7 @@ function getPostType($request)
 	}
 
 	if ($post !== NULL) {
-		return $post->post_type;
+		return rest_ensure_response($post->post_type);
 	} else {
 		return new WP_Error('no_post', 'No post found with these search criteria', array('status' => 404));
 	}
@@ -146,6 +156,7 @@ add_action(
 		register_rest_route('owid/v1', '/type', array(
 			'methods' => 'GET',
 			'callback' => 'getPostType',
+			'permission_callback' => 'permissionsCallbackGetPostType'
 		));
 		register_rest_field(
 			['post', 'page'],
