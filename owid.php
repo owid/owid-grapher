@@ -55,32 +55,18 @@ add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
  * API fields
  */
 
-
-function convertToPath(string $link)
-{
-	$url = parse_url($link);
-
-	// Create hierarchy based on custom markers in the slug ('__'), but only apply
-	// to the path portion of the URL (the separator '__' should not be converted
-	// when found in the fragment).
-	$hierarchicalPath = str_replace('__', '/', $url['path'])
-		. (isset($url['fragment']) ? '#' . $url['fragment'] : '');
-
-	// Remove the leading slash (not expected by the JS clients)
-	return substr($hierarchicalPath, 1);
-}
-
 function getPath(array $outerPost)
 {
-	$link = $outerPost['link'];
+	// Remove the host and leading slash (not expected by the JS clients)
+	$path = substr(wp_make_link_relative($outerPost['link']), 1);
 
-	// Compute the deep link if the blog post reading context is an
+	// Compute the deep path if the blog post reading context is an
 	// entry (as opposed to its own page)
 
 	if (isset($outerPost['meta'][READING_CONTEXT_META_FIELD]) && $outerPost['meta'][READING_CONTEXT_META_FIELD] !== 0) {
 
-		// Get the entry link from the sidebar plugin
-		$entryLink = get_permalink($outerPost['meta'][READING_CONTEXT_META_FIELD]);
+		// Get the entry path from the sidebar plugin
+		$entryPath = get_page_uri($outerPost['meta'][READING_CONTEXT_META_FIELD]);
 
 		// Checking the first block of the post (outerPost) for a reusable
 		// block (innerPost). Then get the first heading.
@@ -92,12 +78,12 @@ function getPath(array $outerPost)
 				// Manually get the id (not exposed in block attributes)
 				$heading = $innerPostBlocks[0];
 				preg_match('/id="([^"]+)/', $heading['innerHTML'], $matches);
-				$link = isset($matches[1]) ? $entryLink . "#" . $matches[1] : $link;
+				$path = isset($matches[1]) ? $entryPath . "#" . $matches[1] : $path;
 			}
 		}
 	}
 
-	return convertToPath($link);
+	return $path;
 }
 
 function getAuthorsName(array $post)
