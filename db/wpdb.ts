@@ -68,6 +68,14 @@ const wpdb = new WPDB()
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
+async function authenticatedFetch(queryString: string): Promise<any> {
+    return fetch(queryString, {
+        headers: [
+            ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
+        ]
+    })
+}
+
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
     return wpdb.query(queryStr, params)
 }
@@ -349,7 +357,7 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
 }
 
 export async function getPostType(id: number): Promise<string> {
-    const response = await fetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
+    const response = await authenticatedFetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
     const type = await response.json()
 
     return type
@@ -357,7 +365,7 @@ export async function getPostType(id: number): Promise<string> {
 
 export async function getPost(id: number): Promise<object> {
     const type = await getPostType(id)
-    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
     const post = await response.json()
 
     return post
@@ -365,7 +373,7 @@ export async function getPost(id: number): Promise<object> {
 
 export async function getPostBySlug(slug: string): Promise<object> {
     const type = await getPostType(id)
-    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
+    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
     const postArray = await response.json()
 
     return postArray
@@ -373,11 +381,7 @@ export async function getPostBySlug(slug: string): Promise<object> {
 
 export async function getLatestPostRevision(id: number): Promise<object> {
     const type = await getPostType(id)
-    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`, {
-        headers: [
-            ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
-        ]
-    })
+    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`)
     const revisions = await response.json()
 
     return revisions[0]
