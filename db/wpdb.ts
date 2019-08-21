@@ -348,35 +348,39 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
     return limit ? posts.slice(0, limit) : posts
 }
 
-export async function getPost(id: number): Promise<object> {
-    let response = await fetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
+export async function getPostType(id: number): Promise<string> {
+    const response = await fetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
     const type = await response.json()
 
-    response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    return type
+}
+
+export async function getPost(id: number): Promise<object> {
+    const type = await getPostType(id)
+    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
     const post = await response.json()
 
     return post
 }
 
 export async function getPostBySlug(slug: string): Promise<object> {
-    let response = await fetch(`${OWID_API_ENDPOINT}/type?slug=${slug}`)
-    const type = await response.json()
-
-    response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
+    const type = await getPostType(id)
+    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
     const postArray = await response.json()
 
     return postArray
 }
 
 export async function getLatestPostRevision(id: number): Promise<object> {
-    const response = await fetch(`${WP_API_ENDPOINT}/posts/${id}/revisions`, {
+    const type = await getPostType(id)
+    const response = await fetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`, {
         headers: [
             ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
         ]
     })
-    const post = await response.json()
+    const revisions = await response.json()
 
-    return post[0]
+    return revisions[0]
 }
 
 export interface FullPost {
