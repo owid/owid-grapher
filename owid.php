@@ -134,7 +134,7 @@ function getPostType($request)
 			'name' => $request['slug'],
 			'posts_per_page' => 1,
 			'post_type' => 'any',
-			'post_status' => 'publish'
+			'post_status' => ['private', 'publish']
 		));
 		if (!empty($posts)) {
 			$post = $posts[0];
