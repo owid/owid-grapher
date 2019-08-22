@@ -65,8 +65,7 @@ function getFirstHeading(array $outerPost)
 {
 	$firstHeading = null;
 
-	if (isset($outerPost['meta'][READING_CONTEXT_META_FIELD]) && $outerPost['meta'][READING_CONTEXT_META_FIELD] !== 0) {
-
+	if (getReadingContext($outerPost) === 'entry') {
 		// Checking the first block of the post (outerPost) for a reusable
 		// block (innerPost). Then get the first heading.
 		$outerPostBlocks = parse_blocks($outerPost['content']['raw']);
@@ -90,7 +89,7 @@ function getPath(array $post)
 {
 	// Compute the deep path if the blog post reading context is an
 	// entry (as opposed to its own page)
-	if (isset($post['meta'][READING_CONTEXT_META_FIELD]) && $post['meta'][READING_CONTEXT_META_FIELD] !== 0) {
+	if (getReadingContext($post) === 'entry') {
 		// Get the entry path from the sidebar plugin
 		return get_page_uri($post['meta'][READING_CONTEXT_META_FIELD]);
 	} else {
