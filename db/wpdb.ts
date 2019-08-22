@@ -411,7 +411,7 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export function getFullPostApi(post: object): FullPost {
+export function getFullPostApi(post: object, excludeContent?: boolean): FullPost {
     return {
         id: post.id,
         type: post.type,
@@ -420,9 +420,9 @@ export function getFullPostApi(post: object): FullPost {
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
         authors: post.authors_name || [],
-        content: post.content.rendered,
-        imageUrl: post.featured_media_path
+        content: excludeContent ? '' : post.content.rendered,
         excerpt: post.excerpt.raw,
+        imageUrl: defaultTo(post.featured_media_path, '/default-thumbnail.jpg')
     }
 }
 
@@ -447,29 +447,15 @@ export async function getFullPost(row: any): Promise<FullPost> {
     }
 }
 
-export interface PostInfo {
-    title: string
-    date: Date
-    slug: string
-    authors: string[]
-    imageUrl?: string,
-    tags: { id: number; name: string; }[]
-}
-
-let cachedPosts: PostInfo[]
-export async function getBlogIndex(): Promise<PostInfo[]> {
+let cachedPosts: FullPost[]
+export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
 
+    // TODO: do not get post content in the first place
     const posts = await getPosts(['post'])
 
     cachedPosts = posts.map(post => {
-        return {
-            title: post.title_raw,
-            date: new Date(post.date),
-            slug: post.path,
-            authors: post.authors_name || [],
-            imageUrl: defaultTo(post.featured_media_path, '/default-thumbnail.jpg')
-        }
+        return getFullPostApi(post, true)
     })
 
     return cachedPosts
