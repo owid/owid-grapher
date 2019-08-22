@@ -129,16 +129,6 @@ function getFeaturedMediaPath(array $post)
 	}
 }
 
-function getTitleRaw(array $post)
-{
-	return $post['title']['raw'];
-}
-
-function getExcerptRaw(array $post)
-{
-	return $post['excerpt']['raw'];
-}
-
 function permissionsCallbackGetPostType()
 {
 	// Restrict endpoint to only users who have the edit_posts capability.
@@ -205,16 +195,6 @@ add_action(
 			'post',
 			'featured_media_path',
 			['get_callback' => 'getFeaturedMediaPath']
-		);
-		register_rest_field(
-			['post', 'page', 'post-revision', 'page-revision'],
-			'title_raw',
-			['get_callback' => 'getTitleRaw']
-		);
-		register_rest_field(
-			['post'],
-			'excerpt_raw',
-			['get_callback' => 'getExcerptRaw']
 		);
 	}
 );
