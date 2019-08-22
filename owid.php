@@ -55,18 +55,17 @@ add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
  * API fields
  */
 
-function getPath(array $outerPost)
-{
-	// Remove the host and leading slash (not expected by the JS clients)
-	$path = substr(wp_make_link_relative($outerPost['link']), 1);
 
-	// Compute the deep path if the blog post reading context is an
-	// entry (as opposed to its own page)
+/*
+ * Returns the first heading (requires the first block to be a Gutenberg block).
+ * The rest of the content can remain in the classic editor.
+ */
+
+function getFirstHeading(array $outerPost)
+{
+	$firstHeading = null;
 
 	if (isset($outerPost['meta'][READING_CONTEXT_META_FIELD]) && $outerPost['meta'][READING_CONTEXT_META_FIELD] !== 0) {
-
-		// Get the entry path from the sidebar plugin
-		$entryPath = get_page_uri($outerPost['meta'][READING_CONTEXT_META_FIELD]);
 
 		// Checking the first block of the post (outerPost) for a reusable
 		// block (innerPost). Then get the first heading.
@@ -75,15 +74,40 @@ function getPath(array $outerPost)
 			$innerPost = get_post($outerPostBlocks[0]['attrs']['ref']);
 			$innerPostBlocks = parse_blocks($innerPost->post_content);
 			if ($innerPostBlocks[0]['blockName'] === 'core/heading') {
-				// Manually get the id (not exposed in block attributes)
-				$heading = $innerPostBlocks[0];
-				preg_match('/id="([^"]+)/', $heading['innerHTML'], $matches);
-				$path = isset($matches[1]) ? $entryPath . "#" . $matches[1] : $path;
+				$firstHeading = trim(strip_tags($innerPostBlocks[0]['innerHTML']));
 			}
 		}
 	}
 
-	return $path;
+	return $firstHeading;
+}
+
+/*
+ * Returns either the post's standard path or the path of the embedding entry (for blog
+ * posts embedded in an entry)
+ */
+function getPath(array $post)
+{
+	// Compute the deep path if the blog post reading context is an
+	// entry (as opposed to its own page)
+	if (isset($post['meta'][READING_CONTEXT_META_FIELD]) && $post['meta'][READING_CONTEXT_META_FIELD] !== 0) {
+		// Get the entry path from the sidebar plugin
+		return get_page_uri($post['meta'][READING_CONTEXT_META_FIELD]);
+	} else {
+		// Remove the host and leading slash from the post link (not expected by the
+		// JS clients). Without hierarchical paths (parent/page-slug), the path is
+		// identical to the slug.
+		return substr(wp_make_link_relative($post['link']), 1);
+	}
+}
+
+function getReadingContext(array $post)
+{
+	if (isset($post['meta'][READING_CONTEXT_META_FIELD]) && $post['meta'][READING_CONTEXT_META_FIELD] !== 0) {
+		return 'entry';
+	} else {
+		return 'in-situ';
+	}
 }
 
 function getAuthorsName(array $post)
@@ -162,6 +186,16 @@ add_action(
 			['post', 'page'],
 			'path',
 			['get_callback' => 'getPath']
+		);
+		register_rest_field(
+			['post'],
+			'first_heading',
+			['get_callback' => 'getFirstHeading']
+		);
+		register_rest_field(
+			'post',
+			'reading_context',
+			['get_callback' => 'getReadingContext']
 		);
 		register_rest_field(
 			['post', 'page'],
