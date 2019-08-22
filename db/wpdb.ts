@@ -5,6 +5,7 @@ import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, 
 import {WORDPRESS_URL} from 'settings'
 import * as Knex from 'knex'
 import fetch from 'node-fetch'
+const urlSlug = require('url-slug')
 
 import * as path from 'path'
 import * as glob from 'glob'
@@ -415,7 +416,7 @@ export function getFullPostApi(post: object, excludeContent?: boolean): FullPost
     return {
         id: post.id,
         type: post.type,
-        slug: post.path,
+        slug: post.reading_context && post.reading_context === 'entry' ? `${post.path}#${urlSlug(post.first_heading)}` : post.path,
         title: post.title.raw,
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
