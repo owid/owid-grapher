@@ -114,6 +114,7 @@ interface ImageUpload {
     }[]
 }
 
+// TODO this is the bottleneck when rendering posts on the dev server
 let cachedUploadDex: Map<string, ImageUpload>
 export async function getUploadedImages() {
     if (cachedUploadDex)
