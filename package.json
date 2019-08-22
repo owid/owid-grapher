@@ -46,7 +46,7 @@
     "@types/html-to-text": "^1.4.31",
     "@types/image-size": "^0.7.0",
     "@types/imagemagick": "^0.0.30",
-    "@types/jquery": "^3.3.29",
+    "@types/jquery": "^3.3.31",
     "@types/js-base64": "^2.3.1",
     "@types/js-cookie": "^2.2.2",
     "@types/lodash": "^4.14.134",
