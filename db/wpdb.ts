@@ -356,8 +356,9 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
     return limit ? posts.slice(0, limit) : posts
 }
 
-export async function getPostType(id: number): Promise<string> {
-    const response = await authenticatedFetch(`${OWID_API_ENDPOINT}/type/?id=${id}`)
+export async function getPostType(search: number|string): Promise<string> {
+    const paramName = typeof search === "number" ? 'id' : 'slug'
+    const response = await authenticatedFetch(`${OWID_API_ENDPOINT}/type/?${paramName}=${search}`)
     const type = await response.json()
 
     return type
@@ -372,7 +373,7 @@ export async function getPost(id: number): Promise<object> {
 }
 
 export async function getPostBySlug(slug: string): Promise<object> {
-    const type = await getPostType(id)
+    const type = await getPostType(slug)
     const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
     const postArray = await response.json()
 
