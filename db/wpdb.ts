@@ -68,8 +68,18 @@ const wpdb = new WPDB()
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
-async function authenticatedFetch(queryString: string): Promise<any> {
-    return fetch(queryString, {
+async function apiQuery(endpoint: string, searchParams: array<array>): Promise<any> {
+    const url = new URL(endpoint)
+
+    // The edit context gives access to title.raw and excerpt.raw
+    url.searchParams.append('context', 'edit')
+
+    if(searchParams) {
+        searchParams.forEach((param) => {
+            url.searchParams.append(...param)
+        })
+    }
+    return fetch(url.toString(), {
         headers: [
             ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
         ]
@@ -343,12 +353,12 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
         const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(postType)}`
 
         // Get number of items to retrieve
-        response = await fetch(`${endpoint}?per_page=1`)
+        response = await apiQuery(endpoint, [['per_page', 1]])
         const maxAvailable = response.headers.get("X-WP-TotalPages")
         const count = limit && limit < maxAvailable ? limit : maxAvailable
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            response = await fetch(`${endpoint}?per_page=${perPage}&page=${page}`)
+            response = await apiQuery(endpoint, [['per_page', perPage],['page', page]])
             const postsCurrentPage = await response.json()
             posts.push(...postsCurrentPage)
         }
@@ -358,7 +368,7 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit: numb
 
 export async function getPostType(search: number|string): Promise<string> {
     const paramName = typeof search === "number" ? 'id' : 'slug'
-    const response = await authenticatedFetch(`${OWID_API_ENDPOINT}/type/?${paramName}=${search}`)
+    const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, [[paramName, search]])
     const type = await response.json()
 
     return type
@@ -366,7 +376,7 @@ export async function getPostType(search: number|string): Promise<string> {
 
 export async function getPost(id: number): Promise<object> {
     const type = await getPostType(id)
-    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
     const post = await response.json()
 
     return post
@@ -374,7 +384,7 @@ export async function getPost(id: number): Promise<object> {
 
 export async function getPostBySlug(slug: string): Promise<object> {
     const type = await getPostType(slug)
-    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}?slug=${slug}`)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`, [['slug', slug]])
     const postArray = await response.json()
 
     return postArray
@@ -382,7 +392,7 @@ export async function getPostBySlug(slug: string): Promise<object> {
 
 export async function getLatestPostRevision(id: number): Promise<object> {
     const type = await getPostType(id)
-    const response = await authenticatedFetch(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`)
     const revisions = await response.json()
 
     return revisions[0]
@@ -406,13 +416,13 @@ export function getFullPostApi(post: object): FullPost {
         id: post.id,
         type: post.type,
         slug: post.path,
-        title: post.title_raw,
+        title: post.title.raw,
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
         authors: post.authors_name || [],
         content: post.content.rendered,
-        excerpt: post.excerpt_raw,
         imageUrl: post.featured_media_path
+        excerpt: post.excerpt.raw,
     }
 }
 
