@@ -69,15 +69,15 @@ const wpdb = new WPDB()
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
-async function apiQuery(endpoint: string, searchParams: array<array>): Promise<any> {
+async function apiQuery(endpoint: string, searchParams?: Array<[string, string|number]>): Promise<any> {
     const url = new URL(endpoint)
 
     // The edit context gives access to title.raw and excerpt.raw
     url.searchParams.append('context', 'edit')
 
     if(searchParams) {
-        searchParams.forEach((param) => {
-            url.searchParams.append(...param)
+        searchParams.forEach(param => {
+            url.searchParams.append(param[0], String(param[1]))
         })
     }
     return fetch(url.toString(), {
@@ -334,21 +334,18 @@ export async function getFeaturedImageUrl(postId: number): Promise<string|undefi
     }
 }
 
-function getEndpointSlugFromType($type) {
-    const postTypeEndpointSlugs = {
-        post: 'posts',
-        page: 'pages'
-    }
-    return postTypeEndpointSlugs[$type]
+function getEndpointSlugFromType(type: string): string {
+    // page => pages, post => posts
+    return `${type}s`
 }
 
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
 // will be a predominance of a certain post type.
-export async function getPosts(postTypes: string[]=['post', 'page'], limit: number): Promise<[]> {
+export async function getPosts(postTypes: string[]=['post', 'page'], limit?: number): Promise<any[]> {
     const perPage = 50
-    const posts = []
+    const posts: any[] = []
     let response
 
     for(const postType of postTypes) {
@@ -376,7 +373,7 @@ export async function getPostType(search: number|string): Promise<string> {
     return type
 }
 
-export async function getPost(id: number): Promise<object> {
+export async function getPost(id: number): Promise<any> {
     const type = await getPostType(id)
     const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
     const post = await response.json()
@@ -384,7 +381,7 @@ export async function getPost(id: number): Promise<object> {
     return post
 }
 
-export async function getPostBySlug(slug: string): Promise<object> {
+export async function getPostBySlug(slug: string): Promise<any[]> {
     const type = await getPostType(slug)
     const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`, [['slug', slug]])
     const postArray = await response.json()
@@ -392,7 +389,7 @@ export async function getPostBySlug(slug: string): Promise<object> {
     return postArray
 }
 
-export async function getLatestPostRevision(id: number): Promise<object> {
+export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
     const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`)
     const revisions = await response.json()
@@ -413,7 +410,7 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export function getFullPostApi(post: object, excludeContent?: boolean): FullPost {
+export function getFullPostApi(post: any, excludeContent?: boolean): FullPost {
     return {
         id: post.id,
         type: post.type,

@@ -89,7 +89,7 @@ export async function renderMenuJson() {
 }
 
 async function renderPage(postApi: object) {
-    const post = await wpdb.getFullPostApi(postApi)
+    const post = wpdb.getFullPostApi(postApi)
     const entries = await wpdb.getEntriesByCategory()
 
     const $ = cheerio.load(post.content)
@@ -163,7 +163,7 @@ export async function makeAtomFeed() {
 
     const posts: FormattedPost[] = []
     for (const postApi of postsApi) {
-        const fullPost = await wpdb.getFullPostApi(postApi)
+        const fullPost = wpdb.getFullPostApi(postApi)
         const formattingOptions = extractFormattingOptions(fullPost.content)
         posts.push(await formatPost(fullPost, formattingOptions))
     }
