@@ -1,20 +1,16 @@
 #!/bin/bash -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
+HOST="owid@terra"
+ROOT="/home/owid"
 
-if [ "$1" == "staging" ]; then
-  HOST="owid@owid-staging"
-  ROOT="/home/owid"
-  NAME="staging"
-  WORDPRESS_DIR="/home/owid/staging-wordpress"
+if [ "$1" == "danieltest" ]; then
+  NAME="danieltest"
+  WORDPRESS_DIR="/home/owid/danieltest-wordpress"
 elif [ "$1" == "live" ]; then
-  HOST="owid@terra"
-  ROOT="/home/owid"
   NAME="live"
   WORDPRESS_DIR="/home/owid/owid.cloud"
-  # This script doesn't yet support deployment to production
-  echo "This script doesn't yet support deployment to production"
-  exit 1
+
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r
   echo
@@ -66,7 +62,7 @@ then
   mv $TMP_NEW $FINAL_TARGET
 
   # Restart the admin
-  pm2 restart $NAME
+  sudo service $NAME restart
 
   # Hook into Wordpress
   rm -rf $WORDPRESS_DIR/wp-content/themes/owid-theme && cp -r $FINAL_TARGET/theme $WORDPRESS_DIR/wp-content/themes/owid-theme
