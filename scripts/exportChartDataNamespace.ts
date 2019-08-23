@@ -3,7 +3,7 @@
 import * as path from 'path'
 import * as db from 'db/db'
 import * as _ from 'lodash'
-import { DB_NAME } from 'serverSettings'
+import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from 'serverSettings'
 
 import { exec } from 'utils/server/serverUtil'
 
@@ -46,9 +46,13 @@ async function dataExport() {
 
     await exec(`rm -f ${tmpFilename}`)
 
+    // Expose password to mysqldump
+    // Safer than passing as an argument because it's not shown in 'ps aux'
+    process.env.MYSQL_PWD = DB_PASS
+
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --no-create-info ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
+        await exec(`mysqldump --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
 
         count += chunk.length
         console.log(count)
