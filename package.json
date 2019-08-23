@@ -143,7 +143,7 @@
     "prop-types": "^15.7.2",
     "randomstring": "^1.1.5",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6",
+    "react-dom": "^16.9.0",
     "react-modal": "^3.8.1",
     "react-recaptcha": "^2.3.10",
     "react-router-dom": "^5.0.1",
