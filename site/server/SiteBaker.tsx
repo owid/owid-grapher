@@ -143,13 +143,13 @@ export class SiteBaker {
         const bakingPosts = []
         const postSlugs = []
         for (const postApi of postsApi) {
+            const post = wpdb.getFullPostApi(postApi)
             // blog: handled separately
             // #: deep link found, the post will be embedded and displayed in
             // the entry only (not on its own page), skipping.
-            if (postApi.slug === 'blog' || (postApi.type === 'post' && postApi.path.indexOf("#") !== -1))
+            if (post.slug === 'blog' || (post.path && post.path.indexOf("#") !== -1))
                 continue
 
-            const post = wpdb.getFullPostApi(postApi)
             postSlugs.push(post.slug)
             bakingPosts.push(post)
         }

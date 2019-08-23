@@ -17,7 +17,7 @@ import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as fs from 'fs-extra'
 import { WORDPRESS_DIR } from 'serverSettings'
-import { formatPost, extractFormattingOptions, FormattedPost } from './formatting'
+import { formatPost, extractFormattingOptions } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
 import { JsonError, slugify } from "utils/server/serverUtil"
@@ -160,13 +160,7 @@ export async function renderNotFoundPage() {
 
 export async function makeAtomFeed() {
     const postsApi = await wpdb.getPosts(['post'], 10)
-
-    const posts: FormattedPost[] = []
-    for (const postApi of postsApi) {
-        const fullPost = wpdb.getFullPostApi(postApi)
-        const formattingOptions = extractFormattingOptions(fullPost.content)
-        posts.push(await formatPost(fullPost, formattingOptions))
-    }
+    const posts: wpdb.FullPost[] = postsApi.map(postApi => wpdb.getFullPostApi(postApi, true))
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -178,11 +172,11 @@ export async function makeAtomFeed() {
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts.map(post => `<entry>
     <title><![CDATA[${post.title}]]></title>
-    <id>${BAKED_BASE_URL}/${post.slug}</id>
-    <link rel="alternate" href="${BAKED_BASE_URL}/${post.slug}"/>
+    <id>${BAKED_BASE_URL}/${post.path}</id>
+    <link rel="alternate" href="${BAKED_BASE_URL}/${post.path}"/>
     <published>${post.date.toISOString()}</published>
     <updated>${post.modifiedDate.toISOString()}</updated>
-    ${post.authors.map(author => `<author><name>${author}</name></author>`).join("")}
+    ${post.authors.map((author: string) => `<author><name>${author}</name></author>`).join("")}
     <summary><![CDATA[${post.excerpt}]]></summary>
 </entry>`).join("\n")}
 </feed>

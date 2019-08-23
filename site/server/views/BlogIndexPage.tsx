@@ -6,16 +6,9 @@ import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
 import { formatAuthors, formatDate } from '../formatting'
+import { FullPost } from '../../../db/wpdb'
 
-interface PostMeta {
-    title: string
-    slug: string
-    date: Date
-    authors: string[]
-    imageUrl?: string
-}
-
-export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPages: number }) => {
+export const BlogIndexPage = (props: { posts: FullPost[], pageNum: number, numPages: number }) => {
     const {posts, pageNum, numPages} = props
     const pageNums = _.range(1, numPages+1)
 
@@ -30,7 +23,7 @@ export const BlogIndexPage = (props: { posts: PostMeta[], pageNum: number, numPa
                     <ul className="posts">
                         {posts.map(post =>
                             <li key={post.slug} className="post">
-                                <a href={`/${post.slug}`}>
+                                <a href={`/${post.path}`}>
                                     {post.imageUrl && <img src={post.imageUrl}/>}
                                     <h3>{post.title}</h3>
                                     <div className="entry-meta">

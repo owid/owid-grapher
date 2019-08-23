@@ -213,7 +213,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPo
                                 </div>
                                 <div className="list">
                                     {posts.slice(0,8).map(post => <div key={post.slug} className="list-item-wrapper">
-                                        <a href={`/${post.slug}`} className="list-item" data-track-click data-track-note="homepage-explainer">
+                                        <a href={`/${post.path}`} className="list-item" data-track-click data-track-note="homepage-explainer">
                                             <div className="thumbnail">
                                                 <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                             </div>

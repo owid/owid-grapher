@@ -401,6 +401,7 @@ export interface FullPost {
     id: number
     type: 'post'|'page'
     slug: string
+    path?: string //TODO: make compulsory when getFullPost removed
     title: string
     date: Date
     modifiedDate: Date
@@ -414,7 +415,8 @@ export function getFullPostApi(post: any, excludeContent?: boolean): FullPost {
     return {
         id: post.id,
         type: post.type,
-        slug: post.reading_context && post.reading_context === 'entry' ? `${post.path}#${urlSlug(post.first_heading)}` : post.path,
+        slug: post.slug,
+        path: post.reading_context && post.reading_context === 'entry' ? `${post.path}#${urlSlug(post.first_heading)}` : post.path,
         title: post.title.raw,
         date: new Date(post.date),
         modifiedDate: new Date(post.modified),
