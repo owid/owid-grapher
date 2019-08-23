@@ -2586,10 +2586,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/mysql@^2.15.6":
-  version "2.15.6"
-  resolved "https://registry.yarnpkg.com/@types/mysql/-/mysql-2.15.6.tgz#8718a66e362a4cfde73fe731792bdf453ef3a541"
-  integrity sha512-PJBY2R3jGJwGrmFgGAJ+1nj4S/PLkF6nT+HvUygniq9ZcVht0mTH1TLAjjyfIXf9FfrELs8mbqOrWa/Tn89NCA==
+"@types/mysql@^2.15.7":
+  version "2.15.7"
+  resolved "https://registry.yarnpkg.com/@types/mysql/-/mysql-2.15.7.tgz#7b803d0d8f418ee7edbdaceb1e7a43b322b346dc"
+  integrity sha512-S7cpDl+heeTe2zd7LGeAodEsx9AnkzW1vHJ9kKwr9ype1KohW01jaUmCYhpafrQvnxzcUJAfeYdDr3fET8ufPw==
   dependencies:
     "@types/node" "*"
 
