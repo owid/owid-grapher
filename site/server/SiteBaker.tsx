@@ -151,10 +151,11 @@ export class SiteBaker {
                 continue
 
             postSlugs.push(post.slug)
-            bakingPosts.push(post)
+            await this.bakePost(post)
         }
 
-        await Promise.all(bakingPosts.map(post => this.bakePost(post)))
+        // Maxes out resources (TODO: RCA)
+        // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
