@@ -235,7 +235,8 @@ export class LineChartTransform implements IChartTransform {
         const groupedData = cloneDeep(this.predomainData)
 
         for (const g of groupedData) {
-            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1])
+            // The values can include non-numerical values, so we need to filter with isNaN()
+            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && !isNaN(d.y))
         }
 
         return groupedData.filter(g => g.values.length > 0)
