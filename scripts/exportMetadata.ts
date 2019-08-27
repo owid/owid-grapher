@@ -16,7 +16,7 @@ async function dataExport() {
     process.env.MYSQL_PWD = DB_PASS
 
     // Dump all tables including schema but exclude the rows of data_values
-    await exec(`mysqldump -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
+    await exec(`mysqldump -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r /tmp/owid_metadata.sql`)
     await exec(`mysqldump -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions user_invitations data_values >> /tmp/owid_metadata.sql`)
 
     // Strip passwords
