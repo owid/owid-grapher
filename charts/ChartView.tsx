@@ -4,6 +4,8 @@ import { observable, computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { select } from 'd3-selection'
 import 'd3-transition'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 
 import { ChartConfig, ChartConfigProps } from './ChartConfig'
 import { Controls, ControlsFooterView } from './Controls'
@@ -18,6 +20,7 @@ import { DataSelector } from './DataSelector'
 import { ChartViewContext } from './ChartViewContext'
 import { TooltipView } from './Tooltip'
 import { FullStory } from 'site/client/FullStory'
+import { Analytics } from 'site/client/Analytics'
 
 declare const window: any
 
@@ -128,6 +131,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     hasFadedIn: boolean = false
     @observable hasBeenVisible: boolean = false
+    @observable hasError: boolean = false
 
     @computed get classNames(): string {
         const classNames = [
@@ -202,6 +206,8 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     renderMain() {
+        // TODO how to handle errors in exports?
+        // TODO tidy this up
         if (this.isExport) {
             return this.renderSVG()
         } else {
@@ -209,9 +215,22 @@ export class ChartView extends React.Component<ChartViewProps> {
 
             const style = { width: renderWidth, height: renderHeight, fontSize: this.chart.baseFontSize }
 
-            return this.chart.data.isReady && <div ref={this.base} className={this.classNames} style={style}>
-                {this.renderReady()}
-            </div>
+            if (this.hasError) {
+                return <div className={this.classNames} style={style}>
+                    <div style={{ width: "100%", height: "100%", position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", lineHeight: 1.5, padding: "3rem" }}>
+                        <p style={{ color: "#cc0000", fontWeight: 700 }}>
+                            <FontAwesomeIcon icon={faExclamationTriangle} /> There was a problem loading this chart
+                        </p>
+                        <p>
+                            We have been notified of this error, please check back later whether it's been fixed. If the error persists, get in touch with us at <a href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}>info@ourworldindata.org</a>.
+                        </p>
+                    </div>
+                </div>
+            } else {
+                return this.chart.data.isReady && <div ref={this.base} className={this.classNames} style={style}>
+                    {this.renderReady()}
+                </div>
+            }
         }
     }
 
@@ -263,5 +282,10 @@ export class ChartView extends React.Component<ChartViewProps> {
         } else {
             this.checkVisibility()
         }
+    }
+
+    componentDidCatch(error: any, info: any) {
+        this.hasError = true
+        Analytics.logEvent("CHART_ERROR", { error, info })
     }
 }
