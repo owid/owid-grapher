@@ -8,7 +8,7 @@ import * as cheerio from 'cheerio'
 
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
-import { formatPost, FormattedPost, extractFormattingOptions } from './formatting'
+import { formatPost, extractFormattingOptions } from './formatting'
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'

@@ -28,6 +28,7 @@ export interface FormattedPost {
     id: number
     type: 'post'|'page'
     slug: string
+    path: string
     title: string
     date: Date
     modifiedDate: Date
@@ -285,6 +286,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         id: post.id,
         type: post.type,
         slug: post.slug,
+        path: post.path,
         title: post.title,
         date: post.date,
         modifiedDate: post.modifiedDate,
@@ -355,6 +357,7 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
             id: post.id,
             type: post.type,
             slug: post.slug,
+            path: post.path,
             title: post.title,
             date: post.date,
             modifiedDate: post.modifiedDate,

@@ -91,7 +91,7 @@ async function indexToAlgolia() {
                 objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
                 type: postType,
-                slug: post.slug,
+                slug: post.path,
                 title: post.title,
                 excerpt: post.excerpt,
                 authors: post.authors,
