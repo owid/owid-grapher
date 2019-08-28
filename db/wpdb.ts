@@ -339,6 +339,10 @@ function getEndpointSlugFromType(type: string): string {
     return `${type}s`
 }
 
+export function isPostEmbedded(post: FullPost): boolean {
+    return post.path.indexOf("#") !== -1
+}
+
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there

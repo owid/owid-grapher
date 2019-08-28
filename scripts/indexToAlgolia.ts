@@ -75,7 +75,7 @@ async function indexToAlgolia() {
         // of the embedding entry, and not the blog post. In other words,
         // searching for BPES content will show up in the SERP under an entry
         // block.
-        if (rawPost.path && rawPost.path.indexOf("#") !== -1) {
+        if (wpdb.isPostEmbedded(rawPost)) {
             continue
         }
 
