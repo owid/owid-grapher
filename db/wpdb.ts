@@ -401,7 +401,7 @@ export interface FullPost {
     id: number
     type: 'post'|'page'
     slug: string
-    path?: string //TODO: make compulsory when getFullPost removed
+    path: string
     title: string
     date: Date
     modifiedDate: Date
@@ -411,7 +411,7 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export function getFullPostApi(post: any, excludeContent?: boolean): FullPost {
+export function getFullPost(post: any, excludeContent?: boolean): FullPost {
     return {
         id: post.id,
         type: post.type,
@@ -427,27 +427,6 @@ export function getFullPostApi(post: any, excludeContent?: boolean): FullPost {
     }
 }
 
-export async function getFullPost(row: any): Promise<FullPost> {
-    const authorship = await getAuthorship()
-    const permalinks = await getPermalinks()
-    const featuredImageUrl = await getFeaturedImageUrl(row.ID)
-
-    const postId = row.post_status === "inherit" ? row.post_parent : row.ID
-
-    return {
-        id: row.ID,
-        type: row.post_type,
-        slug: permalinks.get(row.ID, row.post_name),
-        title: row.post_title,
-        date: new Date(row.post_date_gmt),
-        modifiedDate: new Date(row.post_modified_gmt),
-        authors: authorship.get(postId) || [],
-        content: row.post_content,
-        excerpt: row.post_excerpt,
-        imageUrl: featuredImageUrl
-    }
-}
-
 let cachedPosts: FullPost[]
 export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
@@ -456,7 +435,7 @@ export async function getBlogIndex(): Promise<FullPost[]> {
     const posts = await getPosts(['post'])
 
     cachedPosts = posts.map(post => {
-        return getFullPostApi(post, true)
+        return getFullPost(post, true)
     })
 
     return cachedPosts

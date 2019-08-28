@@ -89,7 +89,7 @@ export async function renderMenuJson() {
 }
 
 async function renderPage(postApi: object) {
-    const post = wpdb.getFullPostApi(postApi)
+    const post = wpdb.getFullPost(postApi)
     const entries = await wpdb.getEntriesByCategory()
 
     const $ = cheerio.load(post.content)
@@ -160,7 +160,7 @@ export async function renderNotFoundPage() {
 
 export async function makeAtomFeed() {
     const postsApi = await wpdb.getPosts(['post'], 10)
-    const posts: wpdb.FullPost[] = postsApi.map(postApi => wpdb.getFullPostApi(postApi, true))
+    const posts: wpdb.FullPost[] = postsApi.map(postApi => wpdb.getFullPost(postApi, true))
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">

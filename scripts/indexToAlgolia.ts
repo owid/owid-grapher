@@ -69,7 +69,7 @@ async function indexToAlgolia() {
     }
 
     for (const postApi of postsApi) {
-        const rawPost = await wpdb.getFullPostApi(postApi)
+        const rawPost = await wpdb.getFullPost(postApi)
 
         // Index the content of blog posts as entry sections (BPES) within the context
         // of the embedding entry, and not the blog post. In other words,
