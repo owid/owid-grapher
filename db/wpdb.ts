@@ -1,8 +1,8 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER} from 'serverSettings'
-import {WORDPRESS_URL} from 'settings'
+import { WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER } from 'serverSettings'
+import { WORDPRESS_URL, BAKED_BASE_URL } from 'settings'
 import * as Knex from 'knex'
 import fetch from 'node-fetch'
 const urlSlug = require('url-slug')
@@ -323,19 +323,6 @@ export async function getFeaturedImages() {
     return featuredImages
 }
 
-export async function getFeaturedImageUrl(postId: number): Promise<string|undefined> {
-    if (cachedFeaturedImages)
-        return cachedFeaturedImages.get(postId)
-    else {
-        const rows = await wpdb.query(`
-            SELECT wp_postmeta.post_id, wp_posts.guid
-            FROM wp_postmeta
-            INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value
-            WHERE wp_postmeta.meta_key='_thumbnail_id' AND wp_postmeta.post_id=?`, [postId])
-        return rows.length ? rows[0].guid : undefined
-    }
-}
-
 function getEndpointSlugFromType(type: string): string {
     // page => pages, post => posts
     return `${type}s`
@@ -429,7 +416,7 @@ export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
         authors: postApi.authors_name || [],
         content: excludeContent ? '' : postApi.content.rendered,
         excerpt: decodeHTML(postApi.excerpt.rendered),
-        imageUrl: defaultTo(postApi.featured_media_path, '/default-thumbnail.jpg')
+        imageUrl: BAKED_BASE_URL + defaultTo(postApi.featured_media_path, '/default-thumbnail.jpg')
     }
 }
 
