@@ -194,7 +194,7 @@ add_action(
 			['get_callback' => 'getAuthorsName']
 		);
 		register_rest_field(
-			'post',
+			['post', 'page'],
 			'featured_media_path',
 			['get_callback' => 'getFeaturedMediaPath']
 		);
