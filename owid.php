@@ -141,16 +141,7 @@ function getFeaturedMediaPath(array $post)
 	}
 }
 
-function permissionsCallbackGetPostType()
-{
-	// Restrict endpoint to only users who have the edit_posts capability.
-	if (!current_user_can('edit_posts')) {
-		return new WP_Error('rest_forbidden', esc_html__('Sorry, you are not allowed to do that.', 'my-text-domain'), array('status' => 401));
-	}
-
-	return true;
-}
-
+// TODO: restrict 'private' to authenticated users
 function getPostType($request)
 {
 	$post = NULL;
@@ -181,7 +172,6 @@ add_action(
 		register_rest_route('owid/v1', '/type', array(
 			'methods' => 'GET',
 			'callback' => 'getPostType',
-			'permission_callback' => 'permissionsCallbackGetPostType'
 		));
 		register_rest_field(
 			['post', 'page'],
