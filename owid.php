@@ -51,6 +51,18 @@ function owid_plugin_assets_enqueue()
 add_action('init', 'owid_plugin_register');
 add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
 
+
+/*
+ * Add revision support for reusable blocks
+ */
+
+function owid_enable_revisions_reusable_blocks()
+{
+	add_post_type_support('wp_block', 'revisions');
+}
+
+add_action('init', 'owid_enable_revisions_reusable_blocks');
+
 /*
  * API fields
  */
