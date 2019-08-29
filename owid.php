@@ -64,6 +64,14 @@ function owid_enable_revisions_reusable_blocks()
 add_action('init', 'owid_enable_revisions_reusable_blocks');
 
 /*
+ * Remove wrapping <p> tags around rendered content and excerpt fields
+ */
+
+remove_filter('the_content', 'wpautop');
+remove_filter('the_excerpt', 'wpautop');
+
+
+/*
  * API fields
  */
 
