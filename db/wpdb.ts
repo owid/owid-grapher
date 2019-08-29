@@ -69,22 +69,24 @@ const wpdb = new WPDB()
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
-async function apiQuery(endpoint: string, searchParams?: Array<[string, string|number]>): Promise<any> {
+async function apiQuery(endpoint: string, params?: {isAuthenticated?: boolean, searchParams?: Array<[string, string|number]>}): Promise<any> {
     const url = new URL(endpoint)
 
-    // The edit context gives access to title.raw and excerpt.raw
-    url.searchParams.append('context', 'edit')
-
-    if(searchParams) {
-        searchParams.forEach(param => {
+    if(params && params.searchParams) {
+        params.searchParams.forEach(param => {
             url.searchParams.append(param[0], String(param[1]))
         })
     }
-    return fetch(url.toString(), {
-        headers: [
-            ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
-        ]
-    })
+
+    if(params && params.isAuthenticated) {
+        return fetch(url.toString(), {
+            headers: [
+                ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
+            ]
+        })
+    } else {
+        return fetch(url.toString())
+    }
 }
 
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
@@ -356,12 +358,12 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit?: num
         const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(postType)}`
 
         // Get number of items to retrieve
-        response = await apiQuery(endpoint, [['per_page', 1]])
+        response = await apiQuery(endpoint, {searchParams: [['per_page', 1]]})
         const maxAvailable = response.headers.get("X-WP-TotalPages")
         const count = limit && limit < maxAvailable ? limit : maxAvailable
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            response = await apiQuery(endpoint, [['per_page', perPage],['page', page]])
+            response = await apiQuery(endpoint, {searchParams: [['per_page', perPage],['page', page]]})
             const postsCurrentPage = await response.json()
             posts.push(...postsCurrentPage)
         }
@@ -371,7 +373,7 @@ export async function getPosts(postTypes: string[]=['post', 'page'], limit?: num
 
 export async function getPostType(search: number|string): Promise<string> {
     const paramName = typeof search === "number" ? 'id' : 'slug'
-    const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, [[paramName, search]])
+    const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, {searchParams: [[paramName, search]]})
     const type = await response.json()
 
     return type
@@ -387,7 +389,7 @@ export async function getPost(id: number): Promise<any> {
 
 export async function getPostBySlug(slug: string): Promise<any[]> {
     const type = await getPostType(slug)
-    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`, [['slug', slug]])
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`, {searchParams: [['slug', slug]]})
     const postArray = await response.json()
 
     return postArray
@@ -395,7 +397,7 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
 
 export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
-    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`, {isAuthenticated: true})
     const revisions = await response.json()
 
     return revisions[0]
@@ -415,19 +417,19 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export function getFullPost(post: any, excludeContent?: boolean): FullPost {
+export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
     return {
-        id: post.id,
-        type: post.type,
-        slug: post.slug,
-        path: post.reading_context && post.reading_context === 'entry' ? `${post.path}#${urlSlug(post.first_heading)}` : post.path,
-        title: post.title.raw,
-        date: new Date(post.date),
-        modifiedDate: new Date(post.modified),
-        authors: post.authors_name || [],
-        content: excludeContent ? '' : post.content.rendered,
-        excerpt: post.excerpt.raw,
-        imageUrl: defaultTo(post.featured_media_path, '/default-thumbnail.jpg')
+        id: postApi.id,
+        type: postApi.type,
+        slug: postApi.slug,
+        path: postApi.reading_context && postApi.reading_context === 'entry' ? `${postApi.path}#${urlSlug(postApi.first_heading)}` : postApi.path,
+        title: decodeHTML(postApi.title.rendered),
+        date: new Date(postApi.date),
+        modifiedDate: new Date(postApi.modified),
+        authors: postApi.authors_name || [],
+        content: excludeContent ? '' : postApi.content.rendered,
+        excerpt: decodeHTML(postApi.excerpt.rendered),
+        imageUrl: defaultTo(postApi.featured_media_path, '/default-thumbnail.jpg')
     }
 }
 
