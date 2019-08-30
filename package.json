@@ -149,7 +149,7 @@
     "react-router-dom": "^5.0.1",
     "react-tag-autocomplete": "https://github.com/mispy/react-tags",
     "reflect-metadata": "^0.1.13",
-    "sass-loader": "^7.1.0",
+    "sass-loader": "^8.0.0",
     "save-svg-as-png": "^1.4.14",
     "sharp": "^0.23.0",
     "shell-quote": "^1.6.1",
