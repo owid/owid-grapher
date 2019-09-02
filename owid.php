@@ -63,11 +63,15 @@ function owid_enable_revisions_reusable_blocks()
 
 add_action('init', 'owid_enable_revisions_reusable_blocks');
 
+
 /*
- * Remove wrapping <p> tags around rendered content and excerpt fields
+ * Disable wpautop processing
  */
 
+// wpautop processing applied more selectively in the baker's formatting process
 remove_filter('the_content', 'wpautop');
+
+// Remove wrapping <p> tags in excerpt fields
 remove_filter('the_excerpt', 'wpautop');
 
 
