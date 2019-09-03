@@ -359,13 +359,19 @@ export class SiteBaker {
     }
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
-        // Ensure there is a git repo in there
-        await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
-
+        // Deploy directly to Netlify (faster than using the github hook)
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
-            // Deploy directly to Netlify (faster than using the github hook)
-            await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
+            this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
         }
+
+        // Ensure there is a git repo in there
+        this.exec(`cd ${BAKED_SITE_DIR} && git init`)
+
+        // Prettify HTML source for easier debugging
+        // Target root level HTML files only (entries and posts) for performance
+        // reasons.
+        // TODO: check again --only-changed
+        // this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg) {
             this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
