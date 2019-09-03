@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 RSYNC="rsync -havz --progress"
-LIVE_HOST="owid@owid"
+LIVE_HOST="owid@owid-live"
 LIVE_DBNAME="live_wordpress"
 STAGING_DBNAME="staging_wordpress"
 
