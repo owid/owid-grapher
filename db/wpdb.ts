@@ -116,50 +116,6 @@ interface ImageUpload {
     }[]
 }
 
-// TODO this is the bottleneck when rendering posts on the dev server
-let cachedUploadDex: Map<string, ImageUpload>
-export async function getUploadedImages() {
-    if (cachedUploadDex)
-        return cachedUploadDex
-
-    const paths = glob.sync(path.join(WORDPRESS_DIR, 'wp-content/uploads/**/*'))
-
-    const uploadDex = new Map<string, ImageUpload>()
-
-    for (const filepath of paths) {
-        const filename = path.basename(filepath)
-        const match = filepath.match(/(\/wp-content.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
-        if (match) {
-            const dimensions = await imageSize(filepath)
-            const [_, dirpath, slug, dims, filetype] = match
-            let upload = uploadDex.get(dirpath+slug)
-            if (!upload) {
-                upload = {
-                    slug: slug,
-                    originalUrl: `${path.join(dirpath, slug)}.${filetype}`,
-                    variants: []
-                }
-                uploadDex.set(dirpath+slug, upload)
-            }
-
-            upload.variants.push({
-                url: path.join(dirpath, filename),
-                width: dimensions.width,
-                height: dimensions.height
-            })
-
-            uploadDex.set(filename, upload)
-        }
-    }
-
-    uploadDex.forEach(upload => {
-        upload.variants = _.sortBy(upload.variants, v => v.width)
-    })
-
-    cachedUploadDex = uploadDex
-    return uploadDex
-}
-
 // Retrieve a map of post ids to authors
 let cachedAuthorship: Map<number, string[]>
 export async function getAuthorship(): Promise<Map<number, string[]>> {
