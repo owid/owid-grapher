@@ -74,6 +74,17 @@ remove_filter('the_content', 'wpautop');
 // Remove wrapping <p> tags in excerpt fields
 remove_filter('the_excerpt', 'wpautop');
 
+/*
+ * Remove automatically created excerpt (generated in baker if missing)
+ */
+
+function remove_automatic_excerpt($excerpt)
+{
+	return has_excerpt() ? $excerpt : '';
+}
+
+add_filter('the_excerpt', 'remove_automatic_excerpt');
+
 
 /*
  * API fields
