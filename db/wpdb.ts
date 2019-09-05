@@ -1,8 +1,11 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import {WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS} from 'serverSettings'
+import { WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER } from 'serverSettings'
+import { WORDPRESS_URL, BAKED_BASE_URL } from 'settings'
 import * as Knex from 'knex'
+import fetch from 'node-fetch'
+const urlSlug = require('url-slug')
 
 import * as path from 'path'
 import * as glob from 'glob'
@@ -14,6 +17,8 @@ import { promisify } from 'util'
 import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
 import { defaultTo } from 'charts/Util'
+import { Base64 } from 'js-base64'
+
 const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
@@ -61,6 +66,29 @@ class WPDB {
 
 const wpdb = new WPDB()
 
+const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
+const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
+
+async function apiQuery(endpoint: string, params?: {isAuthenticated?: boolean, searchParams?: Array<[string, string|number]>}): Promise<any> {
+    const url = new URL(endpoint)
+
+    if(params && params.searchParams) {
+        params.searchParams.forEach(param => {
+            url.searchParams.append(param[0], String(param[1]))
+        })
+    }
+
+    if(params && params.isAuthenticated) {
+        return fetch(url.toString(), {
+            headers: [
+                ['Authorization', 'Basic ' + Base64.encode(`${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`)]
+            ]
+        })
+    } else {
+        return fetch(url.toString())
+    }
+}
+
 export async function query(queryStr: string, params?: any[]): Promise<any[]> {
     return wpdb.query(queryStr, params)
 }
@@ -86,50 +114,6 @@ interface ImageUpload {
         width: number
         height: number
     }[]
-}
-
-// TODO this is the bottleneck when rendering posts on the dev server
-let cachedUploadDex: Map<string, ImageUpload>
-export async function getUploadedImages() {
-    if (cachedUploadDex)
-        return cachedUploadDex
-
-    const paths = glob.sync(path.join(WORDPRESS_DIR, 'wp-content/uploads/**/*'))
-
-    const uploadDex = new Map<string, ImageUpload>()
-
-    for (const filepath of paths) {
-        const filename = path.basename(filepath)
-        const match = filepath.match(/(\/wp-content.*\/)([^\/]*?)-?(\d+x\d+)?\.(png|jpg|jpeg|gif)$/)
-        if (match) {
-            const dimensions = await imageSize(filepath)
-            const [_, dirpath, slug, dims, filetype] = match
-            let upload = uploadDex.get(dirpath+slug)
-            if (!upload) {
-                upload = {
-                    slug: slug,
-                    originalUrl: `${path.join(dirpath, slug)}.${filetype}`,
-                    variants: []
-                }
-                uploadDex.set(dirpath+slug, upload)
-            }
-
-            upload.variants.push({
-                url: path.join(dirpath, filename),
-                width: dimensions.width,
-                height: dimensions.height
-            })
-
-            uploadDex.set(filename, upload)
-        }
-    }
-
-    uploadDex.forEach(upload => {
-        upload.variants = _.sortBy(upload.variants, v => v.width)
-    })
-
-    cachedUploadDex = uploadDex
-    return uploadDex
 }
 
 // Retrieve a map of post ids to authors
@@ -295,23 +279,78 @@ export async function getFeaturedImages() {
     return featuredImages
 }
 
-export async function getFeaturedImageUrl(postId: number): Promise<string|undefined> {
-    if (cachedFeaturedImages)
-        return cachedFeaturedImages.get(postId)
-    else {
-        const rows = await wpdb.query(`
-            SELECT wp_postmeta.post_id, wp_posts.guid
-            FROM wp_postmeta
-            INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value
-            WHERE wp_postmeta.meta_key='_thumbnail_id' AND wp_postmeta.post_id=?`, [postId])
-        return rows.length ? rows[0].guid : undefined
+function getEndpointSlugFromType(type: string): string {
+    // page => pages, post => posts
+    return `${type}s`
+}
+
+export function isPostEmbedded(post: FullPost): boolean {
+    return post.path.indexOf("#") !== -1
+}
+
+// Limit not supported with multiple post types:
+// When passing multiple post types, the limit is applied to the resulting array
+// of sequentially sorted posts (all blog posts, then all pages, ...), so there
+// will be a predominance of a certain post type.
+export async function getPosts(postTypes: string[]=['post', 'page'], limit?: number): Promise<any[]> {
+    const perPage = 50
+    const posts: any[] = []
+    let response
+
+    for(const postType of postTypes) {
+        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(postType)}`
+
+        // Get number of items to retrieve
+        response = await apiQuery(endpoint, {searchParams: [['per_page', 1]]})
+        const maxAvailable = response.headers.get("X-WP-TotalPages")
+        const count = limit && limit < maxAvailable ? limit : maxAvailable
+
+        for (let page = 1; page <= Math.ceil(count / perPage); page++) {
+            response = await apiQuery(endpoint, {searchParams: [['per_page', perPage],['page', page]]})
+            const postsCurrentPage = await response.json()
+            posts.push(...postsCurrentPage)
+        }
     }
+    return limit ? posts.slice(0, limit) : posts
+}
+
+export async function getPostType(search: number|string): Promise<string> {
+    const paramName = typeof search === "number" ? 'id' : 'slug'
+    const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, {searchParams: [[paramName, search]]})
+    const type = await response.json()
+
+    return type
+}
+
+export async function getPost(id: number): Promise<any> {
+    const type = await getPostType(id)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    const post = await response.json()
+
+    return post
+}
+
+export async function getPostBySlug(slug: string): Promise<any[]> {
+    const type = await getPostType(slug)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`, {searchParams: [['slug', slug]]})
+    const postArray = await response.json()
+
+    return postArray
+}
+
+export async function getLatestPostRevision(id: number): Promise<any> {
+    const type = await getPostType(id)
+    const response = await apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`, {isAuthenticated: true})
+    const revisions = await response.json()
+
+    return revisions[0]
 }
 
 export interface FullPost {
     id: number
     type: 'post'|'page'
     slug: string
+    path: string
     title: string
     date: Date
     modifiedDate: Date
@@ -321,59 +360,31 @@ export interface FullPost {
     imageUrl?: string
 }
 
-export async function getFullPost(row: any): Promise<FullPost> {
-    const authorship = await getAuthorship()
-    const permalinks = await getPermalinks()
-    const featuredImageUrl = await getFeaturedImageUrl(row.ID)
-
-    const postId = row.post_status === "inherit" ? row.post_parent : row.ID
-
+export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
     return {
-        id: row.ID,
-        type: row.post_type,
-        slug: permalinks.get(row.ID, row.post_name),
-        title: row.post_title,
-        date: new Date(row.post_date_gmt),
-        modifiedDate: new Date(row.post_modified_gmt),
-        authors: authorship.get(postId) || [],
-        content: row.post_content,
-        excerpt: row.post_excerpt,
-        imageUrl: featuredImageUrl
+        id: postApi.id,
+        type: postApi.type,
+        slug: postApi.slug,
+        path: postApi.reading_context && postApi.reading_context === 'entry' ? `${postApi.path}#${urlSlug(postApi.first_heading)}` : postApi.path,
+        title: decodeHTML(postApi.title.rendered),
+        date: new Date(postApi.date),
+        modifiedDate: new Date(postApi.modified),
+        authors: postApi.authors_name || [],
+        content: excludeContent ? '' : postApi.content.rendered,
+        excerpt: decodeHTML(postApi.excerpt.rendered),
+        imageUrl: BAKED_BASE_URL + defaultTo(postApi.featured_media_path, '/default-thumbnail.jpg')
     }
 }
 
-export interface PostInfo {
-    title: string
-    date: Date
-    slug: string
-    authors: string[]
-    imageUrl?: string,
-    tags: { id: number; name: string; }[]
-}
-
-let cachedPosts: PostInfo[]
-export async function getBlogIndex(): Promise<PostInfo[]> {
+let cachedPosts: FullPost[]
+export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
 
-    const rows = await wpdb.query(`
-        SELECT ID, post_title, post_date, post_name FROM wp_posts
-        WHERE post_status='publish' AND post_type='post' ORDER BY post_date DESC
-    `)
+    // TODO: do not get post content in the first place
+    const posts = await getPosts(['post'])
 
-    const permalinks = await getPermalinks()
-    const authorship = await getAuthorship()
-    const featuredImages = await getFeaturedImages()
-    const tagsByPostId = await Post.tagsByPostId()
-
-    cachedPosts = rows.map(row => {
-        return {
-            title: row.post_title,
-            date: new Date(row.post_date),
-            slug: permalinks.get(row.ID, row.post_name),
-            authors: authorship.get(row.ID)||[],
-            imageUrl: defaultTo(featuredImages.get(row.ID), "/default-thumbnail.jpg"),
-            tags: tagsByPostId.get(row.ID)||[]
-        }
+    cachedPosts = posts.map(post => {
+        return getFullPost(post, true)
     })
 
     return cachedPosts

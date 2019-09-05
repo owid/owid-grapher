@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Head } from './Head'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
-import { CategoryWithEntries, PostInfo } from 'db/wpdb'
+import { CategoryWithEntries, FullPost } from 'db/wpdb'
 import { formatDate } from '../formatting'
 import { faRss } from '@fortawesome/free-solid-svg-icons/faRss'
 import { faBook } from '@fortawesome/free-solid-svg-icons/faBook'
@@ -15,7 +15,7 @@ import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
 import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostInfo[], totalCharts: number }) => {
+export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPost[], totalCharts: number }) => {
     const { entries, posts, totalCharts } = props
 
     // Structured data for google
@@ -213,7 +213,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: PostIn
                                 </div>
                                 <div className="list">
                                     {posts.slice(0,8).map(post => <div key={post.slug} className="list-item-wrapper">
-                                        <a href={`/${post.slug}`} className="list-item" data-track-click data-track-note="homepage-explainer">
+                                        <a href={`/${post.path}`} className="list-item" data-track-click data-track-note="homepage-explainer">
                                             <div className="thumbnail">
                                                 <div className="cover-image" style={{ backgroundImage: post.imageUrl && `url(${post.imageUrl})` }} />
                                             </div>

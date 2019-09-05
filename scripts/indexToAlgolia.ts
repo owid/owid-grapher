@@ -54,7 +54,7 @@ async function indexToAlgolia() {
         'rules'
     ])
 
-    const rows = await wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='post' OR post_type='page') AND post_status='publish'`)
+    const postsApi = await wpdb.getPosts()
 
     const records = []
 
@@ -68,8 +68,17 @@ async function indexToAlgolia() {
         })
     }
 
-    for (const row of rows) {
-        const rawPost = await wpdb.getFullPost(row)
+    for (const postApi of postsApi) {
+        const rawPost = await wpdb.getFullPost(postApi)
+
+        // Index the content of blog posts as entry sections (BPES) within the context
+        // of the embedding entry, and not the blog post. In other words,
+        // searching for BPES content will show up in the SERP under an entry
+        // block.
+        if (wpdb.isPostEmbedded(rawPost)) {
+            continue
+        }
+
         const post = await formatPost(rawPost, { footnotes: false })
         const postText = htmlToPlaintext(post.html)
         const chunks = chunkParagraphs(postText, 1000)
@@ -88,10 +97,10 @@ async function indexToAlgolia() {
         let i = 0
         for (const c of chunks) {
             records.push({
-                objectID: `${row.ID}-c${i}`,
+                objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
                 type: postType,
-                slug: post.slug,
+                slug: post.path,
                 title: post.title,
                 excerpt: post.excerpt,
                 authors: post.authors,

@@ -17,7 +17,7 @@ import * as glob from 'glob'
 import * as _ from 'lodash'
 import * as fs from 'fs-extra'
 import { WORDPRESS_DIR } from 'serverSettings'
-import { formatPost, extractFormattingOptions, FormattedPost } from './formatting'
+import { formatPost, extractFormattingOptions } from './formatting'
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from 'cheerio'
 import { JsonError, slugify } from "utils/server/serverUtil"
@@ -67,22 +67,20 @@ export async function renderChartsPage() {
 }
 
 export async function renderPageBySlug(slug: string) {
-    const rows = await wpdb.query(`SELECT * FROM wp_posts AS post WHERE post_name=?`, [slug])
-    if (!rows.length)
+    const postApiArray = await wpdb.getPostBySlug(slug)
+    if (!postApiArray.length)
         throw new JsonError(`No page found by slug ${slug}`, 404)
 
-    return renderPage(rows[0])
+    return renderPage(postApiArray[0])
 }
 
 export async function renderPageById(id: number, isPreview?: boolean): Promise<string> {
-    let rows
+    let postApi = await wpdb.getPost(id)
     if (isPreview) {
-        rows = await wpdb.query(`SELECT post.*, parent.post_type FROM wp_posts AS post JOIN wp_posts AS parent ON parent.ID=post.post_parent WHERE post.post_parent=? AND post.post_type='revision' ORDER BY post_modified DESC`, [id])
-    } else {
-        rows = await wpdb.query(`SELECT * FROM wp_posts AS post WHERE ID=?`, [id])
+        const revision = await wpdb.getLatestPostRevision(id)
+        postApi = {...revision, authors_name: postApi.authors_name, type: postApi.type, path: postApi.path}
     }
-
-    return renderPage(rows[0])
+    return renderPage(postApi)
 }
 
 export async function renderMenuJson() {
@@ -90,8 +88,8 @@ export async function renderMenuJson() {
     return JSON.stringify({ categories: categories })
 }
 
-async function renderPage(postRow: wpPostRow) {
-    const post = await wpdb.getFullPost(postRow)
+async function renderPage(postApi: object) {
+    const post = wpdb.getFullPost(postApi)
     const entries = await wpdb.getEntriesByCategory()
 
     const $ = cheerio.load(post.content)
@@ -107,7 +105,7 @@ async function renderPage(postRow: wpPostRow) {
     const formattingOptions = extractFormattingOptions(post.content)
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
-    if (postRow.post_type === 'post')
+    if (post.type === 'post')
         return renderToHtmlPage(<BlogPostPage post={formatted} formattingOptions={formattingOptions} />)
     else
         return renderToHtmlPage(<LongFormPage entries={entries} post={formatted} formattingOptions={formattingOptions} />)
@@ -161,14 +159,8 @@ export async function renderNotFoundPage() {
 }
 
 export async function makeAtomFeed() {
-    const postRows = await wpdb.query(`SELECT * FROM wp_posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 10`)
-
-    const posts: FormattedPost[] = []
-    for (const row of postRows) {
-        const fullPost = await wpdb.getFullPost(row)
-        const formattingOptions = extractFormattingOptions(fullPost.content)
-        posts.push(await formatPost(fullPost, formattingOptions))
-    }
+    const postsApi = await wpdb.getPosts(['post'], 10)
+    const posts: wpdb.FullPost[] = postsApi.map(postApi => wpdb.getFullPost(postApi, true))
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -180,11 +172,11 @@ export async function makeAtomFeed() {
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts.map(post => `<entry>
     <title><![CDATA[${post.title}]]></title>
-    <id>${BAKED_BASE_URL}/${post.slug}</id>
-    <link rel="alternate" href="${BAKED_BASE_URL}/${post.slug}"/>
+    <id>${BAKED_BASE_URL}/${post.path}</id>
+    <link rel="alternate" href="${BAKED_BASE_URL}/${post.path}"/>
     <published>${post.date.toISOString()}</published>
     <updated>${post.modifiedDate.toISOString()}</updated>
-    ${post.authors.map(author => `<author><name>${author}</name></author>`).join("")}
+    ${post.authors.map((author: string) => `<author><name>${author}</name></author>`).join("")}
     <summary><![CDATA[${post.excerpt}]]></summary>
 </entry>`).join("\n")}
 </feed>

@@ -32,6 +32,8 @@ export const WORDPRESS_DB_USER: string = process.env.WORDPRESS_DB_USER || proces
 export const WORDPRESS_DB_PASS: string = process.env.WORDPRESS_DB_PASS || process.env.DB_PASS || ""
 export const WORDPRESS_DB_HOST: string = process.env.WORDPRESS_DB_HOST || process.env.DB_HOST || "localhost"
 export const WORDPRESS_DB_PORT: number = process.env.WORDPRESS_DB_PORT ? parseInt(process.env.WORDPRESS_DB_PORT) : process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306
+export const WORDPRESS_API_USER: string = process.env.WORDPRESS_API_USER || ""
+export const WORDPRESS_API_PASS: string = process.env.WORDPRESS_API_PASS || ""
 
 // Where the static build output goes
 export const BAKED_SITE_DIR: string = process.env.BAKED_SITE_DIR || path.join(BASE_DIR, 'bakedSite')

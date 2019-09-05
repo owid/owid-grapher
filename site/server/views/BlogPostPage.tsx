@@ -9,7 +9,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
     const {post, formattingOptions} = props
 
     const pageTitle = post.title
-    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
+    const canonicalUrl = `${BAKED_BASE_URL}/${post.path}`
     const pageDesc = post.excerpt
 
     return <html>

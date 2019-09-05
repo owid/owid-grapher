@@ -8,7 +8,7 @@ import * as cheerio from 'cheerio'
 
 import * as wpdb from 'db/wpdb'
 import * as db from 'db/db'
-import { formatPost, FormattedPost, extractFormattingOptions } from './formatting'
+import { formatPost, extractFormattingOptions } from './formatting'
 import { LongFormPage } from './views/LongFormPage'
 import { BlogPostPage } from './views/BlogPostPage'
 import * as settings from 'settings'
@@ -138,22 +138,24 @@ export class SiteBaker {
 
     // Bake all Wordpress posts, both blog posts and entry pages
     async bakePosts() {
-        const postsQuery = wpdb.query(`SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status='publish'`)
-
-        const rows = await postsQuery
+        const postsApi = await wpdb.getPosts()
 
         const bakingPosts = []
         const postSlugs = []
-        for (const row of rows) {
-            if (row.post_name === 'blog') // Handled separately
+        for (const postApi of postsApi) {
+            const post = wpdb.getFullPost(postApi)
+            // blog: handled separately
+            // isPostEmbedded: post displayed in the entry only (not on its own
+            // page), skipping.
+            if (post.slug === 'blog' || wpdb.isPostEmbedded(post))
                 continue
 
-            const post = await wpdb.getFullPost(row)
             postSlugs.push(post.slug)
-            bakingPosts.push(post)
+            await this.bakePost(post)
         }
 
-        await Promise.all(bakingPosts.map(post => this.bakePost(post)))
+        // Maxes out resources (TODO: RCA)
+        // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
 
         // Delete any previously rendered posts that aren't in the database
         const existingSlugs = glob.sync(`${BAKED_SITE_DIR}/**/*.html`).map(path => path.replace(`${BAKED_SITE_DIR}/`, '').replace(".html", ""))
@@ -357,13 +359,19 @@ export class SiteBaker {
     }
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
-        // Ensure there is a git repo in there
-        await this.exec(`cd ${BAKED_SITE_DIR} && git init`)
-
+        // Deploy directly to Netlify (faster than using the github hook)
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
-            // Deploy directly to Netlify (faster than using the github hook)
-            await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
+            this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`)
         }
+
+        // Ensure there is a git repo in there
+        this.exec(`cd ${BAKED_SITE_DIR} && git init`)
+
+        // Prettify HTML source for easier debugging
+        // Target root level HTML files only (entries and posts) for performance
+        // reasons.
+        // TODO: check again --only-changed
+        this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg) {
             this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
