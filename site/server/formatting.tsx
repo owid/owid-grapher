@@ -295,7 +295,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         footnotes: footnotes,
         acknowledgements: acknowledgements,
         references: references,
-        excerpt: post.excerpt || $($("p")[0]).text(),
+        excerpt: post.excerpt || $("p").first().text(),
         imageUrl: post.imageUrl,
         tocHeadings: tocHeadings
     }
