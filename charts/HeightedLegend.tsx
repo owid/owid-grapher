@@ -133,9 +133,12 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { legend, x, yScale } = this.props
 
         return sortBy(legend.marks.map(m => {
-            const y = yScale.place(m.item.yValue)
+            // place vertically centered
+            const initialY = yScale.place(m.item.yValue) - m.height / 2
+            // ensure label doesn't go beyond the top or bottom of the chart
+            const y = Math.min(Math.max(initialY, yScale.rangeMin), yScale.rangeMax - m.height)
 
-            const bounds = new Bounds(x, y - m.height / 2, m.width, m.height)
+            const bounds = new Bounds(x, y, m.width, m.height)
 
             return {
                 mark: m,
