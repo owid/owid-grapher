@@ -45,7 +45,8 @@ export async function configureAlgolia() {
         ['pork', 'pigmeat'],
         ['atomic', 'nuclear'],
         ['pop', 'population'],
-        ['cheese', 'dairy']
+        ['cheese', 'dairy'],
+        ['gdp', 'economic growth']
     ]
 
     // Send all our country variant names to algolia as synonyms
