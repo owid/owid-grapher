@@ -5,7 +5,7 @@
 
 import * as React from 'react'
 import classnames from 'classnames'
-import { some, noop, includes, cloneDeep, max, min, sortBy } from './Util'
+import { some, noop, includes, cloneDeep, max, min, sortBy, sumBy, flatten } from './Util'
 import { defaultTo } from './Util'
 import { computed, action, reaction, IReactionDisposer } from 'mobx'
 import { observer } from 'mobx-react'
@@ -14,6 +14,9 @@ import { AxisScale } from './AxisScale'
 import { Bounds } from './Bounds'
 import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
 import { ControlsOverlay, AddEntityButton } from './Controls'
+
+const LEGEND_ITEM_MIN_SPACING_PX = 2
+const ADD_BUTTON_HEIGHT = 30
 
 export interface HeightedLegendProps {
     items: HeightedLegendItem[],
@@ -44,6 +47,24 @@ interface PlacedMark {
     repositions: number
     groupPosition: number
     groupSize: number
+}
+
+function groupBounds(group: PlacedMark[]): Bounds {
+    const first = group[0]
+    const last = group[group.length - 1]
+    const height = last.bounds.bottom - first.bounds.top
+    const width = Math.max(first.bounds.width, last.bounds.width)
+    return new Bounds(first.bounds.x, first.bounds.y, width, height)
+}
+
+function stackGroupVertically(group: PlacedMark[], y: number) {
+    let currentY = y
+    group.forEach(mark => {
+        mark.bounds = mark.bounds.extend({ y: currentY })
+        mark.repositions += 1
+        currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING_PX
+    })
+    return group
 }
 
 export class HeightedLegend {
@@ -101,13 +122,14 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
         const x = mark.origBounds.x
         const markerX1 = x+5
         const markerX2 = x+legend.leftPadding-5
-        const markerXMid = (markerX1+markerX2)/2 - (mark.groupPosition/mark.groupSize)*(markerX2-markerX1-5)
-        const lineColor = isFocus ? "#666" : "#ddd"
+        const markerXMid = (markerX1+markerX2)/2
+        const lineColor = isFocus ? "#999" : "#eee"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
             {needsLines && <g className="indicator">
-                <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
+                <path d={`M${markerX1},${mark.origBounds.centerY} C${markerXMid},${mark.origBounds.centerY} ${markerXMid},${mark.bounds.centerY} ${markerX2},${mark.bounds.centerY}`} stroke={lineColor} strokeWidth={0.5} fill="none" />
+                {/* <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
                 <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
-                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
+                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/> */}
             </g>}
             <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
             {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ddd" })}
@@ -133,17 +155,18 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         const { legend, x, yScale } = this.props
 
         return sortBy(legend.marks.map(m => {
-            // place vertically centered
+            // place vertically centered at Y value
             const initialY = yScale.place(m.item.yValue) - m.height / 2
+            const origBounds = new Bounds(x, initialY, m.width, m.height)
+
             // ensure label doesn't go beyond the top or bottom of the chart
             const y = Math.min(Math.max(initialY, yScale.rangeMin), yScale.rangeMax - m.height)
-
             const bounds = new Bounds(x, y, m.width, m.height)
 
             return {
                 mark: m,
                 y: y,
-                origBounds: bounds,
+                origBounds: origBounds,
                 bounds: bounds,
                 isOverlap: false,
                 repositions: 0,
@@ -157,108 +180,46 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
 
     }
 
-    // Each mark starts at target height. When a conflict is detected, the lower label is pushed down a bit.
-    @computed get topDownPlacement() {
+    @computed get standardPlacement() {
         const { initialMarks } = this
         const { yScale } = this.props
 
-        const marks = cloneDeep(initialMarks)
-        for (let i = 0; i < marks.length; i++) {
-            for (let j = i + 1; j < marks.length; j++) {
-                const m1 = marks[i]
-                const m2 = marks[j]
-                const isOverlap = m1.bounds.intersects(m2.bounds)
-                if (isOverlap) {
-                    const overlapHeight = (m1.bounds.y + m1.bounds.height) - m2.bounds.y
-                    const newBounds = m2.bounds.extend({ y: m2.bounds.y + overlapHeight + 2 })
+        const groups: PlacedMark[][] = cloneDeep(initialMarks).map(mark => [mark])
 
-                    // Don't push off the edge of the chart
-                    if (newBounds.bottom > yScale.rangeMax) {
-                        m2.isOverlap = true
-                    } else {
-                        m2.bounds = newBounds
-                        m2.repositions += 1
-                    }
+        let hasOverlap
+
+        do {
+            hasOverlap = false
+            for (let i = 0; i < groups.length - 1; i++) {
+                const topGroup = groups[i]
+                const bottomGroup = groups[i+1]
+                const topBounds = groupBounds(topGroup)
+                const bottomBounds = groupBounds(bottomGroup)
+                if (topBounds.intersects(bottomBounds)) {
+                    const overlapHeight = topBounds.bottom - bottomBounds.top + LEGEND_ITEM_MIN_SPACING_PX
+                    const newHeight = topBounds.height + LEGEND_ITEM_MIN_SPACING_PX + bottomBounds.height
+                    const targetY = topBounds.top - (overlapHeight * (bottomGroup.length / (topGroup.length + bottomGroup.length)))
+                    let newY = targetY
+                    if (targetY < yScale.rangeMin) newY = yScale.rangeMin
+                    else if (targetY + newHeight > yScale.rangeMax) newY = yScale.rangeMax - newHeight
+                    const newGroup = [...topGroup, ...bottomGroup]
+                    stackGroupVertically(newGroup, newY)
+                    groups.splice(i, 2, newGroup)
+                    hasOverlap = true
+                    break
                 }
             }
-        }
-
-        // Group adjacent marks together for placing positional indicators
-        const groups = []
-        let currentGroup = []
-        for (const mark of marks) {
-            if (currentGroup.length && mark.repositions === 0) {
-                groups.push(currentGroup)
-                currentGroup = []
-            }
-            currentGroup.push(mark)
-        }
-        if (currentGroup.length)
-            groups.push(currentGroup)
+        } while (hasOverlap && groups.length > 1)
 
         for (const group of groups) {
             const middleIndex = Math.floor(group.length/2)
             for (const mark of group) {
-                mark.groupPosition = group.indexOf(mark)-middleIndex
+                mark.groupPosition = -group.indexOf(mark) + middleIndex
                 mark.groupSize = group.length
             }
         }
 
-        return marks
-    }
-
-    // Inverse placement. Each mark starts at target height. When conflict is detected, upper label is pushed up.
-    @computed get bottomUpPlacement() {
-        const { initialMarks } = this
-        const { yScale } = this.props
-
-        const marks = cloneDeep(initialMarks).reverse()
-        for (let i = 0; i < marks.length; i++) {
-            const m1 = marks[i]
-            if (i === 0 && m1.bounds.bottom > yScale.rangeMax) {
-                m1.bounds = m1.bounds.extend({ y: yScale.rangeMax - m1.bounds.height })
-            }
-
-            for (let j = i + 1; j < marks.length; j++) {
-                const m2 = marks[j]
-                const isOverlap = m1.bounds.intersects(m2.bounds)
-                if (isOverlap) {
-                    const overlapHeight = (m2.bounds.y + m2.bounds.height) - m1.bounds.y
-                    const newBounds = m2.bounds.extend({ y: m2.bounds.y - overlapHeight - 2 })
-
-                    // Don't push off the edge of the chart
-                    if (newBounds.top < yScale.rangeMin) {
-                        m2.isOverlap = true
-                    } else {
-                        m2.bounds = newBounds
-                        m2.repositions -= 1
-                    }
-                }
-            }
-        }
-
-        // Group adjacent marks together for placing positional indicators
-        const groups = []
-        let currentGroup = []
-        for (const mark of marks) {
-            if (currentGroup.length && mark.repositions === 0) {
-                groups.push(currentGroup)
-                currentGroup = []
-            }
-            currentGroup.push(mark)
-        }
-        if (currentGroup.length)
-            groups.push(currentGroup)
-
-        for (const group of groups) {
-            const middleIndex = Math.floor(group.length/2)
-            for (const mark of group) {
-                mark.groupPosition = group.indexOf(mark)-middleIndex
-                mark.groupSize = group.length
-            }
-        }
-
-        return marks
+        return flatten(groups)
     }
 
     // Overlapping placement, for when we really can't find a solution without overlaps.
@@ -279,13 +240,22 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     @computed get placedMarks() {
-        const topOverlaps = this.topDownPlacement.filter(m => m.isOverlap).length
-        if (topOverlaps === 0) return this.topDownPlacement
+        const nonOverlappingMinHeight = sumBy(this.initialMarks, mark => mark.bounds.height) + this.initialMarks.length * LEGEND_ITEM_MIN_SPACING_PX
+        const availableHeight = this.context.chart.data.canAddData ? (this.props.yScale.rangeSize - ADD_BUTTON_HEIGHT) : this.props.yScale.rangeSize
 
-        const bottomOverlaps = this.bottomUpPlacement.filter(m => m.isOverlap).length
-        if (bottomOverlaps === 0) return this.bottomUpPlacement
-
-        return this.overlappingPlacement
+        // Need to be careful here – the controls overlay will automatically add padding if
+        // needed to fit the floating 'Add country' button, therefore decreasing the space
+        // available to render the legend.
+        // At a certain height, this ends up infinitely toggling between the two placement
+        // modes. The overlapping placement allows the button to float without additional
+        // padding, which then frees up space, causing the legend to render with
+        // standardPlacement.
+        // This is why we need to take into account the height of the 'Add country' button.
+        if (nonOverlappingMinHeight > availableHeight) {
+            return this.overlappingPlacement
+        } else {
+            return this.standardPlacement
+        }
     }
 
     @computed get backgroundMarks() {
@@ -346,7 +316,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                     y={Math.max(0, defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0))}
                     align='left'
                     verticalAlign='bottom'
-                    height={30}
+                    height={ADD_BUTTON_HEIGHT}
                     label={`Add ${this.context.chart.entityType}`}
                     onClick={this.onAddClick}
                 />
