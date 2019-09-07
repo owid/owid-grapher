@@ -323,7 +323,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
             ? this.props.legend.leftPadding
             : this.props.legend.width > 70 ? 21 : 5
 
-        return <g className={classnames("HeightedLegend", {"clickable": this.props.clickableMarks})} onMouseLeave={() => this.onMouseLeave()}>
+        return <g className="HeightedLegend" style={{ cursor: this.props.clickableMarks ? "pointer" : "default" }} onMouseLeave={() => this.onMouseLeave()}>
             {this.renderBackground()}
             {this.renderFocus()}
             {this.context.chart.data.canAddData && <ControlsOverlay id="add-country">

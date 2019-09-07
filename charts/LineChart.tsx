@@ -140,10 +140,8 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.focusKeys.includes(datakey)) {
-            this.chart.focusKeys = this.chart.focusKeys.filter(key => key !== datakey)
-        } else {
-            this.chart.focusKeys.push(datakey)
+        if (this.chart.data.canAddData) {
+            this.context.chartView.isSelectingData = true
         }
     }
 
@@ -156,7 +154,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     }
 
     @computed get focusKeys(): string[] {
-        return this.hoverKey ? [...this.chart.focusKeys, this.hoverKey] : this.chart.focusKeys
+        return this.hoverKey ? [this.hoverKey] : []
     }
 
     @computed get isFocusMode(): boolean {
@@ -205,7 +203,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {chart.comparisonLines && chart.comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
-                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={this.focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} clickableMarks={true} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
+                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={this.focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} clickableMarks={this.chart.data.canAddData} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
                 <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={this.focusKeys} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}

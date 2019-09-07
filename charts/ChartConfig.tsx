@@ -127,7 +127,6 @@ export class ChartConfigProps {
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
-    @observable focusKeys: DataKey[] = []
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
@@ -291,18 +290,6 @@ export class ChartConfig {
     set timeDomain(value: [number | undefined, number | undefined]) {
         this.props.minTime = defaultTo(value[0], undefined)
         this.props.maxTime = defaultTo(value[1], undefined)
-    }
-
-    @computed get focusKeys(): DataKey[] {
-        return this.props.focusKeys
-    }
-
-    set focusKeys(datakeys: DataKey[]) {
-        if (isEqual(sortBy(this.data.selectedKeys), sortBy(datakeys))) {
-            this.props.focusKeys = []
-        } else {
-            this.props.focusKeys = datakeys
-        }
     }
 
     @computed get xAxis() {

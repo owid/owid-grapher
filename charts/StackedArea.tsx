@@ -196,10 +196,8 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
 
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.focusKeys.includes(datakey)) {
-            this.chart.focusKeys = this.chart.focusKeys.filter(key => key !== datakey)
-        } else {
-            this.chart.focusKeys.push(datakey)
+        if (this.chart.data.canAddData) {
+            this.context.chartView.isSelectingData = true
         }
     }
 
@@ -212,7 +210,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
     }
 
     @computed get focusKeys(): string[] {
-        return this.hoverKey ? [...this.chart.focusKeys, this.hoverKey] : this.chart.focusKeys
+        return this.hoverKey ? [this.hoverKey] : []
     }
 
     @computed get isFocusMode(): boolean {
@@ -307,7 +305,7 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={this.focusKeys} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} clickableMarks={true} />}
+                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={this.focusKeys} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} clickableMarks={this.chart.data.canAddData} />}
                 <Areas axisBox={axisBox} data={transform.stackedData} focusKeys={this.focusKeys} onHover={this.onHover}/>
             </g>
             {this.tooltip}
