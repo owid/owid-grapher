@@ -1,4 +1,4 @@
-import { extend, map, filter, includes, uniqWith, find, isEqual, sortBy } from "./Util"
+import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from 'mobx'
 import { ComparisonLineConfig } from './ComparisonLine'
 import { AxisConfig, AxisConfigProps } from './AxisConfig'
@@ -25,7 +25,6 @@ import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
-import { DataKey } from "./DataKey"
 
 declare const App: any
 declare const window: any

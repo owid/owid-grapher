@@ -28,7 +28,6 @@ interface ChartQueryParams {
     country?: string
     shown?: string
     endpointsOnly?: string
-    focus?: string
 }
 
 declare const App: any
