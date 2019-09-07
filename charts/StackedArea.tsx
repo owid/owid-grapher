@@ -14,6 +14,7 @@ import {select} from 'd3-selection'
 import {easeLinear} from 'd3-ease'
 import {rgb} from 'd3-color'
 import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
+import { DataKey } from './DataKey'
 
 export interface StackedAreaValue {
     x: number,
@@ -34,8 +35,11 @@ export interface StackedAreaSeries {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     axisBox: AxisBox
     data: StackedAreaSeries[]
+    focusKeys: DataKey[]
     onHover: (hoverIndex: number|undefined) => void
 }
+
+const BLUR_COLOR = "#ddd"
 
 @observer
 export class Areas extends React.Component<AreasProps> {
@@ -59,6 +63,10 @@ export class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
+    seriesIsBlur(series: StackedAreaSeries) {
+        return this.props.focusKeys.length > 0 && !this.props.focusKeys.includes(series.key)
+    }
+
     @computed get areas(): JSX.Element[] {
         const {axisBox, data} = this.props
         const {xScale, yScale} = axisBox
@@ -77,7 +85,7 @@ export class Areas extends React.Component<AreasProps> {
                 key={series.key+'-area'}
                 strokeLinecap="round"
                 d={pointsToPath(points)}
-                fill={series.color}
+                fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
                 fillOpacity={0.7}
                 clipPath={this.props.clipPath}
             />
@@ -97,7 +105,7 @@ export class Areas extends React.Component<AreasProps> {
                 key={series.key+'-border'}
                 strokeLinecap="round"
                 d={pointsToPath(points)}
-                stroke={rgb(series.color).darker(0.5).toString()}
+                stroke={rgb(this.seriesIsBlur(series) ? BLUR_COLOR : series.color).darker(0.5).toString()}
                 strokeOpacity={0.7}
                 strokeWidth={0.5}
                 fill="none"
@@ -117,7 +125,9 @@ export class Areas extends React.Component<AreasProps> {
             {this.borders}
             {hoverIndex !== undefined && <g className="hoverIndicator">
                 {data.map(series => {
-                    return <circle key={series.key} cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={2} fill={series.color}/>
+                    return this.seriesIsBlur(series)
+                        ? null
+                        : <circle key={series.key} cx={xScale.place(series.values[hoverIndex].x)} cy={yScale.place(series.values[hoverIndex].y)} r={2} fill={series.color}/>
                 })}
                 <line x1={xScale.place(data[0].values[hoverIndex].x)} y1={yScale.range[0]} x2={xScale.place(data[0].values[hoverIndex].x)} y2={yScale.range[1]} stroke="rgba(180,180,180,.4)"/>
             </g>}
@@ -184,10 +194,33 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
         this.hoverIndex = hoverIndex
     }
 
+    @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.data.canAddData) {
-            this.context.chartView.isSelectingData = true
+        if (this.chart.focusKeys.includes(datakey)) {
+            this.chart.focusKeys = this.chart.focusKeys.filter(key => key !== datakey)
+        } else {
+            this.chart.focusKeys.push(datakey)
         }
+    }
+
+    @action.bound onLegendMouseOver(datakey: string) {
+        this.hoverKey = datakey
+    }
+
+    @action.bound onLegendMouseLeave() {
+        this.hoverKey = undefined
+    }
+
+    @computed get focusKeys(): string[] {
+        return this.hoverKey ? [...this.chart.focusKeys, this.hoverKey] : this.chart.focusKeys
+    }
+
+    @computed get isFocusMode(): boolean {
+        return this.focusKeys.length > 0
+    }
+
+    seriesIsBlur(series: StackedAreaSeries) {
+        return this.focusKeys.length > 0 && !this.focusKeys.includes(series.key)
     }
 
     @computed get tooltip(): JSX.Element|undefined {
@@ -212,9 +245,12 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
                     </tr>
                     {reverse(clone(transform.stackedData)).map(series => {
                         const value = series.values[hoverIndex]
-                        return <tr key={series.key}>
+                        const isBlur = this.seriesIsBlur(series)
+                        const textColor = isBlur ? "#ddd" : "#333"
+                        const blockColor = isBlur ? BLUR_COLOR : series.color
+                        return <tr key={series.key} style={{ color: textColor }}>
                             <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
-                                <div style={{...legendBlockStyle, backgroundColor: series.color}}/> {chart.data.formatKey(series.key)}
+                                <div style={{...legendBlockStyle, backgroundColor: blockColor}}/> {chart.data.formatKey(series.key)}
                             </td>
                             <td style={{textAlign: "right"}}>{value.isFake ? "No data" : transform.yAxis.tickFormat(value.origY as number, { noTrailingZeroes: false })}</td>
                         </tr>
@@ -271,8 +307,8 @@ export class StackedArea extends React.Component<{ bounds: Bounds, chart: ChartC
             </defs>
             <StandardAxisBoxView axisBox={axisBox} chart={chart}/>
             <g clipPath={`url(#boundsClip-${renderUid})`}>
-                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={[]} onClick={this.onLegendClick} clickableMarks={this.chart.data.canAddData} />}
-                <Areas axisBox={axisBox} data={transform.stackedData} onHover={this.onHover}/>
+                {legend && <HeightedLegendView legend={legend} x={bounds.right-legend.width} yScale={axisBox.yScale} focusKeys={this.focusKeys} onClick={this.onLegendClick} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} clickableMarks={true} />}
+                <Areas axisBox={axisBox} data={transform.stackedData} focusKeys={this.focusKeys} onHover={this.onHover}/>
             </g>
             {this.tooltip}
         </g>

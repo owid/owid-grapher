@@ -14,6 +14,7 @@ import { AxisScale } from './AxisScale'
 import { Bounds } from './Bounds'
 import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
 import { ControlsOverlay, AddEntityButton } from './Controls'
+import { DataKey } from './DataKey'
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -114,7 +115,7 @@ export interface HeightedLegendViewProps {
     x: number,
     legend: HeightedLegend,
     yScale: AxisScale,
-    focusKeys: string[],
+    focusKeys: DataKey[],
     clickableMarks: boolean,
     onMouseOver?: (key: string) => void,
     onClick?: (key: string) => void,
@@ -153,7 +154,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     @computed get onClick(): any { return defaultTo(this.props.onClick, noop) }
 
     @computed get isFocusMode() {
-        return this.props.focusKeys.length !== this.props.legend.marks.length && some(this.props.legend.marks, m => includes(this.props.focusKeys, m.item.key))
+        return some(this.props.legend.marks, m => includes(this.props.focusKeys, m.item.key))
     }
 
     // Naive initial placement of each mark at the target height, before collision detection

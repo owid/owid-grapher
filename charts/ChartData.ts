@@ -273,6 +273,7 @@ export class ChartData {
         return this.chart.props.addCountryMode === "disabled" ? [] : this.availableEntities
     }
 
+    // TODO: need to switch the focusKeys too
     switchEntity(entityId: number) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => d.entityId = entityId)

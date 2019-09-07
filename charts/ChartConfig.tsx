@@ -1,4 +1,4 @@
-import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
+import { extend, map, filter, includes, uniqWith, find, isEqual, sortBy } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from 'mobx'
 import { ComparisonLineConfig } from './ComparisonLine'
 import { AxisConfig, AxisConfigProps } from './AxisConfig'
@@ -25,6 +25,7 @@ import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
+import { DataKey } from "./DataKey"
 
 declare const App: any
 declare const window: any
@@ -126,7 +127,7 @@ export class ChartConfigProps {
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
-    @observable focusKeys: string[] = []
+    @observable focusKeys: DataKey[] = []
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
@@ -290,6 +291,18 @@ export class ChartConfig {
     set timeDomain(value: [number | undefined, number | undefined]) {
         this.props.minTime = defaultTo(value[0], undefined)
         this.props.maxTime = defaultTo(value[1], undefined)
+    }
+
+    @computed get focusKeys(): DataKey[] {
+        return this.props.focusKeys
+    }
+
+    set focusKeys(datakeys: DataKey[]) {
+        if (isEqual(sortBy(this.data.selectedKeys), sortBy(datakeys))) {
+            this.props.focusKeys = []
+        } else {
+            this.props.focusKeys = datakeys
+        }
     }
 
     @computed get xAxis() {

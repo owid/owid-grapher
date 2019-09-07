@@ -140,10 +140,10 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.props.focusKeys.includes(datakey)) {
-            this.chart.props.focusKeys = this.chart.props.focusKeys.filter(key => key !== datakey)
+        if (this.chart.focusKeys.includes(datakey)) {
+            this.chart.focusKeys = this.chart.focusKeys.filter(key => key !== datakey)
         } else {
-            this.chart.props.focusKeys.push(datakey)
+            this.chart.focusKeys.push(datakey)
         }
     }
 
@@ -156,7 +156,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
     }
 
     @computed get focusKeys(): string[] {
-        return this.hoverKey ? [...this.chart.props.focusKeys, this.hoverKey] : this.chart.props.focusKeys
+        return this.hoverKey ? [...this.chart.focusKeys, this.hoverKey] : this.chart.focusKeys
     }
 
     @computed get isFocusMode(): boolean {

@@ -149,8 +149,8 @@ export class URLBinder {
 
     @computed get focusParam(): string | undefined {
         const { chart, origChart } = this
-        if (chart.data.isReady && JSON.stringify(chart.props.focusKeys) !== JSON.stringify(origChart.focusKeys)) {
-            return uniq(chart.props.focusKeys.map(encodeURIComponent)).join("+")
+        if (chart.data.isReady && JSON.stringify(chart.focusKeys) !== JSON.stringify(origChart.focusKeys)) {
+            return uniq(chart.focusKeys.map(encodeURIComponent)).join("+")
         } else {
             return undefined
         }
@@ -268,7 +268,7 @@ export class URLBinder {
                 }
                 if (focus) {
                     const focusKeys = focus.split('+').map(decodeURIComponent)
-                    chart.props.focusKeys = filter(chart.data.availableKeys, datakey => {
+                    chart.focusKeys = filter(chart.data.availableKeys, datakey => {
                         return includes(focusKeys, datakey)
                     })
                 }
