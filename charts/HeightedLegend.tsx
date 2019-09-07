@@ -91,10 +91,7 @@ export class HeightedLegend {
                 item: item,
                 textWrap: textWrap,
                 width: leftPadding + textWrap.width,
-                height: textWrap.height,
-                repositions: 0,
-                groupPosition: 0,
-                groupSize: 0
+                height: textWrap.height
             }
         })
     }
