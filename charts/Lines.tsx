@@ -149,7 +149,7 @@ export class Lines extends React.Component<LinesProps> {
                 <path
                     key={series.key + '-line'}
                     strokeLinecap="round"
-                    stroke="#ccc"
+                    stroke="#ddd"
                     d={pointsToPath(series.values.map(v => [v.x, v.y]) as [number, number][])}
                     fill="none"
                     strokeWidth={1}

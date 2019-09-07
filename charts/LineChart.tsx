@@ -39,6 +39,8 @@ export interface LineChartSeries {
     formatValue: (value: number) => string
 }
 
+const BLUR_COLOR = "#eee"
+
 @observer
 export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -86,6 +88,10 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
         })
     }
 
+    seriesIsBlur(series: LineChartSeries) {
+        return this.isFocusMode && !this.focusKeys.includes(series.key)
+    }
+
     @computed get tooltip(): JSX.Element|undefined {
         const {transform, hoverX, axisBox, chart} = this
 
@@ -94,7 +100,7 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
         const sortedData = sortBy(transform.groupedData, series => {
             const value = series.values.find(v => v.x === hoverX)
-            return value ? -value.y : -Infinity
+            return value !== undefined ? -value.y : Infinity
         })
 
         return <Tooltip x={axisBox.xScale.place(hoverX)} y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize/2} style={{padding: "0.3em"}} offsetX={5}>
@@ -107,12 +113,15 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
                     </tr>
                     {sortedData.map(series => {
                         const value = series.values.find(v => v.x === hoverX)
-                        return value ? <tr key={series.key}>
+                        const isBlur = this.seriesIsBlur(series) || value === undefined
+                        const textColor = isBlur ? "#ddd" : "#333"
+                        const circleColor = isBlur ? BLUR_COLOR : series.color
+                        return <tr key={series.key} style={{ color: textColor }}>
                             <td style={{paddingRight: "0.8em", fontSize: "0.9em"}}>
-                                <div style={{width: '10px', height: '10px', borderRadius: '5px', backgroundColor: series.color, display: 'inline-block', marginRight: '2px'}}/> {chart.data.formatKey(series.key)}
+                                <div style={{width: '10px', height: '10px', borderRadius: '5px', backgroundColor: circleColor, display: 'inline-block', marginRight: '2px'}}/> {chart.data.formatKey(series.key)}
                             </td>
                             <td style={{textAlign: "right"}}>{!value ? "No data" : transform.yAxis.tickFormat(value.y, { noTrailingZeroes: false })}</td>
-                        </tr> : null
+                        </tr>
                     })}
                 </tbody>
             </table>
@@ -131,9 +140,10 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
     @observable hoverKey?: string
     @action.bound onLegendClick(datakey: string) {
-        if (this.chart.data.canAddData) {
-            this.context.chartView.isSelectingData = true
-            this.onLegendMouseLeave()
+        if (this.chart.props.focusKeys.includes(datakey)) {
+            this.chart.props.focusKeys = this.chart.props.focusKeys.filter(key => key !== datakey)
+        } else {
+            this.chart.props.focusKeys.push(datakey)
         }
     }
 
@@ -143,6 +153,14 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
 
     @action.bound onLegendMouseLeave() {
         this.hoverKey = undefined
+    }
+
+    @computed get focusKeys(): string[] {
+        return this.hoverKey ? [...this.chart.props.focusKeys, this.hoverKey] : this.chart.props.focusKeys
+    }
+
+    @computed get isFocusMode(): boolean {
+        return this.focusKeys.length > 0
     }
 
     animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
@@ -187,14 +205,14 @@ export class LineChart extends React.Component<{ bounds: Bounds, chart: ChartCon
             <StandardAxisBoxView axisBox={axisBox} chart={chart} />
             <g clipPath={`url(#boundsClip-${renderUid})`}>
                 {chart.comparisonLines && chart.comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
-                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={[]} yScale={axisBox.yScale} onClick={this.onLegendClick} clickableMarks={this.chart.data.canAddData} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
-                <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={[]} />
+                {legend && <HeightedLegendView x={bounds.right - legend.width} legend={legend} focusKeys={this.focusKeys} yScale={axisBox.yScale} onClick={this.onLegendClick} clickableMarks={true} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave}/>}
+                <Lines axisBox={axisBox} xScale={axisBox.xScale} yScale={axisBox.yScale} data={groupedData} onHover={this.onHover} focusKeys={this.focusKeys} />
             </g>
             {/*hoverTarget && <AxisBoxHighlight axisBox={axisBox} value={hoverTarget.value}/>*/}
             {hoverX !== undefined && <g className="hoverIndicator">
                 {transform.groupedData.map(series => {
                     const value = series.values.find(v => v.x === hoverX)
-                    if (!value)
+                    if (!value || this.seriesIsBlur(series))
                         return null
                     else
                         return <circle key={series.key} cx={xScale.place(value.x)} cy={yScale.place(value.y)} r={4} fill={series.color}/>

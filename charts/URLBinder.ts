@@ -28,6 +28,7 @@ interface ChartQueryParams {
     country?: string
     shown?: string
     endpointsOnly?: string
+    focus?: string
 }
 
 declare const App: any
@@ -85,6 +86,7 @@ export class URLBinder {
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
+        params.focus = this.focusParam
 
         if (chart.props.map && origChart.map && chart.props.map.projection !== origChart.map.projection)
             params.region = chart.props.map.projection
@@ -140,6 +142,15 @@ export class URLBinder {
         const { chart, origChart } = this
         if (chart.data.isReady && JSON.stringify(chart.props.selectedData) !== JSON.stringify(origChart.selectedData)) {
             return uniq(chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent)).join("+")
+        } else {
+            return undefined
+        }
+    }
+
+    @computed get focusParam(): string | undefined {
+        const { chart, origChart } = this
+        if (chart.data.isReady && JSON.stringify(chart.props.focusKeys) !== JSON.stringify(origChart.focusKeys)) {
+            return uniq(chart.props.focusKeys.map(encodeURIComponent)).join("+")
         } else {
             return undefined
         }
@@ -235,6 +246,7 @@ export class URLBinder {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
+        const focus = params.focus
         when(() => chart.data.isReady, () => {
             runInAction(() => {
                 if (country) {
@@ -253,6 +265,12 @@ export class URLBinder {
                             return includes(entityCodes, meta.shortCode) || includes(entityCodes, entityMeta.code) || includes(entityCodes, entityMeta.name)
                         })
                     }
+                }
+                if (focus) {
+                    const focusKeys = focus.split('+').map(decodeURIComponent)
+                    chart.props.focusKeys = filter(chart.data.availableKeys, datakey => {
+                        return includes(focusKeys, datakey)
+                    })
                 }
             })
         })

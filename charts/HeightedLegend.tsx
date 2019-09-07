@@ -131,13 +131,14 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
         const markerXMid = mark.groupSize > 1
             ? markerX1 + MARKER_HORIZONTAL_SEGMENT + mark.groupPosition * (markerX2 - markerX1 - MARKER_HORIZONTAL_SEGMENT*2) / (mark.groupSize - 1)
             : (markerX1 + markerX2) / 2
-        const lineColor = isFocus ? "#999" : "#e6e6e6"
+        const lineColor = isFocus ? "#999" : "#eee"
+        const textColor = isFocus ? mark.mark.item.color : "#ddd"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
             {needsLines && <g className="indicator">
                 <path d={`M${markerX1},${mark.origBounds.centerY} H${markerXMid} V${mark.bounds.centerY} H${markerX2}`} stroke={lineColor} strokeWidth={0.5} fill="none" />
             </g>}
             <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
-            {mark.mark.textWrap.render(needsLines ? markerX2+MARKER_MARGIN : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#e6e6e6" })}
+            {mark.mark.textWrap.render(needsLines ? markerX2+MARKER_MARGIN : markerX1, mark.bounds.y, { fill: textColor })}
         </g>
     }
 }

@@ -126,6 +126,7 @@ export class ChartConfigProps {
     @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
 
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
+    @observable focusKeys: string[] = []
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: string = "absolute"
     @observable.ref hideLegend?: true = undefined
