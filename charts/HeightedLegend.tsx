@@ -5,9 +5,9 @@
 
 import * as React from 'react'
 import classnames from 'classnames'
-import { some, noop, includes, cloneDeep, max, min, sortBy, sumBy, flatten } from './Util'
+import { some, noop, includes, cloneDeep, max, min, sortBy, sumBy, flatten, sign } from './Util'
 import { defaultTo } from './Util'
-import { computed, action, reaction, IReactionDisposer } from 'mobx'
+import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { TextWrap } from './TextWrap'
 import { AxisScale } from './AxisScale'
@@ -15,7 +15,13 @@ import { Bounds } from './Bounds'
 import { ChartViewContextType, ChartViewContext } from './ChartViewContext'
 import { ControlsOverlay, AddEntityButton } from './Controls'
 
-const LEGEND_ITEM_MIN_SPACING_PX = 2
+// Minimum vertical space between two legend items
+const LEGEND_ITEM_MIN_SPACING = 2
+// Horizontal distance from the end of the chart to the start of the marker
+const MARKER_MARGIN = 4
+// Marker lines start and end with a horizontal segment, this sets the minimum size of it
+const MARKER_HORIZONTAL_SEGMENT = 5
+// Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 
 export interface HeightedLegendProps {
@@ -62,7 +68,7 @@ function stackGroupVertically(group: PlacedMark[], y: number) {
     group.forEach(mark => {
         mark.bounds = mark.bounds.extend({ y: currentY })
         mark.repositions += 1
-        currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING_PX
+        currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING
     })
     return group
 }
@@ -120,19 +126,18 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
     render() {
         const {mark, legend, isFocus, needsLines, onMouseOver, onClick} = this.props
         const x = mark.origBounds.x
-        const markerX1 = x+5
-        const markerX2 = x+legend.leftPadding-5
-        const markerXMid = (markerX1+markerX2)/2
-        const lineColor = isFocus ? "#999" : "#eee"
+        const markerX1 = x + MARKER_MARGIN
+        const markerX2 = x + legend.leftPadding - MARKER_MARGIN
+        const markerXMid = mark.groupSize > 1
+            ? markerX1 + MARKER_HORIZONTAL_SEGMENT + mark.groupPosition * (markerX2 - markerX1 - MARKER_HORIZONTAL_SEGMENT*2) / (mark.groupSize - 1)
+            : (markerX1 + markerX2) / 2
+        const lineColor = isFocus ? "#999" : "#e6e6e6"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
             {needsLines && <g className="indicator">
-                <path d={`M${markerX1},${mark.origBounds.centerY} C${markerXMid},${mark.origBounds.centerY} ${markerXMid},${mark.bounds.centerY} ${markerX2},${mark.bounds.centerY}`} stroke={lineColor} strokeWidth={0.5} fill="none" />
-                {/* <line x1={markerX1} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.origBounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
-                <line x1={markerXMid} y1={mark.origBounds.centerY} x2={markerXMid} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/>
-                <line x1={markerXMid} y1={mark.bounds.centerY} x2={markerX2} y2={mark.bounds.centerY} stroke={lineColor} strokeWidth={0.5}/> */}
+                <path d={`M${markerX1},${mark.origBounds.centerY} H${markerXMid} V${mark.bounds.centerY} H${markerX2}`} stroke={lineColor} strokeWidth={0.5} fill="none" />
             </g>}
             <rect x={x} y={mark.bounds.y} width={mark.bounds.width} height={mark.bounds.height} fill="#fff" opacity={0}/>
-            {mark.mark.textWrap.render(needsLines ? markerX2+5 : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#ddd" })}
+            {mark.mark.textWrap.render(needsLines ? markerX2+MARKER_MARGIN : markerX1, mark.bounds.y, { fill: isFocus ? mark.mark.item.color : "#e6e6e6" })}
         </g>
     }
 }
@@ -174,10 +179,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 groupSize: 0
             }
 
-        // Sort by the original data y value rather than the visual position
-        // I forget why this is important but it resolves some edge case
-        }), m => m.y)
-
+        // Ensure list is sorted by the visual position in ascending order
+        }), m => yScale.place(m.mark.item.yValue))
     }
 
     @computed get standardPlacement() {
@@ -196,12 +199,12 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 const topBounds = groupBounds(topGroup)
                 const bottomBounds = groupBounds(bottomGroup)
                 if (topBounds.intersects(bottomBounds)) {
-                    const overlapHeight = topBounds.bottom - bottomBounds.top + LEGEND_ITEM_MIN_SPACING_PX
-                    const newHeight = topBounds.height + LEGEND_ITEM_MIN_SPACING_PX + bottomBounds.height
+                    const overlapHeight = topBounds.bottom - bottomBounds.top + LEGEND_ITEM_MIN_SPACING
+                    const newHeight = topBounds.height + LEGEND_ITEM_MIN_SPACING + bottomBounds.height
                     const targetY = topBounds.top - (overlapHeight * (bottomGroup.length / (topGroup.length + bottomGroup.length)))
-                    let newY = targetY
-                    if (targetY < yScale.rangeMin) newY = yScale.rangeMin
-                    else if (targetY + newHeight > yScale.rangeMax) newY = yScale.rangeMax - newHeight
+                    const overflowTop = Math.max(yScale.rangeMin - targetY, 0)
+                    const overflowBottom = Math.max(targetY + newHeight - yScale.rangeMax, 0)
+                    const newY = targetY + overflowTop - overflowBottom
                     const newGroup = [...topGroup, ...bottomGroup]
                     stackGroupVertically(newGroup, newY)
                     groups.splice(i, 2, newGroup)
@@ -212,10 +215,21 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         } while (hasOverlap && groups.length > 1)
 
         for (const group of groups) {
-            const middleIndex = Math.floor(group.length/2)
+            let currentPos = 0
+            let prevDirection = 0
             for (const mark of group) {
-                mark.groupPosition = -group.indexOf(mark) + middleIndex
-                mark.groupSize = group.length
+                const direction = sign(mark.bounds.y - mark.origBounds.y)
+                if (prevDirection === direction) {
+                    currentPos -= direction
+                }
+                mark.groupPosition = currentPos
+                prevDirection = direction
+            }
+            const minPos = min(group.map(mark => mark.groupPosition)) as number
+            const maxPos = max(group.map(mark => mark.groupPosition)) as number
+            for (const mark of group) {
+                mark.groupPosition -= minPos
+                mark.groupSize = maxPos - minPos + 1
             }
         }
 
@@ -240,7 +254,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
     }
 
     @computed get placedMarks() {
-        const nonOverlappingMinHeight = sumBy(this.initialMarks, mark => mark.bounds.height) + this.initialMarks.length * LEGEND_ITEM_MIN_SPACING_PX
+        const nonOverlappingMinHeight = sumBy(this.initialMarks, mark => mark.bounds.height) + this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
         const availableHeight = this.context.chart.data.canAddData ? (this.props.yScale.rangeSize - ADD_BUTTON_HEIGHT) : this.props.yScale.rangeSize
 
         // Need to be careful here – the controls overlay will automatically add padding if

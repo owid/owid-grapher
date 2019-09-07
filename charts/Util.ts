@@ -279,3 +279,7 @@ export function urlToSlug(url: string): string {
     const slug = last(urlobj.pathname.split('/').filter(x => x)) as string
     return slug
 }
+
+export function sign(n: number) {
+    return n > 0 ? 1 : n < 0 ? -1 : 0
+}
