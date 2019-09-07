@@ -52,8 +52,8 @@ interface PlacedMark {
     bounds: Bounds
     isOverlap: boolean
     repositions: number
-    groupPosition: number
-    groupSize: number
+    level: number
+    totalLevels: number
 }
 
 function groupBounds(group: PlacedMark[]): Bounds {
@@ -126,9 +126,8 @@ class PlacedMarkView extends React.Component<{ mark: PlacedMark, legend: Heighte
         const x = mark.origBounds.x
         const markerX1 = x + MARKER_MARGIN
         const markerX2 = x + legend.leftPadding - MARKER_MARGIN
-        const markerXMid = mark.groupSize > 1
-            ? markerX1 + MARKER_HORIZONTAL_SEGMENT + mark.groupPosition * (markerX2 - markerX1 - MARKER_HORIZONTAL_SEGMENT*2) / (mark.groupSize - 1)
-            : (markerX1 + markerX2) / 2
+        const step = (markerX2 - markerX1) / (mark.totalLevels + 1)
+        const markerXMid = markerX1 + step + mark.level * step
         const lineColor = isFocus ? "#999" : "#eee"
         const textColor = isFocus ? mark.mark.item.color : "#ddd"
         return <g className="legendMark" onMouseOver={onMouseOver} onClick={onClick}>
@@ -174,8 +173,8 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
                 bounds: bounds,
                 isOverlap: false,
                 repositions: 0,
-                groupPosition: 0,
-                groupSize: 0
+                level: 0,
+                totalLevels: 0
             }
 
         // Ensure list is sorted by the visual position in ascending order
@@ -214,21 +213,21 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
         } while (hasOverlap && groups.length > 1)
 
         for (const group of groups) {
-            let currentPos = 0
-            let prevDirection = 0
+            let currentLevel = 0
+            let prevSign = 0
             for (const mark of group) {
-                const direction = sign(mark.bounds.y - mark.origBounds.y)
-                if (prevDirection === direction) {
-                    currentPos -= direction
+                const currentSign = sign(mark.bounds.y - mark.origBounds.y)
+                if (prevSign === currentSign) {
+                    currentLevel -= currentSign
                 }
-                mark.groupPosition = currentPos
-                prevDirection = direction
+                mark.level = currentLevel
+                prevSign = currentSign
             }
-            const minPos = min(group.map(mark => mark.groupPosition)) as number
-            const maxPos = max(group.map(mark => mark.groupPosition)) as number
+            const minLevel = min(group.map(mark => mark.level)) as number
+            const maxLevel = max(group.map(mark => mark.level)) as number
             for (const mark of group) {
-                mark.groupPosition -= minPos
-                mark.groupSize = maxPos - minPos + 1
+                mark.level -= minLevel
+                mark.totalLevels = maxLevel - minLevel + 1
             }
         }
 
@@ -289,7 +288,7 @@ export class HeightedLegendView extends React.Component<HeightedLegendViewProps>
 
     // Does this placement need line markers or is the position of the labels already clear?
     @computed get needsLines(): boolean {
-        return this.placedMarks.some(mark => mark.groupSize > 1)
+        return this.placedMarks.some(mark => mark.totalLevels > 1)
     }
 
     renderBackground() {
