@@ -9,6 +9,9 @@ import { NumberField, SelectField, Toggle, FieldsRow, Section, BindAutoString, B
 import { debounce, keysOf } from 'charts/Util'
 import { ColorSchemes, ColorScheme } from 'charts/ColorSchemes'
 import { Color } from 'charts/Color'
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
+import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -164,9 +167,9 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
         return <Section name="Comparison line">
             <p>Overlay a line onto the chart for comparison. Supports basic <a href="https://github.com/silentmatt/expr-eval#expression-syntax">mathematical expressions</a>.</p>
 
-            <Button onClick={this.onAddComparisonLine}><i className="fa fa-plus"></i> Add comparison line</Button>
+            <Button onClick={this.onAddComparisonLine}><FontAwesomeIcon icon={faPlus}/> Add comparison line</Button>
             {comparisonLines.map((comparisonLine, i) => <div key={i}>
-                {`Line ${i+1}`} <Button onClick={() => this.onRemoveComparisonLine(i)}><i className="fa fa-remove"></i></Button>
+                {`Line ${i+1}`} <Button onClick={() => this.onRemoveComparisonLine(i)}><FontAwesomeIcon icon={faMinus}/></Button>
                 <TextField label={`y=`} placeholder="x" value={comparisonLine.yEquals} onValue={action((value: string) => { comparisonLine.yEquals = value||undefined })}/>
                 <TextField label="Label" value={comparisonLine.label} onValue={action((value: string) => { comparisonLine.label = value||undefined })}/>
             </div>)}

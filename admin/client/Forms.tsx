@@ -12,6 +12,7 @@ import {observer} from 'mobx-react'
 
 import { extend, pick, capitalize } from 'charts/Util'
 import { Colorpicker } from './Colorpicker'
+import { faCog } from '@fortawesome/free-solid-svg-icons/faCog'
 import { faLink } from '@fortawesome/free-solid-svg-icons/faLink'
 import { faPaintBrush } from '@fortawesome/free-solid-svg-icons/faPaintBrush'
 import { faUnlink } from '@fortawesome/free-solid-svg-icons/faUnlink'
@@ -532,7 +533,7 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
 export class LoadingBlocker extends React.Component<{}> {
     render() {
         return <div className="LoadingBlocker">
-            <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
+            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x"/>
         </div>
     }
 }
