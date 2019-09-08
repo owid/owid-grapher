@@ -4,6 +4,8 @@ import * as React from 'react'
 import { computed, action } from 'mobx'
 import { observer } from 'mobx-react'
 import { ChartConfig } from './ChartConfig'
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 // Client-side data export from chart
 @observer
@@ -77,7 +79,7 @@ export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfi
         return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
             <div style={{maxWidth: "100%"}}>
                 <p>Download a CSV file containing all data used in this visualization:</p>
-                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" onClick={this.onDownload}><i className="fa fa-download"></i> {csvFilename}</a>
+                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" onClick={this.onDownload}><FontAwesomeIcon icon={faDownload}/> {csvFilename}</a>
             </div>
         </div>
     }

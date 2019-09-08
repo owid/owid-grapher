@@ -11,6 +11,8 @@ import { SelectField, SelectGroupsField, SelectGroup } from './Forms'
 import { CountryNameFormat, CountryNameFormatDefs, CountryDefByKey } from 'admin/CountryNameFormat'
 import { uniq, toString, csvEscape, values, sortBy } from 'charts/Util'
 import { AdminAppContext } from './AdminAppContext'
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 class CSV {
     @observable filename?: string
@@ -461,8 +463,10 @@ export class CountryStandardizerPage extends React.Component {
                     <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match." />
                     <div className="topbar">
                         {showDownloadOption ?
-                            <a href={this.csvDataUri} download={this.csvFilename} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip}><i className="fa fa-download"></i> Download {this.csvFilename}</a>
-                            : <button className="btn btn-secondary" disabled><i className="fa fa-download"></i> No file to download (upload a CSV to start)</button>
+                            <a href={this.csvDataUri} download={this.csvFilename} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip}>
+                                <FontAwesomeIcon icon={faDownload}/> Download {this.csvFilename}
+                            </a>
+                            : <button className="btn btn-secondary" disabled><FontAwesomeIcon icon={faDownload}/> No file to download (upload a CSV to start)</button>
                         }
                         <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
                     </div>

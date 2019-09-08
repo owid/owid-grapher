@@ -4,7 +4,12 @@ import { observer } from 'mobx-react'
 import { DimensionWithData } from 'charts/DimensionWithData'
 import { ChartEditor } from './ChartEditor'
 import { Toggle, EditableListItem, BindAutoString, BindAutoFloat } from './Forms'
-import { Link } from './Link';
+import { Link } from './Link'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown'
+import { faChevronUp } from '@fortawesome/free-solid-svg-icons/faChevronUp'
+import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt'
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer
 export class DimensionCard extends React.Component<{ dimension: DimensionWithData, editor: ChartEditor, onEdit?: () => void, onRemove?: () => void }> {
@@ -33,14 +38,14 @@ export class DimensionCard extends React.Component<{ dimension: DimensionWithDat
         return <EditableListItem className="DimensionCard">
             <header>
                 <div>
-                    {this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><i className={"fa fa-chevron-" + (this.isExpanded ? 'up' : 'down')} /></span>}
+                    {this.hasExpandedOptions && <span className="clickable" onClick={this.onToggleExpand}><FontAwesomeIcon icon={this.isExpanded ? faChevronUp : faChevronDown}/></span>}
                 </div>
                 <div>
                     <Link to={`/variables/${dimension.variableId}`} className="dimensionLink" target="_blank">{dimension.variable.name}</Link>
                 </div>
                 <div>
-                    {this.props.onEdit && <div className="clickable" onClick={this.props.onEdit}><i className="fa fa-exchange" /></div>}
-                    {this.props.onRemove && <div className="clickable" onClick={this.props.onRemove}><i className="fa fa-times" /></div>}
+                    {this.props.onEdit && <div className="clickable" onClick={this.props.onEdit}><FontAwesomeIcon icon={faExchangeAlt}/></div>}
+                    {this.props.onRemove && <div className="clickable" onClick={this.props.onRemove}><FontAwesomeIcon icon={faTimes}/></div>}
                 </div>
             </header>
             {this.isExpanded && <div>
