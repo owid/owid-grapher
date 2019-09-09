@@ -1,5 +1,8 @@
 import * as React from 'react'
 import { Modal } from './Forms'
+import { faLink } from '@fortawesome/free-solid-svg-icons/faLink'
+import { faUnlink } from '@fortawesome/free-solid-svg-icons/faUnlink'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export class EditorFAQ extends React.Component<{ onClose: () => void }> {
     render() {
@@ -13,7 +16,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                 <h6>What are "variables" and "entities"?</h6>
                 <p>They roughly correspond to columns and rows in a CSV file. For OWID, entities are usually but not always countries.</p>
                 <h6>What do the little icons mean?</h6>
-                <p>If you see the <i className="fa fa-link"/> link icon, it means a field is currently linked to the database and has its default value. By changing that field you break the link <i className="fa fa-unlink"/> and set manual input for this particular chart.</p>
+                <p>If you see the <FontAwesomeIcon icon={faLink}/> link icon, it means a field is currently linked to the database and has its default value. By changing that field you break the link <FontAwesomeIcon icon={faUnlink}/> and set manual input for this particular chart.</p>
                 <h6>When are charts updated?</h6>
                 <p>The version of the chart you see in the editor is always the most current version. When published, charts are bundled together in a static build process and sent to Netlify for distribution around the world. This means it may take a few minutes for the live version to be updated.</p>
                 <p>The public version of a chart is not (currently) updated automatically when new data is uploaded. You may need to click "update chart" to have data changes reflected publicly.</p>

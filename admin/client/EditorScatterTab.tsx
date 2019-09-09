@@ -5,6 +5,8 @@ import {observer} from 'mobx-react'
 import { ChartConfig, HighlightToggleConfig } from 'charts/ChartConfig'
 import {ComparisonLineConfig} from 'charts/ComparisonLine'
 import {Toggle, NumberField, SelectField, TextField, Section} from './Forms'
+import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer
 export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
@@ -86,7 +88,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                 <SelectField label="Exclude individual entities" placeholder="Select an entity to exclude" value={undefined} onValue={v => v && this.onExcludeEntity(v)} options={excludedEntityChoices}/>
                 {chart.scatter.excludedEntities && <ul className="excludedEntities">
                     {chart.scatter.excludedEntities.map(entity => <li key={entity}>
-                        <div className="clickable" onClick={() => this.onUnexcludeEntity(entity)}><i className="fa fa-remove"/></div>
+                        <div className="clickable" onClick={() => this.onUnexcludeEntity(entity)}><FontAwesomeIcon icon={faMinus}/></div>
                         {entity}
                     </li>)}
                 </ul>}

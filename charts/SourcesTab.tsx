@@ -7,6 +7,8 @@ import { ChartConfig } from './ChartConfig'
 import { SourceWithDimension } from './ChartData'
 import * as Cookies from 'js-cookie'
 import { ADMIN_BASE_URL } from 'settings'
+import { faPencilAlt } from '@fortawesome/free-solid-svg-icons/faPencilAlt'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const linkifyHtml = require('linkifyjs/html')
 function linkify(s: string) {
@@ -29,7 +31,7 @@ export class SourcesTab extends React.Component<{ bounds: Bounds, chart: ChartCo
         const editUrl = Cookies.get('isAdmin') ? `${ADMIN_BASE_URL}/admin/datasets/${variable.datasetId}` : undefined
 
         return <div key={source.id} className="datasource-wrapper">
-            <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><i className="fa fa-pencil"/></a>}</h2>
+            <h2>{variable.name} {editUrl && <a href={editUrl} target="_blank"><FontAwesomeIcon icon={faPencilAlt}/></a>}</h2>
             <table className="variable-desc">
                 <tbody>
                     {variable.description ? <tr><td>Variable description</td><td dangerouslySetInnerHTML={{__html: linkify(variable.description)}}/></tr> : null}

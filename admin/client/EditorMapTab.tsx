@@ -9,6 +9,9 @@ import { MapProjection } from 'charts/MapProjection'
 import { ColorSchemes } from 'charts/ColorSchemes'
 import { NumericBin, CategoricalBin } from 'charts/MapData'
 import { Color } from 'charts/Color'
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
+import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
@@ -114,10 +117,10 @@ class NumericBinView extends React.Component<{ mapConfig: MapConfig, bin: Numeri
         const { mapConfig, bin } = this.props
 
         return <EditableListItem className="numeric">
-            <div className="clickable" onClick={this.onAddAfter}><i className="fa fa-plus"/></div>
+            <div className="clickable" onClick={this.onAddAfter}><FontAwesomeIcon icon={faPlus}/></div>
             <ColorBox color={bin.color} onColor={this.onColor} />
             <NumberField value={bin.max} onValue={this.onMaximumValue}/>
-            {mapConfig.props.colorSchemeValues.length > 2 && <div className="clickable" onClick={this.onRemove}><i className="fa fa-remove"/></div>}
+            {mapConfig.props.colorSchemeValues.length > 2 && <div className="clickable" onClick={this.onRemove}><FontAwesomeIcon icon={faMinus}/></div>}
         </EditableListItem>
     }
 }

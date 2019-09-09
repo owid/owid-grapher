@@ -11,6 +11,8 @@ import * as parse from 'csv-parse'
 import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import { AdminLayout } from './AdminLayout'
 import { AdminAppContext } from './AdminAppContext'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 declare const App: any
 declare const window: any
@@ -509,7 +511,7 @@ class Importer extends React.Component<ImportPageData> {
                 {!existingDataset && <p>Your data will be validated and stored in the database for visualization. After creating the dataset, please fill out the metadata fields and then mark the dataset as "publishable" if it should be reused by others.</p>}
                 <BindString field="name" store={dataset} helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}/>
 
-                {dataset.isLoading && <i className="fa fa-spinner fa-spin"></i>}
+                {dataset.isLoading && <FontAwesomeIcon icon={faSpinner} spin/>}
                 {!dataset.isLoading && [
                     <EditVariables key="editVariables" dataset={dataset} />,
                     <input key="submit" type="submit" className="btn btn-success" value={existingDataset ? "Update dataset" : "Create dataset"} />

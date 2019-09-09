@@ -12,6 +12,11 @@ import {observer} from 'mobx-react'
 
 import { extend, pick, capitalize } from 'charts/Util'
 import { Colorpicker } from './Colorpicker'
+import { faCog } from '@fortawesome/free-solid-svg-icons/faCog'
+import { faLink } from '@fortawesome/free-solid-svg-icons/faLink'
+import { faPaintBrush } from '@fortawesome/free-solid-svg-icons/faPaintBrush'
+import { faUnlink } from '@fortawesome/free-solid-svg-icons/faUnlink'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -311,7 +316,7 @@ export class ColorBox extends React.Component<{ color: string|undefined, onColor
         const style = color !== undefined ? { backgroundColor: color } : undefined
 
         return <div className="ColorBox" style={style} onClick={this.onClick}>
-            {color === undefined && <i className="fa fa-paint-brush"/>}
+            {color === undefined && <FontAwesomeIcon icon={faPaintBrush}/>}
             {isChoosingColor && <Colorpicker color={color} onColor={this.props.onColor} onClose={() => this.isChoosingColor = false} />}
         </div>
     }
@@ -360,7 +365,10 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
             <div className="input-group mb-2 mb-sm-0">
                 <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} onChange={e => props.onValue(e.currentTarget.value)}/>
                 <div className="input-group-addon" onClick={() => props.onToggleAuto(!props.isAuto)} title={props.isAuto ? "Automatic default" : "Manual input"}>
-                    {props.isAuto ? <i className="fa fa-link"/> : <i className="fa fa-unlink"/>}
+                    {props.isAuto ?
+                        <FontAwesomeIcon icon={faLink}/>
+                        : <FontAwesomeIcon icon={faUnlink}/>
+                    }
                 </div>
             </div>
             {props.helpText && <small className="form-text text-muted">{props.helpText}</small>}
@@ -525,7 +533,7 @@ export class Modal extends React.Component<{ className?: string, onClose: () => 
 export class LoadingBlocker extends React.Component<{}> {
     render() {
         return <div className="LoadingBlocker">
-            <i className="fa fa-cog fa-spin fa-3x fa-fw"/>
+            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x"/>
         </div>
     }
 }
