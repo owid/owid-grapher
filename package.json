@@ -1,7 +1,7 @@
 {
   "name": "owid-wordpress-admin",
   "version": "0.1.0",
-  "description": "Custom dashboard behaviours and widgets for ourworldindata.org wordpress admin panel",
+  "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
