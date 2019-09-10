@@ -18,33 +18,33 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 2. Install Homebrew services:
 
-```sh
-brew tap homebrew/services
-```
+   ```sh
+   brew tap homebrew/services
+   ```
 
 3. Install MySQL 5.7 and Node 10.9+:
 
-```sh
-brew install node mysql@5.7
-```
+   ```sh
+   brew install mysql@5.7 node
+   ```
 
 4. Start the MySQL service:
 
-```sh
-brew services start mysql@5.7
-```
+   ```sh
+   brew services start mysql@5.7
+   ```
 
 5. Install yarn:
 
-```sh
-npm install -g yarn
-```
+   ```sh
+   npm install -g yarn
+   ```
 
 6. Inside the repo folder, install all dependencies by running:
 
-```sh
-yarn
-```
+   ```sh
+   yarn
+   ```
 
 ### Other platforms
 
