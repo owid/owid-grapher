@@ -102,7 +102,6 @@
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^4.0.0",
     "filenamify": "^4.1.0",
-    "font-awesome": "^4.7.0",
     "fs-extra": "^8.0.1",
     "fuzzyset": "^0.0.4",
     "fuzzysort": "^1.1.4",

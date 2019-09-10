@@ -1,6 +1,5 @@
 import 'charts/client/charts.entry'
 import 'admin/client/admin.scss'
-import 'font-awesome/css/font-awesome.css'
 
 window.$ = window.jQuery = require('jquery')
 
