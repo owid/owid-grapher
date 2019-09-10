@@ -12,17 +12,57 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-You will need: [MySQL 5.7](https://www.mysql.com/), [Node 10.9+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/).
+### macOS
 
-Running `yarn` in the repo root will grab the remaining dependencies.
+1. Install Homebrew first, follow the instructions here: <https://brew.sh/>
+
+2. Install Homebrew services:
+
+```sh
+brew tap homebrew/services
+```
+
+3. Install MySQL 5.7 and Node 10.9+:
+
+```sh
+brew install node mysql@5.7
+```
+
+4. Start the MySQL service:
+
+```sh
+brew services start mysql@5.7
+```
+
+5. Install yarn:
+
+```sh
+npm install -g yarn
+```
+
+6. Inside the repo folder, install all dependencies by running:
+
+```sh
+yarn
+```
+
+### Other platforms
+
+You will need: [MySQL 5.7](https://www.mysql.com/), [Node 10.9+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
 
 ## Database setup
 
-Remove the password for root:
+### Remove the password
 
-```sh
+Remove the password for root by opening the MySQL shell with `mysql` and running:
+
+```sql
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY ''
 ```
+
+We do this for convenience so we can run `mysql` commands without providing a password each time. You can also set a password, just make sure you include it in the `.env` file later.
+
+### Import the latest data extract
 
 Daily exports from the live OWID database are published here and can be used for testing:
 
@@ -43,6 +83,12 @@ gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
 
 Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
 
+### Inspecting the database
+
+On macOS, we recommend using [Sequel Pro](http://www.sequelpro.com/) (it's free).
+
+We also have [**a rough sketch of the schema**](https://user-images.githubusercontent.com/1308115/64631358-d920e680-d3ee-11e9-90a7-b45d942a7259.png) as it was on November 2019 (there may be slight changes).
+
 ## Development server
 
 `cp .env.example .env` and populate `.env` with your database details.
@@ -55,6 +101,6 @@ If you need to make changes to the MySQL database structure, these are specified
 
 ## Architecture notes
 
-owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do pretty heavy client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
 
-The OWID tech stack has evolved over time as we have found really optimal ways of solving particular problems. We're now happy with the combination of React + Mobx + TypeScript + node and expect to be using these core tools for the foreseeable future. The MySQL database and data structure however is much older and we're interested in exploring alternatives that might allow us to work with large amounts of data more quickly and with more flexibility.
+The OWID tech stack has evolved over time as we've found different ways to solve our problems. We're happy with the combination of React + Mobx + TypeScript + node and expect to be using these core tools for the foreseeable future. The MySQL database and data structure however is much older and we're interested in exploring alternatives that might allow us to work with large amounts of data more quickly and with more flexibility.
