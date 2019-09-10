@@ -13,13 +13,10 @@ import * as _ from 'lodash'
 import * as db from 'db/db'
 import { Post } from 'db/model/Post'
 
-import { promisify } from 'util'
-import * as imageSizeStandard from 'image-size'
 import { Chart } from 'charts/Chart'
 import { defaultTo } from 'charts/Util'
 import { Base64 } from 'js-base64'
 
-const imageSize = promisify(imageSizeStandard) as any
 class WPDB {
     conn?: DatabaseConnection
 

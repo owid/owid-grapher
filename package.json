@@ -109,7 +109,6 @@
     "google-trends-api": "^4.9.0",
     "hard-source-webpack-plugin": "^0.13.1",
     "html-to-text": "^5.1.1",
-    "image-size": "^0.7.4",
     "imagemagick": "^0.1.3",
     "jquery": "^3.4.1",
     "js-base64": "^2.5.1",
