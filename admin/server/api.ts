@@ -134,16 +134,25 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
     const slugs = rows.map((row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, ''))
 
     if (slugs && slugs.length > 0) {
-        const posts = await wpdb.query(`
-            SELECT ID, post_title, post_name
-            FROM wp_posts
-            WHERE
-                (post_type='page' OR post_type='post')
-                AND post_status='publish'
-                AND (
-                    ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
-                )
-        `, slugs)
+        let posts = []
+        // Hacky approach to find all the references to a chart by searching for
+        // the chart URL through the Wordpress database.
+        // The Grapher should work without the Wordpress database, so we need to
+        // handle failures gracefully.
+        try {
+            posts = await wpdb.query(`
+                SELECT ID, post_title, post_name
+                FROM wp_posts
+                WHERE
+                    (post_type='page' OR post_type='post')
+                    AND post_status='publish'
+                    AND (
+                        ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
+                    )
+            `, slugs)
+        } catch (error) {
+            // We can ignore errors due to not being able to connect.
+        }
         const permalinks = await wpdb.getPermalinks()
         return posts.map(post => {
             const slug = permalinks.get(post.ID, post.post_name)
