@@ -17,7 +17,12 @@
     }
   ],
   "keywords": [
-    "bedrock", "composer", "roots", "wordpress", "wp", "wp-config"
+    "bedrock",
+    "composer",
+    "roots",
+    "wordpress",
+    "wp",
+    "wp-config"
   ],
   "support": {
     "issues": "https://github.com/roots/bedrock/issues",
@@ -27,16 +32,47 @@
     {
       "type": "composer",
       "url": "https://wpackagist.org"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/wp-graphql/wp-graphql"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/WP-API/Basic-Auth"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/owid/owid-wordpress-admin"
     }
   ],
   "require": {
     "php": ">=7.1",
     "composer/installers": "^1.7",
-    "vlucas/phpdotenv": "^3.4.0",
     "oscarotero/env": "^1.2.0",
+    "owid/owid-wordpress-admin": "dev-master",
     "roots/wordpress": "5.2.3",
     "roots/wp-config": "1.0.0",
-    "roots/wp-password-bcrypt": "1.0.0"
+    "roots/wp-password-bcrypt": "1.0.0",
+    "vlucas/phpdotenv": "^3.4.0",
+    "wp-api/basic-auth": "dev-master",
+    "wp-graphql/wp-graphql": "^0.3.6",
+    "wpackagist-plugin/add-category-to-pages": "^1.1",
+    "wpackagist-plugin/admin-starred-posts": "^2.5",
+    "wpackagist-plugin/broken-link-checker": "^1.11",
+    "wpackagist-plugin/classic-editor": "^1.5",
+    "wpackagist-plugin/co-authors-plus": "^3.4",
+    "wpackagist-plugin/disable-visual-editor-wysiwyg": "^1.7",
+    "wpackagist-plugin/image-cleanup": "^1.9",
+    "wpackagist-plugin/mailgun": "^1.7",
+    "wpackagist-plugin/my-default-post-content": "^0.6.0",
+    "wpackagist-plugin/public-post-preview": "^2.9",
+    "wpackagist-plugin/public-post-preview-configurator": "^1.0",
+    "wpackagist-plugin/raw-html": "^1.6",
+    "wpackagist-plugin/redirection": "^4.3",
+    "wpackagist-plugin/regenerate-thumbnails": "^3.1",
+    "wpackagist-plugin/simple-embed-code": "^2.3",
+    "wpackagist-plugin/tablepress": "^1.9"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.4.2",
@@ -51,9 +87,15 @@
   "prefer-stable": true,
   "extra": {
     "installer-paths": {
-      "web/app/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
-      "web/app/plugins/{$name}/": ["type:wordpress-plugin"],
-      "web/app/themes/{$name}/": ["type:wordpress-theme"]
+      "web/app/mu-plugins/{$name}/": [
+        "type:wordpress-muplugin"
+      ],
+      "web/app/plugins/{$name}/": [
+        "type:wordpress-plugin"
+      ],
+      "web/app/themes/{$name}/": [
+        "type:wordpress-theme"
+      ]
     },
     "wordpress-install-dir": "web/wp"
   },
