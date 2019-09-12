@@ -1,0 +1,6 @@
+name: our-world-in-data
+recipe: wordpress
+config:
+  webroot: web
+  via: nginx
+  xdebug: true
