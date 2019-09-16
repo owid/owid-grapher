@@ -39,7 +39,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPo
 
             <section className="homepage-masthead">
                 <div className="wrapper">
-                    <h1>Research and data to make progress against the world’s largest problems.</h1>
+                    <h1>Research and data to make progress against the world’s largest problems</h1>
                     <a href="#entries" className="see-all" data-smooth-scroll data-track-click data-track-note="homepage-scroll">
                         Scroll to all research
                         <span className="icon"><FontAwesomeIcon icon={faAngleDoubleDown} /></span>
