@@ -98,9 +98,6 @@
     "post-root-package-install": [
       "php -r \"copy('.env.example', '.env');\""
     ],
-    "post-install-cmd": [
-      "cd web/app/plugins/owid-wordpress-admin && yarn && yarn build"
-    ],
     "test": [
       "phpcs"
     ]
