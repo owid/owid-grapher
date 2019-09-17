@@ -4,3 +4,6 @@ config:
   webroot: web
   via: nginx
   xdebug: true
+services:
+  database:
+    portforward: 3306
