@@ -40,17 +40,12 @@
     {
       "type": "vcs",
       "url": "https://github.com/WP-API/Basic-Auth"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/owid/owid-wordpress-admin"
     }
   ],
   "require": {
     "php": ">=7.1",
     "composer/installers": "^1.7",
     "oscarotero/env": "^1.2.0",
-    "owid/owid-wordpress-admin": "dev-master",
     "roots/wordpress": "5.2.3",
     "roots/wp-config": "1.0.0",
     "roots/wp-password-bcrypt": "1.0.0",

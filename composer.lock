@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad46b43b8c2f7ae473cd8de879728783",
+    "content-hash": "accd07c5f7c55815a5f5a5526fba4821",
     "packages": [
         {
             "name": "composer/installers",
@@ -211,28 +211,6 @@
                 "env"
             ],
             "time": "2019-04-03T18:28:43+00:00"
-        },
-        {
-            "name": "owid/owid-wordpress-admin",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/owid/owid-wordpress-admin.git",
-                "reference": "20ceea63ae99ff0500721718ddea22948964aa83"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/owid/owid-wordpress-admin/zipball/20ceea63ae99ff0500721718ddea22948964aa83",
-                "reference": "20ceea63ae99ff0500721718ddea22948964aa83",
-                "shasum": ""
-            },
-            "type": "wordpress-plugin",
-            "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
-            "support": {
-                "source": "https://github.com/owid/owid-wordpress-admin/tree/master",
-                "issues": "https://github.com/owid/owid-wordpress-admin/issues"
-            },
-            "time": "2019-09-10T21:14:05+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -1285,7 +1263,6 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "owid/owid-wordpress-admin": 20,
         "wp-api/basic-auth": 20,
         "roave/security-advisories": 20
     },
