@@ -7,3 +7,4 @@ config:
 services:
   database:
     portforward: 3306
+    healthcheck:
