@@ -1,4 +1,5 @@
-Copyright (c) Roots
+Original work Copyright (c) Roots
+Modified work Copyright (c) 2019 - present Matthieu Bergel
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
