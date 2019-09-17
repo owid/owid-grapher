@@ -1,7 +1,7 @@
 import {decodeHTML} from 'entities'
 const slugify = require('slugify')
 import { DatabaseConnection } from 'db/DatabaseConnection'
-import { WORDPRESS_DB_NAME, WORDPRESS_DIR, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER } from 'serverSettings'
+import { WORDPRESS_DB_NAME, WORDPRESS_DB_HOST, WORDPRESS_DB_PORT, WORDPRESS_DB_USER, WORDPRESS_DB_PASS, WORDPRESS_API_PASS, WORDPRESS_API_USER } from 'serverSettings'
 import { WORDPRESS_URL, BAKED_BASE_URL } from 'settings'
 import * as Knex from 'knex'
 import fetch from 'node-fetch'

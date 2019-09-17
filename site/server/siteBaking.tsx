@@ -133,20 +133,6 @@ export async function renderBlogByPageNum(pageNum: number) {
     const numPages = Math.ceil(allPosts.length/postsPerPage)
     const posts = allPosts.slice((pageNum-1)*postsPerPage, pageNum*postsPerPage)
 
-    for (const post of posts) {
-        if (post.imageUrl) {
-            // Find a smaller version of this image
-            try {
-                const pathname = url.parse(post.imageUrl).pathname as string
-                const paths = glob.sync(path.join(WORDPRESS_DIR, pathname.replace(/\.png/, "*.png")))
-                const sortedPaths = _.sortBy(paths, p => fs.statSync(p).size)
-                post.imageUrl = sortedPaths[sortedPaths.length-3].replace(WORDPRESS_DIR, '')
-            } catch (err) {
-                // Just use the big one
-            }
-        }
-    }
-
     return renderToHtmlPage(<BlogIndexPage posts={posts} pageNum={pageNum} numPages={numPages}/>)
 }
 
