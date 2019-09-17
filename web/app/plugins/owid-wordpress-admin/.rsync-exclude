@@ -1,0 +1,5 @@
+.DS_Store
+/.git
+/node_modules
+/.gitignore
+/.rsync-exclude

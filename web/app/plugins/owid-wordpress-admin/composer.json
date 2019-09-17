@@ -1,0 +1,5 @@
+{
+  "name": "owid/owid-wordpress-admin",
+  "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
+  "type": "wordpress-plugin"
+}

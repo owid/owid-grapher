@@ -1,0 +1,21 @@
+{
+  "name": "owid-wordpress-admin",
+  "version": "0.1.0",
+  "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "wp-scripts start",
+    "build": "wp-scripts build"
+  },
+  "author": "Matthieu Bergel <hello@matthieubergel.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "@wordpress/scripts": "3.4.0"
+  },
+  "dependencies": {
+    "downshift": "^3.2.12",
+    "entities": "^2.0.0",
+    "match-sorter": "^4.0.1"
+  }
+}
