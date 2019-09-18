@@ -371,7 +371,7 @@ export class SiteBaker {
         // Target root level HTML files only (entries and posts) for performance
         // reasons.
         // TODO: check again --only-changed
-        this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
+        // this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg) {
             this.exec(`cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`)
