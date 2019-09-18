@@ -24,3 +24,6 @@ web/.htaccess
 
 # WP-CLI
 wp-cli.local.yml
+
+# SQL dumps
+/*.sql.gz
