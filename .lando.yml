@@ -4,6 +4,8 @@ config:
   webroot: web
   via: nginx
   xdebug: true
+  config:
+    vhosts: .lando/vhosts.conf.tpl
 services:
   appserver:
     run:
