@@ -25,6 +25,6 @@ tooling:
   db-refresh:
     description: Dumps production database and imports it
     cmd:
-      - appserver: ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r ~/live_wordpress.sql"
-      - appserver: rsync -havz --progress owid-live:live_wordpress.sql /app
-      - database: /helpers/sql-import.sh live_wordpress.sql
+      - appserver: ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r live_wordpress.sql && gzip -f live_wordpress.sql"
+      - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz .
+      - database: /helpers/sql-import.sh live_wordpress.sql.gz
