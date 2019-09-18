@@ -23,8 +23,9 @@ services:
     healthcheck:
 tooling:
   db-refresh:
-    description: Dumps production database and imports it
+    description: Dumps production databases (live_wordpress, owid_metadata) and imports them
     cmd:
       - appserver: ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r live_wordpress.sql && gzip -f live_wordpress.sql"
-      - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz .
+      - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz . && curl -LO https://files.ourworldindata.org/owid_metadata.sql.gz
       - database: /helpers/sql-import.sh live_wordpress.sql.gz
+      - database-grapher: /helpers/sql-import.sh owid_metadata.sql.gz
