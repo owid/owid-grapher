@@ -19,6 +19,10 @@ services:
     healthcheck:
   database-grapher:
     type: mysql
+    creds:
+      user: grapher
+      password: grapher
+      database: grapher
     portforward: 3307
     healthcheck:
 tooling:
