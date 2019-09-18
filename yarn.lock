@@ -14150,15 +14150,12 @@ strip-outer@^1.0.0, strip-outer@^1.0.1:
   dependencies:
     escape-string-regexp "^1.0.2"
 
-stripe@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-7.1.0.tgz#8e6ba9eefd9947c7e051b7cce23d224148293d1b"
-  integrity sha512-5xZE/HrQ1WjEds5+z6JfcLtXoEbOV5LxfIE0x8YACqqvelNVyW0aErfeUIFSjSgniEDLWvQalb1l2Bx2LQqV0w==
+stripe@^7.9.1:
+  version "7.9.1"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-7.9.1.tgz#05c266d48494b512b29ff89ef22e80efc14d35d3"
+  integrity sha512-8RzWlQD2/X/1YdzHtd5PYG0/GyAicxddW0TL54SIFq2ivaDoeJg3YLn9rxcmrnkmmuW8aU7yeByKjNGI8QrVxw==
   dependencies:
-    lodash.isplainobject "^4.0.6"
     qs "^6.6.0"
-    safe-buffer "^5.1.1"
-    uuid "^3.3.2"
 
 style-loader@^0.23.1:
   version "0.23.1"
