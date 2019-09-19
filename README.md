@@ -43,7 +43,7 @@ Gutenberg sidebar plugin allowing authors to choose an entry as the reading cont
 4. Populate databases
 
    ```sh
-$ lando db-refresh
+   $ lando db-refresh
    ```
 
 5. Optionally, import the **chartdata** database
