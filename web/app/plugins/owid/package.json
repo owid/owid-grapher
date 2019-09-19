@@ -1,6 +1,5 @@
 {
-  "name": "owid-wordpress-admin",
-  "version": "0.1.0",
+  "private": true,
   "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
   "main": "src/index.js",
   "scripts": {
