@@ -1,5 +1,8 @@
 name: our-world-in-data
 recipe: wordpress
+# Uncomment to start using env variables
+# env_file:
+#   - .env
 config:
   webroot: web
   via: nginx
