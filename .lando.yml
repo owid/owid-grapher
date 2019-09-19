@@ -17,8 +17,8 @@ services:
     type: node
     build:
       - cd web/app/plugins/owid-wordpress-admin && yarn && yarn build
-    run_as_root:
-      - ln -s /user/.ssh/config /var/www/.ssh/config
+    build_as_root:
+      - ln -sf /user/.ssh/config /var/www/.ssh/config
   database:
     portforward: 3306
     healthcheck:
