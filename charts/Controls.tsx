@@ -18,6 +18,7 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons/faShareAlt'
 import { faCog } from '@fortawesome/free-solid-svg-icons/faCog'
+import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy'
 import { faExpand } from '@fortawesome/free-solid-svg-icons/faExpand'
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
@@ -105,6 +106,36 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
         document.removeEventListener('click', this.onClickSomewhere)
     }
 
+    @observable showCopyResulltText: boolean = false
+
+    @action.bound onCopy() {
+        if (!this.canonicalUrl) { return }
+
+        // Adapted from https://github.com/30-seconds/30-seconds-of-code#copytoclipboard-
+        const copyToClipboard = (str: string) => {
+            const el = document.createElement('textarea')
+            el.value = str
+            el.setAttribute('readonly', '')
+            el.style.position = 'absolute'
+            el.style.left = '-9999px'
+            document.body.appendChild(el)
+            const selected =
+                document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false
+            el.select()
+            document.execCommand('copy')
+            document.body.removeChild(el)
+            if (selected) {
+              document.getSelection().removeAllRanges()
+              document.getSelection().addRange(selected)
+            }
+        }
+        copyToClipboard(this.canonicalUrl)
+        this.showCopyResulltText = true
+        setTimeout(() => {
+            this.showCopyResulltText = false
+        }, 1000)
+    }
+
     @action.bound onEmbed() {
         if (this.canonicalUrl) {
             this.props.chartView.addPopup(<EmbedMenu key="EmbedMenu" chartView={this.props.chartView} embedUrl={this.canonicalUrl} />)
@@ -127,10 +158,13 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
     }
 
     render() {
-        const { editUrl, twitterHref, facebookHref, isDisabled } = this
+        const { editUrl, showCopyResulltText, twitterHref, facebookHref, isDisabled } = this
 
         return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={action(() => this.dismissable = false)}>
             <h2>Share</h2>
+            <a className="btn" title="Copy Link" onClick={this.onCopy}>
+                <FontAwesomeIcon icon={faCopy}/> { showCopyResulltText ? 'Link copied!' : 'Link' }
+            </a>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <FontAwesomeIcon icon={faTwitter}/> Twitter
             </a>
