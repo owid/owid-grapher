@@ -82,8 +82,6 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
         return this.props.chart.url.canonicalUrl
     }
 
-    @observable isEmbedMenuActive: boolean = false
-
     embedMenu: any
 
     @action.bound dismiss() {
@@ -163,7 +161,7 @@ class ShareMenu extends React.Component<{ chart: ChartConfig, chartView: any, on
         return <div className={"ShareMenu" + (isDisabled ? " disabled" : "")} onClick={action(() => this.dismissable = false)}>
             <h2>Share</h2>
             <a className="btn" title="Copy Link" onClick={this.onCopy}>
-                <FontAwesomeIcon icon={faCopy}/> { showCopyResulltText ? 'Link copied!' : 'Link' }
+                <FontAwesomeIcon icon={faCopy}/> { showCopyResulltText ? "Link copied!" : "Link" }
             </a>
             <a className="btn" target="_blank" title="Tweet a link" href={twitterHref}>
                 <FontAwesomeIcon icon={faTwitter}/> Twitter
