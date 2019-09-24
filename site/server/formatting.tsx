@@ -90,7 +90,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     html = html.replace(/<!--[^>]+-->/g, "")
 
     // Standardize spacing
-    html = html.replace(/&nbsp;/g, "").replace(/\r\n/g, "\n").replace(/\n+/g, "\n").replace(/\n/g, "\n\n")
+    html = html.replace(/\r\n/g, "\n").replace(/\n+/g, "\n").replace(/\n/g, "\n\n")
 
     // Need to skirt around wordpress formatting to get proper latex rendering
     let latexBlocks
