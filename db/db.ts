@@ -1,7 +1,7 @@
 import * as mysql from 'mysql'
 import * as typeorm from 'typeorm'
 import * as Knex from 'knex'
-import { DB_HOST, DB_USER, DB_PASS, DB_NAME } from 'serverSettings'
+import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from 'serverSettings'
 import { log } from 'utils/server/log'
 let connection: typeorm.Connection
 
@@ -95,6 +95,7 @@ export function knex() {
                 user: DB_USER,
                 password: DB_PASS,
                 database: DB_NAME,
+                port: DB_PORT,
                 typeCast: (field: any, next: any) => {
                     if (field.type === 'TINY' && field.length === 1) {
                         return (field.string() === '1') // 1 = true, 0 = false
