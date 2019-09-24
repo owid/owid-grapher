@@ -223,7 +223,7 @@ export const ColorSchemes = (() => {
             "#5675c1", // Africa
             "#aec7e8", // Antarctica
             "#d14e5b", // Asia
-            "#ffd336", // Europe
+            "#ec8e00", // Europe
             "#4d824b", // North America
             "#a652ba", // Oceania
             "#69c487", // South America
