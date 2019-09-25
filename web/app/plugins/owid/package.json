@@ -4,8 +4,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "wp-scripts start",
-    "build": "wp-scripts build"
+    "start": "wp-scripts start src/index.js src/blocks.js",
+    "build": "wp-scripts build src/index.js src/blocks.js"
   },
   "author": "Matthieu Bergel <hello@matthieubergel.org>",
   "license": "MIT",
