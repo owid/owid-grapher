@@ -13,6 +13,7 @@ import { ChartConfig } from 'charts/ChartConfig'
 import { ChartFigureView } from 'site/client/ChartFigureView'
 import { ChartList, ChartListItem } from './ChartList'
 import { AdminAppContext } from './AdminAppContext'
+import { Base64 } from 'js-base64'
 
 interface VariablePageData {
     id: number
@@ -120,7 +121,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 {this.chart && <div className="col">
                     <div className="topbar">
                         <h3>Preview</h3>
-                        <Link className="btn btn-secondary" to={`/charts/create/${btoa(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
+                        <Link className="btn btn-secondary" to={`/charts/create/${Base64.encode(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
                     </div>
                     <ChartFigureView chart={this.chart}/>
                 </div>}
