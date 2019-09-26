@@ -38,7 +38,8 @@ then
   ssh -t $HOST 'bash -e -s' <<EOF
   
   # Ensure target directories exist
-  mkdir -p $ROOT/tmp && mkdir -p $FINAL_TARGET
+  mkdir -p $ROOT/tmp
+  mkdir -p $FINAL_TARGET
   
   # Remove any previous temporary repo
   rm -rf $TMP_NEW
