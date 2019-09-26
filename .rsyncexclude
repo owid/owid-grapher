@@ -1,0 +1,18 @@
+/.lando*
+/.vscode
+
+/.env*
+
+/.git
+/.gitignore
+/.rsyncexclude
+
+/scripts
+
+node_modules
+
+# Uploads
+/web/app/uploads
+
+# SQL dumps
+/*.sql.gz

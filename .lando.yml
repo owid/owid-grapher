@@ -16,7 +16,7 @@ services:
   node:
     type: node
     build:
-      - cd web/app/plugins/owid-wordpress-admin && yarn && yarn build
+      - cd web/app/plugins/owid && yarn && yarn build
     build_as_root:
       - ln -sf /user/.ssh/config /var/www/.ssh/config
   database:
@@ -38,3 +38,9 @@ tooling:
       - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz . && curl -LO https://files.ourworldindata.org/owid_metadata.sql.gz
       - database: /helpers/sql-import.sh live_wordpress.sql.gz
       - database-grapher: /helpers/sql-import.sh owid_metadata.sql.gz
+  deploy:
+    description: Builds and deploys to target
+    cmd:
+      - appserver: composer install
+      - node: cd web/app/plugins/owid && yarn && yarn build
+      - appserver: ./scripts/deploy.sh
