@@ -774,6 +774,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         font-family: $serif-font-stack;
         font-size: 2.25rem;
         font-weight: 400;
+        text-align: center;
         line-height: 1.25em;
         margin-top: 4.5rem;
         margin-bottom: 1.5rem;
@@ -1030,7 +1031,7 @@ article.post {
 
 .article-content ol, .article-content ul {
     margin-bottom: 30px;
-    margin-left: 40px;
+    padding-left: 40px;
     font-weight: normal;
 }
 
@@ -1106,12 +1107,55 @@ iframe:not(:first-child) {
     }
 }
 
-.contentContainer {
-    max-width: 800px;
+// TODO: Still necessary?
+// .contentContainer {
+    //     position: relative;
+    // }
+
+.page {
+    $contentMaxWidth: 800px;
+    $paddingX: 30px;
+
     padding-bottom: 50px;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
+    @media only screen and (max-width: 1023px) {
+        max-width: $contentMaxWidth;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media only screen and (min-width: 1024px) {
+        max-width: 1400px;
+        & .article-content section > *:not(.wp-block-columns),
+        & .article-footer {
+            max-width: $contentMaxWidth;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .has-2-columns {
+            display: flex;
+            align-items: flex-start; // maintain columns original height to allow sticky positioning
+            padding: 0 $paddingX;
+
+            .wp-block-column {
+                flex: 0 0 50%;
+                overflow: auto; // force charts to behave and not overflow when resizing
+                padding: 0 0 0 $paddingX;
+                &:first-child {
+                    padding: 0 $paddingX 0 0;
+                }
+            }
+
+            &.is-style-sticky-right {
+                .wp-block-column{
+                    &:nth-child(2) {
+                        top: 0;
+                        position: sticky;
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* Page Navigation Sidebar

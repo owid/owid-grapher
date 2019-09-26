@@ -49,7 +49,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                     </header>
 
                     <div className="contentContainer">
-                        {post.tocHeadings.length > 0 && <aside className="entry-sidebar">
+                        {/* {post.tocHeadings.length > 0 && <aside className="entry-sidebar">
                             <nav className="entry-toc">
                                 <ul>
                                     <li><a href="#">{pageTitle}</a></li>
@@ -70,7 +70,7 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                                     </li>}
                                 </ul>
                             </nav>
-                        </aside>}
+                        </aside>} */}
 
                         <div className="contentAndFootnotes">
                             <div className="article-content" dangerouslySetInnerHTML={{__html: post.html}}/>
