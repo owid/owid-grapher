@@ -11,14 +11,10 @@ config:
     vhosts: .lando/vhosts.conf.tpl
 services:
   appserver:
-    run:
-      - composer install
-  node:
-    type: node
-    build:
-      - cd web/app/plugins/owid && yarn && yarn build
     build_as_root:
       - ln -sf /user/.ssh/config /var/www/.ssh/config
+  node:
+    type: node
   database:
     portforward: 3306
     healthcheck:
@@ -30,6 +26,11 @@ services:
       database: grapher
     portforward: 3307
     healthcheck:
+events:
+  pre-build:
+    # post-start:
+    - appserver: composer install
+    - node: cd web/app/plugins/owid && yarn
 tooling:
   db-refresh:
     description: Dumps production databases (live_wordpress, owid_metadata) and imports them
@@ -38,9 +39,12 @@ tooling:
       - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz . && curl -LO https://files.ourworldindata.org/owid_metadata.sql.gz
       - database: /helpers/sql-import.sh live_wordpress.sql.gz
       - database-grapher: /helpers/sql-import.sh owid_metadata.sql.gz
-  deploy:
-    description: Builds and deploys to target
+  build:
+    description: Installs dependencies and builds app
+    service: node
     cmd:
-      - appserver: composer install
-      - node: cd web/app/plugins/owid && yarn && yarn build
+      - cd web/app/plugins/owid && yarn build
+  deploy:
+    description: Deploys app to target
+    cmd:
       - appserver: ./scripts/deploy.sh

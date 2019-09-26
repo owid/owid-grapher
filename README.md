@@ -34,10 +34,10 @@ Gutenberg sidebar plugin allowing authors to choose an entry as the reading cont
    $ cp .env.example .env
    ```
 
-3. Start
+3. Start & build
 
    ```sh
-   $ lando start
+   $ lando start && lando build
    ```
 
 4. Populate databases
