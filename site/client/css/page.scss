@@ -35,7 +35,7 @@
         & .article-footer {
             // "adding" padding by substracting it to the width to leave elements
             // the possibility to declare their own
-            max-width: $content-max-width - $padding-x-sm * 2;
+            max-width: $content-max-width - $padding-x-lg * 1.5;
             margin-left: auto;
             margin-right: auto;
         }
