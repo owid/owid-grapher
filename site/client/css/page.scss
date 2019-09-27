@@ -16,6 +16,32 @@
     }
 }
 
+.page {
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 50px;
+
+    @include sm-only {
+        max-width: $content-max-width;
+        padding-left: $padding-x-sm;
+        padding-right: $padding-x-sm;
+    }
+
+    @include lg-only {
+        max-width: $content-max-width * 2;
+        padding-left: $padding-x-lg;
+        padding-right: $padding-x-lg;
+        & .article-content section > *:not(.wp-block-columns),
+        & .article-footer {
+            // "adding" padding by substracting it to the width to leave elements
+            // the possibility to declare their own
+            max-width: $content-max-width - $padding-x-sm * 2;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+}
+
 .columns {
     display: flex;
     flex-direction: row;

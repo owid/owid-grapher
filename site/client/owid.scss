@@ -1095,9 +1095,9 @@ iframe:not(:first-child) {
     margin-bottom: 1em;
 }
 
-@media only screen and (max-width: 980px) {
-    article.post, article.page {
-        padding: 1rem;
+@include sm-only {
+    article.post {
+        padding: $padding-x-sm;
     }
 
     .deep-link {
@@ -1111,52 +1111,6 @@ iframe:not(:first-child) {
 // .contentContainer {
     //     position: relative;
     // }
-
-.page {
-    $contentMaxWidth: 800px;
-    $paddingX: 30px;
-
-    padding-bottom: 50px;
-    @media only screen and (max-width: 1023px) {
-        max-width: $contentMaxWidth;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    @media only screen and (min-width: 1024px) {
-        max-width: 1400px;
-        & .article-content section > *:not(.wp-block-columns),
-        & .article-footer {
-            max-width: $contentMaxWidth;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .has-2-columns {
-            display: flex;
-            align-items: flex-start; // maintain columns original height to allow sticky positioning
-            padding: 0 $paddingX;
-
-            .wp-block-column {
-                flex: 0 0 50%;
-                overflow: auto; // force charts to behave and not overflow when resizing
-                padding: 0 0 0 $paddingX;
-                &:first-child {
-                    padding: 0 $paddingX 0 0;
-                }
-            }
-
-            &.is-style-sticky-right {
-                .wp-block-column{
-                    &:nth-child(2) {
-                        top: 0;
-                        position: sticky;
-                    }
-                }
-            }
-        }
-    }
-}
 
 /* Page Navigation Sidebar
 --------------------------------------------- */

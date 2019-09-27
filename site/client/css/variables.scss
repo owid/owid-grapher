@@ -1,10 +1,46 @@
 /*******************************************************************************
+ * Breakpoints
+ */
+
+$lg-min-width: 960px;
+// we only have "sm" and "lg" right now. Everything below "lg" is "sm".
+
+@mixin sm-only {
+    @media (max-width: #{$lg-min-width - 1px}) {
+        @content;
+    }
+}
+
+@mixin lg-only {
+    @media (min-width: #{$lg-min-width}) {
+        @content;
+    }
+}
+
+/*******************************************************************************
+ * Spacing
+ */
+
+$padding-x-sm: 1.5rem;
+$padding-x-lg: 2rem;
+
+
+/*******************************************************************************
+ * Sizes
+ */
+
+$content-max-width: 45rem;
+
+// fonts
+$font-size-sm: 1.1rem;
+$font-size-lg: 1.3rem;
+
+/*******************************************************************************
  * Fonts
  */
 
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
-
 
 /*******************************************************************************
  * Colors
@@ -67,25 +103,6 @@ $education-color: #253f77;
 $media-color: #0089be;
 $culture-color: #af488f;
 
-
-/*******************************************************************************
- * Breakpoints
- */
-
-$lg-min-width: 960px;
-// we only have "sm" and "lg" right now. Everything below "lg" is "sm".
-
-@mixin sm-only {
-    @media (max-width: #{$lg-min-width - 1px}) {
-        @content;
-    }
-}
-
-@mixin lg-only {
-    @media (min-width: #{$lg-min-width}) {
-        @content;
-    }
-}
 
 /*******************************************************************************
  * Z-index
