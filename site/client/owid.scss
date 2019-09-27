@@ -181,14 +181,13 @@ body.single-post .site-content {
 }
 
 body.single-post article {
-    max-width: 900px;
-    margin: auto;
+    max-width: $content-max-width;
+    margin: 0 auto 1rem;
+    background: white;
+    border: 1px solid #ddd;
 }
 
 body.single-post article {
-    background: white;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
 }
 
 body.single-post h1.entry-title {
