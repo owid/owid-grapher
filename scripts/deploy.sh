@@ -4,6 +4,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 USER="$(id -un)" # $USER empty in vscode terminal
 BRANCH="$(git rev-parse --abbrev-ref HEAD)" # use "git branch --show-current" when git updated
 GIT_STATUS="$(git status --porcelain)"
+PATH_OWID_PLUGIN="web/app/plugins/owid"
 
 if [ "$BRANCH" != "master" ] || [ -n "$GIT_STATUS" ]; then
   echo "Please run from a clean master branch."
@@ -50,6 +51,13 @@ then
   # Link in all the persistent stuff that needs to stay around between versions
   ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
   ln -s $FINAL_DATA/wordpress/uploads $TMP_NEW/web/app/uploads
+
+  # Install dependencies, build assets
+  cd $TMP_NEW
+  composer install --no-dev
+  cd $TMP_NEW/$PATH_OWID_PLUGIN
+  yarn install
+  yarn build
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP
