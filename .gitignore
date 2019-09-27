@@ -1,29 +1,24 @@
 # Application
-web/app/plugins/*
-!web/app/plugins/owid
-!web/app/plugins/.gitkeep
-web/app/mu-plugins/*/
-web/app/upgrade
-web/app/uploads/*
-!web/app/uploads/.gitkeep
+!/web/app/plugins/owid
+# Empty line
+# Empty line
+/web/app/plugins/*
+/web/app/mu-plugins/*/
+/web/app/uploads/*
+!/web/app/uploads/.gitkeep
 
 # WordPress
-web/wp
-web/.htaccess
+/web/wp
 
 # Logs
 *.log
 
 # Dotenv
-.env
-.env.*
-!.env.example
+/.env*
+!/.env.example
 
 # Composer
 /vendor
-
-# WP-CLI
-wp-cli.local.yml
 
 # SQL dumps
 /*.sql.gz
