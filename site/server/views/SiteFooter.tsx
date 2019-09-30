@@ -28,6 +28,7 @@ export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
                         <ul>
                             <li><a href="/about" data-track-click data-track-note="footer-navigation">About</a></li>
                             <li><a href="/about#contact" data-track-click data-track-note="footer-navigation">Contact</a></li>
+                            <li><a href="/feedback" data-track-click data-track-note="footer-navigation">Feedback</a></li>
                             <li><a href="/jobs" data-track-click data-track-note="footer-navigation">Jobs</a></li>
                             <li><a href="/supporters" data-track-click data-track-note="footer-navigation">Supporters</a></li>
                             <li><a href="/about/how-to-use-our-world-in-data" data-track-click data-track-note="footer-navigation">How to use</a></li>
