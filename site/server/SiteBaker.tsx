@@ -222,7 +222,7 @@ export class SiteBaker {
 
     // Bake the static assets
     async bakeAssets() {
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/wp-content/uploads ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/web/app/uploads ${BAKED_SITE_DIR}/`)
         shell.exec(`rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`)
         shell.exec(`rsync -havz --delete ${BASE_DIR}/public/* ${BAKED_SITE_DIR}/`)
 
