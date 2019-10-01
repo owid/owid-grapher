@@ -21,7 +21,7 @@
 - /vendor
 
 # SQL dumps
-- /*.sql.gz
+- /*.sql*
 
 # Development
 - /.lando*
