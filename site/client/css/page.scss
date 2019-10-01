@@ -30,3 +30,11 @@
         display: block;
     }
 }
+
+/* Notice for entries that are only a preliminary collection of relevant material */
+.pcrm {
+    margin: 3rem 0;
+    padding: 1rem 2rem;
+    border-left: 4px solid $primary-color;
+    background-color: $tertiary-color;
+}
