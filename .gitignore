@@ -21,4 +21,4 @@
 /vendor
 
 # SQL dumps
-/*.sql.gz
+/*.sql*
