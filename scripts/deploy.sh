@@ -37,6 +37,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
   TMP_NEW="$ROOT/tmp/$NAME-$USER-tmp"
   FINAL_TARGET="$ROOT/$NAME"
   FINAL_DATA="$ROOT/$PREFIX-data"
+  GRAPHER_DIR="$ROOT/$PREFIX"
 
   # Rsync the local repository to a temporary location on the server
   echo 'Uploading files...'
@@ -59,6 +60,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
   # Link in all the persistent stuff that needs to stay around between versions
   ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
   ln -s $FINAL_DATA/wordpress/uploads $TMP_NEW/web/app/uploads
+  ln -s $GRAPHER_DIR $TMP_NEW/web/app/themes/owid-theme/codelink
 
   # Install dependencies, build assets
   cd $TMP_NEW
