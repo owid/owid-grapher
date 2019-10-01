@@ -84,7 +84,7 @@ export class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: 
                         </a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="/wp-admin" target="_blank">
+                        <a className="nav-link" href="/wp/wp-admin" target="_blank">
                             Wordpress
                         </a>
                     </li>

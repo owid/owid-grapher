@@ -48,7 +48,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
             <td>{post.status}</td>
             <td>{timeago.format(post.updatedAt)}</td>
             <td>
-                <a href={`${WORDPRESS_URL}/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
+                <a href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
             </td>
             {/*<td>
                 <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>

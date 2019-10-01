@@ -16,7 +16,7 @@ export class EditorReferencesTab extends React.Component<{ editor: ChartEditor}>
                     <ul className="list-group">
                         {this.references.map((post, i) =>
                             <li className="list-group-item">
-                                <a href={post.url} target="_blank"><strong>{post.title}</strong></a> (<a href={`https://owid.cloud/wp-admin/post.php?post=${post.id}&action=edit`} target="_blank">Edit</a>)
+                                <a href={post.url} target="_blank"><strong>{post.title}</strong></a> (<a href={`https://owid.cloud/wp/wp-admin/post.php?post=${post.id}&action=edit`} target="_blank">Edit</a>)
                             </li>
                         )}
                     </ul>

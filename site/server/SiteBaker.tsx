@@ -50,8 +50,7 @@ export class SiteBaker {
             "/feed /atom.xml 302",
 
             // Backwards compatibility-- admin urls
-            "/wp-admin/* https://owid.cloud/wp-admin/:splat 301",
-            "/wp-login.php https://owid.cloud/wp-login.php 301",
+            "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
             "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
 
             "/wp-content/uploads/* /uploads/:splat 301",
