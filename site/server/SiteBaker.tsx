@@ -222,9 +222,9 @@ export class SiteBaker {
 
     // Bake the static assets
     async bakeAssets() {
-        shell.exec(`rsync -havz --delete ${WORDPRESS_DIR}/web/app/uploads ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${BAKED_SITE_DIR}/`)
         shell.exec(`rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`)
-        shell.exec(`rsync -havz --delete ${BASE_DIR}/public/* ${BAKED_SITE_DIR}/`)
+        shell.exec(`rsync -hav --delete ${BASE_DIR}/public/* ${BAKED_SITE_DIR}/`)
 
         await fs.writeFile(`${BAKED_SITE_DIR}/grapher/embedCharts.js`, embedSnippet())
         this.stage(`${BAKED_SITE_DIR}/grapher/embedCharts.js`)
