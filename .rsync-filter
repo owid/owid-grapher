@@ -4,7 +4,7 @@
 - /web/app/plugins/owid/node_modules/
 - /web/app/plugins/*
 - /web/app/mu-plugins/*/
-- /web/app/uploads/*
+- /web/app/uploads
 # Empty line
 
 # WordPress
