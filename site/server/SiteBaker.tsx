@@ -55,6 +55,10 @@ export class SiteBaker {
             "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
 
             "/wp-content/uploads/* /uploads/:splat 301",
+            // Temporary fix for the /blog page thumbnails, which paths are not being
+            // transformed through the formatting step. Potentially applies to other
+            // pages as well
+            "/app/uploads/* /uploads/:splat 301",
 
             // Backwards compatibility-- old Max stuff that isn't static-friendly
             "/roser/* https://www.maxroser.com/roser/:splat 301",
