@@ -138,10 +138,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             return "UNKNOWN TABLE"
     })
 
-    // These old things don't work with static generation, link them through to maxroser.com
-    html = html.replace(new RegExp("https://ourworldindata.org/wp-content/uploads/nvd3", 'g'), "https://www.maxroser.com/owidUploads/nvd3")
-            .replace(new RegExp("https://ourworldindata.org/wp-content/uploads/datamaps", 'g'), "https://www.maxroser.com/owidUploads/datamaps")
-
     // No need for wordpress urls
     html = html.replace(new RegExp("/app/uploads", 'g'), "/uploads")
 
