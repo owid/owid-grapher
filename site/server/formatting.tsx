@@ -143,7 +143,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             .replace(new RegExp("https://ourworldindata.org/wp-content/uploads/datamaps", 'g'), "https://www.maxroser.com/owidUploads/datamaps")
 
     // No need for wordpress urls
-    html = html.replace(new RegExp("/wp-content/uploads", 'g'), "/uploads")
+    html = html.replace(new RegExp("/app/uploads", 'g'), "/uploads")
 
     const $ = cheerio.load(html)
 
