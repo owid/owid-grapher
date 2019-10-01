@@ -3,27 +3,35 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 USER="$(id -un)" # $USER empty in vscode terminal
 BRANCH="$(git rev-parse --abbrev-ref HEAD)" # use "git branch --show-current" when git updated
-GIT_STATUS="$(git status --porcelain)"
 PATH_OWID_PLUGIN="web/app/plugins/owid"
-
-if [ "$BRANCH" != "master" ] || [ -n "$GIT_STATUS" ]; then
-  echo "Please run from a clean master branch."
-  git status --porcelain
-  exit 1
-fi
+ROOT="/home/owid"
 
 if [ "$1" == "staging" ]; then
   HOST="owid-staging"
-  ROOT="/home/owid"
   PREFIX="staging"
-  NAME="$PREFIX-wordpress"
+  
+elif [ "$1" == "live" ]; then
+  HOST="owid-live"
+  PREFIX="live"
+  
+  if [ "$BRANCH" != "master" ]; then
+    echo "Please run from the master branch."
+    exit 1
+  else
+    # Making sure we have the latest changes from the upstream
+    # Also, will fail if working copy is not clean
+    git pull --rebase
+  fi
+
+  # Prompt for confirmation if deploying to live
+  read -p "Are you sure you want to deploy to '$PREFIX'? " -n 1 -r
 else
   echo "Please select either live or a valid test target."
   exit 1
 fi
 
-if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]
-then
+if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
+  NAME="$PREFIX-wordpress"
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
   SYNC_TARGET="$ROOT/tmp/$NAME-$USER"
   TMP_NEW="$ROOT/tmp/$NAME-$USER-tmp"
