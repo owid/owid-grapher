@@ -43,9 +43,6 @@ export class SiteBaker {
 
     async bakeRedirects() {
         const redirects = [
-            // Let's Encrypt certbot verification
-            "/.well-known/* https://owid.cloud/.well-known/:splat 200",
-
             // RSS feed
             "/feed /atom.xml 302",
 
