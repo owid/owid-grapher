@@ -27,10 +27,16 @@ export function runEntryExcerptLinks() {
         // scrollHeight of the container is not consistent across browsers.
         entryItem
             .style("height", `${targetHeight}px`)
-            .style("z-index", zIndex++)
+            .style("z-index", ++zIndex)
     })
 
     container.selectAll(".entry-item-container").on("mouseleave", function() {
-        select(this).select(".entry-item").style("height", null)
+        const entryItem = select(this).select(".entry-item")
+        entryItem
+            .style("height", null)
+            .style("z-index", --zIndex)
+            .on("transitionend.zindex", () => {
+                entryItem.style("z-index", null).on("transitionend.zindex", null)
+            })
     })
 }
