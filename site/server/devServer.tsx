@@ -91,7 +91,6 @@ devServer.get('/headerMenu.json', async (req, res) => {
 })
 
 devServer.use('/uploads', express.static(path.join(WORDPRESS_DIR, 'web/app/uploads')))
-devServer.use('/wp-content/uploads', express.static(path.join(WORDPRESS_DIR, 'web/app/uploads')))
 
 devServer.use('/exports', express.static(path.join(BAKED_SITE_DIR, 'exports')))
 
