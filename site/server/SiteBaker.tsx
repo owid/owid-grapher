@@ -50,10 +50,12 @@ export class SiteBaker {
             "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
             "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
 
+            // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
+            // and should be removed when no evidence of these inbound links can be found.
             "/wp-content/uploads/* /uploads/:splat 301",
-            // Temporary fix for the /blog page thumbnails, which paths are not being
+            // TODO: temporary fix for the /blog page thumbnails, which paths are not being
             // transformed through the formatting step. Potentially applies to other
-            // pages as well
+            // pages as well.
             "/app/uploads/* /uploads/:splat 301",
 
             // Backwards compatibility-- old Max stuff that isn't static-friendly
