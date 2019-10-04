@@ -8,19 +8,20 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 
 const SmoothScroll = require('smooth-scroll')
 
-import {Analytics} from './Analytics'
-import {runChartsIndexPage} from './runChartsIndexPage'
-import {runHeaderMenus} from './SiteHeaderMenus'
-import {runSearchPage} from './SearchPageMain'
-import {runNotFoundPage} from './NotFoundPageMain'
-import {runFeedback, runFeedbackPage} from './Feedback'
-import {runDonateForm} from './DonateForm'
-import {getParent} from './utils'
-import {Grapher} from 'site/client/Grapher'
-import {ChartView} from 'charts/ChartView'
+import { Analytics } from './Analytics'
+import { runChartsIndexPage } from './runChartsIndexPage'
+import { runHeaderMenus } from './SiteHeaderMenus'
+import { runSearchPage } from './SearchPageMain'
+import { runNotFoundPage } from './NotFoundPageMain'
+import { runFeedback, runFeedbackPage } from './Feedback'
+import { runDonateForm } from './DonateForm'
+import { getParent } from './utils'
+import { Grapher } from 'site/client/Grapher'
+import { ChartView } from 'charts/ChartView'
 import { runVariableCountryPage } from './runVariableCountryPage'
 import { runCountryProfilePage } from './runCountryProfilePage'
 import { runEntryExcerptLinks } from './runEntryExcerptLinks'
+import { runCookieNotice } from './runCookieNotice'
 
 declare var window: any
 window.Grapher = Grapher
@@ -87,3 +88,5 @@ if (trackedLinkExists) {
         }
     })
 }
+
+runCookieNotice()

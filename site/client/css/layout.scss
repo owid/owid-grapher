@@ -73,6 +73,10 @@
 }
 
 @include lg-only {
+    .owid-col--lg-0 {
+        flex: 0;
+    }
+
     .owid-col--lg-1,
     .owid-col--lg-auto {
         flex: 1;

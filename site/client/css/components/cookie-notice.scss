@@ -1,0 +1,100 @@
+.cookie-notice {
+    background-color: $tertiary-color;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    padding: 1rem 0;
+    text-align: center;
+    margin-top: 2rem;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: $zindex-cookie-notice;
+    box-shadow: 0 0 30px rgba(#fff, .3);
+
+    transition: transform 400ms ease, box-shadow 400ms ease;
+
+    // when closed
+    transform: translate(0, 100%);
+    box-shadow: none;
+
+    &.open {
+        transform: translate(0,0);
+        box-shadow: 0 0 30px rgba(#fff, .3);
+    }
+
+    @include lg-only {
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .wrapper {
+        max-width: 65rem;
+    }
+
+    p {
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .actions {
+        white-space: nowrap;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        margin-top: 1rem;
+
+        @include lg-only {
+            margin-top: 0;
+        }
+    }
+
+    .button {
+        font-size: inherit;
+        font-weight: 700;
+        font-size: 0.9375rem;
+        display: block;
+        color: $text-color;
+        line-height: 1.2;
+        margin: 0;
+        padding: .6rem .8rem;
+        cursor: pointer;
+        border: 2px solid rgba($text-color, .2);
+        transition: border-color 150ms linear;
+
+        flex: 1;
+
+        @include lg-only {
+            flex: 0;
+            font-size: 1rem;
+        }
+
+        margin-left: .75rem;
+
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &:hover {
+            border-color: rgba($text-color, .8)
+        }
+
+        .icon {
+            margin-right: .35rem;
+        }
+    }
+
+    .button.accept {
+        background-color: $primary-color;
+        border-color: $primary-color;
+        color: #fff;
+        transition: background-color 150ms linear, border-color 150ms linear;
+
+        &:hover {
+            background-color: $primary-color-900;
+            border-color: $primary-color-900;
+        }
+    }
+}
