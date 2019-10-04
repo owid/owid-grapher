@@ -136,7 +136,7 @@ export class ChartData {
             }*/
         }
 
-        if (!chart.props.hideTitleAnnotation || (this.chart.isLineChart && this.chart.lineChart.isSingleYear)) {
+        if (!chart.props.hideTitleAnnotation || (this.chart.isLineChart && this.chart.lineChart.isSingleYear && this.chart.lineChart.hasTimeline)) {
             const { minYear, maxYear } = this
             if (minYear !== null) {
                 const timeFrom = formatYear(minYear)
