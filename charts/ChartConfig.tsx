@@ -133,6 +133,7 @@ export class ChartConfigProps {
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
+    @observable.ref hideTimeline?: true = undefined
 
     // Always show year in labels for bar charts
     @observable.ref showYearLabels?: boolean = undefined
@@ -154,7 +155,6 @@ export class ChartConfigProps {
 
     // SCATTERPLOT-SPECIFIC OPTIONS
 
-    @observable.ref hideTimeline?: true = undefined
     @observable.ref hideLinesOutsideTolerance?: true = undefined
 
     // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
