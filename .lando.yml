@@ -32,13 +32,11 @@ events:
     - appserver: composer install
     - node: cd web/app/plugins/owid && yarn
 tooling:
-  db-refresh:
-    description: Dumps production databases (live_wordpress, owid_metadata) and imports them
+  refresh:
+    description: Refreshes local content (--help for more information)
+    service: appserver
     cmd:
-      - appserver: ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r live_wordpress.sql && gzip -f live_wordpress.sql"
-      - appserver: rsync -havz --progress owid-live:live_wordpress.sql.gz . && curl -LO https://files.ourworldindata.org/owid_metadata.sql.gz
-      - database: /helpers/sql-import.sh live_wordpress.sql.gz
-      - database-grapher: /helpers/sql-import.sh owid_metadata.sql.gz
+      - .lando/scripts/refresh.sh
   build:
     description: Installs dependencies and builds app
     service: node
@@ -47,4 +45,4 @@ tooling:
   deploy:
     description: Deploys app to target
     cmd:
-      - appserver: ./scripts/deploy.sh
+      - appserver: .lando/scripts/deploy.sh
