@@ -1,8 +1,7 @@
 name: our-world-in-data
 recipe: wordpress
-# Uncomment to start using env variables
-# env_file:
-#   - .env
+env_file:
+  - .env
 config:
   webroot: web
   via: nginx
@@ -35,14 +34,12 @@ tooling:
   refresh:
     description: Refreshes local content (--help for more information)
     service: appserver
-    cmd:
-      - .lando/scripts/refresh.sh
+    cmd: .lando/scripts/refresh.sh
   build:
     description: Installs dependencies and builds app
     service: node
-    cmd:
-      - cd web/app/plugins/owid && yarn build
+    cmd: cd web/app/plugins/owid && yarn build
   deploy:
     description: Deploys app to target
-    cmd:
-      - appserver: .lando/scripts/deploy.sh
+    service: appserver
+    cmd: .lando/scripts/deploy.sh
