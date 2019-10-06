@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 USER="$(id -un)" # $USER empty in vscode terminal
 BRANCH="$(git rev-parse --abbrev-ref HEAD)" # use "git branch --show-current" when git updated
 PATH_OWID_PLUGIN="web/app/plugins/owid"
@@ -41,7 +40,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
 
   # Rsync the local repository to a temporary location on the server
   echo 'Uploading files...'
-  rsync -havz --progress --delete --delete-excluded --filter="merge .rsync-filter" $DIR/ $HOST:$SYNC_TARGET
+  rsync -havz --progress --delete --delete-excluded --filter="merge .rsync-filter" ./ $HOST:$SYNC_TARGET
 
   echo 'Performing atomic copy...'
   ssh -t $HOST 'bash -e -s' <<EOF
