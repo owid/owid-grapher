@@ -1,12 +1,3 @@
-.article-content {
-    @include sm-only {
-        font-size: $font-size-sm;
-    }
-    @include lg-only {
-        font-size: $font-size-lg;
-    }
-}
-
 /*******************************************************************************
  * Tables
  */

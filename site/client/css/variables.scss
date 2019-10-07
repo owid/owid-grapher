@@ -29,11 +29,7 @@ $padding-x-lg: 4rem;
  * Sizes
  */
 
-$content-max-width: 45rem;
-
-// fonts
-$font-size-sm: 1.1rem;
-$font-size-lg: 1.3rem;
+$content-max-width: 50rem + $padding-x-lg * 1.5;
 
 /*******************************************************************************
  * Fonts
