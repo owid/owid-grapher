@@ -28,6 +28,7 @@
 @import 'css/content.scss';
 @import 'css/forms.scss';
 @import 'css/page.scss';
+@import 'css/sidebar.scss';
 
 @import 'css/pages/homepage.scss';
 @import 'css/pages/donate.scss';
@@ -187,9 +188,6 @@ body.single-post article {
     border: 1px solid #ddd;
 }
 
-body.single-post article {
-}
-
 body.single-post h1.entry-title {
     margin: 0;
 }
@@ -272,20 +270,9 @@ h1.entry-title > a:hover {
 
 /* The little section at the top of blog posts that links to related entries */
 .blog-info {
+    @include info;
     background-color: #E9EEF2;
     color: #406592;
-    padding: 0.625rem;
-    margin-bottom: 2rem;
-    font-size: 0.875rem;
-    text-align: center;
-
-    > p:last-child {
-        margin-bottom: 0;
-    }
-
-    > p:first-child {
-        margin-top: 0;
-    }
 }
 
 /* Optional abstract for blog posts */
@@ -437,7 +424,7 @@ h6:hover .deep-link {
     font-size: 17px;
 }
 
-@include lg-only {
+@include md-up {
     #homepage-blog {
         float: right;
         width: 30%;
@@ -722,18 +709,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 /* Pages & Posts
 --------------------------------------------- */
 
-.LongFormPage .articleHeader {
-    margin-top: 1.5rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .articleHeader > h1 {
     font-family: $serif-font-stack;	font-weight: 400;
     font-size: 3rem;
     line-height: 1.2;
-    margin: 0 0 20px;
 
     @include sm-only {
         font-size: 2.25rem;
@@ -953,7 +932,7 @@ img {
         margin: 0;
         padding: 0;
         width: 100%;
-        max-width: 850px;
+        max-width: $content-max-width;
     }
 
     .interactionNotice {
@@ -995,31 +974,6 @@ img {
 
 .article-content figure[data-grapher-src]:not(.grapherPreview), .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
     height: 575px;
-}
-
-article.page h1.entry-title {
-    text-align: center;
-    margin: 0 0 1rem;
-}
-
-article.page .authors-byline {
-    margin-top: 0.5rem;
-    text-align: center;
-    font-family: $serif-font-stack;
-    font-size: 1.125rem;
-    color: rgba($text-color, .8);
-}
-
-article.page .authors-byline a {
-    color: inherit;
-}
-
-article.page .authors-byline a:hover {
-    color: #c0023e;
-}
-
-article.page header.articleHeader {
-    margin-bottom: 1.2rem;
 }
 
 article.post {
@@ -1064,7 +1018,7 @@ article.post {
 .article-content iframe[src*=grapher] {
     border: none !important;
     width: 100%;
-    max-width: 850px;
+    max-width: $content-max-width;
 }
 
 /*@media (max-width: 767px) {
@@ -1106,102 +1060,6 @@ iframe:not(:first-child) {
     }
 }
 
-// TODO: Still necessary?
-// .contentContainer {
-    //     position: relative;
-    // }
-
-/* Page Navigation Sidebar
---------------------------------------------- */
-
-nav.entry-toc {
-    top: 30px;
-    height: calc(100vh - 60px);
-    position: -webkit-sticky;
-    position: sticky;
-    font-size: 12px;
-    direction: rtl;
-    text-align: left;
-    overflow-y: scroll;
-    margin-left: 1px;
-    margin-bottom: 30px;
-    padding-left: 16px;
-}
-
-nav.entry-toc li {
-    list-style-type: none;
-    position: relative;
-    color: rgba(0, 0, 0, 0.87);
-    direction: ltr;
-}
-
-nav.entry-toc .section {
-    margin-top: 18px;
-    color: #111;
-    margin-bottom: 4px;
-    padding-bottom: 0px;
-    line-height: 20px;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.entry-toc .section.nosubs {
-    border-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 10px;
-}
-
-nav.entry-toc .subsection {
-    color: #444;
-    line-height: 18px;
-    font-size: 13px;
-}
-
-nav.entry-toc li > a {
-    opacity: 0.7;
-}
-
-nav.entry-toc li.active > a {
-    opacity: 1;
-}
-
-.entry-sidebar {
-    width: 240px;
-    margin-left: -300px;
-    height: 100%;
-    position: absolute;
-    margin-top: -1px;
-}
-
-.entry-toc li:first-child {
-    font-size: 16px;
-    line-height: 22px;
-}
-
-.entry-toc li > a {
-    color: #616161;
-    display: block;
-    overflow: hidden;
-    padding-top: 2px;
-    padding-bottom: 2px;
-}
-
-.entry-toc li > a:hover {
-    opacity: 1;
-}
-
-.sidebar-container {
-    flex-grow: 0;
-    max-width: 25%;
-    flex-basis: 25%;
-}
-
-@media only screen and (max-width: 1350px) {
-    nav.entry-toc {
-        display: none;
-    }
-}
-
 article.page .authors-byline .citation-note {
     opacity: .9;
     color: #0645ad;
@@ -1226,10 +1084,6 @@ article.page .authors-byline .citation-note:hover {
     padding: 1em;
     font-size: 18px;
     margin-top: 1.2rem;
-}
-
-article.page {
-    margin: auto;
 }
 
 

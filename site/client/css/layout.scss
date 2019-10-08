@@ -1,7 +1,17 @@
 .wrapper {
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 $padding-x-sm;
+    @include md-up {
+        padding: 0 $padding-x-md;
+    }
+    @include lg-up {
+        padding: 0 $padding-x-lg;
+        max-width: $wrapper-width-lg;
+    }
+    @include xlg-up {
+        padding: 0 $padding-x-xlg;
+        max-width: $wrapper-width-xlg;
+    }
 }
 
 .owid-row {
@@ -72,11 +82,7 @@
     max-width: 33.33%;
 }
 
-@include lg-only {
-    .owid-col--lg-0 {
-        flex: 0;
-    }
-
+@include md-up {
     .owid-col--lg-1,
     .owid-col--lg-auto {
         flex: 1;

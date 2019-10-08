@@ -1,35 +1,74 @@
 /*******************************************************************************
- * Breakpoints
- */
-
-$lg-min-width: 960px;
-// we only have "sm" and "lg" right now. Everything below "lg" is "sm".
-
-@mixin sm-only {
-    @media (max-width: #{$lg-min-width - 1px}) {
-        @content;
-    }
-}
-
-@mixin lg-only {
-    @media (min-width: #{$lg-min-width}) {
-        @content;
-    }
-}
-
-/*******************************************************************************
  * Spacing
  */
 
-$padding-x-sm: 1.5rem;
-$padding-x-lg: 4rem;
+ $padding-x-sm: 1.5rem;
+ $padding-x-md: 2rem;
+ $padding-x-lg: $padding-x-md;
+ $padding-x-xlg: $padding-x-md;
 
+
+ /*******************************************************************************
+  * Sizes
+  */
+
+  // In a two column layout (only in xlg for now), the total width including paddings is:
+  // - a: $sidebar-content-width
+  // - b: $padding-x-xlg
+  // - c: $content-max-width
+  // a + b + c + b + c + b
+
+ $content-max-width: 48rem;
+ $sidebar-content-width: 15rem;
+ $page-max-width-md: $content-max-width + 2 * $padding-x-md;
+ $page-max-width-lg: $page-max-width-md; // the sidebar is absolutely positioned
+ $page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-xlg + 2 * $content-max-width;
+
+
+ // Wrapper
+ $wrapper-width-lg: 2 * $sidebar-content-width + 4 * $padding-x-lg + $content-max-width;;
+ $wrapper-width-xlg: $page-max-width-xlg;
 
 /*******************************************************************************
- * Sizes
+ * Breakpoints
  */
 
-$content-max-width: 50rem + $padding-x-lg * 1.5;
+$md-min-width: 960px;
+$lg-min-width: $wrapper-width-lg;
+$xlg-min-width: $page-max-width-xlg;
+
+@mixin sm-only {
+    @media (max-width: $md-min-width - 1px) {
+        @content;
+    }
+}
+
+// The full menu is shown from that breakpoint up
+@mixin md-up {
+    @media (min-width: $md-min-width) {
+        @content;
+    }
+}
+
+// The sidebar is shown from that breakpoint up
+@mixin lg-only {
+    @media only screen and (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
+@mixin lg-up {
+    @media only screen and (min-width: $lg-min-width) {
+        @content;
+    }
+}
+
+// Blocks are shown side-by-side from that breakpoint up (when applicable)
+@mixin xlg-up {
+    @media (min-width: $xlg-min-width) {
+        @content;
+    }
+}
 
 /*******************************************************************************
  * Fonts

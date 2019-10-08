@@ -1,0 +1,92 @@
+/* Page Navigation Sidebar
+--------------------------------------------- */
+
+.contentContainer {
+    @include lg-only {
+        position: relative;
+        .entry-sidebar {
+            width: $sidebar-content-width;
+            margin-left: - ($sidebar-content-width + $padding-x-lg);
+            height: 100%;
+            position: absolute;
+        }
+    }
+    @include xlg-up {
+        display: flex;
+        .entry-sidebar {
+            flex: 0 0 $sidebar-content-width;
+            margin-right: $padding-x-xlg;
+        }
+    }
+}
+
+nav.entry-toc {
+    display: none;
+    @include lg-up {
+        display: block;
+    }
+    top: 30px;
+    height: calc(100vh - 60px);
+    position: sticky;
+    font-size: 12px;
+    direction: rtl;
+    text-align: left;
+    overflow-y: scroll;
+    margin-bottom: 30px;
+    // padding-left: 16px;
+}
+
+nav.entry-toc li {
+    list-style-type: none;
+    position: relative;
+    color: rgba(0, 0, 0, 0.87);
+    direction: ltr;
+}
+
+nav.entry-toc .section {
+    margin-top: 18px;
+    color: #111;
+    margin-bottom: 4px;
+    padding-bottom: 0px;
+    line-height: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.entry-toc .section.nosubs {
+    border-bottom: 0;
+    margin-bottom: 0;
+    margin-top: 10px;
+}
+
+nav.entry-toc .subsection {
+    color: #444;
+    line-height: 18px;
+    font-size: 13px;
+}
+
+nav.entry-toc li > a {
+    opacity: 0.7;
+}
+
+nav.entry-toc li.active > a {
+    opacity: 1;
+}
+
+
+.entry-toc li:first-child {
+    font-size: 16px;
+    line-height: 22px;
+}
+
+.entry-toc li > a {
+    color: #616161;
+    display: block;
+    overflow: hidden;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.entry-toc li > a:hover {
+    opacity: 1;
+}

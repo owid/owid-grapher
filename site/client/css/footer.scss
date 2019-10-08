@@ -97,12 +97,12 @@
     text-align: center;
     margin-top: 2rem;
 
-    @include lg-only {
+    @include md-up {
         text-align: left;
     }
 
     .wrapper {
-        max-width: 50rem;
+        max-width: $content-max-width;
     }
 
     p {
@@ -116,7 +116,7 @@
         font-size: 1.125rem;
         display: block;
 
-        @include lg-only {
+        @include md-up {
             display: inline-block;
         }
 

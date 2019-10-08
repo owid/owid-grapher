@@ -1,44 +1,66 @@
-.page-header {
-    // background-color: $primary-color-lighter-6;
-    margin: 3rem 0 1.5rem;
-
-    h1 {
-        font-family: $serif-font-stack;
-        font-weight: 400;
-        font-size: 2.5rem;
-        color: $text-color;
-        margin: 0 0 2rem;
-
-        @include sm-only {
-            font-size: 2rem;
-            margin: 0 0 1.5rem;
-        }
-    }
-}
-
 .page {
+    max-width: $content-max-width + 2 * $padding-x-sm;
     margin-left: auto;
     margin-right: auto;
+    padding-left: $padding-x-sm;
+    padding-right: $padding-x-sm;
     padding-bottom: 50px;
 
-    @include sm-only {
-        max-width: $content-max-width;
-        padding-left: $padding-x-sm;
-        padding-right: $padding-x-sm;
+    @include md-up {
+        max-width: $page-max-width-md;
+        padding-left: $padding-x-md;
+        padding-right: $padding-x-md;
     }
 
-    @include lg-only {
-        max-width: $content-max-width * 2;
-        padding-left: $padding-x-lg;
-        padding-right: $padding-x-lg;
+    // No additional space is made for the sidebar as it is absolutely positioned.
+    // @include lg-up {
+    // }
+
+    @include xlg-up {
+        max-width: $xlg-min-width;
         & .article-content section > *:not(.wp-block-columns),
         & .article-footer {
-            // "adding" padding by substracting it to the width to leave elements
+            // Do not declare padding here to give elements
             // the possibility to declare their own
-            max-width: $content-max-width - $padding-x-lg * 1.5;
+            max-width: $content-max-width;
             margin-left: auto;
             margin-right: auto;
         }
+    }
+
+    .articleHeader {
+        margin: 1.5rem auto 1.2rem;
+        @include xlg-up {
+            margin-left: $sidebar-content-width + $padding-x-xlg;
+        }
+
+        & > * {
+            max-width: $content-max-width;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        .authors-byline {
+            margin-top: 0.5rem;
+            text-align: center;
+            font-family: $serif-font-stack;
+            font-size: 1.125rem;
+            color: rgba($text-color, .8);
+
+            a {
+                color: inherit;
+
+                &:hover {
+                    color: #c0023e;
+                }
+            }
+        }
+
     }
 }
 
@@ -59,8 +81,11 @@
 
 /* Notice for entries that are only a preliminary collection of relevant material */
 .pcrm {
-    margin: 3rem 0;
-    padding: 1rem 2rem;
-    border-left: 4px solid $primary-color;
+    @include info;
     background-color: $tertiary-color;
+    h2 {
+        margin: 0 0 0.5rem;
+        font-size: inherit;
+        text-transform: uppercase;
+    }
 }

@@ -8,3 +8,18 @@
         text-decoration: underline;
     }
 }
+
+@mixin info {
+    padding: 0.625rem;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+    text-align: center;
+
+    p {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}

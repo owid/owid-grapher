@@ -12,14 +12,14 @@
 	display: table;
 }
 
-@include lg-only {
+@include md-up {
     .sm-only {
         display: none !important;
     }
 }
 
 @include sm-only {
-    .lg-only {
+    .md-up {
         display: none !important;
     }
 }

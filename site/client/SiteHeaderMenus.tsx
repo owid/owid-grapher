@@ -103,7 +103,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         Our World<br /> in Data
                     </a>
                 </div>
-                <nav className="site-navigation lg-only">
+                <nav className="site-navigation md-up">
                     <div className="topics-button-wrapper">
                         <a
                             href="/#entries"
@@ -139,7 +139,7 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
                         </div>
                     </div>
                 </nav>
-                <ul className="site-social-links lg-only">
+                <ul className="site-social-links md-up">
                     <li>
                         <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter" data-track-click data-track-note="header-navigation">
                             <FontAwesomeIcon icon={faTwitter} />

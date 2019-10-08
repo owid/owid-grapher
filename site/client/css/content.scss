@@ -66,7 +66,7 @@
 /*******************************************************************************
  * Gutenberg (wordpress editor) blocks
  */
-@include lg-only {
+@include xlg-up {
     .page .has-2-columns {
         display: flex;
         align-items: flex-start; // maintain columns original height to allow sticky positioning
@@ -74,9 +74,9 @@
         .wp-block-column {
             flex: 0 0 50%;
             overflow: auto; // force charts to behave and not overflow when resizing
-            padding: 0 0 0 $padding-x-lg / 2;
+            padding: 0 0 0 $padding-x-xlg / 2;
             &:first-child {
-                padding: 0 $padding-x-lg / 2 0 0;
+                padding: 0 $padding-x-xlg / 2 0 0;
             }
         }
 

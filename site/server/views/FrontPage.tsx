@@ -73,7 +73,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPo
                                     </a>
                                 </section>
                             </div>
-                            <div className="owid-col owid-col--lg-shrink lg-only flex-row">
+                            <div className="owid-col owid-col--lg-shrink md-up flex-row">
                                 <div className="divider"></div>
                             </div>
                             <div className="owid-col owid-col--lg-auto">
@@ -311,7 +311,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPo
                                 <h3>Sustainable Development Goals Tracker</h3>
                                 <p>Is the world on track to reach the Sustainable Development Goals?</p>
                             </div>
-                            <div className="icon-right lg-only">
+                            <div className="icon-right md-up">
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
@@ -323,7 +323,7 @@ export const FrontPage = (props: { entries: CategoryWithEntries[], posts: FullPo
                                 <h3>Teaching Hub</h3>
                                 <p>Slides, research, and visualizations for teaching and learning about global development</p>
                             </div>
-                            <div className="icon-right lg-only">
+                            <div className="icon-right md-up">
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </div>
                         </a>
