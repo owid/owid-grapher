@@ -23,3 +23,15 @@
         }
     }
 }
+
+@mixin wrapper-spacing-sm {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: $padding-x-sm;
+    padding-right: $padding-x-sm;
+}
+
+@mixin wrapper-spacing-md {
+    padding-left: $padding-x-md;
+    padding-right: $padding-x-md;
+}

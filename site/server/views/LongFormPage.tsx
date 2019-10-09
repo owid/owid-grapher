@@ -20,9 +20,14 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
     const allEntries = _.flatten(_.values(entries).map(c => c.entries))
     const isEntry = _.includes(allEntries.map(e => e.slug), post.slug)
 
-    const classes = ["LongFormPage"]
-    if (formattingOptions.bodyClassName)
-        classes.push(formattingOptions.bodyClassName)
+    const bodyClasses = []
+    const articleHeaderClasses = ["article-header"]
+    if(post.tocHeadings.length > 0) {
+        articleHeaderClasses.push('with-sidebar')
+    }
+    if (formattingOptions.bodyClassName) {
+        bodyClasses.push(formattingOptions.bodyClassName)
+    }
 
     const bibtex = `@article{owid${post.slug.replace(/-/g, '')},
     author = {${authorsText}},
@@ -36,12 +41,12 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
         <Head pageTitle={pageTitle} pageDesc={pageDesc} canonicalUrl={canonicalUrl} imageUrl={post.imageUrl}>
             {isEntry && <CitationMeta id={post.id} title={pageTitle} authors={post.authors} date={post.date} canonicalUrl={canonicalUrl}/>}
         </Head>
-        <body className={classes.join(" ")}>
+        <body className={bodyClasses.join(" ")}>
             <SiteHeader/>
             {formattingOptions.subnavId && <SiteSubnavigation subnavId={formattingOptions.subnavId} subnavCurrentId={formattingOptions.subnavCurrentId} />}
             <main>
                 <article className="page">
-                    <header className="articleHeader">
+                    <header className={articleHeaderClasses.join(" ")}>
                         <h1 className="entry-title">{post.title}</h1>
                         {!formattingOptions.hideAuthors && <div className="authors-byline">
                             <a href="/team">by {authorsText}</a>

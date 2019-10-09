@@ -6,7 +6,7 @@
         position: relative;
         .entry-sidebar {
             width: $sidebar-content-width;
-            margin-left: - ($sidebar-content-width + $padding-x-lg);
+            margin-left: - ($sidebar-content-width + $padding-x-md);
             height: 100%;
             position: absolute;
         }
@@ -15,7 +15,7 @@
         display: flex;
         .entry-sidebar {
             flex: 0 0 $sidebar-content-width;
-            margin-right: $padding-x-xlg;
+            margin-right: $padding-x-md;
         }
     }
 }

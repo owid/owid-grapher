@@ -19,7 +19,7 @@ export const BlogPostPage = (props: { post: FormattedPost, formattingOptions: Fo
             <main>
                 <div className="site-content">
                     <article className="post">
-                        <header className="articleHeader">
+                        <header className="article-header">
                             <h1 className="entry-title">{post.title}</h1>
                             <div className="entry-meta">
                                 <time>{formatDate(post.date)}</time> {!formattingOptions.hideAuthors && `by ${formatAuthors(post.authors)}`}

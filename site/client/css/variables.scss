@@ -2,39 +2,37 @@
  * Spacing
  */
 
- $padding-x-sm: 1.5rem;
- $padding-x-md: 2rem;
- $padding-x-lg: $padding-x-md;
- $padding-x-xlg: $padding-x-md;
+$padding-x-sm: 1.5rem;
+$padding-x-md: 2rem;
 
 
- /*******************************************************************************
-  * Sizes
-  */
+/*******************************************************************************
+* Sizes
+*/
 
-  // In a two column layout (only in xlg for now), the total width including paddings is:
-  // - a: $sidebar-content-width
-  // - b: $padding-x-xlg
-  // - c: $content-max-width
-  // a + b + c + b + c + b
+// In a two column layout (only in xlg for now), the total width including paddings is:
+// - a: $sidebar-content-width
+// - b: $padding-x-md
+// - c: $content-max-width
+// a + b + c + b + c + b
 
- $content-max-width: 48rem;
- $sidebar-content-width: 15rem;
- $page-max-width-md: $content-max-width + 2 * $padding-x-md;
- $page-max-width-lg: $page-max-width-md; // the sidebar is absolutely positioned
- $page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-xlg + 2 * $content-max-width;
+$content-max-width: 48rem;
+$sidebar-content-width: 15rem;
 
-
- // Wrapper
- $wrapper-width-lg: 2 * $sidebar-content-width + 4 * $padding-x-lg + $content-max-width;;
- $wrapper-width-xlg: $page-max-width-xlg;
+// Page
+$page-max-width-sm: $content-max-width + 2 * $padding-x-sm;
+$page-max-width-md: $content-max-width + 2 * $padding-x-md;
+// The sidebar is added from the lg breakpoint but is absolutely
+// positioned so the wrapper size does not need to accomodate it.
+// $page-max-width-lg
+$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 2 * $content-max-width;
 
 /*******************************************************************************
  * Breakpoints
  */
 
 $md-min-width: 960px;
-$lg-min-width: $wrapper-width-lg;
+$lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md + $content-max-width;
 $xlg-min-width: $page-max-width-xlg;
 
 @mixin sm-only {
@@ -65,7 +63,7 @@ $xlg-min-width: $page-max-width-xlg;
 
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
 @mixin xlg-up {
-    @media (min-width: $xlg-min-width) {
+    @media only screen and (min-width: $xlg-min-width) {
         @content;
     }
 }

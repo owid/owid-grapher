@@ -17,7 +17,7 @@ var OWIDScrollNav = function() {
 	$(window).off('scroll.toc');
 
 	// Keep track of sections so we can find the closest one
-	var headings = $(".articleHeader h1, .article-content h2, .article-content h3").map(function(i, el) { return $(el); })
+	var headings = $(".article-header h1, .article-content h2, .article-content h3").map(function(i, el) { return $(el); })
 
 	var currentHeadingIndex = null;
 	var onScroll = function() {

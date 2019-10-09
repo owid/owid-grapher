@@ -74,9 +74,9 @@
         .wp-block-column {
             flex: 0 0 50%;
             overflow: auto; // force charts to behave and not overflow when resizing
-            padding: 0 0 0 $padding-x-xlg / 2;
+            padding: 0 0 0 $padding-x-md / 2;
             &:first-child {
-                padding: 0 $padding-x-xlg / 2 0 0;
+                padding: 0 $padding-x-md / 2 0 0;
             }
         }
 

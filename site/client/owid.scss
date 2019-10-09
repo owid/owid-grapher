@@ -171,25 +171,33 @@ body.blog li.post img {
 }
 
 
-body.single-post main {
-    background: #f6f6f6;
-    border-bottom: 1px solid #ddd;
-}
+body.single-post {
+    main {
+        background: #f6f6f6;
+        border-bottom: 1px solid #ddd;
+    }
 
-body.single-post .site-content {
-    padding: 1rem;
-    padding-top: 1rem;
-}
+    .site-content {
+        padding: $padding-x-sm / 2;
+        @include md-up {
+            padding: $padding-x-sm;
+        }
+    }
 
-body.single-post article {
-    max-width: $content-max-width;
-    margin: 0 auto 1rem;
-    background: white;
-    border: 1px solid #ddd;
-}
+    article {
+        max-width: $page-max-width-md;
+        margin: 0 auto 1rem;
+        padding: $padding-x-sm;
+        @include md-up {
+            padding: $padding-x-md;
+        }
+        background: white;
+        border: 1px solid #ddd;
+    }
 
-body.single-post h1.entry-title {
-    margin: 0;
+    h1.entry-title {
+        margin: 0;
+    }
 }
 
 h1.entry-title > a {
@@ -222,44 +230,6 @@ h1.entry-title > a:hover {
 .pagination .page-numbers:hover {
     color: #fff;
     background: #f04848;
-}
-
-@media only screen and (max-width: 800px) {
-    body.blog article, body.single-post article {
-        padding: 1rem;
-    }
-
-    body.blog .site-content, body.single-post .site-content {
-        padding: 0.5rem;
-    }
-
-    #blog-sidebar {
-        display: none;
-    }
-}
-
-@media only screen and (min-width: 800px) {
-    #blog-content {
-        max-width: 1170px;
-        margin: auto;
-    }
-
-
-    #blog-sidebar {
-        background: white;
-    }
-
-    #blog-sidebar h3 {
-        margin-bottom: 14px;
-    }
-
-    #blog-sidebar h3 > a {
-        color: #c0023e;
-    }
-
-    #blog-sidebar h3 > a:hover {
-        color: #5b011d;
-    }
 }
 
 @media only screen {
@@ -709,7 +679,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 /* Pages & Posts
 --------------------------------------------- */
 
-.articleHeader > h1 {
+.article-header > h1 {
     font-family: $serif-font-stack;	font-weight: 400;
     font-size: 3rem;
     line-height: 1.2;
@@ -974,12 +944,6 @@ img {
 
 .article-content figure[data-grapher-src]:not(.grapherPreview), .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
     height: 575px;
-}
-
-article.post {
-    max-width: 1080px;
-    margin: auto;
-    padding: 1.5rem;
 }
 
 .article-content ol, .article-content ul {

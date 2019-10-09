@@ -1,23 +1,15 @@
 .page {
-    max-width: $content-max-width + 2 * $padding-x-sm;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: $padding-x-sm;
-    padding-right: $padding-x-sm;
+    @include wrapper-spacing-sm;
+    max-width: $page-max-width-sm;
     padding-bottom: 50px;
 
     @include md-up {
+        @include wrapper-spacing-md;
         max-width: $page-max-width-md;
-        padding-left: $padding-x-md;
-        padding-right: $padding-x-md;
     }
 
-    // No additional space is made for the sidebar as it is absolutely positioned.
-    // @include lg-up {
-    // }
-
     @include xlg-up {
-        max-width: $xlg-min-width;
+        max-width: $page-max-width-xlg;
         & .article-content section > *:not(.wp-block-columns),
         & .article-footer {
             // Do not declare padding here to give elements
@@ -28,10 +20,13 @@
         }
     }
 
-    .articleHeader {
+    .article-header {
         margin: 1.5rem auto 1.2rem;
-        @include xlg-up {
-            margin-left: $sidebar-content-width + $padding-x-xlg;
+
+        &.with-sidebar {
+            @include xlg-up {
+                margin-left: $sidebar-content-width + $padding-x-md;
+            }
         }
 
         & > * {
@@ -62,6 +57,10 @@
         }
 
     }
+}
+
+.contentAndFootnotes {
+    margin: 0 auto;
 }
 
 .columns {

@@ -1,16 +1,9 @@
 .wrapper {
-    margin: 0 auto;
-    padding: 0 $padding-x-sm;
+    @include wrapper-spacing-sm;
+    max-width: 75rem;
+
     @include md-up {
-        padding: 0 $padding-x-md;
-    }
-    @include lg-up {
-        padding: 0 $padding-x-lg;
-        max-width: $wrapper-width-lg;
-    }
-    @include xlg-up {
-        padding: 0 $padding-x-xlg;
-        max-width: $wrapper-width-xlg;
+        @include wrapper-spacing-md;
     }
 }
 

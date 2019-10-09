@@ -17,6 +17,13 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    @include lg-up {
+        max-width: $lg-min-width;
+    }
+
+    @include xlg-up {
+        max-width: $xlg-min-width;
+    }
     padding-top: 14px;
     padding-bottom: 11px;
 }
