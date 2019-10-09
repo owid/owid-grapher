@@ -14,7 +14,7 @@ export function webpack(assetName: string, context?: string) {
         }
         assetName = manifest[assetName]
 
-        return urljoin('/assets', assetName)
+        return urljoin(BAKED_BASE_URL, '/assets', assetName)
     } else {
         if (assetName.match(/\.js$/)) {
             assetName = `js/${assetName}`
