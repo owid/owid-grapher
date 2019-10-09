@@ -7,8 +7,8 @@ import { observer } from 'mobx-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck'
 
-const VERSION: string = '2019-10-04'
-const COOKIE_NAME: string = 'privpolicy'
+const VERSION: string = '2019-10-09'
+const COOKIE_NAME: string = 'cookienotice'
 
 @observer
 export class CookieNotice extends React.Component {
