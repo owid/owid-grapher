@@ -33,6 +33,7 @@ export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
                             <li><a href="/supporters" data-track-click data-track-note="footer-navigation">Supporters</a></li>
                             <li><a href="/about/how-to-use-our-world-in-data" data-track-click data-track-note="footer-navigation">How to use</a></li>
                             <li><a href="/donate" data-track-click data-track-note="footer-navigation">Donate</a></li>
+                            <li><a href="/privacy-policy" data-track-click data-track-note="footer-navigation">Privacy policy</a></li>
                         </ul>
                     </div>
                     <div className="owid-col owid-col--lg-1">
