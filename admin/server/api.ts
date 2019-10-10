@@ -488,11 +488,17 @@ export interface UserIndexMeta {
 }
 
 api.get('/users.json', async (req: Request, res: Response) => {
-    return { users: await User.find({ order: { lastSeen: "DESC" } })}
+    return { users: await User.find({
+        select: ["id", "email", "fullName", "isActive", "isSuperuser", "createdAt", "updatedAt", "lastLogin", "lastSeen"],
+        order: { lastSeen: "DESC" }
+    })}
 })
 
 api.get('/users/:userId.json', async (req: Request, res: Response) => {
-    return { user: await User.findOne(req.params.userId)}
+    const user = await User.findOne(req.params.userId, {
+        select: ["id", "email", "fullName", "isActive", "isSuperuser", "createdAt", "updatedAt", "lastLogin", "lastSeen"]
+    })
+    return { user: user }
 })
 
 api.delete('/users/:userId', async (req: Request, res: Response) => {
