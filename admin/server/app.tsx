@@ -33,7 +33,7 @@ app.use('/admin', adminViews)
 
 // Default route: single page admin app
 app.get('/admin/*', (req, res) => {
-    res.send(renderToHtmlPage(<AdminSPA username={res.locals.user.fullName}/>))
+    res.send(renderToHtmlPage(<AdminSPA username={res.locals.user.fullName} isSuperuser={res.locals.user.isSuperuser} />))
 })
 
 // Send errors to Slack

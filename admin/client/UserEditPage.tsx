@@ -33,7 +33,7 @@ export class UserEditPage extends React.Component<{ userId: number }> {
         return <AdminLayout>
             <main className="UserEditPage">
                 <BindString label="Full Name" field="fullName" store={user}/>
-                <Toggle label="User is active" value={user.isActive} onValue={v => user.isActive = v}/>
+                <Toggle label="User has access" value={user.isActive} onValue={v => user.isActive = v}/>
                 <button className="btn btn-success" onClick={_ => this.save()}>Update user</button>
             </main>
         </AdminLayout>

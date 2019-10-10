@@ -21,12 +21,14 @@ export class Admin {
     @observable errorMessage?: { title: string, content: string, isFatal?: boolean }
     basePath: string
     username: string
+    isSuperuser: boolean
     settings: ClientSettings
 
-    constructor(username: string, settings: ClientSettings) {
+    constructor(props: { username: string, isSuperuser: boolean, settings: ClientSettings }) {
         this.basePath = "/admin"
-        this.username = username
-        this.settings = settings
+        this.username = props.username
+        this.isSuperuser = props.isSuperuser
+        this.settings = props.settings
     }
 
     @observable currentRequests: Promise<Response>[] = []

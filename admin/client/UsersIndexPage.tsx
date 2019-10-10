@@ -88,12 +88,13 @@ export class UsersIndexPage extends React.Component {
 
     render() {
         const {users} = this
+        const {isSuperuser} = this.context.admin
         return <AdminLayout title="Users">
             <main className="UsersIndexPage">
                 {this.isInviteModal && <InviteModal onClose={action(() => this.isInviteModal = false)}/>}
                 <div className="topbar">
                     <h2>Users</h2>
-                    <button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>
+                    {isSuperuser && <button onClick={action(() => this.isInviteModal = true)} className="btn btn-primary">Invite a user</button>}
                 </div>
                 <table className="table table-bordered">
                     <tbody>
@@ -101,22 +102,22 @@ export class UsersIndexPage extends React.Component {
                             <th>Name</th>
                             <th>Last Seen</th>
                             <th>Joined</th>
-                            <th>Status</th>
-                            <th></th>
-                            <th></th>
+                            {isSuperuser && <th>Status</th>}
+                            {isSuperuser && <th></th>}
+                            {isSuperuser && <th></th>}
                         </tr>
                         {users.map(user =>
                             <tr key={user.id}>
                                 <td>{user.fullName}</td>
                                 <td><Timeago time={user.lastSeen}/></td>
                                 <td><Timeago time={user.createdAt}/></td>
-                                <td>{user.isActive ? 'active' : 'inactive'}</td>
-                                <td>
+                                {isSuperuser && <td>{user.isActive ? 'active' : 'disabled'}</td>}
+                                {isSuperuser && <td>
                                     <Link to={`/users/${user.id}`} className="btn btn-primary">Edit</Link>
-                                </td>
-                                <td>
+                                </td>}
+                                {isSuperuser && <td>
                                     <button className="btn btn-danger" onClick={_ => this.onDelete(user)}>Delete</button>
-                                </td>
+                                </td>}
                             </tr>
                         )}
                     </tbody>

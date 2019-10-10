@@ -49,7 +49,7 @@ export async function authMiddleware(req: express.Request, res: express.Response
     // Authed urls shouldn't be cached
     res.set('Cache-Control', 'public, max-age=0, must-revalidate')
 
-    if (user) {
+    if (user && user.isActive) {
         res.locals.session = session
         res.locals.user = user
         return next()
