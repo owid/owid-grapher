@@ -22,7 +22,7 @@
     }
 
     @include xlg-up {
-        max-width: $xlg-min-width;
+        max-width: $page-max-width-xlg;
     }
     padding-top: 14px;
     padding-bottom: 11px;
