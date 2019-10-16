@@ -194,9 +194,10 @@ export class ChartEditor {
     }
 
     unpublishChart() {
-        if (this.references && this.references.length > 0) {
-            window.alert("ERROR: This chart is referenced from a public post and cannot be unpublished. Please remove all references first.")
-        } else if (window.confirm("Really unpublish chart?")) {
+        const message = this.references && this.references.length > 0
+            ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
+            : "Are you sure you want to unpublish this chart?"
+        if (window.confirm(message)) {
             this.chart.props.isPublished = undefined
             this.saveChart({ onError: () => this.chart.props.isPublished = true })
         }
