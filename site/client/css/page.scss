@@ -83,6 +83,9 @@
     @include info;
     background-color: $tertiary-color;
     h2 {
+        span {
+            @include hide;
+        }
         margin: 0 0 0.5rem;
         font-size: inherit;
         text-transform: uppercase;

@@ -35,3 +35,7 @@
     padding-left: $padding-x-md;
     padding-right: $padding-x-md;
 }
+
+@mixin hide {
+    display: none;
+}
