@@ -276,16 +276,17 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         const $contents = $tempWrapper.append($start.clone(), $start.nextUntil("h2")).contents()
 
         $contents.each(function(this: CheerioElement, i) {
-            if(this.name === 'h2') {
-                $section.append($(this))
-            } else if(this.name === 'h3') {
-                $section.append($columns, $(this))
+            const $el = $(this)
+            if(this.name === 'h2' || $el.hasClass("has-2-columns")) {
+                $section.append($el)
+            } else if(this.name === 'h3' || this.name === 'h4') {
+                $section.append($columns, $el)
                 $columns = $(emptyColumns)
             } else {
                 if(this.name === 'figure') {
-                    $columns.children().last().append($(this))
+                    $columns.children().last().append($el)
                 } else {
-                    $columns.children().first().append($(this))
+                    $columns.children().first().append($el)
                 }
             }
         })
