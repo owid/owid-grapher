@@ -160,8 +160,16 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                     </a>
                 </div>`
                 const $p = $(el).closest('p')
-                $(el).remove()
-                $p.after(output)
+                if($p.length === 1) {
+                    $(el).remove()
+                    $p.after(output)
+                } else {
+                    // Support for <iframe> wrapped in <figure>
+                    // <figure> automatically added by Gutenberg on copy / paste <iframe>
+                    const $figure = $(el).closest('figure')
+                    $figure.after(output)
+                    $figure.remove()
+                }
             }
         }
     }
