@@ -80,37 +80,42 @@ export const LongFormPage = (props: { entries: CategoryWithEntries[], post: Form
                         <div className="contentAndFootnotes">
                             <div className="article-content" dangerouslySetInnerHTML={{__html: post.html}}/>
                             <footer className="article-footer">
-                                {post.acknowledgements && <React.Fragment>
-                                    <h3 id="acknowledgements">Acknowledgements</h3>
-                                    <section dangerouslySetInnerHTML={{__html: post.acknowledgements}}/>
-                                </React.Fragment>}
+                                <div className="has-2-columns">
+                                    <div className="wp-block-column">
+                                        {post.acknowledgements && <React.Fragment>
+                                            <h3 id="acknowledgements">Acknowledgements</h3>
+                                            <section dangerouslySetInnerHTML={{__html: post.acknowledgements}}/>
+                                        </React.Fragment>}
 
-                                {post.footnotes.length ? <React.Fragment>
-                                    <h3 id="references">References</h3>
-                                    <ol className="references">
-                                        {post.footnotes.map((footnote, i) =>
-                                            <li key={i} id={`note-${i+1}`}>
-                                                <p dangerouslySetInnerHTML={{__html: footnote}}/>
-                                            </li>
-                                        )}
-                                    </ol>
-                                </React.Fragment> : undefined}
+                                        {post.footnotes.length ? <React.Fragment>
+                                            <h3 id="references">References</h3>
+                                            <ol className="references">
+                                                {post.footnotes.map((footnote, i) =>
+                                                    <li key={i} id={`note-${i+1}`}>
+                                                        <p dangerouslySetInnerHTML={{__html: footnote}}/>
+                                                    </li>
+                                                )}
+                                            </ol>
+                                        </React.Fragment> : undefined}
 
-                                {isEntry && <React.Fragment>
-                                    <h3 id="citation">Citation</h3>
-                                    <p>
-                                        Our articles and data visualizations rely on work from many different people and organizations. When citing this entry, please also cite the underlying data sources. This entry can be cited as:
-                                    </p>
-                                    <pre className="citation">
-                                        {authorsText} ({publishedYear}) - "{pageTitle}". <em>Published online at OurWorldInData.org.</em> Retrieved from: '{canonicalUrl}' [Online Resource]
-                                    </pre>
-                                    <p>
-                                        BibTeX citation
-                                    </p>
-                                    <pre className="citation">
-                                        {bibtex}
-                                    </pre>
-                                </React.Fragment>}
+                                        {isEntry && <React.Fragment>
+                                            <h3 id="citation">Citation</h3>
+                                            <p>
+                                                Our articles and data visualizations rely on work from many different people and organizations. When citing this entry, please also cite the underlying data sources. This entry can be cited as:
+                                            </p>
+                                            <pre className="citation">
+                                                {authorsText} ({publishedYear}) - "{pageTitle}". <em>Published online at OurWorldInData.org.</em> Retrieved from: '{canonicalUrl}' [Online Resource]
+                                            </pre>
+                                            <p>
+                                                BibTeX citation
+                                            </p>
+                                            <pre className="citation">
+                                                {bibtex}
+                                            </pre>
+                                        </React.Fragment>}
+                                    </div>
+                                    <div className="wp-block-column"></div>
+                                </div>
                             </footer>
                         </div>
                     </div>

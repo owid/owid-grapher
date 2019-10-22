@@ -10,14 +10,6 @@
 
     @include xlg-up {
         max-width: $page-max-width-xlg;
-        & .article-content section > *:not(.wp-block-columns),
-        & .article-footer {
-            // Do not declare padding here to give elements
-            // the possibility to declare their own
-            max-width: $content-max-width;
-            margin-left: auto;
-            margin-right: auto;
-        }
     }
 
     .article-header {

@@ -143,19 +143,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
     const $ = cheerio.load(html)
 
-    // Wrap content demarcated by headings into section blocks
-    const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
-    for (const start of sectionStarts) {
-        const $start = $(start)
-        const $contents = $start.nextUntil("h2")
-        const $wrapNode = $("<section></section>")
-
-        $contents.remove()
-        $wrapNode.append($start.clone())
-        $wrapNode.append($contents)
-        $start.replaceWith($wrapNode)
-    }
-
     // Replace grapher iframes with static previews
     if (grapherExports) {
         const grapherIframes = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//))
@@ -277,6 +264,34 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         // Deep link
         $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
     })
+
+    // Wrap content demarcated by headings into section blocks
+    const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
+    const emptyColumns = "<div class=\"has-2-columns is-style-sticky-right\"><div class=\"wp-block-column\"></div><div class=\"wp-block-column\"></div></div>"
+    for (const start of sectionStarts) {
+        let $columns = $(emptyColumns)
+        const $start = $(start)
+        const $section = $("<section>")
+        const $tempWrapper = $("<div>")
+        const $contents = $tempWrapper.append($start.clone(), $start.nextUntil("h2")).contents()
+
+        $contents.each(function(this: CheerioElement, i) {
+            if(this.name === 'h2') {
+                $section.append($(this))
+            } else if(this.name === 'h3') {
+                $section.append($columns, $(this))
+                $columns = $(emptyColumns)
+            } else {
+                if(this.name === 'figure') {
+                    $columns.children().last().append($(this))
+                } else {
+                    $columns.children().first().append($(this))
+                }
+            }
+        })
+        $section.append($columns)
+        $start.replaceWith($section)
+    }
 
     return {
         id: post.id,
