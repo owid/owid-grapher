@@ -291,7 +291,10 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                 $section.append($columns, $el)
                 $columns = $(emptyColumns)
             } else {
-                if(this.name === 'figure') {
+                if(this.name === 'figure' ||
+                    $el.hasClass("wp-block-image") ||
+                    // Temporary support for pre-Gutenberg images
+                    $el.find("img").length === 1) {
                     $columns.children().last().append($el)
                 } else {
                     $columns.children().first().append($el)
