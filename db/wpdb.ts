@@ -355,11 +355,13 @@ export interface FullPost {
     content: string
     excerpt?: string
     imageUrl?: string
+    postId?: number
 }
 
 export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
     return {
         id: postApi.id,
+        postId: postApi.postId, // for previews, the `id` is the revision ID, this field stores the original post ID
         type: postApi.type,
         slug: postApi.slug,
         path: postApi.reading_context && postApi.reading_context === 'entry' ? `${postApi.path}#${urlSlug(postApi.first_heading)}` : postApi.path,

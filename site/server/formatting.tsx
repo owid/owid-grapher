@@ -26,6 +26,7 @@ export interface Reference {
 
 export interface FormattedPost {
     id: number
+    postId?: number
     type: 'post'|'page'
     slug: string
     path: string
@@ -280,6 +281,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
     return {
         id: post.id,
+        postId: post.postId,
         type: post.type,
         slug: post.slug,
         path: post.path,
@@ -351,6 +353,7 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
     if (isRaw) {
         return {
             id: post.id,
+            postId: post.postId,
             type: post.type,
             slug: post.slug,
             path: post.path,

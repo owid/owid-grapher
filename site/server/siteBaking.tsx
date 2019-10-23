@@ -77,7 +77,7 @@ export async function renderPageById(id: number, isPreview?: boolean): Promise<s
     let postApi = await wpdb.getPost(id)
     if (isPreview) {
         const revision = await wpdb.getLatestPostRevision(id)
-        postApi = {...revision, authors_name: postApi.authors_name, type: postApi.type, path: postApi.path}
+        postApi = {...revision, authors_name: postApi.authors_name, type: postApi.type, path: postApi.path, postId: id }
     }
     return renderPage(postApi)
 }
