@@ -679,6 +679,16 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 /* Pages & Posts
 --------------------------------------------- */
 
+.article-header h1 {
+    margin-bottom: 1rem;
+    font-size: 2.25rem;
+    font-family: $serif-font-stack;	font-weight: 400;
+    line-height: 1.2;
+    @include md-up {
+        font-size: 3rem;
+    }
+}
+
 .article-content > section:not(:first-child) {
     margin-top: 60px;
     padding-top: 30px;
