@@ -14,7 +14,7 @@ $padding-x-md: 2rem;
 // - a: $sidebar-content-width
 // - b: $padding-x-md
 // - c: $content-max-width
-// a + b + [70% to 80%]c + b + c + b
+// a + b + [65% to 80%]c + b + c + b
 
 $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
@@ -34,8 +34,8 @@ $page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.8 * $content
 
 $md-min-width: 960px;
 $lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md + $content-max-width;
-// The side by side layout is triggered when the left column reaches 70% of content-max-width (the right column)
-$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.70 * $content-max-width;
+// The side by side layout is triggered when the left column reaches 65% of content-max-width (the right column)
+$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.65 * $content-max-width;
 
 @mixin sm-only {
     @media (max-width: $md-min-width - 1px) {
