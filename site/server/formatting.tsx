@@ -326,11 +326,14 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             } else {
                 // Move images to the right column
                 if(this.name === 'figure' ||
+                    // Temporary support for old chart iframes
+                    this.name === 'address' ||
                     $el.hasClass("wp-block-image") ||
                     $el.hasClass("tableContainer") ||
+                    $el.find("iframe").length !== 0 ||
                     // Temporary support for pre-Gutenberg images and associated captions
                     this.name === 'h6' ||
-                    $el.find("img").length === 1) {
+                    $el.find("img").length !== 0) {
                         columns.last.append($el)
                 } else {
                     // Move non-heading, non-image content to the left column
