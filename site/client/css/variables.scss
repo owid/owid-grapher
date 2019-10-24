@@ -14,7 +14,7 @@ $padding-x-md: 2rem;
 // - a: $sidebar-content-width
 // - b: $padding-x-md
 // - c: $content-max-width
-// a + b + [45% to 75%]c + b + c + b
+// a + b + [70% to 80%]c + b + c + b
 
 $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
@@ -25,8 +25,8 @@ $page-max-width-md: $content-max-width + 2 * $padding-x-md;
 // The sidebar is added from the lg breakpoint but is absolutely
 // positioned so the wrapper size does not need to accomodate it.
 // $page-max-width-lg
-// The left column of the side by side layout is capped at 75% of content-max-width (the right column)
-$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.75 * $content-max-width;
+// The left column of the side by side layout is capped at 80% of content-max-width (the right column)
+$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.8 * $content-max-width;
 
 /*******************************************************************************
  * Breakpoints
@@ -34,8 +34,8 @@ $page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.75 * $conten
 
 $md-min-width: 960px;
 $lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md + $content-max-width;
-// The side by side layout is triggered when the left column reaches 45% of content-max-width (the right column)
-$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.45 * $content-max-width;
+// The side by side layout is triggered when the left column reaches 70% of content-max-width (the right column)
+$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.70 * $content-max-width;
 
 @mixin sm-only {
     @media (max-width: $md-min-width - 1px) {
