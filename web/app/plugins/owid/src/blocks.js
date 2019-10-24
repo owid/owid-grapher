@@ -7,6 +7,11 @@ registerBlockStyle("core/columns", {
   label: "Sticky right"
 });
 
+registerBlockStyle("core/columns", {
+  name: "side-by-side",
+  label: "Side by side"
+});
+
 // Temporary fix https://github.com/WordPress/gutenberg/issues/9897#issuecomment-478362380
 const allowColumnStyle = createHigherOrderComponent(BlockEdit => {
   return props => {
