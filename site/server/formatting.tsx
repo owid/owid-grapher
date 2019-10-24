@@ -309,17 +309,20 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             // Leave h2 at the section level, do not move into columns
             if(this.name === 'h2' || $el.hasClass("has-2-columns")) {
                 $section.append($el)
-            } else if(this.name === 'h3' || this.name === 'h4') {
-                // Reset columns when hitting h3 or h4 tags
+            } else if(this.name === 'h3') {
                 if(!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
                 }
-                if(this.name === 'h3') {
-                    $section.append($el)
-                } else {
-                    columns.first.append($el)
+                $section.append($el)
+            } else if(this.name === 'h4') {
+                if(!isColumnsEmpty(columns)) {
+                    $section.append(columns.wrapper)
+                    columns = getColumns()
                 }
+                columns.first.append($el)
+                $section.append(columns.wrapper)
+                columns = getColumns()
             } else {
                 // Move images to the right column
                 if(this.name === 'figure' ||
