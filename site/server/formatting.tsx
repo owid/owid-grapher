@@ -273,35 +273,69 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
     })
 
+    interface Columns {
+        wrapper: Cheerio
+        first: Cheerio
+        last: Cheerio
+    }
+
+    function getColumns(): Columns {
+        const emptyColumns = "<div class=\"wp-block-columns has-2-columns is-style-sticky-right\"><div class=\"wp-block-column\"></div><div class=\"wp-block-column\"></div></div>"
+        const $columns = $(emptyColumns)
+        return {
+            wrapper: $columns,
+            first: $columns.children().first(),
+            last: $columns.children().last()
+        }
+    }
+
+    function isColumnsEmpty(columns: Columns) {
+        return columns.first.children().length === 0 && columns.last.children().length === 0 ? true : false
+    }
+
     // Wrap content demarcated by headings into section blocks
+    // and automatically divide content into columns
     const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
-    const emptyColumns = "<div class=\"has-2-columns is-style-sticky-right\"><div class=\"wp-block-column\"></div><div class=\"wp-block-column\"></div></div>"
     for (const start of sectionStarts) {
-        let $columns = $(emptyColumns)
         const $start = $(start)
         const $section = $("<section>")
+        let columns = getColumns()
         const $tempWrapper = $("<div>")
         const $contents = $tempWrapper.append($start.clone(), $start.nextUntil("h2")).contents()
 
         $contents.each(function(this: CheerioElement, i) {
             const $el = $(this)
+            // Leave h2 at the section level, do not move into columns
             if(this.name === 'h2' || $el.hasClass("has-2-columns")) {
                 $section.append($el)
             } else if(this.name === 'h3' || this.name === 'h4') {
-                $section.append($columns, $el)
-                $columns = $(emptyColumns)
+                // Reset columns when hitting h3 or h4 tags
+                if(!isColumnsEmpty(columns)) {
+                    $section.append(columns.wrapper)
+                    columns = getColumns()
+                }
+                if(this.name === 'h3') {
+                    $section.append($el)
+                } else {
+                    columns.first.append($el)
+                }
             } else {
+                // Move images to the right column
                 if(this.name === 'figure' ||
                     $el.hasClass("wp-block-image") ||
-                    // Temporary support for pre-Gutenberg images
+                    // Temporary support for pre-Gutenberg images and associated captions
+                    this.name === 'h6' ||
                     $el.find("img").length === 1) {
-                    $columns.children().last().append($el)
+                        columns.last.append($el)
                 } else {
-                    $columns.children().first().append($el)
+                    // Move non-heading, non-image content to the left column
+                    columns.first.append($el)
                 }
             }
         })
-        $section.append($columns)
+        if(!isColumnsEmpty(columns)) {
+            $section.append(columns.wrapper)
+        }
         $start.replaceWith($section)
     }
 
