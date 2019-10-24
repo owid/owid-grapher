@@ -323,6 +323,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                 // Move images to the right column
                 if(this.name === 'figure' ||
                     $el.hasClass("wp-block-image") ||
+                    $el.hasClass("tableContainer") ||
                     // Temporary support for pre-Gutenberg images and associated captions
                     this.name === 'h6' ||
                     $el.find("img").length === 1) {
