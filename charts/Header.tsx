@@ -85,7 +85,7 @@ export class Header {
         if (this.props.chart.isMediaCard)
             return 0
         else
-            return Math.max(this.title.height + this.subtitle.height, this.logoHeight)
+            return Math.max(this.title.height + this.subtitle.height + this.titleMarginBottom, this.logoHeight)
     }
 
     render(x: number, y: number) {
