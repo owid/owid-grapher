@@ -108,7 +108,7 @@ class HeaderView extends React.Component<{ x: number, y: number, header: Header 
 
         return <g className="HeaderView">
             {logo && logo.height > 0 && logo.renderSVG(props.x + maxWidth - logo.width, props.y)}
-            <a href={chart.url.canonicalUrl} target="_blank">
+            <a href={chart.url.canonicalUrl} style={{ fontFamily: '"Playfair Display", Georgia, "Times New Roman", serif' }} target="_blank">
                 {title.render(props.x, props.y, { fill: "#555" })}
             </a>
             {subtitle.render(props.x, props.y + title.height + props.header.titleMarginBottom, { fill: "#666" })}

@@ -1,4 +1,6 @@
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
+$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+
 $controls-color: #3F9EFF;
 
 $zindex-chart: 1;
@@ -157,8 +159,9 @@ figure[data-grapher-src]:empty:after {
         }
 
         h1 {
-            color: #555;
+            font-family: $serif-font-stack;
             font-weight: normal;
+            color: #555;
             margin: 0;
         }
 
