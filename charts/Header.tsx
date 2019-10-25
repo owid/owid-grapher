@@ -64,7 +64,7 @@ export class Header {
     }
 
     @computed get titleMarginBottom(): number {
-        return 2
+        return 4
     }
 
     @computed get subtitleWidth() {
