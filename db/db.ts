@@ -27,7 +27,10 @@ async function getConnection() {
 }
 
 function cleanup() {
-    if (!connection) return
+    if (!connection) {
+        process.exit(0)
+        return
+    }
     connection.close().then(() => {
         console.log("Database connection closed")
         process.exit(0)
