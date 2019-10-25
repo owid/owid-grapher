@@ -679,13 +679,13 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 /* Pages & Posts
 --------------------------------------------- */
 
-.article-header > h1 {
+.article-header h1 {
+    margin-bottom: 1rem;
+    font-size: 2.25rem;
     font-family: $serif-font-stack;	font-weight: 400;
-    font-size: 3rem;
     line-height: 1.2;
-
-    @include sm-only {
-        font-size: 2.25rem;
+    @include md-up {
+        font-size: 3rem;
     }
 }
 
@@ -706,34 +706,43 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         font-family: $serif-font-stack;
         font-size: 3rem;
         font-weight: 400;
-        text-align: center;
         margin-top: 0;
         padding-top: 2rem;
+        padding-bottom: 2rem;
         margin-bottom: 5.25rem;
         line-height: 1.25em;
+        border-bottom: 10px solid $primary-color-200;
 
         @include sm-only {
             font-size: 2.5rem;
         }
     }
 
+
     /* Subsections e.g. I.1 Historical perspective */
     > h3 {
         font-family: $serif-font-stack;
         font-size: 2.25rem;
         font-weight: 400;
-        text-align: center;
         line-height: 1.25em;
-        margin-top: 4.5rem;
+        margin-top: 5rem;
         margin-bottom: 1.5rem;
+        padding-top: 2.5rem;
+        border-top: 1px solid $primary-color-200;
 
         @include sm-only {
             font-size: 1.75rem;
         }
     }
 
+    > h2 + h3 {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+    }
+
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
-    > h4 {
+    .wp-block-columns h4 {
         font-family: $serif-font-stack;
         font-weight: 400;
         font-size: 1.5rem;

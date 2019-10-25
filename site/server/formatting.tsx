@@ -144,19 +144,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
     const $ = cheerio.load(html)
 
-    // Wrap content demarcated by headings into section blocks
-    const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
-    for (const start of sectionStarts) {
-        const $start = $(start)
-        const $contents = $start.nextUntil("h2")
-        const $wrapNode = $("<section></section>")
-
-        $contents.remove()
-        $wrapNode.append($start.clone())
-        $wrapNode.append($contents)
-        $start.replaceWith($wrapNode)
-    }
-
     // Replace grapher iframes with static previews
     if (grapherExports) {
         const grapherIframes = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//))
@@ -174,8 +161,16 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                     </a>
                 </div>`
                 const $p = $(el).closest('p')
-                $(el).remove()
-                $p.after(output)
+                if($p.length === 1) {
+                    $(el).remove()
+                    $p.after(output)
+                } else {
+                    // Support for <iframe> wrapped in <figure>
+                    // <figure> automatically added by Gutenberg on copy / paste <iframe>
+                    const $figure = $(el).closest('figure')
+                    $figure.after(output)
+                    $figure.remove()
+                }
             }
         }
     }
@@ -278,6 +273,79 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         // Deep link
         $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
     })
+
+    interface Columns {
+        wrapper: Cheerio
+        first: Cheerio
+        last: Cheerio
+    }
+
+    function getColumns(): Columns {
+        const emptyColumns = "<div class=\"wp-block-columns has-2-columns is-style-sticky-right\"><div class=\"wp-block-column\"></div><div class=\"wp-block-column\"></div></div>"
+        const $columns = $(emptyColumns)
+        return {
+            wrapper: $columns,
+            first: $columns.children().first(),
+            last: $columns.children().last()
+        }
+    }
+
+    function isColumnsEmpty(columns: Columns) {
+        return columns.first.children().length === 0 && columns.last.children().length === 0 ? true : false
+    }
+
+    // Wrap content demarcated by headings into section blocks
+    // and automatically divide content into columns
+    const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
+    for (const start of sectionStarts) {
+        const $start = $(start)
+        const $section = $("<section>")
+        let columns = getColumns()
+        const $tempWrapper = $("<div>")
+        const $contents = $tempWrapper.append($start.clone(), $start.nextUntil("h2")).contents()
+
+        $contents.each(function(this: CheerioElement, i) {
+            const $el = $(this)
+            // Leave h2 at the section level, do not move into columns
+            if(this.name === 'h2' || $el.hasClass("has-2-columns")) {
+                $section.append($el)
+            } else if(this.name === 'h3') {
+                if(!isColumnsEmpty(columns)) {
+                    $section.append(columns.wrapper)
+                    columns = getColumns()
+                }
+                $section.append($el)
+            } else if(this.name === 'h4') {
+                if(!isColumnsEmpty(columns)) {
+                    $section.append(columns.wrapper)
+                    columns = getColumns()
+                }
+                columns.first.append($el)
+                $section.append(columns.wrapper)
+                columns = getColumns()
+            } else {
+                // Move images to the right column
+                if(this.name === 'figure' ||
+                    // Temporary support for old chart iframes
+                    this.name === 'address' ||
+                    $el.hasClass("wp-block-image") ||
+                    $el.hasClass("tableContainer") ||
+                    $el.find("iframe").length !== 0 ||
+                    // Temporary support for pre-Gutenberg images and associated captions
+                    this.name === 'h6' ||
+                    $el.find("img").length !== 0) {
+                        columns.last.append($el)
+                } else {
+                    // Move non-heading, non-image content to the left column
+                    columns.first.append($el)
+                }
+            }
+        })
+        if(!isColumnsEmpty(columns)) {
+            $section.append(columns.wrapper)
+        }
+        $start.replaceWith($section)
+    }
 
     return {
         id: post.id,
