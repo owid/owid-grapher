@@ -1,7 +1,6 @@
 import { DEPLOY_QUEUE_FILE_PATH } from "serverSettings"
 import { scheduleDeploy, queueIsEmpty } from "./queue"
 
-
 async function main() {
     // Listen for file changes
     fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {

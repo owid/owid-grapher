@@ -8,7 +8,7 @@ function identity(x: any) {
     return x
 }
 
-export interface IQueueItem {
+export interface IDeployQueueItem {
     authorName?: string
     authorEmail?: string
     message?: string
@@ -45,7 +45,7 @@ export async function pullQueueContent(): Promise<string> {
     return queueContent
 }
 
-export function parseQueueContent(content: string): IQueueItem[] {
+export function parseQueueContent(content: string): IDeployQueueItem[] {
     // Parse all lines in file as JSON
     return content
         .split('\n')
@@ -59,7 +59,7 @@ export function parseQueueContent(content: string): IQueueItem[] {
         .filter(identity)
 }
 
-export function generateMessage(queueItems: IQueueItem[]): string {
+export function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
     const date: string = (new Date()).toISOString()
 
     const message: string = queueItems
@@ -85,7 +85,7 @@ export async function scheduleDeploy() {
             // Write to `.deploying` file to be able to recover the deploy message
             // in case of failure.
             await fs.writeFile(DEPLOY_PENDING_FILE_PATH, deployContent)
-            const message = generateMessage(parseQueueContent(deployContent))
+            const message = generateCommitMsg(parseQueueContent(deployContent))
             await deploy(message)
             await fs.unlink(DEPLOY_PENDING_FILE_PATH)
         }
