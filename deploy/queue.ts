@@ -1,8 +1,6 @@
-import * as path from 'path'
 import * as fs from 'fs-extra'
-import { SiteBaker } from 'site/server/SiteBaker'
-import { log } from 'utils/server/log'
-import { QUEUE_FILE_PATH, DEPLOYING_FILE_PATH } from 'serverSettings'
+import { DEPLOY_QUEUE_FILE_PATH, DEPLOY_PENDING_FILE_PATH } from 'serverSettings'
+import { deploy } from './deploy'
 
 let deploying = false
 
@@ -10,33 +8,33 @@ function identity(x: any) {
     return x
 }
 
-interface IQueueItem {
+export interface IQueueItem {
     authorName?: string
     authorEmail?: string
     message?: string
 }
 
-async function readQueueContent(): Promise<string> {
-    const queueContent = await fs.readFile(QUEUE_FILE_PATH, 'utf8')
-    // If any deploys didn't exit cleanly, DEPLOYING_FILE_PATH would exist.
+export async function readQueueContent(): Promise<string> {
+    const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, 'utf8')
+    // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
-    if (!deploying && fs.existsSync(DEPLOYING_FILE_PATH)) {
-        const deployingContent = await fs.readFile(DEPLOYING_FILE_PATH, 'utf8')
+    if (!deploying && fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
+        const deployingContent = await fs.readFile(DEPLOY_PENDING_FILE_PATH, 'utf8')
         return deployingContent + '\n' + queueContent
     } else {
         return queueContent
     }
 }
 
-async function eraseQueueContent() {
-    await fs.truncate(QUEUE_FILE_PATH, 0)
+export async function eraseQueueContent() {
+    await fs.truncate(DEPLOY_QUEUE_FILE_PATH, 0)
 }
 
-async function queueIsEmpty(): Promise<boolean> {
+export async function queueIsEmpty(): Promise<boolean> {
     return !await readQueueContent()
 }
 
-async function pullQueueContent(): Promise<string> {
+export async function pullQueueContent(): Promise<string> {
     // Read line-delimited JSON
     const queueContent = await readQueueContent()
 
@@ -47,7 +45,7 @@ async function pullQueueContent(): Promise<string> {
     return queueContent
 }
 
-function parseQueueContent(content: string): IQueueItem[] {
+export function parseQueueContent(content: string): IQueueItem[] {
     // Parse all lines in file as JSON
     return content
         .split('\n')
@@ -61,7 +59,7 @@ function parseQueueContent(content: string): IQueueItem[] {
         .filter(identity)
 }
 
-function generateMessage(queueItems: IQueueItem[]): string {
+export function generateMessage(queueItems: IQueueItem[]): string {
     const date: string = (new Date()).toISOString()
 
     const message: string = queueItems
@@ -79,49 +77,18 @@ function generateMessage(queueItems: IQueueItem[]): string {
     return `Deploy ${date}\n${message}\n\n\n${coauthors}`
 }
 
-async function scheduleDeploy() {
+export async function scheduleDeploy() {
     if (!deploying) {
         deploying = true
         while (!await queueIsEmpty()) {
             const deployContent = await pullQueueContent()
             // Write to `.deploying` file to be able to recover the deploy message
             // in case of failure.
-            await fs.writeFile(DEPLOYING_FILE_PATH, deployContent)
+            await fs.writeFile(DEPLOY_PENDING_FILE_PATH, deployContent)
             const message = generateMessage(parseQueueContent(deployContent))
             await deploy(message)
-            await fs.unlink(DEPLOYING_FILE_PATH)
+            await fs.unlink(DEPLOY_PENDING_FILE_PATH)
         }
         deploying = false
     }
 }
-
-async function deploy(message: string) {
-    const baker = new SiteBaker({})
-
-    try {
-        console.log("Starting deploy...")
-        await baker.bakeAll()
-        await baker.deploy(message)
-        console.log("Deploy finished.")
-    } catch (err) {
-        log.error(err)
-    } finally {
-        baker.end()
-    }
-}
-
-async function main() {
-    // Listen for file changes
-    fs.watchFile(QUEUE_FILE_PATH, () => {
-        console.log(`File changed: ${QUEUE_FILE_PATH}`)
-        // Start deploy after 10 seconds in order to avoid the quick successive
-        // deploys triggered by Wordpress.
-        setTimeout(scheduleDeploy, 10*1000)
-    })
-
-    if (!await queueIsEmpty()) {
-        scheduleDeploy()
-    }
-}
-
-main()

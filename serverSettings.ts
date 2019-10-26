@@ -62,5 +62,5 @@ export const UNCATEGORIZED_TAG_ID: number = process.env.UNCATEGORIZED_TAG_ID ? p
 export const BAKE_ON_CHANGE: boolean = process.env.BAKE_ON_CHANGE ? parseBool(process.env.BAKE_ON_CHANGE) : (ENV === 'production' ? true : false)
 
 // Deploy queue settings
-export const QUEUE_FILE_PATH = process.env.QUEUE_FILE_PATH || path.join(BASE_DIR, './.queue')
-export const DEPLOYING_FILE_PATH = process.env.DEPLOYING_FILE_PATH || path.join(BASE_DIR, './.deploying')
+export const DEPLOY_QUEUE_FILE_PATH = process.env.DEPLOY_QUEUE_FILE_PATH || path.join(BASE_DIR, './.queue')
+export const DEPLOY_PENDING_FILE_PATH = process.env.DEPLOY_PENDING_FILE_PATH || path.join(BASE_DIR, './.pending')
