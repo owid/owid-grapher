@@ -26,6 +26,10 @@ export async function readQueueContent(): Promise<string> {
     }
 }
 
+export async function enqueueDeploy(item: IDeployQueueItem) {
+    await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + '\n')
+}
+
 export async function eraseQueueContent() {
     await fs.truncate(DEPLOY_QUEUE_FILE_PATH, 0)
 }
