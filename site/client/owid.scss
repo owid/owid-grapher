@@ -885,6 +885,11 @@ img {
     transition: box-shadow 100ms ease;
 }
 
+.article-content figure {
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .article-content figure[data-grapher-src], .SearchResults figure[data-grapher-src] {
     margin-left: auto;
     margin-right: auto;
@@ -995,13 +1000,6 @@ img {
     width: 100%;
     max-width: $content-max-width;
 }
-
-/*@media (max-width: 767px) {
-    .article-content figure {
-        height: 500px;
-        max-height: 500px;
-    }
-}*/
 
 .article-content .twitter-tweet {
     margin-left: auto;
