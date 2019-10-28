@@ -81,7 +81,7 @@ export function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
     return `Deploy ${date}\n${message}\n\n\n${coauthors}`
 }
 
-export async function scheduleDeploy() {
+export async function triggerDeploy() {
     if (!deploying) {
         deploying = true
         while (!await queueIsEmpty()) {

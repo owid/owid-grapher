@@ -1,5 +1,5 @@
 import { DEPLOY_QUEUE_FILE_PATH } from "serverSettings"
-import { scheduleDeploy, queueIsEmpty } from "./queue"
+import { triggerDeploy, queueIsEmpty } from "./queue"
 
 async function main() {
     // Listen for file changes
@@ -7,11 +7,11 @@ async function main() {
         console.log(`File changed: ${DEPLOY_QUEUE_FILE_PATH}`)
         // Start deploy after 10 seconds in order to avoid the quick successive
         // deploys triggered by Wordpress.
-        setTimeout(scheduleDeploy, 10*1000)
+        setTimeout(triggerDeploy, 10*1000)
     })
 
     if (!await queueIsEmpty()) {
-        scheduleDeploy()
+        triggerDeploy()
     }
 }
 
