@@ -16,6 +16,7 @@ import { Post } from 'db/model/Post'
 import { Chart } from 'charts/Chart'
 import { defaultTo } from 'charts/Util'
 import { Base64 } from 'js-base64'
+import { registerExitHandler } from './cleanup'
 
 class WPDB {
     conn?: DatabaseConnection
@@ -32,6 +33,10 @@ class WPDB {
                     database: WORDPRESS_DB_NAME
                 }
             })
+
+            registerExitHandler(async () => {
+                if (knexInstance) await knexInstance.destroy()
+            })
         }
 
         return knexInstance(tableName)
@@ -46,6 +51,10 @@ class WPDB {
             database: WORDPRESS_DB_NAME
         })
         await this.conn.connect()
+
+        registerExitHandler(async () => {
+            if (this.conn) this.conn.end()
+        })
     }
 
     async query(queryStr: string, params?: any[]): Promise<any[]> {
