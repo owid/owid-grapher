@@ -65,6 +65,10 @@ then
   yarn migrate
   yarn tsn scripts/configureAlgolia.ts
 
+  # Create deploy queue file writable by any user
+  touch .queue
+  chmod 0666 .queue
+
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP
   mv $FINAL_TARGET $OLD_REPO_BACKUP || true
