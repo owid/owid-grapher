@@ -3,6 +3,7 @@ import * as typeorm from 'typeorm'
 import * as Knex from 'knex'
 import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from 'serverSettings'
 import { log } from 'utils/server/log'
+import { registerExitHandler } from './cleanup'
 let connection: typeorm.Connection
 
 export async function connect() {
@@ -23,25 +24,12 @@ async function getConnection() {
         }
     }
 
+    registerExitHandler(async () => {
+        if (connection) await connection.close()
+    })
+
     return connection
 }
-
-function cleanup() {
-    if (!connection) {
-        process.exit(0)
-        return
-    }
-    connection.close().then(() => {
-        console.log("Database connection closed")
-        process.exit(0)
-    }).catch((err) => {
-        log.error(err)
-        process.exit(1)
-    })
-}
-
-process.on('SIGINT', cleanup)
-process.on('SIGTERM', cleanup)
 
 export class TransactionContext {
     manager: typeorm.EntityManager
@@ -106,6 +94,10 @@ export function knex() {
                     return next()
                 }
             }
+        })
+
+        registerExitHandler(async () => {
+            if (knexInstance) await knexInstance.destroy()
         })
     }
 

@@ -1,15 +1,13 @@
 import * as express from 'express'
 import {Router} from 'express'
 import * as _ from 'lodash'
-import {spawn, ChildProcess} from 'child_process'
-import * as path from 'path'
 import {getConnection} from 'typeorm'
 import * as bodyParser from 'body-parser'
 
 import * as db from 'db/db'
 import * as wpdb from 'db/wpdb'
-import {BASE_DIR, DB_NAME, UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE} from 'serverSettings'
-import {JsonError, expectInt, isValidSlug, shellEscape, absoluteUrl} from 'utils/server/serverUtil'
+import {UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from 'serverSettings'
+import {JsonError, expectInt, isValidSlug, absoluteUrl} from 'utils/server/serverUtil'
 import {sendMail} from 'admin/server/mail'
 import { OldChart, Chart } from 'db/model/Chart'
 import { UserInvitation } from 'db/model/UserInvitation'
@@ -28,6 +26,7 @@ import { log } from 'utils/server/log'
 import { denormalizeLatestCountryData } from 'site/server/countryProfiles'
 import { BAKED_BASE_URL } from 'settings'
 import { PostReference } from 'admin/client/ChartEditor'
+import { enqueueDeploy } from 'deploy/queue'
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -64,8 +63,6 @@ class FunctionalRouter {
 
 const api = new FunctionalRouter()
 
-let lastSubprocess: ChildProcess|undefined
-
 // Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     if (!BAKE_ON_CHANGE) {
@@ -73,29 +70,11 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
         return
     }
 
-    const email = shellEscape(user.email)
-    const name = shellEscape(user.fullName)
-    const message = shellEscape(commitMessage)
-
-    const bakeSite = path.join(BASE_DIR, 'scripts/bakeSite.ts')
-    const cmd = `yarn tsn ${bakeSite} ${email} ${name} ${message} >> /tmp/${DB_NAME}-static.log 2>&1`
-
-    if (lastSubprocess) {
-        // Terminate any existing build in favor of this new one
-        try {
-            process.kill(-lastSubprocess.pid)
-        } catch (err) {
-            // Ignore error if it can't find the process group to kill
-            // It's fine if the previous build already finished
-            if (err.message !== "kill ESRCH") {
-                throw err
-            }
-        }
-    }
-
-    const subprocess = spawn(cmd, [], { detached: true, stdio: 'ignore', shell: true })
-    subprocess.unref()
-    lastSubprocess = subprocess
+    enqueueDeploy({
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage
+    })
 }
 
 async function getChartById(chartId: number): Promise<ChartConfigProps|undefined> {

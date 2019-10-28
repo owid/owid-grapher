@@ -60,3 +60,7 @@ export const UNCATEGORIZED_TAG_ID: number = process.env.UNCATEGORIZED_TAG_ID ? p
 
 // Should the static site output be baked when relevant database items change?
 export const BAKE_ON_CHANGE: boolean = process.env.BAKE_ON_CHANGE ? parseBool(process.env.BAKE_ON_CHANGE) : (ENV === 'production' ? true : false)
+
+// Deploy queue settings
+export const DEPLOY_QUEUE_FILE_PATH = process.env.DEPLOY_QUEUE_FILE_PATH || path.join(BASE_DIR, './.queue')
+export const DEPLOY_PENDING_FILE_PATH = process.env.DEPLOY_PENDING_FILE_PATH || path.join(BASE_DIR, './.pending')

@@ -19,6 +19,7 @@
     "deploy": "./bin/deploy.sh",
     "serve": "yarn tsn admin/server/server.tsx",
     "bake": "yarn tsn scripts/bakeSite.ts",
+    "deploy-queue": "yarn tsn deploy/watch.ts",
     "storybook": "yarn tsn node_modules/.bin/start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },

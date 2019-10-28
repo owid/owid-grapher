@@ -1,28 +1,19 @@
-import { SiteBaker } from 'site/server/SiteBaker'
 import { syncPostToGrapher } from 'db/model/Post'
 import * as parseArgs from 'minimist'
-import * as wpdb from 'db/wpdb'
-import * as db from 'db/db'
 import { BAKE_ON_CHANGE } from 'serverSettings'
-import { log } from 'utils/server/log'
+import { enqueueDeploy } from 'deploy/queue'
 const argv = parseArgs(process.argv.slice(2))
 
 async function main(email: string, name: string, postId: number, postSlug: string) {
-    try {
-        console.log(email, name, postId)
-        const slug = await syncPostToGrapher(postId)
+    console.log(email, name, postId)
+    const slug = await syncPostToGrapher(postId)
 
-        if (BAKE_ON_CHANGE) {
-            const baker = new SiteBaker({})
-            await baker.bakeAll()
-            await baker.deploy(slug ? `Updating ${slug}` : `Deleting ${postSlug}`, email, name)
-            baker.end()
-        }
-    } catch (err) {
-        log.error(err)
-    } finally {
-        await wpdb.end()
-        await db.end()
+    if (BAKE_ON_CHANGE) {
+        await enqueueDeploy({
+            authorName: name,
+            authorEmail: email,
+            message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`
+        })
     }
 }
 
