@@ -16,6 +16,7 @@ async function main() {
         try {
             await wpdb.connect()
         } catch (error) {
+            console.error(error)
             console.log("Could not connect to Wordpress database. Continuing without Wordpress...")
         }
 
