@@ -307,9 +307,9 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         $contents.each(function(this: CheerioElement, i) {
             const $el = $(this)
             // Leave h2 at the section level, do not move into columns
-            if(this.name === 'h2' || $el.hasClass("has-2-columns")) {
+            if(this.name === 'h2') {
                 $section.append($el)
-            } else if(this.name === 'h3') {
+            } else if(this.name === 'h3' || $el.hasClass("has-2-columns")) {
                 if(!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
