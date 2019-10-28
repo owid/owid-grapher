@@ -2,6 +2,8 @@ import * as fs from 'fs-extra'
 import { DEPLOY_QUEUE_FILE_PATH, DEPLOY_PENDING_FILE_PATH } from 'serverSettings'
 import { deploy } from './deploy'
 
+const MAX_SUCCESSIVE_FAILURES = 2
+
 let deploying = false
 
 function identity(x: any) {
@@ -84,14 +86,22 @@ export function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
 export async function triggerDeploy() {
     if (!deploying) {
         deploying = true
-        while (!await queueIsEmpty()) {
+        let failures = 0
+        while (!await queueIsEmpty() && failures < MAX_SUCCESSIVE_FAILURES) {
             const deployContent = await pullQueueContent()
             // Write to `.deploying` file to be able to recover the deploy message
             // in case of failure.
             await fs.writeFile(DEPLOY_PENDING_FILE_PATH, deployContent)
             const message = generateCommitMsg(parseQueueContent(deployContent))
-            await deploy(message)
-            await fs.unlink(DEPLOY_PENDING_FILE_PATH)
+            console.log(`Deploying site...\n---\n${message}\n---`)
+            try {
+                await deploy(message)
+                await fs.unlink(DEPLOY_PENDING_FILE_PATH)
+            } catch (err) {
+                failures++
+                // The error will be logged and sent to Slack.
+                // The deploy will be retried unless we've reached MAX_SUCCESSIVE_FAILURES.
+            }
         }
         deploying = false
     }
