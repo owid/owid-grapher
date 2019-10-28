@@ -215,7 +215,7 @@ export class DonateForm extends React.Component {
             />
 
             <button type="submit" className={classnames("owid-button", { "disabled": this.isSubmitting })} disabled={this.isLoading}>
-                Continue using credit card
+                Donate ${this.amount} {this.interval === "monthly" ? "per month" : ""}
             </button>
 
             <p className="note">
