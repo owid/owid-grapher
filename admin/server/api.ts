@@ -118,6 +118,10 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
         // the chart URL through the Wordpress database.
         // The Grapher should work without the Wordpress database, so we need to
         // handle failures gracefully.
+        // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
+        // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
+        // careful not to erroneously match those, which is why we switched to a
+        // REGEXP.
         try {
             posts = await wpdb.query(`
                 SELECT ID, post_title, post_name
@@ -126,9 +130,9 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
                     (post_type='page' OR post_type='post')
                     AND post_status='publish'
                     AND (
-                        ${slugs.map((_: any) => `INSTR(post_content, CONCAT('grapher/', ?))`).join(" OR ")}
+                        ${slugs.map((_: any) => `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`).join(" OR ")}
                     )
-            `, slugs)
+            `, slugs.map(_.escapeRegExp))
         } catch (error) {
             // We can ignore errors due to not being able to connect.
         }
