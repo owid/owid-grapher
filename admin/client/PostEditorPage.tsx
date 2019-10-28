@@ -4,7 +4,7 @@ import {observable, runInAction} from 'mobx'
 
 import { LoadingBlocker, BindString } from './Forms'
 import { AdminLayout } from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 interface Post {
     id: number
@@ -29,13 +29,15 @@ class PostEditor extends React.Component<{ post: Post }> {
 @observer
 export class PostEditorPage extends React.Component<{ postId?: number }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable.ref post?: Post
 
     async fetchPost() {
         const {postId} = this.props
         const {admin} = this.context
         const json = await admin.getJSON(`/api/posts/${postId}.json`)
-        runInAction(() => this.post = json)
+        runInAction(() => this.post = json as Post)
     }
 
     componentDidMount() {

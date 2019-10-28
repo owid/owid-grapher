@@ -5,7 +5,7 @@ import {observer} from 'mobx-react'
 import { Link } from './Link'
 import { EditorFAQ } from './EditorFAQ'
 import { AdminSidebar } from './AdminSidebar'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -28,6 +28,7 @@ class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
 @observer
 export class AdminLayout extends React.Component<{ noSidebar?: boolean, title?: string, children: any }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable isFAQ: boolean = false
     @observable isSidebar: boolean = false

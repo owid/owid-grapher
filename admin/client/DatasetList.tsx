@@ -7,7 +7,7 @@ import {bind} from 'decko'
 
 import { Link } from './Link'
 import { Tag } from './TagBadge'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { EditableTags } from './Forms'
 
 export interface DatasetListItem {
@@ -26,6 +26,7 @@ export interface DatasetListItem {
 @observer
 class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTags: Tag[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     async saveTags(tags: Tag[]) {
         const {dataset} = this.props
@@ -61,6 +62,7 @@ class DatasetRow extends React.Component<{ dataset: DatasetListItem, availableTa
 @observer
 export class DatasetList extends React.Component<{ datasets: DatasetListItem[], searchHighlight?: (text: string) => any }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable availableTags: Tag[] = []
 

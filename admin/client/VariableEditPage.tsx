@@ -62,6 +62,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     }
 
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
@@ -175,6 +177,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 @observer
 export class VariableEditPage extends React.Component<{ variableId: number }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable variable?: VariablePageData
 
     render() {

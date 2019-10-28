@@ -17,7 +17,7 @@ import { ChartFigureView } from 'site/client/ChartFigureView'
 import { ChartType } from 'charts/ChartType'
 import { Tag } from './TagBadge'
 import { VariableList, VariableListItem } from './VariableList'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { Base64 } from 'js-base64'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
@@ -44,6 +44,7 @@ class VariableEditable {
 @observer
 class VariableEditRow extends React.Component<{ variable: VariableEditListItem, isBulkImport: boolean }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable.ref chart?: ChartConfig
     @observable newVariable!: VariableEditable
@@ -250,6 +251,7 @@ class DatasetTagEditor extends React.Component<{ newDataset: DatasetEditable, av
 @observer
 class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
     @observable isDeleted: boolean = false
 
@@ -402,6 +404,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 @observer
 export class DatasetEditPage extends React.Component<{ datasetId: number }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
     @observable dataset?: DatasetPageData
 
     render() {

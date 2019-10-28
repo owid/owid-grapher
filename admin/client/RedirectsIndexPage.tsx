@@ -7,7 +7,7 @@ import { Admin } from './Admin'
 import { AdminLayout } from './AdminLayout'
 import { FieldsRow } from './Forms'
 import { Link } from './Link'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 interface RedirectListItem {
     id: number
@@ -19,6 +19,7 @@ interface RedirectListItem {
 @observer
 class RedirectRow extends React.Component<{ redirect: RedirectListItem, onDelete: (redirect: RedirectListItem) => void }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     render() {
         const {redirect} = this.props
@@ -38,6 +39,7 @@ class RedirectRow extends React.Component<{ redirect: RedirectListItem, onDelete
 @observer
 export class RedirectsIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable redirects: RedirectListItem[] = []
 

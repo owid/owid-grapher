@@ -8,7 +8,7 @@ import * as _ from 'lodash'
 import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow } from './Forms'
 import { DatasetList, DatasetListItem } from './DatasetList'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 interface Searchable {
     dataset: DatasetListItem
@@ -18,6 +18,7 @@ interface Searchable {
 @observer
 export class DatasetsIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable datasets: DatasetListItem[] = []
     @observable maxVisibleRows = 50

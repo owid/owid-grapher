@@ -7,7 +7,7 @@ import * as _ from 'lodash'
 
 import { AdminLayout } from './AdminLayout'
 import { SearchField, FieldsRow, EditableTags } from './Forms'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { WORDPRESS_URL } from 'settings'
 import { Tag } from './TagBadge'
 
@@ -29,6 +29,7 @@ interface Searchable {
 @observer
 class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any, availableTags: Tag[] }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     async saveTags(tags: Tag[]) {
         const {post} = this.props
@@ -67,6 +68,7 @@ class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: s
 @observer
 export class PostsIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50

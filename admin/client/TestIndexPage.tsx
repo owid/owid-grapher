@@ -4,11 +4,12 @@ import * as _ from 'lodash'
 
 import { AdminLayout } from './AdminLayout'
 import { Link } from './Link'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 @observer
 export class TestIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     render() {
         return <AdminLayout title="Test">

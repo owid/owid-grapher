@@ -6,7 +6,7 @@ import {observable, computed, action, runInAction} from 'mobx'
 import { Modal, Timeago } from './Forms'
 import { Link } from './Link'
 import { AdminLayout } from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 interface UserIndexMeta {
     id: number
@@ -21,6 +21,8 @@ interface UserIndexMeta {
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     emailInput: React.RefObject<HTMLInputElement> = React.createRef()
 
     @observable email: string = ""
@@ -72,6 +74,8 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 @observer
 export class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable users: UserIndexMeta[] = []
     @observable isInviteModal: boolean = false
 

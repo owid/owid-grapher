@@ -20,7 +20,7 @@ import { EditorReferencesTab } from './EditorReferencesTab'
 import { SaveButtons } from './SaveButtons'
 import { LoadingBlocker } from './Forms'
 import { AdminLayout } from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMobile } from '@fortawesome/free-solid-svg-icons/faMobile'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons/faDesktop'
@@ -64,6 +64,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
     @observable logs?: Log[]
     @observable references?: PostReference[]
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     async fetchChart() {
         const {chartId, chartConfig} = this.props

@@ -10,7 +10,7 @@ import { AdminLayout } from './AdminLayout'
 import { SelectField, SelectGroupsField, SelectGroup } from './Forms'
 import { CountryNameFormat, CountryNameFormatDefs, CountryDefByKey } from 'admin/CountryNameFormat'
 import { uniq, toString, csvEscape, values, sortBy } from 'charts/Util'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -209,6 +209,8 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
 @observer
 export class CountryStandardizerPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     fileUploader!: HTMLInputElement
 
     @observable countryList: CountryEntry[] = []

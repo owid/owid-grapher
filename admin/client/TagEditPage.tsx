@@ -9,7 +9,7 @@ import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import { DatasetList, DatasetListItem } from './DatasetList'
 import { ChartList, ChartListItem } from './ChartList'
 import { TagBadge, Tag } from './TagBadge'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 interface TagPageData {
     id: number
@@ -38,6 +38,7 @@ class TagEditable {
 @observer
 class TagEditor extends React.Component<{ tag: TagPageData }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable newtag!: TagEditable
     @observable isDeleted: boolean = false
@@ -139,6 +140,8 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 @observer
 export class TagEditPage extends React.Component<{ tagId: number }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable tag?: TagPageData
 
     render() {

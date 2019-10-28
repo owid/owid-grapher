@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Link as ReactLink } from 'react-router-dom'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
     to: string
@@ -10,6 +10,7 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 export class Link extends React.Component<LinkProps> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     render() {
         const {native, to, ...rest} = this.props

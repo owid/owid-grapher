@@ -12,5 +12,4 @@ export interface ChartViewContextType {
     removePopup: (vnode: VNode) => void
 }
 
-const ChartViewContext: React.Context<ChartViewContextType> = React.createContext({}) as any
-export { ChartViewContext }
+export const ChartViewContext: React.Context<ChartViewContextType> = React.createContext({}) as any

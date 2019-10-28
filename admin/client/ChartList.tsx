@@ -8,7 +8,7 @@ import { Link } from './Link'
 import { Tag } from './TagBadge'
 import { bind } from 'decko'
 import { EditableTags } from './Forms'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { BAKED_GRAPHER_URL } from 'settings'
 import { ChartTypeDefsByKey } from 'charts/ChartType'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -53,6 +53,7 @@ function showChartType(chart: ChartListItem) {
 @observer
 class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?: (text: string) => any, availableTags: Tag[], onDelete: (chart: ChartListItem) => void, onStar: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     async saveTags(tags: Tag[]) {
         const {chart} = this.props

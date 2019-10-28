@@ -4,7 +4,7 @@ import {observable, computed, action, runInAction} from 'mobx'
 import {Prompt} from 'react-router-dom'
 const timeago = require('timeago.js')()
 
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { AdminLayout } from './AdminLayout'
 import { BindString } from './Forms'
 import { VariableList, VariableListItem } from './VariableList'
@@ -104,6 +104,8 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
 @observer
 export class SourceEditPage extends React.Component<{ sourceId: number }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable source?: SourcePageData
 
     render() {

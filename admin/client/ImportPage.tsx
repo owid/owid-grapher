@@ -10,7 +10,7 @@ import { Redirect } from 'react-router-dom'
 import * as parse from 'csv-parse'
 import { BindString, NumericSelectField, FieldsRow } from './Forms'
 import { AdminLayout } from './AdminLayout'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -382,6 +382,7 @@ class CSVSelector extends React.Component<{ existingEntities: string[], onCSV: (
 @observer
 class Importer extends React.Component<ImportPageData> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable csv?: CSV
     @observable.ref dataset = new EditableDataset()
@@ -538,6 +539,7 @@ interface ImportPageData {
 @observer
 export class ImportPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable importData?: ImportPageData
 

@@ -6,11 +6,12 @@ import * as _ from 'lodash'
 import { AdminLayout } from './AdminLayout'
 import {SearchField, FieldsRow } from './Forms'
 import { VariableList, VariableListItem } from './VariableList'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 @observer
 export class VariablesIndexPage extends React.Component {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable variables: VariableListItem[] = []
     @observable maxVisibleRows = 50
