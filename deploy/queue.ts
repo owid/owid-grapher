@@ -20,7 +20,7 @@ export async function readQueueContent(): Promise<string> {
     const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, 'utf8')
     // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
-    if (!deploying && fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
+    if (fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
         const deployingContent = await fs.readFile(DEPLOY_PENDING_FILE_PATH, 'utf8')
         return deployingContent + '\n' + queueContent
     } else {
