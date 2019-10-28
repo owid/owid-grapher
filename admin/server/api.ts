@@ -134,6 +134,7 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
                     )
             `, slugs.map(_.escapeRegExp))
         } catch (error) {
+            console.error(error)
             // We can ignore errors due to not being able to connect.
         }
         const permalinks = await wpdb.getPermalinks()
