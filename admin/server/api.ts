@@ -25,7 +25,7 @@ import { camelCaseProperties } from 'utils/object'
 import { log } from 'utils/server/log'
 import { denormalizeLatestCountryData } from 'site/server/countryProfiles'
 import { BAKED_BASE_URL } from 'settings'
-import { PostReference } from 'admin/client/ChartEditor'
+import { PostReference, ChartRedirect } from 'admin/client/ChartEditor'
 import { enqueueDeploy } from 'deploy/queue'
 
 // Little wrapper to automatically send returned objects as JSON, makes
@@ -150,6 +150,15 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
     } else {
         return []
     }
+}
+
+async function getRedirectsByChartId(chartId: number): Promise<ChartRedirect[]> {
+    const redirects = (await db.query(`
+        SELECT id, slug, chart_id as chartId
+        FROM chart_slug_redirects
+        WHERE chart_id = ?
+        ORDER BY id ASC`, [chartId]))
+    return redirects
 }
 
 async function expectChartById(chartId: any): Promise<ChartConfigProps> {
@@ -314,6 +323,13 @@ api.get('/charts/:chartId.references.json', async (req: Request, res: Response) 
     const references = await getReferencesByChartId(req.params.chartId)
     return {
         references: references
+    }
+})
+
+api.get('/charts/:chartId.redirects.json', async (req: Request, res: Response) => {
+    const redirects = await getRedirectsByChartId(req.params.chartId)
+    return {
+        redirects: redirects
     }
 })
 

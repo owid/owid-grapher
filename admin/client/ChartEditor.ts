@@ -41,6 +41,12 @@ export interface PostReference {
     url: string
 }
 
+export interface ChartRedirect {
+    id: number
+    slug: string
+    chartId: number
+}
+
 export interface Namespace {
     name: string
     description?: string
@@ -68,6 +74,7 @@ export interface ChartEditorProps {
     database: EditorDatabase
     logs: Log[]
     references: PostReference[]
+    redirects: ChartRedirect[]
 }
 
 export class ChartEditor {
@@ -114,6 +121,10 @@ export class ChartEditor {
 
     @computed get references(): PostReference[] {
         return this.props.references
+    }
+
+    @computed get redirects(): ChartRedirect[] {
+        return this.props.redirects
     }
 
     @computed get availableTabs(): EditorTab[] {

@@ -8,7 +8,7 @@ import { Bounds } from 'charts/Bounds'
 import {includes, capitalize} from 'charts/Util'
 import { ChartConfig } from 'charts/ChartConfig'
 
-import { ChartEditor, EditorDatabase, Log, PostReference} from './ChartEditor'
+import { ChartEditor, EditorDatabase, Log, PostReference, ChartRedirect} from './ChartEditor'
 import { EditorBasicTab } from './EditorBasicTab'
 import { EditorDataTab } from './EditorDataTab'
 import { EditorTextTab } from './EditorTextTab'
@@ -63,6 +63,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]
     @observable references?: PostReference[]
+    @observable redirects?: ChartRedirect[]
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -93,6 +94,13 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
         runInAction(() => this.references = json.references)
     }
 
+    async fetchRedirects() {
+        const { chartId } = this.props
+        const { admin } = this.context
+        const json = chartId === undefined ? [] : await admin.getJSON(`/api/charts/${chartId}.redirects.json`)
+        runInAction(() => this.redirects = json.redirects)
+    }
+
     @computed get editor(): ChartEditor|undefined {
         if (this.chart === undefined || this.database === undefined) {
             return undefined
@@ -103,7 +111,8 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                 get chart() { return that.chart as ChartConfig },
                 get database() { return that.database as EditorDatabase },
                 get logs() { return that.logs as Log[] },
-                get references() { return that.references as PostReference[] }
+                get references() { return that.references as PostReference[] },
+                get redirects() { return that.redirects as ChartRedirect[] }
             })
         }
     }
@@ -113,6 +122,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
         this.fetchData()
         this.fetchLogs()
         this.fetchRefs()
+        this.fetchRedirects()
     }
 
     dispose!: IReactionDisposer

@@ -754,3 +754,26 @@ main:not(.ChartEditorPage) {
         cursor: pointer;
     }
 }
+
+.redirect-prefix {
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.add-redirect-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    span, button {
+        flex: 0;
+    }
+
+    input[type=text] {
+        flex: 1;
+        font-weight: 700;
+        color: #007bff;
+    }
+}
