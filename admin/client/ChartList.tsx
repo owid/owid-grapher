@@ -103,6 +103,7 @@ class ChartRow extends React.Component<{ chart: ChartListItem, searchHighlight?:
 @observer
 export class ChartList extends React.Component<{ charts: ChartListItem[], searchHighlight?: (text: string) => any, onDelete?: (chart: ChartListItem) => void }> {
     static contextType = AdminAppContext
+    context!: AdminAppContextType
 
     @observable availableTags: Tag[] = []
 
