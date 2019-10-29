@@ -127,7 +127,7 @@ async function getReferencesByChartId(chartId: number): Promise<PostReference[]>
                 SELECT ID, post_title, post_name
                 FROM wp_posts
                 WHERE
-                    (post_type='page' OR post_type='post')
+                    (post_type='page' OR post_type='post' OR post_type='wp_block')
                     AND post_status='publish'
                     AND (
                         ${slugs.map((_: any) => `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`).join(" OR ")}
