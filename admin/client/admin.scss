@@ -197,7 +197,7 @@ html, body {
         padding-right: .75rem;
     }
 
-    > form {
+    > .chart-editor-settings {
         min-width: 500px;
         width: 500px;
         min-height: 100%;
@@ -215,7 +215,7 @@ html, body {
         padding: 24px;
     }
 
-    > div {
+    > .chart-editor-view {
         display: flex;
         flex-direction: column;
         flex-grow: 1;

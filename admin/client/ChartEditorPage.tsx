@@ -167,7 +167,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
             {!editor.newChartId && <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>}
             {editor.newChartId && <Redirect to={`/charts/${editor.newChartId}/edit`}/>}
             <TabBinder editor={editor}/>
-            <form onSubmit={e => e.preventDefault()}>
+            <div className="chart-editor-form">
                 <div className="p-2">
                     <ul className="nav nav-tabs">
                         {availableTabs.map(tab =>
@@ -191,8 +191,8 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                     {editor.tab === 'refs' && <EditorReferencesTab editor={editor} />}
                 </div>
                 <SaveButtons editor={editor} />
-            </form>
-            <div>
+            </div>
+            <div className="chart-editor-view">
                 <figure data-grapher-src>
                     {<ChartView chart={chart} bounds={previewMode === "mobile" ? new Bounds(0, 0, 360, 500) : new Bounds(0, 0, 800, 600)}/>}
                     {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
