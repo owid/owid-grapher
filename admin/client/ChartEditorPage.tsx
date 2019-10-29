@@ -112,7 +112,9 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
                 get database() { return that.database as EditorDatabase },
                 get logs() { return that.logs as Log[] },
                 get references() { return that.references as PostReference[] },
-                get redirects() { return that.redirects as ChartRedirect[] }
+                // Hack: Allow overriding redirects so that we can update it
+                // from the inner "add redirect" form
+                redirects: that.redirects || []
             })
         }
     }

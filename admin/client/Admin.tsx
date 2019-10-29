@@ -93,13 +93,14 @@ export class Admin {
             if (json.error) {
                 if (onFailure === 'show') {
                     this.errorMessage = { title: `Failed to ${method} ${targetPath} (${response.status})`, content: json.error.message, isFatal: response.status !== 404 }
-                } else if (onFailure !== 'continue') {
-                    throw json.error
                 }
+                throw json.error
             }
         } catch (err) {
-            this.errorMessage = { title: `Failed to ${method} ${targetPath}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
-            throw this.errorMessage
+            if (onFailure === 'show') {
+                this.errorMessage = { title: `Failed to ${method} ${targetPath}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
+            }
+            throw err
         } finally {
             this.currentRequests = this.currentRequests.filter(req => req !== request)
         }

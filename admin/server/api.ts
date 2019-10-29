@@ -967,6 +967,15 @@ api.delete('/tags/:tagId/delete', async (req: Request, res: Response) => {
     return { success: true }
 })
 
+api.post('/charts/:chartId/redirects/new', async (req: Request) => {
+    const chartId = expectInt(req.params.chartId)
+    const fields = (req.body as { slug: string })
+    const result = await db.execute(`INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`, [chartId, fields.slug])
+    const redirectId = result.insertId
+    const redirect = await db.get(`SELECT * FROM chart_slug_redirects WHERE id = ?`, [redirectId])
+    return { success: true, redirect: redirect }
+})
+
 api.delete('/redirects/:id', async (req: Request, res: Response) => {
     const id = expectInt(req.params.id)
 

@@ -1,15 +1,23 @@
 import * as React from 'react'
 import { observer } from "mobx-react"
 import { ChartEditor } from './ChartEditor'
-import { computed } from 'mobx'
+import { computed, action, observable, runInAction } from 'mobx'
 import { BAKED_GRAPHER_URL } from 'settings'
+import { ChartRedirect } from 'admin/client/ChartEditor'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, '')
 
 @observer
 export class EditorReferencesTab extends React.Component<{ editor: ChartEditor }> {
+    @computed get isPersisted() { return this.props.editor.chart.props.id }
+
     @computed get references() { return this.props.editor.references || [] }
     @computed get redirects() { return this.props.editor.redirects || [] }
+
+    @action.bound appendRedirect(redirect: ChartRedirect) {
+        this.props.editor.props.redirects.push(redirect)
+    }
 
     render() {
         return <div>
@@ -43,16 +51,62 @@ export class EditorReferencesTab extends React.Component<{ editor: ChartEditor }
                     </ul>
                     <hr/>
                 </React.Fragment> : null}
-                <div className="input-group mb-3">
-                    <div className="input-group-prepend">
-                        <span className="input-group-text" id="basic-addon3">{BASE_URL}/</span>
-                    </div>
-                    <input type="text" className="form-control" placeholder="URL" />
-                    <div className="input-group-append">
-                        <button className="btn btn-primary" type="button">Add</button>
-                    </div>
-                </div>
+                {this.isPersisted && <AddRedirectForm editor={this.props.editor} onSuccess={this.appendRedirect} />}
             </section>
         </div>
+    }
+}
+
+@observer
+class AddRedirectForm extends React.Component<{ editor: ChartEditor, onSuccess: (redirect: ChartRedirect) => void }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
+
+    @observable slug?: string = ""
+
+    @observable isLoading: boolean = false
+    @observable errorMessage?: string
+
+    @action.bound onChange(slug: string) {
+        this.slug = slug
+    }
+
+    @action.bound async onSubmit() {
+        if (!this.isLoading) {
+            this.isLoading = true
+            try {
+                const chartId = this.props.editor.chart.props.id
+                const result = await this.context.admin.requestJSON(`/api/charts/${chartId}/redirects/new`, { slug: this.slug }, "POST", { onFailure: 'continue' })
+                const redirect = result.redirect as ChartRedirect
+                runInAction(() => {
+                    this.isLoading = false
+                    this.slug = ""
+                    this.errorMessage = undefined
+                })
+                this.props.onSuccess(redirect)
+            } catch (error) {
+                runInAction(() => {
+                    this.isLoading = false
+                    this.errorMessage = error && error.message
+                })
+            }
+        }
+    }
+
+    render() {
+        return <form onSubmit={this.onSubmit}>
+            <div className="input-group mb-3">
+                <div className="input-group-prepend">
+                    <span className="input-group-text" id="basic-addon3">{BASE_URL}/</span>
+                </div>
+                <input type="text" className="form-control" placeholder="URL" value={this.slug} onChange={(event) => this.onChange(event.target.value)} />
+                <div className="input-group-append">
+                    <button className="btn btn-primary" type="submit" disabled={!this.slug || this.isLoading}>Add</button>
+                </div>
+            </div>
+            {this.errorMessage &&<div className="alert alert-danger">
+                 {this.errorMessage}
+            </div>}
+        </form>
     }
 }
