@@ -23,6 +23,10 @@ function strip(html: string) {
     return html.replace(/<\/?[^>]+>/g, "")
 }
 
+function startsWithNewline(text: string) {
+    return /^\n/.test(text)
+}
+
 export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {
@@ -37,7 +41,12 @@ export class TextWrap {
     @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize } = this
 
-        const words = isEmpty(text) ? [] : text.split(' ')
+        const words = isEmpty(text)
+            ? []
+            // We prepend spaces to newlines in order to be able to do a "starts with"
+            // check to trigger a new line.
+            : text.replace(/\n/g, ' \n').split(' ')
+
         const lines: WrapLine[] = []
 
         let line: string[] = []
@@ -47,7 +56,7 @@ export class TextWrap {
             const nextLine = line.concat([word])
             const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize })
 
-            if (nextBounds.width+10 > maxWidth && line.length >= 1) {
+            if (startsWithNewline(word) || (nextBounds.width+10 > maxWidth && line.length >= 1)) {
                 lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
                 line = [word]
                 lineBounds = Bounds.forText(strip(word), { fontSize: fontSize })
