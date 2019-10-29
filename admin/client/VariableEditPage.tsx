@@ -12,7 +12,7 @@ import { VariableDisplaySettings } from 'charts/VariableData'
 import { ChartConfig } from 'charts/ChartConfig'
 import { ChartFigureView } from 'site/client/ChartFigureView'
 import { ChartList, ChartListItem } from './ChartList'
-import { AdminAppContext } from './AdminAppContext'
+import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
 import { Base64 } from 'js-base64'
 
 interface VariablePageData {
