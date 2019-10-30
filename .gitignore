@@ -14,9 +14,6 @@ dist
 *.swp
 datasetsExport
 .DS_Store
-theme/node_modules
-theme/yarn.lock
 .tscache
-theme/codelink
 .queue
 .pending
