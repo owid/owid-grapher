@@ -73,7 +73,6 @@
 
         .wp-block-column {
             flex: 0 0 $content-max-width + $padding-x-md / 2;
-            overflow: auto; // force charts to behave and not overflow when resizing
             padding: 0 0 0 $padding-x-md / 2;
             &:first-child {
                 flex: 1;
