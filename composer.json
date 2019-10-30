@@ -46,7 +46,7 @@
     "php": ">=7.1",
     "composer/installers": "^1.7",
     "oscarotero/env": "^1.2.0",
-    "roots/wordpress": "5.2.3",
+    "roots/wordpress": "5.2.4",
     "roots/wp-config": "1.0.0",
     "roots/wp-password-bcrypt": "1.0.0",
     "vlucas/phpdotenv": "^3.4.0",
@@ -66,6 +66,7 @@
     "wpackagist-plugin/raw-html": "^1.6",
     "wpackagist-plugin/redirection": "^4.3",
     "wpackagist-plugin/regenerate-thumbnails": "^3.1",
+    "wpackagist-plugin/safe-svg": "^1.9",
     "wpackagist-plugin/simple-embed-code": "^2.3",
     "wpackagist-plugin/tablepress": "^1.9"
   },
