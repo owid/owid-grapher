@@ -56,17 +56,17 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
   # original target to stay around to make future syncs faster
   cp -r $SYNC_TARGET $TMP_NEW
 
-  # Link in all the persistent stuff that needs to stay around between versions
-  ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
-  ln -s $FINAL_DATA/wordpress/uploads $TMP_NEW/web/app/uploads
-  ln -s $GRAPHER_DIR $TMP_NEW/web/app/themes/owid-theme/codelink
-
   # Install dependencies, build assets
   cd $TMP_NEW
   composer install --no-dev
   cd $TMP_NEW/$PATH_OWID_PLUGIN
   yarn install
   yarn build
+  
+  # Link in all the persistent stuff that needs to stay around between versions
+  ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
+  ln -s $FINAL_DATA/wordpress/uploads $TMP_NEW/web/app/uploads
+  ln -s $GRAPHER_DIR $TMP_NEW/web/wp/codelink
 
   # Atomically swap the old and new versions
   rm -rf $OLD_REPO_BACKUP

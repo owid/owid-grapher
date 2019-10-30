@@ -13,6 +13,11 @@ Plugin Name: Our World In Data
 
 const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
 
+function owid_plugin_setup()
+{
+	add_theme_support('post-thumbnails');
+}
+
 function owid_plugin_register()
 {
 	wp_register_script(
@@ -59,20 +64,24 @@ function owid_plugin_assets_enqueue()
 	}
 }
 
+add_action('after_setup_theme', 'owid_plugin_setup');
 add_action('init', 'owid_plugin_register');
 add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
 
 
 /*
- * Add revision support for reusable blocks
- */
+*/
 
-function owid_enable_revisions_reusable_blocks()
+function owid_plugin_add_post_type_support()
 {
+	// Add revision support for reusable blocks
 	add_post_type_support('wp_block', 'revisions');
+
+	// Add excerpt support for pages
+	add_post_type_support('page', 'excerpt');
 }
 
-add_action('init', 'owid_enable_revisions_reusable_blocks');
+add_action('init', 'owid_plugin_add_post_type_support');
 
 
 /*
@@ -96,6 +105,27 @@ function remove_automatic_excerpt($excerpt)
 
 add_filter('the_excerpt', 'remove_automatic_excerpt');
 
+/*
+ * Post update hook to trigger background baking
+ */
+
+function build_static($post_ID, $post_after, $post_before)
+{
+	if ($post_after->post_status == "publish" || $post_before->post_status == "publish") {
+		$current_user = wp_get_current_user();
+		putenv('PATH=' . getenv('PATH') . ':/bin:/usr/local/bin:/usr/bin');
+		// Unsets colliding .env variables between PHP and node apps
+		// The DB password does not collide and hence is not listed here (DB_PASS (node) vs DB_PASSWORD (php))
+		putenv('DB_HOST');
+		putenv('DB_USER');
+		putenv('DB_NAME');
+		putenv('DB_PORT');
+		$cmd = "cd " . ABSPATH . "codelink && yarn tsn scripts/postUpdatedHook.ts " . escapeshellarg($current_user->user_email) . " " . escapeshellarg($current_user->display_name) . " " . escapeshellarg($post_after->ID) . " " . escapeshellarg($post_after->post_name) . " > /tmp/wp-static.log 2>&1 &";
+		exec($cmd);
+	}
+}
+
+add_action('post_updated', 'build_static', 10, 3);
 
 /*
  * API fields
