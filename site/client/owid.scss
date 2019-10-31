@@ -239,7 +239,7 @@ h1.entry-title > a:hover {
 }
 
 /* The little section at the top of blog posts that links to related entries */
-.blog-info {
+.blog-info, .entry-status {
     @include info;
     background-color: #E9EEF2;
     color: #406592;
