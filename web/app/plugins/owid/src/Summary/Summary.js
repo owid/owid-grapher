@@ -17,9 +17,9 @@ const Summary = {
     );
   },
   save: props => (
-    <nav>
+    <div>
       <InnerBlocks.Content />
-    </nav>
+    </div>
   )
 };
 
