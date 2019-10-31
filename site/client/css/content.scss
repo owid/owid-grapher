@@ -91,6 +91,44 @@
     }
 }
 
+.wp-block-owid-summary {
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    @include wrapper-spacing-sm;
+    @include md-up {
+        @include wrapper-spacing-md;
+    }
+    border: 1px solid $primary-color;
+    border-top-width: 5px;
+    background-color: #F9F4E4;
+    color: $primary-color;
+    h2 {
+        margin-top: 0;
+        font-family: $serif-font-stack;
+        font-size: 2rem;
+    }
+    ul {
+        list-style-type: none;
+    }
+    li a {
+        display: block;
+        margin-bottom: 0.5rem;
+        padding: 1rem;
+        color: inherit;
+        background-color: rgb(243, 225, 167);
+        border: 1px solid $primary-color-300;
+        &:hover {
+            color: inherit;
+            background-color: rgb(248, 230, 172);
+            text-decoration: none;
+        }
+        &:visited {
+            color: inherit;
+        }
+    }
+}
+
 /*******************************************************************************
  * Added by Max: Hover Effect of Images that load in Fancy Box
  */
