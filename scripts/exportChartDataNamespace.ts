@@ -52,7 +52,7 @@ async function dataExport() {
 
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
+        await exec(`mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
 
         count += chunk.length
         console.log(count)
