@@ -302,7 +302,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         const $section = $("<section>")
         let columns = getColumns()
         const $tempWrapper = $("<div>")
-        const $contents = $tempWrapper.append($start.clone(), $start.nextUntil("h2")).contents()
+        const $contents = $tempWrapper.append($start.clone(), $start.nextUntil($("h2"))).contents()
 
         $contents.each(function(this: CheerioElement, i) {
             const $el = $(this)
