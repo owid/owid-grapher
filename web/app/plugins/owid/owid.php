@@ -29,8 +29,8 @@ function owid_plugin_register()
 	wp_register_script(
 		'owid-blocks-script',
 		plugins_url('build/blocks.js', __FILE__),
-		array('wp-blocks', 'wp-compose', 'wp-hooks'),
-		filemtime(plugin_dir_path(__FILE__) . '/build/blocks.js')
+		array('wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor'),
+		filemtime(plugin_dir_path(__FILE__) . 'build/blocks.js')
 	);
 
 	wp_register_style(

@@ -1,8 +1,8 @@
 # Application
-!/web/app/plugins/owid
-# Empty line
-# Empty line
 /web/app/plugins/*
+# Empty line
+# Empty line
+!/web/app/plugins/owid
 /web/app/mu-plugins/*/
 /web/app/uploads/*
 !/web/app/uploads/.gitkeep

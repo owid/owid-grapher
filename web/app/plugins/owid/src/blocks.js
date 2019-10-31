@@ -1,6 +1,9 @@
-const { registerBlockStyle } = wp.blocks;
+import Summary from "./Summary/Summary";
+const { registerBlockType, registerBlockStyle } = wp.blocks;
 const { createHigherOrderComponent } = wp.compose;
 const { addFilter } = wp.hooks;
+
+registerBlockType("owid/summary", Summary);
 
 registerBlockStyle("core/columns", {
   name: "sticky-right",
