@@ -85,17 +85,19 @@ fi
 # Grapher database (owid_metadata)
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading live Grapher metadata database (owid_metadata)"
-  curl -Lo $DL_FOLDER/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
+  ssh owid-live "cd live && yarn tsn scripts/exportMetadata.ts --with-passwords /tmp/owid_metadata_with_passwords.sql && gzip -f /tmp/owid_metadata_with_passwords.sql"
+  rsync -hav --progress owid-live:/tmp/owid_metadata_with_passwords.sql.gz $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
 purge_db $GRAPHER_DB_HOST $GRAPHER_DB_NAME
-import_db $DL_FOLDER/owid_metadata.sql.gz $GRAPHER_DB_HOST $GRAPHER_DB_NAME
+import_db $DL_FOLDER/owid_metadata_with_passwords.sql.gz $GRAPHER_DB_HOST $GRAPHER_DB_NAME
 
 # Grapher database (owid_chartdata)
 if [ "${WITH_CHARTDATA}" = true ]; then
   if [ "${SKIP_DB_DL}" = false ]; then
     echo "Downloading live Grapher chartdata database (owid_chartdata)"
-    curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
+    ssh owid-live "cd live && yarn tsn scripts/exportChartData.ts /tmp/owid_chartdata.sql && gzip -f /tmp/owid_chartdata.sql"
+    rsync -hav --progress owid-live:/tmp/owid_chartdata.sql.gz $DL_FOLDER
   fi
   echo "Importing live Grapher chartdata database (owid_chartdata)"
   import_db $DL_FOLDER/owid_chartdata.sql.gz $GRAPHER_DB_HOST $GRAPHER_DB_NAME
