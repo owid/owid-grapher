@@ -296,7 +296,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
     // Wrap content demarcated by headings into section blocks
     // and automatically divide content into columns
-    const sectionStarts = [$("body").children().get(0)].concat($("h2").toArray())
+    const sectionStarts = [$("body").children().get(0)].concat($("body > h2").toArray())
     for (const start of sectionStarts) {
         const $start = $(start)
         const $section = $("<section>")
