@@ -167,7 +167,7 @@ export class ChartEditorPage extends React.Component<{ chartId?: number, newChar
             {!editor.newChartId && <Prompt when={editor.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>}
             {editor.newChartId && <Redirect to={`/charts/${editor.newChartId}/edit`}/>}
             <TabBinder editor={editor}/>
-            <div className="chart-editor-form">
+            <div className="chart-editor-settings">
                 <div className="p-2">
                     <ul className="nav nav-tabs">
                         {availableTabs.map(tab =>
