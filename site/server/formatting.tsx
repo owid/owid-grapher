@@ -209,15 +209,13 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         // dimensions (e.g. remove 800x600).
         const src = el.attribs['src']
         const parsedPath = path.parse(src)
-        const originalFilename = parsedPath.name.replace(/-\d+x\d+$/, '')
-        const originalSrc = parsedPath.ext === 'svg' ?
-            src :
-            path.format({dir: parsedPath.dir, name: originalFilename, ext: parsedPath.ext})
+        const originalFilename = parsedPath.ext === '.svg' ? parsedPath.name : parsedPath.name.replace(/-\d+x\d+$/, '')
 
         // Open full-size image in new tab
         if (el.parent.tagName === "a") {
             el.parent.attribs['target'] = '_blank'
-        } else {
+        } else if(parsedPath.ext !== '.svg') {
+            const originalSrc = path.format({dir: parsedPath.dir, name: originalFilename, ext: parsedPath.ext})
             const $a = $(`<a href="${originalSrc}" target="_blank"></a>`)
             $el.replaceWith($a)
             $a.append($el)
