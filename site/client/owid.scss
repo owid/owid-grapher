@@ -36,6 +36,9 @@
 
 @import 'css/components/cookie-notice.scss';
 
+@import 'css/pages/faq.scss';
+@import 'css/hacks.scss';
+
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
 
@@ -772,6 +775,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     /* Image captions */
+    figcaption {
+        text-align: center;
+    }
+
     > h6 {
         margin-top: 40px;
         margin-bottom: 5px;
