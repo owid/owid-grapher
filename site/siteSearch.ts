@@ -73,7 +73,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
 
     // Some special ad hoc handling of country names for chart query
     // This is especially important for "uk" and "us" since algolia otherwise isn't too sure what to do with them
-    let chartQuery = query
+    let chartQuery = query.trim()
     const matchCountries = []
     for (const country of countries) {
         let variants = [country.name]
@@ -85,7 +85,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
 
             const newQuery = chartQuery.replace(r, (substring, ...args) => {
                 return args[0]+args[2]
-            }).trim()
+            })
 
             if (newQuery !== chartQuery) {
                 matchCountries.push(country)
