@@ -1158,6 +1158,11 @@ article.page .authors-byline .citation-note:hover {
 }
 .tooltip-inner p {
     margin: 0;
+    // Support for comments in references, and multiple references
+    // sharing the same footnote
+    & + p {
+        margin-top: 1em;
+    }
 }
 .tooltip a {
     background-image: none !important;
