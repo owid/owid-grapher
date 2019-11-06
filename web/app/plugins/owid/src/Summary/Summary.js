@@ -9,18 +9,18 @@ const Summary = {
   title: "Summary",
   icon: "editor-ul",
   category: "formatting",
+  supports: {
+    multiple: false,
+    html: false
+  },
   edit: ({ className }) => {
     return (
       <div style={blockStyle} className={className}>
-        <InnerBlocks template={[["core/heading", { content: "Summary", level: 2 }]]} />
+        <InnerBlocks />
       </div>
     );
   },
-  save: props => (
-    <div>
-      <InnerBlocks.Content />
-    </div>
-  )
+  save: props => <InnerBlocks.Content />
 };
 
 export default Summary;

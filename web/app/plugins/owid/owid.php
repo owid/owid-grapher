@@ -26,13 +26,6 @@ function owid_plugin_register()
 		array('wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-compose')
 	);
 
-	wp_register_script(
-		'owid-blocks-script',
-		plugins_url('build/blocks.js', __FILE__),
-		array('wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor'),
-		filemtime(plugin_dir_path(__FILE__) . 'build/blocks.js')
-	);
-
 	wp_register_style(
 		'owid-plugin-css',
 		plugins_url('src/style.css', __FILE__)
@@ -49,14 +42,35 @@ function owid_plugin_register()
 			'type' => 'integer',
 		)
 	);
+
+	wp_register_script(
+		'owid-blocks-script',
+		plugins_url('build/blocks.js', __FILE__),
+		array('wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor'),
+		filemtime(plugin_dir_path(__FILE__) . 'build/blocks.js')
+	);
+
+	register_block_type('owid/summary', array(
+		'editor_script' => 'owid-blocks-script',
+		'render_callback' => 'owid_plugin_summary_render'
+	));
+}
+
+function owid_plugin_summary_render($attributes, $content)
+{
+	$block = <<<EOD
+	<div class="wp-block-owid-summary">
+		<h2>Summary</h2>
+		$content
+	</div>
+EOD;
+
+	return $block;
 }
 
 function owid_plugin_assets_enqueue()
 {
 	$screen = get_current_screen();
-	// TODO: consider replacing with register_block_style once WP 5.3 is out
-	// https://developer.wordpress.org/block-editor/developers/filters/block-filters/#server-side-registration-helper 
-	wp_enqueue_script('owid-blocks-script');
 
 	if ($screen->post_type === 'post') {
 		wp_enqueue_script('owid-plugin-script');
