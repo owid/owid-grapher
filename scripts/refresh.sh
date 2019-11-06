@@ -63,7 +63,7 @@ purge_db(){
 }
 
 import_db(){
-  pv $1 | gunzip | $MYSQL -h $2 $3
+  pv $1 | $MYSQL -h $2 $3
 }
 
 # Wordpress DB
@@ -74,7 +74,7 @@ if [ "${SKIP_DB_DL}" = false ]; then
 fi
 echo "Importing Wordress database (live_wordpress)"
 purge_db $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
-pv $DL_FOLDER/live_wordpress.sql | $MYSQL -h $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
+import_db $DL_FOLDER/live_wordpress.sql $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
 
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
@@ -85,20 +85,20 @@ fi
 # Grapher database (owid_metadata)
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading live Grapher metadata database (owid_metadata)"
-  ssh owid-live "cd live && yarn tsn scripts/exportMetadata.ts --with-passwords /tmp/owid_metadata_with_passwords.sql && gzip -f /tmp/owid_metadata_with_passwords.sql"
-  rsync -hav --progress owid-live:/tmp/owid_metadata_with_passwords.sql.gz $DL_FOLDER
+  ssh owid-live "cd live && yarn tsn scripts/exportMetadata.ts --with-passwords /tmp/owid_metadata_with_passwords.sql"
+  rsync -hav --progress owid-live:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
 purge_db $GRAPHER_DB_HOST $GRAPHER_DB_NAME
-import_db $DL_FOLDER/owid_metadata_with_passwords.sql.gz $GRAPHER_DB_HOST $GRAPHER_DB_NAME
+import_db $DL_FOLDER/owid_metadata_with_passwords.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
 
 # Grapher database (owid_chartdata)
 if [ "${WITH_CHARTDATA}" = true ]; then
   if [ "${SKIP_DB_DL}" = false ]; then
     echo "Downloading live Grapher chartdata database (owid_chartdata)"
-    ssh owid-live "cd live && yarn tsn scripts/exportChartData.ts /tmp/owid_chartdata.sql && gzip -f /tmp/owid_chartdata.sql"
-    rsync -hav --progress owid-live:/tmp/owid_chartdata.sql.gz $DL_FOLDER
+    ssh owid-live "cd live && yarn tsn scripts/exportChartData.ts /tmp/owid_chartdata.sql"
+    rsync -hav --progress owid-live:/tmp/owid_chartdata.sql $DL_FOLDER
   fi
   echo "Importing live Grapher chartdata database (owid_chartdata)"
-  import_db $DL_FOLDER/owid_chartdata.sql.gz $GRAPHER_DB_HOST $GRAPHER_DB_NAME
+  import_db $DL_FOLDER/owid_chartdata.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
 fi
