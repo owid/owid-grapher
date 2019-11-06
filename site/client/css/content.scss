@@ -101,30 +101,35 @@
     }
     border: 1px solid $primary-color;
     border-top-width: 5px;
-    background-color: #F9F4E4;
     color: $primary-color;
+    background-color: #F9F4E4;
+
     h2 {
         margin-top: 0;
         font-family: $serif-font-stack;
         font-size: 2rem;
-    }
-    ul {
-        list-style-type: none;
-    }
-    li a {
-        display: block;
-        margin-bottom: 0.5rem;
-        padding: 1rem;
+        text-align: center;
         color: inherit;
-        background-color: rgb(243, 225, 167);
-        border: 1px solid $primary-color-300;
-        &:hover {
+    }
+    li {
+        margin-bottom: 0.5rem;
+        a {
+            display: block;
             color: inherit;
-            background-color: rgb(248, 230, 172);
-            text-decoration: none;
-        }
-        &:visited {
-            color: inherit;
+            transition: all 150ms;
+            &:hover {
+                color: inherit;
+                &::after {
+                    color: $secondary-color;
+                }
+            }
+            &::after {
+                display: inline-block;
+                content: "\2193\a0\a0 jump to section";
+                margin-left: 0.5rem;
+                font-size: 0.8rem;
+                color: $primary-color-400;
+            }
         }
     }
 }
