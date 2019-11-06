@@ -123,7 +123,7 @@ interface ImageUpload {
 }
 
 // Retrieve a map of post ids to authors
-let cachedAuthorship: Map<number, string[]>
+let cachedAuthorship: Map<number, string[]> | undefined
 export async function getAuthorship(): Promise<Map<number, string[]>> {
     if (cachedAuthorship) return cachedAuthorship
 
@@ -206,7 +206,7 @@ export async function getTagsByPostId(): Promise<Map<number, string[]>> {
 }
 
 // Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[]
+let cachedEntries: CategoryWithEntries[] | undefined
 export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     if (cachedEntries) return cachedEntries
 
@@ -269,7 +269,7 @@ export async function getPermalinks() {
     }
 }
 
-let cachedFeaturedImages: Map<number, string>
+let cachedFeaturedImages: Map<number, string> | undefined
 export async function getFeaturedImages() {
     if (cachedFeaturedImages)
         return cachedFeaturedImages
@@ -384,7 +384,7 @@ export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
     }
 }
 
-let cachedPosts: FullPost[]
+let cachedPosts: FullPost[] | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
 
@@ -403,7 +403,7 @@ interface TablepressTable {
     data: string[][]
 }
 
-let cachedTables: Map<string, TablepressTable>
+let cachedTables: Map<string, TablepressTable> | undefined
 export async function getTables(): Promise<Map<string, TablepressTable>> {
     if (cachedTables) return cachedTables
 
@@ -438,4 +438,12 @@ let knexInstance: Knex
 
 export function knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
     return wpdb.knex(tableName)
+}
+
+export function flushCache() {
+    cachedAuthorship = undefined
+    cachedEntries = undefined
+    cachedFeaturedImages = undefined
+    cachedPosts = undefined
+    cachedTables = undefined
 }

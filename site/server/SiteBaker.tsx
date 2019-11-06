@@ -322,6 +322,7 @@ export class SiteBaker {
     }
 
     async bakeAll() {
+        this.flushCache()
         await this.bakeRedirects()
         await this.bakeEmbeds()
         await this.bakeBlogIndex()
@@ -385,5 +386,9 @@ export class SiteBaker {
     end() {
         wpdb.end()
         db.end()
+    }
+
+    flushCache() {
+        wpdb.flushCache()
     }
 }
