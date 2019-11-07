@@ -54,6 +54,10 @@ function owid_plugin_register()
 		'editor_script' => 'owid-blocks-script',
 		'render_callback' => 'owid_plugin_summary_render'
 	));
+
+	register_block_type('owid/prominent-link', array(
+		'editor_script' => 'owid-blocks-script',
+	));
 }
 
 function owid_plugin_summary_render($attributes, $content)

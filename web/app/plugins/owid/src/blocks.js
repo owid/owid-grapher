@@ -1,9 +1,11 @@
 import Summary from "./Summary/Summary";
+import ProminentLink from "./ProminentLink/ProminentLink";
 const { registerBlockType, registerBlockStyle } = wp.blocks;
 const { createHigherOrderComponent } = wp.compose;
 const { addFilter } = wp.hooks;
 
 registerBlockType("owid/summary", Summary);
+registerBlockType("owid/prominent-link", ProminentLink);
 
 registerBlockStyle("core/columns", {
   name: "sticky-right",
