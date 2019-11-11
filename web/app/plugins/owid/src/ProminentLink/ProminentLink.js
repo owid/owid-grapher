@@ -1,8 +1,9 @@
-import { InnerBlocks } from "@wordpress/block-editor";
+import { InnerBlocks, RichText, URLInput, InspectorControls } from "@wordpress/block-editor";
+import MediaContainer from "../MediaContainer/MediaContainer";
 
 const blockStyle = {
   border: "1px dashed lightgrey",
-  padding: "0 1rem"
+  padding: "1rem"
 };
 
 const ProminentLink = {
@@ -12,27 +13,71 @@ const ProminentLink = {
   supports: {
     html: false
   },
-  edit: ({ className }) => {
+  attributes: {
+    title: {
+      type: "string"
+    },
+    linkUrl: {
+      type: "string"
+    },
+    mediaId: {
+      type: "integer"
+    },
+    mediaUrl: {
+      type: "string"
+    },
+    mediaAlt: {
+      type: "string"
+    }
+  },
+  edit: ({
+    attributes: { title, linkUrl, mediaId, mediaUrl, mediaAlt },
+    setAttributes,
+    className
+  }) => {
     return (
-      <div style={blockStyle} className={className}>
-        <InnerBlocks
-          template={[
-            ["core/heading", { level: 2 }],
-            [
-              "core/columns",
-              {},
-              [["core/column", {}, [["core/image"]]], ["core/column", {}, [["core/paragraph"]]]]
-            ]
-          ]}
-        />
-      </div>
+      <>
+        <InspectorControls>
+          <URLInput value={linkUrl} onChange={(linkUrl, post) => setAttributes({ linkUrl })} />
+        </InspectorControls>
+        <div style={blockStyle}>
+          <RichText
+            tagName="h2"
+            value={title}
+            onChange={newTitle => {
+              setAttributes({ title: newTitle });
+            }}
+            placeholder="Write heading..."
+          />
+          <div style={{ display: "flex" }}>
+            <div style={{ flex: "1 0 40%", marginRight: "1rem" }}>
+              <MediaContainer
+                onSelectMedia={media => {
+                  // Try the "large" size URL, falling back to the "full" size URL below.
+                  // const src = get( media, [ 'sizes', 'large', 'url' ] ) || get( media, [ 'media_details', 'sizes', 'large', 'source_url' ] );
+                  setAttributes({
+                    mediaId: media.id,
+                    // mediaUrl: src || media.url,
+                    mediaUrl: media.url,
+                    mediaAlt: media.alt
+                  });
+                }}
+                mediaId={mediaId}
+                mediaUrl={mediaUrl}
+                mediaAlt={mediaAlt}
+              />
+            </div>
+            <div style={{ flex: "1 0 60%" }}>
+              <InnerBlocks />
+            </div>
+          </div>
+        </div>
+      </>
     );
   },
-  save: props => (
-    <div>
-      <InnerBlocks.Content />
-    </div>
-  )
+  save: props => {
+    return <InnerBlocks.Content />;
+  }
 };
 
 export default ProminentLink;

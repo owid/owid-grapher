@@ -57,6 +57,7 @@ function owid_plugin_register()
 
 	register_block_type('owid/prominent-link', array(
 		'editor_script' => 'owid-blocks-script',
+		'render_callback' => 'owid_plugin_prominent_link_render'
 	));
 }
 
@@ -71,6 +72,46 @@ EOD;
 
 	return $block;
 }
+
+function owid_plugin_prominent_link_render($attributes, $content)
+{
+	$classes = 'wp-block-owid-prominent-link';
+
+	$title = null;
+	if (!empty($attributes['title'])) {
+		$title = "<h3>{$attributes['title']}</h3>";
+	}
+
+	$figure = null;
+	if (!empty($attributes['mediaUrl'])) {
+		$img = wp_get_attachment_image($attributes['mediaId'], 'medium_large');
+		$figure = "<figure>" . $img . "</figure>";
+		$classes .= ' with-image';
+	}
+
+	$linkStart = $linkEnd = null;
+	if (!empty($attributes['linkUrl'])) {
+		$linkStart = '<a href="' . esc_url($attributes['linkUrl']) . '">';
+		$linkEnd = '</a>';
+	}
+
+	$block = <<<EOD
+	<div class="$classes">
+		$linkStart
+			$title
+			<div class="content-wrapper">
+				$figure
+				<div class="content">
+					$content
+				</div>
+			</div>
+		$linkEnd
+	</div>
+EOD;
+
+	return $block;
+}
+
 
 function owid_plugin_assets_enqueue()
 {
