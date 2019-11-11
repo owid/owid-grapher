@@ -1,4 +1,104 @@
 /*******************************************************************************
+ * Figures, images
+ */
+
+.article-content img {
+    display: block;
+    margin: 1em auto;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px, rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
+    padding: 10px;
+    background-color: #fff;
+    transition: box-shadow 100ms ease;
+}
+
+// Added by Max: Hover Effect of Images that load in Fancy Box
+.article-content a > img {
+	cursor: zoom-in;
+}
+
+.article-content a > img:hover {
+	box-shadow: 0px 0px 1px 1px $link-color;
+	z-index: $zindex-article-image;
+}
+
+.article-content figure {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.article-content figure[data-grapher-src], .SearchResults figure[data-grapher-src] {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1em;
+    text-align: center;
+    line-height: 0;
+
+    width: 100%;
+
+    > a {
+        border-bottom: none !important;
+    }
+
+    > a > div {
+        display: inline-block;
+        position: relative;
+    }
+
+    > a > div:hover {
+        -webkit-box-shadow: 0px 0px 4px #000;
+        -moz-box-shadow: 0px 0px 4px #000;
+        box-shadow: 0px 0px 4px #000;
+    }
+
+    img {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: $content-max-width;
+    }
+
+    .interactionNotice {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.2;
+        color: rgba(black, .4);
+        display: none;
+        background-color: rgba(black, .03);
+        padding: 12px 30px;
+        position: relative;
+        text-decoration: none;
+        color: $controls-color;
+
+        // Anything >680px will get the interactive graphics in-place.
+        // 680px is a breakpoint also used in the JavaScript code – keep it in sync.
+        @media screen and (max-device-width: 680px) {
+            display: block;
+        }
+
+        .icon {
+            font-size: 21px;
+            line-height: 28px;
+            margin-top: -15px;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+        }
+
+        .label {
+            display: block;
+        }
+    }
+}
+
+.article-content figure[data-grapher-src].grapherPreview, .SearchResults figure[data-grapher-src].grapherPreview {
+    padding: 1em 0;
+}
+
+.article-content figure[data-grapher-src]:not(.grapherPreview), .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
+    height: 575px;
+}
+
+/*******************************************************************************
  * Tables
  */
 
@@ -134,15 +234,50 @@
     }
 }
 
-/*******************************************************************************
- * Added by Max: Hover Effect of Images that load in Fancy Box
- */
+.wp-block-owid-prominent-link {
+    @include md-up {
+        margin: 0 -#{$padding-x-md};
+    }
+    background-color: $primary-color-300;
 
- .article-content a > img {
-	cursor: zoom-in;
-}
+    a {
+        display: block;
+        padding: $padding-x-sm;
+        @include md-up {
+            padding: $padding-x-md;
+        }
+    }
 
-.article-content a > img:hover {
-	box-shadow: 0px 0px 1px 1px $link-color;
-	z-index: $zindex-article-image;
+    @include md-up {
+        &.with-image .content-wrapper {
+            display: flex;
+            figure {
+                flex: 1 1 40%;
+                margin-right: $padding-x-md;
+                img {
+                    width: 100%;
+                }
+            }
+            .content {
+                flex: 1 1 60%;
+                *:first-child {
+                    margin-top:0;
+                }
+                *:last-child {
+                    margin-bottom:0;
+                }
+            }
+        }
+    }
+
+    h3 {
+        margin-top: 0;
+        @include h3-style;
+    }
+
+    figure, img {
+        width: 100%;
+        margin: 0;
+    }
+
 }

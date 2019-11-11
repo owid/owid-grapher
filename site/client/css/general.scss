@@ -56,8 +56,8 @@ i {
     font-style: italic;
 }
 
-/* ----------------------------------------------------------- */
 
+/* ----------------------------------------------------------- */
 
 h6 {
     color: #000;
@@ -78,8 +78,21 @@ h6 a.ref sup {
 }
 
 
+/* Images
+--------------------------------------------- */
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+
 /* iFrames
 --------------------------------------------- */
+
+iframe {
+    border: none;
+}
 
 /* MISPY: This styling is for mainly for the old non-grapher nvd3 stuff. */
 
@@ -119,12 +132,14 @@ address a:hover {
     color: #FF4012;
 }
 
+
 /* Box Sizing
 --------------------------------------------- */
 
 * {
     box-sizing: border-box;
 }
+
 
 /* Hide reCAPTCHA badge.
  * This means we have to manually write a notice.

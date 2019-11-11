@@ -112,7 +112,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
     // Replicate wordpress formatting (thank gods there's an npm package)
     if (formattingOptions.wpFormat) {
-        html = wpautop(html)
+        // html = wpautop(html)
     }
 
     html = await formatLatex(html, latexBlocks)
@@ -214,7 +214,9 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         // Open full-size image in new tab
         if (el.parent.tagName === "a") {
             el.parent.attribs['target'] = '_blank'
-        } else if(parsedPath.ext !== '.svg') {
+        } else if(parsedPath.ext !== '.svg' && !$el.closest('a').length) {
+             // Add link to original image for those not contained in <a> tags already
+            // (e.g. within a prominent link block)
             const originalSrc = path.format({dir: parsedPath.dir, name: originalFilename, ext: parsedPath.ext})
             const $a = $(`<a href="${originalSrc}" target="_blank"></a>`)
             $el.replaceWith($a)
@@ -268,8 +270,11 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             }
         }
 
-        // Deep link
-        $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
+        // Add deep link for headings not contained in <a> tags already
+        // (e.g. within a prominent link block)
+        if($heading.closest('a').length === 0) {
+            $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
+        }
     })
 
     interface Columns {
@@ -329,9 +334,9 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                     $el.hasClass("wp-block-image") ||
                     $el.hasClass("tableContainer") ||
                     $el.find("iframe").length !== 0 ||
-                    // Temporary support for pre-Gutenberg images and associated captions
+                    // TODO: remove temporary support for pre-Gutenberg images and associated captions
                     this.name === 'h6' ||
-                    $el.find("img").length !== 0) {
+                    $el.find("img").length !== 0 && !$el.hasClass("wp-block-owid-prominent-link")) {
                         columns.last.append($el)
                 } else {
                     // Move non-heading, non-image content to the left column
