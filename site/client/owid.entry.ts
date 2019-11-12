@@ -37,6 +37,7 @@ window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
 window.runEntryExcerptLinks = runEntryExcerptLinks
+window.runCookieNotice = runCookieNotice
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 
@@ -88,5 +89,3 @@ if (trackedLinkExists) {
         }
     })
 }
-
-runCookieNotice()

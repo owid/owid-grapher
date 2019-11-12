@@ -80,6 +80,7 @@ export const SiteFooter = ({ hideDonate=false }: { hideDonate?: boolean }) => {
             <script dangerouslySetInnerHTML={{__html: `
                 runHeaderMenus();
                 runFeedback();
+                runCookieNotice();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
                 }
