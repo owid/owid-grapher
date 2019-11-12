@@ -6,17 +6,14 @@ if [ "$1" == "staging" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
   NAME="staging"
-  WORDPRESS_DIR="/home/owid/staging-wordpress"
 elif [ "$1" == "danieltest" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
   NAME="danieltest"
-  WORDPRESS_DIR="/home/owid/danieltest-wordpress"
 elif [ "$1" == "live" ]; then
   HOST="owid@209.97.185.49"
   ROOT="/home/owid"
   NAME="live"
-  WORDPRESS_DIR="/home/owid/live-wordpress"
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r
   echo
