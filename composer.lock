@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b218165c2ce3e7b112fd230ac80b339c",
+    "content-hash": "d761b3669584d58eb41a6c992dcccb27",
     "packages": [
         {
             "name": "composer/installers",
@@ -763,24 +763,6 @@
             "homepage": "https://wordpress.org/plugins/broken-link-checker/"
         },
         {
-            "name": "wpackagist-plugin/classic-editor",
-            "version": "1.5",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/classic-editor/",
-                "reference": "tags/1.5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/classic-editor.1.5.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/classic-editor/"
-        },
-        {
             "name": "wpackagist-plugin/co-authors-plus",
             "version": "3.4",
             "source": {
@@ -797,24 +779,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/co-authors-plus/"
-        },
-        {
-            "name": "wpackagist-plugin/disable-visual-editor-wysiwyg",
-            "version": "1.7.2",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/disable-visual-editor-wysiwyg/",
-                "reference": "trunk"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/disable-visual-editor-wysiwyg.zip?timestamp=1519239256"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/disable-visual-editor-wysiwyg/"
         },
         {
             "name": "wpackagist-plugin/image-cleanup",
@@ -905,24 +869,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/public-post-preview-configurator/"
-        },
-        {
-            "name": "wpackagist-plugin/raw-html",
-            "version": "1.6.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/raw-html/",
-                "reference": "tags/1.6.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/raw-html.1.6.1.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/raw-html/"
         },
         {
             "name": "wpackagist-plugin/redirection",
