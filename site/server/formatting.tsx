@@ -90,9 +90,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     // Strip comments
     html = html.replace(/<!--[^>]+-->/g, "")
 
-    // Standardize spacing
-    html = html.replace(/\r\n/g, "\n").replace(/\n+/g, "\n").replace(/\n/g, "\n\n")
-
     // Need to skirt around wordpress formatting to get proper latex rendering
     let latexBlocks
     [html, latexBlocks] = extractLatex(html)
@@ -109,11 +106,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         references.push({}) // Todo
         return ``
     })
-
-    // Replicate wordpress formatting (thank gods there's an npm package)
-    if (formattingOptions.wpFormat) {
-        // html = wpautop(html)
-    }
 
     html = await formatLatex(html, latexBlocks)
 
@@ -148,6 +140,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     if (grapherExports) {
         const grapherIframes = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//))
         for (const el of grapherIframes) {
+            const $el = $(el)
             const src = el.attribs['src']
             const chart = grapherExports.get(src)
             if (chart) {
@@ -160,16 +153,31 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                         </div>
                     </a>
                 </div>`
-                const $p = $(el).closest('p')
-                if($p.length === 1) {
-                    $(el).remove()
+                if(el.parent.tagName === 'p') {
+                    // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
+                    // so we are lifting the <figure> out.
+                    // Where does this markup  come from? Historically, wpautop wrapped <iframe> in <p>. Some non-Gutengerg
+                    // posts will still show that, until they are converted. As a reminder, wpautop is not being used
+                    // on the overall post content anymore, neither on the Wordpress side nor on the grapher side (through
+                    // the wpautop npm package), but its effects are still "present" after the result of wpautop were committed
+                    // to the DB during a one-time refactoring session.
+                    // <p><iframe></iframe></p>  -->  <p></p><figure></figure>
+                    const $p = $el.parent()
                     $p.after(output)
-                } else {
+                    $el.remove()
+                } else if(el.parent.tagName === 'figure') {
                     // Support for <iframe> wrapped in <figure>
                     // <figure> automatically added by Gutenberg on copy / paste <iframe>
-                    const $figure = $(el).closest('figure')
+                    // Lifting up <iframe> out of <figure>, before it becomes a <figure> itself.
+                    // <figure><iframe></iframe></figure>  -->  <figure></figure>
+                    const $figure = $el.parent()
                     $figure.after(output)
                     $figure.remove()
+                } else {
+                    // No lifting up otherwise, just replacing <iframe> with <figure>
+                    // <iframe></iframe>  -->  <figure></figure>
+                    $el.after(output)
+                    $el.remove()
                 }
             }
         }
@@ -329,10 +337,13 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
             } else {
                 // Move images to the right column
                 if(this.name === 'figure' ||
+                    this.name === 'iframe' ||
                     // Temporary support for old chart iframes
                     this.name === 'address' ||
                     $el.hasClass("wp-block-image") ||
                     $el.hasClass("tableContainer") ||
+                    // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
+                    // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
                     $el.find("iframe").length !== 0 ||
                     // TODO: remove temporary support for pre-Gutenberg images and associated captions
                     this.name === 'h6' ||
@@ -373,7 +384,6 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 export interface FormattingOptions {
     toc?: boolean,
     hideAuthors?: boolean,
-    wpFormat?: boolean,
     bodyClassName?: string,
     subnavId?: string,
     subnavCurrentId?: string,
@@ -443,7 +453,6 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
         // Override formattingOptions if specified in the post (as an HTML comment)
         const options: FormattingOptions = Object.assign({
             toc: post.type === 'page',
-            wpFormat: true,
             footnotes: true
         }, formattingOptions)
         return formatWordpressPost(post, html, options, grapherExports)
