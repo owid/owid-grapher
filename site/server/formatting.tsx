@@ -360,7 +360,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         date: post.date,
         modifiedDate: post.modifiedDate,
         authors: post.authors,
-        html: $("body").html() as string,
+        html: `<style>${$("style").html()}</style>${$("body").html()}` as string,
         footnotes: footnotes,
         acknowledgements: acknowledgements,
         references: references,
