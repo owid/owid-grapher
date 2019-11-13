@@ -8,12 +8,13 @@
 function get_post_admin_links($post)
 {
   $name = $post->post_title;
-  $view = "https://staging.owid.cloud/admin/posts/preview/$post->ID";
-  $edit = "https://staging.owid.cloud/wp/wp-admin/post.php?post=$post->ID&action=edit";
+  $view = "https://ourworldindata.org/$post->post_name";
+  $preview = "https://owid.cloud/admin/posts/preview/$post->ID";
+  $edit = "https://owid.cloud/wp/wp-admin/post.php?post=$post->ID&action=edit";
   // $view = "http://localhost:3099/$post->post_name";
   // $edit = "http://our-world-in-data.lndo.site/wp/wp-admin/post.php?post=$post->ID&action=edit";
 
-  return "$name;$view;$edit";
+  return "$name;$view;$preview;$edit";
 }
 
 function should_be_wpautop_formatted($post)
