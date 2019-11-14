@@ -427,11 +427,8 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
     html = html.replace(new RegExp(WORDPRESS_URL, 'g'), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", 'g'), BAKED_BASE_URL)
 
-    // If <!--raw--> appears at the top of a post, it signals that the author
-    // wants to bypass the formatting and just write plain HTML
-    const isRaw = html.match(/<!--raw-->/) || formattingOptions.raw
-
-    if (isRaw) {
+    // No formatting applied, plain source HTML returned
+    if (formattingOptions.raw) {
         return {
             id: post.id,
             postId: post.postId,
