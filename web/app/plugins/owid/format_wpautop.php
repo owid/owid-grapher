@@ -19,7 +19,7 @@ function get_post_admin_links($post)
 
 function should_be_wpautop_formatted($post)
 {
-  $raw_posts_id = array(92, 6800, 22815, 22821, 22831, 23431, 19485, 22626, 22636, 27763);
+  $raw_posts_id = array(92, 6800, 22815, 22821, 22831, 23431, 19485, 22626, 22636, 2681);
   if (!in_array($post->ID, $raw_posts_id)) {
     $matches = array();
     $count = preg_match_all("/<!-- wp:([\S]+)/", $post->post_content, $matches);
