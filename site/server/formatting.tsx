@@ -361,6 +361,12 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         $start.replaceWith($section)
     }
 
+    // Inline styling
+    // Get the first root level <style> tag within the content as it gets
+    // stripped out by $("body").html() below. Voluntarily limits to 1 as there
+    // should not be a need for more.
+    const style = $("style").length === 1 ? `<style>${$("style").html()}</style>` : ''
+
     return {
         id: post.id,
         postId: post.postId,
@@ -371,7 +377,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         date: post.date,
         modifiedDate: post.modifiedDate,
         authors: post.authors,
-        html: `<style>${$("style").html()}</style>${$("body").html()}` as string,
+        html: `${style}${$("body").html()}` as string,
         footnotes: footnotes,
         acknowledgements: acknowledgements,
         references: references,
