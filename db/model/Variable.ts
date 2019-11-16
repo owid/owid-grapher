@@ -1,8 +1,9 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
 import * as _ from 'lodash'
+import { Writable } from "stream"
 
 import * as db from 'db/db'
-import { Dataset } from './Dataset'
+import { csvRow } from 'utils/server/serverUtil'
 import { VariableDisplaySettings } from "charts/VariableData"
 
 export namespace Variable {
@@ -86,4 +87,67 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     }
 
     return data
+}
+
+// TODO use this in Dataset.writeCSV() maybe?
+export async function writeVariableCSV(variableIds: number[], stream: Writable) {
+    const variableQuery: Promise<{ id: number, name: string }[]> = db.query(`
+        SELECT id, name
+        FROM variables
+        WHERE id IN (?)
+    `, [variableIds])
+
+    const dataQuery: Promise<{ variableId: number, entity: string, year: number, value: string }[]> = db.query(`
+        SELECT
+            data_values.variableId AS variableId,
+            entities.name AS entity,
+            data_values.year AS year,
+            data_values.value AS value
+        FROM
+            data_values
+            JOIN entities ON entities.id = data_values.entityId
+            JOIN variables ON variables.id = data_values.variableId
+        WHERE
+            data_values.variableId IN (?)
+        ORDER BY
+            data_values.entityId ASC,
+            data_values.year ASC
+    `, [variableIds])
+
+    let variables = await variableQuery
+    const variablesById = _.keyBy(variables, "id")
+
+    // Throw an error if not all variables exist
+    if (variables.length !== variableIds.length) {
+        const fetchedVariableIds = variables.map(v => v.id)
+        const missingVariables = _.difference(variableIds, fetchedVariableIds)
+        throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
+    }
+
+    variables = variableIds.map(variableId => variablesById[variableId])
+
+    const columns = ["Entity", "Year"].concat(variables.map(v => v.name))
+    stream.write(csvRow(columns))
+
+    const variableColumnIndex: { [id: number]: number } = {}
+    for (const variable of variables) {
+        variableColumnIndex[variable.id] = columns.indexOf(variable.name)
+    }
+
+    const data = await dataQuery
+
+    let row: any[] = []
+    for (const datum of data) {
+        if (datum.entity !== row[0] || datum.year !== row[1]) {
+            // New row
+            if (row.length) {
+                stream.write(csvRow(row))
+            }
+            row = [datum.entity, datum.year]
+            for (const variable of variables) {
+                row.push("")
+            }
+        }
+        row[variableColumnIndex[datum.variableId]] = datum.value
+    }
 }

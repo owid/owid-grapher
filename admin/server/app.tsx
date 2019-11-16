@@ -5,7 +5,7 @@ const expressErrorSlack = require('express-error-slack')
 import "reflect-metadata"
 import { AdminSPA } from './AdminSPA'
 import {authMiddleware} from './authentication'
-import { api } from './api'
+import { api, publicApi } from './api'
 import { testPages } from './testPages'
 import { adminViews } from './adminViews'
 import {renderToHtmlPage} from 'utils/server/serverUtil'
@@ -24,6 +24,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use(authMiddleware)
 
 //app.use(express.urlencoded())
+
+app.use('/api', publicApi.router)
 
 app.use('/admin/api', api.router)
 app.use('/admin/test', testPages)
