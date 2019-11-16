@@ -12,7 +12,7 @@ import {sendMail} from 'admin/server/mail'
 import { OldChart, Chart } from 'db/model/Chart'
 import { UserInvitation } from 'db/model/UserInvitation'
 import {Request, Response, CurrentUser} from './authentication'
-import {getVariableData} from 'db/model/Variable'
+import {getVariableData, writeVariableCSV} from 'db/model/Variable'
 import { ChartConfigProps } from 'charts/ChartConfig'
 import { CountryNameFormat, CountryDefByKey } from 'admin/CountryNameFormat'
 import {Dataset} from 'db/model/Dataset'
@@ -62,6 +62,8 @@ class FunctionalRouter {
 }
 
 const api = new FunctionalRouter()
+
+const publicApi = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
 async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
@@ -1248,6 +1250,16 @@ api.get('/sources/:sourceId.json', async (req: Request) => {
     return { source: source }
 })
 
+publicApi.router.get('/data/:variableIds.csv', async (req: Request, res: Response) => {
+    const variableIds = req.params.variableIds.split("+").map(expectInt)
+    try {
+        await writeVariableCSV(variableIds, res)
+        res.end()
+    } catch (error) {
+        res.send(`Error: ${error.message}`)
+    }
+})
+
 // Legacy code, preventing modification, just in case
 //
 // api.put('/sources/:sourceId', async (req: Request) => {
@@ -1257,4 +1269,4 @@ api.get('/sources/:sourceId.json', async (req: Request) => {
 //     return { success: true }
 // })
 
-export { api }
+export { api, publicApi }
