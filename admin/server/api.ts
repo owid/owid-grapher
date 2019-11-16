@@ -1250,7 +1250,7 @@ api.get('/sources/:sourceId.json', async (req: Request) => {
     return { source: source }
 })
 
-publicApi.router.get('/data/:variableIds.csv', async (req: Request, res: Response) => {
+publicApi.router.get('/variables/:variableIds.csv', async (req: Request, res: Response) => {
     const variableIds = req.params.variableIds.split("+").map(expectInt)
     try {
         await writeVariableCSV(variableIds, res)
