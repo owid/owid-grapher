@@ -1,4 +1,9 @@
-import { InnerBlocks, RichText, URLInput, InspectorControls } from "@wordpress/block-editor";
+import {
+  InnerBlocks,
+  RichText,
+  URLInput,
+  InspectorControls
+} from "@wordpress/block-editor";
 import MediaContainer from "../MediaContainer/MediaContainer";
 
 const blockStyle = {
@@ -38,11 +43,14 @@ const ProminentLink = {
     return (
       <>
         <InspectorControls>
-          <URLInput value={linkUrl} onChange={(linkUrl, post) => setAttributes({ linkUrl })} />
+          <URLInput
+            value={linkUrl}
+            onChange={(linkUrl, post) => setAttributes({ linkUrl })}
+          />
         </InspectorControls>
         <div style={blockStyle}>
           <RichText
-            tagName="h2"
+            tagName="h3"
             value={title}
             onChange={newTitle => {
               setAttributes({ title: newTitle });
