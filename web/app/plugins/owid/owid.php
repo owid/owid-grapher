@@ -16,6 +16,8 @@ const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
 function owid_plugin_setup()
 {
 	add_theme_support('post-thumbnails');
+	add_theme_support('editor-styles');
+	add_editor_style('editor-style.css');
 }
 
 function owid_plugin_register()

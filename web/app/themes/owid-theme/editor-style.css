@@ -1,0 +1,6 @@
+/* https://developer.wordpress.org/block-editor/developers/themes/theme-support/#changing-the-width-of-the-editor */
+
+/* Main column width */
+.wp-block {
+  max-width: none;
+}
