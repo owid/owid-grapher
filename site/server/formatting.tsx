@@ -272,7 +272,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                     const tocHeading = { text: $heading.text(), slug: slug, isSubheading: false }
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
-                } else {
+                } else if($heading.closest('.wp-block-owid-prominent-link').length === 0) {
                     tocHeadings.push({ text: $heading.text(), slug: slug, isSubheading: true })
                 }
             }
