@@ -4,6 +4,7 @@ import {
   URLInput,
   InspectorControls
 } from "@wordpress/block-editor";
+import { createBlock } from "@wordpress/blocks";
 import MediaContainer from "../MediaContainer/MediaContainer";
 
 const blockStyle = {
@@ -34,6 +35,19 @@ const ProminentLink = {
     mediaAlt: {
       type: "string"
     }
+  },
+  transforms: {
+    from: [
+      {
+        type: "block",
+        blocks: ["core/paragraph"],
+        transform: ({ content }) => {
+          return createBlock("owid/prominent-link", {}, [
+            createBlock("core/paragraph", { content })
+          ]);
+        }
+      }
+    ]
   },
   edit: ({
     attributes: { title, linkUrl, mediaId, mediaUrl, mediaAlt },
