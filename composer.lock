@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a1f58a5ea1bf3e7de2b35254348ecd4f",
+    "content-hash": "c45d07f78c1319bc7f2094f62a047f67",
     "packages": [
         {
             "name": "composer/installers",
@@ -943,15 +943,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-history",
-            "version": "2.33",
+            "version": "2.32",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/2.33"
+                "reference": "tags/2.32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.2.33.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-history.2.32.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -961,15 +961,15 @@
         },
         {
             "name": "wpackagist-plugin/tablepress",
-            "version": "1.9.2",
+            "version": "1.10",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/tablepress/",
-                "reference": "tags/1.9.2"
+                "reference": "tags/1.10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/tablepress.1.9.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/tablepress.1.10.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
