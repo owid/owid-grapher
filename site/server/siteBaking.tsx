@@ -42,7 +42,18 @@ export function renderToHtmlPage(element: any) {
 type wpPostRow = any
 
 export async function renderChartsPage() {
-    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.variantName" AS variantName FROM charts where is_indexable is true`) as ChartIndexItem[]
+    const chartItems = await db.query(`
+        SELECT
+            id,
+            config->>"$.slug" AS slug,
+            config->>"$.title" AS title,
+            config->>"$.variantName" AS variantName
+        FROM charts
+        WHERE
+            is_indexable IS TRUE
+            AND publishedAt IS NOT NULL
+            AND config->"$.isPublished" IS TRUE
+    `) as ChartIndexItem[]
 
     const chartTags = await db.query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
