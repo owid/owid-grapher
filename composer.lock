@@ -745,15 +745,15 @@
         },
         {
             "name": "wpackagist-plugin/broken-link-checker",
-            "version": "1.11.8",
+            "version": "1.11.9",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/broken-link-checker/",
-                "reference": "tags/1.11.8"
+                "reference": "tags/1.11.9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.8.zip"
+                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.9.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
