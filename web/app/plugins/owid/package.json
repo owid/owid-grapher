@@ -10,7 +10,7 @@
   "author": "Matthieu Bergel <hello@matthieubergel.org>",
   "license": "MIT",
   "devDependencies": {
-    "@wordpress/scripts": "^5.1.0"
+    "@wordpress/scripts": "^6.0.0"
   },
   "dependencies": {
     "downshift": "3.4.1",
