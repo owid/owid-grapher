@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "baecb5d06502df5f82e71199fd0605c0",
+    "content-hash": "a1f58a5ea1bf3e7de2b35254348ecd4f",
     "packages": [
         {
             "name": "composer/installers",
@@ -637,16 +637,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.4.0",
+            "version": "v0.3.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d"
+                "reference": "1224089059a67ae381c0bc19e2de3dc2effc69c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/b2970109bf6dc03e3cd2de0159ead0c44518a97d",
-                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/1224089059a67ae381c0bc19e2de3dc2effc69c7",
+                "reference": "1224089059a67ae381c0bc19e2de3dc2effc69c7",
                 "shasum": ""
             },
             "require": {
@@ -702,10 +702,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.4.0",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.3.8",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2019-10-28T22:06:28+00:00"
+            "time": "2019-10-24T20:00:47+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -745,15 +745,15 @@
         },
         {
             "name": "wpackagist-plugin/broken-link-checker",
-            "version": "1.11.9",
+            "version": "1.11.8",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/broken-link-checker/",
-                "reference": "tags/1.11.9"
+                "reference": "tags/1.11.8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.9.zip"
+                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.8.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -889,15 +889,15 @@
         },
         {
             "name": "wpackagist-plugin/regenerate-thumbnails",
-            "version": "3.1.2",
+            "version": "3.1.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/regenerate-thumbnails/",
-                "reference": "tags/3.1.2"
+                "reference": "tags/3.1.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/regenerate-thumbnails.3.1.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/regenerate-thumbnails.3.1.1.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -907,15 +907,15 @@
         },
         {
             "name": "wpackagist-plugin/safe-svg",
-            "version": "1.9.6",
+            "version": "1.9.4",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/safe-svg/",
-                "reference": "tags/1.9.6"
+                "reference": "tags/1.9.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/safe-svg.1.9.6.zip"
+                "url": "https://downloads.wordpress.org/plugin/safe-svg.1.9.4.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -943,15 +943,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-history",
-            "version": "2.32",
+            "version": "2.33",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/2.32"
+                "reference": "tags/2.33"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.2.32.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-history.2.33.zip"
             },
             "require": {
                 "composer/installers": "~1.0"

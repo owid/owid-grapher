@@ -65,7 +65,7 @@
     "wpackagist-plugin/regenerate-thumbnails": "^3.1",
     "wpackagist-plugin/safe-svg": "^1.9",
     "wpackagist-plugin/simple-embed-code": "^2.3",
-    "wpackagist-plugin/simple-history": "^2.32",
+    "wpackagist-plugin/simple-history": "^2.33",
     "wpackagist-plugin/tablepress": "^1.9"
   },
   "require-dev": {
