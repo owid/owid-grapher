@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c19fdac1bf88e8d0956e37c85a85397",
+    "content-hash": "baecb5d06502df5f82e71199fd0605c0",
     "packages": [
         {
             "name": "composer/installers",
@@ -264,15 +264,15 @@
         },
         {
             "name": "roots/wordpress",
-            "version": "5.3",
+            "version": "5.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress.git",
-                "reference": "5.3"
+                "reference": "5.2.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress/zipball/5.3"
+                "url": "https://api.github.com/repos/WordPress/WordPress/zipball/5.2.4"
             },
             "require": {
                 "php": ">=5.3.2",
@@ -296,7 +296,7 @@
                 "cms",
                 "wordpress"
             ],
-            "time": "2019-11-12T20:34:22+00:00"
+            "time": "2019-10-14T20:28:22+00:00"
         },
         {
             "name": "roots/wordpress-core-installer",
@@ -637,16 +637,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.3.8",
+            "version": "v0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "1224089059a67ae381c0bc19e2de3dc2effc69c7"
+                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/1224089059a67ae381c0bc19e2de3dc2effc69c7",
-                "reference": "1224089059a67ae381c0bc19e2de3dc2effc69c7",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/b2970109bf6dc03e3cd2de0159ead0c44518a97d",
+                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d",
                 "shasum": ""
             },
             "require": {
@@ -702,10 +702,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.3.8",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.4.0",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2019-10-24T20:00:47+00:00"
+            "time": "2019-10-28T22:06:28+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
