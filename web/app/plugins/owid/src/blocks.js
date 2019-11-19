@@ -1,8 +1,19 @@
 import Summary from "./Summary/Summary";
 import ProminentLink from "./ProminentLink/ProminentLink";
-const { registerBlockType, registerBlockStyle } = wp.blocks;
+const {
+  registerBlockType,
+  registerBlockStyle,
+  unregisterBlockType
+} = wp.blocks;
 const { createHigherOrderComponent } = wp.compose;
 const { addFilter } = wp.hooks;
+
+// Temporary hack to facilitate conversion of classic posts to Gutenberg
+// https://github.com/WordPress/gutenberg/issues/11723#issuecomment-439628591
+// Recommended way (https://developer.wordpress.org/block-editor/developers/filters/block-filters/#using-a-blacklist) not working
+window.onload = function() {
+  unregisterBlockType("core/shortcode");
+};
 
 registerBlockType("owid/summary", Summary);
 registerBlockType("owid/prominent-link", ProminentLink);
