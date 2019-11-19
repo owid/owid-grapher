@@ -234,17 +234,34 @@
     }
 }
 
-.wp-block-owid-prominent-link {
+// TODO remove .article-content when reordering source scss makes specificity
+// override unnecessary
+.article-content .wp-block-owid-prominent-link {
     @include md-up {
-        margin: 0 -#{$padding-x-md};
+        // margin: 0 -#{$padding-x-md};
     }
-    background-color: $primary-color-300;
+    background-color: $primary-color-100;
+    border: 1px solid $primary-color-100;
+    &:hover {
+        background-color: $primary-color-200;
+        border: 1px solid $primary-color;
+    }
+    border-radius: 2px;
+    transition: all 0.2s;
 
     a {
         display: block;
         padding: $padding-x-sm;
         @include md-up {
             padding: $padding-x-md;
+        }
+        color: $primary-color-800;
+        &:visited {
+            color: $primary-color-800;
+        }
+        &:hover {
+            text-decoration: none;
+            color: $primary-color;
         }
     }
 
