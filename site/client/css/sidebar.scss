@@ -11,6 +11,12 @@
             position: absolute;
         }
     }
+    @include lg-up {
+        .entry-sidebar {
+            padding-right: $padding-x-md;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+    }
     @include xlg-up {
         display: flex;
         .entry-sidebar {
@@ -32,7 +38,6 @@ nav.entry-toc {
     direction: rtl;
     text-align: left;
     overflow-y: scroll;
-    margin-bottom: 30px;
     // padding-left: 16px;
 }
 
