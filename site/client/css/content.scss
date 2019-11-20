@@ -234,20 +234,32 @@
     }
 }
 
-// TODO remove .article-content when reordering source scss makes specificity
+// TODO remove .article-content. Reordering source scss will make specificity
 // override unnecessary
 .article-content .wp-block-owid-prominent-link {
+    svg {
+        width: 0.4em;
+        height: 1em;
+        vertical-align: middle;
+        margin-left: 0.6rem;
+        transition: all 0.2s;
+    }
     @include md-up {
         // margin: 0 -#{$padding-x-md};
     }
     background-color: $primary-color-100;
     border: 1px solid $primary-color-100;
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px, rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    transition: all 0.3s;
+
     &:hover {
         background-color: $primary-color-200;
         border: 1px solid $primary-color;
+        svg {
+            margin-left: 0.8rem;
+        }
     }
-    border-radius: 2px;
-    transition: all 0.2s;
 
     a {
         display: block;
