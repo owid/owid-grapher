@@ -217,11 +217,11 @@
             display: block;
             color: inherit;
             transition: all 150ms;
-            &:hover {
+            &:hover, &:visited {
                 color: inherit;
-                &::after {
-                    color: $secondary-color;
-                }
+            }
+            &:hover::after {
+                color: $secondary-color;
             }
             &::after {
                 display: inline-block;
