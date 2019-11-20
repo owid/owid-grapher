@@ -114,7 +114,8 @@
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
-	width: 100%;
+    width: 100%;
+    @include block-shadow;
 
 	> tbody {
 		border-bottom: 1px solid #ddd;
@@ -124,11 +125,12 @@
 	th {
 		text-align: center;
 		border: 1px solid #aaa;
-		padding: 0.4em;
+		padding: 0.4rem;
 	}
 
 	th {
-		font-weight: 700;
+        font-weight: 700;
+        padding: 0.5rem 0.4rem;
 	}
 }
 
@@ -139,19 +141,18 @@
 
 .tablepress th {
 	border-bottom: 1px solid #333;
-	background: #d9edf7;
+	background: $primary-color-200;
 }
 
 .tablepress th,
 .tablepress td {
-	padding: 0.4em;
+	padding: 0.4rem;
 	border: 1px solid #ddd;
 	text-align: center;
-	vertical-align: center;
 }
 
-.tablepress tr:nth-child(2n) {
-	background-color: #f9f9f9;
+.tablepress tr {
+	background-color: $white;
 }
 
 /* Fix for title on really small screens */
@@ -250,7 +251,7 @@
     background-color: $primary-color-100;
     border: 1px solid $primary-color-100;
     border-radius: 2px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px, rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    @include block-shadow;
     transition: all 0.3s;
 
     &:hover {
