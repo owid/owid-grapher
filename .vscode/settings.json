@@ -4,10 +4,12 @@
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "files.insertFinalNewline": false,
-    "tslint.autoFixOnSave": true,
     "search.exclude": {
         "dist": true,
         "bakedSite": true
     },
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.tslint": true
+    }
 }
