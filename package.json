@@ -212,7 +212,6 @@
         "tslint-plugin-prettier": "^2.0.1"
     },
     "prettier": {
-        "semi": false,
-        "singleQuote": true
+        "semi": false
     }
 }
