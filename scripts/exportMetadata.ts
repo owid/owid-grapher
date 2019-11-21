@@ -1,16 +1,20 @@
 // Script to export everything in the database except sensitive info and data_values (which is big)
 
-import * as db from 'db/db'
-import * as fs from 'fs-extra'
-import * as parseArgs from 'minimist'
+import * as db from "db/db"
+import * as fs from "fs-extra"
+import * as parseArgs from "minimist"
 
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from 'serverSettings'
-import { exec } from 'utils/server/serverUtil'
+import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import { exec } from "utils/server/serverUtil"
 
 const argv = parseArgs(process.argv.slice(2))
-const withPasswords = argv['with-passwords']
+const withPasswords = argv["with-passwords"]
 
-const filePath = argv._[0] || (withPasswords ? '/tmp/owid_metadata.sql' : '/tmp/owid_metadata_with_passwords.sql')
+const filePath =
+    argv._[0] ||
+    (withPasswords
+        ? "/tmp/owid_metadata.sql"
+        : "/tmp/owid_metadata_with_passwords.sql")
 
 async function dataExport() {
     await db.connect()
@@ -22,8 +26,12 @@ async function dataExport() {
     process.env.MYSQL_PWD = DB_PASS
 
     // Dump all tables including schema but exclude the rows of data_values
-    await exec(`mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r ${filePath}`)
-    await exec(`mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions user_invitations dataset_files data_values >> ${filePath}`)
+    await exec(
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r ${filePath}`
+    )
+    await exec(
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions user_invitations dataset_files data_values >> ${filePath}`
+    )
 
     // Strip passwords
     if (!withPasswords) {
@@ -31,7 +39,10 @@ async function dataExport() {
     }
 
     // Add default admin user
-    await fs.appendFile(filePath, "INSERT INTO users (`password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n")
+    await fs.appendFile(
+        filePath,
+        "INSERT INTO users (`password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n"
+    )
 
     await db.end()
 }

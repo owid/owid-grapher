@@ -1,8 +1,14 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typeorm"
-import { Chart } from './Chart'
-import { Dataset } from './Dataset'
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    BaseEntity,
+    OneToMany
+} from "typeorm"
+import { Chart } from "./Chart"
+import { Dataset } from "./Dataset"
 import { ChartRevision } from "./ChartRevision"
-import { BCryptHasher } from '../../utils/hashers'
+import { BCryptHasher } from "../../utils/hashers"
 
 @Entity("users")
 export class User extends BaseEntity {

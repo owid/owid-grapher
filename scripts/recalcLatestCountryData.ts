@@ -1,5 +1,5 @@
-import db = require('db/db')
-import { denormalizeLatestCountryData } from 'site/server/countryProfiles'
+import db = require("db/db")
+import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 
 async function main() {
     await denormalizeLatestCountryData()

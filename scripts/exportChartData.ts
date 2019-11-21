@@ -1,11 +1,11 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as db from 'db/db'
-import * as _ from 'lodash'
-import * as parseArgs from 'minimist'
+import * as db from "db/db"
+import * as _ from "lodash"
+import * as parseArgs from "minimist"
 
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from 'serverSettings'
-import { exec } from 'utils/server/serverUtil'
+import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import { exec } from "utils/server/serverUtil"
 
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
@@ -18,9 +18,13 @@ async function dataExport() {
         WHERE NOT EXISTS (select * from tags t join chart_tags ct on ct.tagId = t.id where ct.chartId=cd.chartId and t.name='Private')
     `
 
-    const variableIds = (await db.query(variablesToExportQuery)).map((row: any) => row.variableId)
+    const variableIds = (await db.query(variablesToExportQuery)).map(
+        (row: any) => row.variableId
+    )
 
-    console.log(`Exporting data for ${variableIds.length} variables to ${filePath}`)
+    console.log(
+        `Exporting data for ${variableIds.length} variables to ${filePath}`
+    )
 
     await exec(`rm -f ${filePath}`)
 
@@ -30,7 +34,11 @@ async function dataExport() {
 
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${filePath}`)
+        await exec(
+            `mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
+                ","
+            )})" >> ${filePath}`
+        )
 
         count += chunk.length
         console.log(count)

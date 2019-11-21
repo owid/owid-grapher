@@ -1,23 +1,27 @@
-import * as React from 'react'
-import { observer } from 'mobx-react'
-import { computed, action, observable } from 'mobx'
+import * as React from "react"
+import { observer } from "mobx-react"
+import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice } from './Util'
-import { ChartConfig } from './ChartConfig'
-import { DataKeyInfo } from './ChartData'
-import { ChartView } from './ChartView'
-import { FuzzySearch } from './FuzzySearch'
-import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { uniqBy, isTouchDevice } from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { DataKeyInfo } from "./ChartData"
+import { ChartView } from "./ChartView"
+import { FuzzySearch } from "./FuzzySearch"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 // Metadata reflection hack - Mispy
 declare const global: any
-if (typeof(global) !== "undefined") {
+if (typeof global !== "undefined") {
     global.MouseEvent = {}
 }
 
 @observer
-export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
+export class DataSelectorMulti extends React.Component<{
+    chart: ChartConfig
+    chartView: ChartView
+    onDismiss: () => void
+}> {
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -38,11 +42,13 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
-        return new FuzzySearch(this.availableData, 'label')
+        return new FuzzySearch(this.availableData, "label")
     }
 
     @computed get searchResults(): DataKeyInfo[] {
-        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.availableData
+        return this.searchInput
+            ? this.fuzzy.search(this.searchInput)
+            : this.availableData
     }
 
     isSelectedKey(key: string): boolean {
@@ -50,16 +56,20 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
-        if (this.dismissable)
-            this.props.onDismiss()
+        if (this.dismissable) this.props.onDismiss()
     }
 
     componentDidMount() {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
-        setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
-        if (!isTouchDevice())
-            this.searchField.focus()
+        this.base.current!.addEventListener("click", () => {
+            this.dismissable = false
+            setTimeout(() => (this.dismissable = true), 100)
+        })
+        setTimeout(
+            () => document.addEventListener("click", this.onClickOutside),
+            1
+        )
+        if (!isTouchDevice()) this.searchField.focus()
     }
 
     componentWillUnmount() {
@@ -70,8 +80,7 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.props.chart.data.toggleKey(this.searchResults[0].key)
             this.searchInput = ""
-        } else if (e.key === "Escape")
-            this.props.onDismiss()
+        } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
@@ -82,53 +91,111 @@ export class DataSelectorMulti extends React.Component<{ chart: ChartConfig, cha
         const { chart } = this.props
         const { selectedData, searchResults, searchInput } = this
 
-        return <div className="dataSelectorOverlay">
-            <div ref={this.base} className="DataSelectorMulti">
-                <header className="wrapper">
-                    <h2>Choose data to show <button onClick={this.props.onDismiss}><FontAwesomeIcon icon={faTimes}/></button></h2>
-                </header>
-                <div className="entities wrapper">
-                    <div className="searchResults">
-                        <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
-                        <ul>
-                            {searchResults.map(d => {
-                                return <li key={d.key}>
-                                    <label className="clickable">
-                                        <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
-                                    </label>
-                                </li>
-                            })}
-                        </ul>
-                    </div>
-                    <div className="selectedData">
-                        <ul>
-                            {selectedData.map(d => {
-                                return <li key={d.key}>
-                                    <label className="clickable">
-                                        <input type="checkbox" checked={this.isSelectedKey(d.key)} onChange={() => chart.data.toggleKey(d.key)} /> {d.label}
-                                    </label>
-                                </li>
-                            })}
-                        </ul>
-                        {(selectedData && selectedData.length > 1) ? <button className="clearSelection" onClick={this.onClear}>
-                            <span className="icon"><FontAwesomeIcon icon={faTimes} /></span> Unselect all
-                        </button> : undefined}
+        return (
+            <div className="dataSelectorOverlay">
+                <div ref={this.base} className="DataSelectorMulti">
+                    <header className="wrapper">
+                        <h2>
+                            Choose data to show{" "}
+                            <button onClick={this.props.onDismiss}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </h2>
+                    </header>
+                    <div className="entities wrapper">
+                        <div className="searchResults">
+                            <input
+                                type="search"
+                                placeholder="Search..."
+                                value={searchInput}
+                                onInput={e =>
+                                    (this.searchInput = e.currentTarget.value)
+                                }
+                                onKeyDown={this.onSearchKeyDown}
+                                ref={e =>
+                                    (this.searchField = e as HTMLInputElement)
+                                }
+                            />
+                            <ul>
+                                {searchResults.map(d => {
+                                    return (
+                                        <li key={d.key}>
+                                            <label className="clickable">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={this.isSelectedKey(
+                                                        d.key
+                                                    )}
+                                                    onChange={() =>
+                                                        chart.data.toggleKey(
+                                                            d.key
+                                                        )
+                                                    }
+                                                />{" "}
+                                                {d.label}
+                                            </label>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                        </div>
+                        <div className="selectedData">
+                            <ul>
+                                {selectedData.map(d => {
+                                    return (
+                                        <li key={d.key}>
+                                            <label className="clickable">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={this.isSelectedKey(
+                                                        d.key
+                                                    )}
+                                                    onChange={() =>
+                                                        chart.data.toggleKey(
+                                                            d.key
+                                                        )
+                                                    }
+                                                />{" "}
+                                                {d.label}
+                                            </label>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                            {selectedData && selectedData.length > 1 ? (
+                                <button
+                                    className="clearSelection"
+                                    onClick={this.onClear}
+                                >
+                                    <span className="icon">
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </span>{" "}
+                                    Unselect all
+                                </button>
+                            ) : (
+                                undefined
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )
     }
 }
 
 @observer
-export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
+export class DataSelectorSingle extends React.Component<{
+    chart: ChartConfig
+    chartView: ChartView
+    onDismiss: () => void
+}> {
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
     @computed get availableItems() {
-        const availableItems: { id: number, label: string }[] = []
+        const availableItems: { id: number; label: string }[] = []
         this.props.chart.data.keyData.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
@@ -138,12 +205,14 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
         return uniqBy(availableItems, d => d.label)
     }
 
-    @computed get fuzzy(): FuzzySearch<{ id: number, label: string }> {
-        return new FuzzySearch(this.availableItems, 'label')
+    @computed get fuzzy(): FuzzySearch<{ id: number; label: string }> {
+        return new FuzzySearch(this.availableItems, "label")
     }
 
-    @computed get searchResults(): { id: number, label: string }[] {
-        return this.searchInput ? this.fuzzy.search(this.searchInput) : this.availableItems
+    @computed get searchResults(): { id: number; label: string }[] {
+        return this.searchInput
+            ? this.fuzzy.search(this.searchInput)
+            : this.availableItems
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -153,10 +222,15 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
 
     componentDidMount() {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
-        setTimeout(() => document.addEventListener("click", this.onClickOutside), 1)
-        if (!this.props.chartView.isMobile)
-            this.searchField.focus()
+        this.base.current!.addEventListener("click", () => {
+            this.dismissable = false
+            setTimeout(() => (this.dismissable = true), 100)
+        })
+        setTimeout(
+            () => document.addEventListener("click", this.onClickOutside),
+            1
+        )
+        if (!this.props.chartView.isMobile) this.searchField.focus()
     }
 
     componentWillUnmount() {
@@ -167,8 +241,7 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].id)
             this.searchInput = ""
-        } else if (e.key === "Escape")
-            this.props.onDismiss()
+        } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onSelect(entityId: number) {
@@ -179,34 +252,61 @@ export class DataSelectorSingle extends React.Component<{ chart: ChartConfig, ch
     render() {
         const { searchResults, searchInput } = this
 
-        return <div className="dataSelectorOverlay">
-            <div ref={this.base} className="DataSelectorSingle">
-                <header className="wrapper">
-                    <h2>Choose data to show <button onClick={this.props.onDismiss}><FontAwesomeIcon icon={faTimes}/></button></h2>
-                </header>
-                <div className="wrapper">
-                    <input type="search" placeholder="Search..." value={searchInput} onInput={e => this.searchInput = e.currentTarget.value} onKeyDown={this.onSearchKeyDown} ref={e => this.searchField = (e as HTMLInputElement)} />
-                    <ul>
-                        {searchResults.map(d => {
-                            return <li key={d.id} className="clickable" onClick={() => this.onSelect(d.id)}>
-                                {d.label}
-                            </li>
-                        })}
-                    </ul>
+        return (
+            <div className="dataSelectorOverlay">
+                <div ref={this.base} className="DataSelectorSingle">
+                    <header className="wrapper">
+                        <h2>
+                            Choose data to show{" "}
+                            <button onClick={this.props.onDismiss}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </h2>
+                    </header>
+                    <div className="wrapper">
+                        <input
+                            type="search"
+                            placeholder="Search..."
+                            value={searchInput}
+                            onInput={e =>
+                                (this.searchInput = e.currentTarget.value)
+                            }
+                            onKeyDown={this.onSearchKeyDown}
+                            ref={e =>
+                                (this.searchField = e as HTMLInputElement)
+                            }
+                        />
+                        <ul>
+                            {searchResults.map(d => {
+                                return (
+                                    <li
+                                        key={d.id}
+                                        className="clickable"
+                                        onClick={() => this.onSelect(d.id)}
+                                    >
+                                        {d.label}
+                                    </li>
+                                )
+                            })}
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
+        )
     }
 }
 
 @observer
-export class DataSelector extends React.Component<{ chart: ChartConfig, chartView: ChartView, onDismiss: () => void }> {
+export class DataSelector extends React.Component<{
+    chart: ChartConfig
+    chartView: ChartView
+    onDismiss: () => void
+}> {
     render() {
         const { chart } = this.props
 
         if (chart.data.canChangeEntity)
             return <DataSelectorSingle {...this.props} />
-        else
-            return <DataSelectorMulti {...this.props} />
+        else return <DataSelectorMulti {...this.props} />
     }
 }

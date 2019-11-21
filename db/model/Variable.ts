@@ -1,9 +1,16 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
-import * as _ from 'lodash'
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    BaseEntity,
+    ManyToOne,
+    JoinColumn
+} from "typeorm"
+import * as _ from "lodash"
 import { Writable } from "stream"
 
-import * as db from 'db/db'
-import { csvRow } from 'utils/server/serverUtil'
+import * as db from "db/db"
+import { csvRow } from "utils/server/serverUtil"
 import { VariableDisplaySettings } from "charts/VariableData"
 
 export namespace Variable {
@@ -31,27 +38,34 @@ export namespace Variable {
 export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: any = { variables: {}, entityKey: {} }
 
-    const variableQuery = db.query(`
+    const variableQuery = db.query(
+        `
         SELECT v.*, v.shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
             JOIN datasets as d ON v.datasetId = d.id
             JOIN sources as s on v.sourceId = s.id
             WHERE v.id IN (?)
-    `, [variableIds])
+    `,
+        [variableIds]
+    )
 
-    const dataQuery = db.query(`
+    const dataQuery = db.query(
+        `
             SELECT value, year, variableId as variableId, entities.id as entityId,
             entities.name as entityName, entities.code as entityCode
             FROM data_values
             LEFT JOIN entities ON data_values.entityId = entities.id
             WHERE data_values.variableId IN (?)
             ORDER BY variableId ASC, year ASC
-    `, [variableIds])
+    `,
+        [variableIds]
+    )
 
     const variables = await variableQuery
 
     for (const row of variables) {
         row.display = JSON.parse(row.display)
-        const sourceDescription = JSON.parse(row.s_description); delete row.s_description
+        const sourceDescription = JSON.parse(row.s_description)
+        delete row.s_description
         row.source = {
             id: row.s_id,
             name: row.s_name,
@@ -61,11 +75,14 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
             retrievedData: sourceDescription.retrievedData || "",
             additionalInfo: sourceDescription.additionalInfo || ""
         }
-        data.variables[row.id] = _.extend({
-            years: [],
-            entities: [],
-            values: []
-        }, row)
+        data.variables[row.id] = _.extend(
+            {
+                years: [],
+                entities: [],
+                values: []
+            },
+            row
+        )
     }
 
     const results = await dataQuery
@@ -76,13 +93,14 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         variable.entities.push(row.entityId)
 
         const asNumber = parseFloat(row.value)
-        if (!isNaN(asNumber))
-            variable.values.push(asNumber)
-        else
-            variable.values.push(row.value)
+        if (!isNaN(asNumber)) variable.values.push(asNumber)
+        else variable.values.push(row.value)
 
         if (data.entityKey[row.entityId] === undefined) {
-            data.entityKey[row.entityId] = { name: row.entityName, code: row.entityCode }
+            data.entityKey[row.entityId] = {
+                name: row.entityName,
+                code: row.entityCode
+            }
         }
     }
 
@@ -90,14 +108,23 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
 }
 
 // TODO use this in Dataset.writeCSV() maybe?
-export async function writeVariableCSV(variableIds: number[], stream: Writable) {
-    const variableQuery: Promise<{ id: number, name: string }[]> = db.query(`
+export async function writeVariableCSV(
+    variableIds: number[],
+    stream: Writable
+) {
+    const variableQuery: Promise<{ id: number; name: string }[]> = db.query(
+        `
         SELECT id, name
         FROM variables
         WHERE id IN (?)
-    `, [variableIds])
+    `,
+        [variableIds]
+    )
 
-    const dataQuery: Promise<{ variableId: number, entity: string, year: number, value: string }[]> = db.query(`
+    const dataQuery: Promise<
+        { variableId: number; entity: string; year: number; value: string }[]
+    > = db.query(
+        `
         SELECT
             data_values.variableId AS variableId,
             entities.name AS entity,
@@ -112,7 +139,9 @@ export async function writeVariableCSV(variableIds: number[], stream: Writable) 
         ORDER BY
             data_values.entityId ASC,
             data_values.year ASC
-    `, [variableIds])
+    `,
+        [variableIds]
+    )
 
     let variables = await variableQuery
     const variablesById = _.keyBy(variables, "id")

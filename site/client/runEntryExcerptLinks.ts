@@ -1,4 +1,4 @@
-import { select, selectAll } from 'd3-selection'
+import { select, selectAll } from "d3-selection"
 
 export function runEntryExcerptLinks() {
     const container = selectAll("#entries")
@@ -36,7 +36,9 @@ export function runEntryExcerptLinks() {
             .style("height", null)
             .style("z-index", --zIndex)
             .on("transitionend.zindex", () => {
-                entryItem.style("z-index", null).on("transitionend.zindex", null)
+                entryItem
+                    .style("z-index", null)
+                    .on("transitionend.zindex", null)
             })
     })
 }

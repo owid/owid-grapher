@@ -1,22 +1,22 @@
-import * as glob from 'glob'
-import * as parseUrl from 'url-parse'
-const exec = require('child-process-promise').exec
-import * as path from 'path'
-import * as _ from 'lodash'
-import * as md5 from 'md5'
+import * as glob from "glob"
+import * as parseUrl from "url-parse"
+const exec = require("child-process-promise").exec
+import * as path from "path"
+import * as _ from "lodash"
+import * as md5 from "md5"
 
-import { BAKED_BASE_URL } from 'settings'
-import {BAKED_SITE_DIR} from 'serverSettings'
-import * as db from 'db/db'
-import { bakeChartsToImages } from 'site/server/bakeChartsToImages'
-import { log } from 'utils/server/log'
+import { BAKED_BASE_URL } from "settings"
+import { BAKED_SITE_DIR } from "serverSettings"
+import * as db from "db/db"
+import { bakeChartsToImages } from "site/server/bakeChartsToImages"
+import { log } from "utils/server/log"
 
 // Given a grapher url with query string, create a key to match export filenames
 export function grapherUrlToFilekey(grapherUrl: string) {
     const url = parseUrl(grapherUrl)
-    const slug = _.last(url.pathname.split('/')) as string
+    const slug = _.last(url.pathname.split("/")) as string
     const queryStr = url.query as any
-    return `${slug}${queryStr ? "-"+md5(queryStr) : ""}`
+    return `${slug}${queryStr ? "-" + md5(queryStr) : ""}`
 }
 
 interface ChartExportMeta {
@@ -32,10 +32,14 @@ export interface GrapherExports {
 }
 
 export async function mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-    const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
-    const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
+    const redirects = await db.query(
+        `SELECT chart_id, slug FROM chart_slug_redirects`
+    )
+    const rows = await db.query(
+        `SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`
+    )
 
-    const slugToId: {[slug: string]: number} = {}
+    const slugToId: { [slug: string]: number } = {}
     for (const row of redirects) {
         slugToId[row.slug] = row.chart_id
     }
@@ -58,7 +62,7 @@ export async function bakeGrapherUrls(urls: string[]) {
             continue
         }
 
-        const slug = _.last(parseUrl(url).pathname.split('/'))
+        const slug = _.last(parseUrl(url).pathname.split("/"))
         if (!slug) {
             log.warn(`Invalid chart url ${url}`)
             continue
@@ -70,7 +74,10 @@ export async function bakeGrapherUrls(urls: string[]) {
             continue
         }
 
-        const rows = await db.query(`SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`, [chartId])
+        const rows = await db.query(
+            `SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`,
+            [chartId]
+        )
         if (!rows.length) {
             log.warn(`Mysteriously missing chart by id ${chartId}`)
             continue
@@ -86,7 +93,9 @@ export async function bakeGrapherUrls(urls: string[]) {
     }
 }
 
-export async function getGrapherExportsByUrl(): Promise<{ get: (grapherUrl: string) => ChartExportMeta }> {
+export async function getGrapherExportsByUrl(): Promise<{
+    get: (grapherUrl: string) => ChartExportMeta
+}> {
     // Index the files to see what we have available, using the most recent version
     // if multiple exports exist
     const files = glob.sync(`${BAKED_SITE_DIR}/exports/*.svg`)
@@ -94,7 +103,7 @@ export async function getGrapherExportsByUrl(): Promise<{ get: (grapherUrl: stri
     for (const filepath of files) {
         const filename = path.basename(filepath)
         const [key, version, dims] = filename.split("_")
-        const versionNumber = parseInt(version.split('v')[1])
+        const versionNumber = parseInt(version.split("v")[1])
         const [width, height] = dims.split("x")
 
         const current = exportsByKey.get(key)
@@ -119,12 +128,14 @@ interface ChartItemWithTags {
     id: number
     slug: string
     title: string
-    tags: { id: number, name: string }[]
+    tags: { id: number; name: string }[]
 }
 
 // Find all the charts we want to show on public listings
 export async function getIndexableCharts(): Promise<ChartItemWithTags[]> {
-    const chartItems = await db.query(`SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title FROM charts WHERE publishedAt IS NOT NULL`)
+    const chartItems = await db.query(
+        `SELECT id, config->>"$.slug" AS slug, config->>"$.title" AS title FROM charts WHERE publishedAt IS NOT NULL`
+    )
 
     const chartTags = await db.query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
@@ -140,12 +151,30 @@ export async function getIndexableCharts(): Promise<ChartItemWithTags[]> {
 
     for (const ct of chartTags) {
         // XXX hardcoded filtering to public parent tags
-        if ([1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503, 1505, 1508, 1512, 1510].indexOf(ct.tagParentId) === -1)
+        if (
+            [
+                1515,
+                1507,
+                1513,
+                1504,
+                1502,
+                1509,
+                1506,
+                1501,
+                1514,
+                1511,
+                1500,
+                1503,
+                1505,
+                1508,
+                1512,
+                1510
+            ].indexOf(ct.tagParentId) === -1
+        )
             continue
 
         const c = chartsById[ct.chartId]
-        if (c)
-            c.tags.push({ id: ct.tagId, name: ct.tagName })
+        if (c) c.tags.push({ id: ct.tagId, name: ct.tagName })
     }
 
     return chartItems

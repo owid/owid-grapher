@@ -1,19 +1,22 @@
-import db = require('db/db')
-import { slugify, renderToHtmlPage, JsonError } from 'utils/server/serverUtil'
-import React = require('react')
-import { CountriesIndexPage } from './views/CountriesIndexPage'
-import { ChartConfigProps } from 'charts/ChartConfig'
-import _ = require('lodash')
-import { CountryProfileIndicator, CountryProfilePage } from './views/CountryProfilePage'
-import { DimensionWithData } from 'charts/DimensionWithData'
-import { Variable } from 'db/model/Variable'
-import fs = require('fs-extra')
-import { BAKED_SITE_DIR } from 'serverSettings'
-import { SiteBaker } from './SiteBaker'
-import { countries } from 'utils/countries'
+import db = require("db/db")
+import { slugify, renderToHtmlPage, JsonError } from "utils/server/serverUtil"
+import React = require("react")
+import { CountriesIndexPage } from "./views/CountriesIndexPage"
+import { ChartConfigProps } from "charts/ChartConfig"
+import _ = require("lodash")
+import {
+    CountryProfileIndicator,
+    CountryProfilePage
+} from "./views/CountryProfilePage"
+import { DimensionWithData } from "charts/DimensionWithData"
+import { Variable } from "db/model/Variable"
+import fs = require("fs-extra")
+import { BAKED_SITE_DIR } from "serverSettings"
+import { SiteBaker } from "./SiteBaker"
+import { countries } from "utils/countries"
 
 export async function countriesIndexPage() {
-    return renderToHtmlPage(<CountriesIndexPage countries={countries}/>)
+    return renderToHtmlPage(<CountriesIndexPage countries={countries} />)
 }
 
 const cache = new Map()
@@ -32,20 +35,39 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 // TODO: make this page per variable instead
 async function countryIndicatorCharts(): Promise<ChartConfigProps[]> {
     return bakeCache(countryIndicatorCharts, async () => {
-        const charts = (await db.table("charts").whereRaw('publishedAt is not null and is_indexable is true')).map((c: any) => JSON.parse(c.config)) as ChartConfigProps[]
-        return charts.filter(c => c.hasChartTab && c.type === "LineChart" && c.dimensions.length === 1)
+        const charts = (await db
+            .table("charts")
+            .whereRaw("publishedAt is not null and is_indexable is true")).map(
+            (c: any) => JSON.parse(c.config)
+        ) as ChartConfigProps[]
+        return charts.filter(
+            c =>
+                c.hasChartTab &&
+                c.type === "LineChart" &&
+                c.dimensions.length === 1
+        )
     })
 }
 
 async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     return bakeCache(countryIndicatorVariables, async () => {
-        const variableIds = (await countryIndicatorCharts()).map(c => c.dimensions[0].variableId)
-        return Variable.rows(await db.table(Variable.table).whereIn("id", variableIds))
+        const variableIds = (await countryIndicatorCharts()).map(
+            c => c.dimensions[0].variableId
+        )
+        return Variable.rows(
+            await db.table(Variable.table).whereIn("id", variableIds)
+        )
     })
 }
 
 export async function denormalizeLatestCountryData(variableIds?: number[]) {
-    const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
+    const entities = (await db
+        .table("entities")
+        .select("id", "code")
+        .whereRaw("validated is true and code is not null")) as {
+        id: number
+        code: string
+    }[]
 
     const entitiesByCode = _.keyBy(entities, e => e.code)
     const entitiesById = _.keyBy(entities, e => e.id)
@@ -55,14 +77,21 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
         variableIds = (await countryIndicatorVariables()).map(v => v.id)
     }
 
-    const dataValuesQuery = db.table("data_values").select("variableId", "entityId", "value", "year")
-        .whereIn('variableId', variableIds)
+    const dataValuesQuery = db
+        .table("data_values")
+        .select("variableId", "entityId", "value", "year")
+        .whereIn("variableId", variableIds)
         .whereRaw(`entityId in (?)`, [entityIds])
         .andWhere("year", ">", 2010)
         .andWhere("year", "<", 2020)
         .orderBy("year", "DESC")
 
-    let dataValues = await dataValuesQuery as { variableId: number, entityId: number, value: string, year: number }[]
+    let dataValues = (await dataValuesQuery) as {
+        variableId: number
+        entityId: number
+        value: string
+        year: number
+    }[]
     dataValues = _.uniqBy(dataValues, dv => `${dv.variableId}-${dv.entityId}`)
     const rows = dataValues.map(dv => ({
         variable_id: dv.variableId,
@@ -73,20 +102,37 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
 
     db.knex().transaction(async t => {
         // Remove existing values
-        await t.table('country_latest_data').whereIn('variable_id', variableIds as number[]).delete()
+        await t
+            .table("country_latest_data")
+            .whereIn("variable_id", variableIds as number[])
+            .delete()
 
         // Insert new ones
-        await t.table('country_latest_data').insert(rows)
+        await t.table("country_latest_data").insert(rows)
     })
 }
 
 async function countryIndicatorLatestData(countryCode: string) {
-    const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
-        const dataValues = await db.table('country_latest_data')
-            .select('variable_id AS variableId', 'country_code AS code', 'year', 'value') as { variableId: number, code: string, year: number, value: string }[]
+    const dataValuesByEntityId = await bakeCache(
+        countryIndicatorLatestData,
+        async () => {
+            const dataValues = (await db
+                .table("country_latest_data")
+                .select(
+                    "variable_id AS variableId",
+                    "country_code AS code",
+                    "year",
+                    "value"
+                )) as {
+                variableId: number
+                code: string
+                year: number
+                value: string
+            }[]
 
-        return _.groupBy(dataValues, dv => dv.code)
-    })
+            return _.groupBy(dataValues, dv => dv.code)
+        }
+    )
 
     return dataValuesByEntityId[countryCode]
 }
@@ -141,7 +187,11 @@ export async function countryProfilePage(countrySlug: string) {
             const latestValue = values[0]
             const variable = variablesById[vid]
 
-            const dim = new DimensionWithData(0, c.dimensions[0], variable as any)
+            const dim = new DimensionWithData(
+                0,
+                c.dimensions[0],
+                variable as any
+            )
 
             const floatValue = parseFloat(latestValue.value)
             const value = isNaN(floatValue) ? latestValue.value : floatValue
@@ -158,14 +208,16 @@ export async function countryProfilePage(countrySlug: string) {
 
     indicators = _.sortBy(indicators, i => i.name.trim())
 
-    return renderToHtmlPage(<CountryProfilePage indicators={indicators} country={country}/>)
+    return renderToHtmlPage(
+        <CountryProfilePage indicators={indicators} country={country} />
+    )
 }
 
 export async function bakeCountries(baker: SiteBaker) {
     const html = await countriesIndexPage()
-    await baker.writeFile('/countries.html', html)
+    await baker.writeFile("/countries.html", html)
 
-    await baker.ensureDir('/country')
+    await baker.ensureDir("/country")
     for (const country of countries) {
         const path = `/country/${country.slug}.html`
         const html = await countryProfilePage(country.slug)

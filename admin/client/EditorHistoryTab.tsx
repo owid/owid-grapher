@@ -1,11 +1,14 @@
-import * as React from 'react'
+import * as React from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, Log } from './ChartEditor'
-import { computed, action, observable } from 'mobx'
-const timeago = require('timeago.js')()
+import { ChartEditor, Log } from "./ChartEditor"
+import { computed, action, observable } from "mobx"
+const timeago = require("timeago.js")()
 
 @observer
-export class LogRenderer extends React.Component<{ log: Log, applyConfig: (config: any) => void }> {
+export class LogRenderer extends React.Component<{
+    log: Log
+    applyConfig: (config: any) => void
+}> {
     @computed get prettyConfig() {
         const { log } = this.props
         return JSON.stringify(JSON.parse(log.config), undefined, 2)
@@ -26,28 +29,42 @@ export class LogRenderer extends React.Component<{ log: Log, applyConfig: (confi
         const { log } = this.props
         const { title } = this
 
-        return <li className="list-group-item d-flex justify-content-between">
-            <span>{title}</span>
-            <button className="align-self-end btn btn-danger" onClick={_ => this.props.applyConfig(log.config)}>Restore</button>
-        </li>
+        return (
+            <li className="list-group-item d-flex justify-content-between">
+                <span>{title}</span>
+                <button
+                    className="align-self-end btn btn-danger"
+                    onClick={_ => this.props.applyConfig(log.config)}
+                >
+                    Restore
+                </button>
+            </li>
+        )
     }
 }
 
 @observer
-export class EditorHistoryTab extends React.Component<{ editor: ChartEditor}> {
-    @computed get logs() { return this.props.editor.logs || [] }
+export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
+    @computed get logs() {
+        return this.props.editor.logs || []
+    }
 
     @action.bound async applyConfig(config: any) {
         this.props.editor.applyConfig(config)
     }
 
     render() {
-        return <div>
-            {this.logs.map((log, i) =>
-                <ul key={i} className="list-group">
-                    <LogRenderer log={log} applyConfig={this.applyConfig}></LogRenderer>
-                </ul>
-            )}
-        </div>
+        return (
+            <div>
+                {this.logs.map((log, i) => (
+                    <ul key={i} className="list-group">
+                        <LogRenderer
+                            log={log}
+                            applyConfig={this.applyConfig}
+                        ></LogRenderer>
+                    </ul>
+                ))}
+            </div>
+        )
     }
 }

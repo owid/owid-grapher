@@ -1,7 +1,7 @@
-import {MigrationInterface, QueryRunner} from "typeorm"
+import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class SwazilandEswatiniRename1543239904215 implements MigrationInterface {
-
+export class SwazilandEswatiniRename1543239904215
+    implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(`
             UPDATE entities
@@ -19,15 +19,16 @@ export class SwazilandEswatiniRename1543239904215 implements MigrationInterface 
             LIMIT 1
         `)
         const eswatiniId = countrydataIds[0].id
-        await queryRunner.query(`
+        await queryRunner.query(
+            `
             INSERT INTO
                 country_name_tool_countryname (country_name, owid_country)
             VALUES
                 ('Eswatini', ?)
-        `, [eswatiniId])
+        `,
+            [eswatiniId]
+        )
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> {
-    }
-
+    public async down(queryRunner: QueryRunner): Promise<any> {}
 }

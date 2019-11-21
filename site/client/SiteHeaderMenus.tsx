@@ -1,32 +1,40 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { observable, action, reaction, runInAction, IReactionDisposer } from 'mobx'
-import { observer } from 'mobx-react'
-import { HeaderSearch } from './HeaderSearch'
-import { CategoryWithEntries } from 'db/wpdb'
-import classnames from 'classnames'
-import { find } from 'lodash'
-import { bind } from 'decko'
+import * as React from "react"
+import * as ReactDOM from "react-dom"
+import {
+    observable,
+    action,
+    reaction,
+    runInAction,
+    IReactionDisposer
+} from "mobx"
+import { observer } from "mobx-react"
+import { HeaderSearch } from "./HeaderSearch"
+import { CategoryWithEntries } from "db/wpdb"
+import classnames from "classnames"
+import { find } from "lodash"
+import { bind } from "decko"
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
-import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons/faExternalLinkAlt'
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons/faAngleDown'
-import { faAngleUp } from '@fortawesome/free-solid-svg-icons/faAngleUp'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
+import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 
-import { AmazonMenu } from './AmazonMenu'
-import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
-import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
+import { AmazonMenu } from "./AmazonMenu"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
+import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 
 @observer
-export class Header extends React.Component<{ categories: CategoryWithEntries[] }> {
+export class Header extends React.Component<{
+    categories: CategoryWithEntries[]
+}> {
     @observable.ref dropdownIsOpen: boolean = false
 
-    dropdownOpenTimeoutId?: number  // ID of the timeout that will set isOpen to true
+    dropdownOpenTimeoutId?: number // ID of the timeout that will set isOpen to true
     dropdownCloseTimeoutId?: number // ID of the timeout that will set isOpen to false
-    dropdownLastOpened?: number     // Timestamp of the last time isOpen was set to true
+    dropdownLastOpened?: number // Timestamp of the last time isOpen was set to true
 
     // Mobile menu toggles
     @observable showSearch: boolean = false
@@ -37,7 +45,9 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
     componentDidMount() {
         this.dispose = reaction(
             () => this.dropdownIsOpen,
-            () => { if (this.dropdownIsOpen) this.dropdownLastOpened = Date.now() }
+            () => {
+                if (this.dropdownIsOpen) this.dropdownLastOpened = Date.now()
+            }
         )
     }
 
@@ -60,12 +70,18 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
     }
 
     @action.bound scheduleOpenTimeout(delay: number) {
-        this.dropdownOpenTimeoutId = window.setTimeout(() => this.setOpen(true), delay)
+        this.dropdownOpenTimeoutId = window.setTimeout(
+            () => this.setOpen(true),
+            delay
+        )
         this.clearCloseTimeout()
     }
 
     @action.bound scheduleCloseTimeout(delay: number) {
-        this.dropdownCloseTimeoutId = window.setTimeout(() => this.setOpen(false), delay)
+        this.dropdownCloseTimeoutId = window.setTimeout(
+            () => this.setOpen(false),
+            delay
+        )
         this.clearOpenTimeout()
     }
 
@@ -83,10 +99,16 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
         }
     }
 
-    @action.bound onDropdownButtonClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    @action.bound onDropdownButtonClick(
+        event: React.MouseEvent<HTMLAnchorElement>
+    ) {
         event.preventDefault()
         // Only close the menu if it's been open for a while, to avoid accidentally closing it while it's appearing.
-        if (this.dropdownIsOpen && this.dropdownLastOpened !== undefined && this.dropdownLastOpened + 500 < Date.now()) {
+        if (
+            this.dropdownIsOpen &&
+            this.dropdownLastOpened !== undefined &&
+            this.dropdownLastOpened + 500 < Date.now()
+        ) {
             this.setOpen(false)
         } else {
             this.setOpen(true)
@@ -94,89 +116,199 @@ export class Header extends React.Component<{ categories: CategoryWithEntries[] 
     }
 
     render() {
-        const {categories} = this.props
+        const { categories } = this.props
 
-        return <React.Fragment>
-            <div className="wrapper site-navigation-bar">
-                <div className="site-logo">
-                    <a href="/" data-track-click data-track-note="header-navigation">
-                        Our World<br /> in Data
-                    </a>
-                </div>
-                <nav className="site-navigation md-up">
-                    <div className="topics-button-wrapper">
+        return (
+            <React.Fragment>
+                <div className="wrapper site-navigation-bar">
+                    <div className="site-logo">
                         <a
-                            href="/#entries"
-                            className={classnames("topics-button", { "active": this.dropdownIsOpen })}
-                            onMouseEnter={() => this.scheduleOpenTimeout(200)}
-                            onMouseLeave={() => this.scheduleCloseTimeout(100)}
-                            onClick={this.onDropdownButtonClick}
+                            href="/"
+                            data-track-click
+                            data-track-note="header-navigation"
                         >
-                            <div className="label">
-                                Research <br /><strong>by topic</strong>
-                            </div>
-                            <div className="icon">
-                                <svg width="12" height="6"><path d="M0,0 L12,0 L6,6 Z" fill="currentColor" /></svg>
-                            </div>
+                            Our World
+                            <br /> in Data
                         </a>
-                        <DesktopTopicsMenu categories={categories} isOpen={this.dropdownIsOpen} onMouseEnter={() => this.setOpen(true)} onMouseLeave={() => this.scheduleCloseTimeout(350)} />
                     </div>
-                    <div>
-                        <div className="site-primary-navigation">
-                            <HeaderSearch/>
-                            <ul className="site-primary-links">
-                                <li><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
-                                <li><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
-                                <li><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
-                            </ul>
+                    <nav className="site-navigation md-up">
+                        <div className="topics-button-wrapper">
+                            <a
+                                href="/#entries"
+                                className={classnames("topics-button", {
+                                    active: this.dropdownIsOpen
+                                })}
+                                onMouseEnter={() =>
+                                    this.scheduleOpenTimeout(200)
+                                }
+                                onMouseLeave={() =>
+                                    this.scheduleCloseTimeout(100)
+                                }
+                                onClick={this.onDropdownButtonClick}
+                            >
+                                <div className="label">
+                                    Research <br />
+                                    <strong>by topic</strong>
+                                </div>
+                                <div className="icon">
+                                    <svg width="12" height="6">
+                                        <path
+                                            d="M0,0 L12,0 L6,6 Z"
+                                            fill="currentColor"
+                                        />
+                                    </svg>
+                                </div>
+                            </a>
+                            <DesktopTopicsMenu
+                                categories={categories}
+                                isOpen={this.dropdownIsOpen}
+                                onMouseEnter={() => this.setOpen(true)}
+                                onMouseLeave={() =>
+                                    this.scheduleCloseTimeout(350)
+                                }
+                            />
                         </div>
-                        <div className="site-secondary-navigation">
-                            <ul className="site-secondary-links">
-                                <li><a href="/charts" data-track-click data-track-note="header-navigation">All charts</a></li>
-                                {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
-                                <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
-                            </ul>
+                        <div>
+                            <div className="site-primary-navigation">
+                                <HeaderSearch />
+                                <ul className="site-primary-links">
+                                    <li>
+                                        <a
+                                            href="/blog"
+                                            data-track-click
+                                            data-track-note="header-navigation"
+                                        >
+                                            Latest
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="/about"
+                                            data-track-click
+                                            data-track-note="header-navigation"
+                                        >
+                                            About
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="/donate"
+                                            data-track-click
+                                            data-track-note="header-navigation"
+                                        >
+                                            Donate
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div className="site-secondary-navigation">
+                                <ul className="site-secondary-links">
+                                    <li>
+                                        <a
+                                            href="/charts"
+                                            data-track-click
+                                            data-track-note="header-navigation"
+                                        >
+                                            All charts
+                                        </a>
+                                    </li>
+                                    {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
+                                    <li>
+                                        <a
+                                            href="https://sdg-tracker.org"
+                                            data-track-click
+                                            data-track-note="header-navigation"
+                                        >
+                                            Sustainable Development Goals
+                                            Tracker
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
+                    </nav>
+                    <ul className="site-social-links md-up">
+                        <li>
+                            <a
+                                href="https://twitter.com/ourworldindata"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Follow us on Twitter"
+                                data-track-click
+                                data-track-note="header-navigation"
+                            >
+                                <FontAwesomeIcon icon={faTwitter} />
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://www.facebook.com/OurWorldinData/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Subscribe to our Facebook page"
+                                data-track-click
+                                data-track-note="header-navigation"
+                            >
+                                <FontAwesomeIcon icon={faFacebookSquare} />
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href="/subscribe"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Subscribe to our newsletter"
+                                data-track-click
+                                data-track-note="header-navigation"
+                            >
+                                <FontAwesomeIcon icon={faEnvelope} />
+                            </a>
+                        </li>
+                    </ul>
+                    <div className="site-navigation sm-only">
+                        <button
+                            onClick={this.onToggleSearch}
+                            data-track-click
+                            data-track-note="mobile-search-button"
+                        >
+                            <FontAwesomeIcon icon={faSearch} />
+                        </button>
+                        <button
+                            onClick={this.onToggleCategories}
+                            data-track-click
+                            data-track-note="mobile-hamburger-button"
+                        >
+                            <FontAwesomeIcon icon={faBars} />
+                        </button>
                     </div>
-                </nav>
-                <ul className="site-social-links md-up">
-                    <li>
-                        <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter" data-track-click data-track-note="header-navigation">
-                            <FontAwesomeIcon icon={faTwitter} />
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page" data-track-click data-track-note="header-navigation">
-                            <FontAwesomeIcon icon={faFacebookSquare} />
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter" data-track-click data-track-note="header-navigation">
-                            <FontAwesomeIcon icon={faEnvelope} />
-                        </a>
-                    </li>
-                </ul>
-                <div className="site-navigation sm-only">
-                    <button onClick={this.onToggleSearch} data-track-click  data-track-note="mobile-search-button">
-                        <FontAwesomeIcon icon={faSearch}/>
-                    </button>
-                    <button onClick={this.onToggleCategories} data-track-click  data-track-note="mobile-hamburger-button">
-                        <FontAwesomeIcon icon={faBars}/>
-                    </button>
                 </div>
-            </div>
-            {this.showSearch && <div className="search-dropdown sm-only">
-                <form id="search-nav" action="/search" method="GET">
-                    <input type="search" name="q" placeholder="Search..." autoFocus />
-                </form>
-            </div>}
-            {this.showCategories && <MobileTopicsMenu categories={this.props.categories}/>}
-        </React.Fragment>
+                {this.showSearch && (
+                    <div className="search-dropdown sm-only">
+                        <form id="search-nav" action="/search" method="GET">
+                            <input
+                                type="search"
+                                name="q"
+                                placeholder="Search..."
+                                autoFocus
+                            />
+                        </form>
+                    </div>
+                )}
+                {this.showCategories && (
+                    <MobileTopicsMenu categories={this.props.categories} />
+                )}
+            </React.Fragment>
+        )
     }
 }
 
 @observer
-export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWithEntries[], isOpen: boolean, onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void, onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void }> {
+export class DesktopTopicsMenu extends React.Component<{
+    categories: CategoryWithEntries[]
+    isOpen: boolean
+    onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void
+    onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void
+}> {
     @observable.ref activeCategory?: CategoryWithEntries
     submenuRef: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -186,14 +318,20 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
 
     @bind onActivate(categorySlug: string) {
         if (categorySlug) {
-            const category = find(this.props.categories, (c) => c.slug === categorySlug)
+            const category = find(
+                this.props.categories,
+                c => c.slug === categorySlug
+            )
             if (category) this.setCategory(category)
         }
     }
 
     @bind onDeactivate(categorySlug: string) {
         if (categorySlug) {
-            const category = find(this.props.categories, (c) => c.slug === categorySlug)
+            const category = find(
+                this.props.categories,
+                c => c.slug === categorySlug
+            )
             if (category === this.activeCategory) this.setCategory(undefined)
         }
     }
@@ -205,97 +343,204 @@ export class DesktopTopicsMenu extends React.Component<{ categories: CategoryWit
         let sizeClass = ""
 
         if (activeCategory) {
-            sizeClass = activeCategory.entries.length > 10 ? "two-column": "one-column"
+            sizeClass =
+                activeCategory.entries.length > 10 ? "two-column" : "one-column"
         }
 
-        return <div className={classnames("topics-dropdown", sizeClass, { "open": isOpen })} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} aria-hidden={isOpen}>
-            <div className="menu">
-                <AmazonMenu
-                    onActivate={this.onActivate}
-                    onDeactivate={this.onDeactivate}
-                    submenuRect={this.submenuRef.current && this.submenuRef.current.getBoundingClientRect()}
-                >
-                    {categories.map((category) =>
-                        <div key={category.slug} className={category === activeCategory ? "active item" : "item"} data-submenu-id={category.slug}>
+        return (
+            <div
+                className={classnames("topics-dropdown", sizeClass, {
+                    open: isOpen
+                })}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                aria-hidden={isOpen}
+            >
+                <div className="menu">
+                    <AmazonMenu
+                        onActivate={this.onActivate}
+                        onDeactivate={this.onDeactivate}
+                        submenuRect={
+                            this.submenuRef.current &&
+                            this.submenuRef.current.getBoundingClientRect()
+                        }
+                    >
+                        {categories.map(category => (
+                            <div
+                                key={category.slug}
+                                className={
+                                    category === activeCategory
+                                        ? "active item"
+                                        : "item"
+                                }
+                                data-submenu-id={category.slug}
+                            >
+                                <span className="label">{category.name}</span>
+                                <span className="icon">
+                                    <svg width="5" height="10">
+                                        <path
+                                            d="M0,0 L5,5 L0,10 Z"
+                                            fill="currentColor"
+                                        />
+                                    </svg>
+                                </span>
+                            </div>
+                        ))}
+                        <hr />
+                        <a
+                            href="http://sdg-tracker.org"
+                            className="item"
+                            data-submenu-id
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
                             <span className="label">
-                                {category.name}
+                                Sustainable Development Goals Tracker
                             </span>
                             <span className="icon">
-                                <svg width="5" height="10"><path d="M0,0 L5,5 L0,10 Z" fill="currentColor" /></svg>
+                                <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </span>
-                        </div>
-                    )}
-                    <hr />
-                    <a href="http://sdg-tracker.org" className="item" data-submenu-id data-track-click data-track-note="header-navigation">
-                        <span className="label">Sustainable Development Goals Tracker</span>
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faExternalLinkAlt} />
-                        </span>
-                    </a>
-                    {/* An extra "Index" menu item, for when we have the Index page. */}
-                    {/* <a href="/index" className="item" data-track-click data-track-note="header-navigation">
+                        </a>
+                        {/* An extra "Index" menu item, for when we have the Index page. */}
+                        {/* <a href="/index" className="item" data-track-click data-track-note="header-navigation">
                         <span className="label">Index of all topics</span>
                         <span className="icon">
                             <FontAwesomeIcon icon={faExternalLinkAlt} />
                         </span>
                     </a> */}
-                </AmazonMenu>
+                    </AmazonMenu>
+                </div>
+                <div className="submenu" ref={this.submenuRef}>
+                    {activeCategory &&
+                        activeCategory.entries.map(entry => (
+                            <a
+                                key={entry.title}
+                                href={`/${entry.slug}`}
+                                className="item"
+                                data-track-click
+                                data-track-note="header-navigation"
+                            >
+                                <span className="label">{entry.title}</span>
+                            </a>
+                        ))}
+                </div>
             </div>
-            <div className="submenu" ref={this.submenuRef}>
-                {activeCategory && activeCategory.entries.map((entry) => <a key={entry.title} href={`/${entry.slug}`} className="item" data-track-click data-track-note="header-navigation">
-                    <span className="label">{entry.title}</span>
-                </a>)}
-            </div>
-        </div>
+        )
     }
 }
 
 @observer
-export class MobileTopicsMenu extends React.Component<{ categories: CategoryWithEntries[] }> {
+export class MobileTopicsMenu extends React.Component<{
+    categories: CategoryWithEntries[]
+}> {
     @observable.ref activeCategory?: CategoryWithEntries
 
     @action.bound toggleCategory(category: CategoryWithEntries) {
-        if (this.activeCategory === category)
-            this.activeCategory = undefined
-        else
-            this.activeCategory = category
+        if (this.activeCategory === category) this.activeCategory = undefined
+        else this.activeCategory = category
     }
 
     render() {
-        const {categories} = this.props
-        const {activeCategory} = this
-        return <div className="mobile-topics-dropdown sm-only">
-            <ul>
-                <li className="header">
-                    <h2>Topics</h2>
-                </li>
-                {categories.map(category =>
-                    <li key={category.slug} className="category">
-                        <a onClick={() => this.toggleCategory(category)}>
-                            <span className="label">{category.name}</span>
-                            <span className="icon">
-                                <FontAwesomeIcon icon={activeCategory === category ? faAngleUp : faAngleDown} />
-                            </span>
-                        </a>
-                        {activeCategory === category && <div className="subcategory-menu">
-                            <ul>
-                                {category.entries.map(entry => {
-                                    return <li key={entry.slug}>
-                                        <a href={`/${entry.slug}`} data-track-click data-track-note="header-navigation">{entry.title}</a>
-                                    </li>
-                                })}
-                            </ul>
-                        </div>}
+        const { categories } = this.props
+        const { activeCategory } = this
+        return (
+            <div className="mobile-topics-dropdown sm-only">
+                <ul>
+                    <li className="header">
+                        <h2>Topics</h2>
                     </li>
-                )}
-                <li className="end-link"><a href="/charts" data-track-click data-track-note="header-navigation">Charts</a></li>
-                <li className="end-link"><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li>
-                <li className="end-link"><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
-                <li className="end-link"><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
-                <li className="end-link"><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
-                <li className="end-link"><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
-            </ul>
-        </div>
+                    {categories.map(category => (
+                        <li key={category.slug} className="category">
+                            <a onClick={() => this.toggleCategory(category)}>
+                                <span className="label">{category.name}</span>
+                                <span className="icon">
+                                    <FontAwesomeIcon
+                                        icon={
+                                            activeCategory === category
+                                                ? faAngleUp
+                                                : faAngleDown
+                                        }
+                                    />
+                                </span>
+                            </a>
+                            {activeCategory === category && (
+                                <div className="subcategory-menu">
+                                    <ul>
+                                        {category.entries.map(entry => {
+                                            return (
+                                                <li key={entry.slug}>
+                                                    <a
+                                                        href={`/${entry.slug}`}
+                                                        data-track-click
+                                                        data-track-note="header-navigation"
+                                                    >
+                                                        {entry.title}
+                                                    </a>
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
+                        </li>
+                    ))}
+                    <li className="end-link">
+                        <a
+                            href="/charts"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            Charts
+                        </a>
+                    </li>
+                    <li className="end-link">
+                        <a
+                            href="/teaching"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            Teaching Hub
+                        </a>
+                    </li>
+                    <li className="end-link">
+                        <a
+                            href="https://sdg-tracker.org"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            Sustainable Development Goals Tracker
+                        </a>
+                    </li>
+                    <li className="end-link">
+                        <a
+                            href="/blog"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            Latest
+                        </a>
+                    </li>
+                    <li className="end-link">
+                        <a
+                            href="/about"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            About
+                        </a>
+                    </li>
+                    <li className="end-link">
+                        <a
+                            href="/donate"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            Donate
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        )
     }
 }
 
@@ -311,30 +556,30 @@ export class SiteHeaderMenus extends React.Component {
     async getEntries() {
         const json = await (await fetch("/headerMenu.json", {
             method: "GET",
-            credentials: 'same-origin',
+            credentials: "same-origin",
             headers: {
-                "Accept": "application/json"
+                Accept: "application/json"
             }
         })).json()
 
-        runInAction(() => this.categories = json.categories)
+        runInAction(() => (this.categories = json.categories))
     }
 
     componentDidMount() {
         this.getEntries()
         this.onResize()
-        window.addEventListener('resize', this.onResize)
+        window.addEventListener("resize", this.onResize)
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.onResize)
+        window.removeEventListener("resize", this.onResize)
     }
 
     render() {
-        return <Header categories={this.categories}/>
+        return <Header categories={this.categories} />
     }
 }
 
 export function runHeaderMenus() {
-    ReactDOM.render(<SiteHeaderMenus/>, document.querySelector(".site-header"))
+    ReactDOM.render(<SiteHeaderMenus />, document.querySelector(".site-header"))
 }

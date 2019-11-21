@@ -1,7 +1,11 @@
-import { SiteBaker } from 'site/server/SiteBaker'
-import { log } from 'utils/server/log'
+import { SiteBaker } from "site/server/SiteBaker"
+import { log } from "utils/server/log"
 
-export async function tryDeployAndTerminate(message: string = "Automated update", email?: string, name?: string) {
+export async function tryDeployAndTerminate(
+    message: string = "Automated update",
+    email?: string,
+    name?: string
+) {
     const baker = new SiteBaker({})
 
     try {
@@ -14,7 +18,11 @@ export async function tryDeployAndTerminate(message: string = "Automated update"
     }
 }
 
-export async function deploy(message: string = "Automated update", email?: string, name?: string) {
+export async function deploy(
+    message: string = "Automated update",
+    email?: string,
+    name?: string
+) {
     const baker = new SiteBaker({})
 
     try {

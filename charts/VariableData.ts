@@ -1,7 +1,21 @@
-import { extend, some, isString, isNumber, uniq, sortedUniq, min, max, keyBy, keys, values, each, sortBy } from './Util'
-import { ChartConfig } from './ChartConfig'
-import { observable, computed, action, reaction } from 'mobx'
-import { BAKED_GRAPHER_URL } from 'settings'
+import {
+    extend,
+    some,
+    isString,
+    isNumber,
+    uniq,
+    sortedUniq,
+    min,
+    max,
+    keyBy,
+    keys,
+    values,
+    each,
+    sortBy
+} from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { observable, computed, action, reaction } from "mobx"
+import { BAKED_GRAPHER_URL } from "settings"
 
 function formatYear(year: number): string {
     return year < 0 ? `${Math.abs(year)} BCE` : `${year}`
@@ -13,32 +27,34 @@ declare var window: { admin: any }
 declare var App: { isEditor: boolean }
 
 export interface DataForChart {
-    variables: {[id: string]: {
-        id: number
-        name: string
-        description: string
-        unit: string
-        shortUnit: string
-        datasetName: string
-        datasetId: string
+    variables: {
+        [id: string]: {
+            id: number
+            name: string
+            description: string
+            unit: string
+            shortUnit: string
+            datasetName: string
+            datasetId: string
 
-        display: VariableDisplaySettings
+            display: VariableDisplaySettings
 
-        source: {
-            id: number,
-            name: string,
-            dataPublishedBy: string,
-            dataPublisherSource: string,
-            link: string,
-            retrievedDate: string,
-            additionalInfo: string,
+            source: {
+                id: number
+                name: string
+                dataPublishedBy: string
+                dataPublisherSource: string
+                link: string
+                retrievedDate: string
+                additionalInfo: string
+            }
+
+            years: number[]
+            entities: number[]
+            values: (number | string)[]
         }
-
-        years: number[]
-        entities: number[]
-        values: (number|string)[]
-    }}
-    entityKey: {[id: string]: EntityMeta}
+    }
+    entityKey: { [id: string]: EntityMeta }
 }
 
 export class VariableDisplaySettings {
@@ -65,13 +81,13 @@ export class Variable {
     @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
     @observable.struct source!: {
-        id: number,
-        name: string,
-        dataPublishedBy: string,
-        dataPublisherSource: string,
-        link: string,
-        retrievedDate: string,
-        additionalInfo: string,
+        id: number
+        name: string
+        dataPublishedBy: string
+        dataPublisherSource: string
+        link: string
+        retrievedDate: string
+        additionalInfo: string
     }
     @observable.ref years: number[] = []
     @observable.ref entities: string[] = []
@@ -144,8 +160,8 @@ export class Variable {
 }
 
 interface EntityMeta {
-    id: number,
-    name: string,
+    id: number
+    name: string
     code: string
 }
 
@@ -166,11 +182,13 @@ export class VariableData {
     }
 
     @computed get entityMetaByKey() {
-        return keyBy(this.entityMetaById, 'name')
+        return keyBy(this.entityMetaById, "name")
     }
 
-    @computed get cacheTag(): string|undefined {
-        return (typeof(App) !== "undefined" && App.isEditor) ? undefined : this.chart.cacheTag
+    @computed get cacheTag(): string | undefined {
+        return typeof App !== "undefined" && App.isEditor
+            ? undefined
+            : this.chart.cacheTag
     }
 
     @computed get availableEntities(): string[] {
@@ -189,7 +207,11 @@ export class VariableData {
         }
 
         if (window.admin) {
-            const json = await window.admin.getJSON(`/api/data/variables/${variableIds.join("+")}.json${cacheTag ? "?v="+cacheTag : ""}`)
+            const json = await window.admin.getJSON(
+                `/api/data/variables/${variableIds.join("+")}.json${
+                    cacheTag ? "?v=" + cacheTag : ""
+                }`
+            )
             this.receiveData(json)
         } else {
             const req = new XMLHttpRequest()
@@ -197,7 +219,12 @@ export class VariableData {
             req.addEventListener("load", function() {
                 that.receiveData(JSON.parse(this.responseText))
             })
-            req.open("GET", `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join("+")}.json?v=${cacheTag}`)
+            req.open(
+                "GET",
+                `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join(
+                    "+"
+                )}.json?v=${cacheTag}`
+            )
             req.send()
         }
     }
@@ -207,10 +234,12 @@ export class VariableData {
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
         for (const key in json.variables) {
             const variable = new Variable(json.variables[key])
-            variable.entities = variable.entities.map(id => entityMetaById[id].name)
+            variable.entities = variable.entities.map(
+                id => entityMetaById[id].name
+            )
             variablesById[key] = variable
         }
-        each(entityMetaById, (e, id) => e.id = +id)
+        each(entityMetaById, (e, id) => (e.id = +id))
         this.variablesById = variablesById
         this.entityMetaById = entityMetaById
     }

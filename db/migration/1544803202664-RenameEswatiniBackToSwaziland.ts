@@ -1,7 +1,7 @@
-import {MigrationInterface, QueryRunner} from "typeorm"
+import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RenameEswatiniBackToSwaziland1544803202664 implements MigrationInterface {
-
+export class RenameEswatiniBackToSwaziland1544803202664
+    implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
         // If a Swaziland entity exists, we want to map it to Eswatini
         // before renaming Eswatini to Swaziland.
@@ -26,7 +26,5 @@ export class RenameEswatiniBackToSwaziland1544803202664 implements MigrationInte
         `)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> {
-    }
-
+    public async down(queryRunner: QueryRunner): Promise<any> {}
 }

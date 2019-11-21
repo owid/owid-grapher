@@ -1,12 +1,17 @@
-import * as wpdb from 'db/wpdb'
-import * as db from 'db/db'
-import { renderFrontPage, renderSubscribePage, renderBlogByPageNum, renderPageById } from 'site/server/siteBaking'
+import * as wpdb from "db/wpdb"
+import * as db from "db/db"
+import {
+    renderFrontPage,
+    renderSubscribePage,
+    renderBlogByPageNum,
+    renderPageById
+} from "site/server/siteBaking"
 
 async function main(target: string, isPreview?: boolean) {
     try {
-        if (target === 'front') {
+        if (target === "front") {
             console.log(await renderFrontPage())
-        } else if (target === 'subscribe') {
+        } else if (target === "subscribe") {
             console.log(await renderSubscribePage())
         } else if (target === "blog") {
             const pageNum = process.argv[3] ? parseInt(process.argv[3]) : 1

@@ -1,4 +1,4 @@
-import { webpack } from 'utils/server/staticGen'
+import { webpack } from "utils/server/staticGen"
 
 export function embedSnippet(): string {
     return `
@@ -7,7 +7,7 @@ export function embedSnippet(): string {
         var link = document.createElement('link');
         link.type = 'text/css';
         link.rel = 'stylesheet';
-        link.href = '${webpack('commons.css')}';
+        link.href = '${webpack("commons.css")}';
         document.head.appendChild(link);
 
         var hasPolyfill = false;
@@ -30,13 +30,13 @@ export function embedSnippet(): string {
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('commons.js')}';
+        script.src = '${webpack("commons.js")}';
         document.head.appendChild(script);
 
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.onload = checkReady;
-        script.src = '${webpack('owid.js')}';
+        script.src = '${webpack("owid.js")}';
         document.head.appendChild(script);
     `
 }

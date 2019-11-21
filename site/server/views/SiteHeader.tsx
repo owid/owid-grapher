@@ -1,81 +1,165 @@
-import * as React from 'react'
-import * as _ from 'lodash'
-import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
-import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTwitter } from '@fortawesome/free-brands-svg-icons/faTwitter'
-import { faFacebookSquare } from '@fortawesome/free-brands-svg-icons/faFacebookSquare'
+import * as React from "react"
+import * as _ from "lodash"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
+import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 
 export const SiteHeader = () => {
-    return <header className="site-header">
-        <div className="wrapper site-navigation-bar">
-            <div className="site-logo">
-                <a href="/">
-                    Our World<br /> in Data
-                </a>
-            </div>
-            <nav className="site-navigation md-up">
-                <div className="topics-button-wrapper">
-                    <a href="/#entries" className="topics-button">
-                        <div className="label">
-                            Research <br /><strong>by topic</strong>
-                        </div>
-                        <div className="icon">
-                            <svg width="12" height="6"><path d="M0,0 L12,0 L6,6 Z" fill="currentColor" /></svg>
-                        </div>
+    return (
+        <header className="site-header">
+            <div className="wrapper site-navigation-bar">
+                <div className="site-logo">
+                    <a href="/">
+                        Our World
+                        <br /> in Data
                     </a>
                 </div>
-                <div>
-                    <div className="site-primary-navigation">
-                        <form className="HeaderSearch" action="/search" method="GET">
-                            <input type="search" name="q" placeholder="Search..." />
-                            <div className="icon">
-                                <FontAwesomeIcon icon={faSearch} />
+                <nav className="site-navigation md-up">
+                    <div className="topics-button-wrapper">
+                        <a href="/#entries" className="topics-button">
+                            <div className="label">
+                                Research <br />
+                                <strong>by topic</strong>
                             </div>
-                        </form>
-                        <ul className="site-primary-links">
-                            <li><a href="/blog" data-track-click data-track-note="header-navigation">Latest</a></li>
-                            <li><a href="/about" data-track-click data-track-note="header-navigation">About</a></li>
-                            <li><a href="/donate" data-track-click data-track-note="header-navigation">Donate</a></li>
-                        </ul>
+                            <div className="icon">
+                                <svg width="12" height="6">
+                                    <path
+                                        d="M0,0 L12,0 L6,6 Z"
+                                        fill="currentColor"
+                                    />
+                                </svg>
+                            </div>
+                        </a>
                     </div>
-                    <div className="site-secondary-navigation">
-                        <ul className="site-secondary-links">
-                            <li><a href="/charts" data-track-click data-track-note="header-navigation">All charts</a></li>
-                            {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
-                            <li><a href="https://sdg-tracker.org" data-track-click data-track-note="header-navigation">Sustainable Development Goals Tracker</a></li>
-                        </ul>
+                    <div>
+                        <div className="site-primary-navigation">
+                            <form
+                                className="HeaderSearch"
+                                action="/search"
+                                method="GET"
+                            >
+                                <input
+                                    type="search"
+                                    name="q"
+                                    placeholder="Search..."
+                                />
+                                <div className="icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </div>
+                            </form>
+                            <ul className="site-primary-links">
+                                <li>
+                                    <a
+                                        href="/blog"
+                                        data-track-click
+                                        data-track-note="header-navigation"
+                                    >
+                                        Latest
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="/about"
+                                        data-track-click
+                                        data-track-note="header-navigation"
+                                    >
+                                        About
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="/donate"
+                                        data-track-click
+                                        data-track-note="header-navigation"
+                                    >
+                                        Donate
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="site-secondary-navigation">
+                            <ul className="site-secondary-links">
+                                <li>
+                                    <a
+                                        href="/charts"
+                                        data-track-click
+                                        data-track-note="header-navigation"
+                                    >
+                                        All charts
+                                    </a>
+                                </li>
+                                {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
+                                <li>
+                                    <a
+                                        href="https://sdg-tracker.org"
+                                        data-track-click
+                                        data-track-note="header-navigation"
+                                    >
+                                        Sustainable Development Goals Tracker
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
+                </nav>
+                <ul className="site-social-links md-up">
+                    <li>
+                        <a
+                            href="https://twitter.com/ourworldindata"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Follow us on Twitter"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            <FontAwesomeIcon icon={faTwitter} />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href="https://www.facebook.com/OurWorldinData/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Subscribe to our Facebook page"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            <FontAwesomeIcon icon={faFacebookSquare} />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href="/subscribe"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Subscribe to our newsletter"
+                            data-track-click
+                            data-track-note="header-navigation"
+                        >
+                            <FontAwesomeIcon icon={faEnvelope} />
+                        </a>
+                    </li>
+                </ul>
+                <div className="site-navigation sm-only">
+                    <button
+                        data-track-click
+                        data-track-note="mobile-search-button"
+                    >
+                        <FontAwesomeIcon icon={faSearch} />
+                    </button>
+                    <button
+                        data-track-click
+                        data-track-note="mobile-hamburger-button"
+                    >
+                        <FontAwesomeIcon icon={faBars} />
+                    </button>
                 </div>
-            </nav>
-            <ul className="site-social-links md-up">
-                <li>
-                    <a href="https://twitter.com/ourworldindata" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter" data-track-click data-track-note="header-navigation">
-                        <FontAwesomeIcon icon={faTwitter} />
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.facebook.com/OurWorldinData/" target="_blank" rel="noopener noreferrer" title="Subscribe to our Facebook page" data-track-click data-track-note="header-navigation">
-                        <FontAwesomeIcon icon={faFacebookSquare} />
-                    </a>
-                </li>
-                <li>
-                    <a href="/subscribe" target="_blank" rel="noopener noreferrer" title="Subscribe to our newsletter" data-track-click data-track-note="header-navigation">
-                        <FontAwesomeIcon icon={faEnvelope} />
-                    </a>
-                </li>
-            </ul>
-            <div className="site-navigation sm-only">
-                <button data-track-click data-track-note="mobile-search-button">
-                    <FontAwesomeIcon icon={faSearch}/>
-                </button>
-                <button data-track-click data-track-note="mobile-hamburger-button">
-                    <FontAwesomeIcon icon={faBars}/>
-                </button>
             </div>
-        </div>
-    </header>
+        </header>
+    )
 }
 
 // The logo that's shown on all the charts.

@@ -1,13 +1,15 @@
 {
     "defaultSeverity": "error",
     "extends": [
-        "tslint:recommended"
+        "tslint:recommended",
+        "tslint-plugin-prettier",
+        "tslint-config-prettier"
     ],
     "jsRules": {},
     "rules": {
+        "prettier": true,
         "max-classes-per-file": false,
         "member-access": false,
-        "semicolon": [true, "never"],
         "curly": false,
         "no-string-literal": false,
         "ordered-imports": false,

@@ -1,14 +1,14 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
-const timeago = require('timeago.js')()
+import * as React from "react"
+import { observer } from "mobx-react"
+import { observable, computed, action, runInAction } from "mobx"
+const timeago = require("timeago.js")()
 const fuzzysort = require("fuzzysort")
-import * as _ from 'lodash'
+import * as _ from "lodash"
 
-import { AdminLayout } from './AdminLayout'
-import { SearchField, FieldsRow } from './Forms'
-import { DatasetList, DatasetListItem } from './DatasetList'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
+import { AdminLayout } from "./AdminLayout"
+import { SearchField, FieldsRow } from "./Forms"
+import { DatasetList, DatasetListItem } from "./DatasetList"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface Searchable {
     dataset: DatasetListItem
@@ -29,7 +29,17 @@ export class DatasetsIndexPage extends React.Component {
         for (const dataset of this.datasets) {
             searchIndex.push({
                 dataset: dataset,
-                term: fuzzysort.prepare(dataset.name + " " + dataset.tags.map(t => t.name).join(" ") + " " + dataset.namespace + " " + dataset.dataEditedByUserName + " " + dataset.description)
+                term: fuzzysort.prepare(
+                    dataset.name +
+                        " " +
+                        dataset.tags.map(t => t.name).join(" ") +
+                        " " +
+                        dataset.namespace +
+                        " " +
+                        dataset.dataEditedByUserName +
+                        " " +
+                        dataset.description
+                )
             })
         }
 
@@ -37,11 +47,11 @@ export class DatasetsIndexPage extends React.Component {
     }
 
     @computed get datasetsToShow(): DatasetListItem[] {
-        const {searchInput, searchIndex, maxVisibleRows} = this
+        const { searchInput, searchIndex, maxVisibleRows } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: 'term'
+                key: "term"
             })
             return _.uniq(results.map((result: any) => result.obj.dataset))
         } else {
@@ -66,30 +76,52 @@ export class DatasetsIndexPage extends React.Component {
     }
 
     render() {
-        const {datasetsToShow, searchInput, numTotalRows} = this
+        const { datasetsToShow, searchInput, numTotalRows } = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
-                const html = fuzzysort.highlight(fuzzysort.single(this.searchInput, text)) || text
-                return <span dangerouslySetInnerHTML={{__html: html}}/>
-            } else
-                return text
+                const html =
+                    fuzzysort.highlight(
+                        fuzzysort.single(this.searchInput, text)
+                    ) || text
+                return <span dangerouslySetInnerHTML={{ __html: html }} />
+            } else return text
         }
 
-        return <AdminLayout title="Datasets">
-            <main className="DatasetsIndexPage">
-                <FieldsRow>
-                    <span>Showing {datasetsToShow.length} of {numTotalRows} datasets</span>
-                    <SearchField placeholder="Search all datasets..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-                </FieldsRow>
-                <DatasetList datasets={datasetsToShow} searchHighlight={highlight}/>
-                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more datasets...</button>}
-            </main>
-        </AdminLayout>
+        return (
+            <AdminLayout title="Datasets">
+                <main className="DatasetsIndexPage">
+                    <FieldsRow>
+                        <span>
+                            Showing {datasetsToShow.length} of {numTotalRows}{" "}
+                            datasets
+                        </span>
+                        <SearchField
+                            placeholder="Search all datasets..."
+                            value={searchInput}
+                            onValue={this.onSearchInput}
+                            autofocus
+                        />
+                    </FieldsRow>
+                    <DatasetList
+                        datasets={datasetsToShow}
+                        searchHighlight={highlight}
+                    />
+                    {!searchInput && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.onShowMore}
+                        >
+                            Show more datasets...
+                        </button>
+                    )}
+                </main>
+            </AdminLayout>
+        )
     }
 
     async getData() {
-        const {admin} = this.context
+        const { admin } = this.context
         const json = await admin.getJSON("/api/datasets.json")
         runInAction(() => {
             this.datasets = json.datasets
@@ -98,5 +130,5 @@ export class DatasetsIndexPage extends React.Component {
 
     componentDidMount() {
         this.getData()
-     }
+    }
 }

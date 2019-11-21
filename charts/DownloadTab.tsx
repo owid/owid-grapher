@@ -1,14 +1,14 @@
-import { extend } from './Util'
-import * as React from 'react'
-import { observable, computed, action } from 'mobx'
-import { observer } from 'mobx-react'
-import { Bounds } from './Bounds'
-import { ChartConfig } from './ChartConfig'
-import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { extend } from "./Util"
+import * as React from "react"
+import { observable, computed, action } from "mobx"
+import { observer } from "mobx-react"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface DownloadTabProps {
-    bounds: Bounds,
+    bounds: Bounds
     chart: ChartConfig
 }
 
@@ -16,8 +16,12 @@ declare var Blob: any
 
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed get targetWidth() { return this.props.chart.idealBounds.width }
-    @computed get targetHeight() { return this.props.chart.idealBounds.height }
+    @computed get targetWidth() {
+        return this.props.chart.idealBounds.width
+    }
+    @computed get targetHeight() {
+        return this.props.chart.idealBounds.height
+    }
 
     @observable svgBlob?: Blob
     @observable svgBlobUrl?: string
@@ -29,9 +33,17 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @action.bound export() {
         if (!HTMLCanvasElement.prototype.toBlob) {
             // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
-            Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
-                value: function(callback: (blob: Blob) => void, type: string, quality: any) {
-                    const binStr = atob((this as HTMLCanvasElement).toDataURL(type, quality).split(',')[1])
+            Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
+                value: function(
+                    callback: (blob: Blob) => void,
+                    type: string,
+                    quality: any
+                ) {
+                    const binStr = atob(
+                        (this as HTMLCanvasElement)
+                            .toDataURL(type, quality)
+                            .split(",")[1]
+                    )
                     const len = binStr.length
                     const arr = new Uint8Array(len)
 
@@ -39,7 +51,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         arr[i] = binStr.charCodeAt(i)
                     }
 
-                    callback(new Blob([arr], { type: type || 'image/png' }))
+                    callback(new Blob([arr], { type: type || "image/png" }))
                 }
             })
         }
@@ -51,7 +63,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         const staticSVG = chart.staticSVG
         chart.isLocalExport = false
 
-        this.svgBlob = new Blob([staticSVG], { type: "image/svg+xml;charset=utf-8" })
+        this.svgBlob = new Blob([staticSVG], {
+            type: "image/svg+xml;charset=utf-8"
+        })
         this.svgBlobUrl = URL.createObjectURL(this.svgBlob)
         const reader = new FileReader()
         reader.onload = (ev: any) => {
@@ -64,7 +78,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     // We draw the chart at 4x res then scale it down again -- much better text quality
                     canvas.width = targetWidth * 4
                     canvas.height = targetHeight * 4
-                    const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D
+                    const ctx = canvas.getContext("2d", {
+                        alpha: false
+                    }) as CanvasRenderingContext2D
                     ctx.imageSmoothingEnabled = false
                     ctx.setTransform(4, 0, 0, 4, 0, 0)
                     ctx.drawImage(img, 0, 0)
@@ -79,7 +95,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     this.isReady = true
                 }
             }
-            img.onerror = (err) => {
+            img.onerror = err => {
                 console.error(JSON.stringify(err))
                 this.isReady = true
             }
@@ -91,11 +107,21 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get fallbackPngUrl() {
         return `${this.props.chart.url.baseUrl}.png${this.props.chart.url.queryStr}`
     }
-    @computed get baseFilename() { return this.props.chart.data.slug }
-    @computed get svgPreviewUrl() { return this.svgDataUri }
-    @computed get pngPreviewUrl() { return this.pngDataUri || this.fallbackPngUrl }
-    @computed get svgDownloadUrl() { return this.svgBlobUrl }
-    @computed get pngDownloadUrl() { return this.pngBlobUrl || this.pngDataUri || this.fallbackPngUrl }
+    @computed get baseFilename() {
+        return this.props.chart.data.slug
+    }
+    @computed get svgPreviewUrl() {
+        return this.svgDataUri
+    }
+    @computed get pngPreviewUrl() {
+        return this.pngDataUri || this.fallbackPngUrl
+    }
+    @computed get svgDownloadUrl() {
+        return this.svgBlobUrl
+    }
+    @computed get pngDownloadUrl() {
+        return this.pngBlobUrl || this.pngDataUri || this.fallbackPngUrl
+    }
 
     @computed get isPortrait(): boolean {
         return this.props.bounds.height > this.props.bounds.width
@@ -103,24 +129,43 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
     @action.bound onPNGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(this.pngBlob, this.baseFilename + ".png")
+            window.navigator.msSaveBlob(
+                this.pngBlob,
+                this.baseFilename + ".png"
+            )
             ev.preventDefault()
         }
     }
 
     @action.bound onSVGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
+            window.navigator.msSaveBlob(
+                this.svgBlob,
+                this.baseFilename + ".svg"
+            )
             ev.preventDefault()
         }
     }
 
     renderReady() {
-        const { props, targetWidth, targetHeight, pngPreviewUrl, pngDownloadUrl, svgPreviewUrl, svgDownloadUrl, isPortrait, baseFilename } = this
+        const {
+            props,
+            targetWidth,
+            targetHeight,
+            pngPreviewUrl,
+            pngDownloadUrl,
+            svgPreviewUrl,
+            svgDownloadUrl,
+            isPortrait,
+            baseFilename
+        } = this
 
         let previewWidth: number
         let previewHeight: number
-        if (props.bounds.width/props.bounds.height > targetWidth/targetHeight) {
+        if (
+            props.bounds.width / props.bounds.height >
+            targetWidth / targetHeight
+        ) {
             previewHeight = props.bounds.height * 0.4
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
@@ -128,27 +173,51 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
-        const imgStyle = { minWidth: previewWidth, minHeight: previewHeight, maxWidth: previewWidth, maxHeight: previewHeight, border: "1px solid #ccc", margin: "1em" }
+        const imgStyle = {
+            minWidth: previewWidth,
+            minHeight: previewHeight,
+            maxWidth: previewWidth,
+            maxHeight: previewHeight,
+            border: "1px solid #ccc",
+            margin: "1em"
+        }
 
         return [
-            <a key="png" href={pngDownloadUrl} download={baseFilename + ".png"} onClick={this.onPNGDownload}>
+            <a
+                key="png"
+                href={pngDownloadUrl}
+                download={baseFilename + ".png"}
+                onClick={this.onPNGDownload}
+            >
                 <div>
                     <img src={pngPreviewUrl} style={imgStyle} />
                     <aside>
                         <h2>Save as .png</h2>
-                        <p>A standard image of the visualization that can be used in presentations or other documents.</p>
+                        <p>
+                            A standard image of the visualization that can be
+                            used in presentations or other documents.
+                        </p>
                     </aside>
                 </div>
             </a>,
-            <a key="svg" href={svgDownloadUrl} download={baseFilename + ".svg"} onClick={this.onSVGDownload}>
+            <a
+                key="svg"
+                href={svgDownloadUrl}
+                download={baseFilename + ".svg"}
+                onClick={this.onSVGDownload}
+            >
                 <div>
                     <img src={svgPreviewUrl} style={imgStyle} />
                     <aside>
                         <h2>Save as .svg</h2>
-                        <p>A vector format image useful for further redesigning the visualization with vector graphic software.</p>
+                        <p>
+                            A vector format image useful for further redesigning
+                            the visualization with vector graphic software.
+                        </p>
                     </aside>
                 </div>
-            </a>]
+            </a>
+        ]
     }
 
     componentDidMount() {
@@ -156,15 +225,26 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     componentWillUnmount() {
-        if (this.pngBlobUrl !== undefined)
-            URL.revokeObjectURL(this.pngBlobUrl)
-        if (this.svgBlobUrl !== undefined)
-            URL.revokeObjectURL(this.svgBlobUrl)
+        if (this.pngBlobUrl !== undefined) URL.revokeObjectURL(this.pngBlobUrl)
+        if (this.svgBlobUrl !== undefined) URL.revokeObjectURL(this.svgBlobUrl)
     }
 
     render() {
-        return <div className="DownloadTab" style={extend(this.props.bounds.toCSS(), { position: 'absolute' })}>
-            {this.isReady ? this.renderReady() : <div className="loadingIcon"><FontAwesomeIcon icon={faSpinner}/></div>}
-        </div>
+        return (
+            <div
+                className="DownloadTab"
+                style={extend(this.props.bounds.toCSS(), {
+                    position: "absolute"
+                })}
+            >
+                {this.isReady ? (
+                    this.renderReady()
+                ) : (
+                    <div className="loadingIcon">
+                        <FontAwesomeIcon icon={faSpinner} />
+                    </div>
+                )}
+            </div>
+        )
     }
 }

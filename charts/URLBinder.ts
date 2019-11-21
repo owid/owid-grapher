@@ -7,14 +7,27 @@
  *
  */
 
-import { debounce, isNumber, includes, filter, uniq, toString, isFinite } from './Util'
-import { computed, when, runInAction, reaction, toJS } from 'mobx'
-import { ChartTabOption } from './ChartTabOption'
-import { defaultTo } from './Util'
-import { ChartConfig, ChartConfigProps } from './ChartConfig'
-import { getQueryParams, setQueryStr, queryParamsToStr, QueryParams } from 'utils/client/url'
-import { MapProjection } from './MapProjection'
-import { BAKED_GRAPHER_URL } from 'settings'
+import {
+    debounce,
+    isNumber,
+    includes,
+    filter,
+    uniq,
+    toString,
+    isFinite
+} from "./Util"
+import { computed, when, runInAction, reaction, toJS } from "mobx"
+import { ChartTabOption } from "./ChartTabOption"
+import { defaultTo } from "./Util"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import {
+    getQueryParams,
+    setQueryStr,
+    queryParamsToStr,
+    QueryParams
+} from "utils/client/url"
+import { MapProjection } from "./MapProjection"
+import { BAKED_GRAPHER_URL } from "settings"
 
 interface ChartQueryParams {
     tab?: string
@@ -49,12 +62,13 @@ export class URLBinder {
 
             // There is a surprisingly considerable performance overhead to updating the url
             // while animating, so we debounce to allow e.g. smoother timelines
-            const pushParams = () => setQueryStr(queryParamsToStr(this.params as QueryParams))
+            const pushParams = () =>
+                setQueryStr(queryParamsToStr(this.params as QueryParams))
             const debouncedPushParams = debounce(pushParams, 100)
 
             reaction(
                 () => this.params,
-                () => this.debounceMode ? debouncedPushParams() : pushParams()
+                () => (this.debounceMode ? debouncedPushParams() : pushParams())
             )
         } else if (queryStr !== undefined) {
             this.populateFromURL(getQueryParams(queryStr))
@@ -62,7 +76,7 @@ export class URLBinder {
     }
 
     @computed get origChart() {
-        if (typeof(App) !== "undefined" && App.isEditor) {
+        if (typeof App !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.chart.props)
         } else {
@@ -76,17 +90,36 @@ export class URLBinder {
         const params: ChartQueryParams = {}
         const { chart, origChart } = this
 
-        params.tab = chart.props.tab === origChart.tab ? undefined : chart.props.tab
+        params.tab =
+            chart.props.tab === origChart.tab ? undefined : chart.props.tab
         //params.overlay = chart.props.overlay === origChart.overlay ? undefined : chart.props.overlay
-        params.xScale = chart.props.xAxis.scaleType === origChart.xAxis.scaleType ? undefined : chart.xAxis.scaleType
-        params.yScale = chart.props.yAxis.scaleType === origChart.yAxis.scaleType ? undefined : chart.yAxis.scaleType
-        params.stackMode = chart.props.stackMode === origChart.stackMode ? undefined : chart.props.stackMode
-        params.endpointsOnly = chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly ? undefined : (chart.props.compareEndPointsOnly ? "1" : "0")
+        params.xScale =
+            chart.props.xAxis.scaleType === origChart.xAxis.scaleType
+                ? undefined
+                : chart.xAxis.scaleType
+        params.yScale =
+            chart.props.yAxis.scaleType === origChart.yAxis.scaleType
+                ? undefined
+                : chart.yAxis.scaleType
+        params.stackMode =
+            chart.props.stackMode === origChart.stackMode
+                ? undefined
+                : chart.props.stackMode
+        params.endpointsOnly =
+            chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly
+                ? undefined
+                : chart.props.compareEndPointsOnly
+                ? "1"
+                : "0"
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
 
-        if (chart.props.map && origChart.map && chart.props.map.projection !== origChart.map.projection)
+        if (
+            chart.props.map &&
+            origChart.map &&
+            chart.props.map.projection !== origChart.map.projection
+        )
             params.region = chart.props.map.projection
 
         return params
@@ -99,8 +132,7 @@ export class URLBinder {
     @computed get baseUrl(): string | undefined {
         if (this.chart.isPublished)
             return `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
-        else
-            return undefined
+        else return undefined
     }
 
     // Get the full url representing the canonical location of this chart state
@@ -111,7 +143,11 @@ export class URLBinder {
     @computed get yearParam(): string | undefined {
         const { chart, origChart } = this
 
-        if (chart.props.map && origChart.map && chart.props.map.targetYear !== origChart.map.targetYear) {
+        if (
+            chart.props.map &&
+            origChart.map &&
+            chart.props.map.targetYear !== origChart.map.targetYear
+        ) {
             return toString(chart.props.map.targetYear)
         } else {
             return undefined
@@ -138,8 +174,16 @@ export class URLBinder {
 
     @computed get countryParam(): string | undefined {
         const { chart, origChart } = this
-        if (chart.data.isReady && JSON.stringify(chart.props.selectedData) !== JSON.stringify(origChart.selectedData)) {
-            return uniq(chart.data.selectedKeys.map(k => chart.data.lookupKey(k).shortCode).map(encodeURIComponent)).join("+")
+        if (
+            chart.data.isReady &&
+            JSON.stringify(chart.props.selectedData) !==
+                JSON.stringify(origChart.selectedData)
+        ) {
+            return uniq(
+                chart.data.selectedKeys
+                    .map(k => chart.data.lookupKey(k).shortCode)
+                    .map(encodeURIComponent)
+            ).join("+")
         } else {
             return undefined
         }
@@ -172,36 +216,35 @@ export class URLBinder {
         if (tab) {
             if (!includes(chart.availableTabs, tab))
                 console.error("Unexpected tab: " + tab)
-            else
-                chart.props.tab = (tab as ChartTabOption)
+            else chart.props.tab = tab as ChartTabOption
         }
 
         const overlay = params.overlay
         if (overlay) {
             if (!includes(chart.availableTabs, overlay))
                 console.error("Unexpected overlay: " + overlay)
-            else
-                chart.props.overlay = (overlay as ChartTabOption)
+            else chart.props.overlay = overlay as ChartTabOption
         }
 
         // Stack mode for bar and stacked area charts
-        chart.props.stackMode = defaultTo(params.stackMode, chart.props.stackMode)
+        chart.props.stackMode = defaultTo(
+            params.stackMode,
+            chart.props.stackMode
+        )
 
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
-            if (xScaleType === 'linear' || xScaleType === 'log')
+            if (xScaleType === "linear" || xScaleType === "log")
                 chart.xAxis.scaleType = xScaleType
-            else
-                console.error("Unexpected xScale: " + xScaleType)
+            else console.error("Unexpected xScale: " + xScaleType)
         }
 
         const yScaleType = params.yScale
         if (yScaleType) {
-            if (yScaleType === 'linear' || yScaleType === 'log')
+            if (yScaleType === "linear" || yScaleType === "log")
                 chart.yAxis.scaleType = yScaleType
-            else
-                console.error("Unexpected xScale: " + yScaleType)
+            else console.error("Unexpected xScale: " + yScaleType)
         }
 
         const time = params.time
@@ -216,7 +259,8 @@ export class URLBinder {
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
-            chart.props.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
+            chart.props.compareEndPointsOnly =
+                endpointsOnly === "1" ? true : undefined
         }
 
         // Map stuff below
@@ -235,27 +279,49 @@ export class URLBinder {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
-        when(() => chart.data.isReady, () => {
-            runInAction(() => {
-                if (country) {
-                    const entityCodes = country.split('+').map(decodeURIComponent)
+        when(
+            () => chart.data.isReady,
+            () => {
+                runInAction(() => {
+                    if (country) {
+                        const entityCodes = country
+                            .split("+")
+                            .map(decodeURIComponent)
 
-                    if (chart.data.canChangeEntity) {
-                        chart.data.availableEntities.forEach(entity => {
-                            const entityMeta = chart.vardata.entityMetaByKey[entity]
-                            if (entityMeta.code === entityCodes[0] || entityMeta.name === entityCodes[0])
-                                chart.data.switchEntity(entityMeta.id)
-                        })
-                    } else {
-                        chart.data.selectedKeys = filter(chart.data.availableKeys, datakey => {
-                            const meta = chart.data.lookupKey(datakey)
-                            const entityMeta = chart.vardata.entityMetaByKey[meta.entity]
-                            return includes(entityCodes, meta.shortCode) || includes(entityCodes, entityMeta.code) || includes(entityCodes, entityMeta.name)
-                        })
+                        if (chart.data.canChangeEntity) {
+                            chart.data.availableEntities.forEach(entity => {
+                                const entityMeta =
+                                    chart.vardata.entityMetaByKey[entity]
+                                if (
+                                    entityMeta.code === entityCodes[0] ||
+                                    entityMeta.name === entityCodes[0]
+                                )
+                                    chart.data.switchEntity(entityMeta.id)
+                            })
+                        } else {
+                            chart.data.selectedKeys = filter(
+                                chart.data.availableKeys,
+                                datakey => {
+                                    const meta = chart.data.lookupKey(datakey)
+                                    const entityMeta =
+                                        chart.vardata.entityMetaByKey[
+                                            meta.entity
+                                        ]
+                                    return (
+                                        includes(entityCodes, meta.shortCode) ||
+                                        includes(
+                                            entityCodes,
+                                            entityMeta.code
+                                        ) ||
+                                        includes(entityCodes, entityMeta.name)
+                                    )
+                                }
+                            )
+                        }
                     }
-                }
-            })
-        })
+                })
+            }
+        )
 
         // Set shown legend keys for chartViews with toggleable series
         /*var shown = params.shown;

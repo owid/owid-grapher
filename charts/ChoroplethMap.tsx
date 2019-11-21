@@ -1,15 +1,15 @@
-import * as React from 'react'
-import { computed, action, observable } from 'mobx'
-import { observer } from 'mobx-react'
-import * as topojson from 'topojson'
+import * as React from "react"
+import { computed, action, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as topojson from "topojson"
 
-import { identity, sortBy, guid, getRelativeMouse, min } from './Util'
-import { Bounds } from './Bounds'
-import { MapProjections } from './MapProjections'
-import { MapProjection } from './MapProjection'
-import { MapTopology } from './MapTopology'
-import { Vector2 } from './Vector2'
-import { worldRegionByMapEntity } from './WorldRegions'
+import { identity, sortBy, guid, getRelativeMouse, min } from "./Util"
+import { Bounds } from "./Bounds"
+import { MapProjections } from "./MapProjections"
+import { MapProjection } from "./MapProjection"
+import { MapTopology } from "./MapTopology"
+import { Vector2 } from "./Vector2"
+import { worldRegionByMapEntity } from "./WorldRegions"
 
 export interface ChoroplethDatum {
     entity: string
@@ -28,14 +28,14 @@ export type MapBracket = any
 export type MapEntity = any
 
 interface ChoroplethMapProps {
-    choroplethData: ChoroplethData,
-    bounds: Bounds,
-    projection: MapProjection,
-    defaultFill: string,
-    focusBracket: MapBracket,
-    focusEntity: MapEntity,
-    onClick: (d: GeoFeature) => void,
-    onHover: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void,
+    choroplethData: ChoroplethData
+    bounds: Bounds
+    projection: MapProjection
+    defaultFill: string
+    focusBracket: MapBracket
+    focusEntity: MapEntity
+    onClick: (d: GeoFeature) => void
+    onHover: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onHoverStop: () => void
 }
 
@@ -70,7 +70,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Get the underlying geographical topology elements we're going to display
     @computed get geoFeatures(): GeoFeature[] {
-        return (topojson.feature(MapTopology as any, MapTopology.objects.world as any) as any).features
+        return (topojson.feature(
+            MapTopology as any,
+            MapTopology.objects.world as any
+        ) as any).features
     }
 
     // The d3 path generator for this projection
@@ -83,13 +86,18 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return this.geoFeatures.map(d => {
             const b = this.pathGen.bounds(d)
 
-            const bounds = Bounds.fromCorners(Vector2.fromArray(b[0]), Vector2.fromArray(b[1]))
+            const bounds = Bounds.fromCorners(
+                Vector2.fromArray(b[0]),
+                Vector2.fromArray(b[1])
+            )
 
             // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
             if (d.id === "Fiji")
-                return bounds.extend({ x: bounds.right-bounds.height, width: bounds.height })
-            else
-                return bounds
+                return bounds.extend({
+                    x: bounds.right - bounds.height,
+                    width: bounds.height
+                })
+            else return bounds
         })
     }
 
@@ -108,7 +116,12 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
             const newPaths = paths.map(path => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)
-                const rounded = points.map(p => p.split(/,/).map(v => parseFloat(v).toFixed(1)).join(','))
+                const rounded = points.map(p =>
+                    p
+                        .split(/,/)
+                        .map(v => parseFloat(v).toFixed(1))
+                        .join(",")
+                )
                 return "M" + rounded.join("L")
             })
 
@@ -138,28 +151,24 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     // Check if a geo entity is currently focused, either directly or via the bracket
     hasFocus(id: string) {
         const { choroplethData, focusBracket, focusEntity } = this
-        if (focusEntity && focusEntity.id === id)
-            return true
-        else if (!focusBracket)
-            return false
+        if (focusEntity && focusEntity.id === id) return true
+        else if (!focusBracket) return false
 
         const datum = choroplethData[id] || null
-        if (focusBracket.contains(datum))
-            return true
-        else
-            return false
+        if (focusBracket.contains(datum)) return true
+        else return false
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
     @computed get viewport() {
         const viewports = {
-            "World": { x: 0.565, y: 0.5, width: 1, height: 1 },
-            "Europe": { x: 0.5, y: 0.22, width: 0.2, height: 0.2 },
-            "Africa": { x: 0.49, y: 0.70, width: 0.21, height: 0.38 },
-            "NorthAmerica": { x: 0.49, y: 0.40, width: 0.19, height: 0.32 },
-            "SouthAmerica": { x: 0.52, y: 0.815, width: 0.10, height: 0.26 },
-            "Asia": { x: 0.75, y: 0.45, width: 0.3, height: 0.5 },
-            "Oceania": { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
+            World: { x: 0.565, y: 0.5, width: 1, height: 1 },
+            Europe: { x: 0.5, y: 0.22, width: 0.2, height: 0.2 },
+            Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
+            NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
+            SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
+            Asia: { x: 0.75, y: 0.45, width: 0.3, height: 0.5 },
+            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 }
         }
 
         return viewports[this.props.projection]
@@ -167,10 +176,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed get viewportScale() {
-        const {bounds, viewport, mapBounds} = this
+        const { bounds, viewport, mapBounds } = this
         const viewportWidth = viewport.width * mapBounds.width
         const viewportHeight = viewport.height * mapBounds.height
-        return Math.min(bounds.width / viewportWidth, bounds.height / viewportHeight)
+        return Math.min(
+            bounds.width / viewportWidth,
+            bounds.height / viewportHeight
+        )
     }
 
     @computed get matrixTransform() {
@@ -186,8 +198,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const newHeight = mapBounds.height * viewportScale
         const boundsCenterX = bounds.left + bounds.width / 2
         const boundsCenterY = bounds.top + bounds.height / 2
-        const newCenterX = mapX + (viewportScale - 1) * mapBounds.x + viewport.x * newWidth
-        const newCenterY = mapY + (viewportScale - 1) * mapBounds.y + viewport.y * newHeight
+        const newCenterX =
+            mapX + (viewportScale - 1) * mapBounds.x + viewport.x * newWidth
+        const newCenterY =
+            mapY + (viewportScale - 1) * mapBounds.y + viewport.y * newHeight
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
@@ -198,20 +212,32 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed get nonProjectionFeatures(): RenderFeature[] {
         const { projection } = this.props
-        return this.renderFeatures.filter(feature => projection !== "World" && worldRegionByMapEntity[feature.id] !== projection)
+        return this.renderFeatures.filter(
+            feature =>
+                projection !== "World" &&
+                worldRegionByMapEntity[feature.id] !== projection
+        )
     }
 
     @computed get projectionFeatures(): RenderFeature[] {
         const { projection } = this.props
-        return this.renderFeatures.filter(feature => projection === "World" || worldRegionByMapEntity[feature.id] === projection)
+        return this.renderFeatures.filter(
+            feature =>
+                projection === "World" ||
+                worldRegionByMapEntity[feature.id] === projection
+        )
     }
 
     @computed get noDataFeatures(): RenderFeature[] {
-        return this.projectionFeatures.filter(feature => !this.choroplethData[feature.id])
+        return this.projectionFeatures.filter(
+            feature => !this.choroplethData[feature.id]
+        )
     }
 
     @computed get dataFeatures(): RenderFeature[] {
-        return this.projectionFeatures.filter(feature => this.choroplethData[feature.id])
+        return this.projectionFeatures.filter(
+            feature => this.choroplethData[feature.id]
+        )
     }
 
     // Map uses a hybrid approach to mouseover
@@ -222,11 +248,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @observable hoverEnterFeature?: RenderFeature
     @observable hoverNearbyFeature?: RenderFeature
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        if (this.hoverEnterFeature)
-            return
+        if (this.hoverEnterFeature) return
 
         const { renderFeatures } = this
-        const mouse = getRelativeMouse(this.base.current!.querySelector('.subunits'), ev)
+        const mouse = getRelativeMouse(
+            this.base.current!.querySelector(".subunits"),
+            ev
+        )
 
         const featuresWithDistance = renderFeatures.map(d => {
             return { feature: d, distance: Vector2.distance(d.center, mouse) }
@@ -245,7 +273,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         }
     }
 
-    @action.bound onMouseEnter(feature: RenderFeature, ev: React.MouseEvent<SVGElement>) {
+    @action.bound onMouseEnter(
+        feature: RenderFeature,
+        ev: React.MouseEvent<SVGElement>
+    ) {
         this.hoverEnterFeature = feature
         this.props.onHover(feature.geo, ev)
     }
@@ -267,46 +298,128 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
     render() {
-        const { uid, bounds, choroplethData, defaultFill, matrixTransform, viewportScale, nonProjectionFeatures, noDataFeatures, dataFeatures } = this
+        const {
+            uid,
+            bounds,
+            choroplethData,
+            defaultFill,
+            matrixTransform,
+            viewportScale,
+            nonProjectionFeatures,
+            noDataFeatures,
+            dataFeatures
+        } = this
         const focusColor = "#FFEC38"
         const focusStrokeWidth = 2.5
 
-        return <g ref={this.base} className="ChoroplethMap" clipPath={`url(#boundsClip-${uid})`} onMouseMove={this.onMouseMove} onClick={this.onClick} style={this.hoverFeature ? { cursor: "pointer" } : {}}>
-            <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" opacity={0}/>
-            <defs>
-                <clipPath id={`boundsClip-${uid}`}>
-                    <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height}></rect>
-                </clipPath>
-            </defs>
-            <g className="subunits" transform={matrixTransform}>
-                {nonProjectionFeatures.length && <g className="nonProjectionFeatures">
-                    {nonProjectionFeatures.map(d => {
-                        return <path key={d.id} d={d.path} strokeWidth={0.3/viewportScale} stroke={"#aaa"} fill={"#fff"}/>
-                    })}
-                </g>}
+        return (
+            <g
+                ref={this.base}
+                className="ChoroplethMap"
+                clipPath={`url(#boundsClip-${uid})`}
+                onMouseMove={this.onMouseMove}
+                onClick={this.onClick}
+                style={this.hoverFeature ? { cursor: "pointer" } : {}}
+            >
+                <rect
+                    x={bounds.x}
+                    y={bounds.y}
+                    width={bounds.width}
+                    height={bounds.height}
+                    fill="rgba(255,255,255,0)"
+                    opacity={0}
+                />
+                <defs>
+                    <clipPath id={`boundsClip-${uid}`}>
+                        <rect
+                            x={bounds.x}
+                            y={bounds.y}
+                            width={bounds.width}
+                            height={bounds.height}
+                        ></rect>
+                    </clipPath>
+                </defs>
+                <g className="subunits" transform={matrixTransform}>
+                    {nonProjectionFeatures.length && (
+                        <g className="nonProjectionFeatures">
+                            {nonProjectionFeatures.map(d => {
+                                return (
+                                    <path
+                                        key={d.id}
+                                        d={d.path}
+                                        strokeWidth={0.3 / viewportScale}
+                                        stroke={"#aaa"}
+                                        fill={"#fff"}
+                                    />
+                                )
+                            })}
+                        </g>
+                    )}
 
-                {noDataFeatures.length && <g className="noDataFeatures">
-                    {noDataFeatures.map(d => {
-                        const isFocus = this.hasFocus(d.id)
-                        const stroke = isFocus ? focusColor : "#aaa"
-                        return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={defaultFill} onClick={() => this.props.onClick(d.geo)} onMouseEnter={(ev) => this.onMouseEnter(d, ev)} onMouseLeave={this.onMouseLeave}/>
-                    })}
-                </g>}
+                    {noDataFeatures.length && (
+                        <g className="noDataFeatures">
+                            {noDataFeatures.map(d => {
+                                const isFocus = this.hasFocus(d.id)
+                                const stroke = isFocus ? focusColor : "#aaa"
+                                return (
+                                    <path
+                                        key={d.id}
+                                        d={d.path}
+                                        strokeWidth={
+                                            (isFocus ? focusStrokeWidth : 0.3) /
+                                            viewportScale
+                                        }
+                                        stroke={stroke}
+                                        cursor="pointer"
+                                        fill={defaultFill}
+                                        onClick={() =>
+                                            this.props.onClick(d.geo)
+                                        }
+                                        onMouseEnter={ev =>
+                                            this.onMouseEnter(d, ev)
+                                        }
+                                        onMouseLeave={this.onMouseLeave}
+                                    />
+                                )
+                            })}
+                        </g>
+                    )}
 
-                {sortBy(dataFeatures.map(d => {
-                    const isFocus = this.hasFocus(d.id)
-                    const datum = choroplethData[d.id as string]
-                    const stroke = isFocus ? focusColor : "#333"
-                    const fill = datum ? datum.color : defaultFill
+                    {sortBy(
+                        dataFeatures.map(d => {
+                            const isFocus = this.hasFocus(d.id)
+                            const datum = choroplethData[d.id as string]
+                            const stroke = isFocus ? focusColor : "#333"
+                            const fill = datum ? datum.color : defaultFill
 
-                    return <path key={d.id} d={d.path} strokeWidth={(isFocus ? focusStrokeWidth : 0.3)/viewportScale} stroke={stroke} cursor="pointer" fill={fill} onClick={() => this.props.onClick(d.geo)} onMouseEnter={(ev) => this.onMouseEnter(d, ev)} onMouseLeave={this.onMouseLeave}/>
-                }), p => p.props['strokeWidth'])}
+                            return (
+                                <path
+                                    key={d.id}
+                                    d={d.path}
+                                    strokeWidth={
+                                        (isFocus ? focusStrokeWidth : 0.3) /
+                                        viewportScale
+                                    }
+                                    stroke={stroke}
+                                    cursor="pointer"
+                                    fill={fill}
+                                    onClick={() => this.props.onClick(d.geo)}
+                                    onMouseEnter={ev =>
+                                        this.onMouseEnter(d, ev)
+                                    }
+                                    onMouseLeave={this.onMouseLeave}
+                                />
+                            )
+                        }),
+                        p => p.props["strokeWidth"]
+                    )}
 
-                {/*dataFeatures.map(d => <rect x={d.bounds.x} y={d.bounds.y} width={d.bounds.width} height={d.bounds.height} fill="none" stroke="#000"/>)*/}
-            </g>
-            {/*<text className="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
+                    {/*dataFeatures.map(d => <rect x={d.bounds.x} y={d.bounds.y} width={d.bounds.width} height={d.bounds.height} fill="none" stroke="#000"/>)*/}
+                </g>
+                {/*<text className="disclaimer" x={bounds.left+bounds.width-5} y={bounds.top+bounds.height-10} font-size="0.5em" text-anchor="end">
                 Mapped on current borders
             </text>*/}
-        </g>
+            </g>
+        )
     }
 }

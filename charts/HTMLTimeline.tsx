@@ -1,24 +1,43 @@
-import { select } from 'd3-selection'
-import { first, last, sortBy, find } from './Util'
-import * as React from 'react'
-import { Bounds } from './Bounds'
-import { getRelativeMouse, formatYear } from './Util'
-import { observable, computed, autorun, action, runInAction, IReactionDisposer } from 'mobx'
-import { observer } from 'mobx-react'
-import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay'
-import { faPause } from '@fortawesome/free-solid-svg-icons/faPause'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { select } from "d3-selection"
+import { first, last, sortBy, find } from "./Util"
+import * as React from "react"
+import { Bounds } from "./Bounds"
+import { getRelativeMouse, formatYear } from "./Util"
+import {
+    observable,
+    computed,
+    autorun,
+    action,
+    runInAction,
+    IReactionDisposer
+} from "mobx"
+import { observer } from "mobx-react"
+import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
+import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface TimelineProps {
-    years: number[],
-    startYear: number,
-    endYear: number,
-    onTargetChange: ({ targetStartYear, targetEndYear }: { targetStartYear: number, targetEndYear: number }) => void,
-    onInputChange?: ({ startYear, endYear }: { startYear: number, endYear: number }) => void,
-    onStartDrag?: () => void,
-    onStopDrag?: () => void,
-    singleYearMode?: boolean,
+    years: number[]
+    startYear: number
+    endYear: number
+    onTargetChange: ({
+        targetStartYear,
+        targetEndYear
+    }: {
+        targetStartYear: number
+        targetEndYear: number
+    }) => void
+    onInputChange?: ({
+        startYear,
+        endYear
+    }: {
+        startYear: number
+        endYear: number
+    }) => void
+    onStartDrag?: () => void
+    onStopDrag?: () => void
+    singleYearMode?: boolean
     singleYearPlay?: boolean
 }
 
@@ -73,7 +92,10 @@ export class Timeline extends React.Component<TimelineProps> {
     // Sanity check the input
     @computed get startYear(): number {
         const { startYearInput, endYearInput, minYear, maxYear } = this
-        return Math.min(maxYear, Math.max(minYear, Math.min(startYearInput, endYearInput)))
+        return Math.min(
+            maxYear,
+            Math.max(minYear, Math.min(startYearInput, endYearInput))
+        )
     }
 
     // Closest year to the input start year
@@ -87,15 +109,18 @@ export class Timeline extends React.Component<TimelineProps> {
     // e.g. 1954 => 1950
     @computed get targetStartYear(): number {
         const { years, startYear } = this
-        return (find(
+        return find(
             sortBy(years, year => Math.abs(year - startYear)),
             year => year <= startYear
-        ) as number)
+        ) as number
     }
 
     @computed get endYear(): number {
         const { startYearInput, endYearInput, minYear, maxYear } = this
-        return Math.min(maxYear, Math.max(minYear, Math.max(startYearInput, endYearInput)))
+        return Math.min(
+            maxYear,
+            Math.max(minYear, Math.max(startYearInput, endYearInput))
+        )
     }
 
     @computed get roundedEndYear(): number {
@@ -105,16 +130,16 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @computed get targetEndYear(): number {
         const { years, endYear } = this
-        return (find(
+        return find(
             sortBy(years, year => Math.abs(year - endYear)),
             year => year <= endYear
-        ) as number)
+        ) as number
     }
 
     animRequest?: number
 
     @action.bound onStartPlaying() {
-        let lastTime: number|undefined
+        let lastTime: number | undefined
         const ticksPerSec = 5
 
         const playFrame = action((time: number) => {
@@ -136,7 +161,10 @@ export class Timeline extends React.Component<TimelineProps> {
                     const nextYear = years[years.indexOf(endYear) + 1]
                     const yearsToNext = nextYear - endYear
 
-                    this.endYearInput = endYear + (Math.max(yearsToNext / 3, 1) * elapsed * ticksPerSec / 1000)
+                    this.endYearInput =
+                        endYear +
+                        (Math.max(yearsToNext / 3, 1) * elapsed * ticksPerSec) /
+                            1000
                     if (this.props.singleYearMode || this.props.singleYearPlay)
                         this.startYearInput = this.endYearInput
                 }
@@ -156,11 +184,15 @@ export class Timeline extends React.Component<TimelineProps> {
 
     get sliderBounds() {
         const slider = this.base.current!.querySelector(".slider")
-        return slider ? Bounds.fromRect(slider.getBoundingClientRect()) : new Bounds(0, 0, 100, 100)
+        return slider
+            ? Bounds.fromRect(slider.getBoundingClientRect())
+            : new Bounds(0, 0, 100, 100)
     }
 
     getInputYearFromMouse(evt: MouseEvent) {
-        const slider = this.base.current!.querySelector(".slider") as HTMLDivElement
+        const slider = this.base.current!.querySelector(
+            ".slider"
+        ) as HTMLDivElement
         const sliderBounds = slider.getBoundingClientRect()
 
         const { minYear, maxYear } = this
@@ -177,22 +209,25 @@ export class Timeline extends React.Component<TimelineProps> {
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
 
-        if (props.singleYearMode || (this.isPlaying && this.props.singleYearPlay)) {
+        if (
+            props.singleYearMode ||
+            (this.isPlaying && this.props.singleYearPlay)
+        ) {
             this.startYearInput = inputYear
             this.endYearInput = inputYear
-        } else if (dragTarget === 'start')
-            this.startYearInput = inputYear
-        else if (dragTarget === 'end')
-            this.endYearInput = inputYear
-        else if (dragTarget === 'both') {
+        } else if (dragTarget === "start") this.startYearInput = inputYear
+        else if (dragTarget === "end") this.endYearInput = inputYear
+        else if (dragTarget === "both") {
             this.startYearInput = this.dragOffsets[0] + inputYear
             this.endYearInput = this.dragOffsets[1] + inputYear
 
             if (this.startYearInput < minYear) {
                 this.startYearInput = minYear
-                this.endYearInput = minYear + (this.dragOffsets[1] - this.dragOffsets[0])
+                this.endYearInput =
+                    minYear + (this.dragOffsets[1] - this.dragOffsets[0])
             } else if (this.endYearInput > maxYear) {
-                this.startYearInput = maxYear + (this.dragOffsets[0] - this.dragOffsets[1])
+                this.startYearInput =
+                    maxYear + (this.dragOffsets[0] - this.dragOffsets[1])
                 this.endYearInput = maxYear
             }
         }
@@ -201,23 +236,34 @@ export class Timeline extends React.Component<TimelineProps> {
     @action.bound onMouseDown(e: any) {
         // Don't do mousemove if we clicked the play or pause button
         const targetEl = select(e.target)
-        if (targetEl.classed('toggle')) return
+        if (targetEl.classed("toggle")) return
 
         const { startYear, endYear } = this
         const { singleYearMode } = this.props
 
         const inputYear = this.getInputYearFromMouse(e)
-        if (startYear === endYear && (targetEl.classed('startMarker') || targetEl.classed('endMarker')))
-            this.dragTarget = 'both'
-        else if (!singleYearMode && (targetEl.classed('startMarker') || inputYear <= startYear))
-            this.dragTarget = 'start'
-        else if (!singleYearMode && (targetEl.classed('endMarker') || inputYear >= endYear))
-            this.dragTarget = 'end'
-        else
-            this.dragTarget = 'both'
+        if (
+            startYear === endYear &&
+            (targetEl.classed("startMarker") || targetEl.classed("endMarker"))
+        )
+            this.dragTarget = "both"
+        else if (
+            !singleYearMode &&
+            (targetEl.classed("startMarker") || inputYear <= startYear)
+        )
+            this.dragTarget = "start"
+        else if (
+            !singleYearMode &&
+            (targetEl.classed("endMarker") || inputYear >= endYear)
+        )
+            this.dragTarget = "end"
+        else this.dragTarget = "both"
 
-        if (this.dragTarget === 'both')
-            this.dragOffsets = [this.startYearInput - inputYear, this.endYearInput - inputYear]
+        if (this.dragTarget === "both")
+            this.dragOffsets = [
+                this.startYearInput - inputYear,
+                this.endYearInput - inputYear
+            ]
 
         this.onDrag(inputYear)
 
@@ -232,7 +278,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     queuedAnimationFrame?: number
 
-    @action.bound onMouseMove(ev: MouseEvent|TouchEvent) {
+    @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
         const { dragTarget, queuedAnimationFrame } = this
         if (!dragTarget) return
         if (queuedAnimationFrame) cancelAnimationFrame(queuedAnimationFrame)
@@ -248,20 +294,18 @@ export class Timeline extends React.Component<TimelineProps> {
 
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
-        document.documentElement.addEventListener('mouseup', this.onMouseUp)
-        document.documentElement.addEventListener('mouseleave', this.onMouseUp)
-        document.documentElement.addEventListener('mousemove', this.onMouseMove)
-        document.documentElement.addEventListener('touchend', this.onMouseUp)
-        document.documentElement.addEventListener('touchmove', this.onMouseMove)
+        document.documentElement.addEventListener("mouseup", this.onMouseUp)
+        document.documentElement.addEventListener("mouseleave", this.onMouseUp)
+        document.documentElement.addEventListener("mousemove", this.onMouseMove)
+        document.documentElement.addEventListener("touchend", this.onMouseUp)
+        document.documentElement.addEventListener("touchmove", this.onMouseMove)
 
         this.disposers = [
             autorun(() => {
                 const { isPlaying } = this
 
-                if (isPlaying)
-                    this.onStartPlaying()
-                else
-                    this.onStopPlaying()
+                if (isPlaying) this.onStartPlaying()
+                else this.onStopPlaying()
             }),
             autorun(() => {
                 const { isPlaying, isDragging } = this
@@ -274,17 +318,34 @@ export class Timeline extends React.Component<TimelineProps> {
                     if (onStopDrag) onStopDrag()
                 }
             }),
-            autorun(() => {
-                if (this.props.onInputChange)
-                    this.props.onInputChange({ startYear: this.startYear, endYear: this.endYear })
-            }, { delay: 0 }),
-            autorun(() => {
-                if (this.props.onTargetChange)
-                    this.props.onTargetChange({ targetStartYear: this.targetStartYear, targetEndYear: this.targetEndYear })
-            }, { delay: 0 }),
+            autorun(
+                () => {
+                    if (this.props.onInputChange)
+                        this.props.onInputChange({
+                            startYear: this.startYear,
+                            endYear: this.endYear
+                        })
+                },
+                { delay: 0 }
+            ),
+            autorun(
+                () => {
+                    if (this.props.onTargetChange)
+                        this.props.onTargetChange({
+                            targetStartYear: this.targetStartYear,
+                            targetEndYear: this.targetEndYear
+                        })
+                },
+                { delay: 0 }
+            ),
             autorun(() => {
                 // If we're not playing or dragging, lock the input to the closest year (no interpolation)
-                const { isPlaying, isDragging, roundedStartYear, roundedEndYear } = this
+                const {
+                    isPlaying,
+                    isDragging,
+                    roundedStartYear,
+                    roundedEndYear
+                } = this
                 if (!isPlaying && !isDragging) {
                     action(() => {
                         this.startYearInput = roundedStartYear
@@ -296,11 +357,20 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     componentWillUnmount() {
-        document.documentElement.removeEventListener('mouseup', this.onMouseUp)
-        document.documentElement.removeEventListener('mouseleave', this.onMouseUp)
-        document.documentElement.removeEventListener('mousemove', this.onMouseMove)
-        document.documentElement.removeEventListener('touchend', this.onMouseUp)
-        document.documentElement.removeEventListener('touchmove', this.onMouseMove)
+        document.documentElement.removeEventListener("mouseup", this.onMouseUp)
+        document.documentElement.removeEventListener(
+            "mouseleave",
+            this.onMouseUp
+        )
+        document.documentElement.removeEventListener(
+            "mousemove",
+            this.onMouseMove
+        )
+        document.documentElement.removeEventListener("touchend", this.onMouseUp)
+        document.documentElement.removeEventListener(
+            "touchmove",
+            this.onMouseMove
+        )
         this.disposers.forEach(dispose => dispose())
     }
 
@@ -314,17 +384,43 @@ export class Timeline extends React.Component<TimelineProps> {
         const startYearProgress = (startYear - minYear) / (maxYear - minYear)
         const endYearProgress = (endYear - minYear) / (maxYear - minYear)
 
-        return <div ref={this.base} className={"clickable TimelineControl"} onTouchStart={this.onMouseDown} onMouseDown={this.onMouseDown}>
-            <div onMouseDown={e => e.stopPropagation()} onClick={this.onTogglePlay}>
-                {isPlaying ? <FontAwesomeIcon icon={faPause}/> : <FontAwesomeIcon icon={faPlay}/>}
+        return (
+            <div
+                ref={this.base}
+                className={"clickable TimelineControl"}
+                onTouchStart={this.onMouseDown}
+                onMouseDown={this.onMouseDown}
+            >
+                <div
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={this.onTogglePlay}
+                >
+                    {isPlaying ? (
+                        <FontAwesomeIcon icon={faPause} />
+                    ) : (
+                        <FontAwesomeIcon icon={faPlay} />
+                    )}
+                </div>
+                <div>{formatYear(minYear)}</div>
+                <div className="slider">
+                    <div
+                        className="handle startMarker"
+                        style={{ left: `${startYearProgress * 100}%` }}
+                    />
+                    <div
+                        className="interval"
+                        style={{
+                            left: `${startYearProgress * 100}%`,
+                            right: `${100 - endYearProgress * 100}%`
+                        }}
+                    />
+                    <div
+                        className="handle endMarker"
+                        style={{ left: `${endYearProgress * 100}%` }}
+                    />
+                </div>
+                <div>{formatYear(maxYear)}</div>
             </div>
-            <div>{formatYear(minYear)}</div>
-            <div className="slider">
-                <div className="handle startMarker" style={{ left: `${startYearProgress * 100}%` }} />
-                <div className="interval" style={{ left: `${startYearProgress * 100}%`, right: `${100 - (endYearProgress * 100)}%` }} />
-                <div className="handle endMarker" style={{ left: `${endYearProgress * 100}%` }} />
-            </div>
-            <div>{formatYear(maxYear)}</div>
-        </div>
+        )
     }
 }

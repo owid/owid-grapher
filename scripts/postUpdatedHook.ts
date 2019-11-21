@@ -1,11 +1,16 @@
-import { syncPostToGrapher } from 'db/model/Post'
-import * as parseArgs from 'minimist'
-import { BAKE_ON_CHANGE } from 'serverSettings'
-import { enqueueDeploy } from 'deploy/queue'
-import { exit } from 'db/cleanup'
+import { syncPostToGrapher } from "db/model/Post"
+import * as parseArgs from "minimist"
+import { BAKE_ON_CHANGE } from "serverSettings"
+import { enqueueDeploy } from "deploy/queue"
+import { exit } from "db/cleanup"
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(email: string, name: string, postId: number, postSlug: string) {
+async function main(
+    email: string,
+    name: string,
+    postId: number,
+    postSlug: string
+) {
     console.log(email, name, postId)
     const slug = await syncPostToGrapher(postId)
 

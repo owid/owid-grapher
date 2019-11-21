@@ -1,21 +1,21 @@
-import { isEmpty, reduce, map, max } from './Util'
-import { computed } from 'mobx'
-import { FontSize } from './FontSize'
-import { defaultTo } from './Util'
-import { Bounds } from './Bounds'
-import * as React from 'react'
+import { isEmpty, reduce, map, max } from "./Util"
+import { computed } from "mobx"
+import { FontSize } from "./FontSize"
+import { defaultTo } from "./Util"
+import { Bounds } from "./Bounds"
+import * as React from "react"
 
 export interface TextWrapProps {
-    text: string,
-    maxWidth: number,
-    lineHeight?: number,
-    fontSize: FontSize,
+    text: string
+    maxWidth: number
+    lineHeight?: number
+    fontSize: FontSize
     raw?: true
 }
 
 interface WrapLine {
-    text: string,
-    width: number,
+    text: string
+    width: number
     height: number
 }
 
@@ -33,19 +33,27 @@ export class TextWrap {
         this.props = props
     }
 
-    @computed get maxWidth(): number { return defaultTo(this.props.maxWidth, Infinity) }
-    @computed get lineHeight(): number { return defaultTo(this.props.lineHeight, 1.1) }
-    @computed get fontSize(): FontSize { return defaultTo(this.props.fontSize, 1) }
-    @computed get text(): string { return this.props.text }
+    @computed get maxWidth(): number {
+        return defaultTo(this.props.maxWidth, Infinity)
+    }
+    @computed get lineHeight(): number {
+        return defaultTo(this.props.lineHeight, 1.1)
+    }
+    @computed get fontSize(): FontSize {
+        return defaultTo(this.props.fontSize, 1)
+    }
+    @computed get text(): string {
+        return this.props.text
+    }
 
     @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize } = this
 
         const words = isEmpty(text)
             ? []
-            // We prepend spaces to newlines in order to be able to do a "starts with"
-            // check to trigger a new line.
-            : text.replace(/\n/g, ' \n').split(' ')
+            : // We prepend spaces to newlines in order to be able to do a "starts with"
+              // check to trigger a new line.
+              text.replace(/\n/g, " \n").split(" ")
 
         const lines: WrapLine[] = []
 
@@ -54,10 +62,19 @@ export class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(strip(nextLine.join(' ')), { fontSize: fontSize })
+            const nextBounds = Bounds.forText(strip(nextLine.join(" ")), {
+                fontSize: fontSize
+            })
 
-            if (startsWithNewline(word) || (nextBounds.width+10 > maxWidth && line.length >= 1)) {
-                lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+            if (
+                startsWithNewline(word) ||
+                (nextBounds.width + 10 > maxWidth && line.length >= 1)
+            ) {
+                lines.push({
+                    text: line.join(" "),
+                    width: lineBounds.width,
+                    height: lineBounds.height
+                })
                 line = [word]
                 lineBounds = Bounds.forText(strip(word), { fontSize: fontSize })
             } else {
@@ -66,13 +83,20 @@ export class TextWrap {
             }
         })
         if (line.length > 0)
-            lines.push({ text: line.join(' '), width: lineBounds.width, height: lineBounds.height })
+            lines.push({
+                text: line.join(" "),
+                width: lineBounds.width,
+                height: lineBounds.height
+            })
 
         return lines
     }
 
     @computed get height(): number {
-        return reduce(this.lines, (total, line) => total + line.height, 0) + this.lineHeight * (this.lines.length - 1)
+        return (
+            reduce(this.lines, (total, line) => total + line.height, 0) +
+            this.lineHeight * (this.lines.length - 1)
+        )
     }
 
     @computed get width(): number {
@@ -81,48 +105,91 @@ export class TextWrap {
 
     @computed get htmlStyle(): any {
         const { fontSize, lineHeight } = this
-        return {fontSize: fontSize.toFixed(2)+'px', lineHeight: lineHeight, overflowY: 'visible'}
+        return {
+            fontSize: fontSize.toFixed(2) + "px",
+            lineHeight: lineHeight,
+            overflowY: "visible"
+        }
     }
 
     renderHTML() {
         const { props, lines } = this
 
-        if (lines.length === 0)
-            return null
+        if (lines.length === 0) return null
 
         // if (props.raw)
         //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options} dangerouslySetInnerHTML={{__html: text}}/>
         // else
         //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options}>{strip(text)}</p>
 
-        return <React.Fragment>
-            {lines.map((line, i) => {
-                if (props.raw)
-                    return <React.Fragment key={i}>
-                        <span dangerouslySetInnerHTML={{ __html: line.text }} /><br/>
-                    </React.Fragment>
-                else
-                    return <React.Fragment key={i}>
-                        {strip(line.text)}<br/>
-                    </React.Fragment>
-            })}
-        </React.Fragment>
+        return (
+            <React.Fragment>
+                {lines.map((line, i) => {
+                    if (props.raw)
+                        return (
+                            <React.Fragment key={i}>
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: line.text
+                                    }}
+                                />
+                                <br />
+                            </React.Fragment>
+                        )
+                    else
+                        return (
+                            <React.Fragment key={i}>
+                                {strip(line.text)}
+                                <br />
+                            </React.Fragment>
+                        )
+                })}
+            </React.Fragment>
+        )
     }
 
-    render(x: number, y: number, options?: any) {//React.SVGAttributes<SVGTextElement>) {
+    render(x: number, y: number, options?: any) {
+        //React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, lineHeight } = this
 
-        if (lines.length === 0)
-            return null
+        if (lines.length === 0) return null
 
         const yOffset = y + lines[0].height - lines[0].height * 0.2
-        return <text fontSize={fontSize.toFixed(2)} x={x.toFixed(1)} y={yOffset.toFixed(1)} {...options}>
-            {lines.map((line, i) => {
-                if (props.raw)
-                    return <tspan key={i} x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)} dangerouslySetInnerHTML={{ __html: line.text }} />
-                else
-                    return <tspan key={i} x={x} y={yOffset + (i === 0 ? 0 : lineHeight * fontSize * i)}>{strip(line.text)}</tspan>
-            })}
-        </text>
+        return (
+            <text
+                fontSize={fontSize.toFixed(2)}
+                x={x.toFixed(1)}
+                y={yOffset.toFixed(1)}
+                {...options}
+            >
+                {lines.map((line, i) => {
+                    if (props.raw)
+                        return (
+                            <tspan
+                                key={i}
+                                x={x}
+                                y={
+                                    yOffset +
+                                    (i === 0 ? 0 : lineHeight * fontSize * i)
+                                }
+                                dangerouslySetInnerHTML={{ __html: line.text }}
+                            />
+                        )
+                    else
+                        return (
+                            <tspan
+                                key={i}
+                                x={x}
+                                y={
+                                    yOffset +
+                                    (i === 0 ? 0 : lineHeight * fontSize * i)
+                                }
+                            >
+                                {strip(line.text)}
+                            </tspan>
+                        )
+                })}
+            </text>
+        )
     }
 }

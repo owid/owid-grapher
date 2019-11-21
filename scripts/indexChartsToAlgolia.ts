@@ -1,10 +1,10 @@
-import * as algoliasearch from 'algoliasearch'
-import * as _ from 'lodash'
+import * as algoliasearch from "algoliasearch"
+import * as _ from "lodash"
 
-import * as db from 'db/db'
-import { ALGOLIA_ID } from 'settings'
-import { ALGOLIA_SECRET_KEY } from 'serverSettings'
-import { configureAlgolia } from './configureAlgolia'
+import * as db from "db/db"
+import { ALGOLIA_ID } from "settings"
+import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { configureAlgolia } from "./configureAlgolia"
 
 async function indexChartsToAlgolia() {
     await configureAlgolia()
@@ -38,13 +38,13 @@ async function indexChartsToAlgolia() {
     }
 
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const finalIndex = await client.initIndex('charts')
-    const tmpIndex = await client.initIndex('charts_tmp')
+    const finalIndex = await client.initIndex("charts")
+    const tmpIndex = await client.initIndex("charts_tmp")
 
     await client.copyIndex(finalIndex.indexName, tmpIndex.indexName, [
-        'settings',
-        'synonyms',
-        'rules'
+        "settings",
+        "synonyms",
+        "rules"
     ])
 
     const records = []

@@ -1,30 +1,38 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import * as _ from 'lodash'
-import {observable, computed} from 'mobx'
-import urljoin = require('url-join')
+import * as React from "react"
+import * as ReactDOM from "react-dom"
+import * as _ from "lodash"
+import { observable, computed } from "mobx"
+import urljoin = require("url-join")
 
-import { AdminApp } from './AdminApp'
-import { Json } from 'charts/Util'
-import { queryParamsToStr } from 'utils/client/url'
+import { AdminApp } from "./AdminApp"
+import { Json } from "charts/Util"
+import { queryParamsToStr } from "utils/client/url"
 
-type HTTPMethod = 'GET'|'PUT'|'POST'|'DELETE'
+type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
 
 interface ClientSettings {
-    ENV: 'development'|'production'
+    ENV: "development" | "production"
     GITHUB_USERNAME: string
 }
 
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable errorMessage?: { title: string, content: string, isFatal?: boolean }
+    @observable errorMessage?: {
+        title: string
+        content: string
+        isFatal?: boolean
+    }
     basePath: string
     username: string
     isSuperuser: boolean
     settings: ClientSettings
 
-    constructor(props: { username: string, isSuperuser: boolean, settings: ClientSettings }) {
+    constructor(props: {
+        username: string
+        isSuperuser: boolean
+        settings: ClientSettings
+    }) {
         this.basePath = "/admin"
         this.username = props.username
         this.isSuperuser = props.isSuperuser
@@ -38,7 +46,7 @@ export class Admin {
     }
 
     start(containerNode: HTMLElement) {
-        ReactDOM.render(<AdminApp admin={this}/>, containerNode)
+        ReactDOM.render(<AdminApp admin={this} />, containerNode)
     }
 
     url(path: string): string {
@@ -50,26 +58,31 @@ export class Admin {
     }
 
     // Make a request with no error or response handling
-    async rawRequest(path: string, data: string|File, method: HTTPMethod) {
+    async rawRequest(path: string, data: string | File, method: HTTPMethod) {
         const headers: any = {}
         const isFile = data instanceof File
         if (!isFile) {
-            headers['Content-Type'] = 'application/json'
+            headers["Content-Type"] = "application/json"
         }
-        headers['Accept'] = 'application/json'
+        headers["Accept"] = "application/json"
 
         return fetch(this.url(path), {
             method: method,
-            credentials: 'same-origin',
+            credentials: "same-origin",
             headers: headers,
-            body: method !== 'GET' ? data : undefined
+            body: method !== "GET" ? data : undefined
         })
     }
 
     // Make a request and expect JSON
     // If we can't retrieve and parse JSON, it is treated as a fatal/unexpected error
-    async requestJSON(path: string, data: Json|File, method: HTTPMethod, opts: { onFailure?: 'show'|'continue' } = {}) {
-        const onFailure = opts.onFailure || 'show'
+    async requestJSON(
+        path: string,
+        data: Json | File,
+        method: HTTPMethod,
+        opts: { onFailure?: "show" | "continue" } = {}
+    ) {
+        const onFailure = opts.onFailure || "show"
 
         let targetPath = path
         // Tack params on the end if it's a GET request
@@ -77,13 +90,17 @@ export class Admin {
             targetPath += queryParamsToStr(data as Json)
         }
 
-        let response: Response|undefined
-        let text: string|undefined
+        let response: Response | undefined
+        let text: string | undefined
         let json: Json
 
         let request: Promise<Response>
         try {
-            request = this.rawRequest(targetPath, data instanceof File ? data : JSON.stringify(data), method)
+            request = this.rawRequest(
+                targetPath,
+                data instanceof File ? data : JSON.stringify(data),
+                method
+            )
             this.currentRequests.push(request)
 
             response = await request
@@ -91,24 +108,36 @@ export class Admin {
 
             json = JSON.parse(text)
             if (json.error) {
-                if (onFailure === 'show') {
-                    this.errorMessage = { title: `Failed to ${method} ${targetPath} (${response.status})`, content: json.error.message, isFatal: response.status !== 404 }
+                if (onFailure === "show") {
+                    this.errorMessage = {
+                        title: `Failed to ${method} ${targetPath} (${response.status})`,
+                        content: json.error.message,
+                        isFatal: response.status !== 404
+                    }
                 }
                 throw json.error
             }
         } catch (err) {
-            if (onFailure === 'show') {
-                this.errorMessage = { title: `Failed to ${method} ${targetPath}` + (response ? ` (${response.status})` : ""), content: text||err, isFatal: true }
+            if (onFailure === "show") {
+                this.errorMessage = {
+                    title:
+                        `Failed to ${method} ${targetPath}` +
+                        (response ? ` (${response.status})` : ""),
+                    content: text || err,
+                    isFatal: true
+                }
             }
             throw err
         } finally {
-            this.currentRequests = this.currentRequests.filter(req => req !== request)
+            this.currentRequests = this.currentRequests.filter(
+                req => req !== request
+            )
         }
 
         return json
     }
 
     async getJSON(path: string, params: Json = {}): Promise<Json> {
-        return this.requestJSON(path, params, 'GET')
+        return this.requestJSON(path, params, "GET")
     }
 }

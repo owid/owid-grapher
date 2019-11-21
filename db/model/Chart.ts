@@ -1,16 +1,24 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany, JoinColumn} from "typeorm"
-import * as _ from 'lodash'
-import * as db from 'db/db'
-import { ChartConfig, ChartConfigProps } from 'charts/ChartConfig'
-import {getVariableData} from './Variable'
-import { User } from './User'
-import { ChartRevision } from './ChartRevision'
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    BaseEntity,
+    ManyToOne,
+    OneToMany,
+    JoinColumn
+} from "typeorm"
+import * as _ from "lodash"
+import * as db from "db/db"
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
+import { getVariableData } from "./Variable"
+import { User } from "./User"
+import { ChartRevision } from "./ChartRevision"
 import { PUBLIC_TAG_PARENT_IDS } from "settings"
 
 @Entity("charts")
 export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ type: 'json' }) config: any
+    @Column({ type: "json" }) config: any
     @Column() lastEditedAt!: Date
     @Column({ nullable: true }) lastEditedByUserId!: number
     @Column({ nullable: true }) publishedAt!: Date
@@ -29,10 +37,14 @@ export class Chart extends BaseEntity {
     static table: string = "charts"
 
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-        const redirects = await db.query(`SELECT chart_id, slug FROM chart_slug_redirects`)
-        const rows = await db.query(`SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`)
+        const redirects = await db.query(
+            `SELECT chart_id, slug FROM chart_slug_redirects`
+        )
+        const rows = await db.query(
+            `SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`
+        )
 
-        const slugToId: {[slug: string]: number} = {}
+        const slugToId: { [slug: string]: number } = {}
         for (const row of redirects) {
             slugToId[row.slug] = row.chart_id
         }
@@ -42,7 +54,7 @@ export class Chart extends BaseEntity {
         return slugToId
     }
 
-    static async getBySlug(slug: string): Promise<Chart|undefined> {
+    static async getBySlug(slug: string): Promise<Chart | undefined> {
         const slugsById = await this.mapSlugsToIds()
         return await Chart.findOne({ id: slugsById[slug] })
     }
@@ -52,16 +64,28 @@ export class Chart extends BaseEntity {
             const tagRows = tagIds.map(tagId => [tagId, chartId])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
-                await t.execute(`INSERT INTO chart_tags (tagId, chartId) VALUES ?`, [tagRows])
+                await t.execute(
+                    `INSERT INTO chart_tags (tagId, chartId) VALUES ?`,
+                    [tagRows]
+                )
 
-            const tags = tagIds.length ? await t.query("select parentId from tags where id in (?)", [tagIds]) as { parentId: number }[] : []
-            const isIndexable = tags.some(t => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
+            const tags = tagIds.length
+                ? ((await t.query("select parentId from tags where id in (?)", [
+                      tagIds
+                  ])) as { parentId: number }[])
+                : []
+            const isIndexable = tags.some(t =>
+                PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
+            )
 
-            await t.execute("update charts set is_indexable = ? where id = ?", [isIndexable, chartId])
+            await t.execute("update charts set is_indexable = ? where id = ?", [
+                isIndexable,
+                chartId
+            ])
         })
     }
 
-    static async assignTagsForCharts(charts: { id: number, tags: any[] }[]) {
+    static async assignTagsForCharts(charts: { id: number; tags: any[] }[]) {
         const chartTags = await db.query(`
             SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
@@ -76,8 +100,7 @@ export class Chart extends BaseEntity {
 
         for (const ct of chartTags) {
             const chart = chartsById[ct.chartId]
-            if (chart)
-                chart.tags.push({ id: ct.tagId, name: ct.tagName })
+            if (chart) chart.tags.push({ id: ct.tagId, name: ct.tagName })
         }
     }
 
@@ -120,7 +143,10 @@ export class OldChart {
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {
-        const row = await db.get(`SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`, [slug])
+        const row = await db.get(
+            `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`,
+            [slug]
+        )
 
         return new OldChart(row.id, JSON.parse(row.config))
     }
@@ -136,7 +162,9 @@ export class OldChart {
     }
 
     async getVariableData(): Promise<any> {
-        const variableIds = _.uniq(this.config.dimensions.map(d => d.variableId))
+        const variableIds = _.uniq(
+            this.config.dimensions.map(d => d.variableId)
+        )
         return getVariableData(variableIds)
     }
 }

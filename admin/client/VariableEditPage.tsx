@@ -1,19 +1,26 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, autorun, IReactionDisposer} from 'mobx'
-import * as _ from 'lodash'
-import {Prompt, Redirect} from 'react-router-dom'
+import * as React from "react"
+import { observer } from "mobx-react"
+import {
+    observable,
+    computed,
+    action,
+    runInAction,
+    autorun,
+    IReactionDisposer
+} from "mobx"
+import * as _ from "lodash"
+import { Prompt, Redirect } from "react-router-dom"
 
-import { Admin } from './Admin'
-import { AdminLayout } from './AdminLayout'
-import { Link } from './Link'
-import {BindString, BindFloat, FieldsRow } from './Forms'
-import { VariableDisplaySettings } from 'charts/VariableData'
-import { ChartConfig } from 'charts/ChartConfig'
-import { ChartFigureView } from 'site/client/ChartFigureView'
-import { ChartList, ChartListItem } from './ChartList'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
-import { Base64 } from 'js-base64'
+import { Admin } from "./Admin"
+import { AdminLayout } from "./AdminLayout"
+import { Link } from "./Link"
+import { BindString, BindFloat, FieldsRow } from "./Forms"
+import { VariableDisplaySettings } from "charts/VariableData"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChartFigureView } from "site/client/ChartFigureView"
+import { ChartList, ChartListItem } from "./ChartList"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { Base64 } from "js-base64"
 
 interface VariablePageData {
     id: number
@@ -28,7 +35,7 @@ interface VariablePageData {
     datasetNamespace: string
 
     charts: ChartListItem[]
-    source: { id: number, name: string }
+    source: { id: number; name: string }
 }
 
 class VariableEditable {
@@ -40,10 +47,8 @@ class VariableEditable {
 
     constructor(json: any) {
         for (const key in this) {
-            if (key === "display")
-                _.extend(this.display, json.display)
-            else
-                this[key] = json[key]
+            if (key === "display") _.extend(this.display, json.display)
+            else this[key] = json[key]
         }
     }
 }
@@ -55,7 +60,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable isDeleted: boolean = false
 
     // Store the original dataset to determine when it is modified
-    componentWillMount() { this.componentWillReceiveProps() }
+    componentWillMount() {
+        this.componentWillReceiveProps()
+    }
     componentWillReceiveProps() {
         this.newVariable = new VariableEditable(this.props.variable)
         this.isDeleted = false
@@ -67,15 +74,26 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
-        return JSON.stringify(this.newVariable) !== JSON.stringify(new VariableEditable(this.props.variable))
+        return (
+            JSON.stringify(this.newVariable) !==
+            JSON.stringify(new VariableEditable(this.props.variable))
+        )
     }
 
     async delete() {
-        const {variable} = this.props
-        if (!window.confirm(`Really delete the variable ${variable.name}? This action cannot be undone!`))
+        const { variable } = this.props
+        if (
+            !window.confirm(
+                `Really delete the variable ${variable.name}? This action cannot be undone!`
+            )
+        )
             return
 
-        const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, {}, "DELETE")
+        const json = await this.context.admin.requestJSON(
+            `/api/variables/${variable.id}`,
+            {},
+            "DELETE"
+        )
 
         if (json.success) {
             this.isDeleted = true
@@ -83,61 +101,136 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     }
 
     render() {
-        const {variable} = this.props
-        const {newVariable} = this
-        const isBulkImport = variable.datasetNamespace !== 'owid'
+        const { variable } = this.props
+        const { newVariable } = this
+        const isBulkImport = variable.datasetNamespace !== "owid"
 
         if (this.isDeleted)
-            return <Redirect to={`/datasets/${variable.datasetId}`}/>
+            return <Redirect to={`/datasets/${variable.datasetId}`} />
 
-        return <main className="VariableEditPage">
-            <Prompt when={this.isModified} message="Are you sure you want to leave? Unsaved changes will be lost."/>
-            <ol className="breadcrumb">
-                <li className="breadcrumb-item">{variable.datasetNamespace}</li>
-                <li className="breadcrumb-item"><Link to={`/datasets/${variable.datasetId}`}>{variable.datasetName}</Link></li>
-                <li className="breadcrumb-item active">{variable.name}</li>
-            </ol>
-            <div className="row">
-                <div className="col">
-                    <form onSubmit={e => { e.preventDefault(); this.save() }}>
-                        <section>
-                            <h3>Variable metadata</h3>
-                            {isBulkImport ?
-                                <p>This variable came from an automated import, so we can't change the original metadata manually.</p>
-                            : <p>The core metadata for the variable. It's important to keep this consistent.</p>}
-                            <BindString field="name" store={newVariable} label="Variable Name" disabled={isBulkImport}/>
-                            <BindString label="Display name" field="name" store={newVariable.display}/>
-                            <FieldsRow>
-                                <BindString label="Unit of measurement" field="unit" store={newVariable.display}/>
-                                <BindString label="Short (axis) unit" field="shortUnit" store={newVariable.display}/>
-                            </FieldsRow>
-                            <FieldsRow>
-                                <BindFloat label="Number of decimal places" field="numDecimalPlaces" store={newVariable.display} helpText={`A negative number here will round integers`}/>
-                                <BindFloat label="Unit conversion factor" field="conversionFactor" store={newVariable.display} helpText={`Multiply all values by this amount`}/>
-                            </FieldsRow>
-                            <BindString field="description" store={newVariable} label="Description" textarea disabled={isBulkImport}/>
-                        </section>
-                        <input type="submit" className="btn btn-success" value="Update variable"/>
-                    </form>
-                </div>
-                {this.chart && <div className="col">
-                    <div className="topbar">
-                        <h3>Preview</h3>
-                        <Link className="btn btn-secondary" to={`/charts/create/${Base64.encode(JSON.stringify(this.chart.json))}`}>Edit as new chart</Link>
+        return (
+            <main className="VariableEditPage">
+                <Prompt
+                    when={this.isModified}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        {variable.datasetNamespace}
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/datasets/${variable.datasetId}`}>
+                            {variable.datasetName}
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active">{variable.name}</li>
+                </ol>
+                <div className="row">
+                    <div className="col">
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault()
+                                this.save()
+                            }}
+                        >
+                            <section>
+                                <h3>Variable metadata</h3>
+                                {isBulkImport ? (
+                                    <p>
+                                        This variable came from an automated
+                                        import, so we can't change the original
+                                        metadata manually.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        The core metadata for the variable. It's
+                                        important to keep this consistent.
+                                    </p>
+                                )}
+                                <BindString
+                                    field="name"
+                                    store={newVariable}
+                                    label="Variable Name"
+                                    disabled={isBulkImport}
+                                />
+                                <BindString
+                                    label="Display name"
+                                    field="name"
+                                    store={newVariable.display}
+                                />
+                                <FieldsRow>
+                                    <BindString
+                                        label="Unit of measurement"
+                                        field="unit"
+                                        store={newVariable.display}
+                                    />
+                                    <BindString
+                                        label="Short (axis) unit"
+                                        field="shortUnit"
+                                        store={newVariable.display}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindFloat
+                                        label="Number of decimal places"
+                                        field="numDecimalPlaces"
+                                        store={newVariable.display}
+                                        helpText={`A negative number here will round integers`}
+                                    />
+                                    <BindFloat
+                                        label="Unit conversion factor"
+                                        field="conversionFactor"
+                                        store={newVariable.display}
+                                        helpText={`Multiply all values by this amount`}
+                                    />
+                                </FieldsRow>
+                                <BindString
+                                    field="description"
+                                    store={newVariable}
+                                    label="Description"
+                                    textarea
+                                    disabled={isBulkImport}
+                                />
+                            </section>
+                            <input
+                                type="submit"
+                                className="btn btn-success"
+                                value="Update variable"
+                            />
+                        </form>
                     </div>
-                    <ChartFigureView chart={this.chart}/>
-                </div>}
-            </div>
-            <section>
-                <h3>Charts</h3>
-                <ChartList charts={variable.charts}/>
-            </section>
-        </main>
+                    {this.chart && (
+                        <div className="col">
+                            <div className="topbar">
+                                <h3>Preview</h3>
+                                <Link
+                                    className="btn btn-secondary"
+                                    to={`/charts/create/${Base64.encode(
+                                        JSON.stringify(this.chart.json)
+                                    )}`}
+                                >
+                                    Edit as new chart
+                                </Link>
+                            </div>
+                            <ChartFigureView chart={this.chart} />
+                        </div>
+                    )}
+                </div>
+                <section>
+                    <h3>Charts</h3>
+                    <ChartList charts={variable.charts} />
+                </section>
+            </main>
+        )
     }
 
     async save() {
-        const {variable} = this.props
-        const json = await this.context.admin.requestJSON(`/api/variables/${variable.id}`, { variable: this.newVariable }, "PUT")
+        const { variable } = this.props
+        const json = await this.context.admin.requestJSON(
+            `/api/variables/${variable.id}`,
+            { variable: this.newVariable },
+            "PUT"
+        )
 
         if (json.success) {
             Object.assign(this.props.variable, this.newVariable)
@@ -150,11 +243,13 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
             map: { variableId: this.props.variable.id },
             tab: "map",
             hasMapTab: true,
-            dimensions: [{
-                property: 'y',
-                variableId: this.props.variable.id,
-                display: _.clone(this.newVariable.display)
-            }]
+            dimensions: [
+                {
+                    property: "y",
+                    variableId: this.props.variable.id,
+                    display: _.clone(this.newVariable.display)
+                }
+            ]
         }
     }
 
@@ -182,19 +277,25 @@ export class VariableEditPage extends React.Component<{ variableId: number }> {
     @observable variable?: VariablePageData
 
     render() {
-        return <AdminLayout>
-            {this.variable && <VariableEditor variable={this.variable}/>}
-        </AdminLayout>
+        return (
+            <AdminLayout>
+                {this.variable && <VariableEditor variable={this.variable} />}
+            </AdminLayout>
+        )
     }
 
     async getData() {
-        const json = await this.context.admin.getJSON(`/api/variables/${this.props.variableId}.json`)
+        const json = await this.context.admin.getJSON(
+            `/api/variables/${this.props.variableId}.json`
+        )
         runInAction(() => {
             this.variable = json.variable as VariablePageData
         })
     }
 
-    componentDidMount() { this.componentWillReceiveProps() }
+    componentDidMount() {
+        this.componentWillReceiveProps()
+    }
     componentWillReceiveProps() {
         this.getData()
     }

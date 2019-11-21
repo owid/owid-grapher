@@ -1,9 +1,9 @@
-import * as mysql from 'mysql'
-import * as typeorm from 'typeorm'
-import * as Knex from 'knex'
-import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from 'serverSettings'
-import { log } from 'utils/server/log'
-import { registerExitHandler } from './cleanup'
+import * as mysql from "mysql"
+import * as typeorm from "typeorm"
+import * as Knex from "knex"
+import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from "serverSettings"
+import { log } from "utils/server/log"
+import { registerExitHandler } from "./cleanup"
 let connection: typeorm.Connection
 
 export async function connect() {
@@ -11,7 +11,6 @@ export async function connect() {
 }
 
 async function getConnection() {
-
     if (connection) return connection
 
     try {
@@ -38,15 +37,21 @@ export class TransactionContext {
     }
 
     execute(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(params ? mysql.format(queryStr, params) : queryStr)
+        return this.manager.query(
+            params ? mysql.format(queryStr, params) : queryStr
+        )
     }
 
     query(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(params ? mysql.format(queryStr, params) : queryStr)
+        return this.manager.query(
+            params ? mysql.format(queryStr, params) : queryStr
+        )
     }
 }
 
-export async function transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
+export async function transaction<T>(
+    callback: (t: TransactionContext) => Promise<T>
+): Promise<T> {
     return (await getConnection()).transaction(async manager => {
         const t = new TransactionContext(manager)
         return callback(t)
@@ -69,10 +74,8 @@ export async function get(queryStr: string, params?: any[]): Promise<any> {
 }
 
 export async function end() {
-    if (connection)
-        await connection.close()
-    if (knexInstance)
-        await knexInstance.destroy()
+    if (connection) await connection.close()
+    if (knexInstance) await knexInstance.destroy()
 }
 
 let knexInstance: Knex
@@ -80,7 +83,7 @@ let knexInstance: Knex
 export function knex() {
     if (!knexInstance) {
         knexInstance = Knex({
-            client: 'mysql',
+            client: "mysql",
             connection: {
                 host: DB_HOST,
                 user: DB_USER,
@@ -88,8 +91,8 @@ export function knex() {
                 database: DB_NAME,
                 port: DB_PORT,
                 typeCast: (field: any, next: any) => {
-                    if (field.type === 'TINY' && field.length === 1) {
-                        return (field.string() === '1') // 1 = true, 0 = false
+                    if (field.type === "TINY" && field.length === 1) {
+                        return field.string() === "1" // 1 = true, 0 = false
                     }
                     return next()
                 }
@@ -112,6 +115,9 @@ export function raw(s: string) {
     return knex().raw(s)
 }
 
-export async function select<T, K extends keyof T>(query: Knex.QueryBuilder, ...args: K[]): Promise<Pick<T, K>[]> {
+export async function select<T, K extends keyof T>(
+    query: Knex.QueryBuilder,
+    ...args: K[]
+): Promise<Pick<T, K>[]> {
     return query.select(...args) as any
 }

@@ -1,8 +1,15 @@
-import { Variable } from './VariableData'
-import { observable, computed } from 'mobx'
-import { defaultTo, formatValue, some, isString, sortBy, isNumber } from './Util'
-import { ChartDimension } from './ChartDimension'
-import { TickFormattingOptions } from './TickFormattingOptions'
+import { Variable } from "./VariableData"
+import { observable, computed } from "mobx"
+import {
+    defaultTo,
+    formatValue,
+    some,
+    isString,
+    sortBy,
+    isNumber
+} from "./Util"
+import { ChartDimension } from "./ChartDimension"
+import { TickFormattingOptions } from "./TickFormattingOptions"
 
 export class DimensionWithData {
     props: ChartDimension
@@ -18,11 +25,17 @@ export class DimensionWithData {
     }
 
     @computed get displayName(): string {
-        return defaultTo(defaultTo(this.props.display.name, this.variable.display.name), this.variable.name)
+        return defaultTo(
+            defaultTo(this.props.display.name, this.variable.display.name),
+            this.variable.name
+        )
     }
 
     @computed get unit(): string {
-        return defaultTo(defaultTo(this.props.display.unit, this.variable.display.unit), this.variable.unit)
+        return defaultTo(
+            defaultTo(this.props.display.unit, this.variable.display.unit),
+            this.variable.unit
+        )
     }
 
     // Full name of the variable with associated unit information, used for data export
@@ -31,11 +44,20 @@ export class DimensionWithData {
     }
 
     @computed get unitConversionFactor(): number {
-        return defaultTo(defaultTo(this.props.display.conversionFactor, this.variable.display.conversionFactor), 1)
+        return defaultTo(
+            defaultTo(
+                this.props.display.conversionFactor,
+                this.variable.display.conversionFactor
+            ),
+            1
+        )
     }
 
     @computed get isProjection(): boolean {
-        return !!defaultTo(this.props.display.isProjection, this.variable.display.isProjection)
+        return !!defaultTo(
+            this.props.display.isProjection,
+            this.variable.display.isProjection
+        )
     }
 
     @computed get targetYear(): number | undefined {
@@ -43,58 +65,86 @@ export class DimensionWithData {
     }
 
     @computed get tolerance(): number {
-        return defaultTo(defaultTo(this.props.display.tolerance, this.variable.display.tolerance), 0)
+        return defaultTo(
+            defaultTo(
+                this.props.display.tolerance,
+                this.variable.display.tolerance
+            ),
+            0
+        )
     }
 
     @computed get numDecimalPlaces(): number {
-        return defaultTo(defaultTo(this.props.display.numDecimalPlaces, this.variable.display.numDecimalPlaces), 2)
+        return defaultTo(
+            defaultTo(
+                this.props.display.numDecimalPlaces,
+                this.variable.display.numDecimalPlaces
+            ),
+            2
+        )
     }
 
     @computed get shortUnit(): string {
         const { unit } = this
-        const shortUnit = defaultTo(defaultTo(this.props.display.shortUnit, this.variable.display.shortUnit), this.variable.shortUnit||undefined)
+        const shortUnit = defaultTo(
+            defaultTo(
+                this.props.display.shortUnit,
+                this.variable.display.shortUnit
+            ),
+            this.variable.shortUnit || undefined
+        )
 
         if (shortUnit !== undefined) return shortUnit
 
         if (!unit) return ""
 
-        if (unit.length < 3)
-            return unit
+        if (unit.length < 3) return unit
         else {
-            const commonShortUnits = ['$', '£', '€', '%']
-            if (some(commonShortUnits, u => unit[0] === u))
-                return unit[0]
-            else
-                return ""
+            const commonShortUnits = ["$", "£", "€", "%"]
+            if (some(commonShortUnits, u => unit[0] === u)) return unit[0]
+            else return ""
         }
     }
 
-    @computed get formatValueShort(): (value: number | string, options?: TickFormattingOptions) => string {
+    @computed get formatValueShort(): (
+        value: number | string,
+        options?: TickFormattingOptions
+    ) => string {
         const { shortUnit, numDecimalPlaces } = this
         return (value, options) => {
-            if (isString(value))
-                return value
+            if (isString(value)) return value
             else
-                return formatValue(value, { unit: shortUnit, numDecimalPlaces: numDecimalPlaces, ...options })
+                return formatValue(value, {
+                    unit: shortUnit,
+                    numDecimalPlaces: numDecimalPlaces,
+                    ...options
+                })
         }
     }
 
-    @computed get formatValueLong(): (value: number | string, options?: TickFormattingOptions) => string {
+    @computed get formatValueLong(): (
+        value: number | string,
+        options?: TickFormattingOptions
+    ) => string {
         const { unit, numDecimalPlaces } = this
         return (value, options) => {
-            if (isString(value))
-                return value
+            if (isString(value)) return value
             else
-                return formatValue(value, { unit: unit, numDecimalPlaces: numDecimalPlaces, ...options })
+                return formatValue(value, {
+                    unit: unit,
+                    numDecimalPlaces: numDecimalPlaces,
+                    ...options
+                })
         }
     }
 
     @computed get values() {
         const { unitConversionFactor } = this
         if (unitConversionFactor !== 1)
-            return this.variable.values.map(v => (v as number) * unitConversionFactor)
-        else
-            return this.variable.values
+            return this.variable.values.map(
+                v => (v as number) * unitConversionFactor
+            )
+        else return this.variable.values
     }
 
     @computed get numericValues(): number[] {
@@ -129,8 +179,14 @@ export class DimensionWithData {
         return this.variable.entities
     }
 
-    @computed get valueByEntityAndYear(): Map<string, Map<number, (string | number)>> {
-        const valueByEntityAndYear = new Map<string, Map<number, (string | number)>>()
+    @computed get valueByEntityAndYear(): Map<
+        string,
+        Map<number, string | number>
+    > {
+        const valueByEntityAndYear = new Map<
+            string,
+            Map<number, string | number>
+        >()
         for (let i = 0; i < this.values.length; i++) {
             const entity = this.entities[i]
             const year = this.years[i]

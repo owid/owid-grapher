@@ -1,15 +1,15 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
-const timeago = require('timeago.js')()
+import * as React from "react"
+import { observer } from "mobx-react"
+import { observable, computed, action, runInAction } from "mobx"
+const timeago = require("timeago.js")()
 const fuzzysort = require("fuzzysort")
-import * as _ from 'lodash'
+import * as _ from "lodash"
 
-import { AdminLayout } from './AdminLayout'
-import { SearchField, FieldsRow, EditableTags } from './Forms'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
-import { WORDPRESS_URL } from 'settings'
-import { Tag } from './TagBadge'
+import { AdminLayout } from "./AdminLayout"
+import { SearchField, FieldsRow, EditableTags } from "./Forms"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { WORDPRESS_URL } from "settings"
+import { Tag } from "./TagBadge"
 
 interface PostIndexMeta {
     id: number
@@ -30,31 +30,44 @@ interface Searchable {
 }
 
 @observer
-class PostRow extends React.Component<{ post: PostIndexMeta, highlight: (text: string) => any, availableTags: Tag[] }> {
+class PostRow extends React.Component<{
+    post: PostIndexMeta
+    highlight: (text: string) => any
+    availableTags: Tag[]
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
     render() {
-        const {post, highlight} = this.props
+        const { post, highlight } = this.props
 
-        return <tr>
-            <td><img src={post.imageUrl} style={{ width: "120px" }} /></td>
-            <td>
-                <h2>
-                    <a href={post.url}>{post.title}</a>
-                </h2>
-                <p>{post.excerpt}</p>
-            </td>
-            <td>{post.type}</td>
-            <td>{post.status}</td>
-            <td>{timeago.format(post.updatedAt)}</td>
-            <td>
-                <a href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`} className="btn btn-primary">Edit</a>
-            </td>
-            {/*<td>
+        return (
+            <tr>
+                <td>
+                    <img src={post.imageUrl} style={{ width: "120px" }} />
+                </td>
+                <td>
+                    <h2>
+                        <a href={post.url}>{post.title}</a>
+                    </h2>
+                    <p>{post.excerpt}</p>
+                </td>
+                <td>{post.type}</td>
+                <td>{post.status}</td>
+                <td>{timeago.format(post.updatedAt)}</td>
+                <td>
+                    <a
+                        href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}
+                        className="btn btn-primary"
+                    >
+                        Edit
+                    </a>
+                </td>
+                {/*<td>
                 <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>
             </td>*/}
-        </tr>
+            </tr>
+        )
     }
 }
 
@@ -81,11 +94,11 @@ export class NewsletterPage extends React.Component {
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const {searchInput, searchIndex, maxVisibleRows} = this
+        const { searchInput, searchIndex, maxVisibleRows } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: 'term'
+                key: "term"
             })
             return _.uniq(results.map((result: any) => result.obj.post))
         } else {
@@ -106,46 +119,70 @@ export class NewsletterPage extends React.Component {
     }
 
     render() {
-        const {postsToShow, searchInput, numTotalRows} = this
+        const { postsToShow, searchInput, numTotalRows } = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
-                const html = fuzzysort.highlight(fuzzysort.single(this.searchInput, text)) || text
-                return <span dangerouslySetInnerHTML={{__html: html}}/>
-            } else
-                return text
+                const html =
+                    fuzzysort.highlight(
+                        fuzzysort.single(this.searchInput, text)
+                    ) || text
+                return <span dangerouslySetInnerHTML={{ __html: html }} />
+            } else return text
         }
 
-        return <AdminLayout title="Newsletter">
-            <main className="NewsletterPage">
-                <FieldsRow>
-                    <span>Showing {postsToShow.length} of {numTotalRows} posts</span>
-                    <SearchField placeholder="Search all posts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-                </FieldsRow>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Summary</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Last Updated</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {postsToShow.map(post => <PostRow key={post.id} post={post} highlight={highlight} availableTags={this.availableTags}/>)}
-                    </tbody>
-                </table>
-                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more posts...</button>}
-            </main>
-        </AdminLayout>
+        return (
+            <AdminLayout title="Newsletter">
+                <main className="NewsletterPage">
+                    <FieldsRow>
+                        <span>
+                            Showing {postsToShow.length} of {numTotalRows} posts
+                        </span>
+                        <SearchField
+                            placeholder="Search all posts..."
+                            value={searchInput}
+                            onValue={this.onSearchInput}
+                            autofocus
+                        />
+                    </FieldsRow>
+                    <table className="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Summary</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {postsToShow.map(post => (
+                                <PostRow
+                                    key={post.id}
+                                    post={post}
+                                    highlight={highlight}
+                                    availableTags={this.availableTags}
+                                />
+                            ))}
+                        </tbody>
+                    </table>
+                    {!searchInput && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.onShowMore}
+                        >
+                            Show more posts...
+                        </button>
+                    )}
+                </main>
+            </AdminLayout>
+        )
     }
 
     async getData() {
-        const {admin} = this.context
-        if (admin.currentRequests.length > 0)
-            return
+        const { admin } = this.context
+        if (admin.currentRequests.length > 0) return
 
         const json = await admin.getJSON("/api/newsletterPosts.json")
         runInAction(() => {
@@ -155,5 +192,5 @@ export class NewsletterPage extends React.Component {
 
     componentDidMount() {
         this.getData()
-     }
+    }
 }

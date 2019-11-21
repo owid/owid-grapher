@@ -8,9 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch dev-admin",
-            "args": [
-                "admin/server/server.tsx"
-            ],
+            "args": ["admin/server/server.tsx"],
             "runtimeArgs": [
                 "--nolazy",
                 "-r",
@@ -21,15 +19,13 @@
                 "dotenv/config"
             ],
             "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
+            "protocol": "inspector"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch dev-site",
-            "args": [
-                "site/server/devServer.tsx"
-            ],
+            "args": ["site/server/devServer.tsx"],
             "runtimeArgs": [
                 "--nolazy",
                 "-r",
@@ -40,15 +36,13 @@
                 "dotenv/config"
             ],
             "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
+            "protocol": "inspector"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Run bake",
-            "args": [
-                "scripts/bakeSite.ts"
-            ],
+            "args": ["scripts/bakeSite.ts"],
             "runtimeArgs": [
                 "--nolazy",
                 "-r",
@@ -59,15 +53,13 @@
                 "dotenv/config"
             ],
             "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
+            "protocol": "inspector"
         },
         {
             "name": "Current TS File",
             "type": "node",
             "request": "launch",
-            "args": [
-                "${relativeFile}"
-            ],
+            "args": ["${relativeFile}"],
             "runtimeArgs": [
                 "--nolazy",
                 "-r",
@@ -78,7 +70,7 @@
                 "dotenv/config"
             ],
             "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
+            "protocol": "inspector"
         }
     ]
 }

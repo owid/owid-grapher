@@ -24,8 +24,12 @@ export class Colorizer {
         this.props = props
     }
 
-    @computed get chart(): ChartConfig { return this.props.chart }
-    @computed get colorKeys(): string[] { return this.props.keys }
+    @computed get chart(): ChartConfig {
+        return this.props.chart
+    }
+    @computed get colorKeys(): string[] {
+        return this.props.keys
+    }
 
     labelFormat(key: string): string {
         return this.props.labelFormat ? this.props.labelFormat(key) : key
@@ -36,7 +40,11 @@ export class Colorizer {
     }
 
     @computed get colorSchemeName(): string {
-        return this.chart.props.baseColorScheme || this.props.defaultColorScheme || "continents"
+        return (
+            this.chart.props.baseColorScheme ||
+            this.props.defaultColorScheme ||
+            "continents"
+        )
     }
 
     @computed get colorSet(): string[] {
@@ -44,11 +52,9 @@ export class Colorizer {
         const colorScheme = ColorSchemes[colorSchemeName] as ColorScheme
         const colors = colorScheme.getColors(colorKeys.length)
 
-        if (this.props.invert)
-            colors.reverse()
+        if (this.props.invert) colors.reverse()
 
-        if (this.chart.props.invertColorScheme)
-            colors.reverse()
+        if (this.chart.props.invertColorScheme) colors.reverse()
 
         return colors
     }
@@ -58,10 +64,18 @@ export class Colorizer {
     }
 
     get(key: string) {
-        return this.customColors[key] || this.chart.data.keyColors[key] || this.colorScale(key)
+        return (
+            this.customColors[key] ||
+            this.chart.data.keyColors[key] ||
+            this.colorScale(key)
+        )
     }
 
     @computed get colorables(): Colorable[] {
-        return this.colorKeys.map(d => ({ key: d, label: this.labelFormat(d), color: this.get(d)}))
+        return this.colorKeys.map(d => ({
+            key: d,
+            label: this.labelFormat(d),
+            color: this.get(d)
+        }))
     }
 }

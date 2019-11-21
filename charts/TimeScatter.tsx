@@ -1,19 +1,34 @@
-import * as React from 'react'
-import { observable, computed, action, runInAction } from 'mobx'
-import { observer } from 'mobx-react'
-import { Bounds } from './Bounds'
-import { ChartConfig } from './ChartConfig'
-import { NoData } from './NoData'
-import { AxisBox, AxisBoxView } from './AxisBox'
-import { ComparisonLine } from './ComparisonLine'
-import { ScaleType } from './AxisScale'
+import * as React from "react"
+import { observable, computed, action, runInAction } from "mobx"
+import { observer } from "mobx-react"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { NoData } from "./NoData"
+import { AxisBox, AxisBoxView } from "./AxisBox"
+import { ComparisonLine } from "./ComparisonLine"
+import { ScaleType } from "./AxisScale"
 
-import { some, last, sortBy, cloneDeep, each, includes, filter, flatten, min, find, first, isEmpty, guid, formatYear } from './Util'
-import { AxisScale } from './AxisScale'
-import { getRelativeMouse, makeSafeForCSS } from './Util'
-import { Vector2 } from './Vector2'
-import { select } from 'd3-selection'
-import { Tooltip } from './Tooltip'
+import {
+    some,
+    last,
+    sortBy,
+    cloneDeep,
+    each,
+    includes,
+    filter,
+    flatten,
+    min,
+    find,
+    first,
+    isEmpty,
+    guid,
+    formatYear
+} from "./Util"
+import { AxisScale } from "./AxisScale"
+import { getRelativeMouse, makeSafeForCSS } from "./Util"
+import { Vector2 } from "./Vector2"
+import { select } from "d3-selection"
+import { Tooltip } from "./Tooltip"
 
 export interface ScatterSeries {
     color: string
@@ -31,8 +46,8 @@ export interface ScatterValue {
     color?: string
     year: number
     time: {
-        x: number,
-        y: number,
+        x: number
+        y: number
         span?: [number, number]
     }
 }
@@ -45,7 +60,7 @@ interface PointsWithLabelsProps {
     xScale: AxisScale
     yScale: AxisScale
     sizeDomain: [number, number]
-    hideLines: boolean,
+    hideLines: boolean
     chart: ChartConfig
 }
 
@@ -118,15 +133,54 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
-        const year = value.time.span ? `${formatYear(value.time.span[0])} to ${formatYear(value.time.span[1])}` : formatYear(value.time.y)
+        const year = value.time.span
+            ? `${formatYear(value.time.span[0])} to ${formatYear(
+                  value.time.span[1]
+              )}`
+            : formatYear(value.time.y)
 
-        return <Tooltip x={hoverPoint.position.x+5} y={hoverPoint.position.y+5} style={{ textAlign: "center" }}>
-            <h3 style={{ padding: "0.3em 0.9em", margin: 0, backgroundColor: "#fcfcfc", borderBottom: "1px solid #ebebeb", fontWeight: "normal", fontSize: "1em" }}>{year}</h3>
-            <p style={{ margin: 0, padding: "0.3em 0.9em", fontSize: "0.8em" }}>
-                <span>{transform.yAxis.label} <strong>{transform.yFormatTooltip(value.y)}</strong></span><br />
-                <span>{transform.xAxis.label} <strong>{transform.xFormatTooltip(value.x)}{(!value.time.span && value.time.y !== value.time.x) ? ` (data from ${value.time.x})` : ""}</strong></span>
-            </p>
-        </Tooltip>
+        return (
+            <Tooltip
+                x={hoverPoint.position.x + 5}
+                y={hoverPoint.position.y + 5}
+                style={{ textAlign: "center" }}
+            >
+                <h3
+                    style={{
+                        padding: "0.3em 0.9em",
+                        margin: 0,
+                        backgroundColor: "#fcfcfc",
+                        borderBottom: "1px solid #ebebeb",
+                        fontWeight: "normal",
+                        fontSize: "1em"
+                    }}
+                >
+                    {year}
+                </h3>
+                <p
+                    style={{
+                        margin: 0,
+                        padding: "0.3em 0.9em",
+                        fontSize: "0.8em"
+                    }}
+                >
+                    <span>
+                        {transform.yAxis.label}{" "}
+                        <strong>{transform.yFormatTooltip(value.y)}</strong>
+                    </span>
+                    <br />
+                    <span>
+                        {transform.xAxis.label}{" "}
+                        <strong>
+                            {transform.xFormatTooltip(value.x)}
+                            {!value.time.span && value.time.y !== value.time.x
+                                ? ` (data from ${value.time.x})`
+                                : ""}
+                        </strong>
+                    </span>
+                </p>
+            </Tooltip>
+        )
     }
 
     @computed get series(): ScatterRenderSeries {
@@ -184,7 +238,12 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 text: v.time.y.toString(),
                 fontSize: this.labelFontSize,
                 value: v,
-                bounds: Bounds.forText(v.time.y.toString(), { x: v.position.x+3, y: v.position.y-3, fontSize: this.labelFontSize, fontFamily: this.labelFontFamily }),
+                bounds: Bounds.forText(v.time.y.toString(), {
+                    x: v.position.x + 3,
+                    y: v.position.y - 3,
+                    fontSize: this.labelFontSize,
+                    fontFamily: this.labelFontFamily
+                }),
                 isHidden: false
             }
         })
@@ -277,7 +336,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // }
 
     @computed get allLabels() {
-        const {bounds} = this
+        const { bounds } = this
         const labels = cloneDeep(this.labelCandidates)
 
         // Ensure labels fit inside bounds
@@ -292,7 +351,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             if (l.bounds.top < bounds.top - 1) {
                 l.bounds = l.bounds.extend({ y: bounds.top })
             } else if (l.bounds.bottom > bounds.bottom + 1) {
-                l.bounds = l.bounds.extend({ y: bounds.bottom - l.bounds.height })
+                l.bounds = l.bounds.extend({
+                    y: bounds.bottom - l.bounds.height
+                })
             }
         }
 
@@ -317,12 +378,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     mouseFrame?: number
     @action.bound onMouseLeave() {
-        if (this.mouseFrame !== undefined)
-            cancelAnimationFrame(this.mouseFrame)
+        if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
         this.mousePos = undefined
     }
 
-    @computed get hoverPoint(): ScatterRenderPoint|undefined {
+    @computed get hoverPoint(): ScatterRenderPoint | undefined {
         const { mousePos } = this
         if (!mousePos) return undefined
 
@@ -330,7 +390,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             return Vector2.distanceSq(v.position, mousePos)
         })[0]
 
-        if (closestPoint && Vector2.distanceSq(closestPoint.position, mousePos) < (this.bounds.width/3)**2) {
+        if (
+            closestPoint &&
+            Vector2.distanceSq(closestPoint.position, mousePos) <
+                (this.bounds.width / 3) ** 2
+        ) {
             return closestPoint
         } else {
             return undefined
@@ -338,13 +402,18 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        if (this.mouseFrame !== undefined)
-            cancelAnimationFrame(this.mouseFrame)
+        if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
         const nativeEvent = ev.nativeEvent
 
         this.mouseFrame = requestAnimationFrame(() => {
-            runInAction(() => this.mousePos = getRelativeMouse(this.base.current, nativeEvent))
+            runInAction(
+                () =>
+                    (this.mousePos = getRelativeMouse(
+                        this.base.current,
+                        nativeEvent
+                    ))
+            )
         })
     }
 
@@ -363,7 +432,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     renderBackgroundPoints() {
         // const { backgroundPoints, isLayerMode, isConnected, hideLines } = this
-
         // return hideLines ? [] : backgroundPoints.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
     }
 
@@ -383,16 +451,25 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return guid()
     }
 
-    animSelection?: d3.Selection<d3.BaseType, unknown, SVGGElement | null, unknown>
+    animSelection?: d3.Selection<
+        d3.BaseType,
+        unknown,
+        SVGGElement | null,
+        unknown
+    >
     componentDidMount() {
         const radiuses: string[] = []
         this.animSelection = select(this.base.current).selectAll("circle")
 
-        this.animSelection.each(function() {
-            const circle = this as SVGCircleElement
-            radiuses.push(circle.getAttribute('r') as string)
-            circle.setAttribute('r', "0")
-        }).transition().duration(500).attr('r', (_, i) => radiuses[i])
+        this.animSelection
+            .each(function() {
+                const circle = this as SVGCircleElement
+                radiuses.push(circle.getAttribute("r") as string)
+                circle.setAttribute("r", "0")
+            })
+            .transition()
+            .duration(500)
+            .attr("r", (_, i) => radiuses[i])
             .on("end", () => this.forceUpdate())
     }
 
@@ -401,37 +478,56 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get linesRender() {
-        return this.hideLines ? undefined : <polyline
-            strokeLinecap="round"
-            stroke={this.series.color}
-            points={this.values.map(v => `${v.position.x.toFixed(2)},${v.position.y.toFixed(2)}`).join(' ')}
-            fill="none"
-            strokeWidth={1}
-        />
+        return this.hideLines ? (
+            undefined
+        ) : (
+            <polyline
+                strokeLinecap="round"
+                stroke={this.series.color}
+                points={this.values
+                    .map(
+                        v =>
+                            `${v.position.x.toFixed(2)},${v.position.y.toFixed(
+                                2
+                            )}`
+                    )
+                    .join(" ")}
+                fill="none"
+                strokeWidth={1}
+            />
+        )
     }
 
     @computed get pointsRender() {
         return this.values.map((v, i) => {
-            return <circle
-                key={`point-${i}`}
-                cx={v.position.x.toFixed(2)}
-                cy={v.position.y.toFixed(2)}
-                r={3}
-                fill={this.series.color}
-            />
+            return (
+                <circle
+                    key={`point-${i}`}
+                    cx={v.position.x.toFixed(2)}
+                    cy={v.position.y.toFixed(2)}
+                    r={3}
+                    fill={this.series.color}
+                />
+            )
         })
     }
 
     @computed get labelsRender() {
         const { labelFontFamily } = this
-        return this.allLabels.map((l, i) =>
-                !l.isHidden && <text
-                    key={`label-${i}`}
-                    x={l.bounds.x.toFixed(2)}
-                    y={(l.bounds.y + l.bounds.height).toFixed(2)}
-                    fontSize={l.fontSize}
-                    fontFamily={labelFontFamily}
-                    fill="#333">{l.text}</text>
+        return this.allLabels.map(
+            (l, i) =>
+                !l.isHidden && (
+                    <text
+                        key={`label-${i}`}
+                        x={l.bounds.x.toFixed(2)}
+                        y={(l.bounds.y + l.bounds.height).toFixed(2)}
+                        fontSize={l.fontSize}
+                        fontFamily={labelFontFamily}
+                        fill="#333"
+                    >
+                        {l.text}
+                    </text>
+                )
         )
     }
 
@@ -442,23 +538,49 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         if (isEmpty(this.props.data) || isEmpty(this.series.points))
             return <NoData bounds={bounds} />
 
-        return <g ref={this.base} className="PointsWithLabels clickable" clipPath={`url(#scatterBounds-${renderUid})`} onMouseMove={this.onMouseMove} onMouseLeave={this.onMouseLeave} onClick={this.onClick} fontFamily={labelFontFamily}>
-            <rect key="background" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="rgba(255,255,255,0)" />
-            <defs>
-                <clipPath id={`scatterBounds-${renderUid}`}>
-                    <rect x={clipBounds.x} y={clipBounds.y} width={clipBounds.width} height={clipBounds.height} />
-                </clipPath>
-            </defs>
-            {this.linesRender}
-            {this.pointsRender}
-            {this.labelsRender}
-            {this.tooltip}
-        </g>
+        return (
+            <g
+                ref={this.base}
+                className="PointsWithLabels clickable"
+                clipPath={`url(#scatterBounds-${renderUid})`}
+                onMouseMove={this.onMouseMove}
+                onMouseLeave={this.onMouseLeave}
+                onClick={this.onClick}
+                fontFamily={labelFontFamily}
+            >
+                <rect
+                    key="background"
+                    x={bounds.x}
+                    y={bounds.y}
+                    width={bounds.width}
+                    height={bounds.height}
+                    fill="rgba(255,255,255,0)"
+                />
+                <defs>
+                    <clipPath id={`scatterBounds-${renderUid}`}>
+                        <rect
+                            x={clipBounds.x}
+                            y={clipBounds.y}
+                            width={clipBounds.width}
+                            height={clipBounds.height}
+                        />
+                    </clipPath>
+                </defs>
+                {this.linesRender}
+                {this.pointsRender}
+                {this.labelsRender}
+                {this.tooltip}
+            </g>
+        )
     }
 }
 
 @observer
-export class TimeScatter extends React.Component<{ bounds: Bounds, config: ChartConfig, isStatic: boolean }> {
+export class TimeScatter extends React.Component<{
+    bounds: Bounds
+    config: ChartConfig
+    isStatic: boolean
+}> {
     @computed get chart(): ChartConfig {
         return this.props.config
     }
@@ -471,17 +593,31 @@ export class TimeScatter extends React.Component<{ bounds: Bounds, config: Chart
         return this.props.bounds
     }
 
-    @action.bound onTargetChange({ targetStartYear, targetEndYear }: { targetStartYear: number, targetEndYear: number }) {
+    @action.bound onTargetChange({
+        targetStartYear,
+        targetEndYear
+    }: {
+        targetStartYear: number
+        targetEndYear: number
+    }) {
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }
 
     @computed get axisBox() {
         const that = this
         return new AxisBox({
-            get bounds() { return that.bounds },
-            get fontSize() { return that.chart.baseFontSize },
-            get xAxis() { return that.transform.xAxis },
-            get yAxis() { return that.transform.yAxis }
+            get bounds() {
+                return that.bounds
+            },
+            get fontSize() {
+                return that.chart.baseFontSize
+            },
+            get xAxis() {
+                return that.transform.xAxis
+            },
+            get yAxis() {
+                return that.transform.yAxis
+            }
         })
     }
 
@@ -503,15 +639,43 @@ export class TimeScatter extends React.Component<{ bounds: Bounds, config: Chart
 
     render() {
         if (this.transform.failMessage)
-            return <NoData bounds={this.bounds} message={this.transform.failMessage} />
+            return (
+                <NoData
+                    bounds={this.bounds}
+                    message={this.transform.failMessage}
+                />
+            )
 
         const { transform, axisBox, comparisonLines } = this
         const { currentData, sizeDomain } = transform
 
-        return <g>
-            <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange} />
-            {comparisonLines && comparisonLines.map((line, i) => <ComparisonLine key={i} axisBox={axisBox} comparisonLine={line} />)}
-            <PointsWithLabels chart={this.chart} hideLines={this.hideLines} data={currentData} bounds={axisBox.innerBounds} xScale={axisBox.xScale} yScale={axisBox.yScale} sizeDomain={sizeDomain} focusKeys={[]} hoverKeys={[]}/>
-        </g>
+        return (
+            <g>
+                <AxisBoxView
+                    axisBox={axisBox}
+                    onXScaleChange={this.onXScaleChange}
+                    onYScaleChange={this.onYScaleChange}
+                />
+                {comparisonLines &&
+                    comparisonLines.map((line, i) => (
+                        <ComparisonLine
+                            key={i}
+                            axisBox={axisBox}
+                            comparisonLine={line}
+                        />
+                    ))}
+                <PointsWithLabels
+                    chart={this.chart}
+                    hideLines={this.hideLines}
+                    data={currentData}
+                    bounds={axisBox.innerBounds}
+                    xScale={axisBox.xScale}
+                    yScale={axisBox.yScale}
+                    sizeDomain={sizeDomain}
+                    focusKeys={[]}
+                    hoverKeys={[]}
+                />
+            </g>
+        )
     }
 }

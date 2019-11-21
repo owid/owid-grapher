@@ -1,9 +1,9 @@
-import { observable, computed } from 'mobx'
-import { MapProjection } from './MapProjection'
-import { ChartConfig } from './ChartConfig'
-import { MapData } from './MapData'
-import { defaultTo } from './Util'
-import { Color } from './Color'
+import { observable, computed } from "mobx"
+import { MapProjection } from "./MapProjection"
+import { ChartConfig } from "./ChartConfig"
+import { MapData } from "./MapData"
+import { defaultTo } from "./Util"
+import { Color } from "./Color"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -31,7 +31,7 @@ export class MapConfigProps {
 
     // Allow hiding categories from the legend
     @observable.ref customHiddenCategories: { [key: string]: true } = {}
-    @observable.ref projection: MapProjection = 'World'
+    @observable.ref projection: MapProjection = "World"
 
     @observable.ref legendDescription?: string = undefined
     @observable.ref binStepSize?: number = undefined
@@ -40,7 +40,7 @@ export class MapConfigProps {
         if (json !== undefined) {
             for (const key in this) {
                 if (key in json) {
-                    (this as any)[key] = (json as any)[key]
+                    ;(this as any)[key] = (json as any)[key]
                 }
             }
         }
@@ -51,24 +51,54 @@ export class MapConfig {
     chart: ChartConfig
 
     get props() {
-        return (this.chart.props.map as MapConfigProps)
+        return this.chart.props.map as MapConfigProps
     }
 
-    @computed get variableId() { return this.props.variableId }
-    @computed get tolerance() { return defaultTo(this.props.timeTolerance, 0) }
-    @computed get minBucketValue() { return +defaultTo(this.props.colorSchemeMinValue, 0) }
-    @computed get colorSchemeValues() { return defaultTo(this.props.colorSchemeValues, []) }
-    @computed get isCustomColors() { return defaultTo(this.props.customColorsActive, false) }
-    @computed get customNumericColors() { return defaultTo(this.isCustomColors ? this.props.customNumericColors : [], []) }
-    @computed get customCategoryColors(): { [key: string]: string } { return defaultTo(this.isCustomColors ? this.props.customCategoryColors : {}, {}) }
-    @computed get customHiddenCategories(): { [key: string]: true } { return defaultTo(this.props.customHiddenCategories, {}) }
-    @computed get isColorSchemeInverted() { return defaultTo(this.props.colorSchemeInvert, false) }
-    @computed get customCategoryLabels(): { [key: string]: string } { return defaultTo(this.props.customCategoryLabels, {}) }
-    @computed get projection() { return defaultTo(this.props.projection, "World") }
+    @computed get variableId() {
+        return this.props.variableId
+    }
+    @computed get tolerance() {
+        return defaultTo(this.props.timeTolerance, 0)
+    }
+    @computed get minBucketValue() {
+        return +defaultTo(this.props.colorSchemeMinValue, 0)
+    }
+    @computed get colorSchemeValues() {
+        return defaultTo(this.props.colorSchemeValues, [])
+    }
+    @computed get isCustomColors() {
+        return defaultTo(this.props.customColorsActive, false)
+    }
+    @computed get customNumericColors() {
+        return defaultTo(
+            this.isCustomColors ? this.props.customNumericColors : [],
+            []
+        )
+    }
+    @computed get customCategoryColors(): { [key: string]: string } {
+        return defaultTo(
+            this.isCustomColors ? this.props.customCategoryColors : {},
+            {}
+        )
+    }
+    @computed get customHiddenCategories(): { [key: string]: true } {
+        return defaultTo(this.props.customHiddenCategories, {})
+    }
+    @computed get isColorSchemeInverted() {
+        return defaultTo(this.props.colorSchemeInvert, false)
+    }
+    @computed get customCategoryLabels(): { [key: string]: string } {
+        return defaultTo(this.props.customCategoryLabels, {})
+    }
+    @computed get projection() {
+        return defaultTo(this.props.projection, "World")
+    }
 
-    @computed get baseColorScheme() { return defaultTo(this.props.baseColorScheme, "BuGn") }
+    @computed get baseColorScheme() {
+        return defaultTo(this.props.baseColorScheme, "BuGn")
+    }
     @computed get noDataColor() {
-        return defaultTo(this.customCategoryColors['No data'], "#eee")
+        return defaultTo(this.customCategoryColors["No data"], "#eee")
     }
 
     @computed get data() {

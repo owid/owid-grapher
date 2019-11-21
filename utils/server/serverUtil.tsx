@@ -1,11 +1,11 @@
-import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
-import * as _ from 'lodash'
-import {quote} from 'shell-quote'
-import urljoin = require('url-join')
-import * as settings from 'settings'
-import * as util from 'util'
-import * as shell from 'shelljs'
+import * as React from "react"
+import * as ReactDOMServer from "react-dom/server"
+import * as _ from "lodash"
+import { quote } from "shell-quote"
+import urljoin = require("url-join")
+import * as settings from "settings"
+import * as util from "util"
+import * as shell from "shelljs"
 
 export const promisifiedExec = util.promisify(shell.exec)
 
@@ -13,8 +13,8 @@ export async function exec(command: string): Promise<string> {
     try {
         return await promisifiedExec(command)
     } catch (err) {
-        const error = new Error(`Received exit code ${err} from: ${command}`);
-        (error as any).code = err
+        const error = new Error(`Received exit code ${err} from: ${command}`)
+        ;(error as any).code = err
         throw error
     }
 }
@@ -38,8 +38,7 @@ export function expectInt(value: any): number {
 
 export function tryInt(value: any, defaultNum: number): number {
     const num = parseInt(value)
-    if (isNaN(num))
-        return defaultNum
+    if (isNaN(num)) return defaultNum
     return num
 }
 
@@ -59,14 +58,12 @@ export function shellEscape(s: string) {
 
 export function csvEscape(value: any): string {
     const valueStr = _.toString(value)
-    if (_.includes(valueStr, ","))
-        return `"${value.replace(/\"/g, "\"\"")}"`
-    else
-        return value
+    if (_.includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
+    else return value
 }
 
 export function csvRow(arr: string[]): string {
-    return arr.map(x => csvEscape(x)).join(",")+"\n"
+    return arr.map(x => csvEscape(x)).join(",") + "\n"
 }
 
 export function absoluteUrl(path: string): string {
@@ -75,9 +72,12 @@ export function absoluteUrl(path: string): string {
 
 // Take an arbitrary string and turn it into a nice url slug
 export function slugify(s: string) {
-    s = s.toLowerCase().replace(/\s*\*.+\*/, '').replace(/[^\w- ]+/g, '')
-    return _.trim(s).replace(/ +/g, '-')
+    s = s
+        .toLowerCase()
+        .replace(/\s*\*.+\*/, "")
+        .replace(/[^\w- ]+/g, "")
+    return _.trim(s).replace(/ +/g, "-")
 }
 
-import * as filenamify from 'filenamify'
+import * as filenamify from "filenamify"
 export { filenamify }

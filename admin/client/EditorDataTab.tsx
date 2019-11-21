@@ -1,14 +1,21 @@
-import * as React from 'react'
-import { clone, map } from 'charts/Util'
-import { computed, action, observable } from 'mobx'
-import { observer } from 'mobx-react'
-import { ChartConfig } from 'charts/ChartConfig'
-import { DataKey } from 'charts/DataKey'
-import { EditableList, EditableListItem, EditableListItemProps, ColorBox, SelectField, Section } from './Forms'
-import { ChartEditor } from './ChartEditor'
-import { faArrowsAltV } from '@fortawesome/free-solid-svg-icons/faArrowsAltV'
-import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import * as React from "react"
+import { clone, map } from "charts/Util"
+import { computed, action, observable } from "mobx"
+import { observer } from "mobx-react"
+import { ChartConfig } from "charts/ChartConfig"
+import { DataKey } from "charts/DataKey"
+import {
+    EditableList,
+    EditableListItem,
+    EditableListItemProps,
+    ColorBox,
+    SelectField,
+    Section
+} from "./Forms"
+import { ChartEditor } from "./ChartEditor"
+import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
@@ -19,14 +26,18 @@ interface DataKeyItemProps extends EditableListItemProps {
 class DataKeyItem extends React.Component<DataKeyItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
-    @computed get color() { return this.props.chart.data.keyColors[this.props.datakey] }
+    @computed get color() {
+        return this.props.chart.data.keyColors[this.props.datakey]
+    }
 
     @action.bound onColor(color: string | undefined) {
         this.props.chart.data.setKeyColor(this.props.datakey, color)
     }
 
     @action.bound onRemove() {
-        this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(e => e !== this.props.datakey)
+        this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(
+            e => e !== this.props.datakey
+        )
     }
 
     render() {
@@ -34,14 +45,20 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
         const { chart, datakey, ...rest } = props
         const meta = chart.data.keyData.get(datakey)
 
-        return <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
-            <div>
-                <div><FontAwesomeIcon icon={faArrowsAltV}/></div>
-                <ColorBox color={color} onColor={this.onColor}/>
-                {meta ? meta.fullLabel : datakey}
-            </div>
-            <div className="clickable" onClick={this.onRemove}><FontAwesomeIcon icon={faTimes}/></div>
-        </EditableListItem>
+        return (
+            <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
+                <div>
+                    <div>
+                        <FontAwesomeIcon icon={faArrowsAltV} />
+                    </div>
+                    <ColorBox color={color} onColor={this.onColor} />
+                    {meta ? meta.fullLabel : datakey}
+                </div>
+                <div className="clickable" onClick={this.onRemove}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </div>
+            </EditableListItem>
+        )
     }
 }
 
@@ -58,15 +75,14 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
 
         const onDrag = action(() => {
             this.dragKey = undefined
-            window.removeEventListener('mouseup', onDrag)
+            window.removeEventListener("mouseup", onDrag)
         })
 
-        window.addEventListener('mouseup', onDrag)
+        window.addEventListener("mouseup", onDrag)
     }
 
     @action.bound onMouseEnter(targetKey: DataKey) {
-        if (!this.dragKey || targetKey === this.dragKey)
-            return
+        if (!this.dragKey || targetKey === this.dragKey) return
 
         const selectedKeys = clone(this.props.chart.data.selectedKeys)
         const dragIndex = selectedKeys.indexOf(this.dragKey)
@@ -80,16 +96,31 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
         const { chart } = this.props
         const { selectedKeys, remainingKeys } = chart.data
 
-        const keyLabels = remainingKeys.map(key => chart.data.lookupKey(key).fullLabel)
+        const keyLabels = remainingKeys.map(
+            key => chart.data.lookupKey(key).fullLabel
+        )
 
-        return <Section name="Data to show">
-            <SelectField onValue={this.onAddKey} value="Select data" options={["Select data"].concat(remainingKeys)} optionLabels={["Select data"].concat(keyLabels)}/>
-            <EditableList>
-                {map(selectedKeys, datakey =>
-                    <DataKeyItem key={datakey} chart={chart} datakey={datakey} onMouseDown={() => this.onStartDrag(datakey)} onMouseEnter={() => this.onMouseEnter(datakey)} />
-                )}
-            </EditableList>
-        </Section>
+        return (
+            <Section name="Data to show">
+                <SelectField
+                    onValue={this.onAddKey}
+                    value="Select data"
+                    options={["Select data"].concat(remainingKeys)}
+                    optionLabels={["Select data"].concat(keyLabels)}
+                />
+                <EditableList>
+                    {map(selectedKeys, datakey => (
+                        <DataKeyItem
+                            key={datakey}
+                            chart={chart}
+                            datakey={datakey}
+                            onMouseDown={() => this.onStartDrag(datakey)}
+                            onMouseEnter={() => this.onMouseEnter(datakey)}
+                        />
+                    ))}
+                </EditableList>
+            </Section>
+        )
     }
 }
 
@@ -99,28 +130,60 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
         const { editor } = this.props
         const { chart } = editor
 
-        return <div className="EditorDataTab">
-            <Section name="Can user add/change data?">
-                <div className="form-check">
-                    <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="add-country" checked={chart.addCountryMode === "add-country"} onChange={_ => chart.props.addCountryMode = "add-country"}/>
-                        User can add and remove data
-                    </label>
-                </div>
-                <div className="form-check">
-                    <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="change-country" checked={chart.addCountryMode === "change-country"} onChange={_ => chart.props.addCountryMode = "change-country"}/>
-                        User can change entity
-                    </label>
-                </div>
-                <div className="form-check">
-                    <label className="form-check-label">
-                        <input className="form-check-input" type="radio" name="add-country-mode" value="disabled" checked={chart.addCountryMode === "disabled"} onChange={_ => chart.props.addCountryMode = "disabled"}/>
-                        User cannot change/add data
-                    </label>
-                </div>
-            </Section>
-            <KeysSection chart={editor.chart} />
-        </div>
+        return (
+            <div className="EditorDataTab">
+                <Section name="Can user add/change data?">
+                    <div className="form-check">
+                        <label className="form-check-label">
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="add-country-mode"
+                                value="add-country"
+                                checked={chart.addCountryMode === "add-country"}
+                                onChange={_ =>
+                                    (chart.props.addCountryMode = "add-country")
+                                }
+                            />
+                            User can add and remove data
+                        </label>
+                    </div>
+                    <div className="form-check">
+                        <label className="form-check-label">
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="add-country-mode"
+                                value="change-country"
+                                checked={
+                                    chart.addCountryMode === "change-country"
+                                }
+                                onChange={_ =>
+                                    (chart.props.addCountryMode =
+                                        "change-country")
+                                }
+                            />
+                            User can change entity
+                        </label>
+                    </div>
+                    <div className="form-check">
+                        <label className="form-check-label">
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="add-country-mode"
+                                value="disabled"
+                                checked={chart.addCountryMode === "disabled"}
+                                onChange={_ =>
+                                    (chart.props.addCountryMode = "disabled")
+                                }
+                            />
+                            User cannot change/add data
+                        </label>
+                    </div>
+                </Section>
+                <KeysSection chart={editor.chart} />
+            </div>
+        )
     }
 }

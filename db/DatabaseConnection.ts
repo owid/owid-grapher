@@ -1,4 +1,4 @@
-import * as mysql from 'mysql'
+import * as mysql from "mysql"
 
 class TransactionContext {
     conn: mysql.PoolConnection
@@ -51,7 +51,9 @@ export class DatabaseConnection {
         })
     }
 
-    async transaction<T>(callback: (t: TransactionContext) => Promise<T>): Promise<T> {
+    async transaction<T>(
+        callback: (t: TransactionContext) => Promise<T>
+    ): Promise<T> {
         const conn = await this.getConnection()
         const t = new TransactionContext(conn)
 

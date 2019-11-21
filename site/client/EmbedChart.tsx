@@ -1,13 +1,23 @@
-import * as React from 'react'
-import { observer } from 'mobx-react'
-import { Grapher, readConfigFromHTML } from 'site/client/Grapher'
-import { computed, observable, runInAction, autorun, IReactionDisposer } from 'mobx'
-import { ChartConfig } from 'charts/ChartConfig'
-import { ChartFigureView } from './ChartFigureView'
+import * as React from "react"
+import { observer } from "mobx-react"
+import { Grapher, readConfigFromHTML } from "site/client/Grapher"
+import {
+    computed,
+    observable,
+    runInAction,
+    autorun,
+    IReactionDisposer
+} from "mobx"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChartFigureView } from "./ChartFigureView"
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
-    @computed get configUrl(): string { return this.props.src.split(/\?/)[0] }
-    @computed get queryStr(): string { return this.props.src.split(/\?/)[1] }
+    @computed get configUrl(): string {
+        return this.props.src.split(/\?/)[0]
+    }
+    @computed get queryStr(): string {
+        return this.props.src.split(/\?/)[1]
+    }
     @observable chart?: ChartConfig
 
     async loadConfig() {
@@ -21,7 +31,10 @@ export class EmbedChart extends React.Component<{ src: string }> {
         const html = await resp.text()
         const config = readConfigFromHTML(html)
         runInAction(() => {
-            this.chart = new ChartConfig(config, { isEmbed: true, queryStr: this.queryStr })
+            this.chart = new ChartConfig(config, {
+                isEmbed: true,
+                queryStr: this.queryStr
+            })
         })
     }
 
@@ -35,6 +48,10 @@ export class EmbedChart extends React.Component<{ src: string }> {
     }
 
     render() {
-        return this.chart ? <ChartFigureView chart={this.chart}/> : <figure data-grapher-src={this.props.src}/>
+        return this.chart ? (
+            <ChartFigureView chart={this.chart} />
+        ) : (
+            <figure data-grapher-src={this.props.src} />
+        )
     }
 }

@@ -1,16 +1,22 @@
-import * as React from 'react'
-import { intersection, without, uniq, includes } from './Util'
-import { observable, computed, action } from 'mobx'
-import { observer } from 'mobx-react'
-import { Bounds } from './Bounds'
-import { ChartConfig } from './ChartConfig'
-import { LabelledSlopes, SlopeProps } from './LabelledSlopes'
-import { NoData } from './NoData'
-import { VerticalColorLegend, ScatterColorLegendView } from './ScatterColorLegend'
-import { isString } from 'util'
+import * as React from "react"
+import { intersection, without, uniq, includes } from "./Util"
+import { observable, computed, action } from "mobx"
+import { observer } from "mobx-react"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
+import { NoData } from "./NoData"
+import {
+    VerticalColorLegend,
+    ScatterColorLegendView
+} from "./ScatterColorLegend"
+import { isString } from "util"
 
 @observer
-export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class SlopeChart extends React.Component<{
+    bounds: Bounds
+    chart: ChartConfig
+}> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
@@ -31,9 +37,17 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
     @computed get legend(): VerticalColorLegend {
         const that = this
         return new VerticalColorLegend({
-            get maxWidth() { return that.sidebarMaxWidth },
-            get fontSize() { return that.chart.baseFontSize },
-            get colorables() { return that.transform.colors.colorables.filter(c => that.colorsInUse.includes(c.color)) }
+            get maxWidth() {
+                return that.sidebarMaxWidth
+            },
+            get fontSize() {
+                return that.chart.baseFontSize
+            },
+            get colorables() {
+                return that.transform.colors.colorables.filter(c =>
+                    that.colorsInUse.includes(c.color)
+                )
+            }
         })
     }
 
@@ -47,7 +61,7 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
 
     @action.bound onSlopeClick() {
         const { chart, hoverKey } = this
-        if (chart.addCountryMode === 'disabled' || hoverKey === undefined) {
+        if (chart.addCountryMode === "disabled" || hoverKey === undefined) {
             return
         }
 
@@ -64,25 +78,39 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const {chart, hoverColor} = this
-        if (chart.addCountryMode === 'disabled' || hoverColor === undefined)
+        const { chart, hoverColor } = this
+        if (chart.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
-        const {transform} = this
-        const keysToToggle = transform.data.filter(g => g.color === hoverColor).map(g => g.key)
-        const allKeysActive = intersection(keysToToggle, chart.data.selectedKeys).length === keysToToggle.length
+        const { transform } = this
+        const keysToToggle = transform.data
+            .filter(g => g.color === hoverColor)
+            .map(g => g.key)
+        const allKeysActive =
+            intersection(keysToToggle, chart.data.selectedKeys).length ===
+            keysToToggle.length
         if (allKeysActive)
-            chart.data.selectedKeys = without(chart.data.selectedKeys, ...keysToToggle)
+            chart.data.selectedKeys = without(
+                chart.data.selectedKeys,
+                ...keysToToggle
+            )
         else
-            chart.data.selectedKeys = uniq(chart.data.selectedKeys.concat(keysToToggle))
+            chart.data.selectedKeys = uniq(
+                chart.data.selectedKeys.concat(keysToToggle)
+            )
     }
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const {colorsInUse: legendColors, transform, chart} = this
+        const { colorsInUse: legendColors, transform, chart } = this
         return legendColors.filter(color => {
-            const matchingKeys = transform.data.filter(g => g.color === color).map(g => g.key)
-            return intersection(matchingKeys, chart.data.selectedKeys).length === matchingKeys.length
+            const matchingKeys = transform.data
+                .filter(g => g.color === color)
+                .map(g => g.key)
+            return (
+                intersection(matchingKeys, chart.data.selectedKeys).length ===
+                matchingKeys.length
+            )
         })
     }
 
@@ -94,23 +122,34 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
     @computed.struct get hoverKeys(): string[] {
         const { hoverColor, hoverKey, transform } = this
 
-        const hoverKeys = hoverColor === undefined ? [] : uniq(transform.data.filter(g => g.color === hoverColor).map(g => g.key))
+        const hoverKeys =
+            hoverColor === undefined
+                ? []
+                : uniq(
+                      transform.data
+                          .filter(g => g.color === hoverColor)
+                          .map(g => g.key)
+                  )
 
-        if (hoverKey !== undefined)
-            hoverKeys.push(hoverKey)
+        if (hoverKey !== undefined) hoverKeys.push(hoverKey)
 
         return hoverKeys
     }
 
     // Colors currently on the chart and not greyed out
     @computed get activeColors(): string[] {
-        const {hoverKeys, focusKeys, transform} = this
+        const { hoverKeys, focusKeys, transform } = this
         const activeKeys = hoverKeys.concat(focusKeys)
 
-        if (activeKeys.length === 0) // No hover or focus means they're all active by default
+        if (activeKeys.length === 0)
+            // No hover or focus means they're all active by default
             return uniq(transform.data.map(g => g.color))
         else
-            return uniq(transform.data.filter(g => activeKeys.indexOf(g.key) !== -1).map(g => g.color))
+            return uniq(
+                transform.data
+                    .filter(g => activeKeys.indexOf(g.key) !== -1)
+                    .map(g => g.color)
+            )
     }
 
     // Only show colors on legend that are actually in use
@@ -118,18 +157,27 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
         return uniq(this.transform.data.map(g => g.color))
     }
 
-    @computed get sidebarMaxWidth() { return this.bounds.width * 0.5 }
-    @computed get sidebarMinWidth() { return 100 }
+    @computed get sidebarMaxWidth() {
+        return this.bounds.width * 0.5
+    }
+    @computed get sidebarMinWidth() {
+        return 100
+    }
     @computed.struct get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legend } = this
-        return Math.max(Math.min(legend.width, sidebarMaxWidth), sidebarMinWidth)
+        return Math.max(
+            Math.min(legend.width, sidebarMaxWidth),
+            sidebarMinWidth
+        )
     }
 
     // correction is to account for the space taken by the legend
     @computed get innerBounds() {
         const { sidebarWidth, showLegend } = this
 
-        return showLegend ? this.props.bounds.padRight(sidebarWidth + 20) : this.props.bounds
+        return showLegend
+            ? this.props.bounds.padRight(sidebarWidth + 20)
+            : this.props.bounds
     }
 
     // verify the validity of data used to show legend
@@ -150,19 +198,61 @@ export class SlopeChart extends React.Component<{ bounds: Bounds, chart: ChartCo
 
     render() {
         if (this.transform.failMessage)
-            return <NoData bounds={this.props.bounds} message={this.transform.failMessage} />
+            return (
+                <NoData
+                    bounds={this.props.bounds}
+                    message={this.transform.failMessage}
+                />
+            )
 
         const { bounds, chart } = this.props
         const { yAxis } = chart
         const { data } = this.transform
-        const { legend, focusKeys, hoverKeys, focusColors, activeColors, sidebarWidth, innerBounds, showLegend } = this
+        const {
+            legend,
+            focusKeys,
+            hoverKeys,
+            focusColors,
+            activeColors,
+            sidebarWidth,
+            innerBounds,
+            showLegend
+        } = this
 
-        return <g>
-            <LabelledSlopes bounds={innerBounds} yDomain={yAxis.domain} yTickFormat={this.transform.yTickFormat} yScaleType={yAxis.scaleType} yScaleTypeOptions={yAxis.scaleTypeOptions} onScaleTypeChange={(scaleType) => { chart.yAxis.scaleType = scaleType }} data={data} fontSize={chart.baseFontSize} focusKeys={focusKeys} hoverKeys={hoverKeys} onMouseOver={this.onSlopeMouseOver} onMouseLeave={this.onSlopeMouseLeave} onClick={this.onSlopeClick} />
-            { showLegend
-                ? <ScatterColorLegendView legend={legend} x={bounds.right - sidebarWidth} y={bounds.top} onMouseOver={this.onLegendMouseOver} onMouseLeave={this.onLegendMouseLeave} onClick={this.onLegendClick} focusColors={focusColors} activeColors={activeColors} />
-                : <div></div>
-            }
-        </g>
+        return (
+            <g>
+                <LabelledSlopes
+                    bounds={innerBounds}
+                    yDomain={yAxis.domain}
+                    yTickFormat={this.transform.yTickFormat}
+                    yScaleType={yAxis.scaleType}
+                    yScaleTypeOptions={yAxis.scaleTypeOptions}
+                    onScaleTypeChange={scaleType => {
+                        chart.yAxis.scaleType = scaleType
+                    }}
+                    data={data}
+                    fontSize={chart.baseFontSize}
+                    focusKeys={focusKeys}
+                    hoverKeys={hoverKeys}
+                    onMouseOver={this.onSlopeMouseOver}
+                    onMouseLeave={this.onSlopeMouseLeave}
+                    onClick={this.onSlopeClick}
+                />
+                {showLegend ? (
+                    <ScatterColorLegendView
+                        legend={legend}
+                        x={bounds.right - sidebarWidth}
+                        y={bounds.top}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        onClick={this.onLegendClick}
+                        focusColors={focusColors}
+                        activeColors={activeColors}
+                    />
+                ) : (
+                    <div></div>
+                )}
+            </g>
+        )
     }
 }

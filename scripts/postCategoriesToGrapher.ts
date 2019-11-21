@@ -1,33 +1,45 @@
-import * as wpdb from 'db/wpdb'
-import * as db from 'db/db'
-import { syncPostsToGrapher, syncPostTagsToGrapher, Post } from 'db/model/Post'
-import { decodeHTML } from 'entities'
-import { Tag } from 'db/model/Tag'
-import _ = require('lodash')
+import * as wpdb from "db/wpdb"
+import * as db from "db/db"
+import { syncPostsToGrapher, syncPostTagsToGrapher, Post } from "db/model/Post"
+import { decodeHTML } from "entities"
+import { Tag } from "db/model/Tag"
+import _ = require("lodash")
 
 async function main() {
     try {
         const categoriesByPostId = await wpdb.getCategoriesByPostId()
 
         const tagsByPostId = await wpdb.getTagsByPostId()
-        const postRows = await wpdb.query("select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'")
+        const postRows = await wpdb.query(
+            "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
+        )
 
         for (const post of postRows) {
-            const categories = categoriesByPostId.get(post.ID)||[]
+            const categories = categoriesByPostId.get(post.ID) || []
 
             const tagNames = categories.map(t => decodeHTML(t))
 
-            const matchingTags = await Tag.select('id', 'name', 'isBulkImport').from(
-                db.table(Tag.table).whereIn('name', tagNames).andWhere({ isBulkImport: false })
+            const matchingTags = await Tag.select(
+                "id",
+                "name",
+                "isBulkImport"
+            ).from(
+                db
+                    .table(Tag.table)
+                    .whereIn("name", tagNames)
+                    .andWhere({ isBulkImport: false })
             )
 
-            const existingTags = await Tag.select('id').from(
-                db.table(Tag.table)
-                    .join('post_tags', { 'post_tags.tag_id': 'tags.id' })
-                    .where({ 'post_tags.post_id': post.ID })
+            const existingTags = await Tag.select("id").from(
+                db
+                    .table(Tag.table)
+                    .join("post_tags", { "post_tags.tag_id": "tags.id" })
+                    .where({ "post_tags.post_id": post.ID })
             )
 
-            const tagIds = matchingTags.map(t => t.id).concat(existingTags.map(t => t.id))
+            const tagIds = matchingTags
+                .map(t => t.id)
+                .concat(existingTags.map(t => t.id))
             // if (matchingTags.map(t => t.name).includes(post.post_title)) {
             //     tagIds.push(1640)
             // }

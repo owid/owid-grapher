@@ -4,18 +4,20 @@
  * Default axis UI given a box and chart state.
  */
 
-import * as React from 'react'
-import { AxisBox, AxisBoxView } from './AxisBox'
-import { ChartConfig } from './ChartConfig'
-import { ScaleType } from './ScaleType'
-import {action} from 'mobx'
+import * as React from "react"
+import { AxisBox, AxisBoxView } from "./AxisBox"
+import { ChartConfig } from "./ChartConfig"
+import { ScaleType } from "./ScaleType"
+import { action } from "mobx"
 
 export interface StandardAxisBoxViewProps {
-    axisBox: AxisBox,
+    axisBox: AxisBox
     chart: ChartConfig
 }
 
-export class StandardAxisBoxView extends React.Component<StandardAxisBoxViewProps> {
+export class StandardAxisBoxView extends React.Component<
+    StandardAxisBoxViewProps
+> {
     @action.bound onXScaleChange(scaleType: ScaleType) {
         this.props.chart.xAxis.scaleType = scaleType
     }
@@ -25,7 +27,13 @@ export class StandardAxisBoxView extends React.Component<StandardAxisBoxViewProp
     }
 
     render() {
-        const {axisBox} = this.props
-        return <AxisBoxView axisBox={axisBox} onXScaleChange={this.onXScaleChange} onYScaleChange={this.onYScaleChange}/>
+        const { axisBox } = this.props
+        return (
+            <AxisBoxView
+                axisBox={axisBox}
+                onXScaleChange={this.onXScaleChange}
+                onYScaleChange={this.onYScaleChange}
+            />
+        )
     }
 }

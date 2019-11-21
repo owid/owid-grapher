@@ -1,12 +1,22 @@
-import { computed } from 'mobx'
-import { some, isEmpty, find, sortBy, orderBy, max, values, defaultTo, flatten } from './Util'
-import { ChartConfig } from './ChartConfig'
-import { DiscreteBarDatum } from './DiscreteBarChart'
-import { IChartTransform } from './IChartTransform'
-import { DimensionWithData } from './DimensionWithData'
-import { ColorSchemes } from './ColorSchemes'
-import { TickFormattingOptions } from './TickFormattingOptions'
-import { LineChartSeries } from './LineChart';
+import { computed } from "mobx"
+import {
+    some,
+    isEmpty,
+    find,
+    sortBy,
+    orderBy,
+    max,
+    values,
+    defaultTo,
+    flatten
+} from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { DiscreteBarDatum } from "./DiscreteBarChart"
+import { IChartTransform } from "./IChartTransform"
+import { DimensionWithData } from "./DimensionWithData"
+import { ColorSchemes } from "./ColorSchemes"
+import { TickFormattingOptions } from "./TickFormattingOptions"
+import { LineChartSeries } from "./LineChart"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -18,17 +28,15 @@ export class DiscreteBarTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === 'y')
+        return some(this.chart.dimensions, d => d.property === "y")
     }
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart.data
-        if (!some(filledDimensions, d => d.property === 'y'))
+        if (!some(filledDimensions, d => d.property === "y"))
             return "Missing variable"
-        else if (isEmpty(this.currentData))
-            return "No matching data"
-        else
-            return undefined
+        else if (isEmpty(this.currentData)) return "No matching data"
+        else return undefined
     }
 
     @computed get primaryDimensions(): DimensionWithData[] {
@@ -39,11 +47,12 @@ export class DiscreteBarTransform implements IChartTransform {
         const maxYear = this.chart.timeDomain[1]
         if (this.primaryDimensions.length === 0) return 1900
 
-        const yearsUniq = flatten(this.primaryDimensions.map(dim => dim.variable.yearsUniq))
+        const yearsUniq = flatten(
+            this.primaryDimensions.map(dim => dim.variable.yearsUniq)
+        )
         if (maxYear !== undefined)
             return sortBy(yearsUniq, year => Math.abs(year - maxYear))[0]
-        else
-            return max(yearsUniq) as number
+        else return max(yearsUniq) as number
     }
 
     @computed get hasTimeline(): boolean {
@@ -54,14 +63,23 @@ export class DiscreteBarTransform implements IChartTransform {
         const { targetYear } = this
 
         return (datum: DiscreteBarDatum) => {
-            const showYearLabels = this.chart.props.showYearLabels || datum.year !== targetYear
-            return datum.formatValue(datum.value) + (showYearLabels ? ` (in ${datum.year})` : "")
+            const showYearLabels =
+                this.chart.props.showYearLabels || datum.year !== targetYear
+            return (
+                datum.formatValue(datum.value) +
+                (showYearLabels ? ` (in ${datum.year})` : "")
+            )
         }
     }
 
-    @computed get tickFormat(): (d: number, options?: TickFormattingOptions) => string {
-        const {primaryDimensions} = this
-        return primaryDimensions[0] ? primaryDimensions[0].formatValueShort : (d: number) => `${d}`
+    @computed get tickFormat(): (
+        d: number,
+        options?: TickFormattingOptions
+    ) => string {
+        const { primaryDimensions } = this
+        return primaryDimensions[0]
+            ? primaryDimensions[0].formatValueShort
+            : (d: number) => `${d}`
     }
 
     @computed get currentData(): DiscreteBarDatum[] {
@@ -77,12 +95,20 @@ export class DiscreteBarTransform implements IChartTransform {
                 const entity = dimension.entities[i]
                 const datakey = chart.data.keyFor(entity, dimIndex)
 
-                if (year < targetYear - tolerance || year > targetYear + tolerance || !selectedKeysByKey[datakey])
+                if (
+                    year < targetYear - tolerance ||
+                    year > targetYear + tolerance ||
+                    !selectedKeysByKey[datakey]
+                )
                     continue
 
                 const currentDatum = dataByKey[datakey]
                 // Make sure we use the closest value to the target year within tolerance (preferring later)
-                if (currentDatum && Math.abs(currentDatum.year - targetYear) < Math.abs(year - targetYear))
+                if (
+                    currentDatum &&
+                    Math.abs(currentDatum.year - targetYear) <
+                        Math.abs(year - targetYear)
+                )
                     continue
 
                 const datum = {
@@ -101,22 +127,25 @@ export class DiscreteBarTransform implements IChartTransform {
         if (this.chart.isLineChart) {
             // If derived from line chart, use line chart colors
             for (const key in dataByKey) {
-                const lineSeries = this.chart.lineChart.predomainData.find(series => series.key === key)
+                const lineSeries = this.chart.lineChart.predomainData.find(
+                    series => series.key === key
+                )
                 if (lineSeries) dataByKey[key].color = lineSeries.color
             }
         } else {
             const data = sortBy(values(dataByKey), d => d.value)
-            const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
+            const colorScheme = chart.baseColorScheme
+                ? ColorSchemes[chart.baseColorScheme]
+                : undefined
             const colors = colorScheme ? colorScheme.getColors(data.length) : []
-            if (chart.props.invertColorScheme)
-                colors.reverse()
+            if (chart.props.invertColorScheme) colors.reverse()
 
             data.forEach((d, i) => {
                 d.color = chart.data.keyColors[d.key] || colors[i] || d.color
             })
         }
 
-        return orderBy(values(dataByKey), ['value', 'key'], ['desc', 'asc'])
+        return orderBy(values(dataByKey), ["value", "key"], ["desc", "asc"])
     }
 
     @computed get allData(): DiscreteBarDatum[] {
@@ -134,8 +163,7 @@ export class DiscreteBarTransform implements IChartTransform {
                 const entity = dimension.entities[i]
                 const datakey = chart.data.keyFor(entity, dimIndex)
 
-                if (!selectedKeysByKey[datakey])
-                    continue
+                if (!selectedKeysByKey[datakey]) continue
 
                 const datum = {
                     key: datakey,
@@ -152,10 +180,11 @@ export class DiscreteBarTransform implements IChartTransform {
 
         const data = sortBy(allData, d => d.value)
 
-        const colorScheme = chart.baseColorScheme ? ColorSchemes[chart.baseColorScheme] : undefined
+        const colorScheme = chart.baseColorScheme
+            ? ColorSchemes[chart.baseColorScheme]
+            : undefined
         const colors = colorScheme ? colorScheme.getColors(data.length) : []
-        if (chart.props.invertColorScheme)
-            colors.reverse()
+        if (chart.props.invertColorScheme) colors.reverse()
 
         data.forEach((d, i) => {
             d.color = chart.data.keyColors[d.key] || colors[i] || d.color

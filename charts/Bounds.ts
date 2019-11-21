@@ -1,6 +1,6 @@
-import { extend } from './Util'
-import { Vector2 } from './Vector2'
-const pixelWidth = require('string-pixel-width')
+import { extend } from "./Util"
+import { Vector2 } from "./Vector2"
+const pixelWidth = require("string-pixel-width")
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -10,12 +10,22 @@ export class Bounds {
     static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
 
-    static fromProps(props: { x: number, y: number, width: number, height: number }): Bounds {
+    static fromProps(props: {
+        x: number
+        y: number
+        width: number
+        height: number
+    }): Bounds {
         const { x, y, width, height } = props
         return new Bounds(x, y, width, height)
     }
 
-    static fromBBox(bbox: { x: number, y: number, width: number, height: number }): Bounds {
+    static fromBBox(bbox: {
+        x: number
+        y: number
+        width: number
+        height: number
+    }): Bounds {
         return this.fromProps(bbox)
     }
 
@@ -38,12 +48,15 @@ export class Bounds {
 
     // Merge a collection of bounding boxes into a single encompassing Bounds
     static merge(boundsList: Bounds[]): Bounds {
-        let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity
+        let x1 = Infinity,
+            y1 = Infinity,
+            x2 = -Infinity,
+            y2 = -Infinity
         for (const b of boundsList) {
             x1 = Math.min(x1, b.x)
             y1 = Math.min(y1, b.y)
-            x2 = Math.max(x2, b.x+b.width)
-            y2 = Math.max(y2, b.y+b.height)
+            x2 = Math.max(x2, b.x + b.width)
+            y2 = Math.max(y2, b.y + b.height)
         }
         return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
     }
@@ -52,18 +65,27 @@ export class Bounds {
         return new Bounds(0, 0, 0, 0)
     }
 
-    static forText(str: string, { x = 0, y = 0, fontSize = 16 }: { x?: number, y?: number, fontSize?: number, fontFamily?: string } = {}): Bounds {
+    static forText(
+        str: string,
+        {
+            x = 0,
+            y = 0,
+            fontSize = 16
+        }: {
+            x?: number
+            y?: number
+            fontSize?: number
+            fontFamily?: string
+        } = {}
+    ): Bounds {
         const key = `${str}-${fontSize}`
         let bounds = this.textBoundsCache[key]
         if (bounds) {
-            if (bounds.x === x && bounds.y === y-bounds.height)
-                return bounds
-            else
-                return bounds.extend({ x: x, y: y-bounds.height})
+            if (bounds.x === x && bounds.y === y - bounds.height) return bounds
+            else return bounds.extend({ x: x, y: y - bounds.height })
         }
 
-        if (str === "")
-            bounds = Bounds.empty()
+        if (str === "") bounds = Bounds.empty()
         else {
             const width = pixelWidth(str, { font: "Arial", size: fontSize })
             const height = fontSize
@@ -120,22 +142,51 @@ export class Bounds {
         this.height = height
     }
 
-    get left(): number { return this.x }
-    get top(): number { return this.y }
-    get right(): number { return this.x + this.width }
-    get bottom(): number { return this.y + this.height }
-    get centerX(): number { return this.x + this.width / 2 }
-    get centerY(): number { return this.y + this.height / 2 }
-    get centerPos(): Vector2 { return new Vector2(this.centerX, this.centerY) }
-    get area(): number { return this.width*this.height }
+    get left(): number {
+        return this.x
+    }
+    get top(): number {
+        return this.y
+    }
+    get right(): number {
+        return this.x + this.width
+    }
+    get bottom(): number {
+        return this.y + this.height
+    }
+    get centerX(): number {
+        return this.x + this.width / 2
+    }
+    get centerY(): number {
+        return this.y + this.height / 2
+    }
+    get centerPos(): Vector2 {
+        return new Vector2(this.centerX, this.centerY)
+    }
+    get area(): number {
+        return this.width * this.height
+    }
 
-    get topLeft(): Vector2 { return new Vector2(this.left, this.top) }
-    get topRight(): Vector2 { return new Vector2(this.right, this.top) }
-    get bottomLeft(): Vector2 { return new Vector2(this.left, this.bottom) }
-    get bottomRight(): Vector2 { return new Vector2(this.right, this.bottom) }
+    get topLeft(): Vector2 {
+        return new Vector2(this.left, this.top)
+    }
+    get topRight(): Vector2 {
+        return new Vector2(this.right, this.top)
+    }
+    get bottomLeft(): Vector2 {
+        return new Vector2(this.left, this.bottom)
+    }
+    get bottomRight(): Vector2 {
+        return new Vector2(this.right, this.bottom)
+    }
 
     padLeft(amount: number): Bounds {
-        return new Bounds(this.x + amount, this.y, this.width - amount, this.height)
+        return new Bounds(
+            this.x + amount,
+            this.y,
+            this.width - amount,
+            this.height
+        )
     }
 
     padRight(amount: number): Bounds {
@@ -147,15 +198,30 @@ export class Bounds {
     }
 
     padTop(amount: number): Bounds {
-        return new Bounds(this.x, this.y + amount, this.width, this.height - amount)
+        return new Bounds(
+            this.x,
+            this.y + amount,
+            this.width,
+            this.height - amount
+        )
     }
 
     padWidth(amount: number): Bounds {
-        return new Bounds(this.x + amount, this.y, this.width - amount * 2, this.height)
+        return new Bounds(
+            this.x + amount,
+            this.y,
+            this.width - amount * 2,
+            this.height
+        )
     }
 
     padHeight(amount: number): Bounds {
-        return new Bounds(this.x, this.y + amount, this.width, this.height - amount * 2)
+        return new Bounds(
+            this.x,
+            this.y + amount,
+            this.width,
+            this.height - amount * 2
+        )
     }
 
     fromLeft(amount: number): Bounds {
@@ -167,23 +233,42 @@ export class Bounds {
     }
 
     pad(amount: number): Bounds {
-        return new Bounds(this.x + amount, this.y + amount, this.width - amount * 2, this.height - amount * 2)
+        return new Bounds(
+            this.x + amount,
+            this.y + amount,
+            this.width - amount * 2,
+            this.height - amount * 2
+        )
     }
 
-    extend(props: { x?: number, y?: number, width?: number, height?: number }): Bounds {
+    extend(props: {
+        x?: number
+        y?: number
+        width?: number
+        height?: number
+    }): Bounds {
         return Bounds.fromProps(extend({}, this, props))
     }
 
     scale(scale: number): Bounds {
-        return new Bounds(this.x * scale, this.y * scale, this.width * scale, this.height * scale)
+        return new Bounds(
+            this.x * scale,
+            this.y * scale,
+            this.width * scale,
+            this.height * scale
+        )
     }
 
     intersects(otherBounds: Bounds): boolean {
         const r1 = this
         const r2 = otherBounds
 
-        return !(r2.left > r1.right || r2.right < r1.left ||
-            r2.top > r1.bottom || r2.bottom < r1.top)
+        return !(
+            r2.left > r1.right ||
+            r2.right < r1.left ||
+            r2.top > r1.bottom ||
+            r2.bottom < r1.top
+        )
     }
 
     lines(): Vector2[][] {
@@ -203,7 +288,12 @@ export class Bounds {
     }
 
     containsPoint(x: number, y: number): boolean {
-        return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom
+        return (
+            x >= this.left &&
+            x <= this.right &&
+            y >= this.top &&
+            y <= this.bottom
+        )
     }
 
     contains(p: Vector2) {
@@ -211,14 +301,24 @@ export class Bounds {
     }
 
     encloses(bounds: Bounds) {
-        return this.containsPoint(bounds.left, bounds.top) && this.containsPoint(bounds.left, bounds.bottom) && this.containsPoint(bounds.right, bounds.top) && this.containsPoint(bounds.right, bounds.bottom)
+        return (
+            this.containsPoint(bounds.left, bounds.top) &&
+            this.containsPoint(bounds.left, bounds.bottom) &&
+            this.containsPoint(bounds.right, bounds.top) &&
+            this.containsPoint(bounds.right, bounds.bottom)
+        )
     }
 
-    toCSS(): { left: string, top: string, width: string, height: string } {
-        return { left: `${this.left}px`, top: `${this.top}px`, width: `${this.width}px`, height: `${this.height}px` }
+    toCSS(): { left: string; top: string; width: string; height: string } {
+        return {
+            left: `${this.left}px`,
+            top: `${this.top}px`,
+            width: `${this.width}px`,
+            height: `${this.height}px`
+        }
     }
 
-    toProps(): { x: number, y: number, width: number, height: number } {
+    toProps(): { x: number; y: number; width: number; height: number } {
         return { x: this.x, y: this.y, width: this.width, height: this.height }
     }
 
@@ -235,18 +335,22 @@ export class Bounds {
     }
 
     equals(bounds: Bounds) {
-        return this.x === bounds.x && this.y === bounds.y && this.width === bounds.width && this.height === bounds.height
+        return (
+            this.x === bounds.x &&
+            this.y === bounds.y &&
+            this.width === bounds.width &&
+            this.height === bounds.height
+        )
     }
 
     // Calculate squared distance between a given point and the closest border of the bounds
     // If the point is within the bounds, returns 0
     distanceToPointSq(p: Vector2) {
-        if (this.contains(p))
-            return 0
+        if (this.contains(p)) return 0
 
-        const cx = Math.max(Math.min(p.x, this.x+this.width), this.x)
-        const cy = Math.max(Math.min(p.y, this.y+this.height), this.y)
-        return (p.x-cx)*(p.x-cx) + (p.y-cy)*(p.y-cy)
+        const cx = Math.max(Math.min(p.x, this.x + this.width), this.x)
+        const cy = Math.max(Math.min(p.y, this.y + this.height), this.y)
+        return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy)
     }
 
     distanceToPoint(p: Vector2) {

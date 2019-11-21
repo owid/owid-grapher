@@ -1,8 +1,8 @@
 declare const window: any
 
-import { Bounds } from './Bounds'
-import { ColorSchemes } from './ColorSchemes'
-const colorbrewer = require('colorbrewer')
+import { Bounds } from "./Bounds"
+import { ColorSchemes } from "./ColorSchemes"
+const colorbrewer = require("colorbrewer")
 
 // This module handles exposing various libraries to the console
 export class Debug {

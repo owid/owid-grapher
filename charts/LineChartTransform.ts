@@ -1,14 +1,27 @@
-import { computed } from 'mobx'
-import { some, min, max, isEmpty, sortBy, find, identity, cloneDeep, sortedUniq, last, clone, formatValue } from './Util'
-import { ChartConfig } from './ChartConfig'
-import { DataKey } from './DataKey'
-import { LineChartSeries, LineChartValue } from './LineChart'
-import { AxisSpec } from './AxisSpec'
-import { defaultTo, formatYear, findClosest } from './Util'
-import { ColorSchemes, ColorScheme } from './ColorSchemes'
-import { IChartTransform } from './IChartTransform'
-import { DimensionWithData } from './DimensionWithData'
-import { findIndex } from 'lodash'
+import { computed } from "mobx"
+import {
+    some,
+    min,
+    max,
+    isEmpty,
+    sortBy,
+    find,
+    identity,
+    cloneDeep,
+    sortedUniq,
+    last,
+    clone,
+    formatValue
+} from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { DataKey } from "./DataKey"
+import { LineChartSeries, LineChartValue } from "./LineChart"
+import { AxisSpec } from "./AxisSpec"
+import { defaultTo, formatYear, findClosest } from "./Util"
+import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { IChartTransform } from "./IChartTransform"
+import { DimensionWithData } from "./DimensionWithData"
+import { findIndex } from "lodash"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -19,26 +32,30 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === 'y')
+        return this.chart.dimensions.some(d => d.property === "y")
     }
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart.data
-        if (!some(filledDimensions, d => d.property === 'y'))
+        if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
-        else if (isEmpty(this.groupedData))
-            return "No matching data"
-        else
-            return undefined
+        else if (isEmpty(this.groupedData)) return "No matching data"
+        else return undefined
     }
 
     @computed get isSingleYear(): boolean {
-        return this.chart.timeDomain[0] !== undefined && this.chart.timeDomain[0] === this.chart.timeDomain[1]
+        return (
+            this.chart.timeDomain[0] !== undefined &&
+            this.chart.timeDomain[0] === this.chart.timeDomain[1]
+        )
     }
 
     @computed get colorScheme(): ColorScheme {
-        const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
-        return colorScheme !== undefined ? colorScheme : ColorSchemes["owid-distinct"] as ColorScheme
+        const colorScheme =
+            ColorSchemes[this.chart.props.baseColorScheme as string]
+        return colorScheme !== undefined
+            ? colorScheme
+            : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
     @computed get initialData(): LineChartSeries[] {
@@ -49,7 +66,6 @@ export class LineChartTransform implements IChartTransform {
         let chartData: LineChartSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
-
             const seriesByKey = new Map<DataKey, LineChartSeries>()
 
             for (let i = 0; i < dimension.years.length; i++) {
@@ -62,7 +78,7 @@ export class LineChartTransform implements IChartTransform {
                 // Not a selected key, don't add any data for it
                 if (!selectedKeysByKey[datakey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxis.scaleType === 'log') continue
+                if (value <= 0 && yAxis.scaleType === "log") continue
 
                 if (!series) {
                     series = {
@@ -82,17 +98,21 @@ export class LineChartTransform implements IChartTransform {
         })
 
         // Color from lowest to highest
-        chartData = sortBy(chartData, series => series.values[series.values.length - 1].y)
+        chartData = sortBy(
+            chartData,
+            series => series.values[series.values.length - 1].y
+        )
 
         const colors = this.colorScheme.getColors(chartData.length)
-        if (this.chart.props.invertColorScheme)
-            colors.reverse()
+        if (this.chart.props.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
             series.color = chart.data.keyColors[series.key] || colors[i]
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = sortBy(chartData, series => selectedKeys.indexOf(series.key))
+        chartData = sortBy(chartData, series =>
+            selectedKeys.indexOf(series.key)
+        )
 
         return chartData
     }
@@ -112,34 +132,48 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get startYear(): number {
-        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+        const minYear = defaultTo(
+            this.chart.timeDomain[0],
+            this.minTimelineYear
+        )
+        return defaultTo(
+            findClosest(this.timelineYears, minYear),
+            this.minTimelineYear
+        )
     }
 
     @computed get endYear(): number {
-        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+        const maxYear = defaultTo(
+            this.chart.timeDomain[1],
+            this.maxTimelineYear
+        )
+        return defaultTo(
+            findClosest(this.timelineYears, maxYear),
+            this.maxTimelineYear
+        )
     }
 
     @computed get predomainData() {
         if (this.isRelativeMode) {
-            return cloneDeep(this.initialData)
-                .map(series => {
-                    const startIndex = findIndex(series.values, v => v.time >= this.startYear && v.y !== 0)
-                    if (startIndex < 0) {
-                        series.values = []
-                        return series
-                    } else {
-                        const relativeValues = series.values.slice(startIndex)
-                        // Clone to avoid overwriting in next loop
-                        const indexValue = clone(relativeValues[0])
-                        series.values = relativeValues.map(v => {
-                            v.y = (v.y-indexValue.y) / Math.abs(indexValue.y)
-                            return v
-                        })
-                    }
+            return cloneDeep(this.initialData).map(series => {
+                const startIndex = findIndex(
+                    series.values,
+                    v => v.time >= this.startYear && v.y !== 0
+                )
+                if (startIndex < 0) {
+                    series.values = []
                     return series
-                })
+                } else {
+                    const relativeValues = series.values.slice(startIndex)
+                    // Clone to avoid overwriting in next loop
+                    const indexValue = clone(relativeValues[0])
+                    series.values = relativeValues.map(v => {
+                        v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
+                        return v
+                    })
+                }
+                return series
+            })
         } else {
             return this.initialData
         }
@@ -164,45 +198,54 @@ export class LineChartTransform implements IChartTransform {
     @computed get xAxis(): AxisSpec {
         const { xDomain } = this
         return {
-            label: this.chart.xAxis.label||"",
+            label: this.chart.xAxis.label || "",
             tickFormat: formatYear,
             domain: xDomain,
-            scaleType: 'linear',
-            scaleTypeOptions: ['linear'],
+            scaleType: "linear",
+            scaleTypeOptions: ["linear"],
             hideFractionalTicks: true,
             hideGridlines: true
         }
     }
 
     @computed get yDimensionFirst(): DimensionWithData | undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === 'y')
+        return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
 
     @computed get yDomainDefault(): [number, number] {
-        const yValues = (this.chart.useTimelineDomains ? this.allValues : this.filteredValues).map(v => v.y)
-        return [
-            defaultTo(min(yValues), 0),
-            defaultTo(max(yValues), 100)
-        ]
+        const yValues = (this.chart.useTimelineDomains
+            ? this.allValues
+            : this.filteredValues
+        ).map(v => v.y)
+        return [defaultTo(min(yValues), 0), defaultTo(max(yValues), 100)]
     }
 
     @computed get yDomain(): [number, number] {
         const { chart, yDomainDefault } = this
         return [
-            Math.min(defaultTo(chart.yAxis.domain[0], Infinity), yDomainDefault[0]),
-            Math.max(defaultTo(chart.yAxis.domain[1], -Infinity), yDomainDefault[1])
+            Math.min(
+                defaultTo(chart.yAxis.domain[0], Infinity),
+                yDomainDefault[0]
+            ),
+            Math.max(
+                defaultTo(chart.yAxis.domain[1], -Infinity),
+                yDomainDefault[1]
+            )
         ]
     }
 
     @computed get yScaleType() {
-        return this.isRelativeMode ? 'linear' : this.chart.yAxis.scaleType
+        return this.isRelativeMode ? "linear" : this.chart.yAxis.scaleType
     }
 
     @computed get yTickFormat() {
         if (this.isRelativeMode) {
-            return (v: number) => (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
+            return (v: number) =>
+                (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
         } else {
-            return this.yDimensionFirst ? this.yDimensionFirst.formatValueShort : identity
+            return this.yDimensionFirst
+                ? this.yDimensionFirst.formatValueShort
+                : identity
         }
     }
 
@@ -213,16 +256,21 @@ export class LineChartTransform implements IChartTransform {
             tickFormat: yTickFormat,
             domain: yDomain,
             scaleType: yScaleType,
-            scaleTypeOptions: isRelativeMode ? ['linear'] : chart.yAxis.scaleTypeOptions
+            scaleTypeOptions: isRelativeMode
+                ? ["linear"]
+                : chart.yAxis.scaleTypeOptions
         }
     }
 
     @computed get hasTimeline(): boolean {
-        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
+        return (
+            this.minTimelineYear !== this.maxTimelineYear &&
+            !this.chart.props.hideTimeline
+        )
     }
 
     @computed get isRelativeMode(): boolean {
-        return this.chart.props.stackMode === 'relative'
+        return this.chart.props.stackMode === "relative"
     }
 
     @computed get canToggleRelative(): boolean {
@@ -236,7 +284,12 @@ export class LineChartTransform implements IChartTransform {
 
         for (const g of groupedData) {
             // The values can include non-numerical values, so we need to filter with isNaN()
-            g.values = g.values.filter(d => d.x >= xAxis.domain[0] && d.x <= xAxis.domain[1] && !isNaN(d.y))
+            g.values = g.values.filter(
+                d =>
+                    d.x >= xAxis.domain[0] &&
+                    d.x <= xAxis.domain[1] &&
+                    !isNaN(d.y)
+            )
         }
 
         return groupedData.filter(g => g.values.length > 0)
@@ -244,13 +297,20 @@ export class LineChartTransform implements IChartTransform {
 }
 
 function cagrY(indexValue: LineChartValue, targetValue: LineChartValue) {
-    if (targetValue.time - indexValue.time === 0)
-        return 0
+    if (targetValue.time - indexValue.time === 0) return 0
     else {
         const frac = targetValue.y / indexValue.y
         if (frac < 0)
-            return -(Math.pow(-frac, 1 / (targetValue.time - indexValue.time)) - 1) * 100
+            return (
+                -(
+                    Math.pow(-frac, 1 / (targetValue.time - indexValue.time)) -
+                    1
+                ) * 100
+            )
         else
-            return (Math.pow(frac, 1 / (targetValue.time - indexValue.time)) - 1) * 100
+            return (
+                (Math.pow(frac, 1 / (targetValue.time - indexValue.time)) - 1) *
+                100
+            )
     }
 }
