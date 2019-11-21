@@ -168,7 +168,7 @@ export class LineChartTransform implements IChartTransform {
                     // Clone to avoid overwriting in next loop
                     const indexValue = clone(relativeValues[0])
                     series.values = relativeValues.map(v => {
-                        v.y = (v.y - indexValue.y) / indexValue.y
+                        v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
                         return v
                     })
                 }
