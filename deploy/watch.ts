@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra'
+import * as fs from "fs-extra"
 import { DEPLOY_QUEUE_FILE_PATH } from "serverSettings"
 import { triggerDeploy, queueIsEmpty } from "./queue"
 
@@ -7,10 +7,10 @@ async function main() {
     fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
         // Start deploy after 10 seconds in order to avoid the quick successive
         // deploys triggered by Wordpress.
-        setTimeout(triggerDeploy, 10*1000)
+        setTimeout(triggerDeploy, 10 * 1000)
     })
 
-    if (!await queueIsEmpty()) {
+    if (!(await queueIsEmpty())) {
         triggerDeploy()
     }
 }

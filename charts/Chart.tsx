@@ -9,11 +9,11 @@ chart.interactive(domNode)
 
 */
 
-import { ChartConfig } from './ChartConfig'
-import { ChartView } from './ChartView'
-import { Bounds } from './Bounds'
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import { ChartConfig } from "./ChartConfig"
+import { ChartView } from "./ChartView"
+import { Bounds } from "./Bounds"
+import * as React from "react"
+import * as ReactDOM from "react-dom"
 
 interface ChartConfigProps {
     type: string
@@ -33,6 +33,14 @@ export class Chart {
 
     interactive(containerNode: HTMLElement) {
         const containerBounds = new Bounds(0, 0, 800, 600)
-        ReactDOM.render(<ChartView bounds={containerBounds} chart={this.config} isEditor={false} isEmbed={false} />, containerNode)
+        ReactDOM.render(
+            <ChartView
+                bounds={containerBounds}
+                chart={this.config}
+                isEditor={false}
+                isEmbed={false}
+            />,
+            containerNode
+        )
     }
 }

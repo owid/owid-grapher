@@ -1,5 +1,5 @@
-import { ChartView } from 'charts/ChartView'
-import {throttle, isMobile} from 'charts/Util'
+import { ChartView } from "charts/ChartView"
+import { throttle, isMobile } from "charts/Util"
 
 interface LoadableFigure {
     configUrl: string
@@ -25,43 +25,59 @@ export function shouldProgressiveEmbed() {
 export class MultiEmbedder {
     figuresToLoad: LoadableFigure[] = []
     constructor() {
-        const figures = Array.from(document.querySelectorAll("*[data-grapher-src]"))
+        const figures = Array.from(
+            document.querySelectorAll("*[data-grapher-src]")
+        )
         for (const element of figures) {
-            const dataSrc = element.getAttribute('data-grapher-src')
+            const dataSrc = element.getAttribute("data-grapher-src")
             if (dataSrc) {
                 // Only load inline embeds if the device is powerful enough, or if there's no static preview available
                 if (shouldProgressiveEmbed() || !element.querySelector("img")) {
                     const [configUrl, queryStr] = dataSrc.split(/\?/)
-                    const figure: LoadableFigure = { configUrl, queryStr, element: element as HTMLElement }
+                    const figure: LoadableFigure = {
+                        configUrl,
+                        queryStr,
+                        element: element as HTMLElement
+                    }
                     this.figuresToLoad.push(figure)
 
-                    fetch(configUrl).then(data => data.text()).then(html => {
-                        figure.jsonConfig = readConfigFromHTML(html)
-                        this.update()
-                    })
+                    fetch(configUrl)
+                        .then(data => data.text())
+                        .then(html => {
+                            figure.jsonConfig = readConfigFromHTML(html)
+                            this.update()
+                        })
                 }
             }
         }
 
-        window.addEventListener('scroll', throttle(() => this.update(), 100))
+        window.addEventListener("scroll", throttle(() => this.update(), 100))
     }
 
     // Check for figures which are available to load and load them
     update() {
-        const preloadDistance = window.innerHeight*4
+        const preloadDistance = window.innerHeight * 4
         this.figuresToLoad.forEach(figure => {
             if (!figure.isActive && figure.jsonConfig) {
                 const windowTop = window.pageYOffset
                 const windowBottom = window.pageYOffset + window.innerHeight
                 const figureRect = figure.element.getBoundingClientRect()
                 const bodyRect = document.body.getBoundingClientRect()
-                const figureTop = figureRect.top-bodyRect.top
-                const figureBottom = figureRect.bottom-bodyRect.top
-                if (windowBottom+preloadDistance >= figureTop && windowTop-preloadDistance <= figureBottom) {
+                const figureTop = figureRect.top - bodyRect.top
+                const figureBottom = figureRect.bottom - bodyRect.top
+                if (
+                    windowBottom + preloadDistance >= figureTop &&
+                    windowTop - preloadDistance <= figureBottom
+                ) {
                     figure.isActive = true
                     figure.element.classList.remove("grapherPreview")
                     ChartView.bootstrap({
-                        jsonConfig: figure.jsonConfig, containerNode: figure.element, isEmbed: figure.element.parentNode !== document.body || undefined, queryStr: figure.queryStr
+                        jsonConfig: figure.jsonConfig,
+                        containerNode: figure.element,
+                        isEmbed:
+                            figure.element.parentNode !== document.body ||
+                            undefined,
+                        queryStr: figure.queryStr
                     })
                 }
             }

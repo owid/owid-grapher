@@ -1,7 +1,6 @@
-import {MigrationInterface, QueryRunner} from "typeorm"
+import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class RelativeToggleDefault1558617579232 implements MigrationInterface {
-
     public async up(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(`
             UPDATE charts
@@ -20,7 +19,5 @@ export class RelativeToggleDefault1558617579232 implements MigrationInterface {
         `)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> {
-    }
-
+    public async down(queryRunner: QueryRunner): Promise<any> {}
 }

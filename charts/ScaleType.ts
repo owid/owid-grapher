@@ -1,1 +1,1 @@
-export type ScaleType = 'linear' | 'log'
+export type ScaleType = "linear" | "log"

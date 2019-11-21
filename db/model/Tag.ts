@@ -1,5 +1,5 @@
-import * as db from 'db/db'
-import { QueryBuilder } from 'knex'
+import * as db from "db/db"
+import { QueryBuilder } from "knex"
 
 export namespace Tag {
     export interface Row {
@@ -14,9 +14,11 @@ export namespace Tag {
 
     export const table = "tags"
 
-    export function select<K extends keyof Row>(...args: K[]): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
+    export function select<K extends keyof Row>(
+        ...args: K[]
+    ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
         return {
-            from: (query) => query.select(...args) as any
+            from: query => query.select(...args) as any
         }
     }
 }

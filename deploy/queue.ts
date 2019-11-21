@@ -1,6 +1,9 @@
-import * as fs from 'fs-extra'
-import { DEPLOY_QUEUE_FILE_PATH, DEPLOY_PENDING_FILE_PATH } from 'serverSettings'
-import { deploy } from './deploy'
+import * as fs from "fs-extra"
+import {
+    DEPLOY_QUEUE_FILE_PATH,
+    DEPLOY_PENDING_FILE_PATH
+} from "serverSettings"
+import { deploy } from "./deploy"
 
 const MAX_SUCCESSIVE_FAILURES = 2
 
@@ -17,19 +20,22 @@ export interface IDeployQueueItem {
 }
 
 export async function readQueueContent(): Promise<string> {
-    const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, 'utf8')
+    const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
     // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
     if (fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
-        const deployingContent = await fs.readFile(DEPLOY_PENDING_FILE_PATH, 'utf8')
-        return deployingContent + '\n' + queueContent
+        const deployingContent = await fs.readFile(
+            DEPLOY_PENDING_FILE_PATH,
+            "utf8"
+        )
+        return deployingContent + "\n" + queueContent
     } else {
         return queueContent
     }
 }
 
 export async function enqueueDeploy(item: IDeployQueueItem) {
-    await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + '\n')
+    await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + "\n")
 }
 
 export async function eraseQueueContent() {
@@ -37,7 +43,7 @@ export async function eraseQueueContent() {
 }
 
 export async function queueIsEmpty(): Promise<boolean> {
-    return !await readQueueContent()
+    return !(await readQueueContent())
 }
 
 export async function pullQueueContent(): Promise<string> {
@@ -54,8 +60,8 @@ export async function pullQueueContent(): Promise<string> {
 export function parseQueueContent(content: string): IDeployQueueItem[] {
     // Parse all lines in file as JSON
     return content
-        .split('\n')
-        .map((line) => {
+        .split("\n")
+        .map(line => {
             try {
                 return JSON.parse(line)
             } catch (err) {
@@ -66,19 +72,19 @@ export function parseQueueContent(content: string): IDeployQueueItem[] {
 }
 
 export function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
-    const date: string = (new Date()).toISOString()
+    const date: string = new Date().toISOString()
 
     const message: string = queueItems
-        .filter((item) => item.message)
-        .map((item) => item.message)
-        .join('\n')
+        .filter(item => item.message)
+        .map(item => item.message)
+        .join("\n")
 
     const coauthors: string = queueItems
-        .filter((item) => item.authorName)
-        .map((item) => {
+        .filter(item => item.authorName)
+        .map(item => {
             return `Co-authored-by: ${item.authorName} <${item.authorEmail}>`
         })
-        .join('\n')
+        .join("\n")
 
     return `Deploy ${date}\n${message}\n\n\n${coauthors}`
 }
@@ -87,7 +93,7 @@ export async function triggerDeploy() {
     if (!deploying) {
         deploying = true
         let failures = 0
-        while (!await queueIsEmpty() && failures < MAX_SUCCESSIVE_FAILURES) {
+        while (!(await queueIsEmpty()) && failures < MAX_SUCCESSIVE_FAILURES) {
             const deployContent = await pullQueueContent()
             // Write to `.deploying` file to be able to recover the deploy message
             // in case of failure.

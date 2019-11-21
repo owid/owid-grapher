@@ -1,6 +1,6 @@
-import * as settings from 'settings'
-import * as React from 'react'
-import { Head } from './Head'
+import * as settings from "settings"
+import * as React from "react"
+import { Head } from "./Head"
 
 export default function SubscribePage() {
     const style = `
@@ -35,21 +35,57 @@ export default function SubscribePage() {
         }
     `
 
-    return <html>
-        <Head pageTitle="Subscribe" canonicalUrl={`${settings.BAKED_BASE_URL}/subscribe`}>
-            <style dangerouslySetInnerHTML={{__html: style}}/>
-        </Head>
-        <body className="SubscribePage">
-            <main>
-                <h1>Subscribe to Our World in Data</h1>
-                <p>Want to keep up with new data? Sign up for email updates.</p>
-                <form action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" target="_blank">
-                    <input type="email" placeholder="Email" name="EMAIL" className="required email" id="mce-EMAIL" aria-label="Email"/>
-                    <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" className="button"/>
-                    <div style={{ position: 'absolute', left: '-5000px' }}><input type="text" name="b_18058af086319ba6afad752ec_2e166c1fc1" tabIndex={-1}/></div>
-                </form>
-                <p>You can also subscribe using our <a href="/feed">RSS feed</a>.</p>
-            </main>
-        </body>
-    </html>
+    return (
+        <html>
+            <Head
+                pageTitle="Subscribe"
+                canonicalUrl={`${settings.BAKED_BASE_URL}/subscribe`}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body className="SubscribePage">
+                <main>
+                    <h1>Subscribe to Our World in Data</h1>
+                    <p>
+                        Want to keep up with new data? Sign up for email
+                        updates.
+                    </p>
+                    <form
+                        action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
+                        method="post"
+                        id="mc-embedded-subscribe-form"
+                        name="mc-embedded-subscribe-form"
+                        target="_blank"
+                    >
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            name="EMAIL"
+                            className="required email"
+                            id="mce-EMAIL"
+                            aria-label="Email"
+                        />
+                        <input
+                            type="submit"
+                            value="Subscribe"
+                            name="subscribe"
+                            id="mc-embedded-subscribe"
+                            className="button"
+                        />
+                        <div style={{ position: "absolute", left: "-5000px" }}>
+                            <input
+                                type="text"
+                                name="b_18058af086319ba6afad752ec_2e166c1fc1"
+                                tabIndex={-1}
+                            />
+                        </div>
+                    </form>
+                    <p>
+                        You can also subscribe using our{" "}
+                        <a href="/feed">RSS feed</a>.
+                    </p>
+                </main>
+            </body>
+        </html>
+    )
 }

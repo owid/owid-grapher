@@ -4,7 +4,7 @@ export function findUrlsInText(s: string): string[] {
     return s.match(URL_REGEX) || []
 }
 
-import { fromString } from 'html-to-text'
+import { fromString } from "html-to-text"
 
 export function htmlToPlaintext(html: string): string {
     return fromString(html, {

@@ -8,11 +8,11 @@
  * @created 2017-02-11
  */
 
-import * as React from 'react'
-import { computed, action } from 'mobx'
-import { observer } from 'mobx-react'
-import { ScaleType } from './ScaleType'
-import { ChartViewContext, ChartViewContextType } from './ChartViewContext'
+import * as React from "react"
+import { computed, action } from "mobx"
+import { observer } from "mobx-react"
+import { ScaleType } from "./ScaleType"
+import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 
 interface ScaleSelectorProps {
     x: number
@@ -24,12 +24,15 @@ interface ScaleSelectorProps {
 
 @observer
 export class ScaleSelector extends React.Component<ScaleSelectorProps> {
-
     static contextType = ChartViewContext
     context!: ChartViewContextType
 
-    @computed get x(): number { return this.props.x }
-    @computed get y(): number { return this.props.y }
+    @computed get x(): number {
+        return this.props.x
+    }
+    @computed get y(): number {
+        return this.props.y
+    }
 
     @computed get scaleTypeOptions(): ScaleType[] {
         return this.props.scaleTypeOptions
@@ -52,12 +55,23 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
     render() {
         const { x, y, onClick, scaleType } = this
 
-        if (this.context.isStatic)
-            return null
+        if (this.context.isStatic) return null
 
-        const style = { 'fontSize': '12px', 'textTransform': 'uppercase', 'cursor': 'pointer' }
-        return <text x={x} y={y} onClick={onClick} style={style as any} className="clickable">
-            {scaleType}
-        </text>
+        const style = {
+            fontSize: "12px",
+            textTransform: "uppercase",
+            cursor: "pointer"
+        }
+        return (
+            <text
+                x={x}
+                y={y}
+                onClick={onClick}
+                style={style as any}
+                className="clickable"
+            >
+                {scaleType}
+            </text>
+        )
     }
 }

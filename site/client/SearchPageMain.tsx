@@ -1,16 +1,22 @@
 import ReactDOM = require("react-dom")
 import React = require("react")
-import { getQueryParams, decodeQueryParam } from 'utils/client/url'
-import { siteSearch, SiteSearchResults } from 'site/siteSearch'
-import { SearchResults } from 'site/client/SearchResults'
+import { getQueryParams, decodeQueryParam } from "utils/client/url"
+import { siteSearch, SiteSearchResults } from "site/siteSearch"
+import { SearchResults } from "site/client/SearchResults"
 import { observer } from "mobx-react"
-import { action, observable, autorun, IReactionDisposer, runInAction } from "mobx"
+import {
+    action,
+    observable,
+    autorun,
+    IReactionDisposer,
+    runInAction
+} from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 @observer
 export class SearchPageMain extends React.Component {
-    @observable query: string = decodeQueryParam(getQueryParams().q||"")
+    @observable query: string = decodeQueryParam(getQueryParams().q || "")
     lastQuery?: string
 
     @observable.ref results?: SiteSearchResults
@@ -23,7 +29,7 @@ export class SearchPageMain extends React.Component {
             return
         }
 
-        runInAction(() => this.results = results)
+        runInAction(() => (this.results = results))
     }
 
     @action.bound onSearch(query: string) {
@@ -36,7 +42,9 @@ export class SearchPageMain extends React.Component {
     }
 
     componentDidMount() {
-        const input = document.querySelector(".SearchPage > main > form input") as HTMLInputElement
+        const input = document.querySelector(
+            ".SearchPage > main > form input"
+        ) as HTMLInputElement
         input.value = this.query
         input.focus()
         this.onSearch(this.query)
@@ -56,12 +64,17 @@ export class SearchPageMain extends React.Component {
     }
 
     render() {
-        return <React.Fragment>
-            {this.results && <SearchResults results={this.results}/>}
-        </React.Fragment>
+        return (
+            <React.Fragment>
+                {this.results && <SearchResults results={this.results} />}
+            </React.Fragment>
+        )
     }
 }
 
 export function runSearchPage() {
-    ReactDOM.render(<SearchPageMain/>, document.querySelector(".searchResults"))
+    ReactDOM.render(
+        <SearchPageMain />,
+        document.querySelector(".searchResults")
+    )
 }

@@ -6,17 +6,17 @@
  * @created 2017-02-11
  */
 
-import {scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic} from 'd3-scale'
-import {map, extend} from './Util'
-import {observable, computed, toJS} from 'mobx'
+import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
+import { map, extend } from "./Util"
+import { observable, computed, toJS } from "mobx"
 
-export type ScaleType = 'linear' | 'log'
+export type ScaleType = "linear" | "log"
 
 export interface AxisConfig {
-    scaleType: ScaleType,
-    scaleTypeOptions: ScaleType[],
-    tickFormat: (v: number) => string,
-    domain: [number, number],
+    scaleType: ScaleType
+    scaleTypeOptions: ScaleType[]
+    tickFormat: (v: number) => string
+    domain: [number, number]
     label: string
 }
 
@@ -29,16 +29,23 @@ export class AxisScale {
     @observable hideFractionalTicks: boolean
     @observable hideGridlines: boolean
 
-    constructor({ scaleType = 'linear',
-                  scaleTypeOptions = ['linear'],
-                  tickFormat = (d => d.toString()),
-                  domain = [0, 0],
-                  range = [0, 0],
-                  hideFractionalTicks = false,
-                  hideGridlines = false }:
-                { scaleType?: ScaleType, scaleTypeOptions?: ScaleType[],
-                  tickFormat?: (v: number) => string, domain: [number, number], range?: [number, number],
-                  hideFractionalTicks?: boolean, hideGridlines?: boolean }) {
+    constructor({
+        scaleType = "linear",
+        scaleTypeOptions = ["linear"],
+        tickFormat = d => d.toString(),
+        domain = [0, 0],
+        range = [0, 0],
+        hideFractionalTicks = false,
+        hideGridlines = false
+    }: {
+        scaleType?: ScaleType
+        scaleTypeOptions?: ScaleType[]
+        tickFormat?: (v: number) => string
+        domain: [number, number]
+        range?: [number, number]
+        hideFractionalTicks?: boolean
+        hideGridlines?: boolean
+    }) {
         this.scaleType = scaleType
         this.scaleTypeOptions = scaleTypeOptions
         this.tickFormat = tickFormat
@@ -49,15 +56,19 @@ export class AxisScale {
     }
 
     @computed get d3_scaleConstructor(): any {
-        return this.scaleType === 'log' ? scaleLog : scaleLinear
+        return this.scaleType === "log" ? scaleLog : scaleLinear
     }
 
-    @computed get d3_scale(): ScaleLinear<number, number> | ScaleLogarithmic<number, number> {
-        return this.d3_scaleConstructor().domain(this.domain).range(this.range)
+    @computed get d3_scale():
+        | ScaleLinear<number, number>
+        | ScaleLogarithmic<number, number> {
+        return this.d3_scaleConstructor()
+            .domain(this.domain)
+            .range(this.range)
     }
 
     @computed get rangeSize() {
-        return Math.abs(this.range[1]-this.range[0])
+        return Math.abs(this.range[1] - this.range[0])
     }
 
     @computed get rangeMax() {
@@ -69,10 +80,10 @@ export class AxisScale {
     }
 
     getTickValues(): number[] {
-        const {scaleType, domain, d3_scale} = this
+        const { scaleType, domain, d3_scale } = this
 
         let ticks: number[] = []
-        if (scaleType === 'log') {
+        if (scaleType === "log") {
             let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10))
             if (!isFinite(minPower10)) minPower10 = 0
             let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10))
@@ -85,8 +96,7 @@ export class AxisScale {
             ticks = d3_scale.ticks(6)
         }
 
-        if (this.hideFractionalTicks)
-            ticks = ticks.filter(t => t % 1 === 0)
+        if (this.hideFractionalTicks) ticks = ticks.filter(t => t % 1 === 0)
 
         return ticks
     }
@@ -97,9 +107,11 @@ export class AxisScale {
 
     place(value: number) {
         if (!this.range) {
-            console.error("Can't place value on scale without a defined output range")
+            console.error(
+                "Can't place value on scale without a defined output range"
+            )
             return value
-        } else if (this.scaleType === 'log' && value <= 0) {
+        } else if (this.scaleType === "log" && value <= 0) {
             console.error("Can't have values <= 0 on a log scale")
             return value
         }

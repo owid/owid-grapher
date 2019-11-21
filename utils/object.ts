@@ -1,5 +1,8 @@
 export function camelToSnake(s: string) {
-    return s.split(/(?<=[a-z])(?=[A-Z])/g).join("_").toLowerCase()
+    return s
+        .split(/(?<=[a-z])(?=[A-Z])/g)
+        .join("_")
+        .toLowerCase()
 }
 
 export function snakeToCamel(s: string) {
@@ -8,7 +11,7 @@ export function snakeToCamel(s: string) {
 
 export function camelCaseProperties<T>(obj: T): T {
     const o: any = {}
-    for (const key in (obj as any)) {
+    for (const key in obj as any) {
         o[snakeToCamel(key)] = (obj as any)[key]
     }
     return o

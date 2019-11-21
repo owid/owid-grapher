@@ -1,14 +1,21 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from "typeorm"
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    BaseEntity,
+    ManyToOne,
+    JoinColumn
+} from "typeorm"
 
-import * as db from 'db/db'
-import { Chart } from './Chart'
-import { User } from './User'
+import * as db from "db/db"
+import { Chart } from "./Chart"
+import { User } from "./User"
 
 @Entity("chart_revisions")
 export class ChartRevision extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() chartId!: number
-    @Column({ type: 'json' }) config: any
+    @Column({ type: "json" }) config: any
     @Column() userId!: number
 
     @Column() createdAt!: Date

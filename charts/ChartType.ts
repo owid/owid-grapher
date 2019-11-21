@@ -1,7 +1,14 @@
 // TODO make this a string enum in TypeScript 2.4
-import { keyBy } from './Util'
+import { keyBy } from "./Util"
 
-export type ChartTypeType = "LineChart" | "ScatterPlot" | "TimeScatter" | "StackedArea" | "DiscreteBar" | "SlopeChart" | "StackedBar"
+export type ChartTypeType =
+    | "LineChart"
+    | "ScatterPlot"
+    | "TimeScatter"
+    | "StackedArea"
+    | "DiscreteBar"
+    | "SlopeChart"
+    | "StackedBar"
 
 export class ChartType {
     static LineChart: ChartTypeType = "LineChart"

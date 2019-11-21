@@ -18,7 +18,7 @@ export class Vector2 {
     static zero = new Vector2(0, 0)
 
     static get epsilon() {
-        return 1E-05
+        return 1e-5
     }
 
     static distanceSq(a: Vector2, b: Vector2): number {
@@ -30,7 +30,14 @@ export class Vector2 {
     }
 
     static angle(a: Vector2, b: Vector2): number {
-        return Math.acos(Math.max(Math.min(Vector2.dot(a.normalize(), b.normalize()), 1), -1)) * 57.29578
+        return (
+            Math.acos(
+                Math.max(
+                    Math.min(Vector2.dot(a.normalize(), b.normalize()), 1),
+                    -1
+                )
+            ) * 57.29578
+        )
     }
 
     static dot(lhs: Vector2, rhs: Vector2) {
@@ -38,14 +45,20 @@ export class Vector2 {
     }
 
     // From: http://stackoverflow.com/a/1501725/1983739
-    static distanceFromPointToLineSq(p: Vector2, v: Vector2, w: Vector2): number {
+    static distanceFromPointToLineSq(
+        p: Vector2,
+        v: Vector2,
+        w: Vector2
+    ): number {
         const l2 = Vector2.distanceSq(v, w)
-        if (l2 === 0)
-            return Vector2.distanceSq(p, v)
+        if (l2 === 0) return Vector2.distanceSq(p, v)
 
         let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
         t = Math.max(0, Math.min(1, t))
-        return Vector2.distanceSq(p, new Vector2(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)))
+        return Vector2.distanceSq(
+            p,
+            new Vector2(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y))
+        )
     }
 
     static distanceFromPointToLine(p: Vector2, v: Vector2, w: Vector2): number {
@@ -56,7 +69,7 @@ export class Vector2 {
         return new Vector2(a[0], a[1])
     }
 
-    static fromObject(o: { x: number, y: number }): Vector2 {
+    static fromObject(o: { x: number; y: number }): Vector2 {
         return new Vector2(o.x, o.y)
     }
 
@@ -90,7 +103,7 @@ export class Vector2 {
 
     normalize(): Vector2 {
         const magnitude = this.magnitude
-        if (magnitude > 1E-05) {
+        if (magnitude > 1e-5) {
             return new Vector2(this.x / magnitude, this.y / magnitude)
         } else {
             return new Vector2(0, 0)

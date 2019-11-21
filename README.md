@@ -18,33 +18,33 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 2. Install Homebrew services:
 
-   ```sh
-   brew tap homebrew/services
-   ```
+    ```sh
+    brew tap homebrew/services
+    ```
 
 3. Install MySQL 5.7 and Node 10.9+:
 
-   ```sh
-   brew install mysql@5.7 node
-   ```
+    ```sh
+    brew install mysql@5.7 node
+    ```
 
 4. Start the MySQL service:
 
-   ```sh
-   brew services start mysql@5.7
-   ```
+    ```sh
+    brew services start mysql@5.7
+    ```
 
 5. Install yarn:
 
-   ```sh
-   npm install -g yarn
-   ```
+    ```sh
+    npm install -g yarn
+    ```
 
 6. Inside the repo folder, install all dependencies by running:
 
-   ```sh
-   yarn
-   ```
+    ```sh
+    yarn
+    ```
 
 ### Other platforms
 
@@ -66,10 +66,10 @@ We do this for convenience so we can run `mysql` commands without providing a pa
 
 Daily exports from the live OWID database are published here and can be used for testing:
 
-| File | Description | Size |
-| --- | --- | --- |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata, everything except data_values | ~5 MB |
-| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations | >100MB |
+| File                                                                            | Description                                                 | Size   |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ |
+| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz)   | Table structure and metadata, everything except data_values | ~5 MB  |
+| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations            | >100MB |
 
 This sequence of commands will create a database, then download and import all OWID charts and their data:
 

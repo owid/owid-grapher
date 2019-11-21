@@ -1,10 +1,10 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, runInAction} from 'mobx'
+import * as React from "react"
+import { observer } from "mobx-react"
+import { observable, runInAction } from "mobx"
 
-import { LoadingBlocker, BindString } from './Forms'
-import { AdminLayout } from './AdminLayout'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
+import { LoadingBlocker, BindString } from "./Forms"
+import { AdminLayout } from "./AdminLayout"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface Post {
     id: number
@@ -17,12 +17,14 @@ interface Post {
 
 class PostEditor extends React.Component<{ post: Post }> {
     render() {
-        const {post} = this.props
-        return <div className="PostEditor">
-            <BindString store={post} field="title"/>
-            <BindString store={post} field="slug"/>
-            <BindString store={post} field="content" textarea/>
-        </div>
+        const { post } = this.props
+        return (
+            <div className="PostEditor">
+                <BindString store={post} field="title" />
+                <BindString store={post} field="slug" />
+                <BindString store={post} field="content" textarea />
+            </div>
+        )
     }
 }
 
@@ -34,10 +36,10 @@ export class PostEditorPage extends React.Component<{ postId?: number }> {
     @observable.ref post?: Post
 
     async fetchPost() {
-        const {postId} = this.props
-        const {admin} = this.context
+        const { postId } = this.props
+        const { admin } = this.context
         const json = await admin.getJSON(`/api/posts/${postId}.json`)
-        runInAction(() => this.post = json as Post)
+        runInAction(() => (this.post = json as Post))
     }
 
     componentDidMount() {
@@ -45,10 +47,16 @@ export class PostEditorPage extends React.Component<{ postId?: number }> {
     }
 
     render() {
-        return <AdminLayout>
-            <main className="PostEditorPage">
-                {this.post ? <PostEditor post={this.post}/> : <LoadingBlocker/>}
-            </main>
-        </AdminLayout>
+        return (
+            <AdminLayout>
+                <main className="PostEditorPage">
+                    {this.post ? (
+                        <PostEditor post={this.post} />
+                    ) : (
+                        <LoadingBlocker />
+                    )}
+                </main>
+            </AdminLayout>
+        )
     }
 }

@@ -1,7 +1,7 @@
 const fuzzysort = require("fuzzysort")
-import * as _ from 'lodash'
-import {observable, computed, action, autorun} from 'mobx'
-import { Analytics } from './Analytics'
+import * as _ from "lodash"
+import { observable, computed, action, autorun } from "mobx"
+import { Analytics } from "./Analytics"
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -23,7 +23,7 @@ function decodeHashSafe(s: string) {
 class ChartFilter {
     searchInput: HTMLInputElement
     chartItems: ChartItem[] = []
-    chartItemsByTitle: {[key: string]: ChartItem} = {}
+    chartItemsByTitle: { [key: string]: ChartItem } = {}
     strings: string[]
     results: any[] = []
     sections: HTMLDivElement[] = []
@@ -38,20 +38,29 @@ class ChartFilter {
         return fuzzysort.go(this.query, this.searchStrings, { threshold: -150 })
     }
 
-    @computed get resultsByTitle(): {[key: string]: SearchResult} {
-        return _.keyBy(this.searchResults, 'target')
+    @computed get resultsByTitle(): { [key: string]: SearchResult } {
+        return _.keyBy(this.searchResults, "target")
     }
 
     constructor() {
-        this.searchInput = document.querySelector(".chartsSearchInput") as HTMLInputElement
-        this.sections = Array.from(document.querySelectorAll(".CountryProfilePage main section")) as HTMLDivElement[]
-        const lis = Array.from(document.querySelectorAll(".CountryProfilePage main li")) as HTMLLIElement[]
+        this.searchInput = document.querySelector(
+            ".chartsSearchInput"
+        ) as HTMLInputElement
+        this.sections = Array.from(
+            document.querySelectorAll(".CountryProfilePage main section")
+        ) as HTMLDivElement[]
+        const lis = Array.from(
+            document.querySelectorAll(".CountryProfilePage main li")
+        ) as HTMLLIElement[]
         this.chartItems = lis.map(li => ({
-            title: ((li.firstChild as any).textContent as string).replace(/₂/g, '2'),
+            title: ((li.firstChild as any).textContent as string).replace(
+                /₂/g,
+                "2"
+            ),
             li: li,
-            ul: li.closest('ul') as HTMLUListElement
+            ul: li.closest("ul") as HTMLUListElement
         }))
-        this.chartItemsByTitle = _.keyBy(this.chartItems, 'title')
+        this.chartItemsByTitle = _.keyBy(this.chartItems, "title")
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 
@@ -77,7 +86,12 @@ class ChartFilter {
     }*/
 
     render() {
-        history.replaceState(null, document.title, window.location.pathname + (this.query ? `#search=${encodeHashSafe(this.query)}` : ""))
+        history.replaceState(
+            null,
+            document.title,
+            window.location.pathname +
+                (this.query ? `#search=${encodeHashSafe(this.query)}` : "")
+        )
 
         if (!this.query) {
             for (const section of this.sections) {
@@ -100,17 +114,23 @@ class ChartFilter {
         for (const c of this.chartItems) {
             const res = this.resultsByTitle[c.title]
             if (!res) {
-                c.li.style.display = 'none'
+                c.li.style.display = "none"
             } else {
                 c.li.style.display = null
-                c.li.children[0].children[0].innerHTML = fuzzysort.highlight(res)
+                c.li.children[0].children[0].innerHTML = fuzzysort.highlight(
+                    res
+                )
             }
         }
 
         // Ensure tag headings are only shown if they have charts under them
         for (const section of this.sections) {
-            if (!Array.from(section.querySelectorAll("li")).some(li => li.style.display !== 'none')) {
-                section.style.display = 'none'
+            if (
+                !Array.from(section.querySelectorAll("li")).some(
+                    li => li.style.display !== "none"
+                )
+            ) {
+                section.style.display = "none"
             } else {
                 section.style.display = null
             }
@@ -118,7 +138,7 @@ class ChartFilter {
     }
 
     @action.bound run() {
-        this.searchInput.addEventListener('input', this.onSearchInput)
+        this.searchInput.addEventListener("input", this.onSearchInput)
         //this.searchInput.addEventListener('keydown', this.onKeydown)
 
         autorun(() => this.render())

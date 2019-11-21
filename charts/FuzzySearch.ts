@@ -1,4 +1,4 @@
-import {keyBy} from './Util'
+import { keyBy } from "./Util"
 const fuzzysort = require("fuzzysort")
 
 export class FuzzySearch<T> {
@@ -12,7 +12,9 @@ export class FuzzySearch<T> {
 
     search(input: string): T[] {
         console.log(fuzzysort.go(input, this.strings))
-        return fuzzysort.go(input, this.strings).map((result: any) => this.datamap[result.target])
+        return fuzzysort
+            .go(input, this.strings)
+            .map((result: any) => this.datamap[result.target])
     }
 
     highlight(input: string, target: string): string {

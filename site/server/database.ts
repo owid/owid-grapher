@@ -1,4 +1,4 @@
-import * as mysql from 'mysql'
+import * as mysql from "mysql"
 
 export class DatabaseConnection {
     conn: mysql.Connection
@@ -21,10 +21,12 @@ export class DatabaseConnection {
 }
 
 export function createConnection(props: { database: string }) {
-    return new DatabaseConnection(mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        database: props.database,
-        charset: 'utf8mb4'
-    }))
+    return new DatabaseConnection(
+        mysql.createConnection({
+            host: "localhost",
+            user: "root",
+            database: props.database,
+            charset: "utf8mb4"
+        })
+    )
 }

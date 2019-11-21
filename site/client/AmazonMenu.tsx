@@ -1,13 +1,13 @@
 // This is a port of a jQuery library:
 // https://github.com/kamens/jQuery-menu-aim
 
-import * as React from 'react'
-import { bind } from 'decko'
+import * as React from "react"
+import { bind } from "decko"
 
-import { getParent } from './utils'
+import { getParent } from "./utils"
 
 interface Position {
-    x: number,
+    x: number
     y: number
 }
 
@@ -17,7 +17,9 @@ const DELAY = 400
 const TOLERANCE_PX = 20
 
 function getSubmenuId(targetEl: HTMLElement): string | null {
-    const listItem = getParent(targetEl, (el: HTMLElement) => el.matches(`[${ATTRIBUTE}]`))
+    const listItem = getParent(targetEl, (el: HTMLElement) =>
+        el.matches(`[${ATTRIBUTE}]`)
+    )
     if (listItem) {
         return listItem.getAttribute(ATTRIBUTE)
     }
@@ -28,7 +30,12 @@ function slope(a: Position, b: Position) {
     return (b.y - a.y) / (b.x - a.x)
 }
 
-export class AmazonMenu extends React.Component<{ children: React.ReactNode, submenuRect?: DOMRect | ClientRect | null, onActivate?: (submenuId: any) => void, onDeactivate?: (submenuId: any) => void }> {
+export class AmazonMenu extends React.Component<{
+    children: React.ReactNode
+    submenuRect?: DOMRect | ClientRect | null
+    onActivate?: (submenuId: any) => void
+    onDeactivate?: (submenuId: any) => void
+}> {
     container: React.RefObject<HTMLDivElement> = React.createRef()
     activeSubmenuId?: string
     mouseLocs: Position[] = []
@@ -129,7 +136,11 @@ export class AmazonMenu extends React.Component<{ children: React.ReactNode, sub
         //     return 0
         // }
 
-        if (this.lastDelayLoc && loc.x === this.lastDelayLoc.x && loc.y === this.lastDelayLoc.y) {
+        if (
+            this.lastDelayLoc &&
+            loc.x === this.lastDelayLoc.x &&
+            loc.y === this.lastDelayLoc.y
+        ) {
             // If the mouse hasn't moved since the last time we checked
             // for activation status, immediately activate.
             return 0
@@ -163,7 +174,10 @@ export class AmazonMenu extends React.Component<{ children: React.ReactNode, sub
         const prevDecreasingSlope = slope(prevLoc, decreasingCorner)
         const prevIncreasingSlope = slope(prevLoc, increasingCorner)
 
-        if (decreasingSlope < prevDecreasingSlope && increasingSlope > prevIncreasingSlope) {
+        if (
+            decreasingSlope < prevDecreasingSlope &&
+            increasingSlope > prevIncreasingSlope
+        ) {
             // Mouse is moving from previous location towards the
             // currently activated submenu. Delay before activating a
             // new menu row, because user may be moving into submenu.

@@ -1,9 +1,9 @@
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
 
-import {observable} from 'mobx'
-import {extend} from './Util'
-import {VariableDisplaySettings} from './VariableData'
+import { observable } from "mobx"
+import { extend } from "./Util"
+import { VariableDisplaySettings } from "./VariableData"
 
 export class ChartDimension {
     @observable property!: string
@@ -33,7 +33,7 @@ export class ChartDimension {
             }
 
             if (key in json) {
-                (this as any)[key] = (json as any)[key]
+                ;(this as any)[key] = (json as any)[key]
             }
 
             // XXX migrate this away (remember targetYear)

@@ -1,7 +1,7 @@
-import * as React from 'react'
-import { computed } from 'mobx'
+import * as React from "react"
+import { computed } from "mobx"
 
-export type LogoOption = 'owid' | 'core+owid'
+export type LogoOption = "owid" | "core+owid"
 
 const OWID_LOGO_SVG = `<svg width="210" height="120" viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#clip0)">
@@ -33,7 +33,7 @@ const CORE_LOGO_SVG = `<svg width="102" height="37" viewBox="0 0 102 37" fill="n
 </svg>`
 
 const logos = {
-    "owid": {
+    owid: {
         svg: OWID_LOGO_SVG,
         width: 210,
         height: 120,
@@ -73,20 +73,44 @@ export class Logo {
         return this.targetHeight / this.spec.height
     }
 
-    @computed get width() { return this.spec.width * this.scale }
-    @computed get height() { return this.spec.height * this.scale }
+    @computed get width() {
+        return this.spec.width * this.scale
+    }
+    @computed get height() {
+        return this.spec.height * this.scale
+    }
 
     renderSVG(targetX: number, targetY: number) {
         const { scale } = this
-        const svg = (this.spec.svg.match(/<svg>(.*)<\/svg>/) || "")[1] || this.spec.svg
-        return <g transform={`translate(${Math.round(targetX)}, ${targetY}) scale(${parseFloat(scale.toFixed(2))})`} dangerouslySetInnerHTML={{ __html: svg }} />
+        const svg =
+            (this.spec.svg.match(/<svg>(.*)<\/svg>/) || "")[1] || this.spec.svg
+        return (
+            <g
+                transform={`translate(${Math.round(
+                    targetX
+                )}, ${targetY}) scale(${parseFloat(scale.toFixed(2))})`}
+                dangerouslySetInnerHTML={{ __html: svg }}
+            />
+        )
     }
 
     renderHTML() {
         if (this.props.isLink || !this.spec.url) {
-            return <div className="logo" dangerouslySetInnerHTML={{ __html: this.spec.svg }}/>
+            return (
+                <div
+                    className="logo"
+                    dangerouslySetInnerHTML={{ __html: this.spec.svg }}
+                />
+            )
         } else {
-            return <a href={this.spec.url} target="_blank" className="logo" dangerouslySetInnerHTML={{ __html: this.spec.svg }}/>
+            return (
+                <a
+                    href={this.spec.url}
+                    target="_blank"
+                    className="logo"
+                    dangerouslySetInnerHTML={{ __html: this.spec.svg }}
+                />
+            )
         }
     }
 }

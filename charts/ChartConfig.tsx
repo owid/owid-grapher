@@ -1,18 +1,18 @@
 import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
-import { observable, computed, action, autorun, toJS, runInAction } from 'mobx'
-import { ComparisonLineConfig } from './ComparisonLine'
-import { AxisConfig, AxisConfigProps } from './AxisConfig'
-import { ChartType, ChartTypeType } from './ChartType'
-import { ChartTabOption } from './ChartTabOption'
-import { defaultTo } from './Util'
-import { VariableData, DataForChart } from './VariableData'
-import { ChartData } from './ChartData'
-import { DimensionWithData } from './DimensionWithData'
-import { MapConfig, MapConfigProps } from './MapConfig'
+import { observable, computed, action, autorun, toJS, runInAction } from "mobx"
+import { ComparisonLineConfig } from "./ComparisonLine"
+import { AxisConfig, AxisConfigProps } from "./AxisConfig"
+import { ChartType, ChartTypeType } from "./ChartType"
+import { ChartTabOption } from "./ChartTabOption"
+import { defaultTo } from "./Util"
+import { VariableData, DataForChart } from "./VariableData"
+import { ChartData } from "./ChartData"
+import { DimensionWithData } from "./DimensionWithData"
+import { MapConfig, MapConfigProps } from "./MapConfig"
 import { URLBinder } from "./URLBinder"
-import { StackedBarTransform } from './StackedBarTransform'
-import { DiscreteBarTransform } from './DiscreteBarTransform'
-import { StackedAreaTransform } from './StackedAreaTransform'
+import { StackedBarTransform } from "./StackedBarTransform"
+import { DiscreteBarTransform } from "./DiscreteBarTransform"
+import { StackedAreaTransform } from "./StackedAreaTransform"
 import { LineChartTransform } from "./LineChartTransform"
 import { ScatterTransform } from "./ScatterTransform"
 import { SlopeChartTransform } from "./SlopeChartTransform"
@@ -28,7 +28,7 @@ import { LogoOption } from "./Logos"
 
 declare const App: any
 declare const window: any
-const isNode: boolean = require('detect-node')
+const isNode: boolean = require("detect-node")
 
 export interface HighlightToggleConfig {
     description: string
@@ -36,8 +36,8 @@ export interface HighlightToggleConfig {
 }
 
 export interface EntitySelection {
-    entityId: number,
-    index: number, // Which dimension the entity is from
+    entityId: number
+    index: number // Which dimension the entity is from
     color?: Color
 }
 
@@ -62,7 +62,14 @@ export class DimensionSlot {
     }
 
     @computed get allowMultiple(): boolean {
-        return this.property === "y" && !(this.chart.isScatter || this.chart.isTimeScatter || this.chart.isSlopeChart)
+        return (
+            this.property === "y" &&
+            !(
+                this.chart.isScatter ||
+                this.chart.isTimeScatter ||
+                this.chart.isSlopeChart
+            )
+        )
     }
 
     @computed get isOptional(): boolean {
@@ -70,22 +77,23 @@ export class DimensionSlot {
     }
 
     @computed get dimensions(): ChartDimension[] {
-        return this.chart.dimensions.filter((d) => d.property === this.property)
+        return this.chart.dimensions.filter(d => d.property === this.property)
     }
 
     set dimensions(dims: ChartDimension[]) {
         let newDimensions: ChartDimension[] = []
-        this.chart.dimensionSlots.forEach((slot) => {
+        this.chart.dimensionSlots.forEach(slot => {
             if (slot.property === this.property)
                 newDimensions = newDimensions.concat(dims)
-            else
-                newDimensions = newDimensions.concat(slot.dimensions)
+            else newDimensions = newDimensions.concat(slot.dimensions)
         })
         this.chart.props.dimensions = newDimensions
     }
 
     @computed get dimensionsWithData(): DimensionWithData[] {
-        return this.chart.data.filledDimensions.filter(d => d.property === this.property)
+        return this.chart.data.filledDimensions.filter(
+            d => d.property === this.property
+        )
     }
 
     createDimension(variableId: number) {
@@ -123,7 +131,10 @@ export class ChartConfigProps {
     @observable.ref timelineMaxTime?: number = undefined
 
     @observable.ref dimensions: ChartDimension[] = []
-    @observable.ref addCountryMode?: "add-country" | "change-country" | "disabled" = undefined
+    @observable.ref addCountryMode?:
+        | "add-country"
+        | "change-country"
+        | "disabled" = undefined
 
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
@@ -149,7 +160,7 @@ export class ChartConfigProps {
     @observable.ref isPublished?: true = undefined
 
     @observable colorBy?: string = undefined
-    @observable customColors?: {[ key: string ]: Color|undefined} = undefined
+    @observable customColors?: { [key: string]: Color | undefined } = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
 
@@ -184,12 +195,9 @@ export class ChartConfig {
 
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
-        if (this.isMediaCard)
-            return 24
-        else if (this.isLocalExport)
-            return 18
-        else
-            return this.setBaseFontSize
+        if (this.isMediaCard) return 24
+        else if (this.isLocalExport) return 18
+        else return this.setBaseFontSize
     }
 
     set baseFontSize(val: number) {
@@ -217,15 +225,25 @@ export class ChartConfig {
     }
 
     @computed get hasOWIDLogo(): boolean {
-        return !this.props.hideLogo && (this.props.logo === undefined || this.props.logo === "owid")
+        return (
+            !this.props.hideLogo &&
+            (this.props.logo === undefined || this.props.logo === "owid")
+        )
     }
 
-    constructor(props?: ChartConfigProps, options: { isEmbed?: boolean, isMediaCard?: boolean, queryStr?: string } = {}) {
+    constructor(
+        props?: ChartConfigProps,
+        options: {
+            isEmbed?: boolean
+            isMediaCard?: boolean
+            queryStr?: string
+        } = {}
+    ) {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
         this.isNode = isNode
 
-        this.update(props || { yAxis: { min: 0 }})
+        this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
         this.url = new URLBinder(this, options.queryStr)
@@ -237,13 +255,13 @@ export class ChartConfig {
     ensureValidConfig() {
         autorun(() => {
             if (!this.availableTabs.includes(this.props.tab)) {
-                runInAction(() => this.props.tab = this.availableTabs[0])
+                runInAction(() => (this.props.tab = this.availableTabs[0]))
             }
         })
 
         autorun(() => {
             if (this.props.hasMapTab && !this.props.map) {
-                runInAction(() => this.props.map = new MapConfigProps())
+                runInAction(() => (this.props.map = new MapConfigProps()))
             }
         })
 
@@ -254,24 +272,56 @@ export class ChartConfig {
         })
     }
 
-    @computed get subtitle() { return defaultTo(this.props.subtitle, "") }
-    @computed get note() { return defaultTo(this.props.note, "") }
-    @computed get internalNotes() { return defaultTo(this.props.internalNotes, "") }
-    @computed get originUrl() { return defaultTo(this.props.originUrl, "") }
-    @computed get isPublished() { return defaultTo(this.props.isPublished, false) }
-    @computed get primaryTab() { return this.props.tab }
-    @computed get overlayTab() { return this.props.overlay }
-    @computed get addCountryMode() { return this.props.addCountryMode || "add-country" }
-    @computed get highlightToggle() { return this.props.highlightToggle }
-    @computed get hasChartTab() { return this.props.hasChartTab }
-    @computed get hasMapTab() { return this.props.hasMapTab }
-    @computed get hideLegend() { return this.props.hideLegend }
-    @computed get baseColorScheme() { return this.props.baseColorScheme }
-    @computed get comparisonLines() { return this.props.comparisonLines || [] }
+    @computed get subtitle() {
+        return defaultTo(this.props.subtitle, "")
+    }
+    @computed get note() {
+        return defaultTo(this.props.note, "")
+    }
+    @computed get internalNotes() {
+        return defaultTo(this.props.internalNotes, "")
+    }
+    @computed get originUrl() {
+        return defaultTo(this.props.originUrl, "")
+    }
+    @computed get isPublished() {
+        return defaultTo(this.props.isPublished, false)
+    }
+    @computed get primaryTab() {
+        return this.props.tab
+    }
+    @computed get overlayTab() {
+        return this.props.overlay
+    }
+    @computed get addCountryMode() {
+        return this.props.addCountryMode || "add-country"
+    }
+    @computed get highlightToggle() {
+        return this.props.highlightToggle
+    }
+    @computed get hasChartTab() {
+        return this.props.hasChartTab
+    }
+    @computed get hasMapTab() {
+        return this.props.hasMapTab
+    }
+    @computed get hideLegend() {
+        return this.props.hideLegend
+    }
+    @computed get baseColorScheme() {
+        return this.props.baseColorScheme
+    }
+    @computed get comparisonLines() {
+        return this.props.comparisonLines || []
+    }
 
-    @computed get entityType() { return defaultTo(this.props.entityType, "country") }
+    @computed get entityType() {
+        return defaultTo(this.props.entityType, "country")
+    }
 
-    @computed get tab() { return this.props.overlay ? this.props.overlay : this.props.tab }
+    @computed get tab() {
+        return this.props.overlay ? this.props.overlay : this.props.tab
+    }
 
     set tab(value) {
         if (value === "chart" || value === "map") {
@@ -283,7 +333,10 @@ export class ChartConfig {
     }
 
     @computed get timeDomain(): [number | undefined, number | undefined] {
-        return [defaultTo(this.props.minTime, undefined), defaultTo(this.props.maxTime, undefined)]
+        return [
+            defaultTo(this.props.minTime, undefined),
+            defaultTo(this.props.maxTime, undefined)
+        ]
     }
 
     set timeDomain(value: [number | undefined, number | undefined]) {
@@ -306,24 +359,27 @@ export class ChartConfig {
         const color = new DimensionSlot(this, "color")
         const size = new DimensionSlot(this, "size")
 
-        if (this.isScatter)
-            return [yAxis, xAxis, size, color]
-        else if (this.isTimeScatter)
-            return [yAxis, xAxis]
-        else if (this.isSlopeChart)
-            return [yAxis, size, color]
-        else
-            return [yAxis]
+        if (this.isScatter) return [yAxis, xAxis, size, color]
+        else if (this.isTimeScatter) return [yAxis, xAxis]
+        else if (this.isSlopeChart) return [yAxis, size, color]
+        else return [yAxis]
     }
 
     @computed get validDimensions(): ChartDimension[] {
         const { dimensions } = this.props
         const validProperties = map(this.dimensionSlots, "property")
-        let validDimensions = filter(dimensions, (dim) => includes(validProperties, dim.property))
+        let validDimensions = filter(dimensions, dim =>
+            includes(validProperties, dim.property)
+        )
 
-        this.dimensionSlots.forEach((slot) => {
+        this.dimensionSlots.forEach(slot => {
             if (!slot.allowMultiple)
-                validDimensions = uniqWith(validDimensions, (a: ChartDimension, b: ChartDimension) => a.property === slot.property && a.property === b.property)
+                validDimensions = uniqWith(
+                    validDimensions,
+                    (a: ChartDimension, b: ChartDimension) =>
+                        a.property === slot.property &&
+                        a.property === b.property
+                )
         })
 
         return validDimensions
@@ -334,18 +390,23 @@ export class ChartConfig {
     }
 
     @computed get availableTabs(): ChartTabOption[] {
-        return filter([this.props.hasChartTab && "chart", this.props.hasMapTab && "map", "data", "sources", "download"]) as ChartTabOption[]
+        return filter([
+            this.props.hasChartTab && "chart",
+            this.props.hasMapTab && "map",
+            "data",
+            "sources",
+            "download"
+        ]) as ChartTabOption[]
     }
 
     @action.bound update(json: any) {
         for (const key in this.props) {
             if (key in json && key !== "xAxis" && key !== "yAxis") {
-                (this.props as any)[key] = json[key]
+                ;(this.props as any)[key] = json[key]
             }
         }
 
-        if (json.isAutoTitle)
-            this.props.title = undefined
+        if (json.isAutoTitle) this.props.title = undefined
 
         // Auto slug is only preserved for drafts in the editor
         // Once published, slug should stick around (we don't want to create too many redirects)
@@ -356,7 +417,9 @@ export class ChartConfig {
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
 
-        this.props.dimensions = (json.dimensions || []).map((j: any) => new ChartDimension(j))
+        this.props.dimensions = (json.dimensions || []).map(
+            (j: any) => new ChartDimension(j)
+        )
     }
 
     @computed.struct get json() {
@@ -382,49 +445,70 @@ export class ChartConfig {
         return json
     }
 
-    @computed get isLineChart() { return this.props.type === ChartType.LineChart }
-    @computed get isScatter() { return this.props.type === ChartType.ScatterPlot }
-    @computed get isTimeScatter() { return this.props.type === ChartType.TimeScatter }
-    @computed get isStackedArea() { return this.props.type === ChartType.StackedArea }
-    @computed get isSlopeChart() { return this.props.type === ChartType.SlopeChart }
-    @computed get isDiscreteBar() { return this.props.type === ChartType.DiscreteBar }
-    @computed get isStackedBar() { return this.props.type === ChartType.StackedBar }
+    @computed get isLineChart() {
+        return this.props.type === ChartType.LineChart
+    }
+    @computed get isScatter() {
+        return this.props.type === ChartType.ScatterPlot
+    }
+    @computed get isTimeScatter() {
+        return this.props.type === ChartType.TimeScatter
+    }
+    @computed get isStackedArea() {
+        return this.props.type === ChartType.StackedArea
+    }
+    @computed get isSlopeChart() {
+        return this.props.type === ChartType.SlopeChart
+    }
+    @computed get isDiscreteBar() {
+        return this.props.type === ChartType.DiscreteBar
+    }
+    @computed get isStackedBar() {
+        return this.props.type === ChartType.StackedBar
+    }
 
-    @computed get lineChart() { return new LineChartTransform(this) }
-    @computed get scatter() { return new ScatterTransform(this) }
-    @computed get stackedArea() { return new StackedAreaTransform(this) }
-    @computed get slopeChart() { return new SlopeChartTransform(this) }
-    @computed get discreteBar() { return new DiscreteBarTransform(this) }
-    @computed get stackedBar() { return new StackedBarTransform(this) }
-    @computed get map() { return new MapConfig(this) }
+    @computed get lineChart() {
+        return new LineChartTransform(this)
+    }
+    @computed get scatter() {
+        return new ScatterTransform(this)
+    }
+    @computed get stackedArea() {
+        return new StackedAreaTransform(this)
+    }
+    @computed get slopeChart() {
+        return new SlopeChartTransform(this)
+    }
+    @computed get discreteBar() {
+        return new DiscreteBarTransform(this)
+    }
+    @computed get stackedBar() {
+        return new StackedBarTransform(this)
+    }
+    @computed get map() {
+        return new MapConfig(this)
+    }
 
     @computed get activeTransform(): IChartTransform {
-        if (this.isLineChart)
-            return this.lineChart
-        else if (this.isScatter || this.isTimeScatter)
-            return this.scatter
-        else if (this.isStackedArea)
-            return this.stackedArea
-        else if (this.isSlopeChart)
-            return this.slopeChart
-        else if (this.isDiscreteBar)
-            return this.discreteBar
-        else if (this.isStackedBar)
-            return this.stackedBar
-        else
-            throw new Error("No transform found")
+        if (this.isLineChart) return this.lineChart
+        else if (this.isScatter || this.isTimeScatter) return this.scatter
+        else if (this.isStackedArea) return this.stackedArea
+        else if (this.isSlopeChart) return this.slopeChart
+        else if (this.isDiscreteBar) return this.discreteBar
+        else if (this.isStackedBar) return this.stackedBar
+        else throw new Error("No transform found")
     }
 
     @computed get idealBounds(): Bounds {
-        return this.isMediaCard ? new Bounds(0, 0, 1200, 630) : new Bounds(0, 0, 850, 600)
+        return this.isMediaCard
+            ? new Bounds(0, 0, 1200, 630)
+            : new Bounds(0, 0, 850, 600)
     }
 
     @computed get staticSVG(): string {
-        const svg = ReactDOMServer.renderToStaticMarkup(<ChartView
-            chart={this}
-            isExport={true}
-            bounds={this.idealBounds}
-        />)
+        const svg = ReactDOMServer.renderToStaticMarkup(
+            <ChartView chart={this} isExport={true} bounds={this.idealBounds} />
+        )
 
         return svg
     }

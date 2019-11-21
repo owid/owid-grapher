@@ -1,15 +1,26 @@
-import { toString, includes, flatten, uniq, sortBy, extend, csvEscape } from './Util'
-import { Bounds } from './Bounds'
-import * as React from 'react'
-import { computed, action } from 'mobx'
-import { observer } from 'mobx-react'
-import { ChartConfig } from './ChartConfig'
-import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+    toString,
+    includes,
+    flatten,
+    uniq,
+    sortBy,
+    extend,
+    csvEscape
+} from "./Util"
+import { Bounds } from "./Bounds"
+import * as React from "react"
+import { computed, action } from "mobx"
+import { observer } from "mobx-react"
+import { ChartConfig } from "./ChartConfig"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 // Client-side data export from chart
 @observer
-export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfig }> {
+export class DataTab extends React.Component<{
+    bounds: Bounds
+    chart: ChartConfig
+}> {
     @computed get bounds() {
         return this.props.bounds
     }
@@ -19,9 +30,15 @@ export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfi
         const { chart } = this.props
         const { vardata } = chart
 
-        const dimensions = chart.data.filledDimensions.filter(d => d.property !== 'color')
-        const entitiesUniq = sortBy(uniq(flatten(dimensions.map(d => d.entitiesUniq)))) as string[]
-        const yearsUniq = sortBy(uniq(flatten(dimensions.map(d => d.yearsUniq)))) as number[]
+        const dimensions = chart.data.filledDimensions.filter(
+            d => d.property !== "color"
+        )
+        const entitiesUniq = sortBy(
+            uniq(flatten(dimensions.map(d => d.entitiesUniq)))
+        ) as string[]
+        const yearsUniq = sortBy(
+            uniq(flatten(dimensions.map(d => d.yearsUniq)))
+        ) as number[]
 
         const rows: string[] = []
 
@@ -33,15 +50,18 @@ export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfi
 
         entitiesUniq.forEach(entity => {
             yearsUniq.forEach(year => {
-                const row = [entity, vardata.entityMetaByKey[entity].code || "", year]
+                const row = [
+                    entity,
+                    vardata.entityMetaByKey[entity].code || "",
+                    year
+                ]
 
                 let rowHasSomeValue = false
                 dimensions.forEach(dim => {
                     const valueByYear = dim.valueByEntityAndYear.get(entity)
                     const value = valueByYear ? valueByYear.get(year) : null
 
-                    if (value == null)
-                        row.push("")
+                    if (value == null) row.push("")
                     else {
                         row.push(value)
                         rowHasSomeValue = true
@@ -49,8 +69,7 @@ export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfi
                 })
 
                 // Only add rows which actually have some data in them
-                if (rowHasSomeValue)
-                    rows.push(row.map(csvEscape).join(","))
+                if (rowHasSomeValue) rows.push(row.map(csvEscape).join(","))
             })
         })
 
@@ -76,11 +95,26 @@ export class DataTab extends React.Component<{ bounds: Bounds, chart: ChartConfi
     render() {
         const { bounds, csvDataUri, csvFilename } = this
 
-        return <div className="dataTab" style={extend(bounds.toCSS(), { position: 'absolute' })}>
-            <div style={{maxWidth: "100%"}}>
-                <p>Download a CSV file containing all data used in this visualization:</p>
-                <a href={csvDataUri} download={csvFilename} className="btn btn-primary" onClick={this.onDownload}><FontAwesomeIcon icon={faDownload}/> {csvFilename}</a>
+        return (
+            <div
+                className="dataTab"
+                style={extend(bounds.toCSS(), { position: "absolute" })}
+            >
+                <div style={{ maxWidth: "100%" }}>
+                    <p>
+                        Download a CSV file containing all data used in this
+                        visualization:
+                    </p>
+                    <a
+                        href={csvDataUri}
+                        download={csvFilename}
+                        className="btn btn-primary"
+                        onClick={this.onDownload}
+                    >
+                        <FontAwesomeIcon icon={faDownload} /> {csvFilename}
+                    </a>
+                </div>
             </div>
-        </div>
+        )
     }
 }

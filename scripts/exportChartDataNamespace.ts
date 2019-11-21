@@ -1,11 +1,11 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as path from 'path'
-import * as db from 'db/db'
-import * as _ from 'lodash'
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from 'serverSettings'
+import * as path from "path"
+import * as db from "db/db"
+import * as _ from "lodash"
+import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
 
-import { exec } from 'utils/server/serverUtil'
+import { exec } from "utils/server/serverUtil"
 
 const namespacesArg: string = process.argv[2]
 
@@ -20,14 +20,17 @@ const namespaces: string[] = namespacesArg.split(",")
 async function dataExport() {
     await db.connect()
 
-    const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(",")}.sql`
+    const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(
+        ","
+    )}.sql`
 
     // This will also retrieve variables that are not in the specified namespace
     // but are used in a chart that has at least one variable from the specified
     // namespace.
     // This is necessary in order to reproduce the charts from the live grapher
     // accurately.
-    const rows = await db.query(`
+    const rows = await db.query(
+        `
         SELECT DISTINCT chart_dimensions.variableId
         FROM chart_dimensions
         WHERE chart_dimensions.chartId IN (
@@ -38,11 +41,15 @@ async function dataExport() {
             JOIN datasets ON datasets.id = variables.datasetId
             WHERE datasets.namespace IN (?)
         )
-    `, [namespaces])
+    `,
+        [namespaces]
+    )
 
     const variableIds = rows.map((row: any) => row.variableId)
 
-    console.log(`Exporting data for ${variableIds.length} variables to ${tmpFilename}`)
+    console.log(
+        `Exporting data for ${variableIds.length} variables to ${tmpFilename}`
+    )
 
     await exec(`rm -f ${tmpFilename}`)
 
@@ -52,7 +59,11 @@ async function dataExport() {
 
     let count = 0
     for (const chunk of _.chunk(variableIds, 100)) {
-        await exec(`mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(",")})" >> ${tmpFilename}`)
+        await exec(
+            `mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
+                ","
+            )})" >> ${tmpFilename}`
+        )
 
         count += chunk.length
         console.log(count)

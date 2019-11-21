@@ -1,11 +1,12 @@
-import { filter, each, isEmpty } from 'charts/Util'
+import { filter, each, isEmpty } from "charts/Util"
 
-export interface QueryParams { [key: string]: string|undefined }
+export interface QueryParams {
+    [key: string]: string | undefined
+}
 
 export function getQueryParams(queryStr?: string): QueryParams {
     queryStr = queryStr || window.location.search
-    if (queryStr[0] === "?")
-        queryStr = queryStr.substring(1)
+    if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
     const querySplit = filter(queryStr.split("&"), s => !isEmpty(s))
     const params: QueryParams = {}
@@ -26,7 +27,7 @@ export function queryParamsToStr(params: QueryParams) {
 
         if (isEmpty(newQueryStr)) newQueryStr += "?"
         else newQueryStr += "&"
-        newQueryStr += k + '=' + v
+        newQueryStr += k + "=" + v
     })
 
     return newQueryStr
@@ -45,9 +46,13 @@ export function setQueryVariable(key: string, val: string | null) {
 }
 
 export function setQueryStr(str: string) {
-    history.replaceState(null, document.title, window.location.pathname + str + window.location.hash)
+    history.replaceState(
+        null,
+        document.title,
+        window.location.pathname + str + window.location.hash
+    )
 }
 
 export function decodeQueryParam(s: string) {
-    return decodeURIComponent(s.replace(/\+/g, ' '))
+    return decodeURIComponent(s.replace(/\+/g, " "))
 }

@@ -1,22 +1,21 @@
-import * as algoliasearch from 'algoliasearch'
+import * as algoliasearch from "algoliasearch"
 
-import { countries, Country } from 'utils/countries'
+import { countries, Country } from "utils/countries"
 
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from 'settings'
+import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
-let algolia: algoliasearch.Client|undefined
+let algolia: algoliasearch.Client | undefined
 
 function getClient() {
-    if (!algolia)
-        algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
 }
 
 export type PageHit = ArticleHit | CountryHit
 
 export interface CountryHit {
-    objectID: string,
-    type: 'country',
+    objectID: string
+    type: "country"
     slug: string
     title: string
     code: string
@@ -30,11 +29,11 @@ export interface CountryHit {
 }
 
 export interface ArticleHit {
-    objectID: string,
+    objectID: string
     postId: number
     slug: string
     title: string
-    type: 'post'|'page'|'entry'|'explainer'|'fact'
+    type: "post" | "page" | "entry" | "explainer" | "fact"
     content: string
     _snippetResult: {
         content: {
@@ -53,11 +52,11 @@ export interface ChartHit {
         subtitle: {
             value: string
         }
-    },
+    }
     _highlightResult?: {
         availableEntities: {
             value: string
-            matchLevel: "none"|"full"
+            matchLevel: "none" | "full"
             matchedWords: string[]
         }[]
     }
@@ -65,12 +64,11 @@ export interface ChartHit {
 
 export interface SiteSearchResults {
     pages: PageHit[]
-    charts: ChartHit[],
+    charts: ChartHit[]
     countries: Country[]
 }
 
 export async function siteSearch(query: string): Promise<SiteSearchResults> {
-
     // Some special ad hoc handling of country names for chart query
     // This is especially important for "uk" and "us" since algolia otherwise isn't too sure what to do with them
     let chartQuery = query.trim()
@@ -81,10 +79,10 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
             variants = variants.concat(country.variantNames)
         }
         for (const variant of variants) {
-            const r = new RegExp(`(^|\\W)(${variant})($|\\W)`, 'gi')
+            const r = new RegExp(`(^|\\W)(${variant})($|\\W)`, "gi")
 
             const newQuery = chartQuery.replace(r, (substring, ...args) => {
-                return args[0]+args[2]
+                return args[0] + args[2]
             })
 
             if (newQuery !== chartQuery) {
@@ -98,22 +96,35 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
 
     const json = await getClient().search([
         {
-            indexName: 'pages',
+            indexName: "pages",
             query: query,
             params: {
-                attributesToRetrieve: ['objectID', 'postId', 'slug', 'title', 'type', 'code', 'content'],
-                attributesToSnippet: ['content:24'],
+                attributesToRetrieve: [
+                    "objectID",
+                    "postId",
+                    "slug",
+                    "title",
+                    "type",
+                    "code",
+                    "content"
+                ],
+                attributesToSnippet: ["content:24"],
                 distinct: true,
                 hitsPerPage: 10
             }
         },
         {
-            indexName: 'charts',
+            indexName: "charts",
             query: chartQuery,
             params: {
-                attributesToRetrieve: ['chartId', 'slug', 'title', 'variantName'],
-                attributesToSnippet: ['subtitle:24'],
-                attributesToHighlight: ['availableEntities'],
+                attributesToRetrieve: [
+                    "chartId",
+                    "slug",
+                    "title",
+                    "variantName"
+                ],
+                attributesToSnippet: ["subtitle:24"],
+                attributesToHighlight: ["availableEntities"],
                 hitsPerPage: 10,
                 removeStopWords: true,
                 replaceSynonymsInHighlight: false

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from "react"
 
 interface Cell {
     data: string
@@ -14,7 +14,7 @@ function cell(data?: string) {
     }
 }
 
-const ROWSPAN_TOKEN = '#rowspan#'
+const ROWSPAN_TOKEN = "#rowspan#"
 
 function parseTable(table: string[][]): Cell[][] {
     const resultTable: Cell[][] = []
@@ -41,29 +41,35 @@ function parseTable(table: string[][]): Cell[][] {
 }
 
 export default function Tablepress(props: { data: string[][] }) {
-    const {data} = props
+    const { data } = props
     const table = parseTable(data)
     const [headerRow, ...body] = table
-    return <table className="tablepress">
-        <thead>
-            <tr>
-                {headerRow.map((cell, i) => <th
-                    key={i}
-                    dangerouslySetInnerHTML={{__html: cell.data}}
-                />)}
-            </tr>
-        </thead>
-        <tbody className="row-hover">
-            {body.map((row, i) =>
-                <tr key={i}>
-                    {row.map((cell, j) => <td
-                        key={j}
-                        colSpan={cell.colspan}
-                        rowSpan={cell.rowspan}
-                        dangerouslySetInnerHTML={{__html: cell.data}}
-                    />)}
+    return (
+        <table className="tablepress">
+            <thead>
+                <tr>
+                    {headerRow.map((cell, i) => (
+                        <th
+                            key={i}
+                            dangerouslySetInnerHTML={{ __html: cell.data }}
+                        />
+                    ))}
                 </tr>
-            )}
-        </tbody>
-    </table>
+            </thead>
+            <tbody className="row-hover">
+                {body.map((row, i) => (
+                    <tr key={i}>
+                        {row.map((cell, j) => (
+                            <td
+                                key={j}
+                                colSpan={cell.colspan}
+                                rowSpan={cell.rowspan}
+                                dangerouslySetInnerHTML={{ __html: cell.data }}
+                            />
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    )
 }

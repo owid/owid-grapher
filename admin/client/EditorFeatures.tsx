@@ -1,5 +1,5 @@
-import { computed } from 'mobx'
-import { ChartEditor } from './ChartEditor'
+import { computed } from "mobx"
+import { ChartEditor } from "./ChartEditor"
 
 // Responsible for determining what parts of the editor should be shown, based on the
 // type of chart being edited
@@ -14,7 +14,11 @@ export class EditorFeatures {
     }
 
     @computed get customYAxisScale() {
-        return !this.chart.isStackedArea && !this.chart.isDiscreteBar && !this.chart.isStackedBar
+        return (
+            !this.chart.isStackedArea &&
+            !this.chart.isDiscreteBar &&
+            !this.chart.isStackedBar
+        )
     }
 
     @computed get customXAxisScale() {
@@ -37,11 +41,17 @@ export class EditorFeatures {
         return this.customXAxisScale || this.customXAxisLabel
     }
 
-    @computed get timeDomain() { return !this.chart.isDiscreteBar }
+    @computed get timeDomain() {
+        return !this.chart.isDiscreteBar
+    }
 
-    @computed get timelineRange() { return !this.chart.isDiscreteBar }
+    @computed get timelineRange() {
+        return !this.chart.isDiscreteBar
+    }
 
-    @computed get showYearLabels() { return this.chart.isDiscreteBar }
+    @computed get showYearLabels() {
+        return this.chart.isDiscreteBar
+    }
 
     @computed get hideLegend() {
         return this.chart.isLineChart || this.chart.isStackedArea
@@ -52,11 +62,19 @@ export class EditorFeatures {
     }
 
     @computed get entityType() {
-        return (!this.chart.isScatter && this.chart.addCountryMode === 'add-country') || this.chart.addCountryMode === 'change-country'
+        return (
+            (!this.chart.isScatter &&
+                this.chart.addCountryMode === "add-country") ||
+            this.chart.addCountryMode === "change-country"
+        )
     }
 
     @computed get relativeModeToggle() {
-        return this.chart.isStackedArea || this.chart.isLineChart || (this.chart.isScatter && this.chart.scatter.hasTimeline)
+        return (
+            this.chart.isStackedArea ||
+            this.chart.isLineChart ||
+            (this.chart.isScatter && this.chart.scatter.hasTimeline)
+        )
     }
 
     @computed get comparisonLine() {

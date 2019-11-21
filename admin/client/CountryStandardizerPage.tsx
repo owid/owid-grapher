@@ -1,24 +1,35 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction, reaction, IReactionDisposer} from 'mobx'
-import * as parse from 'csv-parse'
+import * as React from "react"
+import { observer } from "mobx-react"
+import {
+    observable,
+    computed,
+    action,
+    runInAction,
+    reaction,
+    IReactionDisposer
+} from "mobx"
+import * as parse from "csv-parse"
 
 const unidecode = require("unidecode")
 const FuzzySet = require("fuzzyset")
 
-import { AdminLayout } from './AdminLayout'
-import { SelectField, SelectGroupsField, SelectGroup } from './Forms'
-import { CountryNameFormat, CountryNameFormatDefs, CountryDefByKey } from 'admin/CountryNameFormat'
-import { uniq, toString, csvEscape, values, sortBy } from 'charts/Util'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
-import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { AdminLayout } from "./AdminLayout"
+import { SelectField, SelectGroupsField, SelectGroup } from "./Forms"
+import {
+    CountryNameFormat,
+    CountryNameFormatDefs,
+    CountryDefByKey
+} from "admin/CountryNameFormat"
+import { uniq, toString, csvEscape, values, sortBy } from "charts/Util"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 class CSV {
     @observable filename?: string
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
-    @observable mapCountriesInputToOutput: { [key: string]: string|undefined }
+    @observable mapCountriesInputToOutput: { [key: string]: string | undefined }
     @observable autoMatchedCount: number = 0
     @observable parseError?: string
     @observable findSimilarCountries: boolean = true
@@ -30,7 +41,9 @@ class CSV {
     }
 
     @computed get allCountries(): string[] {
-        const standardNames = values(this.mapCountriesInputToOutput).filter((value: string|undefined) => value !== undefined) as string[]
+        const standardNames = values(this.mapCountriesInputToOutput).filter(
+            (value: string | undefined) => value !== undefined
+        ) as string[]
         return uniq(sortBy(standardNames)) as string[]
     }
 
@@ -39,7 +52,9 @@ class CSV {
         if (rows.length === 0) {
             return -1
         }
-        return rows[0].findIndex(columnName => columnName.toLowerCase() === "country")
+        return rows[0].findIndex(
+            columnName => columnName.toLowerCase() === "country"
+        )
     }
 
     @computed get showDownloadOption() {
@@ -54,7 +69,7 @@ class CSV {
         return this.rows.length - 1
     }
 
-    @computed get validationError(): string|undefined {
+    @computed get validationError(): string | undefined {
         const { parseError } = this
         if (parseError !== undefined) {
             return `Could not parse file (error: ${parseError}). Check if it is a valid CSV file.`
@@ -70,7 +85,12 @@ class CSV {
         return undefined
     }
 
-    @action.bound onFileUpload(filename: string, rows: string[][], err: any, similarityMatch: boolean) {
+    @action.bound onFileUpload(
+        filename: string,
+        rows: string[][],
+        err: any,
+        similarityMatch: boolean
+    ) {
         this.filename = filename
         if (err) {
             this.parseError = err.message
@@ -83,14 +103,22 @@ class CSV {
         this.parseCSV()
     }
 
-    @action.bound onFormatChange(countryMap: any, findSimilarCountries: boolean) {
+    @action.bound onFormatChange(
+        countryMap: any,
+        findSimilarCountries: boolean
+    ) {
         this.mapCountriesInputToOutput = countryMap
         this.findSimilarCountries = findSimilarCountries
         this.parseCSV()
     }
 
     @action.bound parseCSV() {
-        const { rows, countryColumnIndex, mapCountriesInputToOutput, findSimilarCountries } = this
+        const {
+            rows,
+            countryColumnIndex,
+            mapCountriesInputToOutput,
+            findSimilarCountries
+        } = this
 
         if (countryColumnIndex < 0) {
             this.countryEntriesMap = new Map<string, CountryEntry>()
@@ -101,24 +129,41 @@ class CSV {
         const entriesByCountry = new Map<string, CountryEntry>()
         const countries = rows
             .slice(1) // remove header row
-            .map((row: string[]) => unidecode(row[countryColumnIndex] as string))
-            .filter((country?: string) => country !== "" && country !== undefined) // exclude empty strings
+            .map((row: string[]) =>
+                unidecode(row[countryColumnIndex] as string)
+            )
+            .filter(
+                (country?: string) => country !== "" && country !== undefined
+            ) // exclude empty strings
 
         // for fuzzy-match, use the input and output values as target to improve matching potential
-        const inputCountries = Object.keys(mapCountriesInputToOutput).filter(key => mapCountriesInputToOutput[key] !== undefined)
-        const outputCountries = inputCountries.map(key => mapCountriesInputToOutput[key]) as string[]
+        const inputCountries = Object.keys(mapCountriesInputToOutput).filter(
+            key => mapCountriesInputToOutput[key] !== undefined
+        )
+        const outputCountries = inputCountries.map(
+            key => mapCountriesInputToOutput[key]
+        ) as string[]
         const fuzz = FuzzySet(inputCountries.concat(outputCountries))
 
         let autoMatched = 0
 
         countries.map((country: string) => {
-            const outputCountry = mapCountriesInputToOutput[country.toLowerCase()]
+            const outputCountry =
+                mapCountriesInputToOutput[country.toLowerCase()]
             let approximatedMatches: string[] = []
 
             if (outputCountry === undefined) {
                 if (findSimilarCountries) {
-                    approximatedMatches = fuzz.get(country).map((fuzzyMatch: any[]) => mapCountriesInputToOutput[fuzzyMatch[1]] || fuzzyMatch[1])
-                    approximatedMatches = approximatedMatches.filter(key => key !== undefined)
+                    approximatedMatches = fuzz
+                        .get(country)
+                        .map(
+                            (fuzzyMatch: any[]) =>
+                                mapCountriesInputToOutput[fuzzyMatch[1]] ||
+                                fuzzyMatch[1]
+                        )
+                    approximatedMatches = approximatedMatches.filter(
+                        key => key !== undefined
+                    )
                 }
             } else {
                 autoMatched += 1
@@ -137,10 +182,10 @@ class CSV {
         this.countryEntriesMap = entriesByCountry
         this.autoMatchedCount = autoMatched
     }
-
 }
 
-export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
+export interface CountryEntry
+    extends React.HTMLAttributes<HTMLTableRowElement> {
     originalName: string
     standardizedName?: string
     approximatedMatches: string[]
@@ -149,7 +194,11 @@ export interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> 
 }
 
 @observer
-export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEntry, allCountries: string[], onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void } > {
+export class CountryEntryRowRenderer extends React.Component<{
+    entry: CountryEntry
+    allCountries: string[]
+    onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void
+}> {
     @observable selectedStandardName!: string
 
     @computed get defaultOption() {
@@ -161,14 +210,16 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
 
         if (entry.standardizedName || entry.selectedMatch || entry.customName)
             return true
-        else
-            return false
+        else return false
     }
 
     @computed get defaultValue() {
         const { entry } = this.props
 
-        if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+        if (
+            entry.selectedMatch !== undefined &&
+            entry.selectedMatch.length > 0
+        ) {
             return entry.selectedMatch
         }
         return this.defaultOption
@@ -177,7 +228,8 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
     @action.bound onEntrySelected(selectedName: string) {
         const { entry, onUpdate } = this.props
 
-        const value = selectedName === this.defaultOption ? undefined : selectedName
+        const value =
+            selectedName === this.defaultOption ? undefined : selectedName
         onUpdate(selectedName, entry.originalName, false)
     }
 
@@ -188,21 +240,55 @@ export class CountryEntryRowRenderer extends React.Component<{ entry: CountryEnt
         const optgroups: SelectGroup[] = []
 
         if (entry.approximatedMatches.length > 0) {
-            const options = entry.approximatedMatches.map(countryName => ({ value: countryName, label: countryName }))
+            const options = entry.approximatedMatches.map(countryName => ({
+                value: countryName,
+                label: countryName
+            }))
             optgroups.push({ title: "Likely matches", options: options })
         }
 
         optgroups.push({
             title: "All standard names",
-            options: allCountries.map(countryName => ({ value: countryName, label: countryName }))
+            options: allCountries.map(countryName => ({
+                value: countryName,
+                label: countryName
+            }))
         })
 
-        return <tr>
-            <td><span style={{color: isMatched ? "black" : "red"}}>{ entry.originalName }</span></td>
-            <td>{ entry.standardizedName }</td>
-            <td><SelectGroupsField value={defaultValue} onValue={this.onEntrySelected} options={[{ value: defaultOption, label: defaultOption }]} groups={optgroups} /></td>
-            <td><input type="text" className="form-control" value={entry.customName} onChange={e => onUpdate(e.currentTarget.value, entry.originalName, true) } /></td>
-        </tr>
+        return (
+            <tr>
+                <td>
+                    <span style={{ color: isMatched ? "black" : "red" }}>
+                        {entry.originalName}
+                    </span>
+                </td>
+                <td>{entry.standardizedName}</td>
+                <td>
+                    <SelectGroupsField
+                        value={defaultValue}
+                        onValue={this.onEntrySelected}
+                        options={[
+                            { value: defaultOption, label: defaultOption }
+                        ]}
+                        groups={optgroups}
+                    />
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={entry.customName}
+                        onChange={e =>
+                            onUpdate(
+                                e.currentTarget.value,
+                                entry.originalName,
+                                true
+                            )
+                        }
+                    />
+                </td>
+            </tr>
+        )
     }
 }
 
@@ -220,7 +306,10 @@ export class CountryStandardizerPage extends React.Component {
     @observable showAllRows: boolean = false
 
     @computed get shouldSaveSelection(): boolean {
-        if (this.inputFormat === CountryNameFormat.NonStandardCountryName && this.outputFormat === CountryNameFormat.OurWorldInDataName) {
+        if (
+            this.inputFormat === CountryNameFormat.NonStandardCountryName &&
+            this.outputFormat === CountryNameFormat.OurWorldInDataName
+        ) {
             return true
         }
         return false
@@ -240,12 +329,19 @@ export class CountryStandardizerPage extends React.Component {
             text = " All countries were auto-matched!"
         } else {
             banner = "alert-warning"
-            text = " Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name."
+            text =
+                " Some countries could not be matched. Either select a similar candidate from the dropdown (which will be saved back in the database) or enter a custom name."
         }
-        text += " The file you will download has a new column with the header '" + columnName  + "'."
-        return <div className={"alert " + banner} role="alert">
-            <strong>Status:</strong>{text}
-        </div>
+        text +=
+            " The file you will download has a new column with the header '" +
+            columnName +
+            "'."
+        return (
+            <div className={"alert " + banner} role="alert">
+                <strong>Status:</strong>
+                {text}
+            </div>
+        )
     }
 
     @action.bound onInputFormat(format: string) {
@@ -261,11 +357,22 @@ export class CountryStandardizerPage extends React.Component {
         if (!file) return
 
         const reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = e => {
             const csv = (e as any).target.result
-            parse(csv, { relax_column_count: true, skip_empty_lines: true, rtrim: true },
+            parse(
+                csv,
+                {
+                    relax_column_count: true,
+                    skip_empty_lines: true,
+                    rtrim: true
+                },
                 (err, rows) => {
-                    this.csv.onFileUpload(file.name, rows, err, this.shouldSaveSelection)
+                    this.csv.onFileUpload(
+                        file.name,
+                        rows,
+                        err,
+                        this.shouldSaveSelection
+                    )
                 }
             )
         }
@@ -288,15 +395,19 @@ export class CountryStandardizerPage extends React.Component {
     }
 
     async fetchCountryMap() {
-        const { inputFormat, outputFormat} = this
-        const { admin }  = this.context
-        const results = await admin.getJSON(`/api/countries.json?input=${inputFormat}&output=${outputFormat}`)
+        const { inputFormat, outputFormat } = this
+        const { admin } = this.context
+        const results = await admin.getJSON(
+            `/api/countries.json?input=${inputFormat}&output=${outputFormat}`
+        )
 
         runInAction(() => {
-            const countryMap: { [key: string]: string} = {}
+            const countryMap: { [key: string]: string } = {}
             results.countries.forEach((countryFormat: any) => {
                 if (countryFormat.input === null) return
-                countryMap[countryFormat.input.toLowerCase()] = toString(countryFormat.output)
+                countryMap[countryFormat.input.toLowerCase()] = toString(
+                    countryFormat.output
+                )
             })
 
             this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
@@ -352,13 +463,21 @@ export class CountryStandardizerPage extends React.Component {
                 columnValue = columnName
             } else {
                 // prioritize user selected name
-                const entry = csv.countryEntriesMap.get(unidecode(row[csv.countryColumnIndex]))
+                const entry = csv.countryEntriesMap.get(
+                    unidecode(row[csv.countryColumnIndex])
+                )
                 if (entry !== undefined) {
-                    if (entry.customName !== undefined && entry.customName.length > 0) {
+                    if (
+                        entry.customName !== undefined &&
+                        entry.customName.length > 0
+                    ) {
                         columnValue = entry.customName
                     } else if (entry.standardizedName !== undefined) {
                         columnValue = entry.standardizedName
-                    } else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+                    } else if (
+                        entry.selectedMatch !== undefined &&
+                        entry.selectedMatch.length > 0
+                    ) {
                         columnValue = entry.selectedMatch
                     }
                 }
@@ -369,11 +488,17 @@ export class CountryStandardizerPage extends React.Component {
             outputRows.push(newRow)
         })
 
-        const strRows = outputRows.map(row => row.map(val => csvEscape(val)).join(","))
+        const strRows = outputRows.map(row =>
+            row.map(val => csvEscape(val)).join(",")
+        )
         return new Blob([strRows.join("\n")], { type: "text/csv" })
     }
 
-    @action.bound onUpdateRow(value: string, inputCountry: string, isCustom: boolean) {
+    @action.bound onUpdateRow(
+        value: string,
+        inputCountry: string,
+        isCustom: boolean
+    ) {
         const { csv } = this
 
         const entry = csv.countryEntriesMap.get(inputCountry) as CountryEntry
@@ -413,21 +538,29 @@ export class CountryStandardizerPage extends React.Component {
         csv.countryEntriesMap.forEach((entry, key) => {
             // ignore if there was a user entered a new name
             if (entry.customName !== undefined && entry.customName.length > 0) {
-                console.log("not saving custom-name for entry " + entry.originalName)
-            } else if (entry.selectedMatch !== undefined && entry.selectedMatch.length > 0) {
+                console.log(
+                    "not saving custom-name for entry " + entry.originalName
+                )
+            } else if (
+                entry.selectedMatch !== undefined &&
+                entry.selectedMatch.length > 0
+            ) {
                 needToSave = true
                 countries[entry.originalName] = entry.selectedMatch
             }
         })
 
         if (needToSave) {
-            this.context.admin.requestJSON(`/api/countries`, { countries: countries}, 'POST')
+            this.context.admin.requestJSON(
+                `/api/countries`,
+                { countries: countries },
+                "POST"
+            )
         }
     }
 
     @computed get entriesToShow(): CountryEntry[] {
-        if (this.csv === undefined)
-            return []
+        if (this.csv === undefined) return []
 
         const countries: CountryEntry[] = []
         this.csv.countryEntriesMap.forEach((entry, country) => {
@@ -444,60 +577,131 @@ export class CountryStandardizerPage extends React.Component {
         const { csv, entriesToShow } = this
         const { showDownloadOption, validationError } = csv
 
-        const allowedInputFormats = CountryNameFormatDefs.filter(c => c.use_as_input)
-        const allowedOutputFormats = CountryNameFormatDefs.filter(c => c.use_as_output)
+        const allowedInputFormats = CountryNameFormatDefs.filter(
+            c => c.use_as_input
+        )
+        const allowedOutputFormats = CountryNameFormatDefs.filter(
+            c => c.use_as_output
+        )
 
-        return <AdminLayout title="CountryStandardizer">
-            <main className="CountryStandardizerPage">
-                <section>
-                    <h3>Country Standardizer Tool</h3>
-                    <p>Upload a CSV file with countries. Select the current input and desired output format. The tool will attempt to find a match automatically for all entries. If not, you will be able to select a similar entry or use a new name. After which, you can download the file that has a new column for your output countries.</p>
-                    <div className="form-group">
-                        <div className="custom-file">
-                            <input type="file" className="custom-file-input" id="customFile" onChange={this.onChooseCSV} />
-                            <label htmlFor="customFile" className="custom-file-control">{this.fileUploadLabel}</label>
+        return (
+            <AdminLayout title="CountryStandardizer">
+                <main className="CountryStandardizerPage">
+                    <section>
+                        <h3>Country Standardizer Tool</h3>
+                        <p>
+                            Upload a CSV file with countries. Select the current
+                            input and desired output format. The tool will
+                            attempt to find a match automatically for all
+                            entries. If not, you will be able to select a
+                            similar entry or use a new name. After which, you
+                            can download the file that has a new column for your
+                            output countries.
+                        </p>
+                        <div className="form-group">
+                            <div className="custom-file">
+                                <input
+                                    type="file"
+                                    className="custom-file-input"
+                                    id="customFile"
+                                    onChange={this.onChooseCSV}
+                                />
+                                <label
+                                    htmlFor="customFile"
+                                    className="custom-file-control"
+                                >
+                                    {this.fileUploadLabel}
+                                </label>
+                            </div>
+                            <small
+                                id="custom-file-help-block"
+                                className="text-muted form-text"
+                            >
+                                Country has to be saved under a column named
+                                'Country'
+                            </small>
                         </div>
-                        <small id="custom-file-help-block" className="text-muted form-text">
-                            Country has to be saved under a column named 'Country'
-                        </small>
-                    </div>
-                    <SelectField label="Input Format" value={CountryNameFormat.NonStandardCountryName} onValue={this.onInputFormat} options={allowedInputFormats.map(def => def.key)} optionLabels={allowedInputFormats.map(def => def.label)} helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match." data-step="1" />
-                    <SelectField label="Output Format" value={CountryNameFormat.OurWorldInDataName} onValue={this.onOutputFormat} options={allowedOutputFormats.map(def => def.key)} optionLabels={allowedOutputFormats.map(def => def.label)} helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match." />
-                    <div className="topbar">
-                        {showDownloadOption ?
-                            <a href={this.csvDataUri} download={this.csvFilename} className="btn btn-secondary" onClick={this.onDownload} title={this.downloadTooltip}>
-                                <FontAwesomeIcon icon={faDownload}/> Download {this.csvFilename}
-                            </a>
-                            : <button className="btn btn-secondary" disabled><FontAwesomeIcon icon={faDownload}/> No file to download (upload a CSV to start)</button>
-                        }
-                        <label><input type="checkbox" checked={this.showAllRows} onChange={this.onToggleRows} /> Show All Rows</label>
-                    </div>
-                    {validationError !== undefined ?
-                        <div className="alert alert-danger" role="alert">
-                            <strong>CSV Error:</strong> {validationError}
-                        </div>
-                        : <div></div>
-                    }
-                    {this.displayMatchStatus}
-                </section>
-                <div>
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Original Name</th>
-                                <th>Standardized Name</th>
-                                <th>Potential Candidates (select below)</th>
-                                <th>Or enter a Custom Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {entriesToShow.map((entry, i) =>
-                                <CountryEntryRowRenderer key={i} entry={entry} allCountries={this.csv.allCountries} onUpdate={this.onUpdateRow}/>
+                        <SelectField
+                            label="Input Format"
+                            value={CountryNameFormat.NonStandardCountryName}
+                            onValue={this.onInputFormat}
+                            options={allowedInputFormats.map(def => def.key)}
+                            optionLabels={allowedInputFormats.map(
+                                def => def.label
                             )}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-        </AdminLayout>
+                            helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match."
+                            data-step="1"
+                        />
+                        <SelectField
+                            label="Output Format"
+                            value={CountryNameFormat.OurWorldInDataName}
+                            onValue={this.onOutputFormat}
+                            options={allowedOutputFormats.map(def => def.key)}
+                            optionLabels={allowedOutputFormats.map(
+                                def => def.label
+                            )}
+                            helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match."
+                        />
+                        <div className="topbar">
+                            {showDownloadOption ? (
+                                <a
+                                    href={this.csvDataUri}
+                                    download={this.csvFilename}
+                                    className="btn btn-secondary"
+                                    onClick={this.onDownload}
+                                    title={this.downloadTooltip}
+                                >
+                                    <FontAwesomeIcon icon={faDownload} />{" "}
+                                    Download {this.csvFilename}
+                                </a>
+                            ) : (
+                                <button className="btn btn-secondary" disabled>
+                                    <FontAwesomeIcon icon={faDownload} /> No
+                                    file to download (upload a CSV to start)
+                                </button>
+                            )}
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={this.showAllRows}
+                                    onChange={this.onToggleRows}
+                                />{" "}
+                                Show All Rows
+                            </label>
+                        </div>
+                        {validationError !== undefined ? (
+                            <div className="alert alert-danger" role="alert">
+                                <strong>CSV Error:</strong> {validationError}
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                        {this.displayMatchStatus}
+                    </section>
+                    <div>
+                        <table className="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Original Name</th>
+                                    <th>Standardized Name</th>
+                                    <th>Potential Candidates (select below)</th>
+                                    <th>Or enter a Custom Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {entriesToShow.map((entry, i) => (
+                                    <CountryEntryRowRenderer
+                                        key={i}
+                                        entry={entry}
+                                        allCountries={this.csv.allCountries}
+                                        onUpdate={this.onUpdateRow}
+                                    />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </AdminLayout>
+        )
     }
 }

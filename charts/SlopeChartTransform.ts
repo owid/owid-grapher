@@ -1,13 +1,13 @@
-import { scaleOrdinal } from 'd3-scale'
-import { some, union, min, max, find, isEmpty } from './Util'
-import { computed } from 'mobx'
-import { ChartConfig } from './ChartConfig'
-import { defaultTo, defaultWith, findClosest } from './Util'
-import { DimensionWithData } from './DimensionWithData'
-import { SlopeChartSeries, SlopeChartValue } from './LabelledSlopes'
-import { IChartTransform } from './IChartTransform'
-import { ColorSchemes } from './ColorSchemes'
-import { Colorizer, Colorable } from './Colorizer'
+import { scaleOrdinal } from "d3-scale"
+import { some, union, min, max, find, isEmpty } from "./Util"
+import { computed } from "mobx"
+import { ChartConfig } from "./ChartConfig"
+import { defaultTo, defaultWith, findClosest } from "./Util"
+import { DimensionWithData } from "./DimensionWithData"
+import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
+import { IChartTransform } from "./IChartTransform"
+import { ColorSchemes } from "./ColorSchemes"
+import { Colorizer, Colorable } from "./Colorizer"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -19,17 +19,15 @@ export class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === 'y')
+        return this.chart.dimensions.some(d => d.property === "y")
     }
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart.data
-        if (!some(filledDimensions, d => d.property === 'y'))
+        if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
-        else if (isEmpty(this.data))
-            return "No matching data"
-        else
-            return undefined
+        else if (isEmpty(this.data)) return "No matching data"
+        else return undefined
     }
 
     @computed get colorKeys(): string[] {
@@ -40,9 +38,15 @@ export class SlopeChartTransform implements IChartTransform {
     @computed get colors(): Colorizer {
         const that = this
         return new Colorizer({
-            get chart() { return that.chart },
-            get defaultColorScheme() { return "continents" },
-            get keys() { return that.colorKeys }
+            get chart() {
+                return that.chart
+            },
+            get defaultColorScheme() {
+                return "continents"
+            },
+            get keys() {
+                return that.colorKeys
+            }
         })
     }
 
@@ -51,7 +55,9 @@ export class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get timelineYears(): number[] {
-        return union(...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq))
+        return union(
+            ...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
+        )
     }
 
     @computed get minTimelineYear(): number {
@@ -63,29 +69,46 @@ export class SlopeChartTransform implements IChartTransform {
     }
 
     @computed get startYear(): number {
-        const minYear = defaultWith(this.chart.timeDomain[0], () => this.minTimelineYear)
-        return defaultWith(findClosest(this.timelineYears, minYear), () => this.minTimelineYear)
+        const minYear = defaultWith(
+            this.chart.timeDomain[0],
+            () => this.minTimelineYear
+        )
+        return defaultWith(
+            findClosest(this.timelineYears, minYear),
+            () => this.minTimelineYear
+        )
     }
 
     @computed get endYear(): number {
-        const maxYear = defaultWith(this.chart.timeDomain[1], () => this.maxTimelineYear)
-        return defaultWith(findClosest(this.timelineYears, maxYear), () => this.maxTimelineYear)
+        const maxYear = defaultWith(
+            this.chart.timeDomain[1],
+            () => this.maxTimelineYear
+        )
+        return defaultWith(
+            findClosest(this.timelineYears, maxYear),
+            () => this.maxTimelineYear
+        )
     }
 
     @computed.struct get xDomain(): [number, number] {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): DimensionWithData|undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'size')
+    @computed.struct get sizeDim(): DimensionWithData | undefined {
+        return find(
+            this.chart.data.filledDimensions,
+            d => d.property === "size"
+        )
     }
 
-    @computed.struct get colorDimension(): DimensionWithData|undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === 'color')
+    @computed.struct get colorDimension(): DimensionWithData | undefined {
+        return this.chart.data.filledDimensions.find(
+            d => d.property === "color"
+        )
     }
 
     @computed.struct get yDimension(): DimensionWithData | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === 'y')
+        return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -96,11 +119,13 @@ export class SlopeChartTransform implements IChartTransform {
         const colorByEntity = new Map<string, any>()
 
         if (colorDimension !== undefined) {
-            colorDimension.valueByEntityAndYear.forEach((yearToColorMap, entity) => {
-                const values = Array.from(yearToColorMap.values())
-                const key = values[0].toString()
-                colorByEntity.set(entity, colors.get(key))
-            })
+            colorDimension.valueByEntityAndYear.forEach(
+                (yearToColorMap, entity) => {
+                    const values = Array.from(yearToColorMap.values())
+                    const key = values[0].toString()
+                    colorByEntity.set(entity, colors.get(key))
+                }
+            )
         }
 
         return colorByEntity
@@ -155,7 +180,10 @@ export class SlopeChartTransform implements IChartTransform {
                     if (year === minYear || year === maxYear) {
                         slopeValues.push({
                             x: year,
-                            y: typeof value === "string" ? parseInt(value) : value
+                            y:
+                                typeof value === "string"
+                                    ? parseInt(value)
+                                    : value
                         })
                     }
                 })

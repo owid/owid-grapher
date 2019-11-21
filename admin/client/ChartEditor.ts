@@ -5,13 +5,13 @@
  *
  */
 
-import { observable, computed, runInAction, when } from 'mobx'
-import { extend } from 'charts/Util'
-import { ChartConfig } from 'charts/ChartConfig'
-import { EditorFeatures } from './EditorFeatures'
-import { Admin } from './Admin'
-import { BAKED_GRAPHER_URL } from 'settings'
-import _ = require('lodash')
+import { observable, computed, runInAction, when } from "mobx"
+import { extend } from "charts/Util"
+import { ChartConfig } from "charts/ChartConfig"
+import { EditorFeatures } from "./EditorFeatures"
+import { Admin } from "./Admin"
+import { BAKED_GRAPHER_URL } from "settings"
+import _ = require("lodash")
 
 export type EditorTab = string
 
@@ -81,9 +81,9 @@ export class ChartEditor {
     props: ChartEditorProps
     // Whether the current chart state is saved or not
     @observable.ref currentRequest: Promise<any> | undefined
-    @observable.ref tab: EditorTab = 'basic'
-    @observable.ref errorMessage?: { title: string, content: string }
-    @observable.ref previewMode: 'mobile'|'desktop'
+    @observable.ref tab: EditorTab = "basic"
+    @observable.ref errorMessage?: { title: string; content: string }
+    @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref savedChartConfig: string = ""
 
     // This gets set when we save a new chart for the first time
@@ -92,10 +92,14 @@ export class ChartEditor {
 
     constructor(props: ChartEditorProps) {
         this.props = props
-        this.previewMode = localStorage.getItem('editorPreviewMode') === 'desktop' ? 'desktop' : 'mobile'
+        this.previewMode =
+            localStorage.getItem("editorPreviewMode") === "desktop"
+                ? "desktop"
+                : "mobile"
         when(
             () => this.chart.data.isReady,
-            () => this.savedChartConfig = JSON.stringify(this.currentChartJson)
+            () =>
+                (this.savedChartConfig = JSON.stringify(this.currentChartJson))
         )
     }
 
@@ -129,13 +133,14 @@ export class ChartEditor {
 
     @computed get availableTabs(): EditorTab[] {
         if (!this.chart.activeTransform.isValidConfig) {
-            return ['basic']
+            return ["basic"]
         } else {
-            const tabs: EditorTab[] = ['basic', 'data', 'text', 'customize']
-            if (this.chart.hasMapTab) tabs.push('map')
-            if (this.chart.isScatter || this.chart.isTimeScatter) tabs.push('scatter')
-            tabs.push('revisions')
-            tabs.push('refs')
+            const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
+            if (this.chart.hasMapTab) tabs.push("map")
+            if (this.chart.isScatter || this.chart.isTimeScatter)
+                tabs.push("scatter")
+            tabs.push("revisions")
+            tabs.push("refs")
             return tabs
         }
     }
@@ -154,16 +159,26 @@ export class ChartEditor {
 
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        const data = await this.props.admin.getJSON(`/api/editorData/${namespace}.json`)
-        runInAction(() => this.database.dataByNamespace.set(namespace, data as any))
+        const data = await this.props.admin.getJSON(
+            `/api/editorData/${namespace}.json`
+        )
+        runInAction(() =>
+            this.database.dataByNamespace.set(namespace, data as any)
+        )
     }
 
     async saveChart({ onError }: { onError?: () => void } = {}) {
         const { chart, isNewChart, currentChartJson } = this
 
-        const targetUrl = isNewChart ? "/api/charts" : `/api/charts/${chart.props.id}`
+        const targetUrl = isNewChart
+            ? "/api/charts"
+            : `/api/charts/${chart.props.id}`
 
-        const json = await this.props.admin.requestJSON(targetUrl, currentChartJson, isNewChart ? 'POST' : 'PUT')
+        const json = await this.props.admin.requestJSON(
+            targetUrl,
+            currentChartJson,
+            isNewChart ? "POST" : "PUT"
+        )
 
         if (json.success) {
             if (isNewChart) {
@@ -190,9 +205,15 @@ export class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const json = await this.props.admin.requestJSON("/api/charts", chartJson, 'POST')
+        const json = await this.props.admin.requestJSON(
+            "/api/charts",
+            chartJson,
+            "POST"
+        )
         if (json.success)
-            w.location.assign(this.props.admin.url(`charts/${json.chartId}/edit`))
+            w.location.assign(
+                this.props.admin.url(`charts/${json.chartId}/edit`)
+            )
     }
 
     publishChart() {
@@ -200,17 +221,22 @@ export class ChartEditor {
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.chart.props.isPublished = true
-            this.saveChart({ onError: () => this.chart.props.isPublished = undefined })
+            this.saveChart({
+                onError: () => (this.chart.props.isPublished = undefined)
+            })
         }
     }
 
     unpublishChart() {
-        const message = this.references && this.references.length > 0
-            ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
-            : "Are you sure you want to unpublish this chart?"
+        const message =
+            this.references && this.references.length > 0
+                ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
+                : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
             this.chart.props.isPublished = undefined
-            this.saveChart({ onError: () => this.chart.props.isPublished = true })
+            this.saveChart({
+                onError: () => (this.chart.props.isPublished = true)
+            })
         }
     }
 }

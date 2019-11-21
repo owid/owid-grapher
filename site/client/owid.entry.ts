@@ -1,27 +1,27 @@
-import 'site/client/owid.scss'
-import 'charts/client/chart.scss'
-import './oldScripts.js'
+import "site/client/owid.scss"
+import "charts/client/chart.scss"
+import "./oldScripts.js"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
-import '@fortawesome/fontawesome-svg-core/styles.css'
+import "@fortawesome/fontawesome-svg-core/styles.css"
 
-const SmoothScroll = require('smooth-scroll')
+const SmoothScroll = require("smooth-scroll")
 
-import { Analytics } from './Analytics'
-import { runChartsIndexPage } from './runChartsIndexPage'
-import { runHeaderMenus } from './SiteHeaderMenus'
-import { runSearchPage } from './SearchPageMain'
-import { runNotFoundPage } from './NotFoundPageMain'
-import { runFeedback, runFeedbackPage } from './Feedback'
-import { runDonateForm } from './DonateForm'
-import { getParent } from './utils'
-import { Grapher } from 'site/client/Grapher'
-import { ChartView } from 'charts/ChartView'
-import { runVariableCountryPage } from './runVariableCountryPage'
-import { runCountryProfilePage } from './runCountryProfilePage'
-import { runEntryExcerptLinks } from './runEntryExcerptLinks'
-import { runCookieNotice } from './runCookieNotice'
+import { Analytics } from "./Analytics"
+import { runChartsIndexPage } from "./runChartsIndexPage"
+import { runHeaderMenus } from "./SiteHeaderMenus"
+import { runSearchPage } from "./SearchPageMain"
+import { runNotFoundPage } from "./NotFoundPageMain"
+import { runFeedback, runFeedbackPage } from "./Feedback"
+import { runDonateForm } from "./DonateForm"
+import { getParent } from "./utils"
+import { Grapher } from "site/client/Grapher"
+import { ChartView } from "charts/ChartView"
+import { runVariableCountryPage } from "./runVariableCountryPage"
+import { runCountryProfilePage } from "./runCountryProfilePage"
+import { runEntryExcerptLinks } from "./runEntryExcerptLinks"
+import { runCookieNotice } from "./runCookieNotice"
 
 declare var window: any
 window.Grapher = Grapher
@@ -52,13 +52,17 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
     const input = search.querySelector("input[type=search]") as HTMLInputElement
-    search.addEventListener('submit', (ev) => {
+    search.addEventListener("submit", ev => {
         ev.preventDefault()
-        Analytics.logEvent("OWID_SITE_SEARCH", { query: input.value }).then(() => search.submit()).catch(() => search.submit())
+        Analytics.logEvent("OWID_SITE_SEARCH", { query: input.value })
+            .then(() => search.submit())
+            .catch(() => search.submit())
     })
 }
 
-const trackedLinkExists: boolean = !!document.querySelector("[data-track-click]")
+const trackedLinkExists: boolean = !!document.querySelector(
+    "[data-track-click]"
+)
 
 function createFunctionWithTimeout(callback: () => void, timeout: number = 50) {
     let called = false
@@ -73,9 +77,12 @@ function createFunctionWithTimeout(callback: () => void, timeout: number = 50) {
 }
 
 if (trackedLinkExists) {
-    document.addEventListener("click", async (ev) => {
+    document.addEventListener("click", async ev => {
         const targetElement = ev.target as HTMLElement
-        const trackedElement = getParent(targetElement, (el: HTMLElement) => el.getAttribute("data-track-click") != null)
+        const trackedElement = getParent(
+            targetElement,
+            (el: HTMLElement) => el.getAttribute("data-track-click") != null
+        )
         if (trackedElement) {
             // Note that browsers will cancel all pending requests once a user
             // navigates away from a page. An earlier implementation had a

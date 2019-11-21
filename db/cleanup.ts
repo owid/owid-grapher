@@ -2,8 +2,8 @@ type Handler = () => any
 
 const handlers: Handler[] = []
 
-process.on('SIGINT', exit)
-process.on('SIGTERM', exit)
+process.on("SIGINT", exit)
+process.on("SIGTERM", exit)
 
 export async function cleanup() {
     await Promise.all(handlers)

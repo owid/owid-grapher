@@ -1,13 +1,13 @@
-import * as React from 'react'
-import {observer} from 'mobx-react'
-import {observable, computed, action, runInAction} from 'mobx'
+import * as React from "react"
+import { observer } from "mobx-react"
+import { observable, computed, action, runInAction } from "mobx"
 const fuzzysort = require("fuzzysort")
 
-import { TextField} from './Forms'
-import { AdminLayout } from './AdminLayout'
-import { uniq } from 'charts/Util'
-import { ChartList, ChartListItem } from './ChartList'
-import { AdminAppContext, AdminAppContextType } from './AdminAppContext'
+import { TextField } from "./Forms"
+import { AdminLayout } from "./AdminLayout"
+import { uniq } from "charts/Util"
+import { ChartList, ChartListItem } from "./ChartList"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface Searchable {
     chart: ChartListItem
@@ -32,7 +32,12 @@ export class ChartIndexPage extends React.Component {
         for (const chart of this.charts) {
             searchIndex.push({
                 chart: chart,
-                term: fuzzysort.prepare(`${chart.title} ${chart.variantName||""} ${chart.internalNotes||""} ${chart.publishedBy} ${chart.lastEditedBy}`)
+                term: fuzzysort.prepare(
+                    `${chart.title} ${chart.variantName ||
+                        ""} ${chart.internalNotes || ""} ${chart.publishedBy} ${
+                        chart.lastEditedBy
+                    }`
+                )
             })
         }
 
@@ -40,11 +45,11 @@ export class ChartIndexPage extends React.Component {
     }
 
     @computed get chartsToShow(): ChartListItem[] {
-        const {searchInput, searchIndex, maxVisibleCharts} = this
+        const { searchInput, searchIndex, maxVisibleCharts } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: 'term'
+                key: "term"
             })
             return uniq(results.map((result: any) => result.obj.chart))
         } else {
@@ -61,30 +66,55 @@ export class ChartIndexPage extends React.Component {
     }
 
     render() {
-        const {chartsToShow, searchInput, numTotalCharts} = this
+        const { chartsToShow, searchInput, numTotalCharts } = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
-                const html = fuzzysort.highlight(fuzzysort.single(this.searchInput, text)) || text
-                return <span dangerouslySetInnerHTML={{__html: html}}/>
-            } else
-                return text
+                const html =
+                    fuzzysort.highlight(
+                        fuzzysort.single(this.searchInput, text)
+                    ) || text
+                return <span dangerouslySetInnerHTML={{ __html: html }} />
+            } else return text
         }
 
-        return <AdminLayout title="Charts">
-            <main className="ChartIndexPage">
-                <div className="topRow">
-                    <span>Showing {chartsToShow.length} of {numTotalCharts} charts</span>
-                    <TextField placeholder="Search all charts..." value={searchInput} onValue={this.onSearchInput} autofocus/>
-                </div>
-                <ChartList charts={chartsToShow} searchHighlight={highlight} onDelete={action((c: any) => this.charts.splice(this.charts.indexOf(c), 1))}/>
-                {!searchInput && <button className="btn btn-secondary" onClick={this.onShowMore}>Show more charts...</button>}
-            </main>
-        </AdminLayout>
+        return (
+            <AdminLayout title="Charts">
+                <main className="ChartIndexPage">
+                    <div className="topRow">
+                        <span>
+                            Showing {chartsToShow.length} of {numTotalCharts}{" "}
+                            charts
+                        </span>
+                        <TextField
+                            placeholder="Search all charts..."
+                            value={searchInput}
+                            onValue={this.onSearchInput}
+                            autofocus
+                        />
+                    </div>
+                    <ChartList
+                        charts={chartsToShow}
+                        searchHighlight={highlight}
+                        onDelete={action((c: any) =>
+                            this.charts.splice(this.charts.indexOf(c), 1)
+                        )}
+                    />
+                    {!searchInput && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.onShowMore}
+                        >
+                            Show more charts...
+                        </button>
+                    )}
+                </main>
+            </AdminLayout>
+        )
     }
 
     async getData() {
-        const {admin} = this.context
+        const { admin } = this.context
         const json = await admin.getJSON("/api/charts.json")
         runInAction(() => {
             this.charts = json.charts
@@ -93,5 +123,5 @@ export class ChartIndexPage extends React.Component {
 
     componentDidMount() {
         this.getData()
-     }
+    }
 }

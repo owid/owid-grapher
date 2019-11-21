@@ -1,14 +1,14 @@
-import * as algoliasearch from 'algoliasearch'
-import * as _ from 'lodash'
+import * as algoliasearch from "algoliasearch"
+import * as _ from "lodash"
 
-import * as db from 'db/db'
-import * as wpdb from 'db/wpdb'
-import { ALGOLIA_ID  } from 'settings'
-import { ALGOLIA_SECRET_KEY } from 'serverSettings'
-import { formatPost, FormattedPost } from 'site/server/formatting'
-import { chunkParagraphs } from 'utils/search'
-import { htmlToPlaintext } from 'utils/string'
-import { countries } from 'utils/countries'
+import * as db from "db/db"
+import * as wpdb from "db/wpdb"
+import { ALGOLIA_ID } from "settings"
+import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { formatPost, FormattedPost } from "site/server/formatting"
+import { chunkParagraphs } from "utils/search"
+import { htmlToPlaintext } from "utils/string"
+import { countries } from "utils/countries"
 
 interface Tag {
     id: number
@@ -16,22 +16,21 @@ interface Tag {
 }
 
 async function getPostTags(postId: number) {
-    return await db.table("post_tags")
+    return (await db
+        .table("post_tags")
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
-        .join("tags", "tags.id", "=", "post_tags.tag_id") as Tag[]
+        .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
 }
 
 function getPostType(post: FormattedPost, tags: Tag[]) {
     if (post.slug.startsWith("about/")) {
         return "about"
-    } else if (post.type === 'post') {
-        if (tags.some(t => t.name === "Explainers"))
-            return "explainer"
+    } else if (post.type === "post") {
+        if (tags.some(t => t.name === "Explainers")) return "explainer"
         else if (tags.some(t => t.name === "Short updates and facts"))
             return "fact"
-        else
-            return "post"
+        else return "post"
     } else {
         if (tags.some(t => t.name === "Entries")) {
             return "entry"
@@ -43,15 +42,15 @@ function getPostType(post: FormattedPost, tags: Tag[]) {
 
 async function indexToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const finalIndex = await client.initIndex('pages')
-    const tmpIndex = await client.initIndex('pages_tmp')
+    const finalIndex = await client.initIndex("pages")
+    const tmpIndex = await client.initIndex("pages_tmp")
 
     // Copy to a temporary index which we will then update
     // This is so we can do idempotent reindexing
     await client.copyIndex(finalIndex.indexName, tmpIndex.indexName, [
-        'settings',
-        'synonyms',
-        'rules'
+        "settings",
+        "synonyms",
+        "rules"
     ])
 
     const postsApi = await wpdb.getPosts()
@@ -61,7 +60,7 @@ async function indexToAlgolia() {
     for (const country of countries) {
         records.push({
             objectID: country.slug,
-            type: 'country',
+            type: "country",
             slug: country.slug,
             title: country.name,
             content: `All available indicators for ${country.name}.`
@@ -87,12 +86,9 @@ async function indexToAlgolia() {
         const postType = getPostType(post, tags)
 
         let importance = 0
-        if (postType === 'entry')
-            importance = 3
-        else if (postType === 'explainer')
-            importance = 2
-        else if (postType === 'fact')
-            importance = 1
+        if (postType === "entry") importance = 3
+        else if (postType === "explainer") importance = 2
+        else if (postType === "fact") importance = 1
 
         let i = 0
         for (const c of chunks) {
@@ -115,7 +111,7 @@ async function indexToAlgolia() {
     }
 
     for (let i = 0; i < records.length; i += 1000) {
-        await tmpIndex.saveObjects(records.slice(i, i+1000))
+        await tmpIndex.saveObjects(records.slice(i, i + 1000))
     }
     await client.moveIndex(tmpIndex.indexName, finalIndex.indexName)
 

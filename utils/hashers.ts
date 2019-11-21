@@ -1,7 +1,7 @@
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from "bcrypt"
 
 export class BCryptHasher {
-    algorithm = 'bcrypt'
+    algorithm = "bcrypt"
     iterations = 12
 
     async salt(): Promise<string> {
@@ -15,7 +15,10 @@ export class BCryptHasher {
     }
 
     async verify(password: string, hashToken: string): Promise<boolean> {
-        const hashPassword = hashToken.substring(this.algorithm.length + 1, hashToken.length)
+        const hashPassword = hashToken.substring(
+            this.algorithm.length + 1,
+            hashToken.length
+        )
         return await bcrypt.compare(password, hashPassword)
     }
 }

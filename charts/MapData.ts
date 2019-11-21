@@ -1,19 +1,41 @@
-import { uniq, round, toArray, keys, isEmpty, reverse, includes, extend, each, find, sortedUniq, keyBy, isNumber, sortBy } from './Util'
-import { computed, autorun, runInAction, reaction, toJS, IReactionDisposer } from 'mobx'
-import { mean, deviation } from 'd3-array'
+import {
+    uniq,
+    round,
+    toArray,
+    keys,
+    isEmpty,
+    reverse,
+    includes,
+    extend,
+    each,
+    find,
+    sortedUniq,
+    keyBy,
+    isNumber,
+    sortBy
+} from "./Util"
+import {
+    computed,
+    autorun,
+    runInAction,
+    reaction,
+    toJS,
+    IReactionDisposer
+} from "mobx"
+import { mean, deviation } from "d3-array"
 
-import { ChartConfig } from './ChartConfig'
-import { defaultTo, isString, last, findClosest } from './Util'
-import { ColorSchemes, ColorScheme } from './ColorSchemes'
-import { Color } from './Color'
-import { ChoroplethData } from './ChoroplethMap'
-import { entityNameForMap } from './Util'
-import { DimensionWithData } from './DimensionWithData'
-import { MapTopology } from './MapTopology'
+import { ChartConfig } from "./ChartConfig"
+import { defaultTo, isString, last, findClosest } from "./Util"
+import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { Color } from "./Color"
+import { ChoroplethData } from "./ChoroplethMap"
+import { entityNameForMap } from "./Util"
+import { DimensionWithData } from "./DimensionWithData"
+import { MapTopology } from "./MapTopology"
 
 export interface MapDataValue {
-    entity: string,
-    value: number | string,
+    entity: string
+    value: number | string
     year: number
 }
 
@@ -34,38 +56,42 @@ export class NumericBin {
         this.props = props
     }
 
-    @computed get min() { return this.props.min }
-    @computed get max() { return this.props.max }
-    @computed get color() { return this.props.color }
+    @computed get min() {
+        return this.props.min
+    }
+    @computed get max() {
+        return this.props.max
+    }
+    @computed get color() {
+        return this.props.color
+    }
     @computed get minText() {
         const str = this.props.format(this.props.min)
-        if (this.props.isOpenLeft)
-            return `<${str}`
-        else
-            return str
+        if (this.props.isOpenLeft) return `<${str}`
+        else return str
     }
     @computed get maxText() {
         const str = this.props.format(this.props.max)
-        if (this.props.isOpenRight)
-            return `>${str}`
-        else
-            return str
+        if (this.props.isOpenRight) return `>${str}`
+        else return str
     }
-    @computed get label() { return this.props.label }
-    @computed get text() { return this.props.label || "" }
-    @computed get isHidden() { return false }
+    @computed get label() {
+        return this.props.label
+    }
+    @computed get text() {
+        return this.props.label || ""
+    }
+    @computed get isHidden() {
+        return false
+    }
 
     contains(d: MapDataValue | null): boolean {
-        if (!d)
-            return false
-        else if (this.props.isOpenLeft)
-            return d.value <= this.max
-        else if (this.props.isOpenRight)
-            return d.value > this.min
+        if (!d) return false
+        else if (this.props.isOpenLeft) return d.value <= this.max
+        else if (this.props.isOpenRight) return d.value > this.min
         else if (this.props.isFirst)
             return d.value >= this.min && d.value <= this.max
-        else
-            return d.value > this.min && d.value <= this.max
+        else return d.value > this.min && d.value <= this.max
     }
 }
 
@@ -76,7 +102,19 @@ export class CategoricalBin {
     label: string
     isHidden: boolean
 
-    constructor({ index, value, color, label, isHidden }: { index: number, value: string, color: Color, label: string, isHidden: boolean }) {
+    constructor({
+        index,
+        value,
+        color,
+        label,
+        isHidden
+    }: {
+        index: number
+        value: string
+        color: Color
+        label: string
+        isHidden: boolean
+    }) {
         this.index = index
         this.value = value
         this.color = color
@@ -84,10 +122,15 @@ export class CategoricalBin {
         this.isHidden = isHidden
     }
 
-    get text() { return this.label || this.value }
+    get text() {
+        return this.label || this.value
+    }
 
     contains(d: MapDataValue | null): boolean {
-        return (d === null && this.value === 'No data') || (d !== null && d.value === this.value)
+        return (
+            (d === null && this.value === "No data") ||
+            (d !== null && d.value === this.value)
+        )
     }
 }
 
@@ -98,19 +141,20 @@ export class MapData {
     constructor(chart: ChartConfig) {
         this.chart = chart
 
-        if (!chart.isNode)
-            this.ensureValidConfig()
+        if (!chart.isNode) this.ensureValidConfig()
     }
 
     ensureValidConfig() {
-        const {chart} = this
+        const { chart } = this
 
         // Validate the map variable id selection to something on the chart
         autorun(() => {
-            const hasVariable = chart.map.variableId && chart.vardata.variablesById[chart.map.variableId]
+            const hasVariable =
+                chart.map.variableId &&
+                chart.vardata.variablesById[chart.map.variableId]
             if (!hasVariable && chart.data.primaryVariable) {
                 const variableId = chart.data.primaryVariable.id
-                runInAction(() => chart.map.props.variableId = variableId)
+                runInAction(() => (chart.map.props.variableId = variableId))
             }
         })
 
@@ -120,7 +164,8 @@ export class MapData {
             () => {
                 if (this.map.props.isManualBuckets) {
                     const { autoBinMaximums } = this
-                    const colorSchemeValues = toJS(this.map.props.colorSchemeValues) || []
+                    const colorSchemeValues =
+                        toJS(this.map.props.colorSchemeValues) || []
                     for (let i = 0; i < autoBinMaximums.length; i++) {
                         if (i >= colorSchemeValues.length)
                             colorSchemeValues.push(autoBinMaximums[i])
@@ -131,17 +176,26 @@ export class MapData {
         )
     }
 
-    @computed get map() { return this.chart.map }
-    @computed get vardata() { return this.chart.vardata }
+    @computed get map() {
+        return this.chart.map
+    }
+    @computed get vardata() {
+        return this.chart.vardata
+    }
 
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
         const { map, vardata } = this
-        return map.variableId !== undefined && !!vardata.variablesById[map.variableId]
+        return (
+            map.variableId !== undefined &&
+            !!vardata.variablesById[map.variableId]
+        )
     }
 
     @computed get dimension(): DimensionWithData | undefined {
-        return this.chart.data.filledDimensions.find(d => d.variableId === this.map.variableId)
+        return this.chart.data.filledDimensions.find(
+            d => d.variableId === this.map.variableId
+        )
     }
 
     // Figure out which entities in the variable can be shown on the map
@@ -149,8 +203,12 @@ export class MapData {
     @computed get knownMapEntities(): { [entity: string]: string } {
         if (!this.dimension) return {}
 
-        const idLookup = keyBy(MapTopology.objects.world.geometries.map((g: any) => g.id))
-        const entities = this.dimension.variable.entitiesUniq.filter(e => !!idLookup[entityNameForMap(e)])
+        const idLookup = keyBy(
+            MapTopology.objects.world.geometries.map((g: any) => g.id)
+        )
+        const entities = this.dimension.variable.entitiesUniq.filter(
+            e => !!idLookup[entityNameForMap(e)]
+        )
         return keyBy(entities)
     }
 
@@ -167,16 +225,20 @@ export class MapData {
 
     // Filter data to what can be display on the map (across all years)
     @computed get mappableData() {
-        const {dimension} = this
+        const { dimension } = this
 
-        const mappableData: { years: number[], entities: string[], values: (number|string)[] } = {
+        const mappableData: {
+            years: number[]
+            entities: string[]
+            values: (number | string)[]
+        } = {
             years: [],
             entities: [],
             values: []
         }
 
         if (dimension) {
-            const {knownMapEntities} = this
+            const { knownMapEntities } = this
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entity = dimension.entities[i]
@@ -194,7 +256,9 @@ export class MapData {
     }
 
     @computed get sortedNumericValues(): number[] {
-        return sortBy(this.mappableData.values.filter(v => isNumber(v))) as number[]
+        return sortBy(
+            this.mappableData.values.filter(v => isNumber(v))
+        ) as number[]
     }
 
     @computed get minPossibleValue(): number {
@@ -202,7 +266,7 @@ export class MapData {
     }
 
     @computed get maxPossibleValue(): number {
-        return this.sortedNumericValues[this.sortedNumericValues.length-1]
+        return this.sortedNumericValues[this.sortedNumericValues.length - 1]
     }
 
     @computed get formatValueShort() {
@@ -225,8 +289,12 @@ export class MapData {
 
     // All available years with data for the map
     @computed get timelineYears(): number[] {
-        const {mappableData} = this
-        return sortedUniq(mappableData.years.filter((_, i) => !!this.knownMapEntities[mappableData.entities[i]]))
+        const { mappableData } = this
+        return sortedUniq(
+            mappableData.years.filter(
+                (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
+            )
+        )
     }
 
     @computed get hasTimeline(): boolean {
@@ -234,8 +302,14 @@ export class MapData {
     }
 
     @computed get targetYear(): number {
-        const targetYear = defaultTo(this.map.props.targetYear, last(this.timelineYears))
-        return defaultTo(findClosest(this.timelineYears, targetYear), last(this.timelineYears))
+        const targetYear = defaultTo(
+            this.map.props.targetYear,
+            last(this.timelineYears)
+        )
+        return defaultTo(
+            findClosest(this.timelineYears, targetYear),
+            last(this.timelineYears)
+        )
     }
 
     @computed get legendTitle(): string {
@@ -249,23 +323,26 @@ export class MapData {
     }
 
     @computed get numBins(): number {
-        return this.map.props.isManualBuckets ? this.map.props.colorSchemeValues.length : this.numAutoBins
+        return this.map.props.isManualBuckets
+            ? this.map.props.colorSchemeValues.length
+            : this.numAutoBins
     }
 
     @computed get customBucketLabels() {
         const labels = toJS(this.map.props.colorSchemeLabels) || []
-        while (labels.length < this.numBins)
-            labels.push(undefined)
+        while (labels.length < this.numBins) labels.push(undefined)
         return labels
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
     @computed get commonValues(): number[] {
-        const {sortedNumericValues} = this
+        const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) as number
-        return sortedNumericValues.filter(d => Math.abs(d-sampleMean) <= sampleDeviation*2)
+        return sortedNumericValues.filter(
+            d => Math.abs(d - sampleMean) <= sampleDeviation * 2
+        )
     }
 
     @computed get autoMinBinValue(): number {
@@ -275,47 +352,50 @@ export class MapData {
     }
 
     @computed get minBinValue(): number {
-        return this.map.props.colorSchemeMinValue !== undefined ? this.map.props.colorSchemeMinValue : this.autoMinBinValue
+        return this.map.props.colorSchemeMinValue !== undefined
+            ? this.map.props.colorSchemeMinValue
+            : this.autoMinBinValue
     }
 
     @computed get binStepSizeDefault(): number {
-        const {numAutoBins, minBinValue, commonValues} = this
+        const { numAutoBins, minBinValue, commonValues } = this
         if (!commonValues.length) return 10
 
-        const stepSizeInitial = (commonValues[commonValues.length-1]-minBinValue)/numAutoBins
-        const stepMagnitude = Math.floor(Math.log(stepSizeInitial) / Math.log(10))
+        const stepSizeInitial =
+            (commonValues[commonValues.length - 1] - minBinValue) / numAutoBins
+        const stepMagnitude = Math.floor(
+            Math.log(stepSizeInitial) / Math.log(10)
+        )
         return round(stepSizeInitial, -stepMagnitude)
     }
 
     @computed get binStepSize(): number {
-        return this.map.props.binStepSize !== undefined ? this.map.props.binStepSize : this.binStepSizeDefault
+        return this.map.props.binStepSize !== undefined
+            ? this.map.props.binStepSize
+            : this.binStepSizeDefault
     }
 
     @computed get manualBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numBins <= 0)
-            return []
+        if (!this.sortedNumericValues.length || this.numBins <= 0) return []
 
         const { numBins } = this
         const { colorSchemeValues } = this.map
 
         let values = toArray(colorSchemeValues)
-        while (values.length < numBins)
-            values.push(0)
-        while (values.length > numBins)
-            values = values.slice(0, numBins)
+        while (values.length < numBins) values.push(0)
+        while (values.length > numBins) values = values.slice(0, numBins)
         return values as number[]
     }
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length  || this.numAutoBins <= 0)
-            return []
+        if (!this.sortedNumericValues.length || this.numAutoBins <= 0) return []
 
         const { binStepSize, numAutoBins, minBinValue } = this
 
         const bucketMaximums = []
-        let nextMaximum = minBinValue+binStepSize
+        let nextMaximum = minBinValue + binStepSize
         for (let i = 0; i < numAutoBins; i++) {
             bucketMaximums.push(nextMaximum)
             nextMaximum += binStepSize
@@ -325,10 +405,8 @@ export class MapData {
     }
 
     @computed get bucketMaximums(): number[] {
-        if (this.map.props.isManualBuckets)
-            return this.manualBinMaximums
-        else
-            return this.autoBinMaximums
+        if (this.map.props.isManualBuckets) return this.manualBinMaximums
+        else return this.autoBinMaximums
     }
 
     @computed get defaultColorScheme(): ColorScheme {
@@ -343,7 +421,7 @@ export class MapData {
     @computed get baseColors() {
         const { categoricalValues, colorScheme, bucketMaximums } = this
         const { isColorSchemeInverted } = this.map
-        const numColors = bucketMaximums.length + categoricalValues.length-1
+        const numColors = bucketMaximums.length + categoricalValues.length - 1
         const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) {
@@ -355,10 +433,12 @@ export class MapData {
 
     // Ensure there's always a custom color for "No data"
     @computed get customCategoryColors(): { [key: string]: Color } {
-        return extend({}, this.map.customCategoryColors, { 'No data': this.map.noDataColor })
+        return extend({}, this.map.customCategoryColors, {
+            "No data": this.map.noDataColor
+        })
     }
 
-    @computed get legendData(): (NumericBin|CategoricalBin)[] {
+    @computed get legendData(): (NumericBin | CategoricalBin)[] {
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
@@ -366,8 +446,20 @@ export class MapData {
         const { minPossibleValue, maxPossibleValue, formatValueShort } = this
 
         const legendData = []
-        const { map, bucketMaximums, baseColors, categoricalValues, customCategoryColors, customBucketLabels, minBinValue } = this
-        const { customNumericColors, customCategoryLabels, customHiddenCategories } = map
+        const {
+            map,
+            bucketMaximums,
+            baseColors,
+            categoricalValues,
+            customCategoryColors,
+            customBucketLabels,
+            minBinValue
+        } = this
+        const {
+            customNumericColors,
+            customCategoryLabels,
+            customHiddenCategories
+        } = map
 
         /*var unitsString = chart.model.get("units"),
             units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
@@ -377,22 +469,50 @@ export class MapData {
         let minValue = minBinValue
         for (let i = 0; i < bucketMaximums.length; i++) {
             const baseColor = baseColors[i]
-            const color = defaultTo(customNumericColors.length > i ? customNumericColors[i] : undefined, baseColor)
+            const color = defaultTo(
+                customNumericColors.length > i
+                    ? customNumericColors[i]
+                    : undefined,
+                baseColor
+            )
             const maxValue = +(bucketMaximums[i] as number)
             const label = customBucketLabels[i]
-            legendData.push(new NumericBin({ isFirst: i === 0, isOpenLeft: i === 0 && minValue > minPossibleValue, isOpenRight: i === bucketMaximums.length-1 && maxValue < maxPossibleValue, min: minValue, max: maxValue, color: color, label: label, format: formatValueShort }))
+            legendData.push(
+                new NumericBin({
+                    isFirst: i === 0,
+                    isOpenLeft: i === 0 && minValue > minPossibleValue,
+                    isOpenRight:
+                        i === bucketMaximums.length - 1 &&
+                        maxValue < maxPossibleValue,
+                    min: minValue,
+                    max: maxValue,
+                    color: color,
+                    label: label,
+                    format: formatValueShort
+                })
+            )
             minValue = maxValue
         }
 
         // Categorical values, each assigned a color
         for (let i = 0; i < categoricalValues.length; i++) {
             const value = categoricalValues[i]
-            const boundingOffset = isEmpty(bucketMaximums) ? 0 : bucketMaximums.length - 1
+            const boundingOffset = isEmpty(bucketMaximums)
+                ? 0
+                : bucketMaximums.length - 1
             const baseColor = baseColors[i + boundingOffset]
             const color = customCategoryColors[value] || baseColor
             const label = customCategoryLabels[value] || ""
 
-            legendData.push(new CategoricalBin({ index: i, value: value, color: color, label: label, isHidden: customHiddenCategories[value] }))
+            legendData.push(
+                new CategoricalBin({
+                    index: i,
+                    value: value,
+                    color: color,
+                    label: label,
+                    isHidden: customHiddenCategories[value]
+                })
+            )
         }
 
         return legendData
@@ -414,13 +534,17 @@ export class MapData {
             // Make sure we use the closest year within tolerance (favoring later years)
             const entityName = entityNameForMap(entities[i])
             const existing = currentValues[entityName]
-            if (existing && Math.abs(existing.year - targetYear) < Math.abs(year - targetYear))
+            if (
+                existing &&
+                Math.abs(existing.year - targetYear) <
+                    Math.abs(year - targetYear)
+            )
                 continue
 
             currentValues[entityName] = {
                 entity: entities[i],
                 year: years[i],
-                value: values[i],
+                value: values[i]
             }
         }
 
@@ -446,12 +570,11 @@ export class MapData {
 
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
-        return formatValueLong ?
-            (d: number|string) => {
-                if (isString(d))
-                    return d
-                else
-                    return formatValueLong(d)
-            } : () => ""
+        return formatValueLong
+            ? (d: number | string) => {
+                  if (isString(d)) return d
+                  else return formatValueLong(d)
+              }
+            : () => ""
     }
 }

@@ -1,6 +1,12 @@
-import { geoPath, GeoPath, geoConicConformal, geoAzimuthalEqualArea, GeoProjection } from 'd3-geo'
-import { computed } from 'mobx'
-const { geoRobinson, geoPatterson } = require('d3-geo-projection')
+import {
+    geoPath,
+    GeoPath,
+    geoConicConformal,
+    geoAzimuthalEqualArea,
+    GeoProjection
+} from "d3-geo"
+import { computed } from "mobx"
+const { geoRobinson, geoPatterson } = require("d3-geo-projection")
 
 class MapProjectionsKlass {
     [key: string]: GeoPath<any, any>
@@ -42,21 +48,25 @@ class MapProjectionsKlass {
     // From http://bl.ocks.org/dhoboy/ff8448ace9d5d567390a
     @computed get Asia(): GeoPath<any, any> {
         const projection = geoPatterson()
-            .center([58,54])
+            .center([58, 54])
             .scale(150)
-            .translate([0,0])
-            .precision(.1)
+            .translate([0, 0])
+            .precision(0.1)
         const path = geoPath().projection(projection)
         return path
     }
 
     // From http://bl.ocks.org/espinielli/10587361
     @computed get Europe(): GeoPath<any, any> {
-        const projection = geoAzimuthalEqualArea().scale(200).translate([262, 1187]).clipAngle(180 - 1e-3).precision(1)
+        const projection = geoAzimuthalEqualArea()
+            .scale(200)
+            .translate([262, 1187])
+            .clipAngle(180 - 1e-3)
+            .precision(1)
         const path = geoPath().projection(projection)
         return path
         //empiric
-       /*const projection = geoConicConformal()
+        /*const projection = geoConicConformal()
             .rotate([-15, 0])
             .center([0, 55])
             .parallels([60, 40])

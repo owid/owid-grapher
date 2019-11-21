@@ -1,16 +1,16 @@
-import * as cheerio from 'cheerio'
-const urlSlug = require('url-slug')
-const wpautop = require('wpautop')
-import * as _ from 'lodash'
-import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
-import { HTTPS_ONLY } from 'serverSettings'
-import { BAKED_BASE_URL, WORDPRESS_URL } from 'settings'
-import { getTables, FullPost } from 'db/wpdb'
-import Tablepress from './views/Tablepress'
-import {GrapherExports} from './grapherUtil'
-import * as path from 'path'
-import { htmlToPlaintext } from 'utils/string'
+import * as cheerio from "cheerio"
+const urlSlug = require("url-slug")
+const wpautop = require("wpautop")
+import * as _ from "lodash"
+import * as React from "react"
+import * as ReactDOMServer from "react-dom/server"
+import { HTTPS_ONLY } from "serverSettings"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
+import { getTables, FullPost } from "db/wpdb"
+import Tablepress from "./views/Tablepress"
+import { GrapherExports } from "./grapherUtil"
+import * as path from "path"
+import { htmlToPlaintext } from "utils/string"
 
 const mjAPI = require("mathjax-node")
 
@@ -20,14 +20,12 @@ const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-pre
     <path fill="currentColor" opacity="0.6" d="M239.76,234.78A27.5,27.5,0,0,1,217,192a87.76,87.76,0,1,0-145.9,0A27.5,27.5,0,1,1,25.37,222.6,142.17,142.17,0,0,1,1.24,143.17C1.24,64.45,65.28.41,144,.41s142.76,64,142.76,142.76a142.17,142.17,0,0,1-24.13,79.43A27.47,27.47,0,0,1,239.76,234.78Z" transform="translate(0 -0.41)"/>
 </svg>`
 
-export interface Reference {
-
-}
+export interface Reference {}
 
 export interface FormattedPost {
     id: number
     postId?: number
-    type: 'post'|'page'
+    type: "post" | "page"
     slug: string
     path: string
     title: string
@@ -40,12 +38,12 @@ export interface FormattedPost {
     excerpt: string
     imageUrl?: string
     acknowledgements?: string
-    tocHeadings: { text: string, slug: string, isSubheading: boolean }[]
+    tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
 }
 
 mjAPI.config({
     MathJax: {
-      // traditional MathJax configuration
+        // traditional MathJax configuration
     }
 })
 mjAPI.start()
@@ -53,15 +51,22 @@ mjAPI.start()
 function extractLatex(html: string): [string, string[]] {
     const latexBlocks: string[] = []
     html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
-        latexBlocks.push(latex.replace("\\[", "").replace("\\]", "").replace(/\$\$/g, ""))
+        latexBlocks.push(
+            latex
+                .replace("\\[", "")
+                .replace("\\]", "")
+                .replace(/\$\$/g, "")
+        )
         return "[latex]"
     })
     return [html, latexBlocks]
 }
 
-async function formatLatex(html: string, latexBlocks?: string[]): Promise<string> {
-    if (!latexBlocks)
-        [html, latexBlocks] = extractLatex(html)
+async function formatLatex(
+    html: string,
+    latexBlocks?: string[]
+): Promise<string> {
+    if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
     const compiled: string[] = []
     for (const latex of latexBlocks) {
@@ -75,7 +80,9 @@ async function formatLatex(html: string, latexBlocks?: string[]): Promise<string
             })
             compiled.push(result.svg.replace("<svg", `<svg class="latex"`))
         } catch (err) {
-            compiled.push(`${latex} (Could not format equation due to MathJax error)`)
+            compiled.push(
+                `${latex} (Could not format equation due to MathJax error)`
+            )
         }
     }
 
@@ -86,20 +93,28 @@ async function formatLatex(html: string, latexBlocks?: string[]): Promise<string
     })
 }
 
-export async function formatWordpressPost(post: FullPost, html: string, formattingOptions: FormattingOptions, grapherExports?: GrapherExports): Promise<FormattedPost> {
+export async function formatWordpressPost(
+    post: FullPost,
+    html: string,
+    formattingOptions: FormattingOptions,
+    grapherExports?: GrapherExports
+): Promise<FormattedPost> {
     // Strip comments
     html = html.replace(/<!--[^>]+-->/g, "")
 
     // Need to skirt around wordpress formatting to get proper latex rendering
     let latexBlocks
-    [html, latexBlocks] = extractLatex(html)
+    ;[html, latexBlocks] = extractLatex(html)
 
     // Extract acknowledgements
-    let acknowledgements: string|undefined
-    html = html.replace(/\[acknowledgements\]([\s\S]*?)\[\/acknowledgements\]/gm, (_, ack) => {
-        acknowledgements = wpautop(ack)
-        return ``
-    })
+    let acknowledgements: string | undefined
+    html = html.replace(
+        /\[acknowledgements\]([\s\S]*?)\[\/acknowledgements\]/gm,
+        (_, ack) => {
+            acknowledgements = wpautop(ack)
+            return ``
+        }
+    )
 
     const references: Reference[] = []
     html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, (_, bibtex) => {
@@ -126,22 +141,25 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     html = html.replace(/\[table\s+id=(\d+)\s*\/\]/g, (match, tableId) => {
         const table = tables.get(tableId)
         if (table)
-            return ReactDOMServer.renderToStaticMarkup(<Tablepress data={table.data}/>)
-        else
-            return "UNKNOWN TABLE"
+            return ReactDOMServer.renderToStaticMarkup(
+                <Tablepress data={table.data} />
+            )
+        else return "UNKNOWN TABLE"
     })
 
     // No need for wordpress urls
-    html = html.replace(new RegExp("/app/uploads", 'g'), "/uploads")
+    html = html.replace(new RegExp("/app/uploads", "g"), "/uploads")
 
     const $ = cheerio.load(html)
 
     // Replace grapher iframes with static previews
     if (grapherExports) {
-        const grapherIframes = $("iframe").toArray().filter(el => (el.attribs['src']||'').match(/\/grapher\//))
+        const grapherIframes = $("iframe")
+            .toArray()
+            .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
         for (const el of grapherIframes) {
             const $el = $(el)
-            const src = el.attribs['src']
+            const src = el.attribs["src"]
             const chart = grapherExports.get(src)
             if (chart) {
                 const output = `<figure data-grapher-src="${src}" class="grapherPreview">
@@ -153,7 +171,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                         </div>
                     </a>
                 </div>`
-                if(el.parent.tagName === 'p') {
+                if (el.parent.tagName === "p") {
                     // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
                     // so we are lifting the <figure> out.
                     // Where does this markup  come from? Historically, wpautop wrapped <iframe> in <p>. Some non-Gutengerg
@@ -165,7 +183,7 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                     const $p = $el.parent()
                     $p.after(output)
                     $el.remove()
-                } else if(el.parent.tagName === 'figure') {
+                } else if (el.parent.tagName === "figure") {
                     // Support for <iframe> wrapped in <figure>
                     // <figure> automatically added by Gutenberg on copy / paste <iframe>
                     // Lifting up <iframe> out of <figure>, before it becomes a <figure> itself.
@@ -186,15 +204,17 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     // Any remaining iframes: ensure https embeds
     if (HTTPS_ONLY) {
         for (const iframe of $("iframe").toArray()) {
-            iframe.attribs['src'] = iframe.attribs['src'].replace("http://", "https://")
+            iframe.attribs["src"] = iframe.attribs["src"].replace(
+                "http://",
+                "https://"
+            )
         }
     }
 
     // Remove any empty elements
     for (const p of $("p").toArray()) {
         const $p = $(p)
-        if ($p.contents().length === 0)
-            $p.remove()
+        if ($p.contents().length === 0) $p.remove()
     }
 
     // Wrap tables so we can do overflow-x: scroll if needed
@@ -215,33 +235,42 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
 
         // Recreate source image path by removing automatically added image
         // dimensions (e.g. remove 800x600).
-        const src = el.attribs['src']
+        const src = el.attribs["src"]
         const parsedPath = path.parse(src)
-        const originalFilename = parsedPath.ext === '.svg' ? parsedPath.name : parsedPath.name.replace(/-\d+x\d+$/, '')
+        const originalFilename =
+            parsedPath.ext === ".svg"
+                ? parsedPath.name
+                : parsedPath.name.replace(/-\d+x\d+$/, "")
 
         // Open full-size image in new tab
         if (el.parent.tagName === "a") {
-            el.parent.attribs['target'] = '_blank'
-        } else if(parsedPath.ext !== '.svg' && !$el.closest('a').length) {
-             // Add link to original image for those not contained in <a> tags already
+            el.parent.attribs["target"] = "_blank"
+        } else if (parsedPath.ext !== ".svg" && !$el.closest("a").length) {
+            // Add link to original image for those not contained in <a> tags already
             // (e.g. within a prominent link block)
-            const originalSrc = path.format({dir: parsedPath.dir, name: originalFilename, ext: parsedPath.ext})
+            const originalSrc = path.format({
+                dir: parsedPath.dir,
+                name: originalFilename,
+                ext: parsedPath.ext
+            })
             const $a = $(`<a href="${originalSrc}" target="_blank"></a>`)
             $el.replaceWith($a)
             $a.append($el)
         }
 
         // Add alt tag
-        if (!el.attribs['alt']) {
-            el.attribs['alt'] = _.capitalize(originalFilename.replace(/[-_]/g, ' '))
+        if (!el.attribs["alt"]) {
+            el.attribs["alt"] = _.capitalize(
+                originalFilename.replace(/[-_]/g, " ")
+            )
         }
     }
 
     // Table of contents and deep links
 
     interface TocHeading {
-        text: string,
-        slug: string,
+        text: string
+        slug: string
         isSubheading: boolean
     }
 
@@ -266,22 +295,39 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         // Table of contents
         if (formattingOptions.toc) {
             if ($heading.is("#footnotes") && footnotes.length > 0) {
-                tocHeadings.push({ text: headingText, slug: "footnotes", isSubheading: false })
-            } else if (!$heading.is('h1') && !$heading.is('h4')) {
-                if ($heading.is('h2')) {
-                    const tocHeading = { text: $heading.text(), slug: slug, isSubheading: false }
+                tocHeadings.push({
+                    text: headingText,
+                    slug: "footnotes",
+                    isSubheading: false
+                })
+            } else if (!$heading.is("h1") && !$heading.is("h4")) {
+                if ($heading.is("h2")) {
+                    const tocHeading = {
+                        text: $heading.text(),
+                        slug: slug,
+                        isSubheading: false
+                    }
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
-                } else if($heading.closest('.wp-block-owid-prominent-link').length === 0) {
-                    tocHeadings.push({ text: $heading.text(), slug: slug, isSubheading: true })
+                } else if (
+                    $heading.closest(".wp-block-owid-prominent-link").length ===
+                    0
+                ) {
+                    tocHeadings.push({
+                        text: $heading.text(),
+                        slug: slug,
+                        isSubheading: true
+                    })
                 }
             }
         }
 
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
-        if($heading.closest('a').length === 0) {
-            $heading.attr('id', slug).prepend(`<a class="deep-link" href="#${slug}"></a>`)
+        if ($heading.closest("a").length === 0) {
+            $heading
+                .attr("id", slug)
+                .prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }
     })
 
@@ -292,7 +338,8 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     }
 
     function getColumns(): Columns {
-        const emptyColumns = "<div class=\"wp-block-columns has-2-columns is-style-sticky-right\"><div class=\"wp-block-column\"></div><div class=\"wp-block-column\"></div></div>"
+        const emptyColumns =
+            '<div class="wp-block-columns has-2-columns is-style-sticky-right"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>'
         const $columns = $(emptyColumns)
         return {
             wrapper: $columns,
@@ -302,32 +349,41 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     }
 
     function isColumnsEmpty(columns: Columns) {
-        return columns.first.children().length === 0 && columns.last.children().length === 0 ? true : false
+        return columns.first.children().length === 0 &&
+            columns.last.children().length === 0
+            ? true
+            : false
     }
 
     // Wrap content demarcated by headings into section blocks
     // and automatically divide content into columns
-    const sectionStarts = [$("body").children().get(0)].concat($("body > h2").toArray())
+    const sectionStarts = [
+        $("body")
+            .children()
+            .get(0)
+    ].concat($("body > h2").toArray())
     for (const start of sectionStarts) {
         const $start = $(start)
         const $section = $("<section>")
         let columns = getColumns()
         const $tempWrapper = $("<div>")
-        const $contents = $tempWrapper.append($start.clone(), $start.nextUntil($("h2"))).contents()
+        const $contents = $tempWrapper
+            .append($start.clone(), $start.nextUntil($("h2")))
+            .contents()
 
         $contents.each(function(this: CheerioElement, i) {
             const $el = $(this)
             // Leave h2 at the section level, do not move into columns
-            if(this.name === 'h2') {
+            if (this.name === "h2") {
                 $section.append($el)
-            } else if(this.name === 'h3' || $el.hasClass("has-2-columns")) {
-                if(!isColumnsEmpty(columns)) {
+            } else if (this.name === "h3" || $el.hasClass("has-2-columns")) {
+                if (!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
                 }
                 $section.append($el)
-            } else if(this.name === 'h4') {
-                if(!isColumnsEmpty(columns)) {
+            } else if (this.name === "h4") {
+                if (!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
                 }
@@ -336,26 +392,29 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
                 columns = getColumns()
             } else {
                 // Move images to the right column
-                if(this.name === 'figure' ||
-                    this.name === 'iframe' ||
+                if (
+                    this.name === "figure" ||
+                    this.name === "iframe" ||
                     // Temporary support for old chart iframes
-                    this.name === 'address' ||
+                    this.name === "address" ||
                     $el.hasClass("wp-block-image") ||
                     $el.hasClass("tableContainer") ||
                     // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
                     // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
                     $el.find("iframe").length !== 0 ||
                     // TODO: remove temporary support for pre-Gutenberg images and associated captions
-                    this.name === 'h6' ||
-                    $el.find("img").length !== 0 && !$el.hasClass("wp-block-owid-prominent-link")) {
-                        columns.last.append($el)
+                    this.name === "h6" ||
+                    ($el.find("img").length !== 0 &&
+                        !$el.hasClass("wp-block-owid-prominent-link"))
+                ) {
+                    columns.last.append($el)
                 } else {
                     // Move non-heading, non-image content to the left column
                     columns.first.append($el)
                 }
             }
         })
-        if(!isColumnsEmpty(columns)) {
+        if (!isColumnsEmpty(columns)) {
             $section.append(columns.wrapper)
         }
         $start.replaceWith($section)
@@ -365,7 +424,8 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
     // Get the first root level <style> tag within the content as it gets
     // stripped out by $("body").html() below. Voluntarily limits to 1 as there
     // should not be a need for more.
-    const style = $("style").length === 1 ? `<style>${$("style").html()}</style>` : ''
+    const style =
+        $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
 
     return {
         id: post.id,
@@ -381,25 +441,31 @@ export async function formatWordpressPost(post: FullPost, html: string, formatti
         footnotes: footnotes,
         acknowledgements: acknowledgements,
         references: references,
-        excerpt: post.excerpt || $("p").first().text(),
+        excerpt:
+            post.excerpt ||
+            $("p")
+                .first()
+                .text(),
         imageUrl: post.imageUrl,
         tocHeadings: tocHeadings
     }
 }
 
 export interface FormattingOptions {
-    toc?: boolean,
-    hideAuthors?: boolean,
-    bodyClassName?: string,
-    subnavId?: string,
-    subnavCurrentId?: string,
-    raw?: boolean,
-    hideDonateFooter?: boolean,
+    toc?: boolean
+    hideAuthors?: boolean
+    bodyClassName?: string
+    subnavId?: string
+    subnavCurrentId?: string
+    raw?: boolean
+    hideDonateFooter?: boolean
     [key: string]: string | boolean | undefined
 }
 
 export function extractFormattingOptions(html: string): FormattingOptions {
-    const formattingOptionsMatch = html.match(/<!--\s*formatting-options\s+(.*)\s*-->/)
+    const formattingOptionsMatch = html.match(
+        /<!--\s*formatting-options\s+(.*)\s*-->/
+    )
     if (formattingOptionsMatch) {
         return parseFormattingOptions(formattingOptionsMatch[1])
     } else {
@@ -413,10 +479,13 @@ function parseFormattingOptions(text: string): FormattingOptions {
     const options: { [key: string]: string | boolean } = {}
     text.split(/\s+/)
         // filter out empty strings
-        .filter((s) => s && s.length > 0)
+        .filter(s => s && s.length > 0)
         // populate options object
         .forEach((option: string) => {
-            const [name, value] = option.split(":") as [string, string|undefined]
+            const [name, value] = option.split(":") as [
+                string,
+                string | undefined
+            ]
             let parsedValue
             if (value === undefined || value === "true") parsedValue = true
             else if (value === "false") parsedValue = false
@@ -426,12 +495,17 @@ function parseFormattingOptions(text: string): FormattingOptions {
     return options
 }
 
-export async function formatPost(post: FullPost, formattingOptions: FormattingOptions, grapherExports?: GrapherExports): Promise<FormattedPost> {
+export async function formatPost(
+    post: FullPost,
+    formattingOptions: FormattingOptions,
+    grapherExports?: GrapherExports
+): Promise<FormattedPost> {
     let html = post.content
 
     // Standardize urls
-    html = html.replace(new RegExp(WORDPRESS_URL, 'g'), BAKED_BASE_URL)
-        .replace(new RegExp("https?://ourworldindata.org", 'g'), BAKED_BASE_URL)
+    html = html
+        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
     // No formatting applied, plain source HTML returned
     if (formattingOptions.raw) {
@@ -448,16 +522,19 @@ export async function formatPost(post: FullPost, formattingOptions: FormattingOp
             html: html,
             footnotes: [],
             references: [],
-            excerpt: post.excerpt||"",
+            excerpt: post.excerpt || "",
             imageUrl: post.imageUrl,
             tocHeadings: []
         }
     } else {
         // Override formattingOptions if specified in the post (as an HTML comment)
-        const options: FormattingOptions = Object.assign({
-            toc: post.type === 'page',
-            footnotes: true
-        }, formattingOptions)
+        const options: FormattingOptions = Object.assign(
+            {
+                toc: post.type === "page",
+                footnotes: true
+            },
+            formattingOptions
+        )
         return formatWordpressPost(post, html, options, grapherExports)
     }
 }
@@ -467,14 +544,16 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
         authors.push("Max Roser")
 
     let authorsText = authors.slice(0, -1).join(", ")
-    if (authorsText.length === 0)
-        authorsText = authors[0]
-    else
-        authorsText += ` and ${_.last(authors)}`
+    if (authorsText.length === 0) authorsText = authors[0]
+    else authorsText += ` and ${_.last(authors)}`
 
     return authorsText
 }
 
 export function formatDate(date: Date): string {
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' })
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit"
+    })
 }

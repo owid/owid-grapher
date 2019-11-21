@@ -1,14 +1,21 @@
-import * as React from 'react'
-import { observable, computed, autorun, action, runInAction } from 'mobx'
-import { observer } from 'mobx-react'
-import { SearchResults } from './SearchResults'
-import { SiteSearchResults, PageHit, ChartHit, siteSearch } from 'site/siteSearch'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
+import * as React from "react"
+import { observable, computed, autorun, action, runInAction } from "mobx"
+import { observer } from "mobx-react"
+import { SearchResults } from "./SearchResults"
+import {
+    SiteSearchResults,
+    PageHit,
+    ChartHit,
+    siteSearch
+} from "site/siteSearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
-class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }> {
+class HeaderSearchResults extends React.Component<{
+    results: SiteSearchResults
+}> {
     componentDidMount() {
-        document.body.style.overflowY = 'hidden'
+        document.body.style.overflowY = "hidden"
     }
 
     componentWillUnmount() {
@@ -16,7 +23,7 @@ class HeaderSearchResults extends React.Component<{ results: SiteSearchResults }
     }
 
     render() {
-        return <SearchResults results={this.props.results}/>
+        return <SearchResults results={this.props.results} />
     }
 }
 
@@ -33,7 +40,7 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
             return
         }
 
-        runInAction(() => this.results = results)
+        runInAction(() => (this.results = results))
     }
 
     @action.bound onSearch(e: React.ChangeEvent<HTMLInputElement>) {
@@ -47,13 +54,21 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
     }
 
     render() {
-        const {results} = this
-        return <form action="/search" method="GET" className="HeaderSearch">
-            <input type="search" name="q" onChange={e => this.onSearch(e)} placeholder="Search..." autoFocus={this.props.autoFocus}/>
-            <div className="icon">
-                <FontAwesomeIcon icon={faSearch} />
-            </div>
-            {results && <HeaderSearchResults results={results}/>}
-        </form>
+        const { results } = this
+        return (
+            <form action="/search" method="GET" className="HeaderSearch">
+                <input
+                    type="search"
+                    name="q"
+                    onChange={e => this.onSearch(e)}
+                    placeholder="Search..."
+                    autoFocus={this.props.autoFocus}
+                />
+                <div className="icon">
+                    <FontAwesomeIcon icon={faSearch} />
+                </div>
+                {results && <HeaderSearchResults results={results} />}
+            </form>
+        )
     }
 }

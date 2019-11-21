@@ -1,7 +1,6 @@
+import * as _ from "lodash"
 
-import * as _ from 'lodash'
-
-const chunk = require('chunk-text')
+const chunk = require("chunk-text")
 
 export function chunkWords(text: string, maxChunkLength: number): string[] {
     return chunk(text, maxChunkLength)
@@ -11,12 +10,20 @@ export function chunkSentences(text: string, maxChunkLength: number): string[] {
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g
-    const sentences = _.flatten(text.split(sentenceRegex).map(s => s.length > maxChunkLength ? chunkWords(s, maxChunkLength) : s)).map(s => s.trim()).filter(s => s).reverse() as string[]
+    const sentences = _.flatten(
+        text
+            .split(sentenceRegex)
+            .map(s =>
+                s.length > maxChunkLength ? chunkWords(s, maxChunkLength) : s
+            )
+    )
+        .map(s => s.trim())
+        .filter(s => s)
+        .reverse() as string[]
 
     const chunks = []
     let chunk = sentences.pop()
-    if (!chunk)
-        return []
+    if (!chunk) return []
 
     while (true) {
         const s = sentences.pop()
@@ -39,13 +46,26 @@ export function chunkSentences(text: string, maxChunkLength: number): string[] {
 
 // Chunks a given bit of text into an array of fragments less than or equal to maxChunkLength in size
 // These chunks will honor sentence boundaries where possible
-export function chunkParagraphs(text: string, maxChunkLength: number): string[] {
-    const paragraphs = _.flatten(text.split("\n\n").map(p => p.length > maxChunkLength ? chunkSentences(p, maxChunkLength) : p)).map(p => p.trim()).filter(p => p).reverse() as string[]
+export function chunkParagraphs(
+    text: string,
+    maxChunkLength: number
+): string[] {
+    const paragraphs = _.flatten(
+        text
+            .split("\n\n")
+            .map(p =>
+                p.length > maxChunkLength
+                    ? chunkSentences(p, maxChunkLength)
+                    : p
+            )
+    )
+        .map(p => p.trim())
+        .filter(p => p)
+        .reverse() as string[]
 
     const chunks = []
     let chunk = paragraphs.pop()
-    if (!chunk)
-        return []
+    if (!chunk) return []
 
     while (true) {
         const p = paragraphs.pop()

@@ -1,13 +1,25 @@
-import { computed } from 'mobx'
-import { scaleOrdinal } from 'd3-scale'
-import { some, isEmpty, min, max, sortBy, cloneDeep, sum, extend, find, identity, sortedUniq } from './Util'
-import { ChartConfig } from './ChartConfig'
-import { DataKey } from './DataKey'
-import { StackedAreaSeries, StackedAreaValue } from './StackedArea'
-import { AxisSpec } from './AxisSpec'
-import { ColorSchemes, ColorScheme } from './ColorSchemes'
-import { formatValue, formatYear, defaultTo, findClosest } from './Util'
-import { IChartTransform } from './IChartTransform'
+import { computed } from "mobx"
+import { scaleOrdinal } from "d3-scale"
+import {
+    some,
+    isEmpty,
+    min,
+    max,
+    sortBy,
+    cloneDeep,
+    sum,
+    extend,
+    find,
+    identity,
+    sortedUniq
+} from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { DataKey } from "./DataKey"
+import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
+import { AxisSpec } from "./AxisSpec"
+import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { formatValue, formatYear, defaultTo, findClosest } from "./Util"
+import { IChartTransform } from "./IChartTransform"
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
@@ -19,17 +31,19 @@ export class StackedAreaTransform implements IChartTransform {
     }
 
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === 'y')
+        return some(this.chart.dimensions, d => d.property === "y")
     }
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart.data
-        if (!some(filledDimensions, d => d.property === 'y'))
+        if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
-        else if (this.groupedData.length === 0 || this.groupedData[0].values.length === 0)
+        else if (
+            this.groupedData.length === 0 ||
+            this.groupedData[0].values.length === 0
+        )
             return "No matching data"
-        else
-            return undefined
+        else return undefined
     }
 
     // Get the data for each stacked area series, cleaned to ensure every series
@@ -71,12 +85,16 @@ export class StackedAreaTransform implements IChartTransform {
                 series.values.push({ x: year, y: value, time: year })
             }
 
-            groupedData = groupedData.concat([...Array.from(seriesByKey.values())])
+            groupedData = groupedData.concat([
+                ...Array.from(seriesByKey.values())
+            ])
         })
 
         // Now ensure that every series has a value entry for every year in the data
         let allYears: number[] = []
-        groupedData.forEach(series => allYears.push(...series.values.map(d => d.x)))
+        groupedData.forEach(series =>
+            allYears.push(...series.values.map(d => d.x))
+        )
         allYears = sortedUniq(sortBy(allYears))
 
         groupedData.forEach(series => {
@@ -84,7 +102,7 @@ export class StackedAreaTransform implements IChartTransform {
             let isBeforeStart = true
 
             while (i < allYears.length) {
-                const value = series.values[i] as StackedAreaValue|undefined
+                const value = series.values[i] as StackedAreaValue | undefined
                 const expectedYear = allYears[i]
 
                 if (value === undefined || value.x > allYears[i]) {
@@ -97,7 +115,12 @@ export class StackedAreaTransform implements IChartTransform {
                         fakeY = (nextValue.y + prevValue.y) / 2
                     }
 
-                    series.values.splice(i, 0, { x: expectedYear, y: fakeY, time: expectedYear, isFake: true })
+                    series.values.splice(i, 0, {
+                        x: expectedYear,
+                        y: fakeY,
+                        time: expectedYear,
+                        isFake: true
+                    })
                 } else {
                     isBeforeStart = false
                 }
@@ -107,7 +130,7 @@ export class StackedAreaTransform implements IChartTransform {
 
         // Strip years at start and end where we couldn't successfully interpolate
         for (const firstSeries of groupedData.slice(0, 1)) {
-            for (let i = firstSeries.values.length-1; i >= 0; i--) {
+            for (let i = firstSeries.values.length - 1; i >= 0; i--) {
                 if (groupedData.some(series => isNaN(series.values[i].y))) {
                     for (const series of groupedData) {
                         series.values.splice(i, 1)
@@ -117,26 +140,31 @@ export class StackedAreaTransform implements IChartTransform {
         }
 
         // Preserve order
-        groupedData = sortBy(groupedData, series => -selectedKeys.indexOf(series.key))
+        groupedData = sortBy(
+            groupedData,
+            series => -selectedKeys.indexOf(series.key)
+        )
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (chart.props.invertColorScheme)
-            baseColors.reverse()
+        if (chart.props.invertColorScheme) baseColors.reverse()
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
-            series.color = chart.data.keyColors[series.key] || colorScale(series.key)
+            series.color =
+                chart.data.keyColors[series.key] || colorScale(series.key)
         })
 
         // In relative mode, transform data to be a percentage of the total for that year
         if (this.isRelative) {
-            if (groupedData.length === 0)
-                return []
+            if (groupedData.length === 0) return []
 
             for (let i = 0; i < groupedData[0].values.length; i++) {
                 const total = sum(groupedData.map(series => series.values[i].y))
                 for (let j = 0; j < groupedData.length; j++) {
-                    groupedData[j].values[i].y = total === 0 ? 0 : (groupedData[j].values[i].y / total) * 100
+                    groupedData[j].values[i].y =
+                        total === 0
+                            ? 0
+                            : (groupedData[j].values[i].y / total) * 100
                 }
             }
         }
@@ -158,13 +186,25 @@ export class StackedAreaTransform implements IChartTransform {
     }
 
     @computed get startYear(): number {
-        const minYear = defaultTo(this.chart.timeDomain[0], this.minTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, minYear), this.minTimelineYear)
+        const minYear = defaultTo(
+            this.chart.timeDomain[0],
+            this.minTimelineYear
+        )
+        return defaultTo(
+            findClosest(this.timelineYears, minYear),
+            this.minTimelineYear
+        )
     }
 
     @computed get endYear(): number {
-        const maxYear = defaultTo(this.chart.timeDomain[1], this.maxTimelineYear)
-        return defaultTo(findClosest(this.timelineYears, maxYear), this.maxTimelineYear)
+        const maxYear = defaultTo(
+            this.chart.timeDomain[1],
+            this.maxTimelineYear
+        )
+        return defaultTo(
+            findClosest(this.timelineYears, maxYear),
+            this.maxTimelineYear
+        )
     }
 
     @computed get canToggleRelative(): boolean {
@@ -173,17 +213,20 @@ export class StackedAreaTransform implements IChartTransform {
 
     // Stacked area may display in either absolute or relative mode
     @computed get isRelative(): boolean {
-        return this.chart.props.stackMode === 'relative'
+        return this.chart.props.stackMode === "relative"
     }
 
     set isRelative(value: boolean) {
-        this.chart.props.stackMode = value ? 'relative' : 'absolute'
+        this.chart.props.stackMode = value ? "relative" : "absolute"
     }
 
     @computed get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        const colorScheme = ColorSchemes[this.chart.props.baseColorScheme as string]
-        return colorScheme !== undefined ? colorScheme : ColorSchemes["stackedAreaDefault"] as ColorScheme
+        const colorScheme =
+            ColorSchemes[this.chart.props.baseColorScheme as string]
+        return colorScheme !== undefined
+            ? colorScheme
+            : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
     @computed get xDomainDefault(): [number, number] {
@@ -194,13 +237,24 @@ export class StackedAreaTransform implements IChartTransform {
     @computed get stackedData(): StackedAreaSeries[] {
         const { groupedData, startYear, endYear } = this
 
-        if (some(groupedData, series => series.values.length !== groupedData[0].values.length))
-            throw new Error(`Unexpected variation in stacked area chart series: ${groupedData.map(series => series.values.length)}`)
+        if (
+            some(
+                groupedData,
+                series => series.values.length !== groupedData[0].values.length
+            )
+        )
+            throw new Error(
+                `Unexpected variation in stacked area chart series: ${groupedData.map(
+                    series => series.values.length
+                )}`
+            )
 
         const stackedData = cloneDeep(groupedData)
 
         for (const series of stackedData) {
-            series.values = series.values.filter(v => v.x >= startYear && v.x <= endYear)
+            series.values = series.values.filter(
+                v => v.x >= startYear && v.x <= endYear
+            )
             for (const value of series.values) {
                 value.origY = value.y
             }
@@ -223,37 +277,35 @@ export class StackedAreaTransform implements IChartTransform {
 
     @computed get yDomainDefault(): [number, number] {
         const yValues = this.allStackedValues.map(d => d.y)
-        return [
-            0,
-            defaultTo(max(yValues), 100)
-        ]
+        return [0, defaultTo(max(yValues), 100)]
     }
 
     @computed get xAxis(): AxisSpec {
         const { chart, xDomainDefault } = this
-        return extend(
-            chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            { tickFormat: (year: number) => formatYear(year),
-              hideFractionalTicks: true,
-              hideGridlines: true }
-        ) as AxisSpec
+        return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
+            tickFormat: (year: number) => formatYear(year),
+            hideFractionalTicks: true,
+            hideGridlines: true
+        }) as AxisSpec
     }
 
     @computed get yDimensionFirst() {
-        return find(this.chart.data.filledDimensions, d => d.property === 'y')
+        return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
 
     @computed get yAxis(): AxisSpec {
         const { chart, yDomainDefault, isRelative, yDimensionFirst } = this
-        const tickFormat = yDimensionFirst ? yDimensionFirst.formatValueShort : identity
+        const tickFormat = yDimensionFirst
+            ? yDimensionFirst.formatValueShort
+            : identity
 
-        return extend(
-            chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            {
-                domain: isRelative ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
-                tickFormat: isRelative ? (v: number) => formatValue(v, { unit: "%" }) : tickFormat
-            }
-        ) as AxisSpec
+        return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), {
+            domain: isRelative
+                ? [0, 100]
+                : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
+            tickFormat: isRelative
+                ? (v: number) => formatValue(v, { unit: "%" })
+                : tickFormat
+        }) as AxisSpec
     }
-
 }

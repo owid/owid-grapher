@@ -8,21 +8,21 @@
  * @created 2017-02-11
  */
 
-import * as React from 'react'
-import { observable, computed, reaction, action } from 'mobx'
-import { observer } from 'mobx-react'
-import { Bounds } from './Bounds'
-import { AxisScale } from './AxisScale'
-import { VerticalAxis, VerticalAxisView } from './VerticalAxis'
-import { HorizontalAxis, HorizontalAxisView } from './HorizontalAxis'
-import { AxisSpec } from './AxisSpec'
-import { ScaleType } from './ScaleType'
-import { extend } from './Util'
+import * as React from "react"
+import { observable, computed, reaction, action } from "mobx"
+import { observer } from "mobx-react"
+import { Bounds } from "./Bounds"
+import { AxisScale } from "./AxisScale"
+import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
+import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
+import { AxisSpec } from "./AxisSpec"
+import { ScaleType } from "./ScaleType"
+import { extend } from "./Util"
 
 interface AxisBoxProps {
-    bounds: Bounds,
-    fontSize: number,
-    xAxis: AxisSpec,
+    bounds: Bounds
+    fontSize: number
+    xAxis: AxisSpec
     yAxis: AxisSpec
 }
 
@@ -90,12 +90,13 @@ export class AxisBox {
         if (this.animProgress === undefined) return
 
         if (!this.frameStart) this.frameStart = timestamp
-        this.animProgress = Math.min(1, this.animProgress + (timestamp - this.frameStart) / 300)
+        this.animProgress = Math.min(
+            1,
+            this.animProgress + (timestamp - this.frameStart) / 300
+        )
 
-        if (this.animProgress < 1)
-            requestAnimationFrame(this.frame)
-        else
-            this.frameStart = undefined
+        if (this.animProgress < 1) requestAnimationFrame(this.frame)
+        else this.frameStart = undefined
     }
 
     @computed get yAxisSpec() {
@@ -109,7 +110,9 @@ export class AxisBox {
     // We calculate an initial width/height for the axes in isolation
     @computed get xAxisHeight() {
         return new HorizontalAxis({
-            scale: new AxisScale(this.xAxisSpec).extend({ range: [0, this.props.bounds.width] }),
+            scale: new AxisScale(this.xAxisSpec).extend({
+                range: [0, this.props.bounds.width]
+            }),
             labelText: this.xAxisSpec.label,
             fontSize: this.props.fontSize
         }).height
@@ -117,7 +120,9 @@ export class AxisBox {
 
     @computed get yAxisWidth() {
         return new VerticalAxis({
-            scale: new AxisScale(this.yAxisSpec).extend({ range: [0, this.props.bounds.height] }),
+            scale: new AxisScale(this.yAxisSpec).extend({
+                range: [0, this.props.bounds.height]
+            }),
             labelText: this.yAxisSpec.label,
             fontSize: this.props.fontSize
         }).width
@@ -125,32 +130,50 @@ export class AxisBox {
 
     // Now we can determine the "true" inner bounds of the axis box
     @computed get innerBounds(): Bounds {
-        return this.props.bounds.padBottom(this.xAxisHeight).padLeft(this.yAxisWidth)
+        return this.props.bounds
+            .padBottom(this.xAxisHeight)
+            .padLeft(this.yAxisWidth)
     }
 
     @computed get xScale() {
-        return new AxisScale(this.xAxisSpec).extend({ range: this.innerBounds.xRange() })
+        return new AxisScale(this.xAxisSpec).extend({
+            range: this.innerBounds.xRange()
+        })
     }
 
     @computed get yScale() {
-        return new AxisScale(this.yAxisSpec).extend({ range: this.innerBounds.yRange() })
+        return new AxisScale(this.yAxisSpec).extend({
+            range: this.innerBounds.yRange()
+        })
     }
 
     @computed get xAxis() {
         const that = this
         return new HorizontalAxis({
-            get scale() { return that.xScale },
-            get labelText() { return that.xAxisSpec.label },
-            get fontSize() { return that.props.fontSize }
+            get scale() {
+                return that.xScale
+            },
+            get labelText() {
+                return that.xAxisSpec.label
+            },
+            get fontSize() {
+                return that.props.fontSize
+            }
         })
     }
 
     @computed get yAxis() {
         const that = this
         return new VerticalAxis({
-            get scale() { return that.yScale },
-            get labelText() { return that.yAxisSpec.label },
-            get fontSize() { return that.props.fontSize }
+            get scale() {
+                return that.yScale
+            },
+            get labelText() {
+                return that.yAxisSpec.label
+            },
+            get fontSize() {
+                return that.props.fontSize
+            }
         })
     }
 
@@ -160,8 +183,8 @@ export class AxisBox {
 }
 
 interface AxisGridLinesProps {
-    orient: 'left' | 'bottom',
-    scale: AxisScale,
+    orient: "left" | "bottom"
+    scale: AxisScale
     bounds: Bounds
 }
 
@@ -169,25 +192,48 @@ interface AxisGridLinesProps {
 export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     render() {
         const { orient, bounds } = this.props
-        const scale = this.props.scale.extend({ range: orient === 'left' ? bounds.yRange() : bounds.xRange() })
+        const scale = this.props.scale.extend({
+            range: orient === "left" ? bounds.yRange() : bounds.xRange()
+        })
 
-        return <g className="AxisGridLines">
-            {scale.getTickValues().map((v, i) => {
-                if (orient === 'left')
-                    return <line key={i} x1={bounds.left.toFixed(2)} y1={scale.place(v)} x2={bounds.right.toFixed(2)} y2={scale.place(v)} stroke={v === 0 ? "#ccc" : "#ddd"} strokeDasharray={v !== 0 ? "3,2" : undefined} />
-                else
-                    return <line key={i} x1={scale.place(v)} y1={bounds.bottom.toFixed(2)} x2={scale.place(v)} y2={bounds.top.toFixed(2)} stroke={v === 0 ? "#ccc" : "#ddd"} strokeDasharray={v !== 0 ? "3,2" : undefined} />
-
-            })}
-        </g>
+        return (
+            <g className="AxisGridLines">
+                {scale.getTickValues().map((v, i) => {
+                    if (orient === "left")
+                        return (
+                            <line
+                                key={i}
+                                x1={bounds.left.toFixed(2)}
+                                y1={scale.place(v)}
+                                x2={bounds.right.toFixed(2)}
+                                y2={scale.place(v)}
+                                stroke={v === 0 ? "#ccc" : "#ddd"}
+                                strokeDasharray={v !== 0 ? "3,2" : undefined}
+                            />
+                        )
+                    else
+                        return (
+                            <line
+                                key={i}
+                                x1={scale.place(v)}
+                                y1={bounds.bottom.toFixed(2)}
+                                x2={scale.place(v)}
+                                y2={bounds.top.toFixed(2)}
+                                stroke={v === 0 ? "#ccc" : "#ddd"}
+                                strokeDasharray={v !== 0 ? "3,2" : undefined}
+                            />
+                        )
+                })}
+            </g>
+        )
     }
 }
 
 export interface AxisBoxViewProps {
-    axisBox: AxisBox,
-    onYScaleChange: (scaleType: ScaleType) => void,
-    onXScaleChange: (scaleType: ScaleType) => void,
-    highlightValue?: { x: number, y: number }
+    axisBox: AxisBox
+    onYScaleChange: (scaleType: ScaleType) => void
+    onXScaleChange: (scaleType: ScaleType) => void
+    highlightValue?: { x: number; y: number }
 }
 
 @observer
@@ -200,11 +246,33 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
         const { axisBox, onYScaleChange, onXScaleChange } = this.props
         const { bounds, xScale, yScale, xAxis, yAxis, innerBounds } = axisBox
 
-        return <g className="AxisBoxView">
-            <HorizontalAxisView bounds={bounds} axis={xAxis} onScaleTypeChange={onXScaleChange} />
-            <VerticalAxisView bounds={bounds} axis={yAxis} onScaleTypeChange={onYScaleChange} />
-            {!yScale.hideGridlines && <AxisGridLines orient="left" scale={yScale} bounds={innerBounds} />}
-            {!xScale.hideGridlines && <AxisGridLines orient="bottom" scale={xScale} bounds={innerBounds} />}
-        </g>
+        return (
+            <g className="AxisBoxView">
+                <HorizontalAxisView
+                    bounds={bounds}
+                    axis={xAxis}
+                    onScaleTypeChange={onXScaleChange}
+                />
+                <VerticalAxisView
+                    bounds={bounds}
+                    axis={yAxis}
+                    onScaleTypeChange={onYScaleChange}
+                />
+                {!yScale.hideGridlines && (
+                    <AxisGridLines
+                        orient="left"
+                        scale={yScale}
+                        bounds={innerBounds}
+                    />
+                )}
+                {!xScale.hideGridlines && (
+                    <AxisGridLines
+                        orient="bottom"
+                        scale={xScale}
+                        bounds={innerBounds}
+                    />
+                )}
+            </g>
+        )
     }
 }
