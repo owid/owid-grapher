@@ -246,6 +246,7 @@ export const SiteFooter = ({
                     dangerouslySetInnerHTML={{
                         __html: `
                 runHeaderMenus();
+                runSummary();
                 runFeedback();
                 runCookieNotice();
                 if (!document.querySelector(".ChartPage")) {

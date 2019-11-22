@@ -11,6 +11,7 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { htmlToPlaintext } from "utils/string"
+import Summary from "site/client/Summary"
 
 const mjAPI = require("mathjax-node")
 
@@ -330,6 +331,17 @@ export async function formatWordpressPost(
                 .prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }
     })
+
+    const $summaryBlock = $("block[type='owid-summary']")
+    const title = $summaryBlock.find("attributes title").text()
+    const content = $summaryBlock.find("content").html()
+    const summary = ReactDOMServer.renderToString(
+        <div className="block-wrapper">
+            <Summary content={content} title={title} />
+        </div>
+    )
+    $summaryBlock.after(summary)
+    $summaryBlock.remove()
 
     interface Columns {
         wrapper: Cheerio
