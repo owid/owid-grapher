@@ -66,10 +66,12 @@ function owid_plugin_register()
 function owid_plugin_summary_render($attributes, $content)
 {
 	$block = <<<EOD
-	<div class="wp-block-owid-summary">
-		<h2>Summary</h2>
-		$content
-	</div>
+	<block type="owid-summary">
+		<attributes>
+			<title>Summary</title>
+		</attributes>
+		<content>$content</content>
+	</block>
 EOD;
 
 	return $block;
