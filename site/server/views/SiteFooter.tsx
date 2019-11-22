@@ -234,6 +234,14 @@ export const SiteFooter = ({
                                     Please consult our full{" "}
                                     <a href="/about#legal">legal disclaimer</a>.
                                 </p>
+                                <p>
+                                    Our World In Data is a project of the{" "}
+                                    <a href="https://global-change-data-lab.org/">
+                                        Global Change Data Lab
+                                    </a>
+                                    , a registered charity in England and Wales
+                                    (Charity Number 1186433).
+                                </p>
                                 {/* <a href="/" className="owid-logo">Our World in Data</a> */}
                             </div>
                         </div>
