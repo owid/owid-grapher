@@ -7,40 +7,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch dev-admin",
-            "args": ["admin/server/server.tsx"],
-            "runtimeArgs": [
-                "--nolazy",
-                "-r",
-                "ts-node/register",
-                "-r",
-                "tsconfig-paths/register",
-                "-r",
-                "dotenv/config"
-            ],
-            "cwd": "${workspaceRoot}",
-            "protocol": "inspector"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch dev-site",
-            "args": ["site/server/devServer.tsx"],
-            "runtimeArgs": [
-                "--nolazy",
-                "-r",
-                "ts-node/register",
-                "-r",
-                "tsconfig-paths/register",
-                "-r",
-                "dotenv/config"
-            ],
-            "cwd": "${workspaceRoot}",
-            "protocol": "inspector"
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Run bake",
             "args": ["scripts/bakeSite.ts"],
             "runtimeArgs": [
@@ -71,6 +37,12 @@
             ],
             "cwd": "${workspaceRoot}",
             "protocol": "inspector"
+        },
+        {
+            "name": "Attach to node",
+            "type": "node",
+            "request": "attach",
+            "restart": true
         }
     ]
 }
