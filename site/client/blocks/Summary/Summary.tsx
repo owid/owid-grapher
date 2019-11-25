@@ -27,7 +27,7 @@ const Summary = ({
 
 export default Summary
 
-export const runSummary = () => {
+export const hydrate = () => {
     const summaryBlock = document.querySelector(".wp-block-owid-summary")
     if (summaryBlock) {
         const blockWrapper = summaryBlock.parentElement

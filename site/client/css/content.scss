@@ -5,7 +5,8 @@
 .article-content img {
     display: block;
     margin: 1em auto;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px, rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
     padding: 10px;
     background-color: #fff;
     transition: box-shadow 100ms ease;
@@ -13,12 +14,12 @@
 
 // Added by Max: Hover Effect of Images that load in Fancy Box
 .article-content a > img {
-	cursor: zoom-in;
+    cursor: zoom-in;
 }
 
 .article-content a > img:hover {
-	box-shadow: 0px 0px 1px 1px $link-color;
-	z-index: $zindex-article-image;
+    box-shadow: 0px 0px 1px 1px $link-color;
+    z-index: $zindex-article-image;
 }
 
 .article-content figure {
@@ -26,7 +27,8 @@
     margin-right: 0;
 }
 
-.article-content figure[data-grapher-src], .SearchResults figure[data-grapher-src] {
+.article-content figure[data-grapher-src],
+.SearchResults figure[data-grapher-src] {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1em;
@@ -61,9 +63,9 @@
         font-size: 14px;
         font-weight: 400;
         line-height: 1.2;
-        color: rgba(black, .4);
+        color: rgba(black, 0.4);
         display: none;
-        background-color: rgba(black, .03);
+        background-color: rgba(black, 0.03);
         padding: 12px 30px;
         position: relative;
         text-decoration: none;
@@ -90,11 +92,13 @@
     }
 }
 
-.article-content figure[data-grapher-src].grapherPreview, .SearchResults figure[data-grapher-src].grapherPreview {
+.article-content figure[data-grapher-src].grapherPreview,
+.SearchResults figure[data-grapher-src].grapherPreview {
     padding: 1em 0;
 }
 
-.article-content figure[data-grapher-src]:not(.grapherPreview), .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
+.article-content figure[data-grapher-src]:not(.grapherPreview),
+.SearchResults figure[data-grapher-src]:not(.grapherPreview) {
     height: 575px;
 }
 
@@ -103,66 +107,65 @@
  */
 
 .article-content .tableContainer {
-	margin: 1em 0;
+    margin: 1em 0;
 }
 
 .article-content .tableContainer > table:not(.plain) {
-	border-collapse: collapse;
-	border-spacing: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
     color: #000;
-	font-size: 14px;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: center;
+    font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
     width: 100%;
     @include block-shadow;
 
-	> tbody {
-		border-bottom: 1px solid #ddd;
-	}
+    > tbody {
+        border-bottom: 1px solid #ddd;
+    }
 
-	td,
-	th {
-		text-align: center;
-		border: 1px solid #aaa;
-		padding: 0.4rem;
-	}
+    td,
+    th {
+        text-align: center;
+        border: 1px solid #aaa;
+        padding: 0.4rem;
+    }
 
-	th {
+    th {
         font-weight: 700;
         padding: 0.5rem 0.4rem;
-	}
+    }
 }
 
 .tablepress {
-	margin: 1em 0;
+    margin: 1em 0;
     color: #000;
 }
 
 .tablepress th {
-	border-bottom: 1px solid #333;
-	background: $primary-color-200;
+    border-bottom: 1px solid #333;
+    background: $primary-color-200;
 }
 
 .tablepress th,
 .tablepress td {
-	padding: 0.4rem;
-	border: 1px solid #ddd;
-	text-align: center;
+    padding: 0.4rem;
+    border: 1px solid #ddd;
+    text-align: center;
 }
 
 .tablepress tr {
-	background-color: $white;
+    background-color: $white;
 }
 
 /* Fix for title on really small screens */
 @media (max-width: 400px) {
-	.logo {
-		max-width: calc(100% - 100px);
-		font-size: 20px;
-	}
+    .logo {
+        max-width: calc(100% - 100px);
+        font-size: 20px;
+    }
 }
-
 
 /*******************************************************************************
  * Gutenberg (wordpress editor) blocks
@@ -182,7 +185,7 @@
         }
 
         &.is-style-sticky-right {
-            .wp-block-column{
+            .wp-block-column {
                 &:nth-child(2) {
                     top: 0;
                     position: sticky;
@@ -190,124 +193,4 @@
             }
         }
     }
-}
-
-.wp-block-owid-summary {
-    margin-bottom: 2rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    @include wrapper-spacing-sm;
-    @include md-up {
-        @include wrapper-spacing-md;
-    }
-    border: 1px solid $primary-color;
-    border-top-width: 5px;
-    color: $primary-color;
-    background-color: #F9F4E4;
-
-    h2 {
-        margin-top: 0;
-        font-family: $serif-font-stack;
-        font-size: 2rem;
-        text-align: center;
-        color: inherit;
-    }
-    li {
-        margin-bottom: 0.5rem;
-        a {
-            display: block;
-            color: inherit;
-            transition: all 150ms;
-            &:hover, &:visited {
-                color: inherit;
-            }
-            &:hover::after {
-                color: $secondary-color;
-            }
-            &::after {
-                display: inline-block;
-                content: "\2193\a0\a0 jump to section";
-                margin-left: 0.5rem;
-                font-size: 0.8rem;
-                color: $primary-color-400;
-            }
-        }
-    }
-}
-
-// TODO remove .article-content. Reordering source scss will make specificity
-// override unnecessary
-.article-content .wp-block-owid-prominent-link {
-    svg {
-        width: 0.4em;
-        height: 1em;
-        vertical-align: middle;
-        margin-left: 0.6rem;
-        transition: all 0.2s;
-    }
-    @include md-up {
-        // margin: 0 -#{$padding-x-md};
-    }
-    background-color: $primary-color-100;
-    border: 1px solid $primary-color-100;
-    border-radius: 2px;
-    @include block-shadow;
-    transition: all 0.3s;
-
-    &:hover {
-        background-color: $primary-color-200;
-        border: 1px solid $primary-color;
-        svg {
-            margin-left: 0.8rem;
-        }
-    }
-
-    a {
-        display: block;
-        padding: $padding-x-sm;
-        @include md-up {
-            padding: $padding-x-md;
-        }
-        color: $primary-color-800;
-        &:visited {
-            color: $primary-color-800;
-        }
-        &:hover {
-            text-decoration: none;
-            color: $primary-color;
-        }
-    }
-
-    @include md-up {
-        &.with-image .content-wrapper {
-            display: flex;
-            figure {
-                flex: 1 1 40%;
-                margin-right: $padding-x-md;
-                img {
-                    width: 100%;
-                }
-            }
-            .content {
-                flex: 1 1 60%;
-                *:first-child {
-                    margin-top:0;
-                }
-                *:last-child {
-                    margin-bottom:0;
-                }
-            }
-        }
-    }
-
-    h3 {
-        margin-top: 0;
-        @include h3-style;
-    }
-
-    figure, img {
-        width: 100%;
-        margin: 0;
-    }
-
 }

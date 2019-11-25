@@ -10,8 +10,8 @@ import { getTables, FullPost } from "db/wpdb"
 import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
-import { htmlToPlaintext } from "utils/string"
-import Summary from "site/client/Summary"
+import Summary from "site/client/blocks/Summary/Summary"
+import { renderBlocks } from "site/client/blocks"
 
 const mjAPI = require("mathjax-node")
 
@@ -342,6 +342,8 @@ export async function formatWordpressPost(
     )
     $summaryBlock.after(summary)
     $summaryBlock.remove()
+
+    renderBlocks($)
 
     interface Columns {
         wrapper: Cheerio

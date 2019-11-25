@@ -22,7 +22,7 @@ import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runEntryExcerptLinks } from "./runEntryExcerptLinks"
 import { runCookieNotice } from "./runCookieNotice"
-import { runSummary } from "./Summary"
+import { runBlocks } from "./blocks"
 
 declare var window: any
 window.Grapher = Grapher
@@ -39,7 +39,7 @@ window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
 window.runEntryExcerptLinks = runEntryExcerptLinks
 window.runCookieNotice = runCookieNotice
-window.runSummary = runSummary
+window.runBlocks = runBlocks
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 

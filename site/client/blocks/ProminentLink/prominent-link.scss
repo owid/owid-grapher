@@ -1,0 +1,74 @@
+.wp-block-owid-prominent-link {
+    svg {
+        width: 0.4em;
+        height: 1em;
+        vertical-align: middle;
+        margin-left: 0.6rem;
+        transition: all 0.2s;
+    }
+    @include md-up {
+        // margin: 0 -#{$padding-x-md};
+    }
+    background-color: $primary-color-100;
+    border: 1px solid $primary-color-100;
+    border-radius: 2px;
+    @include block-shadow;
+    transition: all 0.3s;
+
+    &:hover {
+        background-color: $primary-color-200;
+        border: 1px solid $primary-color;
+        svg {
+            margin-left: 0.8rem;
+        }
+    }
+
+    a {
+        display: block;
+        padding: $padding-x-sm;
+        @include md-up {
+            padding: $padding-x-md;
+        }
+        color: $primary-color-800;
+        &:visited {
+            color: $primary-color-800;
+        }
+        &:hover {
+            text-decoration: none;
+            color: $primary-color;
+        }
+    }
+
+    @include md-up {
+        &.with-image .content-wrapper {
+            display: flex;
+            figure {
+                flex: 1 1 40%;
+                margin-right: $padding-x-md;
+                img {
+                    width: 100%;
+                }
+            }
+            .content {
+                flex: 1 1 60%;
+                *:first-child {
+                    margin-top: 0;
+                }
+                *:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+
+    h3 {
+        margin-top: 0;
+        @include h3-style;
+    }
+
+    figure,
+    img {
+        width: 100%;
+        margin: 0;
+    }
+}
