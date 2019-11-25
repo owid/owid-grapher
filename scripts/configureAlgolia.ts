@@ -65,7 +65,8 @@ export async function configureAlgolia() {
         ["atomic", "nuclear"],
         ["pop", "population"],
         ["cheese", "dairy"],
-        ["gdp", "economic growth"]
+        ["gdp", "economic growth"],
+        ["overpopulation", "population growth"]
     ]
 
     // Send all our country variant names to algolia as synonyms
