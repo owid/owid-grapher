@@ -1,4 +1,5 @@
 <?php
+
 namespace OWID;
 /*
 Plugin Name: Our World In Data
@@ -11,6 +12,7 @@ Plugin Name: Our World In Data
  *  Save post meta in block
  *  https://developer.wordpress.org/block-editor/tutorials/metabox/meta-block-1-intro/
  */
+
 include 'src/Summary/summary.php';
 include 'src/ProminentLink/prominent-link.php';
 
@@ -133,7 +135,14 @@ function build_static($post_ID, $post_after, $post_before)
 		putenv('DB_USER');
 		putenv('DB_NAME');
 		putenv('DB_PORT');
-		$cmd = "cd " . ABSPATH . "codelink && yarn tsn scripts/postUpdatedHook.ts " . escapeshellarg($current_user->user_email) . " " . escapeshellarg($current_user->display_name) . " " . escapeshellarg($post_after->ID) . " " . escapeshellarg($post_after->post_name) . " > /tmp/wp-static.log 2>&1 &";
+		$cmd = "cd "
+			. ABSPATH
+			. "codelink && yarn tsn scripts/postUpdatedHook.ts "
+			. escapeshellarg($current_user->user_email)
+			. " " . escapeshellarg($current_user->display_name)
+			. " " . escapeshellarg($post_after->ID)
+			. " " . escapeshellarg($post_after->post_name)
+			. " > /tmp/wp-static.log 2>&1 &";
 		exec($cmd);
 	}
 }

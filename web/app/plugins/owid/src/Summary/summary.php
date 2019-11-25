@@ -1,9 +1,10 @@
 <?php
+
 namespace OWID\blocks\summary;
 
 function render($attributes, $content)
 {
-	$block = <<<EOD
+  $block = <<<EOD
 	<block type="owid-summary">
 		<attributes>
 			<title>Summary</title>
@@ -12,5 +13,5 @@ function render($attributes, $content)
 	</block>
 EOD;
 
-	return $block;
+  return $block;
 }
