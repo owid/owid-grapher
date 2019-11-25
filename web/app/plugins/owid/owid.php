@@ -15,6 +15,7 @@ Plugin Name: Our World In Data
 
 include 'src/Summary/summary.php';
 include 'src/ProminentLink/prominent-link.php';
+include 'src/AdditionalInformation/additional-information.php';
 
 const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
 
@@ -65,6 +66,11 @@ function register()
 	register_block_type('owid/prominent-link', array(
 		'editor_script' => 'owid-blocks-script',
 		'render_callback' => __NAMESPACE__ . '\blocks\prominent_link\render'
+	));
+
+	register_block_type('owid/additional-information', array(
+		'editor_script' => 'owid-blocks-script',
+		'render_callback' => __NAMESPACE__ . '\blocks\additional_information\render'
 	));
 }
 
