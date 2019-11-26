@@ -1,6 +1,41 @@
 .wp-block-owid-additional-information {
-    background-color: red;
-    .content {
-        overflow: auto;
+    @include block-title;
+    @include block-shadow;
+    @include left-media-columns;
+    margin-bottom: 2rem;
+    .content-wrapper {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+        @include wrapper-spacing-sm;
+        @include md-up {
+            @include wrapper-spacing-md;
+        }
+    }
+    h3 {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin: 0;
+        padding: $padding-x-sm;
+        @include md-up {
+            padding: $padding-x-md;
+        }
+        transition: 0.2s all;
+        &:hover {
+            cursor: pointer;
+            background-color: $primary-color-100;
+        }
+        svg {
+            margin-left: $padding-x-md;
+            transition: 0.2s transform;
+        }
+    }
+    &.open {
+        h3 {
+            background: none;
+            svg {
+                transform: rotate(90deg);
+            }
+        }
     }
 }

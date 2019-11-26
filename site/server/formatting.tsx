@@ -266,6 +266,8 @@ export async function formatWordpressPost(
         }
     }
 
+    renderBlocks($)
+
     // Table of contents and deep links
 
     interface TocHeading {
@@ -312,6 +314,7 @@ export async function formatWordpressPost(
                 } else if (
                     $heading.closest(".wp-block-owid-prominent-link").length ===
                     0
+                    // && $heading.closest(".wp-block-owid-additional-information").length === 0
                 ) {
                     tocHeadings.push({
                         text: $heading.text(),
@@ -324,14 +327,15 @@ export async function formatWordpressPost(
 
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
-        if ($heading.closest("a").length === 0) {
+        if (
+            $heading.closest(".wp-block-owid-prominent-link").length === 0
+            // && $heading.closest(".wp-block-owid-additional-information").length === 0
+        ) {
             $heading
                 .attr("id", slug)
                 .prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }
     })
-
-    renderBlocks($)
 
     interface Columns {
         wrapper: Cheerio
@@ -407,7 +411,8 @@ export async function formatWordpressPost(
                     // TODO: remove temporary support for pre-Gutenberg images and associated captions
                     this.name === "h6" ||
                     ($el.find("img").length !== 0 &&
-                        !$el.hasClass("wp-block-owid-prominent-link"))
+                        !$el.hasClass("wp-block-owid-prominent-link") &&
+                        !$el.find("wp-block-owid-additional-information"))
                 ) {
                     columns.last.append($el)
                 } else {
