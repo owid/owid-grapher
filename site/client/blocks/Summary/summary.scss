@@ -1,11 +1,6 @@
 .wp-block-owid-summary {
-    margin-bottom: 2rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    @include wrapper-spacing-sm;
-    @include md-up {
-        @include wrapper-spacing-md;
-    }
+    @include block-spacing;
+
     border: 1px solid $primary-color;
     border-top-width: 5px;
     color: $primary-color;

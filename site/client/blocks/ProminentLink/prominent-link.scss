@@ -1,4 +1,7 @@
-.wp-block-owid-prominent-link {
+.article-content .wp-block-owid-prominent-link {
+    @include left-media-columns;
+    @include block-title;
+    @include block-shadow;
     svg {
         width: 0.4em;
         height: 1em;
@@ -12,7 +15,6 @@
     background-color: $primary-color-100;
     border: 1px solid $primary-color-100;
     border-radius: 2px;
-    @include block-shadow;
     transition: all 0.3s;
 
     &:hover {
@@ -37,38 +39,5 @@
             text-decoration: none;
             color: $primary-color;
         }
-    }
-
-    @include md-up {
-        &.with-image .content-wrapper {
-            display: flex;
-            figure {
-                flex: 1 1 40%;
-                margin-right: $padding-x-md;
-                img {
-                    width: 100%;
-                }
-            }
-            .content {
-                flex: 1 1 60%;
-                *:first-child {
-                    margin-top: 0;
-                }
-                *:last-child {
-                    margin-bottom: 0;
-                }
-            }
-        }
-    }
-
-    h3 {
-        margin-top: 0;
-        @include h3-style;
-    }
-
-    figure,
-    img {
-        width: 100%;
-        margin: 0;
     }
 }
