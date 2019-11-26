@@ -153,6 +153,7 @@ devServer.get("/*", async (req, res) => {
     try {
         res.send(await renderPageBySlug(slug))
     } catch (e) {
+        console.error(e)
         res.send(await renderNotFoundPage())
     }
 })
