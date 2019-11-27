@@ -152,6 +152,8 @@ export async function formatWordpressPost(
 
     const $ = cheerio.load(html)
 
+    renderBlocks($)
+
     // Replace grapher iframes with static previews
     if (grapherExports) {
         const grapherIframes = $("iframe")
@@ -265,8 +267,6 @@ export async function formatWordpressPost(
             )
         }
     }
-
-    renderBlocks($)
 
     // Table of contents and deep links
 

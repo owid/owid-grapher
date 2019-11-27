@@ -62,9 +62,14 @@ export const render = ($: CheerioStatic) => {
         this: CheerioElement
     ) {
         const $block = $(this)
-        const title = $block.find("attributes title").text()
-        const image = $block.find("attributes figure").html()
-        const content = $block.find("content").html()
+        const title = $block.find("h3").text() || "Additional information"
+        const image = $block
+            .find(".wp-block-column:first-child img[src]") // Wordpress outputs empty <img> tags when none is selected so we need to filter those out
+            .first()
+            .parent()
+            .html()
+
+        const content = $block.find(".wp-block-column:last-child").html()
         const rendered = ReactDOMServer.renderToString(
             <div className="block-wrapper">
                 <AdditionalInformation
