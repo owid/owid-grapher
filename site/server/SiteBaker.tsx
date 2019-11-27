@@ -20,6 +20,7 @@ import {
     renderSubscribePage,
     renderBlogByPageNum,
     renderChartsPage,
+    renderExplorePage,
     renderMenuJson,
     renderSearchPage,
     renderDonatePage,
@@ -267,6 +268,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${BAKED_SITE_DIR}/charts.html`,
             await renderChartsPage()
+        )
+        await this.stageWrite(
+            `${BAKED_SITE_DIR}/explore.html`,
+            await renderExplorePage()
         )
         await this.stageWrite(
             `${BAKED_SITE_DIR}/search.html`,

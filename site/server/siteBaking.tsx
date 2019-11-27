@@ -5,6 +5,7 @@ import { BlogPostPage } from "./views/BlogPostPage"
 import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
+import { ExplorePage } from "./views/ExplorePage"
 import { SearchPage } from "./views/SearchPage"
 import { NotFoundPage } from "./views/NotFoundPage"
 import { DonatePage } from "./views/DonatePage"
@@ -80,6 +81,10 @@ export async function renderChartsPage() {
     }
 
     return renderToHtmlPage(<ChartsIndexPage chartItems={chartItems} />)
+}
+
+export async function renderExplorePage() {
+    return renderToHtmlPage(<ExplorePage/>)
 }
 
 export async function renderPageBySlug(slug: string) {
