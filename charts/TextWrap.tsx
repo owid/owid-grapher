@@ -19,10 +19,6 @@ interface WrapLine {
     height: number
 }
 
-function strip(html: string) {
-    return html.replace(/<\/?[^>]+>/g, "")
-}
-
 function startsWithNewline(text: string) {
     return /^\n/.test(text)
 }
@@ -62,7 +58,7 @@ export class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(strip(nextLine.join(" ")), {
+            const nextBounds = Bounds.forText(nextLine.join(" "), {
                 fontSize: fontSize
             })
 
@@ -76,7 +72,7 @@ export class TextWrap {
                     height: lineBounds.height
                 })
                 line = [word]
-                lineBounds = Bounds.forText(strip(word), { fontSize: fontSize })
+                lineBounds = Bounds.forText(word, { fontSize: fontSize })
             } else {
                 line = nextLine
                 lineBounds = nextBounds
@@ -139,7 +135,7 @@ export class TextWrap {
                     else
                         return (
                             <React.Fragment key={i}>
-                                {strip(line.text)}
+                                {line.text}
                                 <br />
                             </React.Fragment>
                         )
@@ -185,7 +181,7 @@ export class TextWrap {
                                     (i === 0 ? 0 : lineHeight * fontSize * i)
                                 }
                             >
-                                {strip(line.text)}
+                                {line.text}
                             </tspan>
                         )
                 })}
