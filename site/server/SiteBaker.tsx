@@ -269,10 +269,11 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/charts.html`,
             await renderChartsPage()
         )
-        await this.stageWrite(
-            `${BAKED_SITE_DIR}/explore.html`,
-            await renderExplorePage()
-        )
+        // Leave this out of the production build for now while it is still a stub. -@jasoncrawford 27 Nov 2019
+        // await this.stageWrite(
+        //     `${BAKED_SITE_DIR}/explore.html`,
+        //     await renderExplorePage()
+        // )
         await this.stageWrite(
             `${BAKED_SITE_DIR}/search.html`,
             await renderSearchPage()
