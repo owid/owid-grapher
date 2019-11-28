@@ -15,6 +15,10 @@ registerBlockStyle("core/columns", {
 });
 
 registerBlockStyle("core/columns", {
+  name: "merge-left",
+  label: "Merge left"
+});
+registerBlockStyle("core/columns", {
   name: "side-by-side",
   label: "Side by side"
 });

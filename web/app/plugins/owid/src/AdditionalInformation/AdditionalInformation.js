@@ -10,7 +10,7 @@ const blockStyle = {
 
 const TEMPLATE_OPTIONS = [
   {
-    title: "Left aligned, with optional media",
+    title: "Left column, with optional media",
     icon: (
       <SVG
         width="48"
@@ -29,7 +29,7 @@ const TEMPLATE_OPTIONS = [
       ["core/heading", { level: 3 }],
       [
         "core/columns",
-        {},
+        { className: "is-style-merge-left" },
         [
           ["core/column", { width: 25 }, [["core/image"]]],
           [
@@ -42,7 +42,7 @@ const TEMPLATE_OPTIONS = [
     ]
   },
   {
-    title: "Full width, automatic layout",
+    title: "Full width, sticky right",
     icon: (
       <SVG
         width="48"
@@ -59,7 +59,14 @@ const TEMPLATE_OPTIONS = [
     ),
     template: [
       ["core/heading", { level: 3 }],
-      ["core/paragraph", { placeholder: "Enter content..." }]
+      [
+        "core/columns",
+        { className: "is-style-sticky-right" },
+        [
+          ["core/column", {}, [["core/paragraph"]]],
+          ["core/column", {}, [["core/html"]]]
+        ]
+      ]
     ]
   }
 ];
