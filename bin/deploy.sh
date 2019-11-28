@@ -59,7 +59,6 @@ then
   cd $TMP_NEW
   yarn install --production
   yarn build
-  yarn typeorm migration:run
   yarn migrate
   yarn tsn scripts/configureAlgolia.ts
 
