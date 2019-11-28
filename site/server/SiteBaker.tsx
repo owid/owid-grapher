@@ -8,7 +8,6 @@ import * as cheerio from "cheerio"
 
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import * as features from "features"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
@@ -270,7 +269,7 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/charts.html`,
             await renderChartsPage()
         )
-        if (features.EXPLORER) {
+        if (settings.EXPLORER) {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/explore.html`,
                 await renderExplorePage()
