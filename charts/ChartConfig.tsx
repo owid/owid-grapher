@@ -25,6 +25,7 @@ import { IChartTransform } from "./IChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
+import { canBeExplorable } from "utils/charts"
 
 declare const App: any
 declare const window: any
@@ -106,6 +107,7 @@ export class DimensionSlot {
 // under the same rendering conditions it ought to remain visually identical
 export class ChartConfigProps {
     @observable.ref type: ChartTypeType = "LineChart"
+    @observable.ref isExplorable: boolean = false
 
     @observable.ref id?: number = undefined
     @observable.ref createdAt?: Date = undefined
@@ -268,6 +270,17 @@ export class ChartConfig {
         autorun(() => {
             if (!isEqual(this.props.dimensions, this.validDimensions)) {
                 this.props.dimensions = this.validDimensions
+            }
+        })
+
+        autorun(() => {
+            if (this.props.isExplorable) {
+                if (canBeExplorable(this.props)) {
+                    this.props.hasChartTab = true
+                    this.props.hasMapTab = true
+                } else {
+                    this.props.isExplorable = false
+                }
             }
         })
     }
