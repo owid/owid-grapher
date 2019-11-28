@@ -530,6 +530,10 @@ export class ChartConfig {
         return this.props.version.toString()
     }
 
+    @computed get isExplorable(): boolean {
+        return this.props.isExplorable
+    }
+
     receiveData(data: DataForChart) {
         this.vardata.receiveData(data)
     }
