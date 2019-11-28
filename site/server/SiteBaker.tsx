@@ -8,10 +8,11 @@ import * as cheerio from "cheerio"
 
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
+import * as features from "features"
+import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
 import { BlogPostPage } from "./views/BlogPostPage"
-import * as settings from "settings"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
 const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
 import {
@@ -269,11 +270,12 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/charts.html`,
             await renderChartsPage()
         )
-        // Leave this out of the production build for now while it is still a stub. -@jasoncrawford 27 Nov 2019
-        // await this.stageWrite(
-        //     `${BAKED_SITE_DIR}/explore.html`,
-        //     await renderExplorePage()
-        // )
+        if (features.EXPLORER) {
+            await this.stageWrite(
+                `${BAKED_SITE_DIR}/explore.html`,
+                await renderExplorePage()
+            )
+        }
         await this.stageWrite(
             `${BAKED_SITE_DIR}/search.html`,
             await renderSearchPage()
