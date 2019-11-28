@@ -171,7 +171,7 @@
  * Gutenberg (wordpress editor) blocks
  */
 @include xlg-up {
-    .page .has-2-columns {
+    .page .wp-block-columns {
         display: flex;
         align-items: flex-start; // maintain columns original height to allow sticky positioning
 
@@ -186,7 +186,7 @@
 
         &.is-style-sticky-right {
             .wp-block-column {
-                &:nth-child(2) {
+                &:last-child {
                     top: 0;
                     position: sticky;
                 }

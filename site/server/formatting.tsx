@@ -344,7 +344,7 @@ export async function formatWordpressPost(
 
     function getColumns(): Columns {
         const emptyColumns =
-            '<div class="wp-block-columns has-2-columns is-style-sticky-right"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>'
+            '<div class="wp-block-columns is-style-sticky-right"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>'
         const $columns = $(emptyColumns)
         return {
             wrapper: $columns,
@@ -376,18 +376,24 @@ export async function formatWordpressPost(
             .append($start.clone(), $start.nextUntil($("h2")))
             .contents()
 
-        $contents.each(function(this: CheerioElement, i) {
-            const $el = $(this)
+        $contents.each((_, el) => {
+            const $el = $(el)
             // Leave h2 at the section level, do not move into columns
-            if (this.name === "h2") {
+            if (el.name === "h2") {
                 $section.append($el)
-            } else if (this.name === "h3" || $el.hasClass("has-2-columns")) {
+            } else if (
+                el.name === "h3" ||
+                $el.hasClass("wp-blocks-columns") ||
+                $el.find(
+                    '.wp-block-owid-additional-information[data-variation="full-width"]'
+                ).length !== 0
+            ) {
                 if (!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
                 }
                 $section.append($el)
-            } else if (this.name === "h4") {
+            } else if (el.name === "h4") {
                 if (!isColumnsEmpty(columns)) {
                     $section.append(columns.wrapper)
                     columns = getColumns()
@@ -398,17 +404,17 @@ export async function formatWordpressPost(
             } else {
                 // Move images to the right column
                 if (
-                    this.name === "figure" ||
-                    this.name === "iframe" ||
+                    el.name === "figure" ||
+                    el.name === "iframe" ||
                     // Temporary support for old chart iframes
-                    this.name === "address" ||
+                    el.name === "address" ||
                     $el.hasClass("wp-block-image") ||
                     $el.hasClass("tableContainer") ||
                     // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
                     // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
                     $el.find("iframe").length !== 0 ||
                     // TODO: remove temporary support for pre-Gutenberg images and associated captions
-                    this.name === "h6" ||
+                    el.name === "h6" ||
                     ($el.find("img").length !== 0 &&
                         !$el.hasClass("wp-block-owid-prominent-link") &&
                         !$el.find(
