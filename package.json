@@ -26,7 +26,8 @@
         "bake": "yarn tsn scripts/bakeSite.ts",
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "yarn tsn node_modules/.bin/start-storybook -p 6006",
-        "build-storybook": "build-storybook"
+        "build-storybook": "build-storybook",
+        "bundlesize": "ENV=production webpack -p && bundlesize"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.19",
@@ -86,6 +87,7 @@
         "bcrypt": "^3.0.6",
         "body-parser": "^1.19.0",
         "bootstrap": "^4.3.1",
+        "bundlesize": "^0.18.0",
         "cheerio": "^1.0.0-rc.2",
         "child-process-promise": "^2.2.1",
         "chunk-text": "^1.0.5",
