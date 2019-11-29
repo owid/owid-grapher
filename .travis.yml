@@ -10,6 +10,7 @@ before_script:
   - mysql -e 'CREATE DATABASE test_grapher;'
 script:
   - yarn test
+  - yarn bundlesize
 cache: yarn
 notifications:
   email:
