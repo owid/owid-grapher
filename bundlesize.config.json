@@ -1,0 +1,19 @@
+{
+    "files": [
+        {
+            "path": "./dist/webpack/js/charts.js",
+            "maxSize": "250 kB",
+            "compression": "none"
+        },
+        {
+            "path": "./dist/webpack/js/commons.js",
+            "maxSize": "2 MB",
+            "compression": "none"
+        },
+        {
+            "path": "./dist/webpack/js/owid.js",
+            "maxSize": "1 MB",
+            "compression": "none"
+        }
+    ]
+}
