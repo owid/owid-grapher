@@ -75,7 +75,7 @@ const AdditionalInformation = ({
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}
             </h3>
-            <AnimateHeight height={height}>
+            <AnimateHeight height={height} animateOpacity={true}>
                 {variation === VARIATION_MERGE_LEFT
                     ? renderMergeLeftVariation()
                     : renderFullWidthVariation()}

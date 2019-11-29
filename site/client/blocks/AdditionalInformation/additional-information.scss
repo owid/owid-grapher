@@ -1,10 +1,10 @@
 .wp-block-owid-additional-information {
-    @include block-title;
     margin-bottom: 2rem;
     h3 {
+        @include h3-style;
         display: flex;
         align-items: center;
-        margin: 0;
+        margin-bottom: 0;
         transition: background-color 0.2s;
         &:hover {
             cursor: pointer;
@@ -50,7 +50,8 @@
     &[data-variation="full-width"] {
         background-color: $primary-color-100;
         @include md-up {
-            margin: 0 -#{$padding-x-md};
+            margin-left: -#{$padding-x-md};
+            margin-right: -#{$padding-x-md};
             padding: 0 $padding-x-md;
         }
         h3 {

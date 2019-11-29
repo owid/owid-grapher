@@ -79,13 +79,6 @@
     line-height: 1.25em;
 }
 
-@mixin block-title {
-    h3 {
-        margin-top: 0;
-        @include h3-style;
-    }
-}
-
 @mixin wrapper-spacing-sm {
     margin-left: auto;
     margin-right: auto;
