@@ -1,12 +1,13 @@
 import * as React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import * as ReactDOM from "react-dom"
 import * as ReactDOMServer from "react-dom/server"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
+import { MultiEmbedder } from "site/client/Grapher"
 
-const CLASS_NAME = "wp-block-owid-additional-information"
+export const CLASS_NAME = "wp-block-owid-additional-information"
 const VARIATION_MERGE_LEFT = "merge-left"
 const VARIATION_FULL_WIDTH = "full-width"
 
@@ -31,17 +32,29 @@ const AdditionalInformation = ({
     variation: string
 }) => {
     const [height, setHeight] = useState<number | string>(0)
+    const [hasBeenOpened, setHasBeenOpened] = useState(false)
+    const refContainer = useRef<HTMLDivElement>(null)
     const classes = [CLASS_NAME]
+
+    useEffect(() => {
+        return () => {
+            classes.push("open")
+            if (refContainer.current) {
+                // tslint:disable-next-line: no-unused-expression
+                new MultiEmbedder(refContainer.current)
+            }
+        }
+    }, [hasBeenOpened])
 
     const onClickHandler = () => {
         setHeight(height === 0 ? "auto" : 0)
+        if (!hasBeenOpened) {
+            setHasBeenOpened(true)
+        }
     }
 
     if (image) {
         classes.push("with-image")
-    }
-    if (height !== 0) {
-        classes.push("open")
     }
 
     const renderFullWidthVariation = () => {
@@ -70,7 +83,11 @@ const AdditionalInformation = ({
     }
 
     return (
-        <div data-variation={variation} className={classes.join(" ")}>
+        <div
+            data-variation={variation}
+            ref={refContainer}
+            className={classes.join(" ")}
+        >
             <h3 onClick={onClickHandler}>
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}

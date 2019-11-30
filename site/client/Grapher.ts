@@ -1,5 +1,6 @@
 import { ChartView } from "charts/ChartView"
 import { throttle, isMobile } from "charts/Util"
+import { CLASS_NAME as ADDITONAL_INFORMATION_CLASS_NAME } from "site/client/blocks/AdditionalInformation/AdditionalInformation"
 
 interface LoadableFigure {
     configUrl: string
@@ -24,9 +25,15 @@ export function shouldProgressiveEmbed() {
 
 export class MultiEmbedder {
     figuresToLoad: LoadableFigure[] = []
-    constructor() {
+    constructor(container: HTMLElement | Document = document) {
         const figures = Array.from(
-            document.querySelectorAll("*[data-grapher-src]")
+            container.querySelectorAll("*[data-grapher-src]")
+        ).filter(figure =>
+            container === document
+                ? figure.closest(`.${ADDITONAL_INFORMATION_CLASS_NAME}`) ===
+                  null
+                : figure.closest(`.${ADDITONAL_INFORMATION_CLASS_NAME}`) !==
+                  null
         )
         for (const element of figures) {
             const dataSrc = element.getAttribute("data-grapher-src")
