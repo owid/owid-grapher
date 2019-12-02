@@ -18,6 +18,15 @@ const DUMMY_JSON_CONFIG = {
     "selectedData":[{"index":0,"entityId":355}],
 }
 
+// This component was modeled after ChartView.
+//
+// TODO that ChartView handles but this doesn't:
+// * re-render on window resize event (throttled)
+// * FullStory event logging on bootstrap
+// * error logging via Analytics.logEvent on componentDidCatch
+//
+// -@jasoncrawford 2 Dec 2019
+
 export class ExploreView extends React.Component {
     static bootstrap({containerNode}: {containerNode: HTMLElement}) {
         const rect = containerNode.getBoundingClientRect()
