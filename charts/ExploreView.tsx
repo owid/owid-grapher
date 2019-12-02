@@ -9,26 +9,26 @@ import { ChartConfig } from "./ChartConfig"
 // There will eventually be a list of these, downloaded from a static JSON file.
 // -@jasoncrawford 2 Dec 2019
 const DUMMY_JSON_CONFIG = {
-  "id":677,
-  "title":"Child mortality rate",
-  "subtitle":"Share of newborns who die before reaching the age of five.",
-  "sourceDesc":"IHME, Global Burden of Disease",
-  "note":"",
-  "dimensions":[{"display":{},"property":"y","variableId":104402}],
-  "selectedData":[{"index":0,"entityId":355}],
+    "id":677,
+    "title":"Child mortality rate",
+    "subtitle":"Share of newborns who die before reaching the age of five.",
+    "sourceDesc":"IHME, Global Burden of Disease",
+    "note":"",
+    "dimensions":[{"display":{},"property":"y","variableId":104402}],
+    "selectedData":[{"index":0,"entityId":355}],
 }
 
 export class ExploreView extends React.Component {
-  static bootstrap({containerNode}: {containerNode: HTMLElement}) {
-    const rect = containerNode.getBoundingClientRect()
-    const bounds = Bounds.fromRect(rect)
-    return ReactDOM.render(<ExploreView bounds={bounds}/>, containerNode)
-  }
+    static bootstrap({containerNode}: {containerNode: HTMLElement}) {
+        const rect = containerNode.getBoundingClientRect()
+        const bounds = Bounds.fromRect(rect)
+        return ReactDOM.render(<ExploreView bounds={bounds}/>, containerNode)
+    }
 
-  render() {
-    const chart = new ChartConfig(DUMMY_JSON_CONFIG)
-    return <div>
-      <ChartView chart={chart} bounds={this.props.bounds}/>
-    </div>
-  }
+    render() {
+        const chart = new ChartConfig(DUMMY_JSON_CONFIG)
+        return <div>
+           <ChartView chart={chart} bounds={this.props.bounds}/>
+        </div>
+    }
 }
