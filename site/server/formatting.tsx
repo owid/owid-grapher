@@ -385,7 +385,7 @@ export async function formatWordpressPost(
                 $section.append($el)
             } else if (
                 el.name === "h3" ||
-                $el.hasClass("wp-blocks-columns") ||
+                $el.hasClass("wp-block-columns") ||
                 $el.find(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'
                 ).length !== 0
