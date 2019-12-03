@@ -4,7 +4,8 @@ import * as ReactDOM from "react-dom"
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig } from "./ChartConfig"
-import { ChartType, ChartTypeDefsByKey } from "./ChartType"
+import { ChartType, ChartTypeType, ChartTypeDefsByKey } from "./ChartType"
+import { Dictionary } from "lodash"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -20,18 +21,21 @@ const DUMMY_JSON_CONFIG = {
 }
 
 const AVAILABLE_CHART_TYPES = [
-  ChartType.LineChart,
-  ChartType.StackedArea,
-  ChartType.StackedBar,
-  ChartType.DiscreteBar,
-  ChartType.SlopeChart,
-  "Map",
+    ChartType.LineChart,
+    ChartType.StackedArea,
+    ChartType.StackedBar,
+    ChartType.DiscreteBar,
+    ChartType.SlopeChart,
+    "WorldMap"
 ]
 
-const CHART_TYPE_DEFS = {...ChartTypeDefsByKey, "Map": {key: "Map", label: "Map"}}
+const CHART_TYPE_DEFS: Dictionary<{ key: string; label: string }> = {
+    ...ChartTypeDefsByKey,
+    WorldMap: { key: "WorldMap", label: "Map" }
+}
 
-function chartTypeLabel(type) {
-  return CHART_TYPE_DEFS[type].label
+function chartTypeLabel(type: string): string {
+    return CHART_TYPE_DEFS[type].label
 }
 
 // This component was modeled after ChartView.
@@ -43,42 +47,73 @@ function chartTypeLabel(type) {
 //
 // -@jasoncrawford 2 Dec 2019
 
-export class ExploreView extends React.Component<{ bounds: Bounds }> {
+interface ExploreProps {
+    bounds: Bounds
+}
+
+export class ExploreView extends React.Component<
+    ExploreProps,
+    { chart: ChartConfig }
+> {
     static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
         return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
     }
 
-    constructor(props) {
+    constructor(props: ExploreProps) {
         super(props)
-        this.state = {chart: new ChartConfig(DUMMY_JSON_CONFIG)}
+        const chart = new ChartConfig()
+        chart.update(DUMMY_JSON_CONFIG)
+        this.state = { chart }
     }
 
-    onClickChartType(event, type) {
-        let tab = (type === "Map") ? "map" : "chart"
-        let hasMapTab = (tab === "map")
-        let hasChartTab = (tab === "chart")
-        let chart = new ChartConfig({...DUMMY_JSON_CONFIG, type, tab, hasMapTab, hasChartTab})
-        this.setState({chart})
+    onClickChartType(type: string) {
+        const tab = type === "Map" ? "map" : "chart"
+        const hasMapTab = tab === "map"
+        const hasChartTab = tab === "chart"
+        const chart = new ChartConfig()
+        chart.update({
+            ...DUMMY_JSON_CONFIG,
+            type,
+            tab,
+            hasMapTab,
+            hasChartTab
+        })
+        this.setState({ chart })
     }
 
-    renderChartTypeButton(type) {
+    renderChartTypeButton(type: string) {
         return (
-            <button key={type} className="chart-type-button" onClick={event => this.onClickChartType(event, type)}>
+            <button
+                key={type}
+                className="chart-type-button"
+                onClick={event => this.onClickChartType(type)}
+            >
                 {chartTypeLabel(type)}
             </button>
         )
     }
 
     renderChartTypes() {
-        return <div className="chart-type-buttons">{AVAILABLE_CHART_TYPES.map(type => this.renderChartTypeButton(type))}</div>
+        return (
+            <div className="chart-type-buttons">
+                {AVAILABLE_CHART_TYPES.map(type =>
+                    this.renderChartTypeButton(type)
+                )}
+            </div>
+        )
     }
 
     render() {
-        return <div>
-            {this.renderChartTypes()}
-            <ChartView chart={this.state.chart} bounds={this.props.bounds} />
-        </div>
+        return (
+            <div>
+                {this.renderChartTypes()}
+                <ChartView
+                    chart={this.state.chart}
+                    bounds={this.props.bounds}
+                />
+            </div>
+        )
     }
 }
