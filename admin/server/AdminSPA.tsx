@@ -11,7 +11,7 @@ export function AdminSPA(props: { username: string; isSuperuser: boolean }) {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        _.pick(settings, ["ENV", "GITHUB_USERNAME"])
+        _.pick(settings, ["ENV", "GITHUB_USERNAME", "EXPLORER"])
     )}})
         admin.start(document.querySelector("#app"))
 `

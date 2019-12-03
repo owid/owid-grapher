@@ -35,6 +35,7 @@ import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
+import { isExplorable } from "utils/charts"
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -296,13 +297,30 @@ async function saveChart(
 
         if (existingConfig) {
             await t.query(
-                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
-                [newJsonConfig, now, now, user.id, chartId]
+                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
+                [
+                    newJsonConfig,
+                    now,
+                    now,
+                    user.id,
+                    isExplorable(newConfig),
+                    chartId
+                ]
             )
         } else {
             const result = await t.execute(
-                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred) VALUES (?)`,
-                [[newJsonConfig, now, now, now, user.id, false]]
+                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
+                [
+                    [
+                        newJsonConfig,
+                        now,
+                        now,
+                        now,
+                        user.id,
+                        false,
+                        isExplorable(newConfig)
+                    ]
+                ]
             )
             chartId = result.insertId
         }

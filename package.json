@@ -13,7 +13,7 @@
         "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
         "typeorm": "yarn tsn node_modules/.bin/typeorm",
         "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
-        "migrate": "yarn knex migrate:latest",
+        "migrate": "yarn knex migrate:latest && yarn typeorm migration:run",
         "lint": "tslint --project . -t verbose",
         "prettify": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css}\"",
         "prettify:check": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css}\"",

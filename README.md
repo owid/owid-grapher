@@ -97,7 +97,7 @@ Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is goi
 
 ## Migrations
 
-If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `yarn typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `yarn typeorm migration:run`.
+If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `yarn typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `yarn migrate`.
 
 ## Architecture notes
 
