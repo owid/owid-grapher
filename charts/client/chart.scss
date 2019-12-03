@@ -920,6 +920,17 @@ figure[data-grapher-src]:empty:after {
     height: calc(100vh - 140px);
 }
 
+/* Copied from .ChartPage styles above for now */
+.ExplorePage main #explore {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0;
+    width: 100%;
+    height: calc(100vh - 140px);
+}
+
 #fallback > img {
     max-width: 100%;
     border: 1px solid #ccc;

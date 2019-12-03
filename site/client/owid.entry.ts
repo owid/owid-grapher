@@ -18,6 +18,7 @@ import { runDonateForm } from "./DonateForm"
 import { getParent } from "./utils"
 import { Grapher } from "site/client/Grapher"
 import { ChartView } from "charts/ChartView"
+import { ExploreView } from "charts/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runEntryExcerptLinks } from "./runEntryExcerptLinks"
@@ -27,6 +28,7 @@ import { runBlocks } from "./blocks"
 declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
+window.ExploreView = ExploreView
 window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
