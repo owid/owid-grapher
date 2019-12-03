@@ -74,9 +74,13 @@ then
 
   # Restart the admin
   pm2 restart $NAME
+  pm2 stop deploy-queue
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
   yarn tsn scripts/bakeSite.ts
+
+  # Restart the deploy queue
+  pm2 start deploy-queue
 EOF
 fi
