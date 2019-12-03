@@ -9,7 +9,7 @@ before_script:
     - cp .env.travis .env
     - mysql -e 'CREATE DATABASE test_grapher;'
 script:
-    - yarn test
+    - yarn testcheck
     - yarn bundlesize
 cache: yarn
 notifications:

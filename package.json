@@ -20,7 +20,7 @@
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
-        "testcheck": "npm-run-all --parallel typecheck test",
+        "testcheck": "yarn test && yarn typecheck && yarn prettify:check",
         "deploy": "./bin/deploy.sh",
         "serve": "yarn tsn admin/server/server.tsx",
         "bake": "yarn tsn scripts/bakeSite.ts",
