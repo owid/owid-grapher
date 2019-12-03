@@ -4,6 +4,7 @@ import * as ReactDOM from "react-dom"
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig } from "./ChartConfig"
+import { ChartType, ChartTypeDefsByKey } from "./ChartType"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -16,6 +17,21 @@ const DUMMY_JSON_CONFIG = {
     note: "",
     dimensions: [{ display: {}, property: "y", variableId: 104402 }],
     selectedData: [{ index: 0, entityId: 355 }]
+}
+
+const AVAILABLE_CHART_TYPES = [
+  ChartType.LineChart,
+  ChartType.StackedArea,
+  ChartType.StackedBar,
+  ChartType.DiscreteBar,
+  ChartType.SlopeChart,
+  "Map",
+]
+
+const CHART_TYPE_DEFS = {...ChartTypeDefsByKey, "Map": {key: "Map", label: "Map"}}
+
+function chartTypeLabel(type) {
+  return CHART_TYPE_DEFS[type].label
 }
 
 // This component was modeled after ChartView.
@@ -34,13 +50,35 @@ export class ExploreView extends React.Component<{ bounds: Bounds }> {
         return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
     }
 
-    render() {
-        const chart = new ChartConfig()
-        chart.update(DUMMY_JSON_CONFIG)
+    constructor(props) {
+        super(props)
+        this.state = {chart: new ChartConfig(DUMMY_JSON_CONFIG)}
+    }
+
+    onClickChartType(event, type) {
+        let tab = (type === "Map") ? "map" : "chart"
+        let hasMapTab = (tab === "map")
+        let hasChartTab = (tab === "chart")
+        let chart = new ChartConfig({...DUMMY_JSON_CONFIG, type, tab, hasMapTab, hasChartTab})
+        this.setState({chart})
+    }
+
+    renderChartTypeButton(type) {
         return (
-            <div>
-                <ChartView chart={chart} bounds={this.props.bounds} />
-            </div>
+            <button key={type} className="chart-type-button" onClick={event => this.onClickChartType(event, type)}>
+                {chartTypeLabel(type)}
+            </button>
         )
+    }
+
+    renderChartTypes() {
+        return <div className="chart-type-buttons">{AVAILABLE_CHART_TYPES.map(type => this.renderChartTypeButton(type))}</div>
+    }
+
+    render() {
+        return <div>
+            {this.renderChartTypes()}
+            <ChartView chart={this.state.chart} bounds={this.props.bounds} />
+        </div>
     }
 }
