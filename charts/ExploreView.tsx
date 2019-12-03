@@ -49,8 +49,12 @@ function chartTypeLabel(type: string): string {
 //
 // -@jasoncrawford 2 Dec 2019
 
+interface ExploreProps {
+    bounds: Bounds
+}
+
 @observer
-export class ExploreView extends React.Component<{ bounds: Bounds }> {
+export class ExploreView extends React.Component<ExploreProps> {
     static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
@@ -61,7 +65,7 @@ export class ExploreView extends React.Component<{ bounds: Bounds }> {
 
     chart: ChartConfig
 
-    constructor(props: { bounds: Bounds }) {
+    constructor(props: ExploreProps) {
         super(props)
 
         const chartProps = new ChartConfigProps()
