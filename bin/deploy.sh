@@ -32,7 +32,6 @@ then
 
   # Run pre-deploy checks
   yarn testcheck
-  yarn prettify:check
 
   # Ensure tmp/ directory exists
   ssh $HOST mkdir -p $ROOT/tmp
