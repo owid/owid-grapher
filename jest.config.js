@@ -11,7 +11,7 @@ const common = {
         "^(admin|site|charts|utils|db|settings)/(.*)$": "<rootDir>/$1/$2",
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings"
-    },
+    }
 }
 
 module.exports = {
@@ -20,14 +20,14 @@ module.exports = {
             ...common,
             displayName: "server",
             testEnvironment: "node",
-            testMatch: [ "<rootDir>/test/**/?(*.)+(spec|test).[jt]s?(x)" ]
+            testMatch: ["<rootDir>/test/**/?(*.)+(spec|test).[jt]s?(x)"]
         },
         {
             ...common,
             displayName: "client",
             testEnvironment: "jsdom",
             setupFilesAfterEnv: ["<rootDir>/test/enzymeSetup.ts"],
-            testMatch: [ "**/__tests__/**/*.[jt]s?(x)" ]
-        },
-    ],
+            testMatch: ["**/__tests__/**/*.[jt]s?(x)"]
+        }
+    ]
 }
