@@ -313,7 +313,9 @@ export async function formatWordpressPost(
                     parentHeading = tocHeading
                 } else if (
                     $heading.closest(".wp-block-owid-prominent-link").length ===
-                    0
+                        0 &&
+                    $heading.closest(".wp-block-owid-additional-information")
+                        .length === 0
                 ) {
                     tocHeadings.push({
                         text: $heading.text(),
