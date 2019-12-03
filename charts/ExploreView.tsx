@@ -1,11 +1,13 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+import { observable, computed } from "mobx"
+import { observer } from "mobx-react"
+import { Dictionary, extend } from "lodash"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType, ChartTypeDefsByKey } from "./ChartType"
-import { Dictionary } from "lodash"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -47,40 +49,43 @@ function chartTypeLabel(type: string): string {
 //
 // -@jasoncrawford 2 Dec 2019
 
-interface ExploreProps {
-    bounds: Bounds
-}
-
-export class ExploreView extends React.Component<
-    ExploreProps,
-    { chart: ChartConfig }
-> {
+@observer
+export class ExploreView extends React.Component<{ bounds: Bounds }> {
     static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
         return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
     }
 
-    constructor(props: ExploreProps) {
-        super(props)
-        const chart = new ChartConfig()
-        chart.update(DUMMY_JSON_CONFIG)
-        this.state = { chart }
+    @observable chartType: string = ChartType.LineChart
+
+    @computed get bounds() {
+        return this.props.bounds
     }
 
-    onClickChartType(type: string) {
-        const tab = type === "Map" ? "map" : "chart"
-        const hasMapTab = tab === "map"
-        const hasChartTab = tab === "chart"
-        const chart = new ChartConfig()
-        chart.update({
-            ...DUMMY_JSON_CONFIG,
-            type,
-            tab,
-            hasMapTab,
-            hasChartTab
+    @computed get isMap() {
+        return this.chartType === "WorldMap"
+    }
+
+    @computed get tab() {
+        return this.isMap ? "map" : "chart"
+    }
+
+    @computed get configChartType(): ChartTypeType {
+        return this.isMap
+            ? ChartType.LineChart
+            : (this.chartType as ChartTypeType)
+    }
+
+    @computed get chart() {
+        const props = new ChartConfigProps()
+        extend(props, DUMMY_JSON_CONFIG, {
+            type: this.configChartType,
+            tab: this.tab,
+            hasMapTab: this.isMap,
+            hasChartTab: !this.isMap
         })
-        this.setState({ chart })
+        return new ChartConfig(props)
     }
 
     renderChartTypeButton(type: string) {
@@ -88,7 +93,7 @@ export class ExploreView extends React.Component<
             <button
                 key={type}
                 className="chart-type-button"
-                onClick={event => this.onClickChartType(type)}
+                onClick={() => (this.chartType = type)}
             >
                 {chartTypeLabel(type)}
             </button>
@@ -109,10 +114,7 @@ export class ExploreView extends React.Component<
         return (
             <div>
                 {this.renderChartTypes()}
-                <ChartView
-                    chart={this.state.chart}
-                    bounds={this.props.bounds}
-                />
+                <ChartView chart={this.chart} bounds={this.bounds} />
             </div>
         )
     }
