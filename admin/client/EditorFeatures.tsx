@@ -80,4 +80,8 @@ export class EditorFeatures {
     @computed get comparisonLine() {
         return this.chart.isLineChart || this.chart.isScatter
     }
+
+    @computed get explorer() {
+        return this.editor.props.admin.settings.EXPLORER
+    }
 }

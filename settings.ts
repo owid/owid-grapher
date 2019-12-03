@@ -1,3 +1,5 @@
+import { parseBool } from "utils/string"
+
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
 
@@ -69,3 +71,8 @@ export const PUBLIC_TAG_PARENT_IDS: number[] = [
     1512,
     1510
 ]
+
+// Feature flag for explorable charts
+export const EXPLORER: boolean = process.env.EXPLORER
+    ? parseBool(process.env.EXPLORER)
+    : false

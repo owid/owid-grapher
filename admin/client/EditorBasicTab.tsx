@@ -12,6 +12,7 @@ import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
+import { canBeExplorable } from "utils/charts"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -199,16 +200,30 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         options={ChartTypeDefs.map(def => def.key)}
                         optionLabels={ChartTypeDefs.map(def => def.label)}
                     />
+                    {editor.features.explorer && (
+                        <FieldsRow>
+                            <Toggle
+                                label="Explorable chart"
+                                value={chart.props.isExplorable}
+                                onValue={value =>
+                                    (chart.props.isExplorable = value)
+                                }
+                                disabled={!canBeExplorable(chart.props)}
+                            />
+                        </FieldsRow>
+                    )}
                     <FieldsRow>
                         <Toggle
                             label="Chart tab"
                             value={chart.props.hasChartTab}
                             onValue={value => (chart.props.hasChartTab = value)}
+                            disabled={chart.props.isExplorable}
                         />
                         <Toggle
                             label="Map tab"
                             value={chart.props.hasMapTab}
                             onValue={value => (chart.props.hasMapTab = value)}
+                            disabled={chart.props.isExplorable}
                         />
                     </FieldsRow>
                 </Section>
