@@ -27,7 +27,7 @@ const DUMMY_JSON_CONFIG = {
 //
 // -@jasoncrawford 2 Dec 2019
 
-export class ExploreView extends React.Component {
+export class ExploreView extends React.Component<{ bounds: Bounds }> {
     static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
@@ -35,7 +35,8 @@ export class ExploreView extends React.Component {
     }
 
     render() {
-        const chart = new ChartConfig(DUMMY_JSON_CONFIG)
+        const chart = new ChartConfig()
+        chart.update(DUMMY_JSON_CONFIG)
         return (
             <div>
                 <ChartView chart={chart} bounds={this.props.bounds} />
