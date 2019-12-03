@@ -84,7 +84,7 @@ export async function renderChartsPage() {
 }
 
 export async function renderExplorePage() {
-    return renderToHtmlPage(<ExplorePage/>)
+    return renderToHtmlPage(<ExplorePage />)
 }
 
 export async function renderPageBySlug(slug: string) {

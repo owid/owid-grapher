@@ -6,5 +6,5 @@ module.exports = {
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings"
     },
-    setupFilesAfterEnv: ['<rootDir>/test/enzymeSetup.ts']
+    setupFilesAfterEnv: ["<rootDir>/test/enzymeSetup.ts"]
 }
