@@ -6,6 +6,7 @@ import {
     renderFrontPage,
     renderPageBySlug,
     renderChartsPage,
+    renderExplorePage,
     renderMenuJson,
     renderSearchPage,
     renderDonatePage,
@@ -93,6 +94,10 @@ devServer.get("/charts", async (req, res) => {
     res.send(await renderChartsPage())
 })
 
+devServer.get("/explore", async (req, res) => {
+    res.send(await renderExplorePage())
+})
+
 devServer.get("/search", async (req, res) => {
     res.send(await renderSearchPage())
 })
@@ -153,6 +158,7 @@ devServer.get("/*", async (req, res) => {
     try {
         res.send(await renderPageBySlug(slug))
     } catch (e) {
+        console.error(e)
         res.send(await renderNotFoundPage())
     }
 })

@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import "d3-transition"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { Controls, ControlsFooterView } from "./Controls"

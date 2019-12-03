@@ -13,46 +13,50 @@
     License URI: https://opensource.org/licenses/MIT
 */
 
-@import '~normalize.css';
+@import "~normalize.css";
 
-@import 'css/variables.scss';
-@import 'css/mixins.scss';
+@import "css/variables.scss";
+@import "css/mixins.scss";
 
-@import 'css/category-coloring.scss';
-@import 'css/util.scss';
-@import 'css/layout.scss';
-@import 'css/general.scss';
-@import 'css/header.scss';
-@import 'css/footer.scss';
+@import "css/category-coloring.scss";
+@import "css/util.scss";
+@import "css/layout.scss";
+@import "css/general.scss";
+@import "css/header.scss";
+@import "css/footer.scss";
 
-@import 'css/content.scss';
-@import 'css/forms.scss';
-@import 'css/page.scss';
-@import 'css/sidebar.scss';
+@import "css/content.scss";
+@import "css/forms.scss";
+@import "css/page.scss";
+@import "css/sidebar.scss";
 
-@import 'css/pages/homepage.scss';
-@import 'css/pages/donate.scss';
-@import 'css/pages/faq.scss';
+@import "css/pages/homepage.scss";
+@import "css/pages/donate.scss";
+@import "css/pages/faq.scss";
 
-@import 'css/components/cookie-notice.scss';
+@import "css/components/cookie-notice.scss";
+@import "site/client/blocks/AdditionalInformation/additional-information.scss";
+@import "site/client/blocks/ProminentLink/prominent-link.scss";
+@import "site/client/blocks/Summary/summary.scss";
 
-@import 'css/pages/faq.scss';
-@import 'css/hacks.scss';
+@import "css/pages/faq.scss";
+@import "css/hacks.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
 
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  select,
-  textarea,
-  input {
-    font-size: 16px;
-  }
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select,
+    textarea,
+    input {
+        font-size: 16px;
+    }
 }
 
 #wpadminbar {
     direction: ltr;
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     height: 32px;
     position: fixed;
     top: 0;
@@ -173,7 +177,6 @@ body.blog li.post img {
     }
 }
 
-
 body.single-post {
     main {
         background: #f6f6f6;
@@ -218,7 +221,7 @@ h1.entry-title > a:hover {
 
 .pagination .page-numbers {
     background-color: #000;
-    box-shadow: 0 0 1px rgba(0,0,0,0.1);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
     color: #fff;
     cursor: pointer;
     display: inline-block;
@@ -242,9 +245,10 @@ h1.entry-title > a:hover {
 }
 
 /* The little section at the top of blog posts that links to related entries */
-.blog-info, .entry-status {
+.blog-info,
+.entry-status {
     @include info;
-    background-color: #E9EEF2;
+    background-color: #e9eef2;
     color: #406592;
 }
 
@@ -275,25 +279,26 @@ main {
     margin-left: -28px;
     font-size: 16px;
     text-indent: -9999px;
-    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iY3VycmVudENvbG9yIiBmaWxsLW9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=') no-repeat left;
+    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iY3VycmVudENvbG9yIiBmaWxsLW9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=")
+        no-repeat left;
     background-size: contain;
     opacity: 0;
     vertical-align: middle;
     transition: opacity 100ms linear;
 
     &:hover {
-        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iIzAwMjE0NyIvPjwvc3ZnPg==') no-repeat left;
+        background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iIzAwMjE0NyIvPjwvc3ZnPg==")
+            no-repeat left;
         background-size: contain;
     }
 }
-
 
 h2:hover .deep-link,
 h3:hover .deep-link,
 h4:hover .deep-link,
 h5:hover .deep-link,
 h6:hover .deep-link {
-    opacity: 1.0;
+    opacity: 1;
 }
 
 #un-button.un-bottom.css3 {
@@ -301,7 +306,6 @@ h6:hover .deep-link {
     margin-left: 20px !important;
     font-size: 16px;
 }
-
 
 /* search */
 .archive-pagination {
@@ -498,7 +502,7 @@ h6:hover .deep-link {
 
 .teaching-hub .columns .column {
     display: inline-block;
-    margin: 0 .6rem .6rem 0;
+    margin: 0 0.6rem 0.6rem 0;
 }
 
 @media screen and (max-width: 640px) {
@@ -527,7 +531,7 @@ h6:hover .deep-link {
 }
 
 .teaching-hub .primary-button {
-    background-color: #B62300;
+    background-color: #b62300;
 }
 
 .teaching-hub .primary-button:hover {
@@ -543,7 +547,7 @@ h6:hover .deep-link {
     font-size: 68.75%;
     text-transform: uppercase;
     letter-spacing: 0.04rem;
-    opacity: .6;
+    opacity: 0.6;
 }
 
 .teaching-hub .button span {
@@ -675,7 +679,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 .entry-meta {
     font-size: 80%;
-    color: rgba(0,0,0,.5);
+    color: rgba(0, 0, 0, 0.5);
     margin-bottom: 10px;
 }
 
@@ -685,7 +689,8 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .article-header h1 {
     margin-bottom: 1rem;
     font-size: 2.25rem;
-    font-family: $serif-font-stack;	font-weight: 400;
+    font-family: $serif-font-stack;
+    font-weight: 400;
     line-height: 1.2;
     @include md-up {
         font-size: 3rem;
@@ -721,7 +726,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         }
     }
 
-
     /* Subsections e.g. I.1 Historical perspective */
     > h3 {
         @include h3-style;
@@ -729,7 +733,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         margin-bottom: 1.5rem;
         padding-top: 2.5rem;
         border-top: 1px solid $primary-color-200;
-
     }
 
     > h2 + h3 {
@@ -790,7 +793,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         overflow-x: auto;
     }
 
-
     /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education/#data-quality-definitions */
     svg.latex:only-child {
         display: block;
@@ -800,8 +802,8 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 hr {
     color: lightgrey;
-    border-bottom:none;
-    border-left:none;
+    border-bottom: none;
+    border-left: none;
     border-right: none;
     padding-bottom: 8px;
     border-top: 1px;
@@ -812,8 +814,8 @@ hr {
 /* The style of horizontal lines in the data sources section of every entry */
 hr.datasources-hr {
     color: lightgrey;
-    border-top:none;
-    border-left:none;
+    border-top: none;
+    border-left: none;
     border-right: 1px;
     border-right-style: solid;
     padding-bottom: 8px;
@@ -831,7 +833,7 @@ hr.datasources-hr {
     margin-top: 40px;
     margin-bottom: 0;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
-    color: rgba(0,0,0,0.5);
+    color: rgba(0, 0, 0, 0.5);
     padding-top: 60px;
     padding-bottom: 48px;
 
@@ -840,7 +842,7 @@ hr.datasources-hr {
         font-weight: 500;
         margin-top: 2em;
         margin-bottom: 0;
-        color: rgba(0,0,0,0.65);
+        color: rgba(0, 0, 0, 0.65);
     }
 
     ol.references {
@@ -860,7 +862,7 @@ hr.datasources-hr {
         line-height: 15px;
         border-left: 1px solid rgba(0, 0, 0, 0.1);
         padding-left: 18px;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         background: rgba(0, 0, 0, 0.02);
         padding: 10px 18px;
         border-radius: 3px;
@@ -872,7 +874,8 @@ hr.datasources-hr {
     }
 }
 
-.article-content ol, .article-content ul {
+.article-content ol,
+.article-content ul {
     margin-bottom: 30px;
     padding-left: 40px;
     font-weight: normal;
@@ -905,7 +908,7 @@ hr.datasources-hr {
     border: 1px solid #ccc !important;
 }
 
-.article-content iframe[src*=grapher] {
+.article-content iframe[src*="grapher"] {
     border: none !important;
     width: 100%;
     max-width: $content-max-width;
@@ -915,7 +918,6 @@ hr.datasources-hr {
     margin-left: auto;
     margin-right: auto;
 }
-
 
 /* HACK (Mispy): Solve an issue with inconsistent WP markup.
    Sometimes iframes are inside the same <p> element as their preceding text,
@@ -937,13 +939,13 @@ iframe:not(:first-child) {
 }
 
 article.page .authors-byline .citation-note {
-    opacity: .9;
+    opacity: 0.9;
     color: #0645ad;
     cursor: pointer;
-      user-select: none;
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
+    user-select: none;
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
     -webkit-touch-callout: none; /* iOS Safari */
 }
 
@@ -962,83 +964,100 @@ article.page .authors-byline .citation-note:hover {
     margin-top: 1.2rem;
 }
 
-
 /* Taken from Bootstrap tooltip css */
 .tooltip {
-  position: absolute;
-  z-index: $zindex-tooltip;
-  display: block;
-  font-family: $sans-serif-font-stack;
-  font-style: normal;
-  font-weight: normal;
-  letter-spacing: normal;
-  line-break: auto;
-  line-height: 1.5;
-  text-align: left;
-  text-align: start;
-  text-decoration: none;
-  text-shadow: none;
-  text-transform: none;
-  white-space: normal;
-  word-break: normal;
-  word-spacing: normal;
-  word-wrap: normal;
-  font-size: 0.875rem;
-  opacity: 0; }
-  .tooltip.in {
-    opacity: 0.9; }
-  .tooltip.tooltip-top, .tooltip.bs-tether-element-attached-bottom {
+    position: absolute;
+    z-index: $zindex-tooltip;
+    display: block;
+    font-family: $sans-serif-font-stack;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-break: auto;
+    line-height: 1.5;
+    text-align: left;
+    text-align: start;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    white-space: normal;
+    word-break: normal;
+    word-spacing: normal;
+    word-wrap: normal;
+    font-size: 0.875rem;
+    opacity: 0;
+}
+.tooltip.in {
+    opacity: 0.9;
+}
+.tooltip.tooltip-top,
+.tooltip.bs-tether-element-attached-bottom {
     padding: 5px 0;
-    margin-top: -3px; }
-    .tooltip.tooltip-top .tooltip-arrow, .tooltip.bs-tether-element-attached-bottom .tooltip-arrow {
-      bottom: 0;
-      left: 50%;
-      margin-left: -5px;
-      border-width: 5px 5px 0;
-      border-top-color: #000; }
-  .tooltip.tooltip-right, .tooltip.bs-tether-element-attached-left {
+    margin-top: -3px;
+}
+.tooltip.tooltip-top .tooltip-arrow,
+.tooltip.bs-tether-element-attached-bottom .tooltip-arrow {
+    bottom: 0;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px 5px 0;
+    border-top-color: #000;
+}
+.tooltip.tooltip-right,
+.tooltip.bs-tether-element-attached-left {
     padding: 0 5px;
-    margin-left: 3px; }
-    .tooltip.tooltip-right .tooltip-arrow, .tooltip.bs-tether-element-attached-left .tooltip-arrow {
-      top: 50%;
-      left: 0;
-      margin-top: -5px;
-      border-width: 5px 5px 5px 0;
-      border-right-color: #000; }
-  .tooltip.tooltip-bottom, .tooltip.bs-tether-element-attached-top {
+    margin-left: 3px;
+}
+.tooltip.tooltip-right .tooltip-arrow,
+.tooltip.bs-tether-element-attached-left .tooltip-arrow {
+    top: 50%;
+    left: 0;
+    margin-top: -5px;
+    border-width: 5px 5px 5px 0;
+    border-right-color: #000;
+}
+.tooltip.tooltip-bottom,
+.tooltip.bs-tether-element-attached-top {
     padding: 5px 0;
-    margin-top: 3px; }
-    .tooltip.tooltip-bottom .tooltip-arrow, .tooltip.bs-tether-element-attached-top .tooltip-arrow {
-      top: 0;
-      left: 50%;
-      margin-left: -5px;
-      border-width: 0 5px 5px;
-      border-bottom-color: #000; }
-  .tooltip.tooltip-left, .tooltip.bs-tether-element-attached-right {
+    margin-top: 3px;
+}
+.tooltip.tooltip-bottom .tooltip-arrow,
+.tooltip.bs-tether-element-attached-top .tooltip-arrow {
+    top: 0;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 0 5px 5px;
+    border-bottom-color: #000;
+}
+.tooltip.tooltip-left,
+.tooltip.bs-tether-element-attached-right {
     padding: 0 5px;
-    margin-left: -3px; }
-    .tooltip.tooltip-left .tooltip-arrow, .tooltip.bs-tether-element-attached-right .tooltip-arrow {
-      top: 50%;
-      right: 0;
-      margin-top: -5px;
-      border-width: 5px 0 5px 5px;
-      border-left-color: #000; }
+    margin-left: -3px;
+}
+.tooltip.tooltip-left .tooltip-arrow,
+.tooltip.bs-tether-element-attached-right .tooltip-arrow {
+    top: 50%;
+    right: 0;
+    margin-top: -5px;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #000;
+}
 
 .tooltip-inner {
-  max-width: 200px;
-  padding: 3px 8px;
-  color: #fff;
-  text-align: center;
-  background-color: #000;
-  border-radius: 0.25rem;
+    max-width: 200px;
+    padding: 3px 8px;
+    color: #fff;
+    text-align: center;
+    background-color: #000;
+    border-radius: 0.25rem;
 }
 
 .tooltip-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
 }
 
 /* Customizations to tooltip */
@@ -1092,7 +1111,7 @@ a.ref sup::after {
     border-radius: 100%;
 }
 a.ref sup {
-    padding-left:0.5px;
+    padding-left: 0.5px;
 }
 
 /* Hide feedback button on mobile */
@@ -1132,19 +1151,28 @@ html:not(.js) {
         display: block !important;
     }
 
-    body, .article-content > p, .article-content > ol, .article-content > ul {
+    body,
+    .article-content > p,
+    .article-content > ol,
+    .article-content > ul {
         font: 12pt "Times New Roman", Times, serif;
         line-height: 1.3;
     }
-    .article-content > h2, .article-content > h3, .article-content > h4, .article-content > h5, .article-content > h6 {
+    .article-content > h2,
+    .article-content > h3,
+    .article-content > h4,
+    .article-content > h5,
+    .article-content > h6 {
         page-break-after: avoid;
     }
-    pre, blockquote {
+    pre,
+    blockquote {
         page-break-inside: avoid;
     }
 }
 
-.ChartsIndexPage main, .EntriesByYearPage main {
+.ChartsIndexPage main,
+.EntriesByYearPage main {
     padding: 0 3vw;
     margin-bottom: 100px;
 
@@ -1153,7 +1181,7 @@ html:not(.js) {
         margin-bottom: 10px;
     }
 
-    input[type=search] {
+    input[type="search"] {
         width: 100%;
         padding: 10px;
     }
@@ -1167,7 +1195,7 @@ html:not(.js) {
 
     ul {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(32rem,1fr));
+        grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
         grid-column-gap: 1rem;
     }
 
@@ -1272,7 +1300,8 @@ html:not(.js) {
         margin-right: 5rem;
     }
 
-    .postResults, .chartResults {
+    .postResults,
+    .chartResults {
         width: 50%;
 
         > h2 {
@@ -1304,7 +1333,8 @@ html:not(.js) {
         }
     }
 
-    .postResults em, .ChartResult em {
+    .postResults em,
+    .ChartResult em {
         font-style: normal;
         font-weight: bold;
     }
@@ -1329,7 +1359,8 @@ html:not(.js) {
             display: block;
         }
 
-        .postResults, .chartResults {
+        .postResults,
+        .chartResults {
             width: 100%;
         }
     }
@@ -1356,11 +1387,12 @@ html:not(.js) {
     text-align: right;
 }
 
-.FeedbackPrompt, .FeedbackForm button {
-    padding: .7rem .85rem;
+.FeedbackPrompt,
+.FeedbackForm button {
+    padding: 0.7rem 0.85rem;
     border: none;
     border-radius: 3px;
-    box-shadow: 0 2px 2px rgba(0,0,0,.1);
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
     color: white;
     cursor: pointer;
     font-size: 15px;
@@ -1368,12 +1400,12 @@ html:not(.js) {
     margin-top: 10px;
 
     svg {
-        margin-right: .15rem;
-        color: rgba(white, .75);
+        margin-right: 0.15rem;
+        color: rgba(white, 0.75);
     }
 
     &:disabled {
-        opacity: .8;
+        opacity: 0.8;
     }
 }
 
@@ -1384,14 +1416,14 @@ html:not(.js) {
     height: calc(100vh - 100px);
     max-height: 600px;
     border-radius: 3px;
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,.15), 0 3px 15px rgba(0,0,0,.25);
-    background: hsla(0,0%,100%,.98);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 3px 15px rgba(0, 0, 0, 0.25);
+    background: hsla(0, 0%, 100%, 0.98);
     color: #333;
     text-align: left;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: opacity .25s ease-in-out;
+    transition: opacity 0.25s ease-in-out;
     text-align: left;
 
     &.loading > * {
@@ -1403,18 +1435,18 @@ html:not(.js) {
         color: white;
         font-size: 1rem;
         font-weight: 700;
-        padding: .5rem 1rem;
+        padding: 0.5rem 1rem;
     }
 
     > div.formBody {
-        padding: .6rem 1rem;
+        padding: 0.6rem 1rem;
         overflow-y: auto;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
 
         .formSection {
-            margin-bottom: .75rem;
+            margin-bottom: 0.75rem;
             flex: 0;
         }
 
@@ -1431,15 +1463,16 @@ html:not(.js) {
             color: #555;
         }
 
-        input, textarea {
+        input,
+        textarea {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             outline: none;
-            border: 1px solid rgba(0,0,0,.2);
+            border: 1px solid rgba(0, 0, 0, 0.2);
             border-radius: 1px;
             background-color: #fff;
-            padding: .4rem .7rem;
+            padding: 0.4rem 0.7rem;
             width: 100%;
             min-height: 40px;
             box-sizing: border-box;
@@ -1457,15 +1490,15 @@ html:not(.js) {
 
         textarea {
             font-weight: 400;
-            font-size: .875rem;
+            font-size: 0.875rem;
             flex: 1;
             resize: none;
         }
     }
 
     > footer {
-        box-shadow: 0 -0.07143rem 0.85714rem rgba(0,0,0,.08);
-        padding: .8rem 1rem;
+        box-shadow: 0 -0.07143rem 0.85714rem rgba(0, 0, 0, 0.08);
+        padding: 0.8rem 1rem;
         display: flex;
         justify-content: flex-end;
         text-align: right;
@@ -1492,7 +1525,7 @@ html:not(.js) {
             }
         }
 
-        input[type=search] {
+        input[type="search"] {
             width: 100%;
             padding: 10px;
         }
@@ -1524,7 +1557,7 @@ html:not(.js) {
 
     ul {
         display: grid;
-        grid-template-columns: repeat(auto-fill,minmax(16rem,1fr));
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
         grid-column-gap: 1rem;
     }
 
@@ -1532,7 +1565,7 @@ html:not(.js) {
         width: 100%;
         list-style-type: none;
         padding-right: 1em;
-        font-size: .8em;
+        font-size: 0.8em;
         max-width: 90vw;
     }
 
