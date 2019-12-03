@@ -4,7 +4,7 @@ import * as ReactDOM from "react-dom"
 import * as ReactDOMServer from "react-dom/server"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { MultiEmbedder } from "site/client/Grapher"
 
 export const CLASS_NAME = "wp-block-owid-additional-information"
@@ -38,7 +38,6 @@ const AdditionalInformation = ({
 
     useEffect(() => {
         return () => {
-            classes.push("open")
             if (refContainer.current) {
                 // tslint:disable-next-line: no-unused-expression
                 new MultiEmbedder(refContainer.current)
@@ -53,8 +52,25 @@ const AdditionalInformation = ({
         }
     }
 
+    const onOpenHandler = () => {
+        setHeight("auto")
+        if (!hasBeenOpened) {
+            setHasBeenOpened(true)
+        }
+    }
+
     if (image) {
         classes.push("with-image")
+    }
+    if (height !== 0) {
+        classes.push("open")
+    }
+
+    // Expands accordions for print media.
+    if (window.addEventListener) {
+        window.addEventListener("beforeprint", () => {
+            onOpenHandler()
+        })
     }
 
     const renderFullWidthVariation = () => {
