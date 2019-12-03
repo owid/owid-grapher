@@ -1,0 +1,46 @@
+.article-content .wp-block-owid-prominent-link {
+    @include left-media-columns;
+    @include block-shadow;
+    h3 {
+        @include h3-style;
+        margin-top: 0;
+    }
+    svg {
+        width: 0.4em;
+        height: 1em;
+        vertical-align: middle;
+        margin-left: 0.6rem;
+        transition: all 0.2s;
+    }
+    @include md-up {
+        // margin: 0 -#{$padding-x-md};
+    }
+    background-color: $primary-color-100;
+    border: 1px solid $primary-color-100;
+    border-radius: 2px;
+    transition: all 0.3s;
+
+    &:hover {
+        background-color: $primary-color-200;
+        border: 1px solid $primary-color;
+        svg {
+            margin-left: 0.8rem;
+        }
+    }
+
+    a {
+        display: block;
+        padding: $padding-x-sm;
+        @include md-up {
+            padding: $padding-x-md;
+        }
+        color: $primary-color-800;
+        &:visited {
+            color: $primary-color-800;
+        }
+        &:hover {
+            text-decoration: none;
+            color: $primary-color;
+        }
+    }
+}
