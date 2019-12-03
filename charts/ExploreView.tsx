@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed } from "mobx"
+import { observable, computed, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { Dictionary, extend } from "lodash"
 
@@ -59,6 +59,23 @@ export class ExploreView extends React.Component<{ bounds: Bounds }> {
 
     @observable chartType: string = ChartType.LineChart
 
+    chart: ChartConfig
+
+    constructor(props: { bounds: Bounds }) {
+        super(props)
+
+        const chartProps = new ChartConfigProps()
+        extend(chartProps, DUMMY_JSON_CONFIG)
+        this.chart = new ChartConfig(chartProps)
+
+        autorun(() => {
+            this.chart.tab = this.tab
+            this.chart.props.type = this.configChartType
+            this.chart.props.hasMapTab = this.isMap
+            this.chart.props.hasChartTab = !this.isMap
+        })
+    }
+
     @computed get bounds() {
         return this.props.bounds
     }
@@ -77,23 +94,14 @@ export class ExploreView extends React.Component<{ bounds: Bounds }> {
             : (this.chartType as ChartTypeType)
     }
 
-    @computed get chart() {
-        const props = new ChartConfigProps()
-        extend(props, DUMMY_JSON_CONFIG, {
-            type: this.configChartType,
-            tab: this.tab,
-            hasMapTab: this.isMap,
-            hasChartTab: !this.isMap
-        })
-        return new ChartConfig(props)
-    }
-
     renderChartTypeButton(type: string) {
         return (
             <button
                 key={type}
                 className="chart-type-button"
-                onClick={() => (this.chartType = type)}
+                onClick={() => {
+                    this.chartType = type
+                }}
             >
                 {chartTypeLabel(type)}
             </button>
