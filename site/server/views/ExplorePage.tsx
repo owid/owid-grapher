@@ -32,8 +32,7 @@ export const ExplorePage = () => {
             <body className="ExplorePage">
                 <SiteHeader />
                 <main>
-                    <div id="explore">
-                    </div>
+                    <div id="explore"></div>
                 </main>
                 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
                 <script src={webpack("commons.js")} />
