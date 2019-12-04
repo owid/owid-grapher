@@ -39,6 +39,24 @@
             "protocol": "inspector"
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Jest",
+            "program": "${workspaceRoot}/node_modules/.bin/jest",
+            "args": ["-i"],
+            "internalConsoleOptions": "openOnSessionStart",
+            "envFile": "${workspaceRoot}/.env"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Jest current file",
+            "program": "${workspaceRoot}/node_modules/.bin/jest",
+            "args": ["-i", "${relativeFile}"],
+            "internalConsoleOptions": "openOnSessionStart",
+            "envFile": "${workspaceRoot}/.env"
+        },
+        {
             "name": "Attach to node",
             "type": "node",
             "request": "attach",

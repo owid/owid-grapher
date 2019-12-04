@@ -223,6 +223,11 @@ export class ChartView extends React.Component<ChartViewProps> {
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
 
+    resolveReady: () => void = () => undefined
+    readyPromise: Promise<void> = new Promise<void>((resolve, reject) => {
+        this.resolveReady = resolve
+    })
+
     @computed get classNames(): string {
         const classNames = [
             "chart",
@@ -436,6 +441,9 @@ export class ChartView extends React.Component<ChartViewProps> {
             this.hasFadedIn = true
         } else {
             this.checkVisibility()
+        }
+        if (this.chart.data.isReady) {
+            this.resolveReady()
         }
     }
 

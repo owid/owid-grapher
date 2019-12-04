@@ -30,6 +30,8 @@ import { canBeExplorable } from "utils/charts"
 declare const App: any
 declare const window: any
 const isNode: boolean = require("detect-node")
+const isJsdom: boolean =
+    typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
 export interface HighlightToggleConfig {
     description: string
@@ -243,7 +245,7 @@ export class ChartConfig {
     ) {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
-        this.isNode = isNode
+        this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
