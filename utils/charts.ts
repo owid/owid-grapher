@@ -9,7 +9,10 @@ export const EXPLORABLE_CHART_TYPES: ChartTypeType[] = [
 // A centralized predicate to test whether a chart can be explorable.
 // Used for validation on both server & client.
 export function canBeExplorable(config: ChartConfigProps) {
-    return EXPLORABLE_CHART_TYPES.includes(config.type)
+    return (
+        EXPLORABLE_CHART_TYPES.includes(config.type) &&
+        config.dimensions.length === 1
+    )
 }
 
 export function isExplorable(config: ChartConfigProps): boolean {
