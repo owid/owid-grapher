@@ -7,11 +7,24 @@ import * as settings from "settings"
 import * as util from "util"
 import * as shell from "shelljs"
 
-export const promisifiedExec = util.promisify(shell.exec)
+export const promisifiedExec: (
+    command: string,
+    options?: shell.ExecOptions
+) => Promise<string> = (command, options) => {
+    return new Promise((resolve, reject) => {
+        shell.exec(command, options || {}, (code, stdout, stderr) => {
+            if (code !== 0) return reject(stderr)
+            else return resolve(stdout)
+        })
+    })
+}
 
-export async function exec(command: string): Promise<string> {
+export async function exec(
+    command: string,
+    options?: shell.ExecOptions
+): Promise<string> {
     try {
-        return await promisifiedExec(command)
+        return await promisifiedExec(command, options)
     } catch (err) {
         const error = new Error(`Received exit code ${err} from: ${command}`)
         ;(error as any).code = err
