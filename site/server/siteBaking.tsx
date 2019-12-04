@@ -41,6 +41,7 @@ import { DimensionWithData } from "charts/DimensionWithData"
 import { Variable } from "db/model/Variable"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { FeedbackPage } from "./views/FeedbackPage"
+import { isExplorable } from "utils/charts"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -85,6 +86,31 @@ export async function renderChartsPage() {
 
 export async function renderExplorePage() {
     return renderToHtmlPage(<ExplorePage />)
+}
+
+export async function renderExplorableChartsJson() {
+    const query: { id: number; config: any }[] = await db.query(`
+        SELECT id, config
+        FROM charts
+        WHERE charts.isExplorable
+    `)
+
+    const explorableCharts = query
+        .map(chart => ({
+            id: chart.id,
+            config: ChartConfigProps.fromJSON(JSON.parse(chart.config))
+        }))
+        // Ensure config is consistent with the current "explorable" requirements
+        .filter(chart => isExplorable(chart.config))
+
+    const result = explorableCharts.map(chart => ({
+        id: chart.id,
+        title: chart.config.title,
+        subtitle: chart.config.subtitle,
+        sourceDesc: chart.config.sourceDesc
+    }))
+
+    return JSON.stringify(result)
 }
 
 export async function renderPageBySlug(slug: string) {

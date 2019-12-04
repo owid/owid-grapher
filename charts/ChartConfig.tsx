@@ -108,6 +108,16 @@ export class DimensionSlot {
 // Ideally, this is also all of the interaction state: when a chart is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
 export class ChartConfigProps {
+    static fromJSON(json: any) {
+        const props = new ChartConfigProps()
+        for (const key in props) {
+            if (key in json) {
+                ;(props as any)[key] = json[key]
+            }
+        }
+        return props
+    }
+
     @observable.ref type: ChartTypeType = "LineChart"
     @observable.ref isExplorable: boolean = false
 
