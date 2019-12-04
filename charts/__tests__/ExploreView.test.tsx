@@ -13,16 +13,17 @@ const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
 const url = /\/grapher\/data\/variables\/104402\.json/
 
 describe(ExploreView, () => {
-    beforeEach(() => xhrMock.setup())
-    afterEach(() => xhrMock.teardown())
-
     it("renders a chart", () => {
         const view = shallow(<ExploreView bounds={bounds} />)
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
     describe("chart types", () => {
+        beforeEach(() => xhrMock.setup())
+        afterEach(() => xhrMock.teardown())
+
         it("displays chart types", () => {
+            xhrMock.get(url, { body: variableJson })
             const view = mount(<ExploreView bounds={bounds} />)
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
