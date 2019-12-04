@@ -9,7 +9,7 @@ import { ChartView } from "../ChartView"
 import { LineChart } from "../LineChart"
 
 const bounds = new Bounds(0, 0, 800, 600)
-const variableJson = fs.readFileSync("test/data/variable-104402.json")
+const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
 const url = /\/grapher\/data\/variables\/104402\.json/
 
 describe(ExploreView, () => {
