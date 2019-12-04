@@ -248,8 +248,8 @@ h1.entry-title > a:hover {
 .blog-info,
 .entry-status {
     @include info;
-    background-color: #e9eef2;
-    color: #406592;
+    font-style: italic;
+    color: #616161;
 }
 
 /* Optional abstract for blog posts */

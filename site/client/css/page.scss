@@ -93,6 +93,8 @@
 /* Notice for entries that are only a preliminary collection of relevant material */
 .pcrm {
     @include info;
+    padding: 0.625rem;
+    text-align: center;
     background-color: $tertiary-color;
     h2 {
         span {
