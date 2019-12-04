@@ -223,10 +223,11 @@ export class ChartView extends React.Component<ChartViewProps> {
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
 
-    resolveReady: () => void = () => undefined
+    // Resolved when this.chart.data.isReady becomes true; used for testing
     readyPromise: Promise<void> = new Promise<void>((resolve, reject) => {
         this.resolveReady = resolve
     })
+    resolveReady: () => void = () => undefined
 
     @computed get classNames(): string {
         const classNames = [

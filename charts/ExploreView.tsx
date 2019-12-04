@@ -61,6 +61,9 @@ export class ExploreView extends React.Component<ExploreProps> {
         return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
     }
 
+    // This is different from the chart's concept of chart type because it includes "WorldMap" as
+    // an option, and doesn't include certain chart types we don't support right now, such as
+    // scatter plots
     @observable chartType: string = ChartType.LineChart
 
     chart: ChartConfig
@@ -72,6 +75,11 @@ export class ExploreView extends React.Component<ExploreProps> {
         extend(chartProps, DUMMY_JSON_CONFIG)
         this.chart = new ChartConfig(chartProps)
 
+        // We need these updates in an autorun because the chart config objects aren't really meant
+        // to be recreated all the time. They aren't pure value objects and have behaviors on
+        // instantiation that include fetching data over the network. Instead, we rely on their
+        // observable properties, and on this autorun block to connect them to the Explore controls.
+        // -@jasoncrawford 2019-12-04
         autorun(() => {
             this.chart.tab = this.tab
             this.chart.props.type = this.configChartType
@@ -92,6 +100,9 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.isMap ? "map" : "chart"
     }
 
+    // Translates between the chart type chosen in the Explore UI, and the type we want to set on
+    // the ChartConfigProps. It's a pass-through unless map is chosen, in which case we tell the
+    // chart (arbitrarily) to be a line chart, and set the tab to map.
     @computed get configChartType(): ChartTypeType {
         return this.isMap
             ? ChartType.LineChart
