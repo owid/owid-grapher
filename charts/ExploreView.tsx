@@ -2,12 +2,20 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observable, computed, autorun, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
-import { Dictionary, extend } from "lodash"
+import { extend } from "lodash"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faChartLine,
+    faChartBar,
+    faChartArea,
+    faMap
+} from "@fortawesome/free-solid-svg-icons"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
-import { ChartType, ChartTypeType, ChartTypeDefsByKey } from "./ChartType"
+import { ChartType, ChartTypeType } from "./ChartType"
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -23,6 +31,8 @@ const DUMMY_JSON_CONFIG = {
     map: { targetYear: 2017 }
 }
 
+const WorldMap = "WorldMap"
+
 type ExplorerChartType = ChartTypeType | "WorldMap"
 
 const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
@@ -31,18 +41,18 @@ const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
     ChartType.StackedBar,
     ChartType.DiscreteBar,
     ChartType.SlopeChart,
-    "WorldMap"
+    WorldMap
 ]
 
-const CHART_TYPE_DEFS: {
-    [key: string]: { key: ExplorerChartType; label: string }
+const CHART_TYPE_DISPLAY: {
+    [key: string]: { label: string; icon: IconDefinition }
 } = {
-    ...ChartTypeDefsByKey,
-    WorldMap: { key: "WorldMap", label: "Map" }
-}
-
-function chartTypeLabel(type: ExplorerChartType): string {
-    return CHART_TYPE_DEFS[type].label
+    [ChartType.LineChart]: { label: "Line", icon: faChartLine },
+    [ChartType.StackedArea]: { label: "Area", icon: faChartArea },
+    [ChartType.StackedBar]: { label: "Stacked", icon: faChartBar },
+    [ChartType.DiscreteBar]: { label: "Bar", icon: faChartBar },
+    [ChartType.SlopeChart]: { label: "Slope", icon: faChartLine },
+    [WorldMap]: { label: "Map", icon: faMap }
 }
 
 // This component was modeled after ChartView.
@@ -121,16 +131,19 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     renderChartTypeButton(type: ExplorerChartType) {
+        const isSelected = type === this.chartType
+        const display = CHART_TYPE_DISPLAY[type]
         return (
             <button
                 key={type}
                 data-type={type}
-                className="chart-type-button"
+                className={`chart-type-button ${isSelected ? "selected" : ""}`}
                 onClick={() => {
                     this.chartType = type
                 }}
             >
-                {chartTypeLabel(type)}
+                <FontAwesomeIcon icon={display.icon} />
+                <div>{display.label}</div>
             </button>
         )
     }

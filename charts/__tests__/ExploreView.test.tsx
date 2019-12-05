@@ -62,13 +62,17 @@ describe(ExploreView, () => {
         chartTypes.forEach(type => {
             describe(`when you click ${type.key}`, () => {
                 let view: ReactWrapper
+                const button = `.chart-type-button[data-type="${type.key}"]`
 
                 beforeAll(async () => {
                     mockDataResponse()
                     view = mount(<ExploreView bounds={bounds} />)
                     await updateViewWhenReady(view)
-                    const selector = `.chart-type-button[data-type="${type.key}"]`
-                    view.find(selector).simulate("click")
+                    view.find(button).simulate("click")
+                })
+
+                it(`selects the ${type.key} button`, async () => {
+                    expect(view.find(button).hasClass("selected")).toBe(true)
                 })
 
                 it(`shows a ${type.expectedView.name}`, async () => {

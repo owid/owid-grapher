@@ -976,5 +976,25 @@ html.iframe .ChartPage {
 }
 
 .ExplorePage .chart-type-buttons {
+    display: flex;
+    justify-content: flex-end;
     margin: 20px auto;
+}
+
+.ExplorePage .chart-type-button {
+    height: 54px;
+    width: 64px;
+    margin-left: 10px;
+    font-size: 14px;
+    font-variant: all-small-caps;
+    vertical-align: bottom;
+    color: #555;
+    background-color: white;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.ExplorePage .chart-type-button.selected {
+    color: #333;
+    border: 1px solid #3f9eff;
 }
