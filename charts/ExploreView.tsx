@@ -19,7 +19,8 @@ const DUMMY_JSON_CONFIG = {
     sourceDesc: "IHME, Global Burden of Disease",
     note: "",
     dimensions: [{ display: {}, property: "y", variableId: 104402 }],
-    selectedData: [{ index: 0, entityId: 355 }]
+    selectedData: [{ index: 0, entityId: 355 }],
+    map: { targetYear: 2017 }
 }
 
 type ExplorerChartType = ChartTypeType | "WorldMap"
@@ -87,10 +88,10 @@ export class ExploreView extends React.Component<ExploreProps> {
         // observable properties, and on this autorun block to connect them to the Explore controls.
         // -@jasoncrawford 2019-12-04
         this.dispose = autorun(() => {
-            this.chart.tab = this.tab
             this.chart.props.type = this.configChartType
             this.chart.props.hasMapTab = this.isMap
             this.chart.props.hasChartTab = !this.isMap
+            this.chart.tab = this.tab
         })
     }
 
@@ -123,6 +124,7 @@ export class ExploreView extends React.Component<ExploreProps> {
         return (
             <button
                 key={type}
+                data-type={type}
                 className="chart-type-button"
                 onClick={() => {
                     this.chartType = type

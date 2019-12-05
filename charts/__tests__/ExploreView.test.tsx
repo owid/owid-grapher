@@ -6,7 +6,13 @@ import * as fs from "fs"
 import { ExploreView } from "../ExploreView"
 import { Bounds } from "../Bounds"
 import { ChartView } from "../ChartView"
+import { ChartType } from "../ChartType"
 import { LineChart } from "../LineChart"
+import { StackedArea } from "../StackedArea"
+import { StackedBarChart } from "../StackedBarChart"
+import { DiscreteBarChart } from "../DiscreteBarChart"
+import { SlopeChart } from "../SlopeChart"
+import { ChoroplethMap } from "../ChoroplethMap"
 
 const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
@@ -43,6 +49,32 @@ describe(ExploreView, () => {
             const view = mount(<ExploreView bounds={bounds} />)
             await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
+        })
+
+        const chartTypes = [
+            { key: ChartType.StackedArea, expectedView: StackedArea },
+            { key: ChartType.StackedBar, expectedView: StackedBarChart },
+            { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
+            { key: ChartType.SlopeChart, expectedView: SlopeChart },
+            { key: "WorldMap", expectedView: ChoroplethMap }
+        ]
+
+        chartTypes.forEach(type => {
+            describe(`when you click ${type.key}`, () => {
+                let view: ReactWrapper
+
+                beforeAll(async () => {
+                    mockDataResponse()
+                    view = mount(<ExploreView bounds={bounds} />)
+                    await updateViewWhenReady(view)
+                    const selector = `.chart-type-button[data-type="${type.key}"]`
+                    view.find(selector).simulate("click")
+                })
+
+                it(`shows a ${type.expectedView.name}`, async () => {
+                    expect(view.find(type.expectedView)).toHaveLength(1)
+                })
+            })
         })
     })
 })
