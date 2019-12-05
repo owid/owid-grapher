@@ -2,3 +2,4 @@
 bakedSite
 dist
 package.json
+test/fixtures
