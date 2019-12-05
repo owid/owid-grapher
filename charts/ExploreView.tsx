@@ -4,6 +4,7 @@ import { observable, computed, autorun, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { extend } from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import {
     faChartLine,
     faChartBar,
@@ -15,7 +16,6 @@ import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
