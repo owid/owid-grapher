@@ -25,8 +25,8 @@ describe(ExploreView, () => {
     })
 
     describe("chart types", () => {
-        beforeEach(() => xhrMock.setup())
-        afterEach(() => xhrMock.teardown())
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
 
         function mockDataResponse() {
             xhrMock.get(url, { body: variableJson })
