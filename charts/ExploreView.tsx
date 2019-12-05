@@ -68,6 +68,8 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     chart: ChartConfig
 
+    dispose!: IReactionDisposer
+
     constructor(props: ExploreProps) {
         super(props)
 
@@ -80,12 +82,16 @@ export class ExploreView extends React.Component<ExploreProps> {
         // instantiation that include fetching data over the network. Instead, we rely on their
         // observable properties, and on this autorun block to connect them to the Explore controls.
         // -@jasoncrawford 2019-12-04
-        autorun(() => {
+        this.dispose = autorun(() => {
             this.chart.tab = this.tab
             this.chart.props.type = this.configChartType
             this.chart.props.hasMapTab = this.isMap
             this.chart.props.hasChartTab = !this.isMap
         })
+    }
+
+    componentWillUnmount() {
+        this.dispose()
     }
 
     @computed get bounds() {
