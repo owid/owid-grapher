@@ -1,5 +1,5 @@
 import * as React from "react"
-import { shallow, mount } from "enzyme"
+import { shallow, mount, ReactWrapper } from "enzyme"
 import xhrMock from "xhr-mock"
 import * as fs from "fs"
 
@@ -22,18 +22,26 @@ describe(ExploreView, () => {
         beforeEach(() => xhrMock.setup())
         afterEach(() => xhrMock.teardown())
 
-        it("displays chart types", () => {
+        function mockDataResponse() {
             xhrMock.get(url, { body: variableJson })
+        }
+
+        async function updateViewWhenReady(exploreView: ReactWrapper) {
+            const chartView = exploreView.find(ChartView).first()
+            await (chartView.instance() as ChartView).readyPromise
+            exploreView.update()
+        }
+
+        it("displays chart types", () => {
+            mockDataResponse()
             const view = mount(<ExploreView bounds={bounds} />)
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
 
         it("defaults to line chart", async () => {
-            xhrMock.get(url, { body: variableJson })
+            mockDataResponse()
             const view = mount(<ExploreView bounds={bounds} />)
-            const chartView = view.find(ChartView).first()
-            await (chartView.instance() as ChartView).readyPromise
-            view.update()
+            await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
         })
     })
