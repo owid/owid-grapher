@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, autorun } from "mobx"
+import { observable, computed, autorun, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { Dictionary, extend } from "lodash"
 
@@ -22,7 +22,9 @@ const DUMMY_JSON_CONFIG = {
     selectedData: [{ index: 0, entityId: 355 }]
 }
 
-const AVAILABLE_CHART_TYPES = [
+type ExplorerChartType = ChartTypeType | "WorldMap"
+
+const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
     ChartType.LineChart,
     ChartType.StackedArea,
     ChartType.StackedBar,
@@ -31,12 +33,14 @@ const AVAILABLE_CHART_TYPES = [
     "WorldMap"
 ]
 
-const CHART_TYPE_DEFS: Dictionary<{ key: string; label: string }> = {
+const CHART_TYPE_DEFS: {
+    [key: string]: { key: ExplorerChartType; label: string }
+} = {
     ...ChartTypeDefsByKey,
     WorldMap: { key: "WorldMap", label: "Map" }
 }
 
-function chartTypeLabel(type: string): string {
+function chartTypeLabel(type: ExplorerChartType): string {
     return CHART_TYPE_DEFS[type].label
 }
 
@@ -64,7 +68,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
     // an option, and doesn't include certain chart types we don't support right now, such as
     // scatter plots
-    @observable chartType: string = ChartType.LineChart
+    @observable chartType: ExplorerChartType = ChartType.LineChart
 
     chart: ChartConfig
 
@@ -115,7 +119,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             : (this.chartType as ChartTypeType)
     }
 
-    renderChartTypeButton(type: string) {
+    renderChartTypeButton(type: ExplorerChartType) {
         return (
             <button
                 key={type}
