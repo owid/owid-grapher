@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom"
 import { observable, computed, autorun, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { extend } from "lodash"
+import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -156,10 +157,19 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
+    renderIndicatorSwitching() {
+        return (
+            <div className="indicator-switching">
+                <Select />
+            </div>
+        )
+    }
+
     render() {
         return (
             <div>
                 {this.renderChartTypes()}
+                {this.renderIndicatorSwitching()}
                 <ChartView chart={this.chart} bounds={this.bounds} />
             </div>
         )
