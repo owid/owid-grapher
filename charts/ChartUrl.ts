@@ -1,4 +1,4 @@
-/* URLBinder.ts
+/* ChartUrl.ts
  * ================
  *
  * This component is responsible for handling data binding between the
@@ -46,7 +46,7 @@ interface ChartQueryParams {
 
 declare const App: any
 
-export class URLBinder {
+export class ChartUrl {
     chart: ChartConfig
     origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
