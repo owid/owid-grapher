@@ -266,8 +266,8 @@ class HighlightToggle extends React.Component<{
 
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
-            const params = getWindowQueryParams()
-            this.chart.url.populateFromURL(extend(params, this.highlightParams))
+            const params = extend(getWindowQueryParams(), this.highlightParams)
+            this.chart.url.populateFromQueryParams(params)
         } else {
             this.chart.data.selectedKeys = []
         }

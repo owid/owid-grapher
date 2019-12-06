@@ -47,7 +47,7 @@ export class ChartUrl {
         this.origChartProps = toJS(chart.props)
 
         if (queryStr !== undefined) {
-            this.populateFromURL(strToQueryParams(queryStr))
+            this.populateFromQueryParams(strToQueryParams(queryStr))
         }
     }
 
@@ -182,9 +182,9 @@ export class ChartUrl {
     }*/
 
     /**
-     * Apply any url parameters on chartView startup
+     * Applies query parameters to the chart config
      */
-    populateFromURL(params: ChartQueryParams) {
+    populateFromQueryParams(params: ChartQueryParams) {
         const { chart } = this
 
         // Set tab if specified
