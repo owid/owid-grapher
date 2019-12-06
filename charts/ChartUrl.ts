@@ -1,10 +1,9 @@
 /* ChartUrl.ts
  * ================
  *
- * This component is responsible for handling data binding between the
+ * This component is responsible for translating between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
- *
  */
 
 import { isNumber, includes, filter, uniq, toString, isFinite } from "./Util"
@@ -15,7 +14,6 @@ import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
     queryParamsToStr,
     strToQueryParams,
-    getWindowQueryParams,
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
@@ -48,10 +46,7 @@ export class ChartUrl {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
 
-        if (chart.isSinglePage) {
-            // Only work with the actual url if we're not an embed
-            this.populateFromURL(getWindowQueryParams())
-        } else if (queryStr !== undefined) {
+        if (queryStr !== undefined) {
             this.populateFromURL(strToQueryParams(queryStr))
         }
     }

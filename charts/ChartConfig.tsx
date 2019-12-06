@@ -26,6 +26,7 @@ import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
+import { getWindowQueryStr } from "utils/client/url"
 
 declare const App: any
 declare const window: any
@@ -258,7 +259,11 @@ export class ChartConfig {
         this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
-        this.url = new ChartUrl(this, options.queryStr)
+
+        const queryStr = this.isSinglePage
+            ? getWindowQueryStr()
+            : options.queryStr
+        this.url = new ChartUrl(this, queryStr)
 
         window.chart = this
         if (!this.isNode) this.ensureValidConfig()
