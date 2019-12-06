@@ -21,6 +21,7 @@ import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
+import * as urlBinding from "charts/UrlBinding"
 
 declare const window: any
 
@@ -69,6 +70,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
         render()
         window.addEventListener("resize", throttle(render))
+        urlBinding.bindUrlToWindow(chart.url)
 
         FullStory.event("Loaded chart v2", {
             chart_type_str: chart.props.type,

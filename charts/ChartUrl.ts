@@ -7,21 +7,12 @@
  *
  */
 
-import {
-    debounce,
-    isNumber,
-    includes,
-    filter,
-    uniq,
-    toString,
-    isFinite
-} from "./Util"
-import { computed, when, runInAction, reaction, toJS } from "mobx"
+import { isNumber, includes, filter, uniq, toString, isFinite } from "./Util"
+import { computed, when, runInAction, toJS } from "mobx"
 import { ChartTabOption } from "./ChartTabOption"
 import { defaultTo } from "./Util"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
-    setWindowQueryStr,
     queryParamsToStr,
     strToQueryParams,
     getWindowQueryParams,
@@ -60,17 +51,6 @@ export class ChartUrl {
         if (chart.isSinglePage) {
             // Only work with the actual url if we're not an embed
             this.populateFromURL(getWindowQueryParams())
-
-            // There is a surprisingly considerable performance overhead to updating the url
-            // while animating, so we debounce to allow e.g. smoother timelines
-            const pushParams = () =>
-                setWindowQueryStr(queryParamsToStr(this.params as QueryParams))
-            const debouncedPushParams = debounce(pushParams, 100)
-
-            reaction(
-                () => this.params,
-                () => (this.debounceMode ? debouncedPushParams() : pushParams())
-            )
         } else if (queryStr !== undefined) {
             this.populateFromURL(strToQueryParams(queryStr))
         }
