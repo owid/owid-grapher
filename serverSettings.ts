@@ -21,6 +21,7 @@ export const SESSION_COOKIE_AGE: number = process.env.SESSION_COOKIE_AGE
     ? parseInt(process.env.SESSION_COOKIE_AGE)
     : 1209600
 export const ALGOLIA_SECRET_KEY: string = process.env.ALGOLIA_SECRET_KEY || ""
+export const STRIPE_SECRET_KEY: string = process.env.STRIPE_SECRET_KEY || ""
 
 // Grapher database settings
 export const DB_NAME: string = process.env.DB_NAME || ""
