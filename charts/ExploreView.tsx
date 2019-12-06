@@ -5,12 +5,10 @@ import { observer } from "mobx-react"
 import { extend } from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
-import {
-    faChartLine,
-    faChartBar,
-    faChartArea,
-    faMap
-} from "@fortawesome/free-solid-svg-icons"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
+import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
+import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
