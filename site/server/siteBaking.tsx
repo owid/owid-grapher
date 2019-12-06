@@ -98,7 +98,7 @@ export async function renderExplorableChartsJson() {
     const explorableCharts = query
         .map(chart => ({
             id: chart.id,
-            config: ChartConfigProps.fromJSON(JSON.parse(chart.config))
+            config: JSON.parse(chart.config) as ChartConfigProps
         }))
         // Ensure config is consistent with the current "explorable" requirements
         .filter(chart => isExplorable(chart.config))
