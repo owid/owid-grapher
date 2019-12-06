@@ -30,6 +30,8 @@ import { canBeExplorable } from "utils/charts"
 declare const App: any
 declare const window: any
 const isNode: boolean = require("detect-node")
+const isJsdom: boolean =
+    typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
 export interface HighlightToggleConfig {
     description: string
@@ -243,7 +245,15 @@ export class ChartConfig {
     ) {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
-        this.isNode = isNode
+
+        // This attribute is used to decide various client-vs.-server behavior. However, when
+        // testing, we want the chart to behave as if it's in the client, even though it's
+        // technically being run in a Node environment. To solve this, we override isNode to false
+        // if we're in a jsdom environment (where client tests are run). It would probably be best
+        // to rename this variable, or better, to break it into one or more behavior flags that
+        // could be set by the environment, rather than directly querying the environment itself.
+        // -@jasoncrawford 2019-12-04
+        this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
