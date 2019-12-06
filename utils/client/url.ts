@@ -7,11 +7,11 @@ export interface QueryParams {
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.
 export function getQueryParams(queryStr?: string): QueryParams {
-    return strToQueryParams(queryStr || window.location.search)
+    return strToQueryParams(queryStr || getWindowQueryStr())
 }
 
 export function getWindowQueryParams(): QueryParams {
-    return strToQueryParams(window.location.search)
+    return strToQueryParams(getWindowQueryStr())
 }
 
 export function strToQueryParams(queryStr: string): QueryParams {
@@ -52,6 +52,10 @@ export function setWindowQueryVariable(key: string, val: string | null) {
     }
 
     setWindowQueryStr(queryParamsToStr(params))
+}
+
+export function getWindowQueryStr() {
+    return window.location.search
 }
 
 export function setWindowQueryStr(str: string) {
