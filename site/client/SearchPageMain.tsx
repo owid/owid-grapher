@@ -1,6 +1,6 @@
 import ReactDOM = require("react-dom")
 import React = require("react")
-import { getQueryParams, decodeQueryParam } from "utils/client/url"
+import { getWindowQueryParams, decodeQueryParam } from "utils/client/url"
 import { siteSearch, SiteSearchResults } from "site/siteSearch"
 import { SearchResults } from "site/client/SearchResults"
 import { observer } from "mobx-react"
@@ -16,7 +16,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 @observer
 export class SearchPageMain extends React.Component {
-    @observable query: string = decodeQueryParam(getQueryParams().q || "")
+    @observable query: string = decodeQueryParam(getWindowQueryParams().q || "")
     lastQuery?: string
 
     @observable.ref results?: SiteSearchResults

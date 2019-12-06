@@ -21,9 +21,10 @@ import { ChartTabOption } from "./ChartTabOption"
 import { defaultTo } from "./Util"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
-    getQueryParams,
-    setQueryStr,
+    setWindowQueryStr,
     queryParamsToStr,
+    strToQueryParams,
+    getWindowQueryParams,
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
@@ -58,12 +59,12 @@ export class URLBinder {
 
         if (chart.isSinglePage) {
             // Only work with the actual url if we're not an embed
-            this.populateFromURL(getQueryParams())
+            this.populateFromURL(getWindowQueryParams())
 
             // There is a surprisingly considerable performance overhead to updating the url
             // while animating, so we debounce to allow e.g. smoother timelines
             const pushParams = () =>
-                setQueryStr(queryParamsToStr(this.params as QueryParams))
+                setWindowQueryStr(queryParamsToStr(this.params as QueryParams))
             const debouncedPushParams = debounce(pushParams, 100)
 
             reaction(
@@ -71,7 +72,7 @@ export class URLBinder {
                 () => (this.debounceMode ? debouncedPushParams() : pushParams())
             )
         } else if (queryStr !== undefined) {
-            this.populateFromURL(getQueryParams(queryStr))
+            this.populateFromURL(strToQueryParams(queryStr))
         }
     }
 
