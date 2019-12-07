@@ -146,6 +146,7 @@ class PlacedMarkView extends React.Component<{
     needsLines?: boolean
     onMouseOver: () => void
     onClick: () => void
+    onMouseLeave?: () => void
 }> {
     render() {
         const {
@@ -154,6 +155,7 @@ class PlacedMarkView extends React.Component<{
             isFocus,
             needsLines,
             onMouseOver,
+            onMouseLeave,
             onClick
         } = this.props
         const x = mark.origBounds.x
@@ -167,6 +169,7 @@ class PlacedMarkView extends React.Component<{
             <g
                 className="legendMark"
                 onMouseOver={onMouseOver}
+                onMouseLeave={onMouseLeave}
                 onClick={onClick}
             >
                 {needsLines && (
@@ -420,6 +423,7 @@ export class HeightedLegendView extends React.Component<
                 needsLines={needsLines}
                 onMouseOver={() => this.onMouseOver(mark.mark.item.key)}
                 onClick={() => this.onClick(mark.mark.item.key)}
+                onMouseLeave={() => this.onMouseLeave(mark.mark.item.key)}
             />
         ))
     }
@@ -441,7 +445,6 @@ export class HeightedLegendView extends React.Component<
                 style={{
                     cursor: this.props.clickableMarks ? "pointer" : "default"
                 }}
-                onMouseLeave={() => this.onMouseLeave()}
             >
                 {this.renderBackground()}
                 {this.renderFocus()}
