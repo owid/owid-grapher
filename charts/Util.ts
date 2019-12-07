@@ -423,3 +423,9 @@ export function urlToSlug(url: string): string {
 export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
 }
+
+export async function fetchJSON(url: string) {
+    const response = await window.fetch(url)
+    const result = await response.json()
+    return result
+}
