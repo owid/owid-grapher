@@ -17,7 +17,7 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,
-    renderExplorableChartsJson
+    renderExplorableIndicatorsJson
 } from "site/server/siteBaking"
 import { chartPage, chartDataJson } from "site/server/chartBaking"
 import {
@@ -99,10 +99,10 @@ devServer.get("/explore", async (req, res) => {
     res.send(await renderExplorePage())
 })
 
-devServer.get("/explore/charts.json", async (req, res) => {
+devServer.get("/explore/indicators.json", async (req, res) => {
     // TODO remove this doing-undoing madness, it's only here to send correct
     // mimetype so that the browser extension for syntax highlighting kicks in.
-    res.json(JSON.parse(await renderExplorableChartsJson()))
+    res.json(JSON.parse(await renderExplorableIndicatorsJson()))
 })
 
 devServer.get("/search", async (req, res) => {

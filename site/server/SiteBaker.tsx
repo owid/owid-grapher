@@ -28,7 +28,7 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderExplorableChartsJson
+    renderExplorableIndicatorsJson
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -292,8 +292,8 @@ export class SiteBaker {
                 await renderExplorePage()
             )
             await this.stageWrite(
-                `${BAKED_SITE_DIR}/explore/charts.json`,
-                await renderExplorableChartsJson()
+                `${BAKED_SITE_DIR}/explore/indicators.json`,
+                await renderExplorableIndicatorsJson()
             )
         }
     }
