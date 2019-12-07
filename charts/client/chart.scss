@@ -1,7 +1,7 @@
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
-$controls-color: #3F9EFF;
+$controls-color: #3f9eff;
 
 $zindex-chart: 1;
 $zindex-tab: 1;
@@ -10,6 +10,7 @@ $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
 $zindex-Tooltip: 100;
 $zindex-DataSelector: 110;
+$zindex-IndicatorDropdown: 200;
 
 figure[data-grapher-src]:empty {
     display: flex;
@@ -31,8 +32,8 @@ figure[data-grapher-src]:empty:after {
 
 @keyframes pulsate {
     0% {
-        transform: scale(.1);
-        opacity: 0.0;
+        transform: scale(0.1);
+        opacity: 0;
     }
     50% {
         opacity: 1;
@@ -66,7 +67,8 @@ figure[data-grapher-src]:empty:after {
     overflow: hidden;
 
     border-radius: 2px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px, rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
     z-index: $zindex-chart;
 
     * {
@@ -86,7 +88,8 @@ figure[data-grapher-src]:empty:after {
     .flash {
         margin: 10px;
     }
-    .clickable, button {
+    .clickable,
+    button {
         cursor: pointer;
         -webkit-user-select: none;
         -ms-user-select: none;
@@ -101,7 +104,7 @@ figure[data-grapher-src]:empty:after {
         -webkit-user-select: none;
         user-select: none;
     }
-    input[type=checkbox] {
+    input[type="checkbox"] {
         cursor: pointer;
     }
 
@@ -137,7 +140,8 @@ figure[data-grapher-src]:empty:after {
     /* Chart Layout
     --------------------------------------------- */
 
-    .HeaderHTML, .SourcesFooterHTML {
+    .HeaderHTML,
+    .SourcesFooterHTML {
         font-family: $sans-serif-font-stack;
         font-size: 16px;
         text-rendering: optimizelegibility;
@@ -154,7 +158,7 @@ figure[data-grapher-src]:empty:after {
 
             &:hover {
                 text-decoration: underline;
-                text-decoration-color: rgba(0,0,0,.2);
+                text-decoration-color: rgba(0, 0, 0, 0.2);
             }
         }
 
@@ -214,7 +218,8 @@ figure[data-grapher-src]:empty:after {
         z-index: $zindex-ControlsFooter;
         color: #777;
 
-        .footerRowSingle, .footerRowMulti {
+        .footerRowSingle,
+        .footerRowMulti {
             border-top: 1px solid #e1e1e1;
             box-sizing: content-box;
             width: 100%;
@@ -286,7 +291,7 @@ figure[data-grapher-src]:empty:after {
             font-size: 0.85em;
             height: $footerRowHeight - 2px;
             line-height: $footerRowHeight;
-            border-bottom: 2px solid rgba(0,0,0,0);
+            border-bottom: 2px solid rgba(0, 0, 0, 0);
         }
 
         nav.tabs li.icon > a {
@@ -298,7 +303,7 @@ figure[data-grapher-src]:empty:after {
         }
 
         nav.tabs li.active > a {
-            border-bottom-color: rgba(0,33,71,.9);
+            border-bottom-color: rgba(0, 33, 71, 0.9);
         }
     }
 
@@ -333,7 +338,7 @@ figure[data-grapher-src]:empty:after {
         align-items: center;
         justify-content: center;
         border-radius: 5px;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
         padding: 1em;
         text-align: center;
     }
@@ -352,10 +357,10 @@ figure[data-grapher-src]:empty:after {
         -ms-user-select: none;
         user-select: none;
         border: 1px solid transparent;
-        padding: .375rem 1rem;
+        padding: 0.375rem 1rem;
         font-size: 1em;
         line-height: 1.5;
-        border-radius: .25rem;
+        border-radius: 0.25rem;
         text-decoration: none;
     }
 
@@ -380,7 +385,7 @@ figure[data-grapher-src]:empty:after {
     .DownloadTab {
         padding: 1em;
         text-align: left;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
     }
 
     .sourcesTab > div,
@@ -400,7 +405,7 @@ figure[data-grapher-src]:empty:after {
         text-transform: uppercase;
         font-size: 0.9em;
         font-family: inherit;
-        border-bottom: 1px solid #35322F;
+        border-bottom: 1px solid #35322f;
         margin-bottom: 0;
     }
     .datasource-wrapper h2,
@@ -440,9 +445,10 @@ figure[data-grapher-src]:empty:after {
         right: 1em;
         bottom: 1em;
         text-align: left;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
         border: 1px solid #e0e0e0;
-        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+        box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12),
+            0 2px 2px 0 rgba(0, 0, 0, 0.24);
         padding: 0.8em 1em;
         padding-bottom: 0.5em;
         width: 15em;
@@ -459,7 +465,6 @@ figure[data-grapher-src]:empty:after {
         margin-bottom: 0.2em;
     }
 
-
     /* Share Menu
     --------------------------------------------- */
 
@@ -468,9 +473,10 @@ figure[data-grapher-src]:empty:after {
         right: 1em;
         bottom: 1em;
         text-align: left;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
         border: 1px solid #e0e0e0;
-        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
+        box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12),
+            0 2px 2px 0 rgba(0, 0, 0, 0.24);
         padding-bottom: 0.5em;
         width: 15em;
         z-index: $zindex-ControlsFooterMenu;
@@ -519,7 +525,6 @@ figure[data-grapher-src]:empty:after {
         text-align: left;
     }
 
-
     .ShareMenu textarea {
         width: 30em;
         height: 20em;
@@ -533,8 +538,9 @@ figure[data-grapher-src]:empty:after {
         width: 90%;
         height: 90%;
         border: 1px solid #e0e0e0;
-        box-shadow: 0 0 2px 0 rgba(0,0,0,0.12), 0 2px 2px 0 rgba(0,0,0,0.24);
-        background: rgba(255,255,255,0.95);
+        box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12),
+            0 2px 2px 0 rgba(0, 0, 0, 0.24);
+        background: rgba(255, 255, 255, 0.95);
         padding: 1em;
         text-align: left;
         z-index: $zindex-embedMenu;
@@ -549,7 +555,6 @@ figure[data-grapher-src]:empty:after {
         width: 100%;
         height: 80%;
     }
-
 
     /* Miscellaneous
     --------------------------------------------- */
@@ -597,28 +602,31 @@ figure[data-grapher-src]:empty:after {
         right: 0;
         bottom: 0;
         left: 0;
-        background-color: rgba(0,0,0,.08);
+        background-color: rgba(0, 0, 0, 0.08);
     }
 
     .DataSelectorSingle,
     .DataSelectorMulti {
         z-index: $zindex-DataSelector;
-        background: rgba(255,255,255,.94);
-        box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.2);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.2);
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
         position: absolute;
-        left: .35em;
-        top: .35em;
-        bottom: .35em;
-        right: .35em;
+        left: 0.35em;
+        top: 0.35em;
+        bottom: 0.35em;
+        right: 0.35em;
         border-radius: 2px;
         text-align: left;
 
         header {
             position: sticky;
             top: 0;
-            background: linear-gradient(rgba(white, 1) 75%, rgba(white, 0) 100%);
+            background: linear-gradient(
+                rgba(white, 1) 75%,
+                rgba(white, 0) 100%
+            );
             padding-top: 1em;
             padding-bottom: 1.5em;
             margin: 0;
@@ -659,7 +667,7 @@ figure[data-grapher-src]:empty:after {
             background-color: #eee;
         }
 
-        input[type=search] {
+        input[type="search"] {
             width: 100%;
             font-size: 0.9em;
             padding: 0.4em;
@@ -704,7 +712,7 @@ figure[data-grapher-src]:empty:after {
             width: 100%;
         }
 
-        input[type=search] {
+        input[type="search"] {
             width: 100%;
             font-size: 0.9em;
             padding: 0.4em;
@@ -712,16 +720,16 @@ figure[data-grapher-src]:empty:after {
             border: 1px solid #ccc;
         }
 
-        input[type=checkbox],
+        input[type="checkbox"],
         .clearSelection .icon {
-            margin: 0 .1em 0 0;
+            margin: 0 0.1em 0 0;
         }
 
         .clearSelection {
             font-size: 1em;
             padding: 0;
-            margin: .5em 0 0;
-            color: rgba(black, .4);
+            margin: 0.5em 0 0;
+            color: rgba(black, 0.4);
             transition: color 150ms ease;
 
             &:hover {
@@ -776,7 +784,7 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.chart .DownloadTab{
+.chart .DownloadTab {
     font-size: 0.8em;
     padding: 2em;
 
@@ -812,12 +820,12 @@ figure[data-grapher-src]:empty:after {
 }
 
 .ControlsOverlay .addDataButton {
-    font-size: .8em;
+    font-size: 0.8em;
     font-weight: 700;
     border-radius: 2px;
     padding: 0;
     border: none;
-    color: rgba(black, .22);
+    color: rgba(black, 0.22);
     transition: color 1s cubic-bezier(0, 0, 0.4, 1);
     line-height: 21px;
     text-align: left;
@@ -848,7 +856,7 @@ figure[data-grapher-src]:empty:after {
 
         path {
             transition: stroke 1s cubic-bezier(0, 0, 0.4, 1);
-            stroke: rgba(black, .18);
+            stroke: rgba(black, 0.18);
             stroke-width: 2px;
         }
 
@@ -873,7 +881,8 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.ChartPlotArea:hover, .is-touch {
+.ChartPlotArea:hover,
+.is-touch {
     .ControlsOverlay .addDataButton {
         transition: color 200ms cubic-bezier(0, 0, 0.4, 1);
         color: $controls-color;
@@ -896,7 +905,7 @@ figure[data-grapher-src]:empty:after {
 }
 
 .NoData {
-    background-color: rgba(#fff,.6);
+    background-color: rgba(#fff, 0.6);
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -910,7 +919,8 @@ figure[data-grapher-src]:empty:after {
     }
 }
 
-.ChartPage main figure[data-grapher-src], #fallback {
+.ChartPage main figure[data-grapher-src],
+#fallback {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -927,7 +937,7 @@ figure[data-grapher-src]:empty:after {
 
 .ChartPage main {
     .originReference {
-        margin-top: .5rem;
+        margin-top: 0.5rem;
         text-align: center;
     }
 }
@@ -997,4 +1007,9 @@ html.iframe .ChartPage {
 .ExplorePage .chart-type-button.selected {
     color: #333;
     border: 1px solid #3f9eff;
+}
+
+.ExplorePage .indicator-dropdown {
+    position: relative;
+    z-index: $zindex-IndicatorDropdown;
 }

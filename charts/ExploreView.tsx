@@ -1,9 +1,15 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, autorun, IReactionDisposer } from "mobx"
+import {
+    observable,
+    computed,
+    autorun,
+    IReactionDisposer,
+    action,
+    runInAction
+} from "mobx"
 import { observer } from "mobx-react"
 import { extend } from "lodash"
-import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -15,6 +21,10 @@ import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
+import { ExplorerViewContext } from "./ExplorerViewContext"
+import { IndicatorStore } from "./IndicatorStore"
+import { IndicatorDropdown } from "./IndicatorDropdown"
+import { Indicator } from "./Indicator"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -28,6 +38,12 @@ const DUMMY_JSON_CONFIG = {
     dimensions: [{ display: {}, property: "y", variableId: 104402 }],
     selectedData: [{ index: 0, entityId: 355 }],
     map: { targetYear: 2017 }
+}
+
+function chartConfigFromIndicator(
+    indicator: Indicator
+): Partial<ChartConfigProps> {
+    return indicator
 }
 
 const WorldMap = "WorldMap"
@@ -78,7 +94,8 @@ export class ExploreView extends React.Component<ExploreProps> {
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
     // an option, and doesn't include certain chart types we don't support right now, such as
     // scatter plots
-    @observable chartType: ExplorerChartType = ChartType.LineChart
+    @observable.ref chartType: ExplorerChartType = ChartType.LineChart
+    @observable.ref indicatorId?: number
 
     chart: ChartConfig
 
@@ -129,6 +146,17 @@ export class ExploreView extends React.Component<ExploreProps> {
             : (this.chartType as ChartTypeType)
     }
 
+    @action.bound async onIndicatorChange(id: number) {
+        runInAction(() => (this.indicatorId = id))
+        const indicator = await this.childContext.indicatorStore.get(id)
+        runInAction(() => {
+            // `indicatorId` may have been updated while awaiting the promise
+            if (this.indicatorId === id) {
+                this.chart.update(indicator)
+            }
+        })
+    }
+
     renderChartTypeButton(type: ExplorerChartType) {
         const isSelected = type === this.chartType
         const display = CHART_TYPE_DISPLAY[type]
@@ -159,19 +187,31 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     renderIndicatorSwitching() {
         return (
-            <div className="indicator-switching">
-                <Select />
+            <div className="indicator-bar">
+                <IndicatorDropdown
+                    placeholder="Select X axis variable"
+                    onChangeId={this.onIndicatorChange}
+                    selectedId={this.indicatorId}
+                />
             </div>
         )
     }
 
+    get childContext() {
+        return {
+            indicatorStore: new IndicatorStore()
+        }
+    }
+
     render() {
         return (
-            <div>
-                {this.renderChartTypes()}
-                {this.renderIndicatorSwitching()}
-                <ChartView chart={this.chart} bounds={this.bounds} />
-            </div>
+            <ExplorerViewContext.Provider value={this.childContext}>
+                <div>
+                    {this.renderChartTypes()}
+                    {this.renderIndicatorSwitching()}
+                    <ChartView chart={this.chart} bounds={this.bounds} />
+                </div>
+            </ExplorerViewContext.Provider>
         )
     }
 }
