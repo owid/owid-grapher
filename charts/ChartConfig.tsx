@@ -259,11 +259,7 @@ export class ChartConfig {
         this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
-
-        const queryStr = this.isSinglePage
-            ? getWindowQueryStr()
-            : options.queryStr
-        this.url = new ChartUrl(this, queryStr)
+        this.url = new ChartUrl(this, options.queryStr)
 
         window.chart = this
         if (!this.isNode) this.ensureValidConfig()
