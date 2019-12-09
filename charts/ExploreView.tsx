@@ -3,13 +3,12 @@ import * as ReactDOM from "react-dom"
 import {
     observable,
     computed,
-    autorun,
     IReactionDisposer,
     action,
-    runInAction
+    runInAction,
+    reaction
 } from "mobx"
 import { observer } from "mobx-react"
-import { extend } from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -25,20 +24,6 @@ import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorStore } from "./IndicatorStore"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { Indicator } from "./Indicator"
-
-// Hardcoding some dummy config for now so we can display a chart.
-// There will eventually be a list of these, downloaded from a static JSON file.
-// -@jasoncrawford 2 Dec 2019
-const DUMMY_JSON_CONFIG = {
-    id: 677,
-    title: "Child mortality rate",
-    subtitle: "Share of newborns who die before reaching the age of five.",
-    sourceDesc: "IHME, Global Burden of Disease",
-    note: "",
-    dimensions: [{ display: {}, property: "y", variableId: 104402 }],
-    selectedData: [{ index: 0, entityId: 355 }],
-    map: { targetYear: 2017 }
-}
 
 function chartConfigFromIndicator(
     indicator: Indicator
@@ -95,34 +80,63 @@ export class ExploreView extends React.Component<ExploreProps> {
     // an option, and doesn't include certain chart types we don't support right now, such as
     // scatter plots
     @observable.ref chartType: ExplorerChartType = ChartType.LineChart
-    @observable.ref indicatorId?: number
+
+    // TODO: Inidialize indicatorId from URL query paramter
+    @observable.ref indicatorId?: number = 677
 
     chart: ChartConfig
 
-    dispose!: IReactionDisposer
+    disposers!: IReactionDisposer[]
 
     constructor(props: ExploreProps) {
         super(props)
 
         const chartProps = new ChartConfigProps()
-        extend(chartProps, DUMMY_JSON_CONFIG)
         this.chart = new ChartConfig(chartProps)
+    }
 
-        // We need these updates in an autorun because the chart config objects aren't really meant
-        // to be recreated all the time. They aren't pure value objects and have behaviors on
-        // instantiation that include fetching data over the network. Instead, we rely on their
-        // observable properties, and on this autorun block to connect them to the Explore controls.
-        // -@jasoncrawford 2019-12-04
-        this.dispose = autorun(() => {
-            this.chart.props.type = this.configChartType
-            this.chart.props.hasMapTab = this.isMap
-            this.chart.props.hasChartTab = !this.isMap
-            this.chart.tab = this.tab
-        })
+    componentDidMount() {
+        this.disposers = [
+            // We need these updates in a reaction because the chart config objects aren't really meant
+            // to be recreated all the time. They aren't pure value objects and have behaviors on
+            // instantiation that include fetching data over the network. Instead, we rely on their
+            // observable properties, and on this autorun block to connect them to the Explore controls.
+            // -@jasoncrawford 2019-12-04
+            reaction(
+                () => this.configChartType,
+                chartType => {
+                    this.chart.props.type = chartType
+                    this.chart.props.hasMapTab = this.isMap
+                    this.chart.props.hasChartTab = !this.isMap
+                    this.chart.tab = this.tab
+                },
+                { fireImmediately: true }
+            ),
+
+            reaction(
+                () => this.indicatorId,
+                async indicatorId => {
+                    if (indicatorId) {
+                        const indicator = await this.childContext.indicatorStore.get(
+                            indicatorId
+                        )
+                        // Indicator may have changed while awaiting promise
+                        if (indicator && this.indicatorId === indicatorId) {
+                            this.chart.update(
+                                chartConfigFromIndicator(indicator)
+                            )
+                        }
+                    } else {
+                        // TODO need to handle case when indicator is cleared
+                    }
+                },
+                { fireImmediately: true }
+            )
+        ]
     }
 
     componentWillUnmount() {
-        this.dispose()
+        this.disposers.forEach(dispose => dispose())
     }
 
     @computed get bounds() {
@@ -144,21 +158,6 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.isMap
             ? ChartType.LineChart
             : (this.chartType as ChartTypeType)
-    }
-
-    @action.bound async onIndicatorChange(id: number) {
-        runInAction(() => (this.indicatorId = id))
-        const indicator = await this.childContext.indicatorStore.get(id)
-        runInAction(() => {
-            // `indicatorId` may have been updated while awaiting the promise
-            if (this.indicatorId === id) {
-                if (indicator !== null) {
-                    this.chart.update(chartConfigFromIndicator(indicator))
-                } else {
-                    // TODO need to handle case when indicator is cleared
-                }
-            }
-        })
     }
 
     renderChartTypeButton(type: ExplorerChartType) {
@@ -194,7 +193,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             <div className="indicator-bar">
                 <IndicatorDropdown
                     placeholder="Select X axis variable"
-                    onChangeId={this.onIndicatorChange}
+                    onChangeId={id => (this.indicatorId = id)}
                     selectedId={this.indicatorId}
                 />
             </div>
