@@ -18,7 +18,8 @@ import { SiteFooter } from "./SiteFooter"
 export const ExplorePage = () => {
     const script = `
         var div = document.getElementById('explore');
-        window.ExploreView.bootstrap({ containerNode: div });
+        var view = window.ExploreView.bootstrap({ containerNode: div, queryStr: window.location.search });
+        view.bindToWindow();
     `
 
     return (

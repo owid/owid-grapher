@@ -14,6 +14,7 @@ import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
+import * as urlBinding from "charts/UrlBinding"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -64,14 +65,25 @@ const CHART_TYPE_DISPLAY: {
 
 interface ExploreProps {
     bounds: Bounds
+    queryStr?: string
 }
 
 @observer
 export class ExploreView extends React.Component<ExploreProps> {
-    static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
+    static bootstrap({
+        containerNode,
+        queryStr
+    }: {
+        containerNode: HTMLElement
+        queryStr?: string
+    }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
-        return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
+        const view = ReactDOM.render(
+            <ExploreView bounds={bounds} queryStr={queryStr} />,
+            containerNode
+        )
+        return view
     }
 
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
@@ -86,9 +98,10 @@ export class ExploreView extends React.Component<ExploreProps> {
     constructor(props: ExploreProps) {
         super(props)
 
+        const { queryStr } = this.props
         const chartProps = new ChartConfigProps()
         extend(chartProps, DUMMY_JSON_CONFIG)
-        this.chart = new ChartConfig(chartProps)
+        this.chart = new ChartConfig(chartProps, { queryStr })
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -163,5 +176,10 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <ChartView chart={this.chart} bounds={this.bounds} />
             </div>
         )
+    }
+
+    bindToWindow() {
+        urlBinding.bindUrlToWindow(this.chart.url)
+        autorun(() => (document.title = this.chart.data.currentTitle))
     }
 }

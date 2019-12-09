@@ -18,25 +18,41 @@ const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
 const url = /\/grapher\/data\/variables\/104402\.json/
 
+function mockDataResponse() {
+    xhrMock.get(url, { body: variableJson })
+}
+
+async function updateViewWhenReady(exploreView: ReactWrapper) {
+    const chartView = exploreView.find(ChartView).first()
+    await (chartView.instance() as ChartView).readyPromise
+    exploreView.update()
+}
+
 describe(ExploreView, () => {
     it("renders a chart", () => {
         const view = shallow(<ExploreView bounds={bounds} />)
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
-    describe("chart types", () => {
+    describe("when you render with url params", () => {
         beforeAll(() => xhrMock.setup())
         afterAll(() => xhrMock.teardown())
 
-        function mockDataResponse() {
-            xhrMock.get(url, { body: variableJson })
-        }
+        it("applies the params to the chart", async () => {
+            mockDataResponse()
+            const view = mount(
+                <ExploreView bounds={bounds} queryStr={"time=1965..2005"} />
+            )
+            await updateViewWhenReady(view)
+            const style: any = view.find(".slider .interval").prop("style")
+            expect(parseFloat(style.left)).toBeGreaterThan(0)
+            expect(parseFloat(style.right)).toBeGreaterThan(0)
+        })
+    })
 
-        async function updateViewWhenReady(exploreView: ReactWrapper) {
-            const chartView = exploreView.find(ChartView).first()
-            await (chartView.instance() as ChartView).readyPromise
-            exploreView.update()
-        }
+    describe("chart types", () => {
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
 
         it("displays chart types", () => {
             mockDataResponse()
