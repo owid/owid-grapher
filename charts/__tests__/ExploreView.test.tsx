@@ -16,7 +16,9 @@ import { ChoroplethMap } from "../ChoroplethMap"
 
 const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
-const url = /\/grapher\/data\/variables\/104402\.json/
+const variableUrl = /\/grapher\/data\/variables\/104402\.json/
+const indicatorsJson = fs.readFileSync("test/fixtures/indicators.json")
+const indicatorsUrl = /\/explore\/indicators\.json/
 
 describe(ExploreView, () => {
     it("renders a chart", () => {
@@ -29,7 +31,8 @@ describe(ExploreView, () => {
         afterAll(() => xhrMock.teardown())
 
         function mockDataResponse() {
-            xhrMock.get(url, { body: variableJson })
+            xhrMock.get(variableUrl, { body: variableJson })
+            xhrMock.get(indicatorsUrl, { body: indicatorsJson })
         }
 
         async function updateViewWhenReady(exploreView: ReactWrapper) {
