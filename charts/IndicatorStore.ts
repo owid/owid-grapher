@@ -1,7 +1,6 @@
 import { fetchJSON } from "./Util"
 import { Indicator } from "./Indicator"
 import { BAKED_BASE_URL } from "settings"
-import { FuzzySearch } from "./FuzzySearch"
 
 export class IndicatorStore {
     private indicatorsById: { [id: number]: Indicator } = {}
@@ -49,8 +48,12 @@ export class IndicatorStore {
             // If there is no search query, return full list
             return indicators
         } else {
-            const fuzzy = new FuzzySearch(indicators, "title")
-            return fuzzy.search(query)
+            return indicators.filter(indicator => {
+                const titleLower =
+                    (indicator.title && indicator.title.toLowerCase()) || ""
+                const queryLower = query.toLowerCase()
+                return titleLower.indexOf(queryLower) > -1
+            })
         }
     }
 }
