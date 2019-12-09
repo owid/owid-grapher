@@ -90,15 +90,17 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     componentDidMount() {
         this.disposers = [
-            // We need these updates in a reaction because the chart config objects aren't really meant
+            // We need these updates in an autorun because the chart config objects aren't really meant
             // to be recreated all the time. They aren't pure value objects and have behaviors on
             // instantiation that include fetching data over the network. Instead, we rely on their
             // observable properties, and on this autorun block to connect them to the Explore controls.
             // -@jasoncrawford 2019-12-04
+            // Turned the autorun into a reaction in order to make the dependencies (type & isMap) more
+            // explicit -@danielgavrilov 2019-12-09
             reaction(
-                () => this.configChartType,
-                chartType => {
-                    this.chart.props.type = chartType
+                () => [this.configChartType, this.isMap],
+                () => {
+                    this.chart.props.type = this.configChartType
                     this.chart.props.hasMapTab = this.isMap
                     this.chart.props.hasChartTab = !this.isMap
                     this.chart.tab = this.tab
@@ -113,7 +115,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                         const indicator = await this.childContext.indicatorStore.get(
                             indicatorId
                         )
-                        // Indicator may have changed while awaiting promise
+                        // Indicator may have been switched while awaiting the promise
                         if (indicator && this.indicatorId === indicatorId) {
                             this.chart.update(
                                 chartConfigFromIndicator(indicator)
