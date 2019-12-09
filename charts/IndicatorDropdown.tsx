@@ -79,7 +79,11 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 
     @bind getLabel(indicator: Indicator) {
-        return indicator.title
+        if (indicator.sourceDesc) {
+            return `${indicator.title}, ${indicator.sourceDesc}`
+        } else {
+            return indicator.title
+        }
     }
 
     render() {
