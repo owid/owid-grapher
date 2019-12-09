@@ -11,7 +11,8 @@ import {
     keys,
     values,
     each,
-    sortBy
+    sortBy,
+    fetchJSON
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { observable, computed, action, reaction } from "mobx"
@@ -214,18 +215,11 @@ export class VariableData {
             )
             this.receiveData(json)
         } else {
-            const req = new XMLHttpRequest()
-            const that = this
-            req.addEventListener("load", function() {
-                that.receiveData(JSON.parse(this.responseText))
-            })
-            req.open(
-                "GET",
-                `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join(
-                    "+"
-                )}.json?v=${cacheTag}`
-            )
-            req.send()
+            const fetchUrl = `${BAKED_GRAPHER_URL}/data/variables/${variableIds.join(
+                "+"
+            )}.json?v=${cacheTag}`
+            const json = await fetchJSON(fetchUrl)
+            this.receiveData(json)
         }
     }
 
