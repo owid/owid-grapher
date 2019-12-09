@@ -219,7 +219,7 @@ export class VariableData {
                 "+"
             )}.json?v=${cacheTag}`
             const json = await fetchJSON(fetchUrl)
-            this.receiveData(json as any)
+            this.receiveData(json)
         }
     }
 

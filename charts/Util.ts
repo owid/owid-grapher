@@ -424,7 +424,7 @@ export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
 }
 
-export async function fetchJSON(url: string) {
+export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
         req.addEventListener("load", function() {
