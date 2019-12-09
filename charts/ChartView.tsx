@@ -70,7 +70,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
         render()
         window.addEventListener("resize", throttle(render))
-        urlBinding.bindUrlToWindow(chart.url)
 
         FullStory.event("Loaded chart v2", {
             chart_type_str: chart.props.type,
@@ -417,6 +416,10 @@ export class ChartView extends React.Component<ChartViewProps> {
         if (this.renderWidth <= 400) this.props.chart.baseFontSize = 14
         else if (this.renderWidth < 1080) this.props.chart.baseFontSize = 16
         else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
+    }
+
+    bindUrlToWindow() {
+        urlBinding.bindUrlToWindow(this.chart.url)
     }
 
     componentDidMount() {

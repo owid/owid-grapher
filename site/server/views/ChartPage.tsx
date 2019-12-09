@@ -40,7 +40,8 @@ export const ChartPage = (props: {
 
         try {
             window.App = {};
-            window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure });
+            var view = window.ChartView.bootstrap({ jsonConfig: jsonConfig, containerNode: figure });
+            view.bindUrlToWindow();
         } catch (err) {
             figure.innerHTML = "<img src=\\"/grapher/exports/${
                 chart.slug
