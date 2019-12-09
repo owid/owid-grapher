@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import "d3-transition"
@@ -418,8 +418,11 @@ export class ChartView extends React.Component<ChartViewProps> {
         else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
     }
 
-    bindUrlToWindow() {
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
+    bindToWindow() {
         urlBinding.bindUrlToWindow(this.chart.url)
+        autorun(() => (document.title = this.chart.data.currentTitle))
     }
 
     componentDidMount() {

@@ -129,10 +129,8 @@ class HeaderView extends React.Component<{
 }> {
     render() {
         const { props } = this
-        const { title, titleText, logo, subtitle } = props.header
+        const { title, logo, subtitle } = props.header
         const { chart, maxWidth } = props.header.props
-
-        if (chart.isSinglePage) document.title = titleText
 
         if (chart.isMediaCard) return null
 

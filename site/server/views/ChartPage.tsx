@@ -45,7 +45,7 @@ export const ChartPage = (props: {
                 containerNode: figure,
                 queryStr: window.location.search
             });
-            view.bindUrlToWindow();
+            view.bindToWindow();
         } catch (err) {
             figure.innerHTML = "<img src=\\"/grapher/exports/${
                 chart.slug
