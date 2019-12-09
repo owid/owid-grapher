@@ -85,7 +85,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                 chart.props.hideConnectedScatterLines,
             compareEndPointsOnly_bool: chart.props.compareEndPointsOnly,
             entityType_str: chart.entityType,
-            isSinglePage_bool: chart.isSinglePage,
+            isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.tab,

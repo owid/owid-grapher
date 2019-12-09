@@ -225,10 +225,6 @@ export class ChartConfig {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
     }
 
-    @computed get isSinglePage(): boolean {
-        return !this.isNode && !this.isEmbed
-    }
-
     @computed get hasOWIDLogo(): boolean {
         return (
             !this.props.hideLogo &&
