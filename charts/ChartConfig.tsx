@@ -256,7 +256,6 @@ export class ChartConfig {
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
 
-        window.chart = this
         if (!this.isNode) this.ensureValidConfig()
     }
 
