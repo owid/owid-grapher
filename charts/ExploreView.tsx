@@ -1,13 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import {
-    observable,
-    computed,
-    IReactionDisposer,
-    action,
-    runInAction,
-    reaction
-} from "mobx"
+import { observable, computed, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
