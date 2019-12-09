@@ -152,7 +152,11 @@ export class ExploreView extends React.Component<ExploreProps> {
         runInAction(() => {
             // `indicatorId` may have been updated while awaiting the promise
             if (this.indicatorId === id) {
-                this.chart.update(indicator)
+                if (indicator !== null) {
+                    this.chart.update(chartConfigFromIndicator(indicator))
+                } else {
+                    // TODO need to handle case when indicator is cleared
+                }
             }
         })
     }
