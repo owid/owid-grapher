@@ -421,12 +421,13 @@ export class ChartView extends React.Component<ChartViewProps> {
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     bindToWindow() {
+        window.chartView = this
+        window.chart = this.chart
         urlBinding.bindUrlToWindow(this.chart.url)
         autorun(() => (document.title = this.chart.data.currentTitle))
     }
 
     componentDidMount() {
-        window.chartView = this
         window.addEventListener("scroll", this.checkVisibility)
     }
 

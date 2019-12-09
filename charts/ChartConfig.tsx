@@ -26,7 +26,6 @@ import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
-import { getWindowQueryStr } from "utils/client/url"
 
 declare const App: any
 declare const window: any
