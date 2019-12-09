@@ -9,22 +9,36 @@ function createConfig(props: Partial<ChartConfigProps>) {
 }
 
 describe("ChartConfig", () => {
-    it("map & chart tabs are force enabled when an explorer", () => {
+    it("allows single-dimensional explorer charts", () => {
         const config = createConfig({
             type: "LineChart",
             hasChartTab: false,
             hasMapTab: false,
-            isExplorable: true
+            isExplorable: true,
+            dimensions: [{ property: "y", variableId: 1, display: {} }]
         })
-        expect(config.hasMapTab).toBe(true)
-        expect(config.hasChartTab).toBe(true)
+        expect(config.isExplorable).toBe(true)
     })
 
-    it("explorer not available for scatter plots", () => {
+    it("does not allow explorable scatter plots", () => {
         const config = createConfig({
             type: "ScatterPlot",
             hasChartTab: true,
-            isExplorable: true
+            isExplorable: true,
+            dimensions: [{ property: "y", variableId: 1, display: {} }]
+        })
+        expect(config.isExplorable).toBe(false)
+    })
+
+    it("does not allow multi-dimensional charts", () => {
+        const config = createConfig({
+            type: "LineChart",
+            hasChartTab: true,
+            isExplorable: true,
+            dimensions: [
+                { property: "y", variableId: 1, display: {} },
+                { property: "y", variableId: 2, display: {} }
+            ]
         })
         expect(config.isExplorable).toBe(false)
     })

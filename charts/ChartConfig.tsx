@@ -294,13 +294,8 @@ export class ChartConfig {
         })
 
         autorun(() => {
-            if (this.props.isExplorable) {
-                if (canBeExplorable(this.props)) {
-                    this.props.hasChartTab = true
-                    this.props.hasMapTab = true
-                } else {
-                    this.props.isExplorable = false
-                }
+            if (this.props.isExplorable && !canBeExplorable(this.props)) {
+                this.props.isExplorable = false
             }
         })
     }
