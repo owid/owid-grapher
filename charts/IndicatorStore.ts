@@ -1,4 +1,4 @@
-import { fetchJSON } from "./Util"
+import { fetchJSON, keyBy, extend } from "./Util"
 import { Indicator } from "./Indicator"
 import { BAKED_BASE_URL } from "settings"
 
@@ -30,9 +30,7 @@ export class IndicatorStore {
     }
 
     private populate(indicators: Indicator[]) {
-        for (const indicator of indicators) {
-            this.indicatorsById[indicator.id] = indicator
-        }
+        extend(this.indicatorsById, keyBy(indicators, "id"))
     }
 
     async get(id: number): Promise<Indicator | null> {
