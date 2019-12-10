@@ -45,13 +45,12 @@ export class IndicatorStore {
         if (!query) {
             // If there is no search query, return full list
             return indicators
-        } else {
-            const queryLower = query.toLowerCase()
-            return indicators.filter(indicator => {
-                const titleLower =
-                    (indicator.title && indicator.title.toLowerCase()) || ""
-                return titleLower.indexOf(queryLower) > -1
-            })
         }
+        const queryLower = query.toLowerCase()
+        return indicators.filter(indicator => {
+            const titleLower =
+                (indicator.title && indicator.title.toLowerCase()) || ""
+            return titleLower.indexOf(queryLower) > -1
+        })
     }
 }
