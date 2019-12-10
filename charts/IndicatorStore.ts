@@ -46,10 +46,10 @@ export class IndicatorStore {
             // If there is no search query, return full list
             return indicators
         } else {
+            const queryLower = query.toLowerCase()
             return indicators.filter(indicator => {
                 const titleLower =
                     (indicator.title && indicator.title.toLowerCase()) || ""
-                const queryLower = query.toLowerCase()
                 return titleLower.indexOf(queryLower) > -1
             })
         }
