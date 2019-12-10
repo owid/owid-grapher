@@ -1,6 +1,12 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, IReactionDisposer, reaction } from "mobx"
+import {
+    observable,
+    computed,
+    IReactionDisposer,
+    reaction,
+    autorun
+} from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -95,18 +101,12 @@ export class ExploreView extends React.Component<ExploreProps> {
             // instantiation that include fetching data over the network. Instead, we rely on their
             // observable properties, and on this autorun block to connect them to the Explore controls.
             // -@jasoncrawford 2019-12-04
-            // Turned the autorun into a reaction in order to make the dependencies (type & isMap) more
-            // explicit -@danielgavrilov 2019-12-09
-            reaction(
-                () => [this.configChartType, this.isMap],
-                () => {
-                    this.chart.props.type = this.configChartType
-                    this.chart.props.hasMapTab = this.isMap
-                    this.chart.props.hasChartTab = !this.isMap
-                    this.chart.tab = this.tab
-                },
-                { fireImmediately: true }
-            ),
+            autorun(() => {
+                this.chart.props.type = this.configChartType
+                this.chart.props.hasMapTab = this.isMap
+                this.chart.props.hasChartTab = !this.isMap
+                this.chart.tab = this.isMap ? "map" : "chart"
+            }),
 
             reaction(
                 () => this.indicatorId,
@@ -140,10 +140,6 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     @computed get isMap() {
         return this.chartType === "WorldMap"
-    }
-
-    @computed get tab() {
-        return this.isMap ? "map" : "chart"
     }
 
     // Translates between the chart type chosen in the Explore UI, and the type we want to set on
