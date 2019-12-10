@@ -100,9 +100,7 @@ devServer.get("/explore", async (req, res) => {
 })
 
 devServer.get("/explore/indicators.json", async (req, res) => {
-    // TODO remove this doing-undoing madness, it's only here to send correct
-    // mimetype so that the browser extension for syntax highlighting kicks in.
-    res.json(JSON.parse(await renderExplorableIndicatorsJson()))
+    res.type("json").send(await renderExplorableIndicatorsJson())
 })
 
 devServer.get("/search", async (req, res) => {
