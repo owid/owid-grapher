@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
 
 import { ChartConfig } from "./ChartConfig"
-import { getQueryParams } from "utils/client/url"
+import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
 import { Timeline } from "./HTMLTimeline"
@@ -266,15 +266,15 @@ class HighlightToggle extends React.Component<{
 
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
-            const params = getQueryParams()
-            this.chart.url.populateFromURL(extend(params, this.highlightParams))
+            const params = extend(getWindowQueryParams(), this.highlightParams)
+            this.chart.url.populateFromQueryParams(params)
         } else {
             this.chart.data.selectedKeys = []
         }
     }
 
     get isHighlightActive() {
-        const params = getQueryParams()
+        const params = getWindowQueryParams()
         let isActive = true
         keys(this.highlightParams).forEach(key => {
             if (params[key] !== this.highlightParams[key]) isActive = false

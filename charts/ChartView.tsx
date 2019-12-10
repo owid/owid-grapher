@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import "d3-transition"
@@ -21,6 +21,7 @@ import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
+import * as urlBinding from "charts/UrlBinding"
 
 declare const window: any
 
@@ -84,7 +85,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                 chart.props.hideConnectedScatterLines,
             compareEndPointsOnly_bool: chart.props.compareEndPointsOnly,
             entityType_str: chart.entityType,
-            isSinglePage_bool: chart.isSinglePage,
+            isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.tab,
@@ -417,8 +418,16 @@ export class ChartView extends React.Component<ChartViewProps> {
         else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
     }
 
-    componentDidMount() {
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
+    bindToWindow() {
         window.chartView = this
+        window.chart = this.chart
+        urlBinding.bindUrlToWindow(this.chart.url)
+        autorun(() => (document.title = this.chart.data.currentTitle))
+    }
+
+    componentDidMount() {
         window.addEventListener("scroll", this.checkVisibility)
     }
 

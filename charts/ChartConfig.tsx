@@ -9,7 +9,7 @@ import { VariableData, DataForChart } from "./VariableData"
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
 import { MapConfig, MapConfigProps } from "./MapConfig"
-import { URLBinder } from "./URLBinder"
+import { ChartUrl } from "./ChartUrl"
 import { StackedBarTransform } from "./StackedBarTransform"
 import { DiscreteBarTransform } from "./DiscreteBarTransform"
 import { StackedAreaTransform } from "./StackedAreaTransform"
@@ -220,7 +220,7 @@ export class ChartConfig {
 
     vardata: VariableData
     data: ChartData
-    url: URLBinder
+    url: ChartUrl
 
     @computed get isIframe(): boolean {
         return window.self !== window.top
@@ -232,10 +232,6 @@ export class ChartConfig {
 
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
-    }
-
-    @computed get isSinglePage(): boolean {
-        return !this.isNode && !this.isEmbed
     }
 
     @computed get hasOWIDLogo(): boolean {
@@ -268,9 +264,8 @@ export class ChartConfig {
         this.update(props || { yAxis: { min: 0 } })
         this.vardata = new VariableData(this)
         this.data = new ChartData(this)
-        this.url = new URLBinder(this, options.queryStr)
+        this.url = new ChartUrl(this, options.queryStr)
 
-        window.chart = this
         if (!this.isNode) this.ensureValidConfig()
     }
 

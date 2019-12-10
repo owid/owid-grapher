@@ -12,7 +12,7 @@ const withPasswords = argv["with-passwords"]
 
 const filePath =
     argv._[0] ||
-    (withPasswords
+    (!withPasswords
         ? "/tmp/owid_metadata.sql"
         : "/tmp/owid_metadata_with_passwords.sql")
 
