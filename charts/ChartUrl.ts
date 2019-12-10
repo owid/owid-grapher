@@ -1,29 +1,19 @@
-/* URLBinder.ts
+/* ChartUrl.ts
  * ================
  *
- * This component is responsible for handling data binding between the
+ * This component is responsible for translating between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
- *
  */
 
-import {
-    debounce,
-    isNumber,
-    includes,
-    filter,
-    uniq,
-    toString,
-    isFinite
-} from "./Util"
-import { computed, when, runInAction, reaction, toJS } from "mobx"
+import { isNumber, includes, filter, uniq, toString, isFinite } from "./Util"
+import { computed, when, runInAction, toJS } from "mobx"
 import { ChartTabOption } from "./ChartTabOption"
 import { defaultTo } from "./Util"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
-    getQueryParams,
-    setQueryStr,
     queryParamsToStr,
+    strToQueryParams,
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
@@ -45,7 +35,7 @@ interface ChartQueryParams {
 
 declare const App: any
 
-export class URLBinder {
+export class ChartUrl {
     chart: ChartConfig
     origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
@@ -56,22 +46,8 @@ export class URLBinder {
         this.chart = chart
         this.origChartProps = toJS(chart.props)
 
-        if (chart.isSinglePage) {
-            // Only work with the actual url if we're not an embed
-            this.populateFromURL(getQueryParams())
-
-            // There is a surprisingly considerable performance overhead to updating the url
-            // while animating, so we debounce to allow e.g. smoother timelines
-            const pushParams = () =>
-                setQueryStr(queryParamsToStr(this.params as QueryParams))
-            const debouncedPushParams = debounce(pushParams, 100)
-
-            reaction(
-                () => this.params,
-                () => (this.debounceMode ? debouncedPushParams() : pushParams())
-            )
-        } else if (queryStr !== undefined) {
-            this.populateFromURL(getQueryParams(queryStr))
+        if (queryStr !== undefined) {
+            this.populateFromQueryParams(strToQueryParams(queryStr))
         }
     }
 
@@ -206,9 +182,9 @@ export class URLBinder {
     }*/
 
     /**
-     * Apply any url parameters on chartView startup
+     * Applies query parameters to the chart config
      */
-    populateFromURL(params: ChartQueryParams) {
+    populateFromQueryParams(params: ChartQueryParams) {
         const { chart } = this
 
         // Set tab if specified

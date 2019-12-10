@@ -4,8 +4,17 @@ export interface QueryParams {
     [key: string]: string | undefined
 }
 
+// Deprecated. Use getWindowQueryParams() to get the params from the global URL,
+// or strToQueryParams(str) to parse an arbtirary query string.
 export function getQueryParams(queryStr?: string): QueryParams {
-    queryStr = queryStr || window.location.search
+    return strToQueryParams(queryStr || getWindowQueryStr())
+}
+
+export function getWindowQueryParams(): QueryParams {
+    return strToQueryParams(getWindowQueryStr())
+}
+
+export function strToQueryParams(queryStr: string): QueryParams {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
     const querySplit = filter(queryStr.split("&"), s => !isEmpty(s))
@@ -33,8 +42,8 @@ export function queryParamsToStr(params: QueryParams) {
     return newQueryStr
 }
 
-export function setQueryVariable(key: string, val: string | null) {
-    const params = getQueryParams()
+export function setWindowQueryVariable(key: string, val: string | null) {
+    const params = getWindowQueryParams()
 
     if (val === null || val === "") {
         delete params[key]
@@ -42,10 +51,14 @@ export function setQueryVariable(key: string, val: string | null) {
         params[key] = val
     }
 
-    setQueryStr(queryParamsToStr(params))
+    setWindowQueryStr(queryParamsToStr(params))
 }
 
-export function setQueryStr(str: string) {
+export function getWindowQueryStr() {
+    return window.location.search
+}
+
+export function setWindowQueryStr(str: string) {
     history.replaceState(
         null,
         document.title,
