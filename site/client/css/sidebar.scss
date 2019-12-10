@@ -6,7 +6,7 @@
         position: relative;
         .entry-sidebar {
             width: $sidebar-content-width;
-            margin-left: - ($sidebar-content-width + $padding-x-md);
+            margin-left: -($sidebar-content-width + $padding-x-md);
             height: 100%;
             position: absolute;
         }
@@ -20,6 +20,7 @@
     @include xlg-up {
         display: flex;
         .entry-sidebar {
+            margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
             flex: 0 0 $sidebar-content-width;
             margin-right: $padding-x-md;
         }
@@ -77,7 +78,6 @@ nav.entry-toc li > a {
 nav.entry-toc li.active > a {
     opacity: 1;
 }
-
 
 .entry-toc li:first-child {
     font-size: 16px;

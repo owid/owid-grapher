@@ -4,7 +4,7 @@
 
 $padding-x-sm: 1.5rem;
 $padding-x-md: 2rem;
-
+$vertical-spacing: 1rem;
 
 /*******************************************************************************
 * Sizes
@@ -26,16 +26,19 @@ $page-max-width-md: $content-max-width + 2 * $padding-x-md;
 // positioned so the wrapper size does not need to accomodate it.
 // $page-max-width-lg
 // The left column of the side by side layout is capped at 80% of content-max-width (the right column)
-$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.8 * $content-max-width;
+$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.8 *
+    $content-max-width;
 
 /*******************************************************************************
  * Breakpoints
  */
 
 $md-min-width: 960px;
-$lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md + $content-max-width;
+$lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md +
+    $content-max-width;
 // The side by side layout is triggered when the left column reaches 65% of content-max-width (the right column)
-$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.65 * $content-max-width;
+$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.65 *
+    $content-max-width;
 
 @mixin sm-only {
     @media (max-width: $md-min-width - 1px) {
@@ -84,27 +87,27 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 /* Oxford Blue */
 $primary-color: #002147;
 $primary-color-1000: $primary-color;
-$primary-color-900: #0D2E54;
-$primary-color-800: #1D3D63;
+$primary-color-900: #0d2e54;
+$primary-color-800: #1d3d63;
 $primary-color-700: #365578;
 $primary-color-600: #577291;
-$primary-color-500: #6E87A2;
-$primary-color-400: #92A5BB;
-$primary-color-300: #C0CCDA;
-$primary-color-200: #D8E0E9;
-$primary-color-100: #EBEEF2;
+$primary-color-500: #6e87a2;
+$primary-color-400: #92a5bb;
+$primary-color-300: #c0ccda;
+$primary-color-200: #d8e0e9;
+$primary-color-100: #ebeef2;
 
 /* Blood Orange */
-$secondary-color: #D42B21;
+$secondary-color: #d42b21;
 
 /* Yellow */
-$tertiary-color: #F8C723;
-$tertiary-color-100: #F4EDDB;
+$tertiary-color: #f8c723;
+$tertiary-color-100: #f4eddb;
 $tertiary-color-400: $tertiary-color;
 $tertiary-color-700: #d8b43b;
 
 /* Highlight color */
-$highlight-color: #F8C723;
+$highlight-color: #f8c723;
 
 /* Default background color */
 $body-bg: #fafafa;
@@ -142,8 +145,7 @@ $media-color: #0089be;
 $culture-color: #af488f;
 
 /* Controls color */
-$controls-color: #3F9EFF;
-
+$controls-color: #3f9eff;
 
 /*******************************************************************************
  * Z-index

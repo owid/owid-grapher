@@ -181,6 +181,16 @@
             &:first-child {
                 flex: 1;
                 padding: 0 $padding-x-md / 2 0 0;
+
+                > *:first-child {
+                    margin-top: $vertical-spacing;
+                }
+            }
+            &:last-child {
+                > *:first-child {
+                    margin-top: $vertical-spacing;
+                    padding-top: 0;
+                }
             }
         }
 
