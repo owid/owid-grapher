@@ -18,6 +18,7 @@ import {
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
 import { BAKED_GRAPHER_URL } from "settings"
+import { ObservableUrl } from "./UrlBinding"
 
 interface ChartQueryParams {
     tab?: string
@@ -35,7 +36,7 @@ interface ChartQueryParams {
 
 declare const App: any
 
-export class ChartUrl {
+export class ChartUrl implements ObservableUrl {
     chart: ChartConfig
     origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
@@ -62,7 +63,7 @@ export class ChartUrl {
 
     // Autocomputed url params to reflect difference between current chart state
     // and original config state
-    @computed.struct get params(): ChartQueryParams {
+    @computed.struct get params(): QueryParams {
         const params: ChartQueryParams = {}
         const { chart, origChart } = this
 
@@ -98,11 +99,11 @@ export class ChartUrl {
         )
             params.region = chart.props.map.projection
 
-        return params
+        return params as QueryParams
     }
 
     @computed get queryStr(): string {
-        return queryParamsToStr(this.params as QueryParams)
+        return queryParamsToStr(this.params)
     }
 
     @computed get baseUrl(): string | undefined {
