@@ -15,6 +15,7 @@ import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import * as urlBinding from "charts/UrlBinding"
+import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 
 // Hardcoding some dummy config for now so we can display a chart.
@@ -87,18 +88,21 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     model: ExploreModel
     chart: ChartConfig
+    url: ExploreUrl
 
     dispose!: IReactionDisposer
 
     constructor(props: ExploreProps) {
         super(props)
 
-        const { queryStr } = this.props
         const chartProps = new ChartConfigProps()
         extend(chartProps, DUMMY_JSON_CONFIG)
-        this.chart = new ChartConfig(chartProps, { queryStr })
+        this.chart = new ChartConfig(chartProps)
 
         this.model = new ExploreModel()
+
+        this.url = new ExploreUrl(this.model, this.chart.url)
+        this.url.populateFromQueryStr(this.props.queryStr)
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -176,7 +180,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     bindToWindow() {
-        urlBinding.bindUrlToWindow(this.chart.url)
+        urlBinding.bindUrlToWindow(this.url)
         autorun(() => (document.title = this.chart.data.currentTitle))
     }
 }

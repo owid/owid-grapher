@@ -20,7 +20,7 @@ import { MapProjection } from "./MapProjection"
 import { BAKED_GRAPHER_URL } from "settings"
 import { ObservableUrl } from "./UrlBinding"
 
-interface ChartQueryParams {
+export interface ChartQueryParams {
     tab?: string
     overlay?: string
     stackMode?: string

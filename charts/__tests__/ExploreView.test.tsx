@@ -38,12 +38,22 @@ describe(ExploreView, () => {
         beforeAll(() => xhrMock.setup())
         afterAll(() => xhrMock.teardown())
 
-        it("applies the params to the chart", async () => {
+        async function renderWithQueryStr(queryStr: string) {
             mockDataResponse()
             const view = mount(
-                <ExploreView bounds={bounds} queryStr={"time=1965..2005"} />
+                <ExploreView bounds={bounds} queryStr={queryStr} />
             )
             await updateViewWhenReady(view)
+            return view
+        }
+
+        it("applies the chart type", async () => {
+            const view = await renderWithQueryStr("type=WorldMap")
+            expect(view.find(ChoroplethMap)).toHaveLength(1)
+        })
+
+        it("applies the time params to the chart", async () => {
+            const view = await renderWithQueryStr("time=1960..2005")
             const style: any = view.find(".slider .interval").prop("style")
             expect(parseFloat(style.left)).toBeGreaterThan(0)
             expect(parseFloat(style.right)).toBeGreaterThan(0)
