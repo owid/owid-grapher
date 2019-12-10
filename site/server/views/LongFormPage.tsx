@@ -78,6 +78,22 @@ export const LongFormPage = (props: {
                                     <a href="/team">by {authorsText}</a>
                                 </div>
                             )}
+                            {post.info && (
+                                <div
+                                    className="blog-info"
+                                    dangerouslySetInnerHTML={{
+                                        __html: post.info
+                                    }}
+                                />
+                            )}
+                            {isEntry && (
+                                <div className="tools">
+                                    <a href="#citation" className="cite">
+                                        <FontAwesomeIcon icon={faBook} />
+                                        Cite this research
+                                    </a>
+                                </div>
+                            )}
                         </header>
 
                         <div className="contentContainer">
@@ -157,14 +173,6 @@ export const LongFormPage = (props: {
                             )}
 
                             <div className="contentAndFootnotes">
-                                {isEntry && (
-                                    <div className="tools">
-                                        <a href="#citation" className="cite">
-                                            <FontAwesomeIcon icon={faBook} />
-                                            Cite this research
-                                        </a>
-                                    </div>
-                                )}
                                 <div
                                     className="article-content"
                                     dangerouslySetInnerHTML={{

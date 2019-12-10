@@ -245,11 +245,11 @@ h1.entry-title > a:hover {
 }
 
 /* The little section at the top of blog posts that links to related entries */
-.blog-info,
-.entry-status {
+.blog-info {
     @include info;
+    margin-top: 1rem;
     font-style: italic;
-    color: #616161;
+    color: $secondary-text-color;
 }
 
 /* Optional abstract for blog posts */

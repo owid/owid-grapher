@@ -32,6 +32,7 @@ export interface FormattedPost {
     date: Date
     modifiedDate: Date
     authors: string[]
+    info: string | null
     html: string
     footnotes: string[]
     references: Reference[]
@@ -152,7 +153,13 @@ export async function formatWordpressPost(
 
     const $ = cheerio.load(html)
 
+    // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks($)
+
+    // Extract blog info content
+    const $info = $(".blog-info")
+    const info = $info.html()
+    $info.remove()
 
     // Replace grapher iframes with static previews
     if (grapherExports) {
@@ -453,6 +460,7 @@ export async function formatWordpressPost(
         date: post.date,
         modifiedDate: post.modifiedDate,
         authors: post.authors,
+        info: info,
         html: `${style}${$("body").html()}` as string,
         footnotes: footnotes,
         acknowledgements: acknowledgements,
@@ -535,6 +543,7 @@ export async function formatPost(
             date: post.date,
             modifiedDate: post.modifiedDate,
             authors: post.authors,
+            info: null, // Assumption: info blocks are only added to formatted content
             html: html,
             footnotes: [],
             references: [],

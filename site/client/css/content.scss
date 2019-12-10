@@ -204,21 +204,3 @@
         }
     }
 }
-
-/*******************************************************************************
- * Cite this research and other potential tools located at the top of entries
- */
-.tools {
-    margin-bottom: 1rem;
-    .cite {
-        font-size: 0.875rem;
-        color: #616161;
-        transition: all 0.2s;
-        &:hover {
-            color: $secondary-color;
-        }
-        svg {
-            margin-right: 0.5rem;
-        }
-    }
-}
