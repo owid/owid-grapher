@@ -68,9 +68,9 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
         this.props.onChangeId((indicator as Indicator).id)
     }
 
-    @bind async loadOptions(input: string): Promise<Indicator[]> {
+    @bind async loadOptions(query: string): Promise<Indicator[]> {
         return await this.context.indicatorStore.search({
-            query: input
+            query
         })
     }
 
