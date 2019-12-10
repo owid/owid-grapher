@@ -85,16 +85,14 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     chart: ChartConfig
 
-    disposers!: IReactionDisposer[]
+    disposers: IReactionDisposer[]
 
     constructor(props: ExploreProps) {
         super(props)
 
         const chartProps = new ChartConfigProps()
         this.chart = new ChartConfig(chartProps)
-    }
 
-    componentDidMount() {
         this.disposers = [
             // We need these updates in an autorun because the chart config objects aren't really meant
             // to be recreated all the time. They aren't pure value objects and have behaviors on
