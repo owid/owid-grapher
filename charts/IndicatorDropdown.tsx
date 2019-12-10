@@ -74,15 +74,15 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
         })
     }
 
-    @bind getValue(indicator: Indicator) {
-        return indicator.id
+    @bind getValue(indicator: Indicator): string {
+        return `${indicator.id}`
     }
 
-    @bind getLabel(indicator: Indicator) {
+    @bind getLabel(indicator: Indicator): string {
         if (indicator.sourceDesc) {
             return `${indicator.title}, ${indicator.sourceDesc}`
         } else {
-            return indicator.title
+            return indicator.title || ""
         }
     }
 
@@ -93,9 +93,9 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
                 onChange={this.onChange}
                 placeholder={this.props.placeholder}
                 defaultOptions={true}
-                loadOptions={this.loadOptions as any}
-                getOptionValue={this.getValue as any}
-                getOptionLabel={this.getLabel as any}
+                loadOptions={this.loadOptions}
+                getOptionValue={this.getValue}
+                getOptionLabel={this.getLabel}
                 value={this.currentIndicator}
             />
         )
