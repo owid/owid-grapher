@@ -15,6 +15,7 @@ import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import * as urlBinding from "charts/UrlBinding"
+import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -31,8 +32,6 @@ const DUMMY_JSON_CONFIG = {
 }
 
 const WorldMap = "WorldMap"
-
-type ExplorerChartType = ChartTypeType | "WorldMap"
 
 const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
     ChartType.LineChart,
@@ -86,11 +85,7 @@ export class ExploreView extends React.Component<ExploreProps> {
         return view
     }
 
-    // This is different from the chart's concept of chart type because it includes "WorldMap" as
-    // an option, and doesn't include certain chart types we don't support right now, such as
-    // scatter plots
-    @observable chartType: ExplorerChartType = ChartType.LineChart
-
+    model: ExploreModel
     chart: ChartConfig
 
     dispose!: IReactionDisposer
@@ -102,6 +97,8 @@ export class ExploreView extends React.Component<ExploreProps> {
         const chartProps = new ChartConfigProps()
         extend(chartProps, DUMMY_JSON_CONFIG)
         this.chart = new ChartConfig(chartProps, { queryStr })
+
+        this.model = new ExploreModel()
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -125,7 +122,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     @computed get isMap() {
-        return this.chartType === "WorldMap"
+        return this.model.chartType === "WorldMap"
     }
 
     @computed get tab() {
@@ -138,11 +135,11 @@ export class ExploreView extends React.Component<ExploreProps> {
     @computed get configChartType(): ChartTypeType {
         return this.isMap
             ? ChartType.LineChart
-            : (this.chartType as ChartTypeType)
+            : (this.model.chartType as ChartTypeType)
     }
 
     renderChartTypeButton(type: ExplorerChartType) {
-        const isSelected = type === this.chartType
+        const isSelected = type === this.model.chartType
         const display = CHART_TYPE_DISPLAY[type]
         return (
             <button
@@ -150,7 +147,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                 data-type={type}
                 className={`chart-type-button ${isSelected ? "selected" : ""}`}
                 onClick={() => {
-                    this.chartType = type
+                    this.model.chartType = type
                 }}
             >
                 <FontAwesomeIcon icon={display.icon} />
