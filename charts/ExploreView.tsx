@@ -183,7 +183,7 @@ export class ExploreView extends React.Component<ExploreProps> {
         return (
             <div className="indicator-bar">
                 <IndicatorDropdown
-                    placeholder="Select X axis variable"
+                    placeholder="Select variable"
                     onChangeId={id => (this.indicatorId = id)}
                     selectedId={this.indicatorId}
                 />
