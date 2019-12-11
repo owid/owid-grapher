@@ -13,6 +13,7 @@ import { StackedBarChart } from "../StackedBarChart"
 import { DiscreteBarChart } from "../DiscreteBarChart"
 import { SlopeChart } from "../SlopeChart"
 import { ChoroplethMap } from "../ChoroplethMap"
+import { RootStore } from "charts/Store"
 
 const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
@@ -20,21 +21,26 @@ const variableUrl = /\/grapher\/data\/variables\/104402\.json/
 const indicatorsJson = fs.readFileSync("test/fixtures/indicators.json")
 const indicatorsUrl = /\/explore\/indicators\.json/
 
+function getStore() {
+    return new RootStore()
+}
+
 describe(ExploreView, () => {
+    beforeAll(() => xhrMock.setup())
+    afterAll(() => xhrMock.teardown())
+
+    function mockDataResponse() {
+        xhrMock.get(variableUrl, { body: variableJson })
+        xhrMock.get(indicatorsUrl, { body: indicatorsJson })
+    }
+
     it("renders a chart", () => {
-        const view = shallow(<ExploreView bounds={bounds} />)
+        mockDataResponse()
+        const view = shallow(<ExploreView bounds={bounds} store={getStore()} />)
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
     describe("chart types", () => {
-        beforeAll(() => xhrMock.setup())
-        afterAll(() => xhrMock.teardown())
-
-        function mockDataResponse() {
-            xhrMock.get(variableUrl, { body: variableJson })
-            xhrMock.get(indicatorsUrl, { body: indicatorsJson })
-        }
-
         async function updateViewWhenReady(exploreView: ReactWrapper) {
             const chartView = exploreView.find(ChartView).first()
             await (chartView.instance() as ChartView).readyPromise
@@ -43,13 +49,17 @@ describe(ExploreView, () => {
 
         it("displays chart types", () => {
             mockDataResponse()
-            const view = mount(<ExploreView bounds={bounds} />)
+            const view = mount(
+                <ExploreView bounds={bounds} store={getStore()} />
+            )
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
 
         it("defaults to line chart", async () => {
             mockDataResponse()
-            const view = mount(<ExploreView bounds={bounds} />)
+            const view = mount(
+                <ExploreView bounds={bounds} store={getStore()} />
+            )
             await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
         })
@@ -69,7 +79,9 @@ describe(ExploreView, () => {
 
                 beforeAll(async () => {
                     mockDataResponse()
-                    view = mount(<ExploreView bounds={bounds} />)
+                    view = mount(
+                        <ExploreView bounds={bounds} store={getStore()} />
+                    )
                     await updateViewWhenReady(view)
                     view.find(button).simulate("click")
                 })
