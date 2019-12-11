@@ -135,8 +135,6 @@ export class ExploreView extends React.Component<ExploreProps> {
             const indicatorEntry = this.childContext.store.indicators.get(
                 this.model.indicatorId
             )
-            // We are only accessing a property in order to subscribe to changes
-            // See: https://mobx.js.org/best/react.html#mobx-tracks-property-access-not-values
             return indicatorEntry
         }
         return null
