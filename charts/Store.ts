@@ -19,7 +19,7 @@ export interface StoreEntries<EntityType> {
 }
 
 export class IndicatorStore {
-    @observable indicatorsById: StoreEntries<Indicator> = {}
+    indicatorsById: StoreEntries<Indicator> = {}
     fetchAllPromise?: Promise<Indicator[]>
 
     private async fetchAll(): Promise<Indicator[]> {
