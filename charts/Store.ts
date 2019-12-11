@@ -1,5 +1,5 @@
 import { Indicator } from "./Indicator"
-import { observable, runInAction, computed } from "mobx"
+import { observable, runInAction } from "mobx"
 import { fetchJSON, difference, values } from "./Util"
 import { BAKED_BASE_URL } from "settings"
 
