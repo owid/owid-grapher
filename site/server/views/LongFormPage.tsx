@@ -8,6 +8,8 @@ import { formatAuthors, FormattedPost, FormattingOptions } from "../formatting"
 import { CategoryWithEntries } from "db/wpdb"
 import * as _ from "lodash"
 import { SiteSubnavigation } from "./SiteSubnavigation"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 
 export const LongFormPage = (props: {
     entries: CategoryWithEntries[]
@@ -74,6 +76,27 @@ export const LongFormPage = (props: {
                             {!formattingOptions.hideAuthors && (
                                 <div className="authors-byline">
                                     <a href="/team">by {authorsText}</a>
+                                </div>
+                            )}
+                            {post.info && (
+                                <div className="wp-block-columns">
+                                    <div className="wp-block-column">
+                                        <div
+                                            className="blog-info"
+                                            dangerouslySetInnerHTML={{
+                                                __html: post.info
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="wp-block-column"></div>
+                                </div>
+                            )}
+                            {isEntry && (
+                                <div className="tools">
+                                    <a href="#citation" className="cite">
+                                        <FontAwesomeIcon icon={faBook} />
+                                        Cite this research
+                                    </a>
                                 </div>
                             )}
                         </header>

@@ -25,14 +25,20 @@ function getStore() {
     return new RootStore()
 }
 
+function mockDataResponse() {
+    xhrMock.get(variableUrl, { body: variableJson })
+    xhrMock.get(indicatorsUrl, { body: indicatorsJson })
+}
+
+async function updateViewWhenReady(exploreView: ReactWrapper) {
+    const chartView = exploreView.find(ChartView).first()
+    await (chartView.instance() as ChartView).readyPromise
+    exploreView.update()
+}
+
 describe(ExploreView, () => {
     beforeAll(() => xhrMock.setup())
     afterAll(() => xhrMock.teardown())
-
-    function mockDataResponse() {
-        xhrMock.get(variableUrl, { body: variableJson })
-        xhrMock.get(indicatorsUrl, { body: indicatorsJson })
-    }
 
     it("renders a chart", () => {
         mockDataResponse()
@@ -40,13 +46,34 @@ describe(ExploreView, () => {
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
-    describe("chart types", () => {
-        async function updateViewWhenReady(exploreView: ReactWrapper) {
-            const chartView = exploreView.find(ChartView).first()
-            await (chartView.instance() as ChartView).readyPromise
-            exploreView.update()
+    describe("when you render with url params", () => {
+        async function renderWithQueryStr(queryStr: string) {
+            mockDataResponse()
+            const view = mount(
+                <ExploreView
+                    bounds={bounds}
+                    store={getStore()}
+                    queryStr={queryStr}
+                />
+            )
+            await updateViewWhenReady(view)
+            return view
         }
 
+        it("applies the chart type", async () => {
+            const view = await renderWithQueryStr("type=WorldMap")
+            expect(view.find(ChoroplethMap)).toHaveLength(1)
+        })
+
+        it("applies the time params to the chart", async () => {
+            const view = await renderWithQueryStr("time=1960..2005")
+            const style: any = view.find(".slider .interval").prop("style")
+            expect(parseFloat(style.left)).toBeGreaterThan(0)
+            expect(parseFloat(style.right)).toBeGreaterThan(0)
+        })
+    })
+
+    describe("chart types", () => {
         it("displays chart types", () => {
             mockDataResponse()
             const view = mount(

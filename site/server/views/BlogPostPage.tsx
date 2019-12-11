@@ -44,6 +44,14 @@ export const BlogPostPage = (props: {
                                         `by ${formatAuthors(post.authors)}`}
                                 </div>
                             </header>
+                            {post.info && (
+                                <div
+                                    className="blog-info"
+                                    dangerouslySetInnerHTML={{
+                                        __html: post.info
+                                    }}
+                                />
+                            )}
                             <div
                                 className="article-content"
                                 dangerouslySetInnerHTML={{ __html: post.html }}

@@ -13,33 +13,45 @@
     }
 
     .article-header {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
 
         @include xlg-up {
             // About pages
-            text-align: center
+            text-align: center;
         }
 
         &.with-sidebar {
+            $header-margin-bottom: 2rem;
+            $header-padding-top: 2rem;
+            $header-padding-top-lg: 4rem;
+            $header-padding-top-xlg: 6rem;
+            position: relative;
+            margin-bottom: $header-margin-bottom;
             text-align: left;
-            @include lg-only {
-                margin-bottom: 3rem;
+            padding: $header-padding-top 0 2.5rem;
+            &::before {
+                content: "";
+                position: absolute;
+                margin-top: -$header-padding-top;
+                z-index: -1;
+                background-color: $primary-color-100;
+                width: 100vw;
+                height: 100%;
+                left: 50%;
+                margin-left: -50vw;
+            }
+            @include lg-up {
+                padding-top: $header-padding-top-lg;
+                &::before {
+                    margin-top: -$header-padding-top-lg;
+                }
             }
             @include xlg-up {
-                position: relative;
-                $header-padding-top: 6rem;
-                padding: $header-padding-top 0 4rem $sidebar-content-width + $padding-x-md;
-
+                margin-bottom: $header-margin-bottom - 1rem; // chain reaction from aligning the top of the first elements of columns
+                padding-top: $header-padding-top-xlg;
+                padding-left: $sidebar-content-width + $padding-x-md;
                 &::before {
-                    content: '';
-                    position: absolute;
-                    z-index:-1;
-                    background-color: $primary-color-100;
-                    width: 100vw;
-                    height: 100%;
-                    left: 50%;
-                    margin-left: -50vw;
-                    margin-top: - $header-padding-top;
+                    margin-top: -$header-padding-top-xlg;
                 }
             }
         }
@@ -54,10 +66,10 @@
         }
 
         .authors-byline {
-            margin-top: 0.5rem;
+            margin-right: 1rem;
             font-family: $serif-font-stack;
             font-size: 1.125rem;
-            color: rgba($text-color, .8);
+            color: $secondary-text-color;
 
             a {
                 color: inherit;
@@ -68,6 +80,26 @@
             }
         }
 
+        .blog-info {
+            margin-bottom: 0;
+        }
+
+        // Cite this research and other potential tools located at the top of entries
+        .tools {
+            display: flex;
+            margin-top: 4rem;
+            .cite {
+                font-size: 0.8125rem;
+                color: #616161;
+                transition: all 0.2s;
+                &:hover {
+                    color: $secondary-color;
+                }
+                svg {
+                    margin-right: 0.5rem;
+                }
+            }
+        }
     }
 }
 
@@ -93,6 +125,8 @@
 /* Notice for entries that are only a preliminary collection of relevant material */
 .pcrm {
     @include info;
+    padding: 0.625rem;
+    text-align: center;
     background-color: $tertiary-color;
     h2 {
         span {
