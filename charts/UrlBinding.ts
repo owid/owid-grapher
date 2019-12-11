@@ -8,13 +8,16 @@ import {
 } from "utils/client/url"
 
 import { debounce } from "./Util"
-import { ChartUrl } from "./ChartUrl"
 
-export function bindUrlToWindow(url: ChartUrl) {
+export interface ObservableUrl {
+    params: QueryParams
+    debounceMode: boolean
+}
+
+export function bindUrlToWindow(url: ObservableUrl) {
     // There is a surprisingly considerable performance overhead to updating the url
     // while animating, so we debounce to allow e.g. smoother timelines
-    const pushParams = () =>
-        setWindowQueryStr(queryParamsToStr(url.params as QueryParams))
+    const pushParams = () => setWindowQueryStr(queryParamsToStr(url.params))
     const debouncedPushParams = debounce(pushParams, 100)
 
     reaction(

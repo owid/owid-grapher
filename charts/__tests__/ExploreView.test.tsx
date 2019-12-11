@@ -18,25 +18,51 @@ const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
 const url = /\/grapher\/data\/variables\/104402\.json/
 
+function mockDataResponse() {
+    xhrMock.get(url, { body: variableJson })
+}
+
+async function updateViewWhenReady(exploreView: ReactWrapper) {
+    const chartView = exploreView.find(ChartView).first()
+    await (chartView.instance() as ChartView).readyPromise
+    exploreView.update()
+}
+
 describe(ExploreView, () => {
     it("renders a chart", () => {
         const view = shallow(<ExploreView bounds={bounds} />)
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
-    describe("chart types", () => {
+    describe("when you render with url params", () => {
         beforeAll(() => xhrMock.setup())
         afterAll(() => xhrMock.teardown())
 
-        function mockDataResponse() {
-            xhrMock.get(url, { body: variableJson })
+        async function renderWithQueryStr(queryStr: string) {
+            mockDataResponse()
+            const view = mount(
+                <ExploreView bounds={bounds} queryStr={queryStr} />
+            )
+            await updateViewWhenReady(view)
+            return view
         }
 
-        async function updateViewWhenReady(exploreView: ReactWrapper) {
-            const chartView = exploreView.find(ChartView).first()
-            await (chartView.instance() as ChartView).readyPromise
-            exploreView.update()
-        }
+        it("applies the chart type", async () => {
+            const view = await renderWithQueryStr("type=WorldMap")
+            expect(view.find(ChoroplethMap)).toHaveLength(1)
+        })
+
+        it("applies the time params to the chart", async () => {
+            const view = await renderWithQueryStr("time=1960..2005")
+            const style: any = view.find(".slider .interval").prop("style")
+            expect(parseFloat(style.left)).toBeGreaterThan(0)
+            expect(parseFloat(style.right)).toBeGreaterThan(0)
+        })
+    })
+
+    describe("chart types", () => {
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
 
         it("displays chart types", () => {
             mockDataResponse()
