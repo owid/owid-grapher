@@ -8,6 +8,7 @@ import { omit, extend } from "./Util"
 
 type ExploreQueryParams = Omit<ChartQueryParams, "tab"> & {
     type?: string
+    indicator?: string
 }
 
 export class ExploreUrl implements ObservableUrl {
@@ -30,6 +31,10 @@ export class ExploreUrl implements ObservableUrl {
                 ? undefined
                 : model.chartType
 
+        params.indicator = model.indicatorId
+            ? model.indicatorId.toString()
+            : undefined
+
         return params as QueryParams
     }
 
@@ -48,6 +53,11 @@ export class ExploreUrl implements ObservableUrl {
         const chartType = params.type
         if (chartType) {
             model.chartType = chartType as ExplorerChartType
+        }
+
+        if (params.indicator) {
+            const id = parseInt(params.indicator)
+            model.indicatorId = isNaN(id) ? undefined : id
         }
 
         this.chartUrl.populateFromQueryParams(params)
