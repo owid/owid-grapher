@@ -1,19 +1,19 @@
 import * as React from "react"
 import AsyncSelect from "react-select/async"
-import { ValueType, SingleValueProps } from "react-select"
+import { ValueType } from "react-select"
 import { bind } from "decko"
 
 import {
     ExplorerViewContext,
     ExplorerViewContextType
 } from "./ExplorerViewContext"
-import { observable, action, runInAction } from "mobx"
 import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
+import { StoreEntry } from "./Store"
 
 export interface IndicatorDropdownProps {
     placeholder: string
-    selectedId?: number
+    indicatorEntry: StoreEntry<Indicator> | null
     onChangeId: (id: number) => void
 }
 
@@ -26,40 +26,6 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
         placeholder: "Type to search..."
     }
 
-    @observable.ref currentIndicator?: Indicator | null
-
-    componentDidMount() {
-        this.loadCurrentIndicator()
-    }
-
-    componentDidUpdate() {
-        this.loadCurrentIndicator()
-    }
-
-    // Since this component only takes IDs as parameters, we need to load the
-    // full indicator in order to display the title.
-    @action async loadCurrentIndicator() {
-        if (
-            this.props.selectedId &&
-            this.props.selectedId !==
-                (this.currentIndicator && this.currentIndicator.id)
-        ) {
-            const fetchedId = this.props.selectedId
-            const indicator = await this.context.indicatorStore.get(
-                this.props.selectedId
-            )
-            // this.props.selectedId could've changed during the await, need to
-            // make a second check.
-            if (fetchedId === this.props.selectedId) {
-                runInAction(() => {
-                    this.currentIndicator = indicator
-                })
-            }
-        } else if (!this.props.selectedId) {
-            this.currentIndicator = null
-        }
-    }
-
     @bind onChange(indicator: ValueType<Indicator>) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
@@ -69,9 +35,12 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 
     @bind async loadOptions(query: string): Promise<Indicator[]> {
-        return await this.context.indicatorStore.search({
+        const entries = await this.context.store.indicators.search({
             query
         })
+        return entries
+            .filter(entry => entry.entity) // remove entities that haven't loaded
+            .map(entry => entry.entity) as Indicator[]
     }
 
     @bind getValue(indicator: Indicator): string {
@@ -87,6 +56,8 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 
     render() {
+        const entry = this.props.indicatorEntry
+        const entity = entry && entry.entity
         return (
             <AsyncSelect
                 className="indicator-dropdown"
@@ -96,36 +67,8 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
                 loadOptions={this.loadOptions}
                 getOptionValue={this.getValue}
                 getOptionLabel={this.getLabel}
-                value={this.currentIndicator}
+                value={entity}
             />
         )
-    }
-}
-
-export class SingleValue extends React.Component<SingleValueProps<Indicator>> {
-    static contextType = ExplorerViewContext
-    context!: ExplorerViewContextType
-
-    @observable.ref indicator?: Indicator | null
-
-    componentDidMount() {
-        if (!this.props.data.title) {
-            this.fetchIndicator()
-        }
-    }
-
-    async fetchIndicator() {
-        const id = this.props.data.id
-        this.indicator = await this.context.indicatorStore.get(id)
-        console.log(this.indicator)
-    }
-
-    get title(): string {
-        return (this.indicator && this.indicator.title) || ""
-    }
-
-    render() {
-        const { className, innerProps } = this.props
-        return this.title
     }
 }

@@ -1,9 +1,9 @@
 import * as React from "react"
 
-import { IndicatorStore } from "./IndicatorStore"
+import { RootStore } from "./Store"
 
 export interface ExplorerViewContextType {
-    indicatorStore: IndicatorStore
+    store: RootStore
 }
 
 export const ExplorerViewContext: React.Context<

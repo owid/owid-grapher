@@ -5,7 +5,8 @@ import {
     computed,
     IReactionDisposer,
     reaction,
-    autorun
+    autorun,
+    trace
 } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -20,14 +21,18 @@ import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ExplorerViewContext } from "./ExplorerViewContext"
-import { IndicatorStore } from "./IndicatorStore"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { Indicator } from "./Indicator"
+import { RootStore, StoreEntry } from "./Store"
 
 function chartConfigFromIndicator(
-    indicator: Indicator
+    indicator: Partial<Indicator>
 ): Partial<ChartConfigProps> {
     return indicator
+}
+
+function noop(value: any): void {
+    return
 }
 
 const WorldMap = "WorldMap"
@@ -65,6 +70,7 @@ const CHART_TYPE_DISPLAY: {
 
 interface ExploreProps {
     bounds: Bounds
+    store: RootStore
 }
 
 @observer
@@ -72,7 +78,11 @@ export class ExploreView extends React.Component<ExploreProps> {
     static bootstrap({ containerNode }: { containerNode: HTMLElement }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
-        return ReactDOM.render(<ExploreView bounds={bounds} />, containerNode)
+        const store = new RootStore()
+        return ReactDOM.render(
+            <ExploreView bounds={bounds} store={store} />,
+            containerNode
+        )
     }
 
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
@@ -106,30 +116,34 @@ export class ExploreView extends React.Component<ExploreProps> {
                 this.chart.tab = this.isMap ? "map" : "chart"
             }),
 
-            reaction(
-                () => this.indicatorId,
-                async indicatorId => {
-                    if (indicatorId) {
-                        const indicator = await this.childContext.indicatorStore.get(
-                            indicatorId
-                        )
-                        // Indicator may have been switched while awaiting the promise
-                        if (indicator && this.indicatorId === indicatorId) {
-                            this.chart.update(
-                                chartConfigFromIndicator(indicator)
-                            )
-                        }
-                    } else {
-                        // TODO need to handle case when indicator is cleared
+            autorun(() => {
+                if (this.indicatorEntry === null) {
+                    this.chart.update({ dimensions: [] })
+                } else {
+                    const indicator = this.indicatorEntry.entity
+                    if (indicator) {
+                        this.chart.update(chartConfigFromIndicator(indicator))
                     }
-                },
-                { fireImmediately: true }
-            )
+                }
+            })
         ]
     }
 
     componentWillUnmount() {
         this.disposers.forEach(dispose => dispose())
+    }
+
+    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
+        if (this.indicatorId) {
+            const indicatorEntry = this.childContext.store.indicators.get(
+                this.indicatorId
+            )
+            // We are only accessing a property in order to subscribe to changes
+            // See: https://mobx.js.org/best/react.html#mobx-tracks-property-access-not-values
+            noop(indicatorEntry.entity)
+            return indicatorEntry
+        }
+        return null
     }
 
     @computed get bounds() {
@@ -183,7 +197,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <IndicatorDropdown
                     placeholder="Select variable"
                     onChangeId={id => (this.indicatorId = id)}
-                    selectedId={this.indicatorId}
+                    indicatorEntry={this.indicatorEntry}
                 />
             </div>
         )
@@ -191,7 +205,7 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     get childContext() {
         return {
-            indicatorStore: new IndicatorStore()
+            store: this.props.store
         }
     }
 
