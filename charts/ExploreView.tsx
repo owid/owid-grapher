@@ -83,9 +83,6 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    // TODO: Inidialize indicatorId from URL query paramter
-    @observable.ref indicatorId?: number = 677
-
     model: ExploreModel
     chart: ChartConfig
     url: ExploreUrl
@@ -134,9 +131,9 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     @computed get indicatorEntry(): StoreEntry<Indicator> | null {
-        if (this.indicatorId) {
+        if (this.model.indicatorId) {
             const indicatorEntry = this.childContext.store.indicators.get(
-                this.indicatorId
+                this.model.indicatorId
             )
             // We are only accessing a property in order to subscribe to changes
             // See: https://mobx.js.org/best/react.html#mobx-tracks-property-access-not-values
@@ -195,7 +192,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             <div className="indicator-bar">
                 <IndicatorDropdown
                     placeholder="Select variable"
-                    onChangeId={id => (this.indicatorId = id)}
+                    onChangeId={id => (this.model.indicatorId = id)}
                     indicatorEntry={this.indicatorEntry}
                 />
             </div>
