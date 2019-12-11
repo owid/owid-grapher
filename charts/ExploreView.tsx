@@ -1,13 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import {
-    observable,
-    computed,
-    IReactionDisposer,
-    reaction,
-    autorun,
-    trace
-} from "mobx"
+import { observable, computed, IReactionDisposer, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -29,10 +22,6 @@ function chartConfigFromIndicator(
     indicator: Partial<Indicator>
 ): Partial<ChartConfigProps> {
     return indicator
-}
-
-function noop(value: any): void {
-    return
 }
 
 const WorldMap = "WorldMap"
@@ -140,7 +129,6 @@ export class ExploreView extends React.Component<ExploreProps> {
             )
             // We are only accessing a property in order to subscribe to changes
             // See: https://mobx.js.org/best/react.html#mobx-tracks-property-access-not-values
-            noop(indicatorEntry.entity)
             return indicatorEntry
         }
         return null
