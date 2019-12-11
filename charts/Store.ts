@@ -109,7 +109,6 @@ export class RootStore {
     public indicators: IndicatorStore
 
     constructor() {
-        console.log("abc")
         this.indicators = new IndicatorStore()
     }
 }
