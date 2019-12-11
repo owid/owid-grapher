@@ -38,9 +38,7 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
         const entries = await this.context.store.indicators.search({
             query
         })
-        return entries
-            .filter(entry => entry.entity) // remove entities that haven't loaded
-            .map(entry => entry.entity) as Indicator[]
+        return entries.map(entry => entry.entity) as Indicator[]
     }
 
     @bind getValue(indicator: Indicator): string {
