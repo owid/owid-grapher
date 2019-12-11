@@ -79,12 +79,17 @@ export const LongFormPage = (props: {
                                 </div>
                             )}
                             {post.info && (
-                                <div
-                                    className="blog-info"
-                                    dangerouslySetInnerHTML={{
-                                        __html: post.info
-                                    }}
-                                />
+                                <div className="wp-block-columns">
+                                    <div className="wp-block-column">
+                                        <div
+                                            className="blog-info"
+                                            dangerouslySetInnerHTML={{
+                                                __html: post.info
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="wp-block-column"></div>
+                                </div>
                             )}
                             {isEntry && (
                                 <div className="tools">
