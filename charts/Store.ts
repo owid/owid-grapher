@@ -36,7 +36,7 @@ export class IndicatorStore {
         }
     }
 
-    private loadAllIdempotent(): Promise<Indicator[]> {
+    private async fetchAllIdempotent(): Promise<Indicator[]> {
         if (!this.fetchAllPromise) {
             this.fetchAllPromise = new Promise(async resolve => {
                 const indicators = await this.fetchAll()
@@ -80,13 +80,13 @@ export class IndicatorStore {
             const entry = new StoreEntry<Indicator>()
             entry.isLoading = true
             this.indicatorsById[id] = entry
-            this.loadAllIdempotent()
+            this.fetchAllIdempotent()
         }
         return this.indicatorsById[id]
     }
 
     async search(props: { query: string }): Promise<StoreEntry<Indicator>[]> {
-        await this.loadAllIdempotent()
+        await this.fetchAllIdempotent()
         const { query } = props
         const indicatorEntries = values(this.indicatorsById)
         if (!query) {
