@@ -92,13 +92,12 @@ describe(ExploreView, () => {
         // problem separately.
         //
         // -@danielgavrilov 2019-12-12
-        //
-        // it("applies the time params to the chart", async () => {
-        //     const view = await renderWithQueryStr("time=1960..2005")
-        //     const style: any = view.find(".slider .interval").prop("style")
-        //     expect(parseFloat(style.left)).toBeGreaterThan(0)
-        //     expect(parseFloat(style.right)).toBeGreaterThan(0)
-        // })
+        it.skip("applies the time params to the chart", async () => {
+            const view = await renderWithQueryStr("time=1960..2005")
+            const style: any = view.find(".slider .interval").prop("style")
+            expect(parseFloat(style.left)).toBeGreaterThan(0)
+            expect(parseFloat(style.right)).toBeGreaterThan(0)
+        })
 
         it("applies the indicator", async () => {
             const view = await renderWithQueryStr(`indicator=${indicator.id}`)
