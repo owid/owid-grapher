@@ -981,9 +981,8 @@ article.page .authors-byline .citation-note:hover {
     text-shadow: none;
     text-transform: none;
     white-space: normal;
-    word-break: normal;
     word-spacing: normal;
-    word-wrap: normal;
+    overflow-wrap: break-word;
     font-size: 0.875rem;
     opacity: 0;
 }
