@@ -14,6 +14,7 @@ import { DiscreteBarChart } from "../DiscreteBarChart"
 import { SlopeChart } from "../SlopeChart"
 import { ChoroplethMap } from "../ChoroplethMap"
 import { RootStore } from "charts/Store"
+import { Indicator } from "charts/Indicator"
 import { ExploreModel } from "charts/ExploreModel"
 
 const bounds = new Bounds(0, 0, 800, 600)
@@ -21,15 +22,20 @@ const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
 const variableUrl = /\/grapher\/data\/variables\/104402\.json/
 const indicatorsJson = fs.readFileSync("test/fixtures/indicators.json")
 const indicatorsUrl = /\/explore\/indicators\.json/
+const indicator: Indicator = JSON.parse(indicatorsJson.toString()).indicators[0]
 
 function getStore() {
     return new RootStore()
 }
 
-function getModel() {
+function getDefaultModel() {
     const model = new ExploreModel()
-    model.indicatorId = 677
+    model.indicatorId = indicator.id
     return model
+}
+
+function getEmptyModel() {
+    return new ExploreModel()
 }
 
 function mockDataResponse() {
@@ -44,15 +50,11 @@ async function updateViewWhenReady(exploreView: ReactWrapper) {
 }
 
 describe(ExploreView, () => {
-    beforeAll(() => xhrMock.setup())
-    afterAll(() => xhrMock.teardown())
-
-    it("renders a chart", () => {
-        mockDataResponse()
+    it("renders an empty chart", () => {
         const view = shallow(
             <ExploreView
                 bounds={bounds}
-                model={getModel()}
+                model={getEmptyModel()}
                 store={getStore()}
             />
         )
@@ -60,12 +62,15 @@ describe(ExploreView, () => {
     })
 
     describe("when you render with url params", () => {
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
+
         async function renderWithQueryStr(queryStr: string) {
             mockDataResponse()
             const view = mount(
                 <ExploreView
                     bounds={bounds}
-                    model={getModel()}
+                    model={getDefaultModel()}
                     store={getStore()}
                     queryStr={queryStr}
                 />
@@ -94,16 +99,23 @@ describe(ExploreView, () => {
         //     expect(parseFloat(style.left)).toBeGreaterThan(0)
         //     expect(parseFloat(style.right)).toBeGreaterThan(0)
         // })
+
+        it("applies the indicator", async () => {
+            const view = await renderWithQueryStr(`indicator=${indicator.id}`)
+            expect(view.find(".chart h1").text()).toContain(indicator.title)
         })
     })
 
     describe("chart types", () => {
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
+
         it("displays chart types", () => {
             mockDataResponse()
             const view = mount(
                 <ExploreView
                     bounds={bounds}
-                    model={getModel()}
+                    model={getDefaultModel()}
                     store={getStore()}
                 />
             )
@@ -115,7 +127,7 @@ describe(ExploreView, () => {
             const view = mount(
                 <ExploreView
                     bounds={bounds}
-                    model={getModel()}
+                    model={getDefaultModel()}
                     store={getStore()}
                 />
             )
@@ -141,7 +153,7 @@ describe(ExploreView, () => {
                     view = mount(
                         <ExploreView
                             bounds={bounds}
-                            model={getModel()}
+                            model={getDefaultModel()}
                             store={getStore()}
                         />
                     )
@@ -157,6 +169,69 @@ describe(ExploreView, () => {
                     expect(view.find(type.expectedView)).toHaveLength(1)
                 })
             })
+        })
+    })
+
+    describe("indicator switching", () => {
+        beforeAll(() => xhrMock.setup())
+        afterAll(() => xhrMock.teardown())
+
+        it("loads an empty chart with no indicator", () => {
+            const view = shallow(
+                <ExploreView
+                    bounds={bounds}
+                    model={getEmptyModel()}
+                    store={getStore()}
+                />
+            )
+            expect(view.find(ChartView)).toHaveLength(1)
+        })
+
+        it("loads a chart with the initialized indicator", async () => {
+            mockDataResponse()
+            const view = mount(
+                <ExploreView
+                    bounds={bounds}
+                    model={getDefaultModel()}
+                    store={getStore()}
+                />
+            )
+            await updateViewWhenReady(view)
+            expect(view.find(ChartView)).toHaveLength(1)
+            expect(view.find(".chart h1").text()).toContain(indicator.title)
+        })
+
+        it("loads the indicator when the indicatorId is changed", async () => {
+            mockDataResponse()
+            const model = getEmptyModel()
+            const view = mount(
+                <ExploreView bounds={bounds} model={model} store={getStore()} />
+            )
+            expect(view.find(ChartView)).toHaveLength(1)
+            expect(view.find(".chart h1")).toHaveLength(0)
+
+            model.indicatorId = indicator.id
+            await updateViewWhenReady(view)
+            expect(view.find(".chart h1")).toHaveLength(1)
+            expect(view.find(".chart h1").text()).toContain(indicator.title)
+        })
+
+        it("shows the loaded indicator in the dropdown", async () => {
+            mockDataResponse()
+            const view = mount(
+                <ExploreView
+                    bounds={bounds}
+                    model={getDefaultModel()}
+                    store={getStore()}
+                />
+            )
+            await updateViewWhenReady(view)
+            expect(
+                view
+                    .find(".indicator-dropdown")
+                    .first()
+                    .text()
+            ).toContain(indicator.title)
         })
     })
 })
