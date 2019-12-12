@@ -7,7 +7,11 @@ import { decodeHTML } from "entities";
 
 const IN_SITU = 0;
 
-const ReadingContext = ({ readingContext = 0, setReadingContext, editorBlocks }) => {
+const ReadingContext = ({
+  readingContext = 0,
+  setReadingContext,
+  editorBlocks
+}) => {
   const [entriesOptions, setEntriesOptions] = useState([]);
   // entryId is used to remember the id of the entry selected during an
   // editing session, when switching between reading contexts (blog or entry).
@@ -88,7 +92,9 @@ const ReadingContext = ({ readingContext = 0, setReadingContext, editorBlocks })
 
 const mapSelectToProps = function(select, props) {
   return {
-    readingContext: select("core/editor").getEditedPostAttribute("meta")[props.fieldName]
+    readingContext: select("core/editor").getEditedPostAttribute("meta")[
+      props.fieldName
+    ]
   };
 };
 

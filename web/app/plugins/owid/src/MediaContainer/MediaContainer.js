@@ -2,7 +2,11 @@
 // https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/media-text/media-container.js
 
 import { IconButton, Toolbar } from "@wordpress/components";
-import { BlockControls, MediaPlaceholder, MediaUpload } from "@wordpress/block-editor";
+import {
+  BlockControls,
+  MediaPlaceholder,
+  MediaUpload
+} from "@wordpress/block-editor";
 import { Component } from "@wordpress/element";
 
 class MediaContainer extends Component {

@@ -40,15 +40,8 @@ Gutenberg sidebar plugin allowing authors to choose an entry as the reading cont
    $ lando start && lando build
    ```
 
-4. Populate databases
+4. Populate databases and retrieve Wordpress uploads 
 
    ```sh
-   $ lando db-refresh
-   ```
-
-5. Optionally, import the **chartdata** database
-
-   ```sh
-   $ curl -LO https://files.ourworldindata.org/owid_chartdata.sql.gz
-   $ lando db-import -h database-grapher owid_chartdata.sql.gz
+   $ lando refresh -c -u
    ```

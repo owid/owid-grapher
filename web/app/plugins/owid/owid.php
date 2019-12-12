@@ -1,4 +1,6 @@
 <?php
+
+namespace OWID;
 /*
 Plugin Name: Our World In Data
 */
@@ -11,16 +13,20 @@ Plugin Name: Our World In Data
  *  https://developer.wordpress.org/block-editor/tutorials/metabox/meta-block-1-intro/
  */
 
+include 'src/Summary/summary.php';
+include 'src/ProminentLink/prominent-link.php';
+include 'src/AdditionalInformation/additional-information.php';
+
 const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
 
-function owid_plugin_setup()
+function setup()
 {
 	add_theme_support('post-thumbnails');
 	add_theme_support('editor-styles');
 	add_editor_style('editor-style.css');
 }
 
-function owid_plugin_register()
+function register()
 {
 	wp_register_script(
 		'owid-plugin-script',
@@ -54,68 +60,22 @@ function owid_plugin_register()
 
 	register_block_type('owid/summary', array(
 		'editor_script' => 'owid-blocks-script',
-		'render_callback' => 'owid_plugin_summary_render'
+		'render_callback' => __NAMESPACE__ . '\blocks\summary\render'
 	));
 
 	register_block_type('owid/prominent-link', array(
 		'editor_script' => 'owid-blocks-script',
-		'render_callback' => 'owid_plugin_prominent_link_render'
+		'render_callback' => __NAMESPACE__ . '\blocks\prominent_link\render'
+	));
+
+	register_block_type('owid/additional-information', array(
+		'editor_script' => 'owid-blocks-script',
+		'render_callback' => __NAMESPACE__ . '\blocks\additional_information\render'
 	));
 }
 
-function owid_plugin_summary_render($attributes, $content)
-{
-	$block = <<<EOD
-	<div class="wp-block-owid-summary">
-		<h2>Summary</h2>
-		$content
-	</div>
-EOD;
 
-	return $block;
-}
-
-function owid_plugin_prominent_link_render($attributes, $content)
-{
-	$classes = 'wp-block-owid-prominent-link';
-
-	$title = null;
-	if (!empty($attributes['title'])) {
-		$title = "<h3>{$attributes['title']}</h3>";
-	}
-
-	$figure = null;
-	if (!empty($attributes['mediaUrl'])) {
-		$img = wp_get_attachment_image($attributes['mediaId'], 'medium_large');
-		$figure = "<figure>" . $img . "</figure>";
-		$classes .= ' with-image';
-	}
-
-	$linkStart = $linkEnd = null;
-	if (!empty($attributes['linkUrl'])) {
-		$linkStart = '<a href="' . esc_url($attributes['linkUrl']) . '">';
-		$linkEnd = '</a>';
-	}
-
-	$block = <<<EOD
-	<div class="$classes">
-		$linkStart
-			$title
-			<div class="content-wrapper">
-				$figure
-				<div class="content">
-					$content
-				</div>
-			</div>
-		$linkEnd
-	</div>
-EOD;
-
-	return $block;
-}
-
-
-function owid_plugin_assets_enqueue()
+function assets_enqueue()
 {
 	$screen = get_current_screen();
 
@@ -125,24 +85,24 @@ function owid_plugin_assets_enqueue()
 	}
 }
 
-add_action('after_setup_theme', 'owid_plugin_setup');
-add_action('init', 'owid_plugin_register');
-add_action('enqueue_block_editor_assets', 'owid_plugin_assets_enqueue');
+add_action('after_setup_theme', __NAMESPACE__ . '\setup');
+add_action('init', __NAMESPACE__ . '\register');
+add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\assets_enqueue');
 
 
 /*
 */
 
-function owid_plugin_add_post_type_support()
+function add_post_type_support()
 {
 	// Add revision support for reusable blocks
-	add_post_type_support('wp_block', 'revisions');
+	\add_post_type_support('wp_block', 'revisions');
 
 	// Add excerpt support for pages
-	add_post_type_support('page', 'excerpt');
+	\add_post_type_support('page', 'excerpt');
 }
 
-add_action('init', 'owid_plugin_add_post_type_support');
+add_action('init', __NAMESPACE__ . '\add_post_type_support');
 
 
 /*
@@ -164,7 +124,7 @@ function remove_automatic_excerpt($excerpt)
 	return has_excerpt() ? $excerpt : '';
 }
 
-add_filter('the_excerpt', 'remove_automatic_excerpt');
+add_filter('the_excerpt', __NAMESPACE__ . '\remove_automatic_excerpt');
 
 /*
  * Post update hook to trigger background baking
@@ -181,12 +141,19 @@ function build_static($post_ID, $post_after, $post_before)
 		putenv('DB_USER');
 		putenv('DB_NAME');
 		putenv('DB_PORT');
-		$cmd = "cd " . ABSPATH . "codelink && yarn tsn scripts/postUpdatedHook.ts " . escapeshellarg($current_user->user_email) . " " . escapeshellarg($current_user->display_name) . " " . escapeshellarg($post_after->ID) . " " . escapeshellarg($post_after->post_name) . " > /tmp/wp-static.log 2>&1 &";
+		$cmd = "cd "
+			. ABSPATH
+			. "codelink && yarn tsn scripts/postUpdatedHook.ts "
+			. escapeshellarg($current_user->user_email)
+			. " " . escapeshellarg($current_user->display_name)
+			. " " . escapeshellarg($post_after->ID)
+			. " " . escapeshellarg($post_after->post_name)
+			. " > /tmp/wp-static.log 2>&1 &";
 		exec($cmd);
 	}
 }
 
-add_action('post_updated', 'build_static', 10, 3);
+add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
 
 /*
  * API fields
@@ -296,32 +263,32 @@ add_action(
 	function () {
 		register_rest_route('owid/v1', '/type', array(
 			'methods' => 'GET',
-			'callback' => 'getPostType',
+			'callback' => __NAMESPACE__ . '\getPostType',
 		));
 		register_rest_field(
 			['post', 'page'],
 			'path',
-			['get_callback' => 'getPath']
+			['get_callback' => __NAMESPACE__ . '\getPath']
 		);
 		register_rest_field(
 			['post'],
 			'first_heading',
-			['get_callback' => 'getFirstHeading']
+			['get_callback' => __NAMESPACE__ . '\getFirstHeading']
 		);
 		register_rest_field(
 			'post',
 			'reading_context',
-			['get_callback' => 'getReadingContext']
+			['get_callback' => __NAMESPACE__ . '\getReadingContext']
 		);
 		register_rest_field(
 			['post', 'page'],
 			'authors_name',
-			['get_callback' => 'getAuthorsName']
+			['get_callback' => __NAMESPACE__ . '\getAuthorsName']
 		);
 		register_rest_field(
 			['post', 'page'],
 			'featured_media_path',
-			['get_callback' => 'getFeaturedMediaPath']
+			['get_callback' => __NAMESPACE__ . '\getFeaturedMediaPath']
 		);
 	}
 );

@@ -34,23 +34,26 @@ export default ({ options, onSelect, initialValue }) => (
           </div>
           <ul {...getMenuProps()}>
             {isOpen
-              ? matchSorter(options, inputValue, { keys: ["label"] }).map((item, index) => (
-                  <li
-                    {...getItemProps({
-                      key: item.label,
-                      index,
-                      item,
-                      style: {
-                        backgroundColor: highlightedIndex === index ? "#f3f4f5" : null,
-                        padding: "0.3rem 0.5rem",
-                        fontWeight: selectedItem === item ? "bold" : "normal",
-                        cursor: "pointer"
-                      }
-                    })}
-                  >
-                    {item.label}
-                  </li>
-                ))
+              ? matchSorter(options, inputValue, { keys: ["label"] }).map(
+                  (item, index) => (
+                    <li
+                      {...getItemProps({
+                        key: item.label,
+                        index,
+                        item,
+                        style: {
+                          backgroundColor:
+                            highlightedIndex === index ? "#f3f4f5" : null,
+                          padding: "0.3rem 0.5rem",
+                          fontWeight: selectedItem === item ? "bold" : "normal",
+                          cursor: "pointer"
+                        }
+                      })}
+                    >
+                      {item.label}
+                    </li>
+                  )
+                )
               : null}
           </ul>
         </div>

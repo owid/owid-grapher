@@ -51,8 +51,7 @@ const ProminentLink = {
   },
   edit: ({
     attributes: { title, linkUrl, mediaId, mediaUrl, mediaAlt },
-    setAttributes,
-    className
+    setAttributes
   }) => {
     return (
       <>
