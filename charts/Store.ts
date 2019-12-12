@@ -18,6 +18,8 @@ export interface StoreEntries<EntityType> {
     [id: number]: StoreEntry<EntityType>
 }
 
+// This store's interface is designed in mind for a future where we use an API to
+// load indicators. Currently, we load indicators in bulk, from a single file.
 export class IndicatorStore {
     private indicatorsById: StoreEntries<Indicator> = {}
     private fetchAllPromise?: Promise<Indicator[]>
@@ -42,7 +44,9 @@ export class IndicatorStore {
                 const indicators = await this.fetchAll()
 
                 // Find all IDs which are marked as loading but were not
-                // retrieved in fetchAll()
+                // retrieved in fetchAll().
+                // This can happen when we delete an indicator and a user visits
+                // an old (possibly bookmarked) link.
                 const loadingIds = Object.entries(this.indicatorsById)
                     .filter(([id, entry]) => entry.isLoading)
                     .map(([id]) => parseInt(id))
@@ -58,7 +62,7 @@ export class IndicatorStore {
                         storeEntry.error = undefined
                         storeEntry.entity = indicator
                     })
-                    // Mark all other indicator as failed
+                    // Mark all other indicators as failed
                     missingIds.forEach(id => {
                         const storeEntry = this.get(id)
                         storeEntry.isLoading = false
