@@ -1494,7 +1494,7 @@
   resolved "https://registry.yarnpkg.com/@wordpress/npm-package-json-lint-config/-/npm-package-json-lint-config-2.1.0.tgz#961f42a3f047abe5463a4cb0474a4423bf8b510e"
   integrity sha512-NSwcK7GtlmW5O5ZMG7elRKBa9sPws17Sadjlztig6ShOuhlLFeHYk99tUenpmJ/PYOZex4fSJ5e9mqjPyKunjw==
 
-"@wordpress/scripts@^6.0.0":
+"@wordpress/scripts@6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@wordpress/scripts/-/scripts-6.0.0.tgz#4f900d92f7b20d2219a0a27635559d47307aa447"
   integrity sha512-EYNiRT9QZWygelQ175IzkO4c25D0G9tyoIRkzEoz8xi/9ui1kOEAwdS401R5dMRHHWSEkMLM2qJ/ZHnCeVwvhw==
