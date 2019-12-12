@@ -17,6 +17,9 @@ import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { Indicator } from "./Indicator"
 import { RootStore, StoreEntry } from "./Store"
+import * as urlBinding from "charts/UrlBinding"
+import { ExploreUrl } from "./ExploreUrl"
+import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 
 function chartConfigFromIndicator(
     indicator: Indicator
@@ -33,10 +36,6 @@ function chartConfigFromIndicator(
         ]
     }
 }
-
-import * as urlBinding from "charts/UrlBinding"
-import { ExploreUrl } from "./ExploreUrl"
-import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 
 const WorldMap = "WorldMap"
 
