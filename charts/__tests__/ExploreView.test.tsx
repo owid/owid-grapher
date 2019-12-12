@@ -14,6 +14,7 @@ import { DiscreteBarChart } from "../DiscreteBarChart"
 import { SlopeChart } from "../SlopeChart"
 import { ChoroplethMap } from "../ChoroplethMap"
 import { RootStore } from "charts/Store"
+import { ExploreModel } from "charts/ExploreModel"
 
 const bounds = new Bounds(0, 0, 800, 600)
 const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
@@ -23,6 +24,12 @@ const indicatorsUrl = /\/explore\/indicators\.json/
 
 function getStore() {
     return new RootStore()
+}
+
+function getModel() {
+    const model = new ExploreModel()
+    model.indicatorId = 677
+    return model
 }
 
 function mockDataResponse() {
@@ -42,7 +49,13 @@ describe(ExploreView, () => {
 
     it("renders a chart", () => {
         mockDataResponse()
-        const view = shallow(<ExploreView bounds={bounds} store={getStore()} />)
+        const view = shallow(
+            <ExploreView
+                bounds={bounds}
+                model={getModel()}
+                store={getStore()}
+            />
+        )
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
@@ -52,6 +65,7 @@ describe(ExploreView, () => {
             const view = mount(
                 <ExploreView
                     bounds={bounds}
+                    model={getModel()}
                     store={getStore()}
                     queryStr={queryStr}
                 />
@@ -77,7 +91,11 @@ describe(ExploreView, () => {
         it("displays chart types", () => {
             mockDataResponse()
             const view = mount(
-                <ExploreView bounds={bounds} store={getStore()} />
+                <ExploreView
+                    bounds={bounds}
+                    model={getModel()}
+                    store={getStore()}
+                />
             )
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
@@ -85,7 +103,11 @@ describe(ExploreView, () => {
         it("defaults to line chart", async () => {
             mockDataResponse()
             const view = mount(
-                <ExploreView bounds={bounds} store={getStore()} />
+                <ExploreView
+                    bounds={bounds}
+                    model={getModel()}
+                    store={getStore()}
+                />
             )
             await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
@@ -107,7 +129,11 @@ describe(ExploreView, () => {
                 beforeAll(async () => {
                     mockDataResponse()
                     view = mount(
-                        <ExploreView bounds={bounds} store={getStore()} />
+                        <ExploreView
+                            bounds={bounds}
+                            model={getModel()}
+                            store={getStore()}
+                        />
                     )
                     await updateViewWhenReady(view)
                     view.find(button).simulate("click")

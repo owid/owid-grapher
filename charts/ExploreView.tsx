@@ -71,6 +71,7 @@ const CHART_TYPE_DISPLAY: {
 
 interface ExploreProps {
     bounds: Bounds
+    model: ExploreModel
     store: RootStore
     queryStr?: string
 }
@@ -87,8 +88,14 @@ export class ExploreView extends React.Component<ExploreProps> {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
         const store = new RootStore()
+        const model = new ExploreModel()
         return ReactDOM.render(
-            <ExploreView bounds={bounds} store={store} queryStr={queryStr} />,
+            <ExploreView
+                bounds={bounds}
+                model={model}
+                store={store}
+                queryStr={queryStr}
+            />,
             containerNode
         )
     }
@@ -105,7 +112,7 @@ export class ExploreView extends React.Component<ExploreProps> {
         const chartProps = new ChartConfigProps()
         this.chart = new ChartConfig(chartProps)
 
-        this.model = new ExploreModel()
+        this.model = this.props.model
 
         this.url = new ExploreUrl(this.model, this.chart.url)
         this.url.populateFromQueryStr(this.props.queryStr)
