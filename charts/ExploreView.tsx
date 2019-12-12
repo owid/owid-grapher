@@ -20,6 +20,7 @@ import { RootStore, StoreEntry } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
 import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
+import { DataTable } from "./DataTable"
 
 function chartConfigFromIndicator(
     indicator: Indicator
@@ -231,6 +232,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                     {this.renderChartTypes()}
                     {this.renderIndicatorSwitching()}
                     <ChartView chart={this.chart} bounds={this.bounds} />
+                    <DataTable chart={this.chart} />
                 </div>
             </ExplorerViewContext.Provider>
         )
