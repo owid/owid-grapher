@@ -13,20 +13,6 @@
                     "variableId": 104402
                 }
             ],
-            "selectedData": [
-                {
-                    "index": 0,
-                    "entityId": 72
-                },
-                {
-                    "index": 0,
-                    "entityId": 66
-                },
-                {
-                    "index": 0,
-                    "entityId": 229
-                }
-            ],
             "map": {
                 "projection": "World",
                 "targetYear": 2017,

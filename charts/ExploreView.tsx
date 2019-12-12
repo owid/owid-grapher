@@ -19,9 +19,19 @@ import { Indicator } from "./Indicator"
 import { RootStore, StoreEntry } from "./Store"
 
 function chartConfigFromIndicator(
-    indicator: Partial<Indicator>
+    indicator: Indicator
 ): Partial<ChartConfigProps> {
-    return indicator
+    return {
+        ...indicator,
+        // TODO need to derive selected data from ExploreModel, since selections
+        // should persist when switching indicators.
+        selectedData: [
+            {
+                index: 0,
+                entityId: 355
+            }
+        ]
+    }
 }
 
 import * as urlBinding from "charts/UrlBinding"

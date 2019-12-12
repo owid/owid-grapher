@@ -115,7 +115,6 @@ export async function renderExplorableIndicatorsJson() {
         sourceDesc: chart.config.sourceDesc,
         note: chart.config.note,
         dimensions: chart.config.dimensions,
-        selectedData: chart.config.selectedData,
         map: chart.config.map
     }))
 
