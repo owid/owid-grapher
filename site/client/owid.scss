@@ -889,14 +889,6 @@ hr.datasources-hr {
     margin-bottom: 5px;
 }
 
-.article-content p {
-    // This used to be set to 'auto' with the comment: "For wide tables and such on mobile"
-    // Now removed because scrollbars appear on paragraphs in IE Edge.
-    // overflow-x: auto;
-    overflow-x: visible;
-    overflow-y: hidden;
-}
-
 .article-content ol > li {
     margin-bottom: 10px;
 }
