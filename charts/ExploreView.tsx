@@ -17,6 +17,7 @@ import { ChartType, ChartTypeType } from "./ChartType"
 import * as urlBinding from "charts/UrlBinding"
 import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
+import { DataTable } from "./DataTable"
 
 // Hardcoding some dummy config for now so we can display a chart.
 // There will eventually be a list of these, downloaded from a static JSON file.
@@ -175,6 +176,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             <div>
                 {this.renderChartTypes()}
                 <ChartView chart={this.chart} bounds={this.bounds} />
+                <DataTable chart={this.chart} />
             </div>
         )
     }

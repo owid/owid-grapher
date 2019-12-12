@@ -998,3 +998,19 @@ html.iframe .ChartPage {
     color: #333;
     border: 1px solid #3f9eff;
 }
+
+.ExplorePage .data-table {
+    margin-top: 60px;
+    border: 1px solid #ccc;
+    background: white;
+    padding: 20px 40px;
+    width: 100%;
+
+    .entity {
+        text-align: left;
+    }
+
+    .dimension {
+        text-align: right;
+    }
+}
