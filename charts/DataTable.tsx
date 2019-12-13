@@ -3,8 +3,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 
 import { ChartConfig } from "./ChartConfig"
-import { max, capitalize } from "./Util"
-import { reduce } from "lodash-es"
+import { max, reduce, capitalize } from "./Util"
 
 interface DataTableProps {
     chart: ChartConfig
