@@ -87,14 +87,10 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    model: ExploreModel
-
     disposers: IReactionDisposer[]
 
     constructor(props: ExploreProps) {
         super(props)
-
-        this.model = this.props.model
 
         this.disposers = [
             // We need these updates in an autorun because the chart config objects aren't really meant
@@ -124,6 +120,10 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     componentWillUnmount() {
         this.disposers.forEach(dispose => dispose())
+    }
+
+    @computed get model() {
+        return this.props.model
     }
 
     @computed get chart() {
