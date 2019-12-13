@@ -62,13 +62,10 @@ describe(ExploreView, () => {
 
         async function renderWithQueryStr(queryStr: string) {
             mockDataResponse()
+            const model = getDefaultModel()
+            model.populateFromQueryStr(queryStr)
             const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                    queryStr={queryStr}
-                />
+                <ExploreView bounds={bounds} model={model} store={getStore()} />
             )
             await updateViewWhenReady(view)
             return view

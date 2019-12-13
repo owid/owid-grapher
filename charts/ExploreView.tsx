@@ -73,7 +73,6 @@ interface ExploreProps {
     bounds: Bounds
     model: ExploreModel
     store: RootStore
-    queryStr?: string
 }
 
 @observer
@@ -89,13 +88,9 @@ export class ExploreView extends React.Component<ExploreProps> {
         const bounds = Bounds.fromRect(rect)
         const store = new RootStore()
         const model = new ExploreModel()
+        model.populateFromQueryStr(queryStr)
         return ReactDOM.render(
-            <ExploreView
-                bounds={bounds}
-                model={model}
-                store={store}
-                queryStr={queryStr}
-            />,
+            <ExploreView bounds={bounds} model={model} store={store} />,
             containerNode
         )
     }
@@ -108,7 +103,6 @@ export class ExploreView extends React.Component<ExploreProps> {
         super(props)
 
         this.model = this.props.model
-        this.model.populateFromQueryStr(this.props.queryStr)
 
         this.disposers = [
             // We need these updates in an autorun because the chart config objects aren't really meant
