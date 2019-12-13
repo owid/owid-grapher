@@ -133,6 +133,11 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.props.bounds
     }
 
+    get childContext() {
+        return {
+            store: this.props.store
+        }
+    }
     renderChartTypeButton(button: ChartTypeButton) {
         const isSelected = button.type === this.model.chartType
         return (
@@ -172,17 +177,6 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    get childContext() {
-        return {
-            store: this.props.store
-        }
-    }
-
-    bindToWindow() {
-        urlBinding.bindUrlToWindow(this.model.url)
-        autorun(() => (document.title = this.chart.data.currentTitle))
-    }
-
     render() {
         return (
             <ExplorerViewContext.Provider value={this.childContext}>
@@ -194,5 +188,10 @@ export class ExploreView extends React.Component<ExploreProps> {
                 </div>
             </ExplorerViewContext.Provider>
         )
+    }
+
+    bindToWindow() {
+        urlBinding.bindUrlToWindow(this.model.url)
+        autorun(() => (document.title = this.chart.data.currentTitle))
     }
 }
