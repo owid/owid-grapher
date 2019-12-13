@@ -101,21 +101,14 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     model: ExploreModel
-    chart: ChartConfig
-    url: ExploreUrl
 
     disposers: IReactionDisposer[]
 
     constructor(props: ExploreProps) {
         super(props)
 
-        const chartProps = new ChartConfigProps()
-        this.chart = new ChartConfig(chartProps)
-
         this.model = this.props.model
-
-        this.url = new ExploreUrl(this.model, this.chart.url)
-        this.url.populateFromQueryStr(this.props.queryStr)
+        this.model.populateFromQueryStr(this.props.queryStr)
 
         this.disposers = [
             // We need these updates in an autorun because the chart config objects aren't really meant
@@ -145,6 +138,10 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     componentWillUnmount() {
         this.disposers.forEach(dispose => dispose())
+    }
+
+    @computed get chart() {
+        return this.model.chart
     }
 
     @computed get indicatorEntry(): StoreEntry<Indicator> | null {
@@ -221,7 +218,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     bindToWindow() {
-        urlBinding.bindUrlToWindow(this.url)
+        urlBinding.bindUrlToWindow(this.model.url)
         autorun(() => (document.title = this.chart.data.currentTitle))
     }
 

@@ -1,5 +1,7 @@
 import { observable } from "mobx"
 import { ChartType, ChartTypeType } from "./ChartType"
+import { ChartConfig } from "./ChartConfig"
+import { ExploreUrl } from "./ExploreUrl"
 
 export type ExplorerChartType = ChartTypeType | "WorldMap"
 
@@ -12,4 +14,16 @@ export class ExploreModel {
     @observable chartType: ExplorerChartType = ExploreModel.defaultChartType
 
     @observable indicatorId?: number = undefined
+
+    chart: ChartConfig
+    url: ExploreUrl
+
+    constructor(chart?: ChartConfig) {
+        this.chart = chart || new ChartConfig()
+        this.url = new ExploreUrl(this, this.chart.url)
+    }
+
+    populateFromQueryStr(queryStr?: string) {
+        this.url.populateFromQueryStr(queryStr)
+    }
 }
