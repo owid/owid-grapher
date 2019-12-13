@@ -63,9 +63,10 @@ export class EditorReferencesTab extends React.Component<{
                     )}
                 </section>
                 <section>
-                    <h5>Redirects</h5>
+                    <h5>Alternative URLs for this chart</h5>
                     {this.redirects.length ? (
                         <React.Fragment>
+                            <p>The following URLs redirect to this chart:</p>
                             <ul className="list-group">
                                 {this.redirects.map(redirect => (
                                     <li
