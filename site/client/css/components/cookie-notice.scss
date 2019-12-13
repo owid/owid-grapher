@@ -10,7 +10,7 @@
     right: 0;
     bottom: 0;
     z-index: $zindex-cookie-notice;
-    box-shadow: 0 0 30px rgba(#fff, .3);
+    box-shadow: 0 0 30px rgba(#fff, 0.3);
 
     transition: transform 400ms ease, box-shadow 400ms ease;
 
@@ -19,8 +19,8 @@
     box-shadow: none;
 
     &.open {
-        transform: translate(0,0);
-        box-shadow: 0 0 30px rgba(#fff, .3);
+        transform: translate(0, 0);
+        box-shadow: 0 0 30px rgba(#fff, 0.3);
     }
 
     @include md-up {
@@ -59,9 +59,9 @@
         color: $text-color;
         line-height: 1.2;
         margin: 0;
-        padding: .6rem .8rem;
+        padding: 0.6rem 0.8rem;
         cursor: pointer;
-        border: 2px solid rgba($text-color, .2);
+        border: 2px solid rgba($text-color, 0.2);
         transition: border-color 150ms linear;
 
         flex: 1;
@@ -71,18 +71,18 @@
             font-size: 1rem;
         }
 
-        margin-left: .75rem;
+        margin-left: 0.75rem;
 
         &:first-child {
             margin-left: 0;
         }
 
         &:hover {
-            border-color: rgba($text-color, .8)
+            border-color: rgba($text-color, 0.8);
         }
 
         .icon {
-            margin-right: .35rem;
+            margin-right: 0.35rem;
         }
     }
 

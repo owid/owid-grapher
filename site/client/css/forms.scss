@@ -1,7 +1,8 @@
 /* Reset
    ========================================================================== */
 
-fieldset, legend {
+fieldset,
+legend {
     margin: 0;
     padding: 0;
     border: 0;
@@ -21,10 +22,10 @@ $radio-bullet-size: 8px;
     display: inline-block;
     position: relative;
     padding-left: $radio-icon-size;
-    margin-right: .5rem;
-    margin-bottom: .75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.75rem;
 
-    input[type=radio] {
+    input[type="radio"] {
         position: absolute;
         z-index: $zindex-input;
         top: 0;
@@ -36,7 +37,7 @@ $radio-bullet-size: 8px;
         opacity: 0;
     }
 
-    input[type=radio] + label::before {
+    input[type="radio"] + label::before {
         content: "";
         position: absolute;
         top: 50%;
@@ -49,11 +50,11 @@ $radio-bullet-size: 8px;
         background: transparent;
     }
 
-    input[type=radio]:focus + label::before {
+    input[type="radio"]:focus + label::before {
         box-shadow: 0 0 0 4px $highlight-color;
     }
 
-    input[type=radio]:checked + label::after {
+    input[type="radio"]:checked + label::after {
         content: "";
         position: absolute;
         top: 50%;
@@ -67,7 +68,7 @@ $radio-bullet-size: 8px;
     }
 
     label {
-        padding: 0 .5rem;
+        padding: 0 0.5rem;
         cursor: pointer;
     }
 }
@@ -87,10 +88,10 @@ $checkbox-check-height: 4px;
     display: inline-block;
     position: relative;
     padding-left: $checkbox-icon-size;
-    padding-left: calc(#{$checkbox-icon-size} + .5rem);
-    margin-bottom: .5rem;
+    padding-left: calc(#{$checkbox-icon-size} + 0.5rem);
+    margin-bottom: 0.5rem;
 
-    input[type=checkbox] {
+    input[type="checkbox"] {
         position: absolute;
         z-index: $zindex-input;
         top: 50%;
@@ -103,7 +104,7 @@ $checkbox-check-height: 4px;
         opacity: 0;
     }
 
-    input[type=checkbox] + label::before {
+    input[type="checkbox"] + label::before {
         content: "";
         position: absolute;
         top: 50%;
@@ -115,11 +116,11 @@ $checkbox-check-height: 4px;
         background: transparent;
     }
 
-    input[type=checkbox]:focus + label::before {
+    input[type="checkbox"]:focus + label::before {
         box-shadow: 0 0 0 4px $highlight-color;
     }
 
-    input[type=checkbox]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
         content: "";
         position: absolute;
         top: 50%;
@@ -135,7 +136,7 @@ $checkbox-check-height: 4px;
     }
 
     label {
-        padding: 0 .5rem;
+        padding: 0 0.5rem;
         cursor: pointer;
         display: inline-block;
     }
@@ -144,7 +145,7 @@ $checkbox-check-height: 4px;
 .owid-checkbox,
 .owid-checkbox-inline {
     display: inline-block;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
 
     @extend %owid-checkbox;
 }
@@ -154,12 +155,12 @@ $checkbox-check-height: 4px;
 
     @extend %owid-checkbox;
 
-    input[type=checkbox] + label::before {
+    input[type="checkbox"] + label::before {
         top: 0;
         margin-top: -$checkbox-icon-size / 2 + 11px;
     }
 
-    input[type=checkbox]:checked + label::after {
+    input[type="checkbox"]:checked + label::after {
         top: 0;
         margin-top: -$checkbox-check-height / 2 + 10px;
     }
@@ -169,7 +170,6 @@ $checkbox-check-height: 4px;
     }
 }
 
-
 /* Text fields
    ========================================================================== */
 
@@ -178,7 +178,7 @@ $checkbox-check-height: 4px;
     font-size: 1.125rem;
     color: $primary-color;
     background-color: white;
-    padding: .625rem .75rem;
+    padding: 0.625rem 0.75rem;
     border: 2px solid $primary-color;
     border-radius: 0;
     outline: none;
@@ -193,7 +193,7 @@ $checkbox-check-height: 4px;
     }
 
     &:focus::placeholder {
-        opacity: .5;
+        opacity: 0.5;
     }
 }
 
@@ -221,7 +221,7 @@ $checkbox-check-height: 4px;
     cursor: pointer;
 
     &:hover {
-        opacity: .85;
+        opacity: 0.85;
     }
     &:focus {
         outline: 4px solid $highlight-color;
@@ -229,7 +229,7 @@ $checkbox-check-height: 4px;
 }
 
 %owid-button {
-    padding: .8rem 1rem;
+    padding: 0.8rem 1rem;
 
     @extend %owid-button-visual;
 }
@@ -238,15 +238,16 @@ $checkbox-check-height: 4px;
     @extend %owid-button;
 }
 
-.owid-button[disabled], .owid-button.disabled {
-    opacity: .5;
+.owid-button[disabled],
+.owid-button.disabled {
+    opacity: 0.5;
     cursor: default;
 }
 
 %inline-spacing {
     font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
-    padding: .75rem 1rem;
+    padding: 0.75rem 1rem;
 }
 
 .owid-block-field {
