@@ -57,13 +57,11 @@ describe(ExploreView, () => {
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
-    describe("when you render with url params", () => {
+    describe("when you render with diferent model params", () => {
         apiMock.init()
 
-        async function renderWithQueryStr(queryStr: string) {
+        async function renderWithModel(model: ExploreModel) {
             mockDataResponse()
-            const model = getDefaultModel()
-            model.populateFromQueryStr(queryStr)
             const view = mount(
                 <ExploreView bounds={bounds} model={model} store={getStore()} />
             )
@@ -72,7 +70,9 @@ describe(ExploreView, () => {
         }
 
         it("applies the chart type", async () => {
-            const view = await renderWithQueryStr("type=WorldMap")
+            const model = getDefaultModel()
+            model.chartType = "WorldMap"
+            const view = await renderWithModel(model)
             expect(view.find(ChoroplethMap)).toHaveLength(1)
         })
 
@@ -85,15 +85,12 @@ describe(ExploreView, () => {
         //
         // -@danielgavrilov 2019-12-12
         it.skip("applies the time params to the chart", async () => {
-            const view = await renderWithQueryStr("time=1960..2005")
+            const model = getDefaultModel()
+            model.chart.timeDomain = [1960, 2005]
+            const view = await renderWithModel(model)
             const style: any = view.find(".slider .interval").prop("style")
             expect(parseFloat(style.left)).toBeGreaterThan(0)
             expect(parseFloat(style.right)).toBeGreaterThan(0)
-        })
-
-        it("applies the indicator", async () => {
-            const view = await renderWithQueryStr(`indicator=${indicator.id}`)
-            expect(view.find(".chart h1").text()).toContain(indicator.title)
         })
     })
 
