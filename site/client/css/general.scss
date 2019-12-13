@@ -14,26 +14,29 @@ body {
     margin: 0;
 }
 
-button, input, optgroup, select, textarea {
+button,
+input,
+optgroup,
+select,
+textarea {
     font-family: $sans-serif-font-stack;
 }
-
 
 /* Typographical Elements
 --------------------------------------------- */
 
 ::-moz-selection {
-    background-color: #4979D4; /* helles blau*/
+    background-color: #4979d4; /* helles blau*/
     color: #fff;
 }
 
 ::selection {
-    background-color: #4979D4;
+    background-color: #4979d4;
     color: #fff;
 }
 
 a {
-    color: #1059E5;
+    color: #1059e5;
     text-decoration: none;
     cursor: pointer;
 }
@@ -42,7 +45,6 @@ ol,
 ul {
     margin: 0;
     padding: 0;
-
 }
 
 b,
@@ -55,7 +57,6 @@ em,
 i {
     font-style: italic;
 }
-
 
 /* ----------------------------------------------------------- */
 
@@ -77,7 +78,6 @@ h6 a.ref sup {
     font-size: 12px !important;
 }
 
-
 /* Images
 --------------------------------------------- */
 
@@ -85,7 +85,6 @@ img {
     max-width: 100%;
     height: auto;
 }
-
 
 /* iFrames
 --------------------------------------------- */
@@ -113,10 +112,9 @@ address {
     line-height: 14px !important;
     font-size: 10px !important;
 
-    color: #1059E5;
-    background-color:#FAFAFA;
+    color: #1059e5;
+    background-color: #fafafa;
     text-align: left;
-
 }
 
 .narrow_iframe address {
@@ -124,14 +122,13 @@ address {
 }
 
 address a {
-    color: #1059E5;
+    color: #1059e5;
     padding-right: 30px;
 }
 
 address a:hover {
-    color: #FF4012;
+    color: #ff4012;
 }
-
 
 /* Box Sizing
 --------------------------------------------- */
@@ -139,7 +136,6 @@ address a:hover {
 * {
     box-sizing: border-box;
 }
-
 
 /* Hide reCAPTCHA badge.
  * This means we have to manually write a notice.

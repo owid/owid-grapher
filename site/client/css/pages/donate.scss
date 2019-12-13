@@ -40,8 +40,8 @@
         font-size: 1rem;
         text-transform: uppercase;
         font-weight: 700;
-        letter-spacing: .03rem;
-        margin: 0 0 .5rem;
+        letter-spacing: 0.03rem;
+        margin: 0 0 0.5rem;
     }
 
     label {
@@ -53,16 +53,16 @@
         font-weight: 400;
     }
 
-    input[type=radio] {
-        margin-right: .25rem;
+    input[type="radio"] {
+        margin-right: 0.25rem;
     }
 
-    button[type=submit] {
+    button[type="submit"] {
         background-color: $primary-color;
         font-weight: 700;
         color: white;
         border: none;
-        padding: .8rem 1rem;
+        padding: 0.8rem 1rem;
     }
 
     .note {

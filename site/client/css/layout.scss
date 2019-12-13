@@ -17,23 +17,59 @@
     padding: 0 1rem;
 }
 
-.owid-row.owid-spacing--1 { margin-left: -.25rem; margin-right: -.25rem; }
-.owid-spacing--1 > .owid-col { padding-left: .25rem; padding-right: .25rem; }
+.owid-row.owid-spacing--1 {
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+}
+.owid-spacing--1 > .owid-col {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
 
-.owid-row.owid-spacing--2 { margin-left: -.5rem; margin-right: -.5rem; }
-.owid-spacing--2 > .owid-col { padding-left: .5rem; padding-right: .5rem; }
+.owid-row.owid-spacing--2 {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+.owid-spacing--2 > .owid-col {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
 
-.owid-row.owid-spacing--3 { margin-left: -1rem; margin-right: -1rem; }
-.owid-spacing--3 > .owid-col { padding-left: 1rem; padding-right: 1rem; }
+.owid-row.owid-spacing--3 {
+    margin-left: -1rem;
+    margin-right: -1rem;
+}
+.owid-spacing--3 > .owid-col {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
 
-.owid-row.owid-spacing--4 { margin-left: -1.5rem; margin-right: -1.5rem; }
-.owid-spacing--4 > .owid-col { padding-left: 1.5rem; padding-right: 1.5rem; }
+.owid-row.owid-spacing--4 {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+}
+.owid-spacing--4 > .owid-col {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
 
-.owid-row.owid-spacing--5 { margin-left: -2rem; margin-right: -2rem; }
-.owid-spacing--5 > .owid-col { padding-left: -2rem; padding-right: -2rem; }
+.owid-row.owid-spacing--5 {
+    margin-left: -2rem;
+    margin-right: -2rem;
+}
+.owid-spacing--5 > .owid-col {
+    padding-left: -2rem;
+    padding-right: -2rem;
+}
 
-.owid-row.owid-spacing--6 { margin-left: -2.5rem; margin-right: -2.5rem; }
-.owid-spacing--6 > .owid-col { padding-left: 2.5rem; padding-right: 2.5rem; }
+.owid-row.owid-spacing--6 {
+    margin-left: -2.5rem;
+    margin-right: -2.5rem;
+}
+.owid-spacing--6 > .owid-col {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+}
 
 @include sm-only {
     .owid-padding-bottom--sm-3 {
@@ -48,7 +84,6 @@
         padding-bottom: 2.5rem;
     }
 }
-
 
 .owid-col--auto {
     flex: 1;
@@ -119,12 +154,24 @@
     }
 }
 
-.flex-0 { flex: 0; }
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
-.flex-3 { flex: 3; }
-.flex-4 { flex: 4; }
-.flex-5 { flex: 5; }
+.flex-0 {
+    flex: 0;
+}
+.flex-1 {
+    flex: 1;
+}
+.flex-2 {
+    flex: 2;
+}
+.flex-3 {
+    flex: 3;
+}
+.flex-4 {
+    flex: 4;
+}
+.flex-5 {
+    flex: 5;
+}
 
 .flex-align-center {
     align-items: center;
