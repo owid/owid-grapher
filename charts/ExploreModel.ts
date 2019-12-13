@@ -1,10 +1,28 @@
 import { observable, computed, autorun, IReactionDisposer } from "mobx"
 
 import { ChartType, ChartTypeType } from "./ChartType"
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ExploreUrl } from "./ExploreUrl"
+import { RootStore, StoreEntry } from "./Store"
+import { Indicator } from "./Indicator"
 
 export type ExplorerChartType = ChartTypeType | "WorldMap"
+
+function chartConfigFromIndicator(
+    indicator: Indicator
+): Partial<ChartConfigProps> {
+    return {
+        ...indicator,
+        // TODO need to derive selected data from ExploreModel, since selections
+        // should persist when switching indicators.
+        selectedData: [
+            {
+                index: 0,
+                entityId: 355
+            }
+        ]
+    }
+}
 
 export class ExploreModel {
     static WorldMap: ExplorerChartType = "WorldMap"
@@ -19,10 +37,12 @@ export class ExploreModel {
 
     chart: ChartConfig
     url: ExploreUrl
+    store: RootStore
     disposers: IReactionDisposer[] = []
 
-    constructor(chart?: ChartConfig) {
-        this.chart = chart || new ChartConfig()
+    constructor(store: RootStore) {
+        this.store = store
+        this.chart = new ChartConfig()
         this.url = new ExploreUrl(this, this.chart.url)
 
         // We need these updates in an autorun because the chart config objects aren't really meant
@@ -36,6 +56,17 @@ export class ExploreModel {
                 this.chart.props.hasMapTab = this.isMap
                 this.chart.props.hasChartTab = !this.isMap
                 this.chart.tab = this.isMap ? "map" : "chart"
+            }),
+
+            autorun(() => {
+                if (this.indicatorEntry === null) {
+                    this.chart.update({ dimensions: [] })
+                } else {
+                    const indicator = this.indicatorEntry.entity
+                    if (indicator) {
+                        this.chart.update(chartConfigFromIndicator(indicator))
+                    }
+                }
             })
         )
     }
@@ -59,5 +90,13 @@ export class ExploreModel {
         return this.isMap
             ? ChartType.LineChart
             : (this.chartType as ChartTypeType)
+    }
+
+    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
+        if (this.indicatorId) {
+            const indicatorEntry = this.store.indicators.get(this.indicatorId)
+            return indicatorEntry
+        }
+        return null
     }
 }

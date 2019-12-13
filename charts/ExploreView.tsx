@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { computed, IReactionDisposer, autorun } from "mobx"
+import { computed, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -11,31 +11,13 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
-import { ChartConfigProps } from "./ChartConfig"
-import { ChartType, ChartTypeType } from "./ChartType"
+import { ChartType } from "./ChartType"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
-import { Indicator } from "./Indicator"
-import { RootStore, StoreEntry } from "./Store"
+import { RootStore } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
-
-function chartConfigFromIndicator(
-    indicator: Indicator
-): Partial<ChartConfigProps> {
-    return {
-        ...indicator,
-        // TODO need to derive selected data from ExploreModel, since selections
-        // should persist when switching indicators.
-        selectedData: [
-            {
-                index: 0,
-                entityId: 355
-            }
-        ]
-    }
-}
 
 export interface ChartTypeButton {
     type: ExplorerChartType
@@ -64,7 +46,6 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
 interface ExploreProps {
     bounds: Bounds
     model: ExploreModel
-    store: RootStore
 }
 
 @observer
@@ -79,35 +60,15 @@ export class ExploreView extends React.Component<ExploreProps> {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
         const store = new RootStore()
-        const model = new ExploreModel()
+        const model = new ExploreModel(store)
         model.populateFromQueryStr(queryStr)
         return ReactDOM.render(
-            <ExploreView bounds={bounds} model={model} store={store} />,
+            <ExploreView bounds={bounds} model={model} />,
             containerNode
         )
     }
 
-    disposers: IReactionDisposer[] = []
-
-    constructor(props: ExploreProps) {
-        super(props)
-
-        this.disposers.push(
-            autorun(() => {
-                if (this.indicatorEntry === null) {
-                    this.chart.update({ dimensions: [] })
-                } else {
-                    const indicator = this.indicatorEntry.entity
-                    if (indicator) {
-                        this.chart.update(chartConfigFromIndicator(indicator))
-                    }
-                }
-            })
-        )
-    }
-
     componentWillUnmount() {
-        this.disposers.forEach(dispose => dispose())
         this.model.dispose()
     }
 
@@ -119,25 +80,16 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.model.chart
     }
 
-    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
-        if (this.model.indicatorId) {
-            const indicatorEntry = this.childContext.store.indicators.get(
-                this.model.indicatorId
-            )
-            return indicatorEntry
-        }
-        return null
-    }
-
     @computed get bounds() {
         return this.props.bounds
     }
 
     get childContext() {
         return {
-            store: this.props.store
+            store: this.model.store
         }
     }
+
     renderChartTypeButton(button: ChartTypeButton) {
         const isSelected = button.type === this.model.chartType
         return (
@@ -171,7 +123,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <IndicatorDropdown
                     placeholder="Select variable"
                     onChangeId={id => (this.model.indicatorId = id)}
-                    indicatorEntry={this.indicatorEntry}
+                    indicatorEntry={this.model.indicatorEntry}
                 />
             </div>
         )
