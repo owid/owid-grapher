@@ -1,9 +1,10 @@
-import { ExploreModel } from "charts/ExploreModel"
+import { ExploreModel } from "../ExploreModel"
+import { ChartType } from "../ChartType"
 
 describe(ExploreModel, () => {
-    describe("when you give it a query string", () => {
-        let model: ExploreModel
+    let model: ExploreModel
 
+    describe("when you give it a query string", () => {
         beforeAll(() => {
             const queryStr = "indicator=488&time=1960..2000&type=WorldMap"
             model = new ExploreModel()
@@ -20,6 +21,52 @@ describe(ExploreModel, () => {
 
         it("populates the chart params", () => {
             expect(model.chart.timeDomain).toEqual([1960, 2000])
+        })
+    })
+
+    describe("when you set an area type", () => {
+        beforeAll(() => {
+            model = new ExploreModel()
+            model.chartType = ChartType.StackedArea
+        })
+
+        it("updates the chart type to area", () => {
+            expect(model.chart.props.type).toBe(ChartType.StackedArea)
+        })
+
+        it("has a chart tab", () => {
+            expect(model.chart.hasChartTab).toBe(true)
+        })
+
+        it("doesn't have a map tab", () => {
+            expect(model.chart.hasMapTab).toBe(false)
+        })
+
+        it("is on the chart tab", () => {
+            expect(model.chart.tab).toBe("chart")
+        })
+    })
+
+    describe("when you set a map type", () => {
+        beforeAll(() => {
+            model = new ExploreModel()
+            model.chartType = ExploreModel.WorldMap
+        })
+
+        it("updates the chart type to line", () => {
+            expect(model.chart.props.type).toBe(ChartType.LineChart)
+        })
+
+        it("has a map tab", () => {
+            expect(model.chart.hasMapTab).toBe(true)
+        })
+
+        it("doesn't have a chart tab", () => {
+            expect(model.chart.hasChartTab).toBe(false)
+        })
+
+        it("is on the map tab", () => {
+            expect(model.chart.tab).toBe("map")
         })
     })
 })

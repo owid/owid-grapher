@@ -87,24 +87,12 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    disposers: IReactionDisposer[]
+    disposers: IReactionDisposer[] = []
 
     constructor(props: ExploreProps) {
         super(props)
 
-        this.disposers = [
-            // We need these updates in an autorun because the chart config objects aren't really meant
-            // to be recreated all the time. They aren't pure value objects and have behaviors on
-            // instantiation that include fetching data over the network. Instead, we rely on their
-            // observable properties, and on this autorun block to connect them to the Explore controls.
-            // -@jasoncrawford 2019-12-04
-            autorun(() => {
-                this.chart.props.type = this.configChartType
-                this.chart.props.hasMapTab = this.isMap
-                this.chart.props.hasChartTab = !this.isMap
-                this.chart.tab = this.isMap ? "map" : "chart"
-            }),
-
+        this.disposers.push(
             autorun(() => {
                 if (this.indicatorEntry === null) {
                     this.chart.update({ dimensions: [] })
@@ -115,11 +103,12 @@ export class ExploreView extends React.Component<ExploreProps> {
                     }
                 }
             })
-        ]
+        )
     }
 
     componentWillUnmount() {
         this.disposers.forEach(dispose => dispose())
+        this.model.dispose()
     }
 
     @computed get model() {
@@ -142,19 +131,6 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     @computed get bounds() {
         return this.props.bounds
-    }
-
-    @computed get isMap() {
-        return this.model.chartType === "WorldMap"
-    }
-
-    // Translates between the chart type chosen in the Explore UI, and the type we want to set on
-    // the ChartConfigProps. It's a pass-through unless map is chosen, in which case we tell the
-    // chart (arbitrarily) to be a line chart, and set the tab to map.
-    @computed get configChartType(): ChartTypeType {
-        return this.isMap
-            ? ChartType.LineChart
-            : (this.model.chartType as ChartTypeType)
     }
 
     renderChartTypeButton(button: ChartTypeButton) {

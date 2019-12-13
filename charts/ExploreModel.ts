@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { observable, computed, autorun, IReactionDisposer } from "mobx"
 
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartConfig } from "./ChartConfig"
@@ -19,13 +19,45 @@ export class ExploreModel {
 
     chart: ChartConfig
     url: ExploreUrl
+    disposers: IReactionDisposer[] = []
 
     constructor(chart?: ChartConfig) {
         this.chart = chart || new ChartConfig()
         this.url = new ExploreUrl(this, this.chart.url)
+
+        // We need these updates in an autorun because the chart config objects aren't really meant
+        // to be recreated all the time. They aren't pure value objects and have behaviors on
+        // instantiation that include fetching data over the network. Instead, we rely on their
+        // observable properties, and on this autorun block to connect them to the Explore controls.
+        // -@jasoncrawford 2019-12-04
+        this.disposers.push(
+            autorun(() => {
+                this.chart.props.type = this.configChartType
+                this.chart.props.hasMapTab = this.isMap
+                this.chart.props.hasChartTab = !this.isMap
+                this.chart.tab = this.isMap ? "map" : "chart"
+            })
+        )
+    }
+
+    dispose() {
+        this.disposers.forEach(dispose => dispose())
     }
 
     populateFromQueryStr(queryStr?: string) {
         this.url.populateFromQueryStr(queryStr)
+    }
+
+    @computed get isMap() {
+        return this.chartType === "WorldMap"
+    }
+
+    // Translates between the chart type chosen in the Explore UI, and the type we want to set on
+    // the ChartConfigProps. It's a pass-through unless map is chosen, in which case we tell the
+    // chart (arbitrarily) to be a line chart, and set the tab to map.
+    @computed get configChartType(): ChartTypeType {
+        return this.isMap
+            ? ChartType.LineChart
+            : (this.chartType as ChartTypeType)
     }
 }
