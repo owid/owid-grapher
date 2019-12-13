@@ -1,6 +1,5 @@
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
-import * as fs from "fs"
 
 import { ChartPage } from "../ChartPage"
 import { SiteHeader } from "../SiteHeader"
@@ -8,14 +7,14 @@ import { SiteFooter } from "../SiteFooter"
 import { extend } from "charts/Util"
 import { ChartConfigProps } from "charts/ChartConfig"
 
-const chartJson = fs.readFileSync("test/fixtures/chart-677.json")
+import * as fixtures from "test/fixtures"
 
 describe(ChartPage, () => {
     let chart: ChartConfigProps
 
     beforeAll(() => {
         chart = new ChartConfigProps()
-        extend(chart, JSON.parse(chartJson.toString()))
+        extend(chart, fixtures.readChart(677))
     })
 
     describe("when the page is rendered", () => {

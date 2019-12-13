@@ -1,13 +1,11 @@
-import * as fs from "fs"
-import xhrMock from "xhr-mock"
-
-import { RootStore, IndicatorStore } from "charts/Store"
-import { Indicator } from "charts/Indicator"
 import { observe } from "mobx"
 
-const indicatorsJson = fs.readFileSync("test/fixtures/indicators.json")
-const indicatorsUrl = /\/explore\/indicators\.json/
-const indicator: Indicator = JSON.parse(indicatorsJson.toString()).indicators[0]
+import { RootStore, IndicatorStore } from "charts/Store"
+import * as fixtures from "test/fixtures"
+import * as apiMock from "test/apiMock"
+
+const indicatorsBuffer = fixtures.readBuffer("indicators")
+const indicator = fixtures.readIndicators().indicators[0]
 
 function createIndicatorStore() {
     return new IndicatorStore()
@@ -17,24 +15,20 @@ function createRootStore() {
     return new RootStore()
 }
 
-function mockDataResponse() {
-    xhrMock.get(indicatorsUrl, { body: indicatorsJson })
-}
-
 describe(IndicatorStore, () => {
-    beforeAll(() => xhrMock.setup())
-    afterAll(() => xhrMock.teardown())
+    let store: IndicatorStore
+
+    apiMock.init()
 
     describe("get()", () => {
+        beforeEach(() => apiMock.mockIndicators())
+        beforeEach(() => (store = createIndicatorStore()))
+
         it("returns a placeholder value", () => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             expect(store.get(indicator.id))
         })
 
         it("updates placeholder value with indicator", done => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             const entry = store.get(indicator.id)
             const dispose = observe(entry, "entity", () => {
                 expect(entry.isLoading).toBe(false)
@@ -47,8 +41,6 @@ describe(IndicatorStore, () => {
         })
 
         it("updates placeholder with error", done => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             const entry = store.get(123123123)
             const dispose = observe(entry, "error", () => {
                 expect(entry.isLoading).toBe(false)
@@ -62,27 +54,21 @@ describe(IndicatorStore, () => {
     })
 
     describe("search()", () => {
-        beforeAll(() => xhrMock.setup())
-        afterAll(() => xhrMock.teardown())
+        beforeEach(() => apiMock.mockIndicators())
+        beforeEach(() => (store = createIndicatorStore()))
 
         it("returns all indicators for no query", async () => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             const results = await store.search({ query: "" })
             expect(results).toHaveLength(1)
         })
 
         it("returns found indicators for matching query", async () => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             const results = await store.search({ query: "child" })
             expect(results).toHaveLength(1)
             expect(results).toContain(store.get(indicator.id))
         })
 
         it("returns no indicators for non-matching query", async () => {
-            mockDataResponse()
-            const store = createIndicatorStore()
             const results = await store.search({
                 query: "a thing that probably shouldn't exist"
             })

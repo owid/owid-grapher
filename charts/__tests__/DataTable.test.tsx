@@ -1,18 +1,13 @@
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
-import * as fs from "fs"
 
 import { DataTable } from "../DataTable"
 import { ChartConfig, ChartConfigProps } from "../ChartConfig"
 import { extend } from "charts/Util"
+import * as fixtures from "test/fixtures"
 
-function readFixture(fixture: string) {
-    const buffer = fs.readFileSync(`test/fixtures/${fixture}.json`)
-    return JSON.parse(buffer.toString())
-}
-
-const chartFixture = readFixture("chart-677")
-const variableFixture = readFixture("variable-104402")
+const chartFixture = fixtures.readChart(677)
+const variableFixture = fixtures.readVariable(104402)
 
 describe(DataTable, () => {
     const props = new ChartConfigProps()

@@ -1,7 +1,5 @@
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import xhrMock from "xhr-mock"
-import * as fs from "fs"
 
 import { ExploreView } from "../ExploreView"
 import { Bounds } from "../Bounds"
@@ -14,15 +12,13 @@ import { DiscreteBarChart } from "../DiscreteBarChart"
 import { SlopeChart } from "../SlopeChart"
 import { ChoroplethMap } from "../ChoroplethMap"
 import { RootStore } from "charts/Store"
-import { Indicator } from "charts/Indicator"
 import { ExploreModel } from "charts/ExploreModel"
 
+import * as apiMock from "test/apiMock"
+import * as fixtures from "test/fixtures"
+
 const bounds = new Bounds(0, 0, 800, 600)
-const variableJson = fs.readFileSync("test/fixtures/variable-104402.json")
-const variableUrl = /\/grapher\/data\/variables\/104402\.json/
-const indicatorsJson = fs.readFileSync("test/fixtures/indicators.json")
-const indicatorsUrl = /\/explore\/indicators\.json/
-const indicator: Indicator = JSON.parse(indicatorsJson.toString()).indicators[0]
+const indicator = fixtures.readIndicators().indicators[0]
 
 function getStore() {
     return new RootStore()
@@ -39,8 +35,8 @@ function getEmptyModel() {
 }
 
 function mockDataResponse() {
-    xhrMock.get(variableUrl, { body: variableJson })
-    xhrMock.get(indicatorsUrl, { body: indicatorsJson })
+    apiMock.mockIndicators()
+    apiMock.mockVariable(104402)
 }
 
 async function updateViewWhenReady(exploreView: ReactWrapper) {
@@ -62,8 +58,7 @@ describe(ExploreView, () => {
     })
 
     describe("when you render with url params", () => {
-        beforeAll(() => xhrMock.setup())
-        afterAll(() => xhrMock.teardown())
+        apiMock.init()
 
         async function renderWithQueryStr(queryStr: string) {
             mockDataResponse()
@@ -106,8 +101,7 @@ describe(ExploreView, () => {
     })
 
     describe("chart types", () => {
-        beforeAll(() => xhrMock.setup())
-        afterAll(() => xhrMock.teardown())
+        apiMock.init()
 
         it("displays chart types", () => {
             mockDataResponse()
@@ -172,8 +166,7 @@ describe(ExploreView, () => {
     })
 
     describe("indicator switching", () => {
-        beforeAll(() => xhrMock.setup())
-        afterAll(() => xhrMock.teardown())
+        apiMock.init()
 
         it("loads an empty chart with no indicator", () => {
             const view = shallow(
