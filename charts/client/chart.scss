@@ -973,7 +973,7 @@ html.iframe .ChartPage {
     flex-direction: column;
     margin: 0;
     width: 100%;
-    height: calc(100vh - 140px);
+    min-height: calc(100vh - 140px);
 }
 
 .ExplorePage .chart-type-buttons {
