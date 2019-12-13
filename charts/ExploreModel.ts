@@ -1,4 +1,5 @@
 import { observable } from "mobx"
+
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartConfig } from "./ChartConfig"
 import { ExploreUrl } from "./ExploreUrl"
@@ -6,6 +7,7 @@ import { ExploreUrl } from "./ExploreUrl"
 export type ExplorerChartType = ChartTypeType | "WorldMap"
 
 export class ExploreModel {
+    static WorldMap: ExplorerChartType = "WorldMap"
     static defaultChartType: ExplorerChartType = ChartType.LineChart
 
     // This is different from the chart's concept of chart type because it includes "WorldMap" as

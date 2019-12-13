@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, IReactionDisposer, autorun } from "mobx"
+import { computed, IReactionDisposer, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -11,14 +11,13 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { Indicator } from "./Indicator"
 import { RootStore, StoreEntry } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
-import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
 
@@ -38,27 +37,20 @@ function chartConfigFromIndicator(
     }
 }
 
-const WorldMap = "WorldMap"
-
-const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
-    ChartType.LineChart,
-    ChartType.StackedArea,
-    ChartType.StackedBar,
-    ChartType.DiscreteBar,
-    ChartType.SlopeChart,
-    WorldMap
-]
-
-const CHART_TYPE_DISPLAY: {
-    [key: string]: { label: string; icon: IconDefinition }
-} = {
-    [ChartType.LineChart]: { label: "Line", icon: faChartLine },
-    [ChartType.StackedArea]: { label: "Area", icon: faChartArea },
-    [ChartType.StackedBar]: { label: "Stacked", icon: faChartBar },
-    [ChartType.DiscreteBar]: { label: "Bar", icon: faChartBar },
-    [ChartType.SlopeChart]: { label: "Slope", icon: faChartLine },
-    [WorldMap]: { label: "Map", icon: faMap }
+export interface ChartTypeButton {
+    type: ExplorerChartType
+    label: string
+    icon: IconDefinition
 }
+
+const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
+    { type: ChartType.LineChart, label: "Line", icon: faChartLine },
+    { type: ChartType.StackedArea, label: "Area", icon: faChartArea },
+    { type: ChartType.StackedBar, label: "Stacked", icon: faChartBar },
+    { type: ChartType.DiscreteBar, label: "Bar", icon: faChartBar },
+    { type: ChartType.SlopeChart, label: "Slope", icon: faChartLine },
+    { type: ExploreModel.WorldMap, label: "Map", icon: faMap }
+]
 
 // This component was modeled after ChartView.
 //
@@ -165,20 +157,19 @@ export class ExploreView extends React.Component<ExploreProps> {
             : (this.model.chartType as ChartTypeType)
     }
 
-    renderChartTypeButton(type: ExplorerChartType) {
-        const isSelected = type === this.model.chartType
-        const display = CHART_TYPE_DISPLAY[type]
+    renderChartTypeButton(button: ChartTypeButton) {
+        const isSelected = button.type === this.model.chartType
         return (
             <button
-                key={type}
-                data-type={type}
+                key={button.type}
+                data-type={button.type}
                 className={`chart-type-button ${isSelected ? "selected" : ""}`}
                 onClick={() => {
-                    this.model.chartType = type
+                    this.model.chartType = button.type
                 }}
             >
-                <FontAwesomeIcon icon={display.icon} />
-                <div>{display.label}</div>
+                <FontAwesomeIcon icon={button.icon} />
+                <div>{button.label}</div>
             </button>
         )
     }
@@ -186,8 +177,8 @@ export class ExploreView extends React.Component<ExploreProps> {
     renderChartTypes() {
         return (
             <div className="chart-type-buttons">
-                {AVAILABLE_CHART_TYPES.map(type =>
-                    this.renderChartTypeButton(type)
+                {CHART_TYPE_BUTTONS.map(button =>
+                    this.renderChartTypeButton(button)
                 )}
             </div>
         )
