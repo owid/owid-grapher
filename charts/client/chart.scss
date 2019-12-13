@@ -10,6 +10,7 @@ $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
 $zindex-Tooltip: 100;
 $zindex-DataSelector: 110;
+$zindex-IndicatorDropdown: 200;
 
 figure[data-grapher-src]:empty {
     display: flex;
@@ -997,4 +998,9 @@ html.iframe .ChartPage {
 .ExplorePage .chart-type-button.selected {
     color: #333;
     border: 1px solid #3f9eff;
+}
+
+.ExplorePage .indicator-dropdown {
+    position: relative;
+    z-index: $zindex-IndicatorDropdown;
 }

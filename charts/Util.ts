@@ -423,3 +423,30 @@ export function urlToSlug(url: string): string {
 export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
 }
+
+export async function fetchJSON(url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", function() {
+            resolve(JSON.parse(this.responseText))
+        })
+        req.addEventListener("readystatechange", () => {
+            if (req.readyState === 4) {
+                if (req.status !== 200) {
+                    reject(new Error(`${req.status} ${req.statusText}`))
+                }
+            }
+        })
+        req.open("GET", url)
+        req.send()
+    })
+    // window.fetch() implementation below. Decided to use XMLHttpRequest for
+    // the time being, since mocking window.fetch() seemed not to allow
+    // specifying an endpoint, rather you just intercept function calls, which
+    // feels more verbose.
+    // -@danielgavrilov 2019-12-09
+    //
+    // const response = await window.fetch(url)
+    // const result = await response.json()
+    // return result
+}

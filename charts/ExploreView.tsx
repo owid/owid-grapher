@@ -1,8 +1,7 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, autorun, IReactionDisposer } from "mobx"
+import { observable, computed, IReactionDisposer, autorun } from "mobx"
 import { observer } from "mobx-react"
-import { extend } from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -14,22 +13,28 @@ import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
+import { ExplorerViewContext } from "./ExplorerViewContext"
+import { IndicatorDropdown } from "./IndicatorDropdown"
+import { Indicator } from "./Indicator"
+import { RootStore, StoreEntry } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
 import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 
-// Hardcoding some dummy config for now so we can display a chart.
-// There will eventually be a list of these, downloaded from a static JSON file.
-// -@jasoncrawford 2 Dec 2019
-const DUMMY_JSON_CONFIG = {
-    id: 677,
-    title: "Child mortality rate",
-    subtitle: "Share of newborns who die before reaching the age of five.",
-    sourceDesc: "IHME, Global Burden of Disease",
-    note: "",
-    dimensions: [{ display: {}, property: "y", variableId: 104402 }],
-    selectedData: [{ index: 0, entityId: 355 }],
-    map: { targetYear: 2017 }
+function chartConfigFromIndicator(
+    indicator: Indicator
+): Partial<ChartConfigProps> {
+    return {
+        ...indicator,
+        // TODO need to derive selected data from ExploreModel, since selections
+        // should persist when switching indicators.
+        selectedData: [
+            {
+                index: 0,
+                entityId: 355
+            }
+        ]
+    }
 }
 
 const WorldMap = "WorldMap"
@@ -65,6 +70,8 @@ const CHART_TYPE_DISPLAY: {
 
 interface ExploreProps {
     bounds: Bounds
+    model: ExploreModel
+    store: RootStore
     queryStr?: string
 }
 
@@ -79,46 +86,74 @@ export class ExploreView extends React.Component<ExploreProps> {
     }) {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
-        const view = ReactDOM.render(
-            <ExploreView bounds={bounds} queryStr={queryStr} />,
+        const store = new RootStore()
+        const model = new ExploreModel()
+        return ReactDOM.render(
+            <ExploreView
+                bounds={bounds}
+                model={model}
+                store={store}
+                queryStr={queryStr}
+            />,
             containerNode
         )
-        return view
     }
 
     model: ExploreModel
     chart: ChartConfig
     url: ExploreUrl
 
-    dispose!: IReactionDisposer
+    disposers: IReactionDisposer[]
 
     constructor(props: ExploreProps) {
         super(props)
 
         const chartProps = new ChartConfigProps()
-        extend(chartProps, DUMMY_JSON_CONFIG)
         this.chart = new ChartConfig(chartProps)
 
-        this.model = new ExploreModel()
+        this.model = this.props.model
 
         this.url = new ExploreUrl(this.model, this.chart.url)
         this.url.populateFromQueryStr(this.props.queryStr)
 
-        // We need these updates in an autorun because the chart config objects aren't really meant
-        // to be recreated all the time. They aren't pure value objects and have behaviors on
-        // instantiation that include fetching data over the network. Instead, we rely on their
-        // observable properties, and on this autorun block to connect them to the Explore controls.
-        // -@jasoncrawford 2019-12-04
-        this.dispose = autorun(() => {
-            this.chart.props.type = this.configChartType
-            this.chart.props.hasMapTab = this.isMap
-            this.chart.props.hasChartTab = !this.isMap
-            this.chart.tab = this.tab
-        })
+        this.disposers = [
+            // We need these updates in an autorun because the chart config objects aren't really meant
+            // to be recreated all the time. They aren't pure value objects and have behaviors on
+            // instantiation that include fetching data over the network. Instead, we rely on their
+            // observable properties, and on this autorun block to connect them to the Explore controls.
+            // -@jasoncrawford 2019-12-04
+            autorun(() => {
+                this.chart.props.type = this.configChartType
+                this.chart.props.hasMapTab = this.isMap
+                this.chart.props.hasChartTab = !this.isMap
+                this.chart.tab = this.isMap ? "map" : "chart"
+            }),
+
+            autorun(() => {
+                if (this.indicatorEntry === null) {
+                    this.chart.update({ dimensions: [] })
+                } else {
+                    const indicator = this.indicatorEntry.entity
+                    if (indicator) {
+                        this.chart.update(chartConfigFromIndicator(indicator))
+                    }
+                }
+            })
+        ]
     }
 
     componentWillUnmount() {
-        this.dispose()
+        this.disposers.forEach(dispose => dispose())
+    }
+
+    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
+        if (this.model.indicatorId) {
+            const indicatorEntry = this.childContext.store.indicators.get(
+                this.model.indicatorId
+            )
+            return indicatorEntry
+        }
+        return null
     }
 
     @computed get bounds() {
@@ -127,10 +162,6 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     @computed get isMap() {
         return this.model.chartType === "WorldMap"
-    }
-
-    @computed get tab() {
-        return this.isMap ? "map" : "chart"
     }
 
     // Translates between the chart type chosen in the Explore UI, and the type we want to set on
@@ -170,17 +201,38 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    render() {
+    renderIndicatorSwitching() {
         return (
-            <div>
-                {this.renderChartTypes()}
-                <ChartView chart={this.chart} bounds={this.bounds} />
+            <div className="indicator-bar">
+                <IndicatorDropdown
+                    placeholder="Select variable"
+                    onChangeId={id => (this.model.indicatorId = id)}
+                    indicatorEntry={this.indicatorEntry}
+                />
             </div>
         )
+    }
+
+    get childContext() {
+        return {
+            store: this.props.store
+        }
     }
 
     bindToWindow() {
         urlBinding.bindUrlToWindow(this.url)
         autorun(() => (document.title = this.chart.data.currentTitle))
+    }
+
+    render() {
+        return (
+            <ExplorerViewContext.Provider value={this.childContext}>
+                <div>
+                    {this.renderChartTypes()}
+                    {this.renderIndicatorSwitching()}
+                    <ChartView chart={this.chart} bounds={this.bounds} />
+                </div>
+            </ExplorerViewContext.Provider>
+        )
     }
 }

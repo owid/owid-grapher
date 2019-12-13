@@ -10,4 +10,6 @@ export class ExploreModel {
     // an option, and doesn't include certain chart types we don't support right now, such as
     // scatter plots
     @observable chartType: ExplorerChartType = ExploreModel.defaultChartType
+
+    @observable indicatorId?: number = undefined
 }

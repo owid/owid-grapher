@@ -16,7 +16,8 @@ import {
     renderToHtmlPage,
     feedbackPage,
     renderNotFoundPage,
-    renderBlogByPageNum
+    renderBlogByPageNum,
+    renderExplorableIndicatorsJson
 } from "site/server/siteBaking"
 import { chartPage, chartDataJson } from "site/server/chartBaking"
 import {
@@ -96,6 +97,10 @@ devServer.get("/charts", async (req, res) => {
 
 devServer.get("/explore", async (req, res) => {
     res.send(await renderExplorePage())
+})
+
+devServer.get("/explore/indicators.json", async (req, res) => {
+    res.type("json").send(await renderExplorableIndicatorsJson())
 })
 
 devServer.get("/search", async (req, res) => {

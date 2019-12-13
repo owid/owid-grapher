@@ -27,7 +27,8 @@ import {
     entriesByYearPage,
     makeAtomFeed,
     feedbackPage,
-    renderNotFoundPage
+    renderNotFoundPage,
+    renderExplorableIndicatorsJson
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -269,12 +270,6 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/charts.html`,
             await renderChartsPage()
         )
-        if (settings.EXPLORER) {
-            await this.stageWrite(
-                `${BAKED_SITE_DIR}/explore.html`,
-                await renderExplorePage()
-            )
-        }
         await this.stageWrite(
             `${BAKED_SITE_DIR}/search.html`,
             await renderSearchPage()
@@ -291,6 +286,16 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/sitemap.xml`,
             await makeSitemap()
         )
+        if (settings.EXPLORER) {
+            await this.stageWrite(
+                `${BAKED_SITE_DIR}/explore.html`,
+                await renderExplorePage()
+            )
+            await this.stageWrite(
+                `${BAKED_SITE_DIR}/explore/indicators.json`,
+                await renderExplorableIndicatorsJson()
+            )
+        }
     }
 
     // Pages that are expected by google scholar for indexing

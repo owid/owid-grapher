@@ -1,3 +1,7 @@
+// We need to keep this until we make the EXPLORER flag obsolete (by enabling
+// the explorer on the live site)
+process.env.EXPLORER = true
+
 // For now:
 // - server tests go in the test/ dir and are run in the node environment
 // - client tests go in __tests__ files anywhere else, and are run in the jsdom environment

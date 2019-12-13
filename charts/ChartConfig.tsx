@@ -108,6 +108,16 @@ export class DimensionSlot {
 // Ideally, this is also all of the interaction state: when a chart is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
 export class ChartConfigProps {
+    constructor(initial?: Partial<ChartConfigProps>) {
+        if (initial) {
+            for (const key in this) {
+                if (key in initial) {
+                    ;(this as any)[key] = (initial as any)[key]
+                }
+            }
+        }
+    }
+
     @observable.ref type: ChartTypeType = "LineChart"
     @observable.ref isExplorable: boolean = false
 
@@ -279,13 +289,8 @@ export class ChartConfig {
         })
 
         autorun(() => {
-            if (this.props.isExplorable) {
-                if (canBeExplorable(this.props)) {
-                    this.props.hasChartTab = true
-                    this.props.hasMapTab = true
-                } else {
-                    this.props.isExplorable = false
-                }
+            if (this.props.isExplorable && !canBeExplorable(this.props)) {
+                this.props.isExplorable = false
             }
         })
     }
