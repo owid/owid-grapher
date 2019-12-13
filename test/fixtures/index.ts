@@ -8,12 +8,8 @@ export function readBuffer(fixture: string) {
     return fs.readFileSync(`test/fixtures/${fixture}.json`)
 }
 
-export function readData(fixture: string) {
-    return readBuffer(fixture).toString()
-}
-
-export function readObj(fixture: string) {
-    return JSON.parse(readData(fixture))
+function readObj(fixture: string) {
+    return JSON.parse(readBuffer(fixture).toString())
 }
 
 export function readVariable(id: string | number): DataForChart {
