@@ -973,7 +973,7 @@ html.iframe .ChartPage {
     flex-direction: column;
     margin: 0;
     width: 100%;
-    height: calc(100vh - 140px);
+    min-height: calc(100vh - 140px);
 }
 
 .ExplorePage .chart-type-buttons {
@@ -1003,4 +1003,37 @@ html.iframe .ChartPage {
 .ExplorePage .indicator-dropdown {
     position: relative;
     z-index: $zindex-IndicatorDropdown;
+}
+
+.ExplorePage .data-table {
+    margin-top: 60px;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    padding: 20px;
+    border-spacing: 0px;
+
+    tr :first-child {
+        padding-left: 20px;
+    }
+
+    tr :last-child {
+        padding-right: 20px;
+    }
+
+    th {
+        padding-bottom: 10px;
+    }
+
+    tbody tr:hover {
+        background: #eee;
+    }
+
+    .entity {
+        text-align: left;
+    }
+
+    .dimension {
+        text-align: right;
+    }
 }
