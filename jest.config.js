@@ -12,7 +12,7 @@ process.env.EXPLORER = true
 const common = {
     preset: "ts-jest",
     moduleNameMapper: {
-        "^(admin|site|charts|utils|db|settings)/(.*)$": "<rootDir>/$1/$2",
+        "^(admin|site|charts|utils|db|settings|test)/(.*)$": "<rootDir>/$1/$2",
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings"
     }
