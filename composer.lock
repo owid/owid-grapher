@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7efbd87b7d26803cf4d8e48de95ac68e",
+    "content-hash": "fd7e1575ec171d019fa93700ff49ca9e",
     "packages": [
         {
             "name": "composer/installers",
@@ -272,8 +272,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress/zipball/5.3",
-                "reference": "5.3"
+                "url": "https://api.github.com/repos/WordPress/WordPress/zipball/5.3"
             },
             "require": {
                 "php": ">=5.3.2",
@@ -638,16 +637,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.4.0",
+            "version": "v0.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d"
+                "reference": "c6fbc3bdbce610cdc5996cd2023b37606d09de0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/b2970109bf6dc03e3cd2de0159ead0c44518a97d",
-                "reference": "b2970109bf6dc03e3cd2de0159ead0c44518a97d",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/c6fbc3bdbce610cdc5996cd2023b37606d09de0c",
+                "reference": "c6fbc3bdbce610cdc5996cd2023b37606d09de0c",
                 "shasum": ""
             },
             "require": {
@@ -703,10 +702,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.4.0",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.5.1",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2019-10-28T22:06:28+00:00"
+            "time": "2019-12-13T17:18:57+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -986,12 +985,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "261562a9c048aa10932e5e1d596da6c761cf95bb"
+                "reference": "e4ee2c8e4ccd908debc64069faf023c684a76760"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/261562a9c048aa10932e5e1d596da6c761cf95bb",
-                "reference": "261562a9c048aa10932e5e1d596da6c761cf95bb",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/e4ee2c8e4ccd908debc64069faf023c684a76760",
+                "reference": "e4ee2c8e4ccd908debc64069faf023c684a76760",
                 "shasum": ""
             },
             "conflict": {
@@ -1059,7 +1058,7 @@
                 "league/commonmark": "<0.18.3",
                 "magento/magento1ce": "<1.9.4.3",
                 "magento/magento1ee": ">=1,<1.14.4.3",
-                "magento/product-community-edition": ">=2,<2.2.10|>=2.3,<2.3.3",
+                "magento/product-community-edition": ">=2,<2.2.10|>=2.3,<2.3.2",
                 "monolog/monolog": ">=1.8,<1.12",
                 "namshi/jose": "<2.2",
                 "onelogin/php-saml": "<2.10.4",
@@ -1094,7 +1093,7 @@
                 "silverstripe/userforms": "<3",
                 "simple-updates/phpwhois": "<=1",
                 "simplesamlphp/saml2": "<1.10.6|>=2,<2.3.8|>=3,<3.1.4",
-                "simplesamlphp/simplesamlphp": "<1.17.3",
+                "simplesamlphp/simplesamlphp": "<1.17.8",
                 "simplesamlphp/simplesamlphp-module-infocard": "<1.0.1",
                 "slim/slim": "<2.6",
                 "smarty/smarty": "<3.1.33",
@@ -1196,7 +1195,7 @@
                 }
             ],
             "description": "Prevents installation of composer packages with known security vulnerabilities: no API, simply require it",
-            "time": "2019-11-15T09:15:43+00:00"
+            "time": "2019-12-02T13:03:15+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
