@@ -18,6 +18,7 @@ import { RootStore } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
+import { Analytics } from "site/client/Analytics"
 
 export interface ChartTypeButton {
     type: ExplorerChartType
@@ -148,5 +149,9 @@ export class ExploreView extends React.Component<ExploreProps> {
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16
         autorun(() => (document.title = this.chart.data.currentTitle))
+    }
+
+    componentDidCatch(error: any, info: any) {
+        Analytics.logEvent("EXPLORE_ERROR", { error, info })
     }
 }
