@@ -20,16 +20,18 @@ import * as fixtures from "test/fixtures"
 const bounds = new Bounds(0, 0, 800, 600)
 const indicator = fixtures.readIndicators().indicators[0]
 
-const store = new RootStore()
+function getStore() {
+    return new RootStore()
+}
 
 function getDefaultModel() {
-    const model = new ExploreModel(store)
+    const model = new ExploreModel(getStore())
     model.indicatorId = indicator.id
     return model
 }
 
 function getEmptyModel() {
-    return new ExploreModel(store)
+    return new ExploreModel(getStore())
 }
 
 function mockDataResponse() {
