@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, IReactionDisposer, autorun } from "mobx"
+import { computed, autorun } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -11,54 +11,28 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "./Bounds"
 import { ChartView } from "./ChartView"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
-import { ChartType, ChartTypeType } from "./ChartType"
+import { ChartType } from "./ChartType"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
-import { Indicator } from "./Indicator"
-import { RootStore, StoreEntry } from "./Store"
+import { RootStore } from "./Store"
 import * as urlBinding from "charts/UrlBinding"
-import { ExploreUrl } from "./ExploreUrl"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
 
-function chartConfigFromIndicator(
-    indicator: Indicator
-): Partial<ChartConfigProps> {
-    return {
-        ...indicator,
-        // TODO need to derive selected data from ExploreModel, since selections
-        // should persist when switching indicators.
-        selectedData: [
-            {
-                index: 0,
-                entityId: 355
-            }
-        ]
-    }
+export interface ChartTypeButton {
+    type: ExplorerChartType
+    label: string
+    icon: IconDefinition
 }
 
-const WorldMap = "WorldMap"
-
-const AVAILABLE_CHART_TYPES: ExplorerChartType[] = [
-    ChartType.LineChart,
-    ChartType.StackedArea,
-    ChartType.StackedBar,
-    ChartType.DiscreteBar,
-    ChartType.SlopeChart,
-    WorldMap
+const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
+    { type: ChartType.LineChart, label: "Line", icon: faChartLine },
+    { type: ChartType.StackedArea, label: "Area", icon: faChartArea },
+    { type: ChartType.StackedBar, label: "Stacked", icon: faChartBar },
+    { type: ChartType.DiscreteBar, label: "Bar", icon: faChartBar },
+    { type: ChartType.SlopeChart, label: "Slope", icon: faChartLine },
+    { type: ExploreModel.WorldMap, label: "Map", icon: faMap }
 ]
-
-const CHART_TYPE_DISPLAY: {
-    [key: string]: { label: string; icon: IconDefinition }
-} = {
-    [ChartType.LineChart]: { label: "Line", icon: faChartLine },
-    [ChartType.StackedArea]: { label: "Area", icon: faChartArea },
-    [ChartType.StackedBar]: { label: "Stacked", icon: faChartBar },
-    [ChartType.DiscreteBar]: { label: "Bar", icon: faChartBar },
-    [ChartType.SlopeChart]: { label: "Slope", icon: faChartLine },
-    [WorldMap]: { label: "Map", icon: faMap }
-}
 
 // This component was modeled after ChartView.
 //
@@ -72,8 +46,6 @@ const CHART_TYPE_DISPLAY: {
 interface ExploreProps {
     bounds: Bounds
     model: ExploreModel
-    store: RootStore
-    queryStr?: string
 }
 
 @observer
@@ -88,106 +60,49 @@ export class ExploreView extends React.Component<ExploreProps> {
         const rect = containerNode.getBoundingClientRect()
         const bounds = Bounds.fromRect(rect)
         const store = new RootStore()
-        const model = new ExploreModel()
+        const model = new ExploreModel(store)
+        model.populateFromQueryStr(queryStr)
         return ReactDOM.render(
-            <ExploreView
-                bounds={bounds}
-                model={model}
-                store={store}
-                queryStr={queryStr}
-            />,
+            <ExploreView bounds={bounds} model={model} />,
             containerNode
         )
     }
 
-    model: ExploreModel
-    chart: ChartConfig
-    url: ExploreUrl
-
-    disposers: IReactionDisposer[]
-
-    constructor(props: ExploreProps) {
-        super(props)
-
-        const chartProps = new ChartConfigProps()
-        this.chart = new ChartConfig(chartProps)
-
-        this.model = this.props.model
-
-        this.url = new ExploreUrl(this.model, this.chart.url)
-        this.url.populateFromQueryStr(this.props.queryStr)
-
-        this.disposers = [
-            // We need these updates in an autorun because the chart config objects aren't really meant
-            // to be recreated all the time. They aren't pure value objects and have behaviors on
-            // instantiation that include fetching data over the network. Instead, we rely on their
-            // observable properties, and on this autorun block to connect them to the Explore controls.
-            // -@jasoncrawford 2019-12-04
-            autorun(() => {
-                this.chart.props.type = this.configChartType
-                this.chart.props.hasMapTab = this.isMap
-                this.chart.props.hasChartTab = !this.isMap
-                this.chart.tab = this.isMap ? "map" : "chart"
-            }),
-
-            autorun(() => {
-                if (this.indicatorEntry === null) {
-                    this.chart.update({ dimensions: [] })
-                } else {
-                    const indicator = this.indicatorEntry.entity
-                    if (indicator) {
-                        this.chart.update(chartConfigFromIndicator(indicator))
-                    }
-                }
-            })
-        ]
-    }
-
     componentWillUnmount() {
-        this.disposers.forEach(dispose => dispose())
+        this.model.dispose()
     }
 
-    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
-        if (this.model.indicatorId) {
-            const indicatorEntry = this.childContext.store.indicators.get(
-                this.model.indicatorId
-            )
-            return indicatorEntry
-        }
-        return null
+    @computed get model() {
+        return this.props.model
+    }
+
+    @computed get chart() {
+        return this.model.chart
     }
 
     @computed get bounds() {
         return this.props.bounds
     }
 
-    @computed get isMap() {
-        return this.model.chartType === "WorldMap"
+    get childContext() {
+        return {
+            store: this.model.store
+        }
     }
 
-    // Translates between the chart type chosen in the Explore UI, and the type we want to set on
-    // the ChartConfigProps. It's a pass-through unless map is chosen, in which case we tell the
-    // chart (arbitrarily) to be a line chart, and set the tab to map.
-    @computed get configChartType(): ChartTypeType {
-        return this.isMap
-            ? ChartType.LineChart
-            : (this.model.chartType as ChartTypeType)
-    }
-
-    renderChartTypeButton(type: ExplorerChartType) {
-        const isSelected = type === this.model.chartType
-        const display = CHART_TYPE_DISPLAY[type]
+    renderChartTypeButton(button: ChartTypeButton) {
+        const isSelected = button.type === this.model.chartType
         return (
             <button
-                key={type}
-                data-type={type}
+                key={button.type}
+                data-type={button.type}
                 className={`chart-type-button ${isSelected ? "selected" : ""}`}
                 onClick={() => {
-                    this.model.chartType = type
+                    this.model.chartType = button.type
                 }}
             >
-                <FontAwesomeIcon icon={display.icon} />
-                <div>{display.label}</div>
+                <FontAwesomeIcon icon={button.icon} />
+                <div>{button.label}</div>
             </button>
         )
     }
@@ -195,8 +110,8 @@ export class ExploreView extends React.Component<ExploreProps> {
     renderChartTypes() {
         return (
             <div className="chart-type-buttons">
-                {AVAILABLE_CHART_TYPES.map(type =>
-                    this.renderChartTypeButton(type)
+                {CHART_TYPE_BUTTONS.map(button =>
+                    this.renderChartTypeButton(button)
                 )}
             </div>
         )
@@ -208,21 +123,10 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <IndicatorDropdown
                     placeholder="Select variable"
                     onChangeId={id => (this.model.indicatorId = id)}
-                    indicatorEntry={this.indicatorEntry}
+                    indicatorEntry={this.model.indicatorEntry}
                 />
             </div>
         )
-    }
-
-    get childContext() {
-        return {
-            store: this.props.store
-        }
-    }
-
-    bindToWindow() {
-        urlBinding.bindUrlToWindow(this.url)
-        autorun(() => (document.title = this.chart.data.currentTitle))
     }
 
     render() {
@@ -236,5 +140,13 @@ export class ExploreView extends React.Component<ExploreProps> {
                 </div>
             </ExplorerViewContext.Provider>
         )
+    }
+
+    bindToWindow() {
+        urlBinding.bindUrlToWindow(this.model.url)
+
+        // We ignore the disposer here, because this reaction lasts for the
+        // lifetime of the window. -@jasoncrawford 2019-12-16
+        autorun(() => (document.title = this.chart.data.currentTitle))
     }
 }

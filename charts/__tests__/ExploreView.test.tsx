@@ -25,13 +25,13 @@ function getStore() {
 }
 
 function getDefaultModel() {
-    const model = new ExploreModel()
+    const model = new ExploreModel(getStore())
     model.indicatorId = indicator.id
     return model
 }
 
 function getEmptyModel() {
-    return new ExploreModel()
+    return new ExploreModel(getStore())
 }
 
 function mockDataResponse() {
@@ -48,34 +48,25 @@ async function updateViewWhenReady(exploreView: ReactWrapper) {
 describe(ExploreView, () => {
     it("renders an empty chart", () => {
         const view = shallow(
-            <ExploreView
-                bounds={bounds}
-                model={getEmptyModel()}
-                store={getStore()}
-            />
+            <ExploreView bounds={bounds} model={getEmptyModel()} />
         )
         expect(view.find(ChartView)).toHaveLength(1)
     })
 
-    describe("when you render with url params", () => {
+    describe("when you render with diferent model params", () => {
         apiMock.init()
+        beforeAll(() => mockDataResponse())
 
-        async function renderWithQueryStr(queryStr: string) {
-            mockDataResponse()
-            const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                    queryStr={queryStr}
-                />
-            )
+        async function renderWithModel(model: ExploreModel) {
+            const view = mount(<ExploreView bounds={bounds} model={model} />)
             await updateViewWhenReady(view)
             return view
         }
 
         it("applies the chart type", async () => {
-            const view = await renderWithQueryStr("type=WorldMap")
+            const model = getDefaultModel()
+            model.chartType = "WorldMap"
+            const view = await renderWithModel(model)
             expect(view.find(ChoroplethMap)).toHaveLength(1)
         })
 
@@ -88,41 +79,29 @@ describe(ExploreView, () => {
         //
         // -@danielgavrilov 2019-12-12
         it.skip("applies the time params to the chart", async () => {
-            const view = await renderWithQueryStr("time=1960..2005")
+            const model = getDefaultModel()
+            model.chart.timeDomain = [1960, 2005]
+            const view = await renderWithModel(model)
             const style: any = view.find(".slider .interval").prop("style")
             expect(parseFloat(style.left)).toBeGreaterThan(0)
             expect(parseFloat(style.right)).toBeGreaterThan(0)
-        })
-
-        it("applies the indicator", async () => {
-            const view = await renderWithQueryStr(`indicator=${indicator.id}`)
-            expect(view.find(".chart h1").text()).toContain(indicator.title)
         })
     })
 
     describe("chart types", () => {
         apiMock.init()
+        beforeAll(() => mockDataResponse())
 
         it("displays chart types", () => {
-            mockDataResponse()
             const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                />
+                <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
 
         it("defaults to line chart", async () => {
-            mockDataResponse()
             const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                />
+                <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
@@ -142,12 +121,10 @@ describe(ExploreView, () => {
                 const button = `.chart-type-button[data-type="${type.key}"]`
 
                 beforeAll(async () => {
-                    mockDataResponse()
                     view = mount(
                         <ExploreView
                             bounds={bounds}
                             model={getDefaultModel()}
-                            store={getStore()}
                         />
                     )
                     await updateViewWhenReady(view)
@@ -167,26 +144,18 @@ describe(ExploreView, () => {
 
     describe("indicator switching", () => {
         apiMock.init()
+        beforeAll(() => mockDataResponse())
 
         it("loads an empty chart with no indicator", () => {
             const view = shallow(
-                <ExploreView
-                    bounds={bounds}
-                    model={getEmptyModel()}
-                    store={getStore()}
-                />
+                <ExploreView bounds={bounds} model={getEmptyModel()} />
             )
             expect(view.find(ChartView)).toHaveLength(1)
         })
 
         it("loads a chart with the initialized indicator", async () => {
-            mockDataResponse()
             const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                />
+                <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             await updateViewWhenReady(view)
             expect(view.find(ChartView)).toHaveLength(1)
@@ -194,11 +163,8 @@ describe(ExploreView, () => {
         })
 
         it("loads the indicator when the indicatorId is changed", async () => {
-            mockDataResponse()
             const model = getEmptyModel()
-            const view = mount(
-                <ExploreView bounds={bounds} model={model} store={getStore()} />
-            )
+            const view = mount(<ExploreView bounds={bounds} model={model} />)
             expect(view.find(ChartView)).toHaveLength(1)
             expect(view.find(".chart h1")).toHaveLength(0)
 
@@ -209,13 +175,8 @@ describe(ExploreView, () => {
         })
 
         it("shows the loaded indicator in the dropdown", async () => {
-            mockDataResponse()
             const view = mount(
-                <ExploreView
-                    bounds={bounds}
-                    model={getDefaultModel()}
-                    store={getStore()}
-                />
+                <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             await updateViewWhenReady(view)
             expect(
