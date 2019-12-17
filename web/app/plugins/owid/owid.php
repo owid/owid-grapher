@@ -18,6 +18,7 @@ include 'src/ProminentLink/prominent-link.php';
 include 'src/AdditionalInformation/additional-information.php';
 
 const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
+const KEY_PERFORMANCE_INDICATORS_FIELD = "owid_key_performance_indicators_meta_field";
 
 function setup()
 {
@@ -48,6 +49,16 @@ function register()
 			'show_in_rest' => true,
 			'single' => true,
 			'type' => 'integer',
+		)
+	);
+
+	register_post_meta(
+		'post',
+		KEY_PERFORMANCE_INDICATORS_FIELD,
+		array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
 		)
 	);
 
