@@ -16,6 +16,7 @@ import {
     every,
     min,
     max,
+    compact,
     uniq,
     cloneDeep,
     sum,
@@ -71,6 +72,7 @@ export {
     every,
     min,
     max,
+    compact,
     uniq,
     cloneDeep,
     sum,
@@ -287,11 +289,22 @@ export function defaultTo<T, K>(
     else return value
 }
 
-export function first<T>(arr: T[]) {
+export function first<T>(arr: T[]): T | undefined {
     return arr[0]
 }
-export function last<T>(arr: T[]) {
+
+export function last<T>(arr: T[]): T | undefined {
     return arr[arr.length - 1]
+}
+
+export function firstOfNonEmptyArray<T>(arr: T[]): T {
+    if (arr.length < 1) throw new Error("array is empty")
+    return first(arr) as T
+}
+
+export function lastOfNonEmptyArray<T>(arr: T[]): T {
+    if (arr.length < 1) throw new Error("array is empty")
+    return last(arr) as T
 }
 
 // Calculate the extents of a set of numbers, with safeguards for log scales

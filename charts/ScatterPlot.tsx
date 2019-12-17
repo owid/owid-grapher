@@ -10,7 +10,7 @@
 
 import * as React from "react"
 import { observable, computed, action } from "mobx"
-import { intersection, without, uniq } from "./Util"
+import { intersection, without, compact, uniq } from "./Util"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
@@ -413,8 +413,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
 
         const firstValue = first(series.values)
         const lastValue = last(series.values)
-        const values =
-            series.values.length === 1 ? [firstValue] : [firstValue, lastValue]
+        const values = compact(uniq([firstValue, lastValue]))
 
         const elements: Array<{ x: number; y: number; wrap: TextWrap }> = []
         let offset = 0

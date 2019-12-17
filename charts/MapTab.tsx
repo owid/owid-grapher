@@ -32,7 +32,7 @@ interface MapWithLegendProps {
     bounds: Bounds
     choroplethData: ChoroplethData
     years: number[]
-    inputYear: number
+    inputYear?: number
     legendData: MapLegendBin[]
     legendTitle: string
     projection: MapProjection

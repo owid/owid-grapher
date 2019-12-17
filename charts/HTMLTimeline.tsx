@@ -61,6 +61,14 @@ export class Timeline extends React.Component<TimelineProps> {
 
     constructor(props: TimelineProps) {
         super(props)
+
+        if (this.props.years.length === 0) {
+            // Lots of stuff in this class assumes the years array is non-empty,
+            // see e.g. minYear, maxYear, targetStartYear, targetEndYear. Should
+            // deal with this more gracefully -@jasoncrawford 2019-12-17
+            console.warn("invoking HTMLTimeline with empty years array")
+        }
+
         runInAction(() => {
             this.startYearInput = props.startYear
             this.endYearInput = props.endYear
@@ -82,10 +90,14 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @computed get minYear(): number {
+        // This cast is necessary because `years` might be empty. Should deal
+        // with an empty years array more gracefully -@jasoncrawford 2019-12-17
         return first(this.props.years) as number
     }
 
     @computed get maxYear(): number {
+        // This cast is necessary because `years` might be empty. Should deal
+        // with an empty years array more gracefully -@jasoncrawford 2019-12-17
         return last(this.props.years) as number
     }
 

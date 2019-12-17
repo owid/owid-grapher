@@ -117,7 +117,9 @@ class ScatterGroupSingle extends React.Component<{
 }> {
     render() {
         const { group, isLayerMode, isConnected } = this.props
-        const value = first(group.values) as ScatterRenderValue
+        const value = first(group.values)
+        if (value === undefined) return null
+
         const color = group.isFocus || !isLayerMode ? group.color : "#e2e2e2"
 
         const isLabelled = group.allLabels.some(label => !label.isHidden)
@@ -170,8 +172,9 @@ class ScatterBackgroundLine extends React.Component<{
                 />
             )
         } else {
-            const firstValue = first(group.values) as ScatterRenderValue
-            const lastValue = last(group.values) as ScatterRenderValue
+            const firstValue = first(group.values)
+            const lastValue = last(group.values)
+            if (firstValue === undefined || lastValue === undefined) return null
             const color = !isLayerMode ? group.color : "#e2e2e2"
 
             let rotation = Vector2.angle(group.offsetVector, Vector2.up)

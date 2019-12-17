@@ -328,14 +328,6 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     }
 }
 
-function boundRange(range: number[], start?: number, end?: number): number[] {
-    return range.filter(n => {
-        if (start !== undefined && n < start) return false
-        if (end !== undefined && n > end) return false
-        return true
-    })
-}
-
 @observer
 class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMapTargetChange({
@@ -364,19 +356,28 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.useTimelineDomains = false
     }
 
+    boundedYears(years: number[]) {
+        const chartProps = this.props.chart.props
+        const min = chartProps.timelineMinTime
+        const max = chartProps.timelineMaxTime
+        return years.filter(year => {
+            if (min !== undefined && year < min) return false
+            if (max !== undefined && year > max) return false
+            return true
+        })
+    }
+
     render() {
         const { chart } = this.props
-        const timelineMinTime = chart.props.timelineMinTime
-        const timelineMaxTime = chart.props.timelineMaxTime
         if (chart.props.tab === "map") {
             const { map } = chart
+            const years = this.boundedYears(map.data.timelineYears)
+            if (years.length === 0 || map.data.targetYear === undefined) {
+                return null
+            }
             return (
                 <Timeline
-                    years={boundRange(
-                        map.data.timelineYears,
-                        timelineMinTime,
-                        timelineMaxTime
-                    )}
+                    years={years}
                     onTargetChange={this.onMapTargetChange}
                     startYear={map.data.targetYear}
                     endYear={map.data.targetYear}
@@ -384,13 +385,11 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
+            const years = this.boundedYears(chart.scatter.timelineYears)
+            if (years.length === 0) return null
             return (
                 <Timeline
-                    years={boundRange(
-                        chart.scatter.timelineYears,
-                        timelineMinTime,
-                        timelineMaxTime
-                    )}
+                    years={years}
                     onTargetChange={this.onScatterTargetChange}
                     startYear={chart.scatter.startYear}
                     endYear={chart.scatter.endYear}
@@ -399,13 +398,11 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isLineChart) {
+            const years = this.boundedYears(chart.lineChart.timelineYears)
+            if (years.length === 0) return null
             return (
                 <Timeline
-                    years={boundRange(
-                        chart.lineChart.timelineYears,
-                        timelineMinTime,
-                        timelineMaxTime
-                    )}
+                    years={years}
                     onTargetChange={this.onScatterTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
@@ -415,13 +412,11 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else {
+            const years = this.boundedYears(chart.lineChart.timelineYears)
+            if (years.length === 0) return null
             return (
                 <Timeline
-                    years={boundRange(
-                        chart.lineChart.timelineYears,
-                        timelineMinTime,
-                        timelineMaxTime
-                    )}
+                    years={years}
                     onTargetChange={this.onScatterTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
