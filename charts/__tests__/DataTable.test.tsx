@@ -7,8 +7,7 @@ import { extend } from "charts/Util"
 import * as fixtures from "test/fixtures"
 
 function setupChart(id: number, varId: number) {
-    const props = new ChartConfigProps()
-    extend(props, fixtures.readChart(id))
+    const props = new ChartConfigProps(fixtures.readChart(id))
     const chart = new ChartConfig(props)
     chart.vardata.receiveData(fixtures.readVariable(varId))
     return chart
