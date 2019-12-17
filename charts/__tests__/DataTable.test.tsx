@@ -6,23 +6,21 @@ import { ChartConfig, ChartConfigProps } from "../ChartConfig"
 import { extend } from "charts/Util"
 import * as fixtures from "test/fixtures"
 
-const chartFixture = fixtures.readChart(677)
-const variableFixture = fixtures.readVariable(104402)
+function setupChart(id: number, varId: number) {
+    const props = new ChartConfigProps(fixtures.readChart(id))
+    const chart = new ChartConfig(props)
+    chart.vardata.receiveData(fixtures.readVariable(varId))
+    return chart
+}
 
 describe(DataTable, () => {
-    const props = new ChartConfigProps()
-    let chart: ChartConfig
-
-    beforeAll(() => {
-        extend(props, chartFixture)
-        chart = new ChartConfig(props)
-        chart.vardata.receiveData(variableFixture)
-    })
+    let view: ShallowWrapper
 
     describe("when you render a table", () => {
-        let view: ShallowWrapper
-
-        beforeAll(() => (view = shallow(<DataTable chart={chart} />)))
+        beforeAll(() => {
+            const chart = setupChart(677, 104402)
+            view = shallow(<DataTable chart={chart} />)
+        })
 
         it("renders a table", () => {
             expect(view.find("table.data-table")).toHaveLength(1)
@@ -49,6 +47,23 @@ describe(DataTable, () => {
         it("renders the value for each country", () => {
             const cell = view.find("tbody tr td.dimension").first()
             expect(cell.text()).toBe("5.58%")
+        })
+    })
+
+    describe("when the table doesn't have data for all rows", () => {
+        beforeAll(() => {
+            const chart = setupChart(792, 3512)
+            view = shallow(<DataTable chart={chart} />)
+        })
+
+        it("omits empty rows", () => {
+            expect(view.find("tbody tr")).toHaveLength(13)
+        })
+
+        it("renders data in every row", () => {
+            const cells = view.find("tbody tr td.dimension")
+            const texts = cells.map(td => td.text())
+            expect(texts.filter(v => v.length === 0)).toHaveLength(0)
         })
     })
 })

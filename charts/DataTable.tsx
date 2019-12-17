@@ -3,7 +3,8 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 
 import { ChartConfig } from "./ChartConfig"
-import { max, reduce, capitalize } from "./Util"
+import { capitalize } from "./Util"
+import { DataTableTransform, DataTableRow } from "./DataTableTransform"
 
 interface DataTableProps {
     chart: ChartConfig
@@ -19,20 +20,8 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.props.chart.data
     }
 
-    @computed get dimensions() {
-        return this.data.filledDimensions
-    }
-
-    @computed get entities() {
-        return this.data.availableEntities
-    }
-
-    @computed get yearByVariable() {
-        return reduce(
-            this.dimensions,
-            (map, dim) => map.set(dim.variableId, max(dim.years)),
-            new Map<number, number | undefined>()
-        )
+    @computed get transform() {
+        return new DataTableTransform(this.data)
     }
 
     renderHeaderRow() {
@@ -41,37 +30,32 @@ export class DataTable extends React.Component<DataTableProps> {
                 <th key="entity" className="entity">
                     {capitalize(this.entityType)}
                 </th>
-                {this.dimensions.map(dim => (
-                    <th key={dim.variableId} className="dimension">
-                        {dim.displayName}
+                {this.transform.dimensionHeaders.map(dh => (
+                    <th key={dh.key} className="dimension">
+                        {dh.name}
                     </th>
                 ))}
             </tr>
         )
     }
 
-    renderEntityRow(entity: string) {
+    renderEntityRow(row: DataTableRow) {
         return (
-            <tr key={entity}>
+            <tr key={row.entity}>
                 <td key="entity" className="entity">
-                    {entity}
+                    {row.entity}
                 </td>
-                {this.dimensions.map(dim => {
-                    const valueByYear = dim.valueByEntityAndYear.get(entity)
-                    const year = this.yearByVariable.get(dim.variableId)
-                    const value = valueByYear && year && valueByYear.get(year)
-                    return (
-                        <td key={dim.variableId} className="dimension">
-                            {value && dim.formatValueLong(value)}
-                        </td>
-                    )
-                })}
+                {row.dimensionValues.map(dv => (
+                    <td key={dv.key} className="dimension">
+                        {dv.value}
+                    </td>
+                ))}
             </tr>
         )
     }
 
     renderRows() {
-        return this.entities.map(entity => this.renderEntityRow(entity))
+        return this.transform.displayRows.map(row => this.renderEntityRow(row))
     }
 
     render() {
