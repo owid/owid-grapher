@@ -22,7 +22,7 @@ registerPlugin("owid-reading-context", {
       </PluginSidebarMoreMenuItem>
       <PluginSidebar name="owid-reading-context" icon={ICON} title={TITLE}>
         <div className="owid-reading-context-content">
-          <ReadingContext fieldName="owid_reading_context_meta_field" />
+          <ReadingContext fieldName={READING_CONTEXT_META_FIELD} />
         </div>
       </PluginSidebar>
     </>
