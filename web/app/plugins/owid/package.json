@@ -1,11 +1,10 @@
 {
   "private": true,
   "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
-  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "wp-scripts start src/index.js src/blocks.js",
-    "build": "wp-scripts build src/index.js src/blocks.js"
+    "start": "wp-scripts start src/plugins.js src/blocks.js",
+    "build": "wp-scripts build src/plugins.js src/blocks.js"
   },
   "author": "Matthieu Bergel <hello@matthieubergel.org>",
   "license": "MIT",

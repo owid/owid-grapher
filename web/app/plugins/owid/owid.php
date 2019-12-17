@@ -30,7 +30,7 @@ function register()
 {
 	wp_register_script(
 		'owid-plugin-script',
-		plugins_url('build/index.js', __FILE__),
+		plugins_url('build/plugins.js', __FILE__),
 		array('wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-compose')
 	);
 
