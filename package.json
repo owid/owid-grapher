@@ -177,6 +177,7 @@
         "smooth-scroll": "^16.1.0",
         "string-pixel-width": "^1.9.0",
         "stripe": "^7.1.0",
+        "striptags": "^3.1.1",
         "style-loader": "^0.23.1",
         "supertest": "^4.0.2",
         "timeago.js": "^3.0.2",
