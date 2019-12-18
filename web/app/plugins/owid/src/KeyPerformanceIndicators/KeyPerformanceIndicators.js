@@ -1,20 +1,28 @@
 import { TextareaControl } from "@wordpress/components";
 const { withSelect, withDispatch } = wp.data;
 const { compose } = wp.compose;
+const md = require("markdown-it")();
 
 const KeyPerformanceIndicators = ({
-  keyPerformanceIndicators,
+  keyPerformanceIndicators = "",
   setKeyPerformanceIndicators
 }) => {
   return (
-    <TextareaControl
-      label="Text"
-      help="Enter some text"
-      value={keyPerformanceIndicators}
-      onChange={keyPerformanceIndicators =>
-        setKeyPerformanceIndicators(keyPerformanceIndicators)
-      }
-    />
+    <>
+      <TextareaControl
+        label="Text"
+        help="Enter some text"
+        value={keyPerformanceIndicators}
+        onChange={keyPerformanceIndicators =>
+          setKeyPerformanceIndicators(keyPerformanceIndicators)
+        }
+      />
+      <div
+        dangerouslySetInnerHTML={{
+          __html: md.render(keyPerformanceIndicators)
+        }}
+      />
+    </>
   );
 };
 

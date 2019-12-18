@@ -53,7 +53,7 @@ function register()
 	);
 
 	register_post_meta(
-		'post',
+		'page',
 		KEY_PERFORMANCE_INDICATORS_FIELD,
 		array(
 			'show_in_rest' => true,
@@ -90,7 +90,7 @@ function assets_enqueue()
 {
 	$screen = get_current_screen();
 
-	if ($screen->post_type === 'post') {
+	if ($screen->post_type === 'page') {
 		wp_enqueue_script('owid-plugin-script');
 		wp_enqueue_style('owid-plugin-css');
 	}

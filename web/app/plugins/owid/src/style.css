@@ -4,4 +4,8 @@
 
 .owid-reading-context-content .components-spinner {
   float: none;
+
+.owid-key-performance-indicators ul {
+  list-style-type: initial;
+  list-style-position: inside;
 }

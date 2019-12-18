@@ -32,9 +32,9 @@ registerPlugin("owid-reading-context", {
 registerPlugin("owid-key-performance-indicators", {
   render: () => (
     <PluginDocumentSettingPanel
-      name="kpi"
+      name="owid-key-performance-indicators"
       title="Key Performance Indicators"
-      className="kpi"
+      className="owid-key-performance-indicators"
     >
       <KeyPerformanceIndicators fieldName={KEY_PERFORMANCE_INDICATORS_FIELD} />
     </PluginDocumentSettingPanel>
