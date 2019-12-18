@@ -3,7 +3,6 @@ import { shallow, ShallowWrapper } from "enzyme"
 
 import { DataTable } from "../DataTable"
 import { ChartConfig, ChartConfigProps } from "../ChartConfig"
-import { extend } from "charts/Util"
 import * as fixtures from "test/fixtures"
 
 function setupChart(id: number, varId: number) {

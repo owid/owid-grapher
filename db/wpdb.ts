@@ -16,12 +16,6 @@ import fetch from "node-fetch"
 const urlSlug = require("url-slug")
 
 import * as path from "path"
-import * as glob from "glob"
-import * as _ from "lodash"
-import * as db from "db/db"
-import { Post } from "db/model/Post"
-
-import { Chart } from "charts/Chart"
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"

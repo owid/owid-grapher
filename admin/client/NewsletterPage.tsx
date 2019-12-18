@@ -6,7 +6,7 @@ const fuzzysort = require("fuzzysort")
 import * as _ from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
-import { SearchField, FieldsRow, EditableTags } from "./Forms"
+import { SearchField, FieldsRow } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { WORDPRESS_URL } from "settings"
 import { Tag } from "./TagBadge"

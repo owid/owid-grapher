@@ -1,21 +1,11 @@
 // WIP
 
 import * as React from "react"
-import * as ReactDOM from "react-dom"
-import {
-    map,
-    keys,
-    groupBy,
-    isEmpty,
-    difference,
-    clone,
-    uniq
-} from "charts/Util"
+import { keys, isEmpty, difference, clone, uniq } from "charts/Util"
 import {
     observable,
     computed,
     action,
-    autorun,
     reaction,
     runInAction,
     IReactionDisposer

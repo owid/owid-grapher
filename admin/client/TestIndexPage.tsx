@@ -1,6 +1,5 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import * as _ from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"

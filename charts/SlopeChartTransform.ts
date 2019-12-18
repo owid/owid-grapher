@@ -1,4 +1,3 @@
-import { scaleOrdinal } from "d3-scale"
 import { some, union, min, max, find, isEmpty } from "./Util"
 import { computed } from "mobx"
 import { ChartConfig } from "./ChartConfig"
@@ -6,7 +5,6 @@ import { defaultTo, defaultWith, findClosest } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { IChartTransform } from "./IChartTransform"
-import { ColorSchemes } from "./ColorSchemes"
 import { Colorizer, Colorable } from "./Colorizer"
 
 // Responsible for translating chart configuration into the form

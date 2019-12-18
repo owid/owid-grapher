@@ -4,15 +4,7 @@ import { getWindowQueryParams, decodeQueryParam } from "utils/client/url"
 import { siteSearch, SiteSearchResults } from "site/siteSearch"
 import { SearchResults } from "site/client/SearchResults"
 import { observer } from "mobx-react"
-import {
-    action,
-    observable,
-    autorun,
-    IReactionDisposer,
-    runInAction
-} from "mobx"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { action, observable, runInAction } from "mobx"
 
 @observer
 export class SearchPageMain extends React.Component {

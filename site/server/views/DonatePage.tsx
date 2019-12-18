@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as _ from "lodash"
 
 import * as settings from "settings"
 import { Head } from "./Head"

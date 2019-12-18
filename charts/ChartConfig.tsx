@@ -1,4 +1,4 @@
-import { extend, map, filter, includes, uniqWith, find, isEqual } from "./Util"
+import { extend, map, filter, includes, uniqWith, isEqual } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from "mobx"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"

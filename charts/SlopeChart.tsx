@@ -1,5 +1,5 @@
 import * as React from "react"
-import { intersection, without, uniq, includes } from "./Util"
+import { intersection, without, uniq } from "./Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"

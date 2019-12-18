@@ -1,5 +1,4 @@
 import * as algoliasearch from "algoliasearch"
-import * as _ from "lodash"
 
 import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"

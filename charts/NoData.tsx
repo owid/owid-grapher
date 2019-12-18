@@ -3,7 +3,6 @@ import { action } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "./Bounds"
-import { TextWrap } from "./TextWrap"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ControlsOverlay } from "./Controls"
 import { ChartConfig } from "./ChartConfig"

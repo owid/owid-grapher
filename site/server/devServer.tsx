@@ -13,7 +13,6 @@ import {
     entriesByYearPage,
     makeAtomFeed,
     pagePerVariable,
-    renderToHtmlPage,
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,

@@ -1,9 +1,5 @@
 import * as db from "db/db"
-import * as _ from "lodash"
-import * as settings from "settings"
 import * as fs from "fs-extra"
-
-import { exec } from "utils/server/serverUtil"
 import { Chart } from "db/model/Chart"
 import { csvRow } from "utils/server/serverUtil"
 

@@ -1,18 +1,14 @@
 import { computed } from "mobx"
-import { scaleOrdinal } from "d3-scale"
 import {
     includes,
     identity,
     extend,
     some,
-    isEmpty,
     cloneDeep,
     find,
     sortBy,
-    sortedUniq,
     min,
     max,
-    values,
     defaultTo,
     findClosest,
     formatYear,

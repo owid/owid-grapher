@@ -24,7 +24,7 @@ import {
     isEmpty,
     guid
 } from "./Util"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { NoData } from "./NoData"

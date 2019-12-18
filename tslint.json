@@ -2,6 +2,7 @@
     "defaultSeverity": "error",
     "extends": [
         "tslint:recommended",
+        "tslint-etc",
         "tslint-plugin-prettier",
         "tslint-config-prettier"
     ],
@@ -22,7 +23,10 @@
         "whitespace": false,
         "object-literal-key-quotes": false,
         "comment-format": false,
-        "no-console": [false, "log"],
+        "no-console": [
+            false,
+            "log"
+        ],
         "object-literal-shorthand": false,
         "forin": false,
         "one-variable-per-declaration": false,
@@ -39,7 +43,8 @@
         "no-return-await": false,
         "await-promise": true,
         "no-shadowed-variable": false,
-        "no-namespace": false
+        "no-namespace": false,
+        "no-unused-declaration": true
     },
     "rulesDirectory": []
 }

@@ -1,10 +1,8 @@
-import * as settings from "settings"
 import * as React from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { VariableDisplaySettings } from "charts/VariableData"
 import ReactDOM = require("react-dom")
 import { clone } from "charts/Util"
-import { computed, IReactionDisposer, autorun, observable } from "mobx"
+import { computed, IReactionDisposer, observable } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
 import { observer } from "mobx-react"

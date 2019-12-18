@@ -8,22 +8,7 @@ import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
 
-import {
-    some,
-    last,
-    sortBy,
-    cloneDeep,
-    each,
-    includes,
-    filter,
-    flatten,
-    min,
-    find,
-    first,
-    isEmpty,
-    guid,
-    formatYear
-} from "./Util"
+import { sortBy, cloneDeep, isEmpty, guid, formatYear } from "./Util"
 import { AxisScale } from "./AxisScale"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"

@@ -21,7 +21,6 @@ import { getVariableData, writeVariableCSV } from "db/model/Variable"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { CountryNameFormat, CountryDefByKey } from "admin/CountryNameFormat"
 import { Dataset } from "db/model/Dataset"
-import { Tag } from "db/model/Tag"
 import { User } from "db/model/User"
 import {
     syncDatasetToGitRepo,

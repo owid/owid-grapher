@@ -1,16 +1,5 @@
 import * as React from "react"
-import {
-    min,
-    max,
-    reduce,
-    map,
-    each,
-    last,
-    sortBy,
-    flatten,
-    some,
-    find
-} from "./Util"
+import { min, max, map, each, last, sortBy, flatten, some, find } from "./Util"
 import { Bounds } from "./Bounds"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"

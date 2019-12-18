@@ -1,27 +1,10 @@
 import * as React from "react"
-import {
-    computed,
-    action,
-    observable,
-    autorun,
-    runInAction,
-    IReactionDisposer
-} from "mobx"
+import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import {
-    includes,
-    intersection,
-    formatYear,
-    guid,
-    uniq,
-    min,
-    max,
-    defaultTo,
-    makeSafeForCSS
-} from "./Util"
+import { includes, formatYear, guid, uniq, makeSafeForCSS } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
 import { AxisBox, AxisGridLines } from "./AxisBox"

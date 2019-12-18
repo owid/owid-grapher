@@ -1,22 +1,11 @@
 import { computed } from "mobx"
-import {
-    some,
-    isEmpty,
-    find,
-    sortBy,
-    orderBy,
-    max,
-    values,
-    defaultTo,
-    flatten
-} from "./Util"
+import { some, isEmpty, sortBy, orderBy, max, values, flatten } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { IChartTransform } from "./IChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
 import { ColorSchemes } from "./ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { LineChartSeries } from "./LineChart"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart

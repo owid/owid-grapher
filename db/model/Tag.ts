@@ -1,4 +1,3 @@
-import * as db from "db/db"
 import { QueryBuilder } from "knex"
 
 export namespace Tag {

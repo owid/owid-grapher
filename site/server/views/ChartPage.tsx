@@ -9,7 +9,6 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
-import { urlToSlug } from "charts/Util"
 import { Post } from "db/model/Post"
 
 export const ChartPage = (props: {

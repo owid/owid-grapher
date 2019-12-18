@@ -1,5 +1,5 @@
 import db = require("db/db")
-import { slugify, renderToHtmlPage, JsonError } from "utils/server/serverUtil"
+import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
 import React = require("react")
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { ChartConfigProps } from "charts/ChartConfig"
@@ -11,7 +11,6 @@ import {
 import { DimensionWithData } from "charts/DimensionWithData"
 import { Variable } from "db/model/Variable"
 import fs = require("fs-extra")
-import { BAKED_SITE_DIR } from "serverSettings"
 import { SiteBaker } from "./SiteBaker"
 import { countries } from "utils/countries"
 

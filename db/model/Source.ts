@@ -1,12 +1,4 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-    JoinColumn
-} from "typeorm"
-import { Dataset } from "./Dataset"
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
 @Entity("sources")
 export class Source extends BaseEntity {
