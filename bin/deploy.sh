@@ -14,6 +14,17 @@ elif [ "$1" == "live" ]; then
   HOST="owid@209.97.185.49"
   ROOT="/home/owid"
   NAME="live"
+
+  if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
+    echo "Please run from the master branch."
+    exit 1
+  fi
+
+  if [[ ! -z "$(git status --porcelain)" ]]; then
+    echo "Working directory is not clean."
+    exit 1
+  fi
+
   # Prompt for confirmation if deploying to live
   read -p "Are you sure you want to deploy to '$NAME'? " -n 1 -r
   echo
