@@ -1,4 +1,4 @@
-import { isEmpty, reduce, max } from "./Util"
+import { isEmpty, reduce, max, stripHTML } from "./Util"
 import { computed } from "mobx"
 import { FontSize } from "./FontSize"
 import { defaultTo } from "./Util"
@@ -58,7 +58,13 @@ export class TextWrap {
 
         words.forEach(word => {
             const nextLine = line.concat([word])
-            const nextBounds = Bounds.forText(nextLine.join(" "), {
+
+            // Strip HTML if a raw string is passed
+            const text = this.props.raw
+                ? stripHTML(nextLine.join(" "))
+                : nextLine.join(" ")
+
+            const nextBounds = Bounds.forText(text, {
                 fontSize: fontSize
             })
 
