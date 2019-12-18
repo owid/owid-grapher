@@ -2,8 +2,6 @@ import { select, selectAll } from "d3-selection"
 
 export function runEntryExcerptLinks() {
     const container = selectAll("#entries")
-    const entryItems = container.selectAll(".entry-item")
-
     let zIndex: number = 100
 
     // container.selectAll(".entry-item").each(function() {

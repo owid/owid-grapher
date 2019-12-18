@@ -5,7 +5,6 @@ import { without } from "lodash"
 import * as shell from "shelljs"
 import * as _ from "lodash"
 import * as cheerio from "cheerio"
-
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import * as settings from "settings"
@@ -13,7 +12,7 @@ import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
 import { BlogPostPage } from "./views/BlogPostPage"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
-const { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } = settings
+const { BLOG_POSTS_PER_PAGE } = settings
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -199,7 +198,6 @@ export class SiteBaker {
     async bakePosts() {
         const postsApi = await wpdb.getPosts()
 
-        const bakingPosts = []
         const postSlugs = []
         for (const postApi of postsApi) {
             const post = wpdb.getFullPost(postApi)

@@ -12,7 +12,6 @@ import { DonatePage } from "./views/DonatePage"
 import SubscribePage from "./views/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import * as path from "path"
 import * as _ from "lodash"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
@@ -20,8 +19,6 @@ import * as cheerio from "cheerio"
 import { JsonError } from "utils/server/serverUtil"
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL } from "settings"
-import moment = require("moment")
-import urljoin = require("url-join")
 import {
     EntriesByYearPage,
     EntriesForYearPage
@@ -36,8 +33,6 @@ import { Indicator } from "charts/Indicator"
 export function renderToHtmlPage(element: any) {
     return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 }
-
-type wpPostRow = any
 
 export async function renderChartsPage() {
     const chartItems = (await db.query(`
