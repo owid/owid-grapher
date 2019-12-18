@@ -18,11 +18,10 @@ elif [ "$1" == "live" ]; then
   if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
     echo "Please run from the master branch."
     exit 1
-  fi
-
-  if [[ ! -z "$(git status --porcelain)" ]]; then
-    echo "Working directory is not clean."
-    exit 1
+  else
+    # Making sure we have the latest changes from the upstream
+    # Also, will fail if working copy is not clean
+    git pull --rebase
   fi
 
   # Prompt for confirmation if deploying to live
