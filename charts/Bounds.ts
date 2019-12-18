@@ -78,6 +78,8 @@ export class Bounds {
             fontFamily?: string
         } = {}
     ): Bounds {
+        // Collapse contiguous spaces into one
+        str = str.replace(/ +/g, " ")
         const key = `${str}-${fontSize}`
         let bounds = this.textBoundsCache[key]
         if (bounds) {
