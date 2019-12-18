@@ -46,22 +46,9 @@ function register()
 		'page',
 		KEY_PERFORMANCE_INDICATORS_FIELD,
 		array(
+			'show_in_rest' => true,
 			'single' => true,
-			'type' => 'object',
-			// https://make.wordpress.org/core/2019/10/03/wp-5-3-supports-object-and-array-meta-types-in-the-rest-api/
-			'show_in_rest' => array(
-				'schema' => array(
-					'type'       => 'object',
-					'properties' => array(
-						'raw' => array(
-							'type' => 'string',
-						),
-						'rendered'  => array(
-							'type' => 'string',
-						),
-					),
-				),
-			),
+			'type' => 'string',
 		)
 	);
 
