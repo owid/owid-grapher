@@ -12,8 +12,6 @@ import {
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
 import { getRelativeMouse, formatYear } from "./Util"
-import { Header } from "./Header"
-import { SourcesFooter } from "./SourcesFooter"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"

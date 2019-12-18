@@ -11,8 +11,6 @@ import { EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "settings"
 import { ChartTypeDefsByKey } from "charts/ChartType"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faStar } from "@fortawesome/free-solid-svg-icons/faStar"
 
 export interface ChartListItem {
     id: number

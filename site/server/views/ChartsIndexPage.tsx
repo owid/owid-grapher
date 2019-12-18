@@ -3,9 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { CategoryWithEntries } from "db/wpdb"
 import * as _ from "lodash"
-import { createVerify } from "crypto"
 
 export interface ChartIndexItem {
     id: number

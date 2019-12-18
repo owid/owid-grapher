@@ -1,6 +1,6 @@
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import { syncPostsToGrapher, syncPostTagsToGrapher, Post } from "db/model/Post"
+import { Post } from "db/model/Post"
 import { decodeHTML } from "entities"
 import { Tag } from "db/model/Tag"
 import _ = require("lodash")

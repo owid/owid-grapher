@@ -5,11 +5,9 @@ import {
     max,
     isEmpty,
     sortBy,
-    find,
     identity,
     cloneDeep,
     sortedUniq,
-    last,
     clone,
     formatValue
 } from "./Util"

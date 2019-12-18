@@ -3,11 +3,8 @@ import {
     PrimaryGeneratedColumn,
     Column,
     BaseEntity,
-    ManyToOne,
-    JoinColumn
+    ManyToOne
 } from "typeorm"
-
-import * as db from "db/db"
 import { Chart } from "./Chart"
 import { User } from "./User"
 

@@ -1,10 +1,8 @@
-import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as _ from "lodash"
 import { quote } from "shell-quote"
 import urljoin = require("url-join")
 import * as settings from "settings"
-import * as util from "util"
 import * as shell from "shelljs"
 
 export const promisifiedExec: (

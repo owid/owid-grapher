@@ -1,7 +1,6 @@
-import { Admin } from "./Admin"
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, action, runInAction } from "mobx"
 
 import { Modal, Timeago } from "./Forms"
 import { Link } from "./Link"

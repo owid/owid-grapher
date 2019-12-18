@@ -8,7 +8,6 @@ import * as db from "db/db"
 import {
     expectInt,
     tryInt,
-    csvRow,
     renderToHtmlPage,
     JsonError
 } from "utils/server/serverUtil"

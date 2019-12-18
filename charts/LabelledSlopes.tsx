@@ -9,30 +9,21 @@
  */
 
 import * as React from "react"
-import {
-    scaleLinear,
-    scaleLog,
-    scaleOrdinal,
-    ScaleLinear,
-    ScaleLogarithmic,
-    ScaleOrdinal
-} from "d3-scale"
+import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
 import {
     every,
-    uniq,
     first,
     sortBy,
     extend,
     max,
     isEmpty,
-    throttle,
     intersection,
     includes,
     filter
 } from "./Util"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { SVGElement } from "./Util"

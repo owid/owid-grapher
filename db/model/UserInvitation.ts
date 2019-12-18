@@ -1,11 +1,4 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    CreateDateColumn,
-    UpdateDateColumn
-} from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 import * as randomstring from "randomstring"
 
 @Entity("user_invitations")

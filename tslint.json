@@ -2,6 +2,7 @@
     "defaultSeverity": "error",
     "extends": [
         "tslint:recommended",
+        "tslint-etc",
         "tslint-plugin-prettier",
         "tslint-config-prettier"
     ],
@@ -39,7 +40,8 @@
         "no-return-await": false,
         "await-promise": true,
         "no-shadowed-variable": false,
-        "no-namespace": false
+        "no-namespace": false,
+        "no-unused-declaration": true
     },
     "rulesDirectory": []
 }

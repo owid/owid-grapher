@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor"
-import { computed, action, observable } from "mobx"
+import { computed, action } from "mobx"
 const timeago = require("timeago.js")()
 
 @observer

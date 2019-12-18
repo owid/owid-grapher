@@ -1,12 +1,4 @@
-import {
-    toString,
-    includes,
-    flatten,
-    uniq,
-    sortBy,
-    extend,
-    csvEscape
-} from "./Util"
+import { flatten, uniq, sortBy, extend, csvEscape } from "./Util"
 import { Bounds } from "./Bounds"
 import * as React from "react"
 import { computed, action } from "mobx"

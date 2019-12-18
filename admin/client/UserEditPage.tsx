@@ -3,8 +3,6 @@ import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 import { BindString, Toggle } from "./Forms"
 import { Redirect } from "react-router-dom"
-
-import { Admin } from "./Admin"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 

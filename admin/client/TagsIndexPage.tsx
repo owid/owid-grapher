@@ -3,8 +3,6 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import * as _ from "lodash"
 import { Redirect } from "react-router-dom"
-
-import { Admin } from "./Admin"
 import { AdminLayout } from "./AdminLayout"
 import { FieldsRow, Modal, TextField } from "./Forms"
 import { TagBadge, Tag } from "./TagBadge"

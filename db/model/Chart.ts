@@ -4,12 +4,11 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
-    OneToMany,
-    JoinColumn
+    OneToMany
 } from "typeorm"
 import * as _ from "lodash"
 import * as db from "db/db"
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/ChartConfig"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"

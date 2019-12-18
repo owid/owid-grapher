@@ -1,12 +1,8 @@
-import { scaleOrdinal } from "d3-scale"
 import { ChartConfig } from "./ChartConfig"
 import {
     some,
     isEmpty,
-    find,
     intersection,
-    min,
-    max,
     keyBy,
     extend,
     isNumber,
@@ -22,15 +18,13 @@ import {
     uniq,
     compact
 } from "./Util"
-import { computed, observable } from "mobx"
+import { computed } from "mobx"
 import { defaultTo, defaultWith, first, last } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { formatValue, domainExtent, findClosest } from "./Util"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { IChartTransform } from "./IChartTransform"
-import { Color } from "./Color"
 import { Colorizer, Colorable } from "./Colorizer"
 
 // Responsible for translating chart configuration into the form

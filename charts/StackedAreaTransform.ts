@@ -2,7 +2,6 @@ import { computed } from "mobx"
 import { scaleOrdinal } from "d3-scale"
 import {
     some,
-    isEmpty,
     min,
     max,
     sortBy,

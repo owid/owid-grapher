@@ -1,11 +1,9 @@
 import {
-    uniq,
     round,
     toArray,
     keys,
     isEmpty,
     reverse,
-    includes,
     extend,
     each,
     find,
@@ -14,14 +12,7 @@ import {
     isNumber,
     sortBy
 } from "./Util"
-import {
-    computed,
-    autorun,
-    runInAction,
-    reaction,
-    toJS,
-    IReactionDisposer
-} from "mobx"
+import { computed, autorun, runInAction, reaction, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 
 import { ChartConfig } from "./ChartConfig"

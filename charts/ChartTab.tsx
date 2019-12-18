@@ -1,8 +1,6 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Header } from "./Header"
-import { SourcesFooter } from "./SourcesFooter"
 import { SlopeChart } from "./SlopeChart"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"

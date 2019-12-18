@@ -3,7 +3,6 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { VariableDisplaySettings } from "charts/VariableData"
 import { defaultTo } from "charts/Util"
 

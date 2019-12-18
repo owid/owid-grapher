@@ -3,15 +3,12 @@ import { observer } from "mobx-react"
 import {
     observable,
     computed,
-    action,
     runInAction,
     autorun,
     IReactionDisposer
 } from "mobx"
 import * as _ from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-
-import { Admin } from "./Admin"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow } from "./Forms"

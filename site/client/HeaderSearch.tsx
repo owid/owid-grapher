@@ -1,13 +1,8 @@
 import * as React from "react"
-import { observable, computed, autorun, action, runInAction } from "mobx"
+import { observable, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { SearchResults } from "./SearchResults"
-import {
-    SiteSearchResults,
-    PageHit,
-    ChartHit,
-    siteSearch
-} from "site/siteSearch"
+import { SiteSearchResults, siteSearch } from "site/siteSearch"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 

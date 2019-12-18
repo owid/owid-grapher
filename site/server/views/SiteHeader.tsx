@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as _ from "lodash"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
