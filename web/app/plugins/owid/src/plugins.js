@@ -14,13 +14,13 @@ registerPlugin("owid-key-performance-indicators", {
   render: () => (
     <PluginDocumentSettingPanel
       name="owid-key-performance-indicators"
-      title="Key Performance Indicators"
+      title="Key Performance Indicators (KPI)"
       className="owid-key-performance-indicators"
     >
       <KeyPerformanceIndicators fieldName={KEY_PERFORMANCE_INDICATORS_FIELD} />
     </PluginDocumentSettingPanel>
   ),
-  icon: "palmtree"
+  icon: false
 });
 
 // Uncomment to reactivate ReadingContext

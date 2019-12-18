@@ -7,16 +7,21 @@ const KeyPerformanceIndicators = ({
   keyPerformanceIndicators = "",
   setKeyPerformanceIndicators
 }) => {
+  const helpText = `Example:<br /> 
+  - KPI with some <strong>**bold text**</strong><br />
+  - another KPI`;
+
   return (
     <>
       <TextareaControl
-        label="Text"
-        help="Enter some text"
+        label="List some Key Performance Indicators"
+        help={<span dangerouslySetInnerHTML={{ __html: helpText }}></span>}
         value={keyPerformanceIndicators}
         onChange={keyPerformanceIndicators =>
           setKeyPerformanceIndicators(keyPerformanceIndicators)
         }
       />
+      <h3>Preview</h3>
       <div
         dangerouslySetInnerHTML={{
           __html: md.render(keyPerformanceIndicators)
