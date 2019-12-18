@@ -301,11 +301,12 @@ export class MapData {
         return !this.map.props.hideTimeline && this.timelineYears.length > 1
     }
 
-    @computed get targetYear(): number {
+    @computed get targetYear(): number | undefined {
         const targetYear = defaultTo(
             this.map.props.targetYear,
             last(this.timelineYears)
         )
+        if (targetYear === undefined) return undefined
         return defaultTo(
             findClosest(this.timelineYears, targetYear),
             last(this.timelineYears)
@@ -521,6 +522,7 @@ export class MapData {
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
         const { map, mappableData, targetYear } = this
+        if (targetYear === undefined) return {}
 
         const { tolerance } = map
         const { years, values, entities } = mappableData

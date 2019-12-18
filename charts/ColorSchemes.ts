@@ -1,6 +1,6 @@
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { clone, last } from "./Util"
+import { clone, lastOfNonEmptyArray } from "./Util"
 import * as colorbrewer from "colorbrewer"
 import { Color } from "./Color"
 
@@ -137,11 +137,13 @@ export class ColorScheme {
     getDistinctColors(numColors: number): Color[] {
         const { colorSets } = this
 
+        if (colorSets.length === 0) return []
         if (colorSets[numColors]) return clone(colorSets[numColors])
-        else if (numColors > colorSets.length - 1)
+        else if (numColors > colorSets.length - 1) {
             // If more colors are wanted than we have defined, have to improvise
-            return this.improviseGradientFromShorter(last(colorSets), numColors)
-        else {
+            const colorSet = lastOfNonEmptyArray(colorSets)
+            return this.improviseGradientFromShorter(colorSet, numColors)
+        } else {
             // We have enough colors but not a specific set for this number-- improvise from the closest longer set
             for (let i = numColors; i < colorSets.length; i++) {
                 if (colorSets[i]) {

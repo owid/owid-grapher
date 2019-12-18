@@ -1,5 +1,5 @@
 import * as React from "react"
-import { last } from "charts/Util"
+import { lastOfNonEmptyArray } from "charts/Util"
 import { TextField } from "./Forms"
 import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
 import { action } from "mobx"
@@ -42,9 +42,8 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
     }
 
     render() {
-        const availableColors: string[] = last(
-            (ColorSchemes["owid-distinct"] as ColorScheme).colorSets
-        )
+        const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+        const availableColors: string[] = lastOfNonEmptyArray(scheme.colorSets)
 
         return (
             <div

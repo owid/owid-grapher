@@ -16,7 +16,11 @@ import {
     map,
     includes,
     sortedFindClosestIndex,
-    sortedUniq
+    sortedUniq,
+    firstOfNonEmptyArray,
+    lastOfNonEmptyArray,
+    uniq,
+    compact
 } from "./Util"
 import { computed, observable } from "mobx"
 import { defaultTo, defaultWith, first, last } from "./Util"
@@ -624,9 +628,8 @@ export class ScatterTransform implements IChartTransform {
                         group.isAutoColor = true
                     }
                 }
-                group.size = last(
-                    group.values.map(v => v.size).filter(s => isNumber(s))
-                )
+                const sizes = group.values.map(v => v.size)
+                group.size = defaultTo(last(sizes.filter(s => isNumber(s))), 0)
                 currentData.push(group)
             }
         })
@@ -678,8 +681,8 @@ export class ScatterTransform implements IChartTransform {
             // Hide lines which don't cover the full span
             if (this.chart.props.hideLinesOutsideTolerance)
                 return (
-                    first(series.values).year === startYear &&
-                    last(series.values).year === endYear
+                    firstOfNonEmptyArray(series.values).year === startYear &&
+                    lastOfNonEmptyArray(series.values).year === endYear
                 )
 
             return true
@@ -687,17 +690,16 @@ export class ScatterTransform implements IChartTransform {
 
         if (compareEndPointsOnly) {
             currentData.forEach(series => {
-                series.values =
-                    series.values.length === 1
-                        ? series.values
-                        : [first(series.values), last(series.values)]
+                const endPoints = [first(series.values), last(series.values)]
+                series.values = compact(uniq(endPoints))
             })
         }
 
         if (isRelativeMode) {
             currentData.forEach(series => {
-                const indexValue = first(series.values)
-                const targetValue = last(series.values)
+                if (series.values.length === 0) return
+                const indexValue = firstOfNonEmptyArray(series.values)
+                const targetValue = lastOfNonEmptyArray(series.values)
                 series.values = [
                     {
                         x: cagrX(indexValue, targetValue),

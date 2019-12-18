@@ -5,7 +5,6 @@ import {
     includes,
     uniqWith,
     cloneDeep,
-    intersection,
     union,
     each,
     sortBy,
@@ -13,13 +12,15 @@ import {
     find,
     extend,
     uniq,
-    formatYear
+    formatYear,
+    defaultTo,
+    slugify,
+    lastOfNonEmptyArray
 } from "./Util"
 import { computed, toJS } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { DataKey } from "./DataKey"
 import { Color } from "./Color"
-import { last, defaultTo, slugify } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 
 export interface DataKeyInfo {
@@ -106,10 +107,10 @@ export class ChartData {
     }
 
     // XXX refactor into the transforms
-    @computed get minYear(): number | null {
+    @computed get minYear(): number | undefined {
         const { chart } = this
-        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
-        //    return null
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
+        //    return undefined
         if (chart.primaryTab === "map") return chart.map.data.targetYear
         else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.startYear
@@ -121,13 +122,13 @@ export class ChartData {
             !chart.discreteBar.failMessage
         )
             return chart.lineChart.startYear
-        else return null
+        else return undefined
     }
 
-    @computed get maxYear(): number | null {
+    @computed get maxYear(): number | undefined {
         const { chart } = this
-        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != null)
-        //    return null
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
+        //    return undefined
         if (chart.primaryTab === "map") return chart.map.data.targetYear
         else if (chart.isScatter && !chart.scatter.failMessage)
             return chart.scatter.endYear
@@ -139,7 +140,7 @@ export class ChartData {
             !chart.discreteBar.failMessage
         )
             return chart.lineChart.endYear
-        else return null
+        else return undefined
     }
 
     @computed get currentTitle(): string {
@@ -181,9 +182,11 @@ export class ChartData {
                 this.chart.lineChart.hasTimeline)
         ) {
             const { minYear, maxYear } = this
-            if (minYear !== null) {
+            if (minYear !== undefined) {
                 const timeFrom = formatYear(minYear)
-                const timeTo = formatYear(maxYear !== null ? maxYear : minYear)
+                const timeTo = formatYear(
+                    maxYear !== undefined ? maxYear : minYear
+                )
                 const time =
                     timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
@@ -277,7 +280,8 @@ export class ChartData {
             // "change entity" charts can only have one entity selected
             if (
                 chart.addCountryMode === "change-country" &&
-                sel.entityId !== last(chart.props.selectedData).entityId
+                sel.entityId !==
+                    lastOfNonEmptyArray(chart.props.selectedData).entityId
             )
                 return false
 
