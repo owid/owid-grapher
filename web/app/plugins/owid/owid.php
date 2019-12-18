@@ -43,16 +43,6 @@ function register()
 	// Register custom post meta field. The content of the field will be saved
 	// separately from the serialized HTML
 	register_post_meta(
-		'post',
-		READING_CONTEXT_META_FIELD,
-		array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'integer',
-		)
-	);
-
-	register_post_meta(
 		'page',
 		KEY_PERFORMANCE_INDICATORS_FIELD,
 		array(
@@ -61,6 +51,18 @@ function register()
 			'type' => 'string',
 		)
 	);
+
+	// Uncomment to reactivate ReadingContext
+	// register_post_meta(
+	// 	'post',
+	// 	READING_CONTEXT_META_FIELD,
+	// 	array(
+	// 		'show_in_rest' => true,
+	// 		'single' => true,
+	// 		'type' => 'integer',
+	// 	)
+	// );
+
 
 	wp_register_script(
 		'owid-blocks-script',

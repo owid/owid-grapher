@@ -1,9 +1,11 @@
-.owid-reading-context-content {
+/* Uncomment to reactivate ReadingContext */
+/* .owid-reading-context-content {
   padding: 16px;
 }
 
 .owid-reading-context-content .components-spinner {
   float: none;
+} */
 
 .owid-key-performance-indicators ul {
   list-style-type: initial;
