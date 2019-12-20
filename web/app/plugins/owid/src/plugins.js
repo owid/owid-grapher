@@ -7,7 +7,7 @@ const {
   PluginDocumentSettingPanel
 } = wp.editPost;
 
-const KEY_PERFORMANCE_INDICATORS_FIELD =
+const KEY_PERFORMANCE_INDICATORS_META_FIELD =
   "owid_key_performance_indicators_meta_field";
 
 registerPlugin("owid-key-performance-indicators", {
@@ -17,7 +17,9 @@ registerPlugin("owid-key-performance-indicators", {
       title="Key Performance Indicators (KPI)"
       className="owid-key-performance-indicators"
     >
-      <KeyPerformanceIndicators fieldName={KEY_PERFORMANCE_INDICATORS_FIELD} />
+      <KeyPerformanceIndicators
+        fieldName={KEY_PERFORMANCE_INDICATORS_META_FIELD}
+      />
     </PluginDocumentSettingPanel>
   ),
   icon: false

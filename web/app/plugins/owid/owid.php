@@ -18,7 +18,7 @@ include 'src/ProminentLink/prominent-link.php';
 include 'src/AdditionalInformation/additional-information.php';
 
 const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
-const KEY_PERFORMANCE_INDICATORS_FIELD = "owid_key_performance_indicators_meta_field";
+const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 
 function setup()
 {
@@ -42,9 +42,10 @@ function register()
 
 	// Register custom post meta field. The content of the field will be saved
 	// separately from the serialized HTML
+	// This is used by the editor (see also the GraphQL registration of that field below)
 	register_post_meta(
 		'page',
-		KEY_PERFORMANCE_INDICATORS_FIELD,
+		KEY_PERFORMANCE_INDICATORS_META_FIELD,
 		array(
 			'show_in_rest' => true,
 			'single' => true,
@@ -87,6 +88,19 @@ function register()
 	));
 }
 
+// Registering the KPI meta field for querying through GraphQL
+// (see also the REST API registration of that field above)
+function graphql_register_types()
+{
+	register_graphql_field('Page', 'kpi', [
+		'type' => 'String',
+		'description' => 'Key Performance Indicators',
+		'resolve' => function ($post) {
+			$kpi = get_post_meta($post->ID, KEY_PERFORMANCE_INDICATORS_META_FIELD, true);
+			return !empty($kpi) ? $kpi : '';
+		}
+	]);
+}
 
 function assets_enqueue()
 {
@@ -98,8 +112,10 @@ function assets_enqueue()
 	}
 }
 
+
 add_action('after_setup_theme', __NAMESPACE__ . '\setup');
 add_action('init', __NAMESPACE__ . '\register');
+add_action('graphql_register_types', __NAMESPACE__ . '\graphql_register_types');
 add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\assets_enqueue');
 
 
