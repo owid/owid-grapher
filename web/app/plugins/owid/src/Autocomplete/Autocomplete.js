@@ -1,4 +1,4 @@
-// Uncomment to reactivate ReadingContext + yarn add downshift match-sorter
+// // Uncomment to reactivate ReadingContext + yarn add downshift match-sorter
 
 // import React from "react";
 // import Downshift from "downshift";
@@ -13,7 +13,6 @@
 //     {({
 //       getInputProps,
 //       getItemProps,
-//       getLabelProps,
 //       getMenuProps,
 //       isOpen,
 //       inputValue,
@@ -24,7 +23,7 @@
 //         <div>
 //           {/* Mimic Wordpress <TextControl /> component (could not get it to integrate with Downshift)*/}
 //           <div className="components-base-control">
-//             <div class="components-base-control__field">
+//             <div className="components-base-control__field">
 //               <input
 //                 type="text"
 //                 className="components-text-control__input"
