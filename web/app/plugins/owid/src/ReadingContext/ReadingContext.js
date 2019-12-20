@@ -1,4 +1,4 @@
-// Uncomment to reactivate ReadingContext + yarn add entities
+// // Uncomment to reactivate ReadingContext + yarn add entities
 
 // import Autocomplete from "../Autocomplete/Autocomplete";
 // const { RadioControl, Spinner } = wp.components;
@@ -35,7 +35,7 @@
 //           }
 //         }`;
 
-//       const response = await fetch(`/graphql`, {
+//       const response = await fetch(`/wp/graphql`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
