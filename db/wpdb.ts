@@ -15,7 +15,6 @@ import * as Knex from "knex"
 import fetch from "node-fetch"
 const urlSlug = require("url-slug")
 
-import * as path from "path"
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
@@ -76,6 +75,7 @@ const wpdb = new WPDB()
 
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
+const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 async function apiQuery(
     endpoint: string,
@@ -124,16 +124,6 @@ export async function connect() {
 export async function end() {
     if (wpdb.conn) wpdb.conn.end()
     if (knexInstance) await knexInstance.destroy()
-}
-
-interface ImageUpload {
-    slug: string
-    originalUrl: string
-    variants: {
-        url: string
-        width: number
-        height: number
-    }[]
 }
 
 // Retrieve a map of post ids to authors
@@ -225,58 +215,99 @@ export async function getTagsByPostId(): Promise<Map<number, string[]>> {
 }
 
 // Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[] | undefined
+let cachedEntries: CategoryWithEntries[]
 export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     if (cachedEntries) return cachedEntries
 
-    const categoryOrder = [
-        "Population",
-        "Health",
-        "Food",
-        "Energy",
-        "Environment",
-        "Technology",
-        "Growth &amp; Inequality",
-        "Work &amp; Life",
-        "Public Sector",
-        "Global Connections",
-        "War &amp; Peace",
-        "Politics",
-        "Violence &amp; Rights",
-        "Education",
-        "Media",
-        "Culture"
-    ]
-
-    const pageRows = await wpdb.query(`
-        SELECT posts.ID, post_title, post_date, post_name, post_excerpt FROM wp_posts AS posts
-        WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC, posts.post_title ASC
-    `)
-
-    const permalinks = await getPermalinks()
-
-    const categoriesByPageId = await getCategoriesByPostId()
-
-    cachedEntries = categoryOrder.map(cat => {
-        const rows = pageRows.filter(row => {
-            const cats = categoriesByPageId.get(row.ID)
-            return cats && cats.indexOf(cat) !== -1
-        })
-
-        const entries = rows.map(row => {
-            return {
-                slug: permalinks.get(row.ID, row.post_name),
-                title: row.post_title,
-                excerpt: row.post_excerpt
+    const first = 100
+    const where = {
+        orderby: "TERM_ORDER",
+        termTaxonomId: 44 // Entries category ID
+    }
+    const whereNested = {
+        orderby: "TERM_ORDER"
+    }
+    const query = `
+    query getEntriesByCategory($first: Int, $where: RootQueryToCategoryConnectionWhereArgs!, $whereNested: CategoryToCategoryConnectionWhereArgs!) {
+        categories(first: $first, where: $where) {
+          edges {
+            node {
+              name
+              children(first: $first, where: $whereNested) {
+                edges {
+                  node {
+                    ...categoryWithEntries
+                    children(first: $first, where: $whereNested) {
+                      edges {
+                        node {
+                          ...categoryWithEntries
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
-        })
-
-        return {
-            name: decodeHTML(cat),
-            slug: slugify(decodeHTML(cat).toLowerCase()),
-            entries: entries
+          }
         }
+      }
+
+      fragment categoryWithEntries on Category {
+        name
+        slug
+        pages {
+          edges {
+            node {
+              slug
+              title
+              excerpt
+            }
+          }
+        }
+      }
+      `
+
+    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        },
+        body: JSON.stringify({
+            query,
+            variables: { first, where, whereNested }
+        })
     })
+    const json = await response.json()
+
+    interface CategoryNode {
+        node: {
+            name: string
+            slug: string
+            pages: any
+        }
+    }
+    interface EntryNode {
+        node: {
+            slug: string
+            title: string
+            excerpt: string
+        }
+    }
+
+    cachedEntries = json.data.categories.edges[0].node.children.edges.map(
+        ({ node: { name, slug, pages } }: CategoryNode) => ({
+            name: decodeHTML(name),
+            slug,
+            entries: pages.edges.map(
+                ({ node: { slug, title, excerpt } }: EntryNode) => ({
+                    slug,
+                    title: decodeHTML(title),
+                    excerpt: decodeHTML(excerpt)
+                })
+            )
+        })
+    )
 
     return cachedEntries
 }
@@ -375,7 +406,9 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
     const type = await getPostType(slug)
     const response = await apiQuery(
         `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
-        { searchParams: [["slug", slug]] }
+        {
+            searchParams: [["slug", slug]]
+        }
     )
     const postArray = await response.json()
 
@@ -386,7 +419,9 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
     const response = await apiQuery(
         `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`,
-        { isAuthenticated: true }
+        {
+            isAuthenticated: true
+        }
     )
     const revisions = await response.json()
 
