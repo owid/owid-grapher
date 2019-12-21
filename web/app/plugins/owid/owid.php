@@ -47,9 +47,25 @@ function register()
 		'page',
 		KEY_PERFORMANCE_INDICATORS_META_FIELD,
 		array(
-			'show_in_rest' => true,
 			'single' => true,
-			'type' => 'string',
+			'type' => 'object',
+			// https://make.wordpress.org/core/2019/10/03/wp-5-3-supports-object-and-array-meta-types-in-the-rest-api/
+			// Choosing to save both raw and rendered version to limit the number of dependencies
+			// on the consuming end. As a bonus, prevents possible (albeit unlikely) discrepancies in Mardown rendering
+			// between the preview in WP admin and the rendered version on the frontend.
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'raw' => array(
+							'type' => 'string',
+						),
+						'rendered'  => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
 		)
 	);
 
@@ -88,7 +104,8 @@ function register()
 	));
 }
 
-// Registering the KPI meta field for querying through GraphQL
+// Registering the KPI meta field for querying through GraphQL. 
+// Only the rendered version is returned for simplicity.
 // (see also the REST API registration of that field above)
 function graphql_register_types()
 {
@@ -96,7 +113,7 @@ function graphql_register_types()
 		'type' => 'String',
 		'description' => 'Key Performance Indicators',
 		'resolve' => function ($post) {
-			$kpi = get_post_meta($post->ID, KEY_PERFORMANCE_INDICATORS_META_FIELD, true);
+			$kpi = get_post_meta($post->ID, KEY_PERFORMANCE_INDICATORS_META_FIELD, true)['rendered'];
 			return !empty($kpi) ? $kpi : '';
 		}
 	]);

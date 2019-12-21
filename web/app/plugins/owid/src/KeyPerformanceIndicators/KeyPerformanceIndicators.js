@@ -4,7 +4,7 @@ const { compose } = wp.compose;
 const md = require("markdown-it")();
 
 const KeyPerformanceIndicators = ({
-  keyPerformanceIndicators = "",
+  keyPerformanceIndicators = { raw: "", rendered: "" },
   setKeyPerformanceIndicators
 }) => {
   const helpText = `Example:<br /> 
@@ -16,15 +16,13 @@ const KeyPerformanceIndicators = ({
       <TextareaControl
         label="List some Key Performance Indicators"
         help={<span dangerouslySetInnerHTML={{ __html: helpText }}></span>}
-        value={keyPerformanceIndicators}
-        onChange={keyPerformanceIndicators =>
-          setKeyPerformanceIndicators(keyPerformanceIndicators)
-        }
+        value={keyPerformanceIndicators.raw}
+        onChange={kpiRaw => setKeyPerformanceIndicators(kpiRaw)}
       />
       <h3>Preview</h3>
       <div
         dangerouslySetInnerHTML={{
-          __html: md.render(keyPerformanceIndicators)
+          __html: keyPerformanceIndicators.rendered
         }}
       />
     </>
@@ -41,8 +39,10 @@ const mapSelectToProps = function(select, props) {
 
 const mapDispatchToProps = function(dispatch, props) {
   return {
-    setKeyPerformanceIndicators: function(value) {
-      dispatch("core/editor").editPost({ meta: { [props.fieldName]: value } });
+    setKeyPerformanceIndicators: function(raw) {
+      dispatch("core/editor").editPost({
+        meta: { [props.fieldName]: { raw, rendered: md.render(raw) } }
+      });
     }
   };
 };
