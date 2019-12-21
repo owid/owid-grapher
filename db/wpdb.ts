@@ -161,6 +161,7 @@ export interface EntryMeta {
     slug: string
     title: string
     excerpt: string
+    kpi: string
 }
 
 export interface CategoryWithEntries {
@@ -261,6 +262,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
               slug
               title
               excerpt
+              kpi
             }
           }
         }
@@ -292,6 +294,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
             slug: string
             title: string
             excerpt: string
+            kpi: string
         }
     }
 
@@ -300,10 +303,11 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
             name: decodeHTML(name),
             slug,
             entries: pages.edges.map(
-                ({ node: { slug, title, excerpt } }: EntryNode) => ({
+                ({ node: { slug, title, excerpt, kpi } }: EntryNode) => ({
                     slug,
                     title: decodeHTML(title),
-                    excerpt: decodeHTML(excerpt)
+                    excerpt: decodeHTML(excerpt),
+                    kpi
                 })
             )
         })

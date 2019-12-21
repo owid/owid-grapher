@@ -706,6 +706,10 @@
             transition: opacity 300ms ease;
         }
 
+        .kpi ul {
+            list-style-position: inside;
+        }
+
         .entry-item-contents {
             border: 1px solid currentColor;
             background-color: white;

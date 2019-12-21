@@ -543,6 +543,12 @@ export const FrontPage = (props: {
                                                     <p className="excerpt">
                                                         {entry.excerpt}
                                                     </p>
+                                                    <div
+                                                        className="kpi"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: entry.kpi
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                         </a>
