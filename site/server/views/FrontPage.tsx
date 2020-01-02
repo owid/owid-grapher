@@ -546,18 +546,21 @@ export const FrontPage = (props: {
                                 key={category.slug}
                                 className="category-wrapper"
                             >
-                                <div
-                                    className={`category-name ${category.slug}-color`}
+                                <h3
+                                    className={`${category.slug}-color`}
+                                    id={category.slug}
                                 >
-                                    <h3 id={category.slug}>{category.name}</h3>
-                                </div>
+                                    {category.name}
+                                </h3>
                                 <div className="category-entries">
                                     {category.entries.map(entry =>
                                         renderEntry(entry, category.slug)
                                     )}
-                                    {category.subcategories.map(subcategory => (
-                                        <div>
-                                            <p>{subcategory.name}</p>
+                                </div>
+                                {category.subcategories.map(subcategory => (
+                                    <div>
+                                        <p>{subcategory.name}</p>
+                                        <div className="category-entries">
                                             {subcategory.entries.map(entry =>
                                                 renderEntry(
                                                     entry,
@@ -565,8 +568,8 @@ export const FrontPage = (props: {
                                                 )
                                             )}
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>
