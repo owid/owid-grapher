@@ -231,20 +231,14 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     const query = `
     query getEntriesByCategory($first: Int, $where: RootQueryToCategoryConnectionWhereArgs!, $whereNested: CategoryToCategoryConnectionWhereArgs!) {
         categories(first: $first, where: $where) {
-          edges {
-            node {
-              name
-              children(first: $first, where: $whereNested) {
-                edges {
-                  node {
+          nodes {
+            name
+            children(first: $first, where: $whereNested) {
+              nodes {
+                ...categoryWithEntries
+                children(first: $first, where: $whereNested) {
+                  nodes {
                     ...categoryWithEntries
-                    children(first: $first, where: $whereNested) {
-                      edges {
-                        node {
-                          ...categoryWithEntries
-                        }
-                      }
-                    }
                   }
                 }
               }
@@ -257,13 +251,11 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         name
         slug
         pages {
-          edges {
-            node {
-              slug
-              title
-              excerpt
-              kpi
-            }
+          nodes {
+            slug
+            title
+            excerpt
+            kpi
           }
         }
       }
@@ -283,23 +275,21 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     const json = await response.json()
 
     interface CategoryNode {
-        node: {
-            name: string
-            slug: string
-            pages: any
-        }
+        name: string
+        slug: string
+        pages: any
+        children: any
     }
     interface EntryNode {
-        node: {
-            slug: string
-            title: string
-            excerpt: string
-            kpi: string
-        }
+        slug: string
+        title: string
+        excerpt: string
+        kpi: string
     }
 
-    cachedEntries = json.data.categories.edges[0].node.children.edges.map(
-        ({ node: { name, slug, pages } }: CategoryNode) => ({
+
+    cachedEntries = json.data.categories.nodes[0].children.nodes.map(
+        ({ name, slug, pages, children }: CategoryNode) => ({
             name: decodeHTML(name),
             slug,
             entries: pages.edges.map(
