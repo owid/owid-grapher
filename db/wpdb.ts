@@ -168,6 +168,7 @@ export interface CategoryWithEntries {
     name: string
     slug: string
     entries: EntryMeta[]
+    subcategories: CategoryWithEntries[]
 }
 
 export async function getCategoriesByPostId(): Promise<Map<number, string[]>> {
@@ -287,17 +288,25 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         kpi: string
     }
 
+    const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
+        slug,
+        title: decodeHTML(title),
+        excerpt: decodeHTML(excerpt),
+        kpi
+    })
 
     cachedEntries = json.data.categories.nodes[0].children.nodes.map(
         ({ name, slug, pages, children }: CategoryNode) => ({
             name: decodeHTML(name),
             slug,
-            entries: pages.edges.map(
-                ({ node: { slug, title, excerpt, kpi } }: EntryNode) => ({
+            entries: pages.nodes.map((node: EntryNode) => getEntryNode(node)),
+            subcategories: children.nodes.map(
+                ({ name, slug, pages }: CategoryNode) => ({
+                    name: decodeHTML(name),
                     slug,
-                    title: decodeHTML(title),
-                    excerpt: decodeHTML(excerpt),
-                    kpi
+                    entries: pages.nodes.map((node: EntryNode) =>
+                        getEntryNode(node)
+                    )
                 })
             )
         })

@@ -31,6 +31,29 @@ export const FrontPage = (props: {
         }
     }
 
+    const renderEntry = (entry: any, categorySlug: string) => (
+        <a
+            key={entry.slug}
+            href={`/${entry.slug}`}
+            className={`entry-item-container ${categorySlug}-color`}
+            data-track-click
+            data-track-note="homepage-entries"
+        >
+            <div className="entry-item">
+                <div className="entry-item-contents">
+                    <h4>{entry.title}</h4>
+                    <p className="excerpt">{entry.excerpt}</p>
+                    <div
+                        className="kpi"
+                        dangerouslySetInnerHTML={{
+                            __html: entry.kpi
+                        }}
+                    />
+                </div>
+            </div>
+        </a>
+    )
+
     return (
         <html>
             <Head canonicalUrl={settings.BAKED_BASE_URL}>
@@ -529,29 +552,19 @@ export const FrontPage = (props: {
                                     <h3 id={category.slug}>{category.name}</h3>
                                 </div>
                                 <div className="category-entries">
-                                    {category.entries.map(entry => (
-                                        <a
-                                            key={entry.slug}
-                                            href={`/${entry.slug}`}
-                                            className={`entry-item-container ${category.slug}-color`}
-                                            data-track-click
-                                            data-track-note="homepage-entries"
-                                        >
-                                            <div className="entry-item">
-                                                <div className="entry-item-contents">
-                                                    <h4>{entry.title}</h4>
-                                                    <p className="excerpt">
-                                                        {entry.excerpt}
-                                                    </p>
-                                                    <div
-                                                        className="kpi"
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: entry.kpi
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </a>
+                                    {category.entries.map(entry =>
+                                        renderEntry(entry, category.slug)
+                                    )}
+                                    {category.subcategories.map(subcategory => (
+                                        <div>
+                                            <p>{subcategory.name}</p>
+                                            {subcategory.entries.map(entry =>
+                                                renderEntry(
+                                                    entry,
+                                                    category.slug
+                                                )
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
                             </div>
