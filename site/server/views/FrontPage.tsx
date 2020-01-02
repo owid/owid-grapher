@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { CategoryWithEntries, FullPost } from "db/wpdb"
+import { CategoryWithEntries, FullPost, EntryNode } from "db/wpdb"
 import { faRss } from "@fortawesome/free-solid-svg-icons/faRss"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
@@ -31,7 +31,7 @@ export const FrontPage = (props: {
         }
     }
 
-    const renderEntry = (entry: any, categorySlug: string) => (
+    const renderEntry = (entry: EntryNode, categorySlug: string) => (
         <a
             key={entry.slug}
             href={`/${entry.slug}`}

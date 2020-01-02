@@ -216,6 +216,13 @@ export async function getTagsByPostId(): Promise<Map<number, string[]>> {
     return tagsByPostId
 }
 
+export interface EntryNode {
+    slug: string
+    title: string
+    excerpt: string
+    kpi: string
+}
+
 // Retrieve a list of categories and their associated entries
 let cachedEntries: CategoryWithEntries[]
 export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
@@ -280,12 +287,6 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         slug: string
         pages: any
         children: any
-    }
-    interface EntryNode {
-        slug: string
-        title: string
-        excerpt: string
-        kpi: string
     }
 
     const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
