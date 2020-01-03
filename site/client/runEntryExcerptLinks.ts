@@ -21,8 +21,12 @@ export function runEntryExcerptLinks() {
         const heading = entryItem.select("h4").node() as HTMLElement
         const excerpt = entryItem.select(".excerpt").node() as HTMLElement
         const kpi = entryItem.select(".kpi").node() as HTMLElement
+        const padding = kpi.offsetHeight !== 0 ? 40 : 25
         const targetHeight =
-            heading.offsetHeight + excerpt.offsetHeight + kpi.offsetHeight + 40
+            heading.offsetHeight +
+            excerpt.offsetHeight +
+            kpi.offsetHeight +
+            padding
         // NOTE: we add heading and excerpt heights because getting the overall
         // scrollHeight of the container is not consistent across browsers.
         entryItem

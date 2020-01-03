@@ -559,7 +559,11 @@ export const FrontPage = (props: {
                                 </div>
                                 {category.subcategories.map(subcategory => (
                                     <div>
-                                        <p>{subcategory.name}</p>
+                                        <h4
+                                            className={`${category.slug}-color`}
+                                        >
+                                            {subcategory.name}
+                                        </h4>
                                         <div className="category-entries">
                                             {subcategory.entries.map(entry =>
                                                 renderEntry(
