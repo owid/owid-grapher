@@ -9,7 +9,6 @@ async function main() {
     try {
         const categoriesByPostId = await wpdb.getCategoriesByPostId()
 
-        const tagsByPostId = await wpdb.getTagsByPostId()
         const postRows = await wpdb.query(
             "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
         )

@@ -82,8 +82,6 @@ export async function syncPostsToGrapher() {
     )
     const doesExistInGrapher = _.keyBy(existsInGrapher, "id")
 
-    const categoriesByPostId = await wpdb.getCategoriesByPostId()
-
     const toDelete = existsInGrapher
         .filter(p => !doesExistInWordpress[p.id])
         .map(p => p.id)
@@ -126,8 +124,6 @@ export async function syncPostsToGrapher() {
 }
 
 export async function syncPostTagsToGrapher() {
-    const categoriesByPostId = await wpdb.getCategoriesByPostId()
-
     const tagsByPostId = await wpdb.getTagsByPostId()
     const postRows = await wpdb.query(
         "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"

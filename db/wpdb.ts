@@ -1,5 +1,4 @@
 import { decodeHTML } from "entities"
-const slugify = require("slugify")
 import { DatabaseConnection } from "db/DatabaseConnection"
 import {
     WORDPRESS_DB_NAME,
