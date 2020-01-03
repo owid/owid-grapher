@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6d6ff496bb200d4a2c8c4bc05a777855",
+    "content-hash": "6051f763122c52a20151587a65c5674c",
     "packages": [
         {
             "name": "composer/installers",
@@ -877,15 +877,15 @@
         },
         {
             "name": "wpackagist-plugin/redirection",
-            "version": "4.4.2",
+            "version": "4.6.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/redirection/",
-                "reference": "tags/4.4.2"
+                "reference": "trunk"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/redirection.4.4.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/redirection.zip?timestamp=1577731089"
             },
             "require": {
                 "composer/installers": "~1.0"
