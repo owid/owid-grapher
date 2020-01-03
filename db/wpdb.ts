@@ -223,11 +223,9 @@ export interface EntryNode {
 }
 
 // Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[] | undefined
-export async function getEntriesByCategory(): Promise<
-    CategoryWithEntries[] | undefined
-> {
-    if (cachedEntries) return cachedEntries
+let cachedEntries: CategoryWithEntries[] = []
+export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
+    if (cachedEntries.length) return cachedEntries
 
     const first = 100
     const where = {
@@ -549,7 +547,7 @@ export function knex(
 
 export function flushCache() {
     cachedAuthorship = undefined
-    cachedEntries = undefined
+    cachedEntries = []
     cachedFeaturedImages = undefined
     cachedPosts = undefined
     cachedTables = undefined
