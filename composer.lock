@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b3991854d656e28cfef5e153e5b11633",
+    "content-hash": "ff3cb81369df0f391a2f6e3a8c37029f",
     "packages": [
         {
             "name": "composer/installers",
@@ -769,15 +769,15 @@
         },
         {
             "name": "wpackagist-plugin/co-authors-plus",
-            "version": "3.4",
+            "version": "3.4.2",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/co-authors-plus/",
-                "reference": "tags/3.4"
+                "reference": "tags/3.4.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/co-authors-plus.3.4.zip"
+                "url": "https://downloads.wordpress.org/plugin/co-authors-plus.3.4.2.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
