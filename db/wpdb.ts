@@ -218,7 +218,9 @@ export async function getTagsByPostId(): Promise<Map<number, string[]>> {
 export interface EntryNode {
     slug: string
     title: string
-    excerpt: string
+    // in some edge cases (entry alone in a subcategory), WPGraphQL returns
+    // null instead of an empty string)
+    excerpt: string | null
     kpi: string
 }
 
@@ -294,7 +296,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
         slug,
         title: decodeHTML(title),
-        excerpt: decodeHTML(excerpt),
+        excerpt: excerpt === null ? "" : decodeHTML(excerpt),
         kpi
     })
 
