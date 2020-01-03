@@ -296,11 +296,28 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         kpi
     })
 
+    const isEntryInSubcategories = (entry: EntryNode, subcategories: any) => {
+        return subcategories.some((subcategory: any) => {
+            return subcategory.pages.nodes.some(
+                (node: EntryNode) => entry.slug === node.slug
+            )
+        })
+    }
+
     cachedEntries = json.data.categories.nodes[0].children.nodes.map(
         ({ name, slug, pages, children }: CategoryNode) => ({
             name: decodeHTML(name),
             slug,
-            entries: pages.nodes.map((node: EntryNode) => getEntryNode(node)),
+            entries: pages.nodes
+                .filter(
+                    (node: EntryNode) =>
+                        // Entries are being listed in root categories even when they
+                        // belong to subcategories. It is then necessary to filter them
+                        // out to avoid duplicates.
+                        // https://github.com/wp-graphql/wp-graphql/issues/1100
+                        !isEntryInSubcategories(node, children.nodes)
+                )
+                .map((node: EntryNode) => getEntryNode(node)),
             subcategories: children.nodes.map(
                 ({ name, slug, pages }: CategoryNode) => ({
                     name: decodeHTML(name),
