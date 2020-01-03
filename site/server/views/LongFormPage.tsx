@@ -6,7 +6,6 @@ import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { formatAuthors, FormattedPost, FormattingOptions } from "../formatting"
 import { CategoryWithEntries } from "db/wpdb"
-import * as _ from "lodash"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -23,8 +22,17 @@ export const LongFormPage = (props: {
     const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
     const publishedYear = post.modifiedDate.getFullYear()
-    const allEntries = _.flatten(_.values(entries).map(c => c.entries))
-    const isEntry = _.includes(allEntries.map(e => e.slug), post.slug)
+
+    const isEntry = entries.some(category => {
+        return (
+            category.entries.some(entry => entry.slug === post.slug) ||
+            category.subcategories.some((subcategory: CategoryWithEntries) => {
+                return subcategory.entries.some(
+                    subEntry => subEntry.slug === post.slug
+                )
+            })
+        )
+    })
 
     const bodyClasses = []
     const articleHeaderClasses = ["article-header"]
