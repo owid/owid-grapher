@@ -224,8 +224,10 @@ export interface EntryNode {
 }
 
 // Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[]
-export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
+let cachedEntries: CategoryWithEntries[] | undefined
+export async function getEntriesByCategory(): Promise<
+    CategoryWithEntries[] | undefined
+> {
     if (cachedEntries) return cachedEntries
 
     const first = 100
