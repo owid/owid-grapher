@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ff3cb81369df0f391a2f6e3a8c37029f",
+    "content-hash": "6ef6fd8c52e25994df6e6af95ec959cb",
     "packages": [
         {
             "name": "composer/installers",
@@ -823,7 +823,7 @@
         },
         {
             "name": "wpackagist-plugin/my-default-post-content",
-            "version": "0.6",
+            "version": "0.7",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/my-default-post-content/",
@@ -831,7 +831,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/my-default-post-content.zip?timestamp=1558811801"
+                "url": "https://downloads.wordpress.org/plugin/my-default-post-content.zip?timestamp=1576779367"
             },
             "require": {
                 "composer/installers": "~1.0"
