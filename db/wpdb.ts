@@ -259,7 +259,7 @@ export async function getEntriesByCategory(): Promise<
       fragment categoryWithEntries on Category {
         name
         slug
-        pages {
+        pages(first: $first) {
           nodes {
             slug
             title
