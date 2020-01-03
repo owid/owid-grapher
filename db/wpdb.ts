@@ -228,6 +228,9 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     if (cachedEntries.length) return cachedEntries
 
     const first = 100
+    // The filtering of cached entries below makes the $first argument
+    // less accurate, as it does not represent the exact number of entries
+    // returned per subcategories but rather their maximum number of entries.
     const where = {
         orderby: "TERM_ORDER",
         termTaxonomId: 44 // Entries category ID
@@ -317,15 +320,18 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
                         !isEntryInSubcategories(node, children.nodes)
                 )
                 .map((node: EntryNode) => getEntryNode(node)),
-            subcategories: children.nodes.map(
-                ({ name, slug, pages }: CategoryNode) => ({
+            subcategories: children.nodes
+                .filter(
+                    (subcategory: CategoryNode) =>
+                        subcategory.pages.nodes.length !== 0
+                )
+                .map(({ name, slug, pages }: CategoryNode) => ({
                     name: decodeHTML(name),
                     slug,
                     entries: pages.nodes.map((node: EntryNode) =>
                         getEntryNode(node)
                     )
-                })
-            )
+                }))
         })
     )
 
