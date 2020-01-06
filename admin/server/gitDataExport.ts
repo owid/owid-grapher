@@ -43,7 +43,7 @@ export async function removeDatasetFromGitRepo(
     await execFormatted(
         `cd %s && rm -rf %s && git add -A %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${commitName ||
             GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push()`,
+            GIT_DEFAULT_EMAIL}>" && git push))`,
         [
             repoDir,
             `${repoDir}/datasets/${datasetName}`,
