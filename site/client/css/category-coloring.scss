@@ -85,29 +85,29 @@
 /* Growth & Distribution of Prosperity */
 .owid-data li:nth-of-type(7) h4,
 #topics-dropdown li.category:nth-of-type(7) > a,
-.growth-and-inequality-color {
-    color: $growth-and-inequality-color;
+.growth-inequality-color {
+    color: $growth-inequality-color;
 }
 .owid-data li:nth-of-type(7) .link-container {
-    border-top: 2px solid $growth-and-inequality-color;
+    border-top: 2px solid $growth-inequality-color;
 }
 .owid-data li:nth-of-type(7) a:hover,
 #topics-dropdown li.category:nth-of-type(7) .subcategory-menu {
-    background: $growth-and-inequality-color !important;
+    background: $growth-inequality-color !important;
 }
 
 /* Economic Development, Work & Standard of Living */
 .owid-data li:nth-of-type(8) h4,
 #topics-dropdown li.category:nth-of-type(8) > a,
-.work-and-life-color {
-    color: $work-and-life-color;
+.work-life-color {
+    color: $work-life-color;
 }
 .owid-data li:nth-of-type(8) .link-container {
-    border-top: 2px solid $work-and-life-color;
+    border-top: 2px solid $work-life-color;
 }
 .owid-data li:nth-of-type(8) a:hover,
 #topics-dropdown li.category:nth-of-type(8) .subcategory-menu {
-    background: $work-and-life-color !important;
+    background: $work-life-color !important;
 }
 
 /* The Public Sector & Economic System */
@@ -141,15 +141,15 @@
 /* War & Peace */
 .owid-data li:nth-of-type(11) h4,
 #topics-dropdown li.category:nth-of-type(11) > a,
-.war-and-peace-color {
-    color: $war-and-peace-color;
+.war-peace-color {
+    color: $war-peace-color;
 }
 .owid-data li:nth-of-type(11) .link-container {
-    border-top: 2px solid $war-and-peace-color;
+    border-top: 2px solid $war-peace-color;
 }
 .owid-data li:nth-of-type(11) a:hover,
 #topics-dropdown li.category:nth-of-type(11) .subcategory-menu {
-    background: $war-and-peace-color !important;
+    background: $war-peace-color !important;
 }
 
 /* Political Regimes */
@@ -169,15 +169,15 @@
 /* Violence & Rights */
 .owid-data li:nth-of-type(13) h4,
 #topics-dropdown li.category:nth-of-type(13) > a,
-.violence-and-rights-color {
-    color: $violence-and-rights-color;
+.violence-rights-color {
+    color: $violence-rights-color;
 }
 .owid-data li:nth-of-type(13) .link-container {
-    border-top: 2px solid $violence-and-rights-color;
+    border-top: 2px solid $violence-rights-color;
 }
 .owid-data li:nth-of-type(13) a:hover,
 #topics-dropdown li.category:nth-of-type(13) .subcategory-menu {
-    background: $violence-and-rights-color !important;
+    background: $violence-rights-color !important;
 }
 
 /* Education & Knowledge */
