@@ -33,6 +33,16 @@ interface ChartViewProps {
     isEmbed?: boolean
 }
 
+function isVisible(elm: HTMLElement | null) {
+    if (!elm || !elm.getBoundingClientRect) return false
+    const rect = elm.getBoundingClientRect()
+    const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight
+    )
+    return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
+}
+
 @observer
 export class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({
@@ -397,17 +407,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound checkVisibility() {
-        function checkVisible(elm: HTMLElement | null) {
-            if (!elm || !elm.getBoundingClientRect) return false
-            const rect = elm.getBoundingClientRect()
-            const viewHeight = Math.max(
-                document.documentElement.clientHeight,
-                window.innerHeight
-            )
-            return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
-        }
-
-        if (!this.hasBeenVisible && checkVisible(this.base.current)) {
+        if (!this.hasBeenVisible && isVisible(this.base.current)) {
             this.hasBeenVisible = true
         }
     }
