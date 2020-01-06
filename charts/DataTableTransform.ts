@@ -2,7 +2,7 @@ import { computed } from "mobx"
 
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
-import { reduce, max } from "./Util"
+import { reduce, max, sortBy } from "./Util"
 
 export interface DimensionHeader {
     key: number
@@ -11,7 +11,8 @@ export interface DimensionHeader {
 
 export interface DimensionValue {
     key: number
-    value: string | undefined
+    value?: string | number
+    formattedValue?: string
 }
 
 export interface DataTableRow {
@@ -50,19 +51,19 @@ export class DataTableTransform {
     }
 
     makeDimensionValue(dim: DimensionWithData, entity: string): DimensionValue {
-        let formatted
+        let value, formatted
         const valueByYear = dim.valueByEntityAndYear.get(entity)
         const year = this.yearByVariable.get(dim.variableId)
         if (valueByYear !== undefined && year !== undefined) {
-            const value = valueByYear.get(year)
+            value = valueByYear.get(year)
             if (value !== undefined) {
                 formatted = dim.formatValueShort(value)
             }
         }
-        return { key: dim.variableId, value: formatted }
+        return { key: dim.variableId, value, formattedValue: formatted }
     }
 
-    @computed get allRows(): DataTableRow[] {
+    @computed get rows(): DataTableRow[] {
         return this.entities.map(entity => ({
             entity: entity,
             dimensionValues: this.dimensions.map(dim =>
@@ -72,8 +73,12 @@ export class DataTableTransform {
     }
 
     @computed get displayRows() {
-        return this.allRows.filter(row => {
-            return row.dimensionValues.some(dv => dv.value !== undefined)
+        const filteredRows = this.rows.filter(row => {
+            return row.dimensionValues.some(
+                dv => dv.formattedValue !== undefined
+            )
         })
+
+        return sortBy(filteredRows, r => r.dimensionValues[0].value)
     }
 }

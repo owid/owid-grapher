@@ -47,7 +47,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 </td>
                 {row.dimensionValues.map(dv => (
                     <td key={dv.key} className="dimension">
-                        {dv.value}
+                        {dv.formattedValue}
                     </td>
                 ))}
             </tr>
