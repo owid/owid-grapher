@@ -1,28 +1,12 @@
 import { observable, computed, autorun, IReactionDisposer } from "mobx"
 
 import { ChartType, ChartTypeType } from "./ChartType"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartConfig } from "./ChartConfig"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
 
 export type ExplorerChartType = ChartTypeType | "WorldMap"
-
-function chartConfigFromIndicator(
-    indicator: Indicator
-): Partial<ChartConfigProps> {
-    return {
-        ...indicator,
-        // TODO need to derive selected data from ExploreModel, since selections
-        // should persist when switching indicators.
-        selectedData: [
-            {
-                index: 0,
-                entityId: 355
-            }
-        ]
-    }
-}
 
 export class ExploreModel {
     static WorldMap: ExplorerChartType = "WorldMap"
@@ -64,7 +48,7 @@ export class ExploreModel {
                 } else {
                     const indicator = this.indicatorEntry.entity
                     if (indicator) {
-                        this.chart.update(chartConfigFromIndicator(indicator))
+                        this.chart.update(indicator)
                     }
                 }
             })
