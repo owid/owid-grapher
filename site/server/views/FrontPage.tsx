@@ -43,12 +43,14 @@ export const FrontPage = (props: {
                 <div className="entry-item-contents">
                     <h4>{entry.title}</h4>
                     <p className="excerpt">{entry.excerpt}</p>
-                    <div
-                        className="kpi"
-                        dangerouslySetInnerHTML={{
-                            __html: entry.kpi
-                        }}
-                    />
+                    {entry.kpi && (
+                        <div
+                            className="kpi"
+                            dangerouslySetInnerHTML={{
+                                __html: entry.kpi
+                            }}
+                        />
+                    )}
                 </div>
             </div>
         </a>
