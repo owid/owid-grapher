@@ -230,9 +230,10 @@ export class ChartView extends React.Component<ChartViewProps> {
     @observable.ref isSelectingData: boolean = false
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    hasFadedIn: boolean = false
+
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
+    @observable isInitialLoad: boolean = true
 
     // Resolved when this.chart.data.isReady becomes true; used for testing
     resolveReady: () => void = () => undefined
@@ -410,6 +411,28 @@ export class ChartView extends React.Component<ChartViewProps> {
         else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
     }
 
+    @action.bound onUpdate() {
+        // handler always runs on resize and resets the base font size
+        this.setBaseFontSize()
+        if (
+            this.chart.data.isReady &&
+            this.hasBeenVisible &&
+            this.isInitialLoad
+        ) {
+            select(this.base.current!)
+                .selectAll(".chart > *")
+                .style("opacity", 0)
+                .transition()
+                .style("opacity", null)
+            this.isInitialLoad = false
+        } else {
+            this.checkVisibility()
+        }
+        if (this.chart.data.isReady) {
+            this.resolveReady()
+        }
+    }
+
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     bindToWindow() {
@@ -421,6 +444,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidMount() {
         window.addEventListener("scroll", this.checkVisibility)
+        this.onUpdate()
     }
 
     componentWillUnmount() {
@@ -428,25 +452,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     componentDidUpdate() {
-        // handler always runs on resize and resets the base font size
-        this.setBaseFontSize()
-        if (
-            this.chart.data.isReady &&
-            this.hasBeenVisible &&
-            !this.hasFadedIn
-        ) {
-            select(this.base.current!)
-                .selectAll(".chart > *")
-                .style("opacity", 0)
-                .transition()
-                .style("opacity", null)
-            this.hasFadedIn = true
-        } else {
-            this.checkVisibility()
-        }
-        if (this.chart.data.isReady) {
-            this.resolveReady()
-        }
+        this.onUpdate()
     }
 
     componentDidCatch(error: any, info: any) {
