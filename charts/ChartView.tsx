@@ -333,6 +333,40 @@ export class ChartView extends React.Component<ChartViewProps> {
         )
     }
 
+    renderError() {
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    lineHeight: 1.5,
+                    padding: "3rem"
+                }}
+            >
+                <p style={{ color: "#cc0000", fontWeight: 700 }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} /> There was a
+                    problem loading this chart
+                </p>
+                <p>
+                    We have been notified of this error, please check back later
+                    whether it's been fixed. If the error persists, get in touch
+                    with us at{" "}
+                    <a
+                        href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
+                    >
+                        info@ourworldindata.org
+                    </a>
+                    .
+                </p>
+            </div>
+        )
+    }
+
     renderMain() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
@@ -347,53 +381,11 @@ export class ChartView extends React.Component<ChartViewProps> {
                 fontSize: this.chart.baseFontSize
             }
 
-            if (this.hasError) {
-                return (
-                    <div className={this.classNames} style={style}>
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                position: "relative",
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                lineHeight: 1.5,
-                                padding: "3rem"
-                            }}
-                        >
-                            <p style={{ color: "#cc0000", fontWeight: 700 }}>
-                                <FontAwesomeIcon icon={faExclamationTriangle} />{" "}
-                                There was a problem loading this chart
-                            </p>
-                            <p>
-                                We have been notified of this error, please
-                                check back later whether it's been fixed. If the
-                                error persists, get in touch with us at{" "}
-                                <a
-                                    href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
-                                >
-                                    info@ourworldindata.org
-                                </a>
-                                .
-                            </p>
-                        </div>
-                    </div>
-                )
-            } else {
-                return (
-                    this.chart.data.isReady && (
-                        <div
-                            ref={this.base}
-                            className={this.classNames}
-                            style={style}
-                        >
-                            {this.renderReady()}
-                        </div>
-                    )
-                )
-            }
+            return (
+                <div ref={this.base} className={this.classNames} style={style}>
+                    {this.hasError ? this.renderError() : this.renderReady()}
+                </div>
+            )
         }
     }
 
