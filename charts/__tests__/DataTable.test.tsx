@@ -40,12 +40,12 @@ describe(DataTable, () => {
 
         it("renders the name of each country", () => {
             const cell = view.find("tbody tr td.entity").first()
-            expect(cell.text()).toBe("Afghanistan")
+            expect(cell.text()).toBe("Andorra")
         })
 
         it("renders the value for each country", () => {
             const cell = view.find("tbody tr td.dimension").first()
-            expect(cell.text()).toBe("5.58%")
+            expect(cell.text()).toBe("0.21%")
         })
     })
 
