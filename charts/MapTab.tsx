@@ -223,7 +223,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                             {mapToDataEntities[tooltipTarget.featureId] ||
                                 tooltipTarget.featureId.replace(/_/g, " ")}
                         </h3>
-                        <p
+                        <div
                             style={{
                                 margin: 0,
                                 padding: "0.3em 0.9em",
@@ -245,7 +245,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     <span>{formatYear(tooltipDatum.year)}</span>
                                 </div>
                             )}
-                        </p>
+                        </div>
                         {this.isEntityClickable && (
                             <div>
                                 <p
