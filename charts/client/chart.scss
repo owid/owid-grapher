@@ -1012,6 +1012,7 @@ html.iframe .ChartPage {
 .ExplorePage .indicator-dropdown {
     position: relative;
     z-index: $zindex-IndicatorDropdown;
+    margin: 20px auto;
 }
 
 .ExplorePage .data-table {
