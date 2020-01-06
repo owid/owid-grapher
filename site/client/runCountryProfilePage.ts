@@ -95,11 +95,11 @@ class ChartFilter {
 
         if (!this.query) {
             for (const section of this.sections) {
-                section.style.display = null
+                section.style.display = ""
             }
             for (const c of this.chartItems) {
                 c.ul.append(c.li)
-                c.li.style.display = null
+                c.li.style.display = ""
                 c.li.children[0].children[0].innerHTML = c.title
             }
 
@@ -116,7 +116,7 @@ class ChartFilter {
             if (!res) {
                 c.li.style.display = "none"
             } else {
-                c.li.style.display = null
+                c.li.style.display = ""
                 c.li.children[0].children[0].innerHTML = fuzzysort.highlight(
                     res
                 )
@@ -132,7 +132,7 @@ class ChartFilter {
             ) {
                 section.style.display = "none"
             } else {
-                section.style.display = null
+                section.style.display = ""
             }
         }
     }

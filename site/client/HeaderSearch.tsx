@@ -14,7 +14,7 @@ class HeaderSearchResults extends React.Component<{
     }
 
     componentWillUnmount() {
-        document.body.style.overflowY = null
+        document.body.style.overflowY = ""
     }
 
     render() {
