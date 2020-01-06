@@ -631,68 +631,55 @@
     }
 
     h4 {
-        font-weight: normal;
-        margin: 1.5rem 0 1rem;
+        margin: 0 0 0.75rem;
     }
 
     .category-entries {
         @include md-up {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 1rem;
+            columns: 3 auto;
+            column-gap: 1rem;
         }
     }
 
     .entry-item-container {
         display: block;
+        break-inside: avoid;
         position: relative;
-        height: 5rem;
-        margin-bottom: 0.5rem;
-
-        @include md-up {
-            margin-bottom: 0;
-        }
+        // transform: translateZ(0); // Chrome hack to show the overflowing
+        // bottom box shadow on the last element of the grid. Not used as
+        // this requires the overflow to be visible ... which breaks the layout
+        // on Edge (cf. below).
+        overflow: hidden; // Edge hack to avoid splitting a div when the
+        // number of available elements is less than the number of columns
+        margin-bottom: 1rem;
 
         &:hover .entry-item {
-            z-index: 100;
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2),
-                0 4px 10px rgba(0, 0, 0, 0.15);
-
-            .excerpt,
-            .kpi {
-                opacity: 1;
-            }
-
-            .entry-item-contents:after {
-                background: transparent;
+            &:after {
+                opacity: 0.05;
             }
         }
     }
 
     .entry-item {
-        display: block;
         line-height: 1.3;
-        overflow: hidden;
-        position: absolute;
-        left: 0;
-        top: 0;
-        right: 0;
-        pointer-events: none;
-        height: 5rem;
-        transition: height 300ms ease, box-shadow 300ms ease,
-            mask-image 300ms ease;
-
-        h4 {
-            margin: 0 0 0.25rem;
+        
+        &:after {
+            content: "";
+            background-color: currentColor;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 300ms ease;
         }
 
         .excerpt,
         .kpi {
             font-size: 14px;
-            line-height: 1.3;
             margin: 0.2em 0 0.75em;
-            opacity: 0.7;
-            transition: opacity 300ms ease;
         }
 
         .kpi ul {
@@ -701,25 +688,7 @@
 
         .entry-item-contents {
             border: 1px solid currentColor;
-            background-color: white;
             padding: 0.5rem 0.75rem;
-            height: 100%;
-            position: relative;
-
-            &:after {
-                content: "";
-                position: absolute;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                height: 1.5rem;
-                background: linear-gradient(
-                    rgba(255, 255, 255, 0),
-                    rgba(255, 255, 255, 1)
-                );
-                transition: background 300ms ease;
-                z-index: 1;
-            }
         }
     }
 }

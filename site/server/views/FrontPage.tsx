@@ -582,14 +582,6 @@ export const FrontPage = (props: {
                 </section>
 
                 <SiteFooter />
-
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                runEntryExcerptLinks()
-            `
-                    }}
-                />
             </body>
         </html>
     )
