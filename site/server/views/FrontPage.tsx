@@ -540,7 +540,7 @@ export const FrontPage = (props: {
 
                 <section id="entries" className="homepage-entries">
                     <div className="wrapper">
-                        <h2>Research by topic</h2>
+                        <h2>Research publications</h2>
                         {entries.map(category => (
                             <div
                                 key={category.slug}
