@@ -17,12 +17,12 @@ import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
 import { MapProjection } from "./MapProjection"
 import { Tooltip } from "./Tooltip"
-import { NoData } from "./NoData"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
+import { LoadingChart } from "./LoadingChart"
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -296,23 +296,25 @@ export class MapTab extends React.Component<MapTabProps> {
 
     render() {
         const { map } = this
-        if (!map.data.isReady) return <NoData bounds={this.props.bounds} />
-
         const { layout } = this
 
         return (
             <ChartLayoutView layout={this.layout}>
-                <MapWithLegend
-                    bounds={layout.innerBounds}
-                    choroplethData={map.data.choroplethData}
-                    years={map.data.timelineYears}
-                    inputYear={map.data.targetYear}
-                    legendData={map.data.legendData}
-                    legendTitle={map.data.legendTitle}
-                    projection={map.projection}
-                    defaultFill={map.noDataColor}
-                    mapToDataEntities={map.data.mapToDataEntities}
-                />
+                {this.props.chart.data.isReady ? (
+                    <MapWithLegend
+                        bounds={layout.innerBounds}
+                        choroplethData={map.data.choroplethData}
+                        years={map.data.timelineYears}
+                        inputYear={map.data.targetYear}
+                        legendData={map.data.legendData}
+                        legendTitle={map.data.legendTitle}
+                        projection={map.projection}
+                        defaultFill={map.noDataColor}
+                        mapToDataEntities={map.data.mapToDataEntities}
+                    />
+                ) : (
+                    <LoadingChart bounds={layout.innerBounds} />
+                )}
             </ChartLayoutView>
         )
     }
