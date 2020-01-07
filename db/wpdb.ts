@@ -1,5 +1,4 @@
 import { decodeHTML } from "entities"
-const slugify = require("slugify")
 import { DatabaseConnection } from "db/DatabaseConnection"
 import {
     WORDPRESS_DB_NAME,
@@ -15,7 +14,6 @@ import * as Knex from "knex"
 import fetch from "node-fetch"
 const urlSlug = require("url-slug")
 
-import * as path from "path"
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
@@ -76,6 +74,7 @@ const wpdb = new WPDB()
 
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
+const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 async function apiQuery(
     endpoint: string,
@@ -126,16 +125,6 @@ export async function end() {
     if (knexInstance) await knexInstance.destroy()
 }
 
-interface ImageUpload {
-    slug: string
-    originalUrl: string
-    variants: {
-        url: string
-        width: number
-        height: number
-    }[]
-}
-
 // Retrieve a map of post ids to authors
 let cachedAuthorship: Map<number, string[]> | undefined
 export async function getAuthorship(): Promise<Map<number, string[]>> {
@@ -171,12 +160,14 @@ export interface EntryMeta {
     slug: string
     title: string
     excerpt: string
+    kpi: string
 }
 
 export interface CategoryWithEntries {
     name: string
     slug: string
     entries: EntryMeta[]
+    subcategories: CategoryWithEntries[]
 }
 
 export async function getCategoriesByPostId(): Promise<Map<number, string[]>> {
@@ -224,59 +215,127 @@ export async function getTagsByPostId(): Promise<Map<number, string[]>> {
     return tagsByPostId
 }
 
+export interface EntryNode {
+    slug: string
+    title: string
+    // in some edge cases (entry alone in a subcategory), WPGraphQL returns
+    // null instead of an empty string)
+    excerpt: string | null
+    kpi: string
+}
+
 // Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[] | undefined
+let cachedEntries: CategoryWithEntries[] = []
 export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
-    if (cachedEntries) return cachedEntries
+    if (cachedEntries.length) return cachedEntries
 
-    const categoryOrder = [
-        "Population",
-        "Health",
-        "Food",
-        "Energy",
-        "Environment",
-        "Technology",
-        "Growth &amp; Inequality",
-        "Work &amp; Life",
-        "Public Sector",
-        "Global Connections",
-        "War &amp; Peace",
-        "Politics",
-        "Violence &amp; Rights",
-        "Education",
-        "Media",
-        "Culture"
-    ]
-
-    const pageRows = await wpdb.query(`
-        SELECT posts.ID, post_title, post_date, post_name, post_excerpt FROM wp_posts AS posts
-        WHERE posts.post_type='page' AND posts.post_status='publish' ORDER BY posts.menu_order ASC, posts.post_title ASC
-    `)
-
-    const permalinks = await getPermalinks()
-
-    const categoriesByPageId = await getCategoriesByPostId()
-
-    cachedEntries = categoryOrder.map(cat => {
-        const rows = pageRows.filter(row => {
-            const cats = categoriesByPageId.get(row.ID)
-            return cats && cats.indexOf(cat) !== -1
-        })
-
-        const entries = rows.map(row => {
-            return {
-                slug: permalinks.get(row.ID, row.post_name),
-                title: row.post_title,
-                excerpt: row.post_excerpt
+    const first = 100
+    // The filtering of cached entries below makes the $first argument
+    // less accurate, as it does not represent the exact number of entries
+    // returned per subcategories but rather their maximum number of entries.
+    const where = {
+        orderby: "TERM_ORDER",
+        termTaxonomId: 44 // Entries category ID
+    }
+    const whereNested = {
+        orderby: "TERM_ORDER"
+    }
+    const query = `
+    query getEntriesByCategory($first: Int, $where: RootQueryToCategoryConnectionWhereArgs!, $whereNested: CategoryToCategoryConnectionWhereArgs!) {
+        categories(first: $first, where: $where) {
+          nodes {
+            name
+            children(first: $first, where: $whereNested) {
+              nodes {
+                ...categoryWithEntries
+                children(first: $first, where: $whereNested) {
+                  nodes {
+                    ...categoryWithEntries
+                  }
+                }
+              }
             }
-        })
-
-        return {
-            name: decodeHTML(cat),
-            slug: slugify(decodeHTML(cat).toLowerCase()),
-            entries: entries
+          }
         }
+      }
+
+      fragment categoryWithEntries on Category {
+        name
+        slug
+        pages(first: $first) {
+          nodes {
+            slug
+            title
+            excerpt
+            kpi
+          }
+        }
+      }
+      `
+
+    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        },
+        body: JSON.stringify({
+            query,
+            variables: { first, where, whereNested }
+        })
     })
+    const json = await response.json()
+
+    interface CategoryNode {
+        name: string
+        slug: string
+        pages: any
+        children: any
+    }
+
+    const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
+        slug,
+        title: decodeHTML(title),
+        excerpt: excerpt === null ? "" : decodeHTML(excerpt),
+        kpi
+    })
+
+    const isEntryInSubcategories = (entry: EntryNode, subcategories: any) => {
+        return subcategories.some((subcategory: any) => {
+            return subcategory.pages.nodes.some(
+                (node: EntryNode) => entry.slug === node.slug
+            )
+        })
+    }
+
+    cachedEntries = json.data.categories.nodes[0].children.nodes.map(
+        ({ name, slug, pages, children }: CategoryNode) => ({
+            name: decodeHTML(name),
+            slug,
+            entries: pages.nodes
+                .filter(
+                    (node: EntryNode) =>
+                        // Entries are being listed in root categories even when they
+                        // belong to subcategories. It is then necessary to filter them
+                        // out to avoid duplicates.
+                        // https://github.com/wp-graphql/wp-graphql/issues/1100
+                        !isEntryInSubcategories(node, children.nodes)
+                )
+                .map((node: EntryNode) => getEntryNode(node)),
+            subcategories: children.nodes
+                .filter(
+                    (subcategory: CategoryNode) =>
+                        subcategory.pages.nodes.length !== 0
+                )
+                .map(({ name, slug, pages }: CategoryNode) => ({
+                    name: decodeHTML(name),
+                    slug,
+                    entries: pages.nodes.map((node: EntryNode) =>
+                        getEntryNode(node)
+                    )
+                }))
+        })
+    )
 
     return cachedEntries
 }
@@ -375,7 +434,9 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
     const type = await getPostType(slug)
     const response = await apiQuery(
         `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
-        { searchParams: [["slug", slug]] }
+        {
+            searchParams: [["slug", slug]]
+        }
     )
     const postArray = await response.json()
 
@@ -386,7 +447,9 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
     const response = await apiQuery(
         `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`,
-        { isAuthenticated: true }
+        {
+            isAuthenticated: true
+        }
     )
     const revisions = await response.json()
 
@@ -492,7 +555,7 @@ export function knex(
 
 export function flushCache() {
     cachedAuthorship = undefined
-    cachedEntries = undefined
+    cachedEntries = []
     cachedFeaturedImages = undefined
     cachedPosts = undefined
     cachedTables = undefined

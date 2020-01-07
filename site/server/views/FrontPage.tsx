@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { CategoryWithEntries, FullPost } from "db/wpdb"
+import { CategoryWithEntries, FullPost, EntryNode } from "db/wpdb"
 import { faRss } from "@fortawesome/free-solid-svg-icons/faRss"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
@@ -30,6 +30,31 @@ export const FrontPage = (props: {
             "query-input": "required name=search_term_string"
         }
     }
+
+    const renderEntry = (entry: EntryNode, categorySlug: string) => (
+        <a
+            key={entry.slug}
+            href={`/${entry.slug}`}
+            className={`entry-item-container ${categorySlug}-color`}
+            data-track-click
+            data-track-note="homepage-entries"
+        >
+            <div className="entry-item">
+                <div className="entry-item-contents">
+                    <h5>{entry.title}</h5>
+                    <p className="excerpt">{entry.excerpt}</p>
+                    {entry.kpi && (
+                        <div
+                            className="kpi"
+                            dangerouslySetInnerHTML={{
+                                __html: entry.kpi
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
+        </a>
+    )
 
     return (
         <html>
@@ -517,51 +542,46 @@ export const FrontPage = (props: {
 
                 <section id="entries" className="homepage-entries">
                     <div className="wrapper">
-                        <h2>Research by topic</h2>
+                        <h2>Research publications</h2>
                         {entries.map(category => (
                             <div
                                 key={category.slug}
                                 className="category-wrapper"
                             >
-                                <div
-                                    className={`category-name ${category.slug}-color`}
+                                <h3
+                                    className={`${category.slug}-color`}
+                                    id={category.slug}
                                 >
-                                    <h3 id={category.slug}>{category.name}</h3>
-                                </div>
+                                    {category.name}
+                                </h3>
                                 <div className="category-entries">
-                                    {category.entries.map(entry => (
-                                        <a
-                                            key={entry.slug}
-                                            href={`/${entry.slug}`}
-                                            className={`entry-item-container ${category.slug}-color`}
-                                            data-track-click
-                                            data-track-note="homepage-entries"
-                                        >
-                                            <div className="entry-item">
-                                                <div className="entry-item-contents">
-                                                    <h4>{entry.title}</h4>
-                                                    <p className="excerpt">
-                                                        {entry.excerpt}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    ))}
+                                    {category.entries.map(entry =>
+                                        renderEntry(entry, category.slug)
+                                    )}
                                 </div>
+                                {category.subcategories.map(subcategory => (
+                                    <div>
+                                        <h4
+                                            className={`${category.slug}-color`}
+                                        >
+                                            {subcategory.name}
+                                        </h4>
+                                        <div className="category-entries">
+                                            {subcategory.entries.map(entry =>
+                                                renderEntry(
+                                                    entry,
+                                                    category.slug
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>
                 </section>
 
                 <SiteFooter />
-
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                runEntryExcerptLinks()
-            `
-                    }}
-                />
             </body>
         </html>
     )

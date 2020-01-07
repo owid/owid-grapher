@@ -21,7 +21,6 @@ import { ChartView } from "charts/ChartView"
 import { ExploreView } from "charts/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
-import { runEntryExcerptLinks } from "./runEntryExcerptLinks"
 import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
 
@@ -39,7 +38,6 @@ window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
-window.runEntryExcerptLinks = runEntryExcerptLinks
 window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
 
