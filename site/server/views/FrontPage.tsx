@@ -41,7 +41,7 @@ export const FrontPage = (props: {
         >
             <div className="entry-item">
                 <div className="entry-item-contents">
-                    <h4>{entry.title}</h4>
+                    <h5>{entry.title}</h5>
                     <p className="excerpt">{entry.excerpt}</p>
                     {entry.kpi && (
                         <div
