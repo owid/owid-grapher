@@ -233,7 +233,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
-    @observable isInitialLoad: boolean = true
 
     // Resolved when this.chart.data.isReady becomes true; used for testing
     resolveReady: () => void = () => undefined
@@ -414,21 +413,16 @@ export class ChartView extends React.Component<ChartViewProps> {
     @action.bound onUpdate() {
         // handler always runs on resize and resets the base font size
         this.setBaseFontSize()
-        if (
-            this.chart.data.isReady &&
-            this.hasBeenVisible &&
-            this.isInitialLoad
-        ) {
+        if (this.chart.data.isReady && this.hasBeenVisible) {
             select(this.base.current!)
                 .selectAll(".chart > *")
                 .style("opacity", 0)
                 .transition()
                 .style("opacity", null)
-            this.isInitialLoad = false
         } else {
             this.checkVisibility()
         }
-        if (this.chart.data.isReady) {
+        if (this.hasBeenVisible && this.chart.data.isReady) {
             this.resolveReady()
         }
     }
