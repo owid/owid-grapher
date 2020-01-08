@@ -8,7 +8,11 @@ ROOT="/home/owid"
 if [ "$1" == "staging" ]; then
   HOST="owid-staging"
   PREFIX="staging"
-  
+
+elif [ "$1" == "explorer" ]; then
+  HOST="owid-staging"
+  PREFIX="explorer"
+
 elif [ "$1" == "live" ]; then
   HOST="owid-live"
   PREFIX="live"
