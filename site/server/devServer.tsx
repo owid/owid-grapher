@@ -124,8 +124,13 @@ devServer.get("/headerMenu.json", async (req, res) => {
 })
 
 devServer.use(
-    "/uploads",
-    express.static(path.join(WORDPRESS_DIR, "web/app/uploads"))
+    // Not all /app/uploads paths are going through formatting
+    // and being rewritten as /uploads. E.g. blog index images paths
+    // on front page.
+    ["/uploads", "/app/uploads"],
+    express.static(path.join(WORDPRESS_DIR, "web/app/uploads"), {
+        fallthrough: false
+    })
 )
 
 devServer.use("/exports", express.static(path.join(BAKED_SITE_DIR, "exports")))
