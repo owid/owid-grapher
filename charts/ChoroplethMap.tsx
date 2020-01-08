@@ -388,9 +388,12 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     {sortBy(
                         dataFeatures.map(d => {
                             const isFocus = this.hasFocus(d.id)
+                            const outOfFocusBracket =
+                                !!this.focusBracket && !isFocus
                             const datum = choroplethData[d.id as string]
                             const stroke = isFocus ? focusColor : "#333"
                             const fill = datum ? datum.color : defaultFill
+                            const fillOpacity = outOfFocusBracket ? 0.4 : 1
 
                             return (
                                 <path
@@ -403,6 +406,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     stroke={stroke}
                                     cursor="pointer"
                                     fill={fill}
+                                    fillOpacity={fillOpacity}
                                     onClick={() => this.props.onClick(d.geo)}
                                     onMouseEnter={ev =>
                                         this.onMouseEnter(d, ev)
