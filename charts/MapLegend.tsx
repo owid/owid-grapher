@@ -13,6 +13,8 @@ import {
 import { TextWrap } from "./TextWrap"
 import { sum } from "d3-array"
 
+const FOCUS_BORDER_COLOR = "#111"
+
 interface NumericMapLegendProps {
     width: number
     fontSize: number
@@ -321,8 +323,10 @@ class NumericMapLegendView extends React.Component<{
                                 width={d.width}
                                 height={rectHeight}
                                 fill={d.bin.color}
-                                stroke={isFocus ? "#FFEC38" : borderColor}
-                                strokeWidth={isFocus ? 2.5 : 0.3}
+                                stroke={
+                                    isFocus ? FOCUS_BORDER_COLOR : borderColor
+                                }
+                                strokeWidth={isFocus ? 2 : 0.3}
                             />
                         )
                     }),
@@ -478,7 +482,7 @@ class CategoricalMapLegendView extends React.Component<
                 {marks.map((m, i) => {
                     const isFocus =
                         focusBracket && m.bin.value === focusBracket.value
-                    const stroke = isFocus ? "#FFEC38" : "#333"
+                    const stroke = isFocus ? FOCUS_BORDER_COLOR : "#333"
                     return (
                         <g
                             key={i}

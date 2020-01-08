@@ -310,7 +310,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             dataFeatures
         } = this
         const focusColor = "#111"
-        const focusStrokeWidth = 2.5
+        const focusStrokeWidth = 1.5
 
         return (
             <g
@@ -393,7 +393,8 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                             const datum = choroplethData[d.id as string]
                             const stroke = isFocus ? focusColor : "#333"
                             const fill = datum ? datum.color : defaultFill
-                            const fillOpacity = outOfFocusBracket ? 0.4 : 1
+                            const fillOpacity = outOfFocusBracket ? 0.2 : 1
+                            const strokeOpacity = outOfFocusBracket ? 0.5 : 1
 
                             return (
                                 <path
@@ -404,6 +405,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         viewportScale
                                     }
                                     stroke={stroke}
+                                    strokeOpacity={strokeOpacity}
                                     cursor="pointer"
                                     fill={fill}
                                     fillOpacity={fillOpacity}
