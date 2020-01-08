@@ -21,7 +21,7 @@ export const SiteHeader = () => {
                         <a href="/#entries" className="topics-button">
                             <div className="label">
                                 Research <br />
-                                <strong>by topic</strong>
+                                <strong>publications</strong>
                             </div>
                             <div className="icon">
                                 <svg width="12" height="6">
