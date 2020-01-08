@@ -12,13 +12,15 @@ $zindex-Tooltip: 100;
 $zindex-DataSelector: 110;
 $zindex-IndicatorDropdown: 200;
 
-figure[data-grapher-src]:empty {
+figure[data-grapher-src]:empty,
+.loading-chart {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-figure[data-grapher-src]:empty:after {
+figure[data-grapher-src]:empty:after,
+.loading-chart:after {
     content: "";
     border: 5px solid #333;
     border-radius: 30px;

@@ -33,6 +33,16 @@ interface ChartViewProps {
     isEmbed?: boolean
 }
 
+function isVisible(elm: HTMLElement | null) {
+    if (!elm || !elm.getBoundingClientRect) return false
+    const rect = elm.getBoundingClientRect()
+    const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight
+    )
+    return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
+}
+
 @observer
 export class ChartView extends React.Component<ChartViewProps> {
     static bootstrap({
@@ -220,15 +230,9 @@ export class ChartView extends React.Component<ChartViewProps> {
     @observable.ref isSelectingData: boolean = false
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    hasFadedIn: boolean = false
+
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
-
-    // Resolved when this.chart.data.isReady becomes true; used for testing
-    resolveReady: () => void = () => undefined
-    readyPromise: Promise<void> = new Promise<void>((resolve, reject) => {
-        this.resolveReady = resolve
-    })
 
     @computed get classNames(): string {
         const classNames = [
@@ -323,6 +327,40 @@ export class ChartView extends React.Component<ChartViewProps> {
         )
     }
 
+    renderError() {
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    lineHeight: 1.5,
+                    padding: "3rem"
+                }}
+            >
+                <p style={{ color: "#cc0000", fontWeight: 700 }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} /> There was a
+                    problem loading this chart
+                </p>
+                <p>
+                    We have been notified of this error, please check back later
+                    whether it's been fixed. If the error persists, get in touch
+                    with us at{" "}
+                    <a
+                        href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
+                    >
+                        info@ourworldindata.org
+                    </a>
+                    .
+                </p>
+            </div>
+        )
+    }
+
     renderMain() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
@@ -337,53 +375,11 @@ export class ChartView extends React.Component<ChartViewProps> {
                 fontSize: this.chart.baseFontSize
             }
 
-            if (this.hasError) {
-                return (
-                    <div className={this.classNames} style={style}>
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                position: "relative",
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                lineHeight: 1.5,
-                                padding: "3rem"
-                            }}
-                        >
-                            <p style={{ color: "#cc0000", fontWeight: 700 }}>
-                                <FontAwesomeIcon icon={faExclamationTriangle} />{" "}
-                                There was a problem loading this chart
-                            </p>
-                            <p>
-                                We have been notified of this error, please
-                                check back later whether it's been fixed. If the
-                                error persists, get in touch with us at{" "}
-                                <a
-                                    href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
-                                >
-                                    info@ourworldindata.org
-                                </a>
-                                .
-                            </p>
-                        </div>
-                    </div>
-                )
-            } else {
-                return (
-                    this.chart.data.isReady && (
-                        <div
-                            ref={this.base}
-                            className={this.classNames}
-                            style={style}
-                        >
-                            {this.renderReady()}
-                        </div>
-                    )
-                )
-            }
+            return (
+                <div ref={this.base} className={this.classNames} style={style}>
+                    {this.hasError ? this.renderError() : this.renderReady()}
+                </div>
+            )
         }
     }
 
@@ -397,17 +393,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound checkVisibility() {
-        function checkVisible(elm: HTMLElement | null) {
-            if (!elm || !elm.getBoundingClientRect) return false
-            const rect = elm.getBoundingClientRect()
-            const viewHeight = Math.max(
-                document.documentElement.clientHeight,
-                window.innerHeight
-            )
-            return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
-        }
-
-        if (!this.hasBeenVisible && checkVisible(this.base.current)) {
+        if (!this.hasBeenVisible && isVisible(this.base.current)) {
             this.hasBeenVisible = true
         }
     }
@@ -416,6 +402,20 @@ export class ChartView extends React.Component<ChartViewProps> {
         if (this.renderWidth <= 400) this.props.chart.baseFontSize = 14
         else if (this.renderWidth < 1080) this.props.chart.baseFontSize = 16
         else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
+    }
+
+    @action.bound onUpdate() {
+        // handler always runs on resize and resets the base font size
+        this.setBaseFontSize()
+        if (this.chart.data.isReady && this.hasBeenVisible) {
+            select(this.base.current!)
+                .selectAll(".chart > *")
+                .style("opacity", 0)
+                .transition()
+                .style("opacity", null)
+        } else {
+            this.checkVisibility()
+        }
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -429,6 +429,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidMount() {
         window.addEventListener("scroll", this.checkVisibility)
+        this.onUpdate()
     }
 
     componentWillUnmount() {
@@ -436,25 +437,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     componentDidUpdate() {
-        // handler always runs on resize and resets the base font size
-        this.setBaseFontSize()
-        if (
-            this.chart.data.isReady &&
-            this.hasBeenVisible &&
-            !this.hasFadedIn
-        ) {
-            select(this.base.current!)
-                .selectAll(".chart > *")
-                .style("opacity", 0)
-                .transition()
-                .style("opacity", null)
-            this.hasFadedIn = true
-        } else {
-            this.checkVisibility()
-        }
-        if (this.chart.data.isReady) {
-            this.resolveReady()
-        }
+        this.onUpdate()
     }
 
     componentDidCatch(error: any, info: any) {

@@ -66,7 +66,7 @@ export class Bounds {
     }
 
     static forText(
-        str: string,
+        str: string = "",
         {
             x = 0,
             y = 0,

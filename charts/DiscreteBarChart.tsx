@@ -65,7 +65,11 @@ export class DiscreteBarChart extends React.Component<{
         const labels = this.currentData.map(d => d.label)
         if (this.hasAddButton)
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
-        const longestLabel = sortBy(labels, d => -d.length)[0]
+        // TypeScript assumes that indexes always return the array type, but it can also be undefined
+        // Issue: https://github.com/microsoft/TypeScript/issues/13778
+        const longestLabel = sortBy(labels, d => -d.length)[0] as
+            | string
+            | undefined
         return Bounds.forText(longestLabel, { fontSize: this.legendFontSize })
             .width
     }
