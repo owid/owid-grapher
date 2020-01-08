@@ -1,5 +1,6 @@
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
+import { observe } from "mobx"
 
 import { ExploreView } from "../ExploreView"
 import { Bounds } from "../Bounds"
@@ -39,9 +40,18 @@ function mockDataResponse() {
     apiMock.mockVariable(104402)
 }
 
+async function whenReady(chartView: ChartView): Promise<void> {
+    return new Promise(resolve => {
+        const data = chartView.chart.data
+        observe(data, "isReady", () => {
+            if (data.isReady) resolve()
+        })
+    })
+}
+
 async function updateViewWhenReady(exploreView: ReactWrapper) {
     const chartView = exploreView.find(ChartView).first()
-    await (chartView.instance() as ChartView).readyPromise
+    await whenReady(chartView.instance() as ChartView)
     exploreView.update()
 }
 
