@@ -300,7 +300,7 @@ function getPostType($request)
 	if ($post !== NULL) {
 		return rest_ensure_response($post->post_type);
 	} else {
-		return new WP_Error('no_post', 'No post found with these search criteria', array('status' => 404));
+		return new \WP_Error('no_post', 'No post found with these search criteria', array('status' => 404));
 	}
 }
 
