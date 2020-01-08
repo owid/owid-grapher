@@ -6,10 +6,10 @@ if [ "$1" == "staging" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
   NAME="staging"
-elif [ "$1" == "danieltest" ]; then
+elif [ "$1" == "explorer" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
-  NAME="danieltest"
+  NAME="explorer"
 elif [ "$1" == "live" ]; then
   HOST="owid@209.97.185.49"
   ROOT="/home/owid"
