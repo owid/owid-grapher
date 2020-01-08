@@ -309,7 +309,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             noDataFeatures,
             dataFeatures
         } = this
-        const focusColor = "#FFEC38"
+        const focusColor = "#111"
         const focusStrokeWidth = 2.5
 
         return (
