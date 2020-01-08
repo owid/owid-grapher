@@ -560,7 +560,7 @@ export const FrontPage = (props: {
                                     )}
                                 </div>
                                 {category.subcategories.map(subcategory => (
-                                    <div>
+                                    <div key={subcategory.slug}>
                                         <h4
                                             className={`${category.slug}-color`}
                                         >
