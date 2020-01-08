@@ -11,6 +11,7 @@ import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoub
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -41,7 +42,10 @@ export const FrontPage = (props: {
         >
             <div className="entry-item">
                 <div className="entry-item-contents">
-                    <h5>{entry.title}</h5>
+                    <h5>
+                        {entry.title}
+                        <FontAwesomeIcon icon={faArrowRight} />
+                    </h5>
                     <p className="excerpt">{entry.excerpt}</p>
                     {entry.kpi && (
                         <div

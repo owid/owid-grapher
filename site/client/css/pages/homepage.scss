@@ -637,6 +637,11 @@
     h5 {
         margin: 0 0 0.75rem;
         font-size: 1rem;
+        svg {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            transition: margin 300ms ease;
+        }
     }
 
     .category-entries {
@@ -644,6 +649,8 @@
             display: block;
             @include sm-only {
                 margin-bottom: 1.2rem;
+                border: 1px solid currentColor;
+                padding: 1rem;
             }
         }
 
@@ -657,8 +664,13 @@
                 position: relative;
 
                 .entry-item {
-                    &:hover:after {
-                        opacity: 0.05;
+                    &:hover {
+                        &:after {
+                            opacity: 0.05;
+                        }
+                        svg {
+                            margin-left: 0.8rem;
+                        }
                     }
                     &:after {
                         content: "";
