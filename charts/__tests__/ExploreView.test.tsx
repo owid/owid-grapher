@@ -176,7 +176,6 @@ describe(ExploreView, () => {
             const model = getEmptyModel()
             const view = mount(<ExploreView bounds={bounds} model={model} />)
             expect(view.find(ChartView)).toHaveLength(1)
-            expect(view.find(".chart h1")).toHaveLength(0)
 
             model.indicatorId = indicator.id
             await updateViewWhenReady(view)
