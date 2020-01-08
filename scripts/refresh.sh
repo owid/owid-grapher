@@ -1,6 +1,9 @@
 #!/bin/bash -e
 
-set -a && source ~/staging-wordpress/.env && set +a
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+
+set -a && source $DIR/.env && set +a
+
 if [ "${WP_ENV}" != "staging" ]; then
   echo "Please only run on staging."
   exit 1
@@ -8,8 +11,8 @@ fi
 
 WORDPRESS_DB_HOST=$DB_HOST
 WORDPRESS_DB_NAME=$DB_NAME
-GRAPHER_DB_HOST=localhost
-GRAPHER_DB_NAME=staging_grapher
+GRAPHER_DB_HOST=$GRAPHER_DB_HOST
+GRAPHER_DB_NAME=$GRAPHER_DB_NAME
 MYSQL="sudo mysql --default-character-set=utf8mb4"
 DL_FOLDER="/tmp"
 
