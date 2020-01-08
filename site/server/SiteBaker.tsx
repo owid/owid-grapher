@@ -228,6 +228,7 @@ export class SiteBaker {
                     !path.startsWith("subscribe") &&
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
+                    !path.startsWith("explore") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
