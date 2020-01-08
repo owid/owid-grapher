@@ -9,7 +9,7 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
-import { CategoryWithEntries } from "db/wpdb"
+import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
 import { find } from "lodash"
 import { bind } from "decko"
@@ -148,7 +148,7 @@ export class Header extends React.Component<{
                             >
                                 <div className="label">
                                     Research <br />
-                                    <strong>by topic</strong>
+                                    <strong>publications</strong>
                                 </div>
                                 <div className="icon">
                                     <svg width="12" height="6">
@@ -336,6 +336,20 @@ export class DesktopTopicsMenu extends React.Component<{
         }
     }
 
+    renderEntry(entry: EntryMeta): JSX.Element {
+        return (
+            <a
+                key={entry.title}
+                href={`/${entry.slug}`}
+                className="item"
+                data-track-click
+                data-track-note="header-navigation"
+            >
+                <span className="label">{entry.title}</span>
+            </a>
+        )
+    }
+
     render() {
         const { activeCategory } = this
         const { categories, isOpen, onMouseEnter, onMouseLeave } = this.props
@@ -344,7 +358,14 @@ export class DesktopTopicsMenu extends React.Component<{
 
         if (activeCategory) {
             sizeClass =
-                activeCategory.entries.length > 10 ? "two-column" : "one-column"
+                // Count root and subcategories entries
+                activeCategory.subcategories.reduce(
+                    (acc: number, subcategory) =>
+                        subcategory.entries.length + acc,
+                    activeCategory.entries.length
+                ) > 10
+                    ? "two-column"
+                    : "one-column"
         }
 
         return (
@@ -412,16 +433,17 @@ export class DesktopTopicsMenu extends React.Component<{
                 </div>
                 <div className="submenu" ref={this.submenuRef}>
                     {activeCategory &&
-                        activeCategory.entries.map(entry => (
-                            <a
-                                key={entry.title}
-                                href={`/${entry.slug}`}
-                                className="item"
-                                data-track-click
-                                data-track-note="header-navigation"
-                            >
-                                <span className="label">{entry.title}</span>
-                            </a>
+                        activeCategory.entries.map(entry =>
+                            this.renderEntry(entry)
+                        )}
+                    {activeCategory &&
+                        activeCategory.subcategories.map(subcategory => (
+                            <div key={subcategory.slug}>
+                                {subcategory.entries &&
+                                    subcategory.entries.map(entry =>
+                                        this.renderEntry(entry)
+                                    )}
+                            </div>
                         ))}
                 </div>
             </div>
