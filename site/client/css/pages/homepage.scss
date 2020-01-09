@@ -190,12 +190,11 @@
     }
 
     .inner-wrapper {
-        max-width: 55rem;
         margin: 0 auto;
     }
 
     section {
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
         &:last-child {
             margin-bottom: 0;
         }
@@ -263,7 +262,7 @@
             align-items: center;
             align-content: center;
             text-shadow: 0 0 10px white;
-            padding: 2rem;
+            padding: 1rem;
             transition: opacity 350ms ease;
 
             p {
@@ -279,7 +278,7 @@
             transition: opacity 450ms ease, filter 450ms ease;
             opacity: 0.7;
             width: 100%;
-            max-width: 30rem;
+            max-width: 41rem;
             margin: 0 auto;
             display: block;
         }

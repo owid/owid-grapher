@@ -99,8 +99,8 @@ export const FrontPage = (props: {
                 <section className="homepage-coverage">
                     <div className="wrapper">
                         <div className="inner-wrapper">
-                            <div className="owid-row owid-spacing--3">
-                                <div className="owid-col owid-col--lg-auto owid-padding-bottom--sm-5">
+                            <div className="owid-row owid-spacing--5">
+                                <div className="owid-col owid-col--lg-2 owid-padding-bottom--sm-5">
                                     <section>
                                         <h3 className="align-center">
                                             Trusted in{" "}
@@ -113,7 +113,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/media-logos.png"
+                                                src="/media-logos-wide.png"
                                                 alt="Logos of the publications that have used our content"
                                             />
                                             <div className="hover-note">
@@ -136,7 +136,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/university-logos.png"
+                                                src="/university-logos-wide.png"
                                                 alt="Logos of the universities that have used our content"
                                             />
                                             <div className="hover-note">
@@ -148,10 +148,10 @@ export const FrontPage = (props: {
                                         </a>
                                     </section>
                                 </div>
-                                <div className="owid-col owid-col--lg-shrink md-up flex-row">
+                                {/* <div className="owid-col owid-col--lg-shrink md-up flex-row">
                                     <div className="divider"></div>
-                                </div>
-                                <div className="owid-col owid-col--lg-auto">
+                                </div> */}
+                                <div className="owid-col owid-col--lg-1">
                                     <section>
                                         <h3>
                                             <strong>Authored by</strong>
