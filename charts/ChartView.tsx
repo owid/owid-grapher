@@ -233,6 +233,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
+    @observable hasFadedIn: boolean = false
 
     @computed get classNames(): string {
         const classNames = [
@@ -407,12 +408,17 @@ export class ChartView extends React.Component<ChartViewProps> {
     @action.bound onUpdate() {
         // handler always runs on resize and resets the base font size
         this.setBaseFontSize()
-        if (this.chart.data.isReady && this.hasBeenVisible) {
+        if (
+            this.chart.data.isReady &&
+            this.hasBeenVisible &&
+            !this.hasFadedIn
+        ) {
             select(this.base.current!)
                 .selectAll(".chart > *")
                 .style("opacity", 0)
                 .transition()
                 .style("opacity", null)
+            this.hasFadedIn = true
         } else {
             this.checkVisibility()
         }
