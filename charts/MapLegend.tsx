@@ -330,7 +330,7 @@ class NumericMapLegendView extends React.Component<{
                             />
                         )
                     }),
-                    r => r.props["stroke-width"]
+                    r => r.props["strokeWidth"]
                 )}
                 {numericLabels.map(label => (
                     <text
