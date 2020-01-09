@@ -179,6 +179,10 @@ export const FrontPage = (props: {
                                                 <strong>Daniel Gavrilov</strong>{" "}
                                                 &ndash; Web developer
                                             </li>
+                                            <li>
+                                                <strong>Matthieu Bergel</strong>{" "}
+                                                &ndash; Web developer
+                                            </li>
                                         </ul>
                                     </section>
                                     <section>
