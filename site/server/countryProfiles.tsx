@@ -192,8 +192,13 @@ export async function countryProfilePage(countrySlug: string) {
                 variable as any
             )
 
-            const floatValue = parseFloat(latestValue.value)
-            const value = isNaN(floatValue) ? latestValue.value : floatValue
+            let value: string | number
+            value = parseFloat(latestValue.value)
+            if (isNaN(value)) {
+                value = latestValue.value
+            } else if (variable.display.conversionFactor) {
+                value *= variable.display.conversionFactor
+            }
 
             indicators.push({
                 year: latestValue.year,
