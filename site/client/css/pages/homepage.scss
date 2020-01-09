@@ -631,12 +631,13 @@
         }
     }
     h4 {
-        margin: 2rem 0 1.5rem;
-        font-size: 1.2rem;
+        margin: 2rem 0 1rem;
+        font-size: 0.9rem;
+        color: $primary-color-400;
     }
     h5 {
         margin: 0 0 0.75rem;
-        font-size: 1rem;
+        font-size: 1.1rem;
         svg {
             margin-left: 0.5rem;
             font-size: 0.8rem;
@@ -693,13 +694,19 @@
 
         .excerpt,
         .kpi {
-            font-size: 14px;
-            margin: 0.2em 0 0.75em;
             color: $primary-color;
+            font-size: 0.9rem;
         }
 
-        .kpi ul {
-            list-style-position: inside;
+        .excerpt {
+            margin: 0.2em 0 0.75em;
+        }
+
+        .kpi {
+            ul {
+                margin-left: 1rem;
+                font-weight: lighter;
+            }
         }
     }
 }
