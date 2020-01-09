@@ -318,6 +318,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 className="ChoroplethMap"
                 clipPath={`url(#boundsClip-${uid})`}
                 onMouseMove={this.onMouseMove}
+                onMouseLeave={this.onMouseLeave}
                 onClick={this.onClick}
                 style={this.hoverFeature ? { cursor: "pointer" } : {}}
             >
