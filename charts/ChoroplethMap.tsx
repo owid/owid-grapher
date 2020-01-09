@@ -360,7 +360,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         <g className="noDataFeatures">
                             {noDataFeatures.map(d => {
                                 const isFocus = this.hasFocus(d.id)
+                                const outOfFocusBracket =
+                                    !!this.focusBracket && !isFocus
                                 const stroke = isFocus ? focusColor : "#aaa"
+                                const fillOpacity = outOfFocusBracket ? 0.2 : 1
+                                const strokeOpacity = outOfFocusBracket
+                                    ? 0.5
+                                    : 1
                                 return (
                                     <path
                                         key={d.id}
@@ -370,8 +376,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                             viewportScale
                                         }
                                         stroke={stroke}
+                                        strokeOpacity={strokeOpacity}
                                         cursor="pointer"
                                         fill={defaultFill}
+                                        fillOpacity={fillOpacity}
                                         onClick={() =>
                                             this.props.onClick(d.geo)
                                         }
