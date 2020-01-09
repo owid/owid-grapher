@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e3f7301a05c37d0ac8b18773f21edf23",
+    "content-hash": "008b5f2d6b805e25406d523c7d277915",
     "packages": [
         {
             "name": "composer/installers",
@@ -930,6 +930,24 @@
             "homepage": "https://wordpress.org/plugins/safe-svg/"
         },
         {
+            "name": "wpackagist-plugin/simple-custom-post-order",
+            "version": "2.4.7",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/simple-custom-post-order/",
+                "reference": "tags/2.4.7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/simple-custom-post-order.2.4.7.zip"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/simple-custom-post-order/"
+        },
+        {
             "name": "wpackagist-plugin/simple-embed-code",
             "version": "2.3.2",
             "source": {
@@ -982,24 +1000,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/tablepress/"
-        },
-        {
-            "name": "wpackagist-plugin/taxonomy-terms-order",
-            "version": "1.5.7.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/taxonomy-terms-order/",
-                "reference": "tags/1.5.7.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/taxonomy-terms-order.1.5.7.1.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/taxonomy-terms-order/"
         }
     ],
     "packages-dev": [
