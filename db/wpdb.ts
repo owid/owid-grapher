@@ -233,22 +233,17 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     // The filtering of cached entries below makes the $first argument
     // less accurate, as it does not represent the exact number of entries
     // returned per subcategories but rather their maximum number of entries.
-    const where = {
-        orderby: "TERM_ORDER",
-        termTaxonomId: 44 // Entries category ID
-    }
-    const whereNested = {
-        orderby: "TERM_ORDER"
-    }
+    const orderby = "TERM_ORDER"
+
     const query = `
-    query getEntriesByCategory($first: Int, $where: RootQueryToCategoryConnectionWhereArgs!, $whereNested: CategoryToCategoryConnectionWhereArgs!) {
-        categories(first: $first, where: $where) {
+    query getEntriesByCategory($first: Int, $orderby: TermObjectsConnectionOrderbyEnum!) {
+        categories(first: $first, where: {termTaxonomId: 44, orderby: $orderby}) {
           nodes {
             name
-            children(first: $first, where: $whereNested) {
+            children(first: $first, where: {orderby: $orderby}) {
               nodes {
                 ...categoryWithEntries
-                children(first: $first, where: $whereNested) {
+                children(first: $first, where: {orderby: $orderby}) {
                   nodes {
                     ...categoryWithEntries
                   }
@@ -262,7 +257,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
       fragment categoryWithEntries on Category {
         name
         slug
-        pages(first: $first) {
+        pages(first: $first, where: {orderby: {field: MENU_ORDER, order: ASC}}) {
           nodes {
             slug
             title
@@ -281,7 +276,7 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
         },
         body: JSON.stringify({
             query,
-            variables: { first, where, whereNested }
+            variables: { first, orderby }
         })
     })
     const json = await response.json()
