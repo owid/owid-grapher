@@ -18,12 +18,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 
 import { AmazonMenu } from "./AmazonMenu"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 
 @observer
@@ -227,44 +225,13 @@ export class Header extends React.Component<{
                             </div>
                         </div>
                     </nav>
-                    <ul className="site-social-links md-up">
-                        <li>
-                            <a
-                                href="https://twitter.com/ourworldindata"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Follow us on Twitter"
-                                data-track-click
-                                data-track-note="header-navigation"
-                            >
-                                <FontAwesomeIcon icon={faTwitter} />
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="https://www.facebook.com/OurWorldinData/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Subscribe to our Facebook page"
-                                data-track-click
-                                data-track-note="header-navigation"
-                            >
-                                <FontAwesomeIcon icon={faFacebookSquare} />
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="/subscribe"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Subscribe to our newsletter"
-                                data-track-click
-                                data-track-note="header-navigation"
-                            >
-                                <FontAwesomeIcon icon={faEnvelope} />
-                            </a>
-                        </li>
-                    </ul>
+                    <div className="oxford-logo-wrapper md-up">
+                        <img
+                            className="oxford-logo"
+                            src="/oxford-logo-transparent.png"
+                            alt="University of Oxford logo"
+                        />
+                    </div>
                     <div className="site-navigation sm-only">
                         <button
                             onClick={this.onToggleSearch}

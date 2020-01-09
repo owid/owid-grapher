@@ -54,6 +54,9 @@
         list-style-type: none;
         display: inline-block;
         margin-right: 1.5rem;
+        &:last-child {
+            margin-right: 0;
+        }
     }
 
     a {
@@ -137,27 +140,9 @@
     overflow-y: scroll;
 }
 
-.site-social-links {
-    font-size: 1.375rem;
-
-    li {
-        list-style-type: none;
-        display: inline-block;
-        margin-left: 1rem;
-
-        &:first-child {
-            margin-left: 0;
-        }
-    }
-
-    a {
-        color: $primary-color-700;
-        transition: color 150ms ease;
-        display: inline-block;
-
-        &:hover {
-            color: white;
-        }
+.oxford-logo-wrapper {
+    img {
+        max-width: 10rem;
     }
 }
 
