@@ -113,8 +113,8 @@ function graphql_register_types()
 		'type' => 'String',
 		'description' => 'Key Performance Indicators',
 		'resolve' => function ($post) {
-			$kpi = get_post_meta($post->ID, KEY_PERFORMANCE_INDICATORS_META_FIELD, true)['rendered'];
-			return !empty($kpi) ? $kpi : '';
+			$kpi_post_meta = get_post_meta($post->ID, KEY_PERFORMANCE_INDICATORS_META_FIELD, true);
+			return !empty($kpi_post_meta['rendered']) ? $kpi_post_meta['rendered'] : '';
 		}
 	]);
 }
