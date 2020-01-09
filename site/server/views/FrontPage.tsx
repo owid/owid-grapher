@@ -185,16 +185,6 @@ export const FrontPage = (props: {
                                             </li>
                                         </ul>
                                     </section>
-                                    <section>
-                                        <h3>
-                                            Based at the University of Oxford
-                                        </h3>
-                                        <img
-                                            className="oxford-logo"
-                                            src="/oxford-logo-rect.png"
-                                            alt="University of Oxford logo"
-                                        />
-                                    </section>
                                 </div>
                             </div>
                         </div>
