@@ -561,11 +561,13 @@ export const FrontPage = (props: {
                                 >
                                     {category.name}
                                 </h3>
-                                <div className="category-entries">
-                                    {category.entries.map(entry =>
-                                        renderEntry(entry, category.slug)
-                                    )}
-                                </div>
+                                {!!category.entries.length && (
+                                    <div className="category-entries">
+                                        {category.entries.map(entry =>
+                                            renderEntry(entry, category.slug)
+                                        )}
+                                    </div>
+                                )}
                                 {category.subcategories.map(subcategory => (
                                     <div key={subcategory.slug}>
                                         <h4
