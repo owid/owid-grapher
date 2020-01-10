@@ -1,6 +1,9 @@
 #!/bin/bash -e
 
-set -a && source ~/staging-wordpress/.env && set +a
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+
+set -a && source $DIR/.env && set +a
+
 if [ "${WP_ENV}" != "staging" ]; then
   echo "Please only run on staging."
   exit 1
@@ -8,8 +11,8 @@ fi
 
 WORDPRESS_DB_HOST=$DB_HOST
 WORDPRESS_DB_NAME=$DB_NAME
-GRAPHER_DB_HOST=localhost
-GRAPHER_DB_NAME=staging_grapher
+GRAPHER_DB_HOST=$GRAPHER_DB_HOST
+GRAPHER_DB_NAME=$GRAPHER_DB_NAME
 MYSQL="sudo mysql --default-character-set=utf8mb4"
 DL_FOLDER="/tmp"
 
@@ -96,8 +99,8 @@ import_db $DL_FOLDER/owid_metadata_with_passwords.sql $GRAPHER_DB_HOST $GRAPHER_
 if [ "${WITH_CHARTDATA}" = true ]; then
   if [ "${SKIP_DB_DL}" = false ]; then
     echo "Downloading live Grapher chartdata database (owid_chartdata)"
-    ssh owid-live "cd live && yarn tsn scripts/exportChartData.ts /tmp/owid_chartdata.sql"
-    rsync -hav --progress owid-live:/tmp/owid_chartdata.sql $DL_FOLDER
+    curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
+    gunzip $DL_FOLDER/owid_chartdata.sql.gz
   fi
   echo "Importing live Grapher chartdata database (owid_chartdata)"
   import_db $DL_FOLDER/owid_chartdata.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
