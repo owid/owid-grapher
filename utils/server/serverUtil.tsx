@@ -90,5 +90,13 @@ export function slugify(s: string) {
     return _.trim(s).replace(/ +/g, "-")
 }
 
+export const splitOnLastWord = (s: string) => {
+    const endIndex = (s.lastIndexOf(" ") as number) + 1
+    return {
+        start: endIndex === 0 ? "" : s.substring(0, endIndex),
+        end: s.substring(endIndex)
+    }
+}
+
 import * as filenamify from "filenamify"
 export { filenamify }

@@ -12,6 +12,7 @@ import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { splitOnLastWord } from "utils/server/serverUtil"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -32,33 +33,41 @@ export const FrontPage = (props: {
         }
     }
 
-    const renderEntry = (entry: EntryNode, categorySlug: string) => (
-        <a
-            key={entry.slug}
-            href={`/${entry.slug}`}
-            className={`entry-item-container ${categorySlug}-color`}
-            data-track-click
-            data-track-note="homepage-entries"
-        >
-            <div className="entry-item">
-                <div className="entry-item-contents">
-                    <h5>
-                        {entry.title}
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </h5>
-                    <p className="excerpt">{entry.excerpt}</p>
-                    {entry.kpi && (
-                        <div
-                            className="kpi"
-                            dangerouslySetInnerHTML={{
-                                __html: entry.kpi
-                            }}
-                        />
-                    )}
+    const renderEntry = (entry: EntryNode, categorySlug: string) => {
+        const { start: titleStart, end: titleEnd } = splitOnLastWord(
+            entry.title
+        )
+        return (
+            <a
+                key={entry.slug}
+                href={`/${entry.slug}`}
+                className={`entry-item-container ${categorySlug}-color`}
+                data-track-click
+                data-track-note="homepage-entries"
+            >
+                <div className="entry-item">
+                    <div className="entry-item-contents">
+                        <h5>
+                            {titleStart}
+                            <span>
+                                {titleEnd}
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </span>
+                        </h5>
+                        <p className="excerpt">{entry.excerpt}</p>
+                        {entry.kpi && (
+                            <div
+                                className="kpi"
+                                dangerouslySetInnerHTML={{
+                                    __html: entry.kpi
+                                }}
+                            />
+                        )}
+                    </div>
                 </div>
-            </div>
-        </a>
-    )
+            </a>
+        )
+    }
 
     return (
         <html>

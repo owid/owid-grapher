@@ -636,10 +636,14 @@
     }
     h5 {
         margin: 0 0 0.75rem;
-        font-size: 1.1rem;
+        font-size: 1.4rem;
+        span {
+            white-space: nowrap;
+        }
         svg {
             margin-left: 0.5rem;
             font-size: 0.8rem;
+            vertical-align: initial;
             transition: margin 300ms ease;
         }
     }
