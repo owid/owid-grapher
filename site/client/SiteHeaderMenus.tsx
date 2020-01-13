@@ -22,7 +22,6 @@ import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 
 import { AmazonMenu } from "./AmazonMenu"
-import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 
 @observer
 export class Header extends React.Component<{
@@ -269,6 +268,21 @@ export class Header extends React.Component<{
     }
 }
 
+const renderEntry = (entry: EntryMeta): JSX.Element => {
+    return (
+        <li key={entry.slug}>
+            <a
+                href={`/${entry.slug}`}
+                className="item"
+                data-track-click
+                data-track-note="header-navigation"
+            >
+                <span className="label">{entry.title}</span>
+            </a>
+        </li>
+    )
+}
+
 @observer
 export class DesktopTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
@@ -277,7 +291,7 @@ export class DesktopTopicsMenu extends React.Component<{
     onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void
 }> {
     @observable.ref activeCategory?: CategoryWithEntries
-    submenuRef: React.RefObject<HTMLDivElement> = React.createRef()
+    submenuRef: React.RefObject<HTMLUListElement> = React.createRef()
 
     @action.bound setCategory(category?: CategoryWithEntries) {
         this.activeCategory = category
@@ -301,20 +315,6 @@ export class DesktopTopicsMenu extends React.Component<{
             )
             if (category === this.activeCategory) this.setCategory(undefined)
         }
-    }
-
-    renderEntry(entry: EntryMeta): JSX.Element {
-        return (
-            <a
-                key={entry.title}
-                href={`/${entry.slug}`}
-                className="item"
-                data-track-click
-                data-track-note="header-navigation"
-            >
-                <span className="label">{entry.title}</span>
-            </a>
-        )
     }
 
     render() {
@@ -353,66 +353,67 @@ export class DesktopTopicsMenu extends React.Component<{
                             this.submenuRef.current.getBoundingClientRect()
                         }
                     >
-                        {categories.map(category => (
-                            <div
-                                key={category.slug}
-                                className={
-                                    category === activeCategory
-                                        ? "active item"
-                                        : "item"
-                                }
-                                data-submenu-id={category.slug}
+                        <ul>
+                            {categories.map(category => (
+                                <li
+                                    key={category.slug}
+                                    className={
+                                        category === activeCategory
+                                            ? "active item"
+                                            : "item"
+                                    }
+                                    data-submenu-id={category.slug}
+                                >
+                                    <span className="label">
+                                        {category.name}
+                                    </span>
+                                    <span className="icon">
+                                        <svg width="5" height="10">
+                                            <path
+                                                d="M0,0 L5,5 L0,10 Z"
+                                                fill="currentColor"
+                                            />
+                                        </svg>
+                                    </span>
+                                </li>
+                            ))}
+                            <hr />
+                            <a
+                                href="http://sdg-tracker.org"
+                                className="item"
+                                data-submenu-id
+                                data-track-click
+                                data-track-note="header-navigation"
                             >
-                                <span className="label">{category.name}</span>
-                                <span className="icon">
-                                    <svg width="5" height="10">
-                                        <path
-                                            d="M0,0 L5,5 L0,10 Z"
-                                            fill="currentColor"
-                                        />
-                                    </svg>
+                                <span className="label">
+                                    Sustainable Development Goals Tracker
                                 </span>
-                            </div>
-                        ))}
-                        <hr />
-                        <a
-                            href="http://sdg-tracker.org"
-                            className="item"
-                            data-submenu-id
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
-                            <span className="label">
-                                Sustainable Development Goals Tracker
-                            </span>
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faExternalLinkAlt} />
-                            </span>
-                        </a>
-                        {/* An extra "Index" menu item, for when we have the Index page. */}
-                        {/* <a href="/index" className="item" data-track-click data-track-note="header-navigation">
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                                </span>
+                            </a>
+                            {/* An extra "Index" menu item, for when we have the Index page. */}
+                            {/* <a href="/index" className="item" data-track-click data-track-note="header-navigation">
                         <span className="label">Index of all topics</span>
                         <span className="icon">
                             <FontAwesomeIcon icon={faExternalLinkAlt} />
                         </span>
                     </a> */}
+                        </ul>
                     </AmazonMenu>
                 </div>
-                <div className="submenu" ref={this.submenuRef}>
+                <ul className="submenu" ref={this.submenuRef}>
                     {activeCategory &&
-                        activeCategory.entries.map(entry =>
-                            this.renderEntry(entry)
+                        activeCategory.entries.map(entry => renderEntry(entry))}
+                    {activeCategory &&
+                        activeCategory.subcategories.map(
+                            subcategory =>
+                                subcategory.entries &&
+                                subcategory.entries.map(entry =>
+                                    renderEntry(entry)
+                                )
                         )}
-                    {activeCategory &&
-                        activeCategory.subcategories.map(subcategory => (
-                            <div key={subcategory.slug}>
-                                {subcategory.entries &&
-                                    subcategory.entries.map(entry =>
-                                        this.renderEntry(entry)
-                                    )}
-                            </div>
-                        ))}
-                </div>
+                </ul>
             </div>
         )
     }
@@ -455,19 +456,16 @@ export class MobileTopicsMenu extends React.Component<{
                             {activeCategory === category && (
                                 <div className="subcategory-menu">
                                     <ul>
-                                        {category.entries.map(entry => {
-                                            return (
-                                                <li key={entry.slug}>
-                                                    <a
-                                                        href={`/${entry.slug}`}
-                                                        data-track-click
-                                                        data-track-note="header-navigation"
-                                                    >
-                                                        {entry.title}
-                                                    </a>
-                                                </li>
-                                            )
-                                        })}
+                                        {category.entries.map(entry =>
+                                            renderEntry(entry)
+                                        )}
+                                        {category.subcategories.map(
+                                            subcategory =>
+                                                subcategory.entries &&
+                                                subcategory.entries.map(entry =>
+                                                    renderEntry(entry)
+                                                )
+                                        )}
                                     </ul>
                                 </div>
                             )}
