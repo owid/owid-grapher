@@ -16601,11 +16601,6 @@ worker-rpc@^0.1.0:
   dependencies:
     microevent.ts "~0.1.1"
 
-wpautop@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/wpautop/-/wpautop-1.0.0.tgz#e6114aec0985e4678cd517786c2b24990373d5ec"
-  integrity sha512-CS++dUtSD0whN0hEcfRz7vzYog9OC+6Lx5bLbdOgyyWVmYWOU6UY9Tssu+2v/b6k+AiRkpdjgWY5qcfhZ5H1pA==
-
 wrap-ansi@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-2.1.0.tgz#d8fc3d284dd05794fe84973caecdd1cf824fdd85"

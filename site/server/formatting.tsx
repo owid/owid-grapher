@@ -1,6 +1,5 @@
 import * as cheerio from "cheerio"
 const urlSlug = require("url-slug")
-const wpautop = require("wpautop")
 import * as _ from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
