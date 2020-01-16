@@ -38,7 +38,6 @@ export interface FormattedPost {
     references: Reference[]
     excerpt: string
     imageUrl?: string
-    acknowledgements?: string
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
 }
 
@@ -106,16 +105,6 @@ export async function formatWordpressPost(
     // Need to skirt around wordpress formatting to get proper latex rendering
     let latexBlocks
     ;[html, latexBlocks] = extractLatex(html)
-
-    // Extract acknowledgements
-    let acknowledgements: string | undefined
-    html = html.replace(
-        /\[acknowledgements\]([\s\S]*?)\[\/acknowledgements\]/gm,
-        (_, ack) => {
-            acknowledgements = wpautop(ack)
-            return ``
-        }
-    )
 
     const references: Reference[] = []
     html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, (_, bibtex) => {
@@ -463,7 +452,6 @@ export async function formatWordpressPost(
         info: info,
         html: `${style}${$("body").html()}` as string,
         footnotes: footnotes,
-        acknowledgements: acknowledgements,
         references: references,
         excerpt:
             post.excerpt ||

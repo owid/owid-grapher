@@ -145,18 +145,6 @@ export const LongFormPage = (props: {
                                                     </li>
                                                 )
                                             )}
-                                            {post.acknowledgements && (
-                                                <li
-                                                    key="acknowledgements"
-                                                    className="section nosubs"
-                                                >
-                                                    <a
-                                                        href={`#acknowledgements`}
-                                                    >
-                                                        Acknowledgements
-                                                    </a>
-                                                </li>
-                                            )}
 
                                             {post.footnotes.length ? (
                                                 <li
@@ -195,19 +183,6 @@ export const LongFormPage = (props: {
                                 <footer className="article-footer">
                                     <div className="has-2-columns">
                                         <div className="wp-block-column">
-                                            {post.acknowledgements && (
-                                                <React.Fragment>
-                                                    <h3 id="acknowledgements">
-                                                        Acknowledgements
-                                                    </h3>
-                                                    <section
-                                                        dangerouslySetInnerHTML={{
-                                                            __html:
-                                                                post.acknowledgements
-                                                        }}
-                                                    />
-                                                </React.Fragment>
-                                            )}
 
                                             {post.footnotes.length ? (
                                                 <React.Fragment>
