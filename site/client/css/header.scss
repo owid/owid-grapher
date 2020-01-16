@@ -157,6 +157,13 @@
     .gcdl-logo {
         opacity: 0.75;
         transition: opacity 150ms linear;
+        display: flex;
+        align-items: center;
+
+        img {
+            width: 100%;
+        }
+
         &:hover {
             opacity: 1;
         }
