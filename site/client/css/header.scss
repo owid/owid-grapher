@@ -134,9 +134,33 @@
     overflow-y: scroll;
 }
 
-.oxford-logo-wrapper {
-    img {
-        max-width: 10rem;
+.header-logos-wrapper {
+    display: flex;
+    align-items: center;
+
+    .oxford-logo {
+        width: 9rem;
+    }
+
+    .gcdl-logo {
+        width: 2rem;
+        margin-left: 0.5rem;
+    }
+
+    .oxford-logo,
+    .gcdl-logo {
+        opacity: 0.75;
+        transition: opacity 150ms linear;
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 68rem) {
+        .oxford-logo,
+        .gcdl-logo {
+            display: none;
+        }
     }
 }
 

@@ -224,12 +224,25 @@ export class Header extends React.Component<{
                             </div>
                         </div>
                     </nav>
-                    <div className="oxford-logo-wrapper md-up">
-                        <img
+                    <div className="header-logos-wrapper md-up">
+                        <a
+                            href="https://www.oxfordmartin.ox.ac.uk/global-development"
                             className="oxford-logo"
-                            src="/oxford-logo-transparent.png"
-                            alt="University of Oxford logo"
-                        />
+                        >
+                            <img
+                                src="/oxford-logo-transparent.png"
+                                alt="University of Oxford logo"
+                            />
+                        </a>
+                        <a
+                            href="https://global-change-data-lab.org/"
+                            className="gcdl-logo"
+                        >
+                            <img
+                                src="/gcdl-logo-narrow.png"
+                                alt="Global Change Data Lab logo"
+                            />
+                        </a>
                     </div>
                     <div className="site-navigation sm-only">
                         <button
