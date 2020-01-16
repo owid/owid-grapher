@@ -155,17 +155,12 @@
 
     .oxford-logo,
     .gcdl-logo {
-        opacity: 0.75;
-        transition: opacity 150ms linear;
+        opacity: 0.85;
         display: flex;
         align-items: center;
 
         img {
             width: 100%;
-        }
-
-        &:hover {
-            opacity: 1;
         }
     }
 
