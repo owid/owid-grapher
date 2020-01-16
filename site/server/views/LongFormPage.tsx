@@ -9,6 +9,7 @@ import { CategoryWithEntries } from "db/wpdb"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { TableOfContents } from "site/client/TableOfContents"
 
 export const LongFormPage = (props: {
     entries: CategoryWithEntries[]
@@ -111,66 +112,14 @@ export const LongFormPage = (props: {
 
                         <div className="contentContainer">
                             {post.tocHeadings.length > 0 && (
-                                <aside className="entry-sidebar">
-                                    <nav className="entry-toc">
-                                        <ul>
-                                            <li>
-                                                <a href="#">{pageTitle}</a>
-                                            </li>
-                                            {post.tocHeadings.map(
-                                                (heading, i) => (
-                                                    <li
-                                                        key={i}
-                                                        className={
-                                                            heading.isSubheading
-                                                                ? "subsection"
-                                                                : "section" +
-                                                                  (!post
-                                                                      .tocHeadings[
-                                                                      i + 1
-                                                                  ] ||
-                                                                  !post
-                                                                      .tocHeadings[
-                                                                      i + 1
-                                                                  ].isSubheading
-                                                                      ? " nosubs"
-                                                                      : "")
-                                                        }
-                                                    >
-                                                        <a
-                                                            href={`#${heading.slug}`}
-                                                        >
-                                                            {heading.text}
-                                                        </a>
-                                                    </li>
-                                                )
-                                            )}
-
-                                            {post.footnotes.length ? (
-                                                <li
-                                                    key="references"
-                                                    className="section nosubs"
-                                                >
-                                                    <a href={`#references`}>
-                                                        References
-                                                    </a>
-                                                </li>
-                                            ) : (
-                                                undefined
-                                            )}
-                                            {isEntry && (
-                                                <li
-                                                    key="citation"
-                                                    className="section nosubs"
-                                                >
-                                                    <a href={`#citation`}>
-                                                        Citation
-                                                    </a>
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </nav>
-                                </aside>
+                                <div>
+                                    <TableOfContents
+                                        headings={post.tocHeadings}
+                                        isFootnotes={!!post.footnotes.length}
+                                        isEntry={isEntry}
+                                        pageTitle={pageTitle}
+                                    />
+                                </div>
                             )}
 
                             <div className="contentAndFootnotes">
@@ -287,6 +236,18 @@ export const LongFormPage = (props: {
                     </div>
                 </div>
                 <SiteFooter hideDonate={formattingOptions.hideDonateFooter} />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        runTableOfContents(${JSON.stringify({
+                            headings: post.tocHeadings,
+                            isFootnotes: !!post.footnotes.length,
+                            isEntry,
+                            pageTitle
+                        })})
+                        `
+                    }}
+                />
             </body>
         </html>
     )
