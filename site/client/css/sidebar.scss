@@ -92,6 +92,10 @@ nav.entry-toc {
     font-size: 12px;
     text-align: left;
     padding: $vertical-spacing $padding-x-md;
+    @include xlg-up {
+        padding-top: 0;
+        margin-top: $vertical-spacing;
+    }
 }
 
 nav.entry-toc li {

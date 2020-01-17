@@ -80,7 +80,7 @@ export const LongFormPage = (props: {
                 )}
                 <main>
                     <article className="page">
-                        <div className="offset">
+                        <div className="offset offset-header">
                             <header className={articleHeaderClasses.join(" ")}>
                                 <h1 className="entry-title">{post.title}</h1>
                                 {!formattingOptions.hideAuthors && (

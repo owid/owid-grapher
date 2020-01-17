@@ -4,13 +4,18 @@
     .content-wrapper {
         display: flex;
         position: relative;
+        padding-top: $vertical-spacing;
         background-color: $body-bg;
     }
-    @include lg-down {
-        .offset {
-            position: relative;
+    .offset {
+        flex: 1;
+        @include lg-down {
             margin-left: $sidebar-closed-drawer-width;
-            flex: 1;
+        }
+        @include xlg-up {
+            &.offset-header {
+                margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+            }
         }
     }
     .content-and-footnotes,
@@ -33,8 +38,8 @@
             padding-top: 4rem;
         }
         @include xlg-up {
-            margin-left: $sidebar-content-width + 2 * $padding-x-md;
             padding-top: 6rem;
+            padding-bottom: 3 * $vertical-spacing;
         }
         // }
 
