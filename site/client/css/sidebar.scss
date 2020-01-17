@@ -1,45 +1,97 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
 
-.contentContainer {
-    @include lg-only {
-        position: relative;
-        .entry-sidebar {
-            width: $sidebar-content-width;
-            margin-left: -($sidebar-content-width + $padding-x-md);
-            height: 100%;
+.entry-sidebar {
+    width: $sidebar-content-width + 2 * $padding-x-md;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    @include lg-down {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 2;
+        overflow-x: visible;
+        margin-left: -($sidebar-content-width + 2 * $padding-x-md) + $sidebar-closed-drawer-width;
+        background-color: $white;
+        transition: margin 300ms ease;
+
+        .toggle-toc {
             position: absolute;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            width: $sidebar-toggle-width;
+            height: $sidebar-toggle-width;
+            background-color: $primary-color;
+            &:hover {
+                background-color: $primary-color-700;
+            }
+
+            color: $white;
+            border-radius: 50%;
+            outline: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            // transition: all 300ms ease;
+
+            svg {
+                display: block;
+                position: initial;
+                background: none;
+                width: 100%;
+                padding: 0.5rem;
+            }
         }
-    }
-    @include lg-up {
-        .entry-sidebar {
-            padding-right: $padding-x-md;
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
+
+        .entry-toc {
+            margin-right: -$sidebar-toggle-width / 2;
+            padding: $vertical-spacing $padding-x-md +
+                $sidebar-closed-drawer-width/2 2 * $vertical-spacing
+                $padding-x-md;
+        }
+
+        &.toggled {
+            margin-left: 0;
+            @include block-shadow;
+
+            .entry-toc {
+                overflow-y: scroll; //only show scrollbar when necessary
+            }
+
+            .toggle-toc {
+                position: initial;
+                float: right;
+                z-index: 1;
+                color: $primary-color;
+                background: none;
+                &:hover {
+                    color: $secondary-color;
+                }
+            }
         }
     }
     @include xlg-up {
-        display: flex;
-        .entry-sidebar {
-            margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
-            flex: 0 0 $sidebar-content-width;
-            margin-right: $padding-x-md;
+        position: relative;
+        // margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
+        height: 100%;
+
+        .entry-toc {
+            overflow-y: scroll;
+        }
+
+        .toggle-toc {
+            display: none;
         }
     }
 }
 
 nav.entry-toc {
-    display: none;
-    @include lg-up {
-        display: block;
-    }
-    top: 30px;
-    height: calc(100vh - 60px);
+    top: 0;
+    height: 100vh;
     position: sticky;
     font-size: 12px;
-    direction: rtl;
     text-align: left;
-    overflow-y: scroll;
-    // padding-left: 16px;
+    padding: $vertical-spacing $padding-x-md;
 }
 
 nav.entry-toc li {

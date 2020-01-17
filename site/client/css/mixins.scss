@@ -10,6 +10,7 @@
 }
 
 @mixin info {
+    margin-top: 1rem;
     margin-bottom: 2rem;
     font-size: 0.875rem;
 
@@ -87,6 +88,14 @@
 @mixin wrapper-spacing-md {
     padding-left: $padding-x-md;
     padding-right: $padding-x-md;
+}
+
+@mixin wrapper-x-spacing {
+    @include wrapper-spacing-sm;
+
+    @include md-up {
+        @include wrapper-spacing-md;
+    }
 }
 
 @mixin hide {

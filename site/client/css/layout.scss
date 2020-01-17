@@ -1,12 +1,3 @@
-.wrapper {
-    @include wrapper-spacing-sm;
-    max-width: 75rem;
-
-    @include md-up {
-        @include wrapper-spacing-md;
-    }
-}
-
 .owid-row {
     margin: 0 -1rem;
     display: flex;

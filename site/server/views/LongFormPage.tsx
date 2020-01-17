@@ -80,37 +80,39 @@ export const LongFormPage = (props: {
                 )}
                 <main>
                     <article className="page">
-                        <header className={articleHeaderClasses.join(" ")}>
-                            <h1 className="entry-title">{post.title}</h1>
-                            {!formattingOptions.hideAuthors && (
-                                <div className="authors-byline">
-                                    <a href="/team">by {authorsText}</a>
-                                </div>
-                            )}
-                            {post.info && (
-                                <div className="wp-block-columns">
-                                    <div className="wp-block-column">
-                                        <div
-                                            className="blog-info"
-                                            dangerouslySetInnerHTML={{
-                                                __html: post.info
-                                            }}
-                                        />
+                        <div className="offset">
+                            <header className={articleHeaderClasses.join(" ")}>
+                                <h1 className="entry-title">{post.title}</h1>
+                                {!formattingOptions.hideAuthors && (
+                                    <div className="authors-byline">
+                                        <a href="/team">by {authorsText}</a>
                                     </div>
-                                    <div className="wp-block-column"></div>
-                                </div>
-                            )}
-                            {isEntry && (
-                                <div className="tools">
-                                    <a href="#citation" className="cite">
-                                        <FontAwesomeIcon icon={faBook} />
-                                        Cite this research
-                                    </a>
-                                </div>
-                            )}
-                        </header>
+                                )}
+                                {post.info && (
+                                    <div className="wp-block-columns">
+                                        <div className="wp-block-column">
+                                            <div
+                                                className="blog-info"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: post.info
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="wp-block-column"></div>
+                                    </div>
+                                )}
+                                {isEntry && (
+                                    <div className="tools">
+                                        <a href="#citation" className="cite">
+                                            <FontAwesomeIcon icon={faBook} />
+                                            Cite this research
+                                        </a>
+                                    </div>
+                                )}
+                            </header>
+                        </div>
 
-                        <div className="contentContainer">
+                        <div className="content-wrapper">
                             {post.tocHeadings.length > 0 && (
                                 <div>
                                     <TableOfContents
@@ -121,84 +123,89 @@ export const LongFormPage = (props: {
                                     />
                                 </div>
                             )}
+                            <div className="offset">
+                                <div className="content-and-footnotes">
+                                    <div
+                                        className="article-content"
+                                        dangerouslySetInnerHTML={{
+                                            __html: post.html
+                                        }}
+                                    />
+                                    <footer className="article-footer">
+                                        <div className="has-2-columns">
+                                            <div className="wp-block-column">
+                                                {post.footnotes.length ? (
+                                                    <React.Fragment>
+                                                        <h3 id="references">
+                                                            References
+                                                        </h3>
+                                                        <ol className="references">
+                                                            {post.footnotes.map(
+                                                                (
+                                                                    footnote,
+                                                                    i
+                                                                ) => (
+                                                                    <li
+                                                                        key={i}
+                                                                        id={`note-${i +
+                                                                            1}`}
+                                                                    >
+                                                                        <p
+                                                                            dangerouslySetInnerHTML={{
+                                                                                __html: footnote
+                                                                            }}
+                                                                        />
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ol>
+                                                    </React.Fragment>
+                                                ) : (
+                                                    undefined
+                                                )}
 
-                            <div className="contentAndFootnotes">
-                                <div
-                                    className="article-content"
-                                    dangerouslySetInnerHTML={{
-                                        __html: post.html
-                                    }}
-                                />
-                                <footer className="article-footer">
-                                    <div className="has-2-columns">
-                                        <div className="wp-block-column">
-
-                                            {post.footnotes.length ? (
-                                                <React.Fragment>
-                                                    <h3 id="references">
-                                                        References
-                                                    </h3>
-                                                    <ol className="references">
-                                                        {post.footnotes.map(
-                                                            (footnote, i) => (
-                                                                <li
-                                                                    key={i}
-                                                                    id={`note-${i +
-                                                                        1}`}
-                                                                >
-                                                                    <p
-                                                                        dangerouslySetInnerHTML={{
-                                                                            __html: footnote
-                                                                        }}
-                                                                    />
-                                                                </li>
-                                                            )
-                                                        )}
-                                                    </ol>
-                                                </React.Fragment>
-                                            ) : (
-                                                undefined
-                                            )}
-
-                                            {isEntry && (
-                                                <React.Fragment>
-                                                    <h3 id="citation">
-                                                        Citation
-                                                    </h3>
-                                                    <p>
-                                                        Our articles and data
-                                                        visualizations rely on
-                                                        work from many different
-                                                        people and
-                                                        organizations. When
-                                                        citing this entry,
-                                                        please also cite the
-                                                        underlying data sources.
-                                                        This entry can be cited
-                                                        as:
-                                                    </p>
-                                                    <pre className="citation">
-                                                        {authorsText} (
-                                                        {publishedYear}) - "
-                                                        {pageTitle}".{" "}
-                                                        <em>
-                                                            Published online at
-                                                            OurWorldInData.org.
-                                                        </em>{" "}
-                                                        Retrieved from: '
-                                                        {canonicalUrl}' [Online
-                                                        Resource]
-                                                    </pre>
-                                                    <p>BibTeX citation</p>
-                                                    <pre className="citation">
-                                                        {bibtex}
-                                                    </pre>
-                                                </React.Fragment>
-                                            )}
+                                                {isEntry && (
+                                                    <React.Fragment>
+                                                        <h3 id="citation">
+                                                            Citation
+                                                        </h3>
+                                                        <p>
+                                                            Our articles and
+                                                            data visualizations
+                                                            rely on work from
+                                                            many different
+                                                            people and
+                                                            organizations. When
+                                                            citing this entry,
+                                                            please also cite the
+                                                            underlying data
+                                                            sources. This entry
+                                                            can be cited as:
+                                                        </p>
+                                                        <pre className="citation">
+                                                            {authorsText} (
+                                                            {publishedYear}) - "
+                                                            {pageTitle}".{" "}
+                                                            <em>
+                                                                Published online
+                                                                at
+                                                                OurWorldInData.org.
+                                                            </em>{" "}
+                                                            Retrieved from: '
+                                                            {canonicalUrl}'
+                                                            [Online Resource]
+                                                        </pre>
+                                                        <p>BibTeX citation</p>
+                                                        <pre className="citation">
+                                                            {bibtex}
+                                                        </pre>
+                                                    </React.Fragment>
+                                                )}
+                                            </div>
+                                            <div className="wp-block-column"></div>
                                         </div>
-                                        <div className="wp-block-column"></div>
-                                    </div>
-                                </footer>
+                                    </footer>
+                                </div>
                             </div>
                         </div>
                     </article>
