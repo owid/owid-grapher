@@ -309,8 +309,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             noDataFeatures,
             dataFeatures
         } = this
-        const focusColor = "#111"
+        const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
+        const blurFillOpacity = 0.2
+        const blurStrokeOpacity = 0.5
 
         return (
             <g
@@ -363,10 +365,14 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                 const isFocus = this.hasFocus(d.id)
                                 const outOfFocusBracket =
                                     !!this.focusBracket && !isFocus
-                                const stroke = isFocus ? focusColor : "#aaa"
-                                const fillOpacity = outOfFocusBracket ? 0.2 : 1
+                                const stroke = isFocus
+                                    ? focusStrokeColor
+                                    : "#aaa"
+                                const fillOpacity = outOfFocusBracket
+                                    ? blurFillOpacity
+                                    : 1
                                 const strokeOpacity = outOfFocusBracket
-                                    ? 0.5
+                                    ? blurStrokeOpacity
                                     : 1
                                 return (
                                     <path
@@ -400,10 +406,14 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
                             const datum = choroplethData[d.id as string]
-                            const stroke = isFocus ? focusColor : "#333"
+                            const stroke = isFocus ? focusStrokeColor : "#333"
                             const fill = datum ? datum.color : defaultFill
-                            const fillOpacity = outOfFocusBracket ? 0.2 : 1
-                            const strokeOpacity = outOfFocusBracket ? 0.5 : 1
+                            const fillOpacity = outOfFocusBracket
+                                ? blurFillOpacity
+                                : 1
+                            const strokeOpacity = outOfFocusBracket
+                                ? blurStrokeOpacity
+                                : 1
 
                             return (
                                 <path
