@@ -23,6 +23,7 @@ import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
 import { formatYear } from "./Util"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { extent } from "d3-array"
 
 export interface LineChartValue {
     x: number
@@ -138,6 +139,27 @@ export class LineChart extends React.Component<{
                             const value = series.values.find(
                                 v => v.x === hoverX
                             )
+
+                            // It sometimes happens that data is missing for some years for a particular
+                            // entity. If the user hovers over these years, we want to show a "No data"
+                            // notice. However, we only want to show this notice when we are in the middle
+                            // of a time series – when data points exist before and after the current year.
+                            // Otherwise we want to entirely exclude the entity from the tooltip.
+                            if (!value) {
+                                const [startX, endX] = extent(
+                                    series.values,
+                                    v => v.x
+                                )
+                                if (
+                                    startX === undefined ||
+                                    endX === undefined ||
+                                    startX > hoverX ||
+                                    endX < hoverX
+                                ) {
+                                    return undefined
+                                }
+                            }
+
                             const isBlur =
                                 this.seriesIsBlur(series) || value === undefined
                             const textColor = isBlur ? "#ddd" : "#333"
