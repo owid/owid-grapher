@@ -1,8 +1,9 @@
 import * as React from "react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons/faBookOpen"
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 
@@ -20,22 +21,44 @@ export const TableOfContents = ({
     pageTitle
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
+    const tocRef = useRef<HTMLElement>(null)
 
     const toggle = () => {
         setIsToggled(!isToggled)
     }
 
+    const handleClick = (e: MouseEvent) => {
+        if (tocRef.current && !tocRef.current.contains(e.target as Node)) {
+            setIsToggled(false)
+        }
+    }
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClick)
+
+        return () => {
+            document.removeEventListener("mousedown", handleClick)
+        }
+    }, [])
+
     return (
-        <aside className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}`}>
+        <aside
+            ref={tocRef}
+            className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}`}
+        >
             <nav className="entry-toc">
-                <div className="toggle-toc-wrapper">
-                    <div className="toggle-toc" onClick={toggle}>
-                        <FontAwesomeIcon
-                            icon={faBookOpen}
-                            className="toggle-toc"
-                        />
-                    </div>
-                </div>
+                <button
+                    aria-label={`${
+                        isToggled ? "Close" : "Open"
+                    } table of contents`}
+                    className="toggle-toc"
+                    onClick={toggle}
+                >
+                    <FontAwesomeIcon
+                        icon={isToggled ? faChevronLeft : faBookOpen}
+                        className="toggle-toc"
+                    />
+                </button>
                 <ul>
                     <li>
                         <a onClick={toggle} href="#">
