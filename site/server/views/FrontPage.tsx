@@ -108,7 +108,7 @@ export const FrontPage = (props: {
                 <section className="homepage-coverage">
                     <div className="wrapper">
                         <div className="inner-wrapper">
-                            <div className="owid-row owid-spacing--5">
+                            <div className="owid-row owid-spacing--4">
                                 <div className="owid-col owid-col--lg-2 owid-padding-bottom--sm-5">
                                     <section>
                                         <h3 className="align-center">
