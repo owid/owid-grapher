@@ -32,7 +32,6 @@
             border: none;
             padding: 0;
             cursor: pointer;
-            // transition: all 300ms ease;
 
             svg {
                 display: block;
@@ -75,8 +74,17 @@
         // margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
         height: 100%;
 
+        .sticky-sentinel {
+            position: absolute;
+            height: 1px;
+            width: inherit;
+        }
+
         .entry-toc {
             overflow-y: scroll;
+            &.sticky {
+                background: $primary-color-100;
+            }
         }
 
         .toggle-toc {

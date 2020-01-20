@@ -40,11 +40,62 @@ export const TableOfContents = ({
         }
     }, [])
 
+    useEffect(() => {
+        const handleStickyChangeEvent = (e: CustomEvent) => {
+            const [toc, stuck] = [e.detail.target, e.detail.stuck]
+            toc.classList.toggle("sticky", stuck)
+        }
+
+        // Dispatches the `sticky-change` custom event
+        const fireStickyChangeEvent = (stuck: boolean, target: Element) => {
+            const e = new CustomEvent("sticky-change", {
+                detail: { stuck, target }
+            })
+            document.dispatchEvent(e)
+        }
+
+        // Sets up an intersection observer to notify when the element with the class
+        // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
+        // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
+        const observer = new IntersectionObserver((records, observer) => {
+            for (const record of records) {
+                const targetInfo = record.boundingClientRect
+                const stickyParent = record.target.parentElement
+                const stickyTarget =
+                    stickyParent && stickyParent.querySelector(".entry-toc")
+                if (stickyTarget) {
+                    // Started sticking.
+                    if (targetInfo.top < 0) {
+                        fireStickyChangeEvent(true, stickyTarget)
+                    }
+                    // Stopped sticking.
+                    if (targetInfo.bottom > 0) {
+                        fireStickyChangeEvent(false, stickyTarget)
+                    }
+                }
+            }
+        })
+        const sentinel = document.querySelector(".sticky-sentinel")
+        if (sentinel) observer.observe(sentinel)
+
+        document.addEventListener(
+            "sticky-change",
+            handleStickyChangeEvent as EventListener
+        )
+        return () => {
+            document.removeEventListener(
+                "sticky-change",
+                handleStickyChangeEvent as EventListener
+            )
+        }
+    })
+
     return (
         <aside
             ref={tocRef}
             className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}`}
         >
+            <div className="sticky-sentinel" />
             <nav className="entry-toc">
                 <button
                     aria-label={`${
