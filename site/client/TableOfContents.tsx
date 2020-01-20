@@ -27,13 +27,12 @@ export const TableOfContents = ({
         setIsToggled(!isToggled)
     }
 
-    const handleClick = (e: MouseEvent) => {
-        if (tocRef.current && !tocRef.current.contains(e.target as Node)) {
-            setIsToggled(false)
-        }
-    }
-
     useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (tocRef.current && !tocRef.current.contains(e.target as Node)) {
+                setIsToggled(false)
+            }
+        }
         document.addEventListener("mousedown", handleClick)
 
         return () => {
