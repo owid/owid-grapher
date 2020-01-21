@@ -1261,26 +1261,25 @@ export const ColorSchemes = (() => {
         true
     )
 
-    colorSchemes["stackedAreaDefault"] = new ColorScheme(
-        "OWID 4 Color Gradient",
+    colorSchemes[
+        "stackedAreaDefault"
+    ] = new ColorScheme("OWID 4 Color Gradient", [
+        ["#3360a9"],
+        ["#3360a9", "#34983f"],
+        ["#3360a9", "#34983f", "#ffd53e"],
+        ["#3360a9", "#ca2628", "#ffd53e", "#34983f"],
+        ["#3360a9", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
+        ["#3360a9", "#e6332e", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
         [
-            ["#3360a9"],
-            ["#3360a9", "#34983f"],
-            ["#3360a9", "#34983f", "#ffd53e"],
-            ["#3360a9", "#ca2628", "#ffd53e", "#34983f"],
-            ["#3360a9", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
-            ["#3360a9", "#e6332e", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
-            [
-                "#3360a9",
-                "#2a939b",
-                "#e6332e",
-                "#ca2628",
-                "#ffd53e",
-                "#9ecc8a",
-                "#34983f"
-            ]
+            "#3360a9",
+            "#2a939b",
+            "#e6332e",
+            "#ca2628",
+            "#ffd53e",
+            "#9ecc8a",
+            "#34983f"
         ]
-    )
+    ])
 
     colorSchemes["continents"] = new ColorScheme(
         "Continents",

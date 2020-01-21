@@ -342,11 +342,17 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get xDomainDefault(): [number, number] {
-        return domainExtent(this.allValues.map(v => v.x), "linear")
+        return domainExtent(
+            this.allValues.map(v => v.x),
+            "linear"
+        )
     }
 
     @computed get yDomainDefault(): [number, number] {
-        return domainExtent(this.allValues.map(v => v.y), this.props.yScaleType)
+        return domainExtent(
+            this.allValues.map(v => v.y),
+            this.props.yScaleType
+        )
     }
 
     @computed get xDomain(): [number, number] {
@@ -366,10 +372,9 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     @computed get sizeScale(): ScaleLinear<number, number> {
         return scaleLinear()
-            .domain(extent(this.props.data.map(d => d.size)) as [
-                number,
-                number
-            ])
+            .domain(
+                extent(this.props.data.map(d => d.size)) as [number, number]
+            )
             .range([1, 4])
     }
 

@@ -554,13 +554,15 @@ export class SiteHeaderMenus extends React.Component {
     }
 
     async getEntries() {
-        const json = await (await fetch("/headerMenu.json", {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                Accept: "application/json"
-            }
-        })).json()
+        const json = await (
+            await fetch("/headerMenu.json", {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    Accept: "application/json"
+                }
+            })
+        ).json()
 
         runInAction(() => (this.categories = json.categories))
     }

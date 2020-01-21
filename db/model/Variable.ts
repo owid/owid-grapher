@@ -113,9 +113,12 @@ export async function writeVariableCSV(
         [variableIds]
     )
 
-    const dataQuery: Promise<
-        { variableId: number; entity: string; year: number; value: string }[]
-    > = db.query(
+    const dataQuery: Promise<{
+        variableId: number
+        entity: string
+        year: number
+        value: string
+    }[]> = db.query(
         `
         SELECT
             data_values.variableId AS variableId,

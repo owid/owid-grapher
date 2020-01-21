@@ -6,6 +6,6 @@ export interface ExplorerViewContextType {
     store: RootStore
 }
 
-export const ExplorerViewContext: React.Context<
-    ExplorerViewContextType
-> = React.createContext({}) as any
+export const ExplorerViewContext: React.Context<ExplorerViewContextType> = React.createContext(
+    {}
+) as any

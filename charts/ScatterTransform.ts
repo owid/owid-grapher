@@ -427,7 +427,10 @@ export class ScatterTransform implements IChartTransform {
             })
             return [minChange, maxChange]
         } else {
-            return domainExtent(this.allPoints.map(v => v.x), this.xScaleType)
+            return domainExtent(
+                this.allPoints.map(v => v.x),
+                this.xScaleType
+            )
         }
     }
 
@@ -458,7 +461,10 @@ export class ScatterTransform implements IChartTransform {
             })
             return [minChange, maxChange]
         } else {
-            return domainExtent(this.allPoints.map(v => v.y), this.yScaleType)
+            return domainExtent(
+                this.allPoints.map(v => v.y),
+                this.yScaleType
+            )
         }
     }
 
