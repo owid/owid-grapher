@@ -190,7 +190,7 @@ export const FrontPage = (props: {
                                             </li>
                                             <li>
                                                 <strong>Matthieu Bergel</strong>{" "}
-                                                &ndash; Web developer
+                                                &ndash; Web engineer
                                             </li>
                                         </ul>
                                     </section>
