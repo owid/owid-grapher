@@ -4,6 +4,12 @@
 .entry-sidebar {
     width: $sidebar-content-width + 2 * $padding-x-md;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 300ms ease;
+
+    &.sticky {
+        background: $primary-color-100;
+    }
+
     @include lg-down {
         position: absolute;
         top: 0;
@@ -12,7 +18,6 @@
         overflow-x: visible;
         margin-left: -($sidebar-content-width + 2 * $padding-x-md) + $sidebar-closed-drawer-width;
         background-color: $white;
-        transition: margin 300ms ease;
 
         .toggle-toc {
             position: absolute;
@@ -82,9 +87,6 @@
 
         .entry-toc {
             overflow-y: scroll;
-            &.sticky {
-                background: $primary-color-100;
-            }
         }
 
         .toggle-toc {

@@ -60,9 +60,11 @@ export const TableOfContents = ({
         const observer = new IntersectionObserver((records, observer) => {
             for (const record of records) {
                 const targetInfo = record.boundingClientRect
-                const stickyParent = record.target.parentElement
-                const stickyTarget =
-                    stickyParent && stickyParent.querySelector(".entry-toc")
+                // Selecting the whole "entry-sidbar" as the target for applying the "sticky"
+                // class although technically, "position: sticky" is applied one level down on
+                // "entry-toc". This allows us to condtionnally apply styles on the
+                // "entry-sidebar".
+                const stickyTarget = record.target.parentElement
                 if (stickyTarget) {
                     // Started sticking.
                     if (targetInfo.top < 0) {
