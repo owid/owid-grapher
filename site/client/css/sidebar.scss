@@ -8,7 +8,7 @@
         position: absolute;
         top: 0;
         bottom: 0;
-        z-index: 2;
+        z-index: $zindex-sidebar;
         overflow-x: visible;
         margin-left: -($sidebar-content-width + 2 * $padding-x-md) + $sidebar-closed-drawer-width;
         background-color: $white;
