@@ -104,9 +104,9 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
 async function getChartById(
     chartId: number
 ): Promise<ChartConfigProps | undefined> {
-    const chart = (await db.query(`SELECT id, config FROM charts WHERE id=?`, [
-        chartId
-    ]))[0]
+    const chart = (
+        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
+    )[0]
 
     if (chart) {
         const config = JSON.parse(chart.config)
@@ -348,9 +348,12 @@ async function saveChart(
 
             if (dim.saveToVariable) {
                 const display = JSON.parse(
-                    (await t.query(`SELECT display FROM variables WHERE id=?`, [
-                        dim.variableId
-                    ]))[0].display
+                    (
+                        await t.query(
+                            `SELECT display FROM variables WHERE id=?`,
+                            [dim.variableId]
+                        )
+                    )[0].display
                 )
 
                 for (const key in dim.display) {
@@ -767,9 +770,9 @@ api.get("/variables.json", async req => {
         searchStr ? [`%${searchStr}%`, limit] : [limit]
     )
 
-    const numTotalRows = (await db.query(
-        `SELECT COUNT(*) as count FROM variables`
-    ))[0].count
+    const numTotalRows = (
+        await db.query(`SELECT COUNT(*) as count FROM variables`)
+    )[0].count
 
     return { variables: rows, numTotalRows: numTotalRows }
 })
@@ -1473,10 +1476,11 @@ api.post("/importDataset", async (req: Request, res: Response) => {
 
     let oldDatasetName: string | undefined
     if (dataset.id) {
-        oldDatasetName = (await db.query(
-            `SELECT name FROM datasets WHERE id = ?`,
-            [dataset.id]
-        ))[0].name
+        oldDatasetName = (
+            await db.query(`SELECT name FROM datasets WHERE id = ?`, [
+                dataset.id
+            ])
+        )[0].name
     }
 
     const newDatasetId = await db.transaction(async t => {

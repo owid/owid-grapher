@@ -140,10 +140,9 @@ export class Lines extends React.Component<LinesProps> {
                 <path
                     stroke={series.color}
                     strokeLinecap="round"
-                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [
-                        number,
-                        number
-                    ][])}
+                    d={pointsToPath(
+                        series.values.map(v => [v.x, v.y]) as [number, number][]
+                    )}
                     fill="none"
                     strokeWidth={1.5}
                     strokeDasharray={series.isProjection ? "1,4" : undefined}
@@ -166,10 +165,9 @@ export class Lines extends React.Component<LinesProps> {
                     key={series.key + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
-                    d={pointsToPath(series.values.map(v => [v.x, v.y]) as [
-                        number,
-                        number
-                    ][])}
+                    d={pointsToPath(
+                        series.values.map(v => [v.x, v.y]) as [number, number][]
+                    )}
                     fill="none"
                     strokeWidth={1}
                 />

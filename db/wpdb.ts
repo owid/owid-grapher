@@ -396,7 +396,10 @@ export async function getPosts(
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
             response = await apiQuery(endpoint, {
-                searchParams: [["per_page", perPage], ["page", page]]
+                searchParams: [
+                    ["per_page", perPage],
+                    ["page", page]
+                ]
             })
             const postsCurrentPage = await response.json()
             posts.push(...postsCurrentPage)

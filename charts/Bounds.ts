@@ -325,7 +325,10 @@ export class Bounds {
     }
 
     toArray(): [[number, number], [number, number]] {
-        return [[this.left, this.top], [this.right, this.bottom]]
+        return [
+            [this.left, this.top],
+            [this.right, this.bottom]
+        ]
     }
 
     xRange(): [number, number] {

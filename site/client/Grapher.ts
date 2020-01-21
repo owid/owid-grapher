@@ -58,7 +58,10 @@ export class MultiEmbedder {
             }
         }
 
-        window.addEventListener("scroll", throttle(() => this.update(), 100))
+        window.addEventListener(
+            "scroll",
+            throttle(() => this.update(), 100)
+        )
     }
 
     // Check for figures which are available to load and load them

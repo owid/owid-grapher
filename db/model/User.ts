@@ -23,16 +23,28 @@ export class User extends BaseEntity {
     @Column() lastLogin!: Date
     @Column() lastSeen!: Date
 
-    @OneToMany(type => Chart, chart => chart.lastEditedByUser)
+    @OneToMany(
+        type => Chart,
+        chart => chart.lastEditedByUser
+    )
     lastEditedCharts!: Chart[]
 
-    @OneToMany(type => Chart, chart => chart.publishedByUser)
+    @OneToMany(
+        type => Chart,
+        chart => chart.publishedByUser
+    )
     publishedCharts!: Chart[]
 
-    @OneToMany(type => ChartRevision, rev => rev.user)
+    @OneToMany(
+        type => ChartRevision,
+        rev => rev.user
+    )
     editedCharts!: ChartRevision[]
 
-    @OneToMany(type => Dataset, dataset => dataset.createdByUser)
+    @OneToMany(
+        type => Dataset,
+        dataset => dataset.createdByUser
+    )
     createdDatasets!: Dataset[]
 
     async setPassword(password: string) {

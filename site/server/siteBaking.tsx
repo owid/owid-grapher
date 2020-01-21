@@ -175,9 +175,9 @@ async function renderPage(postApi: object) {
 export async function renderFrontPage() {
     const entries = await wpdb.getEntriesByCategory()
     const posts = await wpdb.getBlogIndex()
-    const totalCharts = (await db.query(
-        `SELECT COUNT(*) as count FROM charts`
-    ))[0].count as number
+    const totalCharts = (
+        await db.query(`SELECT COUNT(*) as count FROM charts`)
+    )[0].count as number
     return renderToHtmlPage(
         <FrontPage entries={entries} posts={posts} totalCharts={totalCharts} />
     )

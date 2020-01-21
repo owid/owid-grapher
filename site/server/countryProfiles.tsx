@@ -34,11 +34,11 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 // TODO: make this page per variable instead
 async function countryIndicatorCharts(): Promise<ChartConfigProps[]> {
     return bakeCache(countryIndicatorCharts, async () => {
-        const charts = (await db
-            .table("charts")
-            .whereRaw("publishedAt is not null and is_indexable is true")).map(
-            (c: any) => JSON.parse(c.config)
-        ) as ChartConfigProps[]
+        const charts = (
+            await db
+                .table("charts")
+                .whereRaw("publishedAt is not null and is_indexable is true")
+        ).map((c: any) => JSON.parse(c.config)) as ChartConfigProps[]
         return charts.filter(
             c =>
                 c.hasChartTab &&

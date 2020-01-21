@@ -61,14 +61,14 @@ async function importCodebook() {
     }
 
     // User responsible for uploading this data
-    const userId = (await db.get(`SELECT * FROM users WHERE fullName=?`, [
-        "Jaiden Mispy"
-    ])).id
+    const userId = (
+        await db.get(`SELECT * FROM users WHERE fullName=?`, ["Jaiden Mispy"])
+    ).id
 
     await db.transaction(async t => {
-        const existingDataset = (await t.query(
-            "SELECT id FROM datasets WHERE namespace='vdem'"
-        ))[0]
+        const existingDataset = (
+            await t.query("SELECT id FROM datasets WHERE namespace='vdem'")
+        )[0]
         if (existingDataset) {
             await t.execute(
                 `DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`,

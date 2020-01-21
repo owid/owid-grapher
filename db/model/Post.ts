@@ -200,8 +200,10 @@ export async function syncPostToGrapher(
         }
     })
 
-    const newPost = (await Post.select("slug").from(
-        db.table(Post.table).where({ id: postId })
-    ))[0]
+    const newPost = (
+        await Post.select("slug").from(
+            db.table(Post.table).where({ id: postId })
+        )
+    )[0]
     return newPost ? newPost.slug : undefined
 }

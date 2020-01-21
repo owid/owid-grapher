@@ -49,9 +49,10 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get currentNamespace() {
-        return defaultTo(this.chosenNamespace, this.database.namespaces.find(
-            n => n.name === "owid"
-        ) as Namespace)
+        return defaultTo(
+            this.chosenNamespace,
+            this.database.namespaces.find(n => n.name === "owid") as Namespace
+        )
     }
 
     @computed get editorData() {

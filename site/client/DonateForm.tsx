@@ -89,7 +89,8 @@ export class DonateForm extends React.Component {
     async submitDonation(): Promise<void> {
         if (
             !this.amount ||
-            (this.amount > MAX_DONATION || this.amount < MIN_DONATION)
+            this.amount > MAX_DONATION ||
+            this.amount < MIN_DONATION
         ) {
             throw new Error(
                 "You can only donate between $1 and $100,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
