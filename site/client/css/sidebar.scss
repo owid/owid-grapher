@@ -4,10 +4,60 @@
 .entry-sidebar {
     width: $sidebar-content-width + 2 * $padding-x-md;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    transition: all 300ms ease;
+    background-color: $white;
 
     &.sticky {
         background: $primary-color-100;
+    }
+
+    .entry-toc {
+        top: 0;
+        height: 100vh;
+        position: sticky;
+        line-height: 1.3em;
+        padding: $vertical-spacing 0;
+    }
+
+    li {
+        list-style-type: none;
+        &.section {
+            margin-top: $vertical-spacing;
+            color: #111;
+            font-weight: 700;
+        }
+
+        &.subsection {
+            font-size: 0.8rem;
+        }
+
+        a {
+            display: block;
+            color: $grey-text-color;
+            font-size: 0.9rem;
+            border-left: 0.5rem solid transparent;
+            padding: $vertical-spacing/4 $padding-x-md;
+
+            &:hover {
+                background-color: $primary-color-200;
+            }
+        }
+
+        &.active a {
+            color: $primary-color;
+            background-color: $primary-color-200;
+            border-left-color: $primary-color;
+        }
+
+        &:first-child a {
+            font-size: 1rem;
+            background: none;
+            color: $grey-text-color;
+            border-left-color: transparent;
+
+            &:hover {
+                color: $primary-color;
+            }
+        }
     }
 
     @include lg-down {
@@ -15,9 +65,8 @@
         top: 0;
         bottom: 0;
         z-index: $zindex-sidebar;
-        overflow-x: visible;
         margin-left: -($sidebar-content-width + 2 * $padding-x-md) + $sidebar-closed-drawer-width;
-        background-color: $white;
+        transition: margin 300ms ease;
 
         .toggle-toc {
             position: absolute;
@@ -48,10 +97,22 @@
         }
 
         .entry-toc {
+            // From: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x
+            // "If overflow-y is hidden, scroll or auto and this property is visible
+            // (default) it will implicitly compute to auto".
+            // As overflow-x:visible cannot be used, the entry-content has been pushed
+            // out to the right to accommodate the overflowing toggle-toc. The toggle-toc
+            // is part of the entry-toc to keep it in sync with its sticky behaviour,
+            // especially at the end of the document where the sidebar starts scrolling again.
             margin-right: -$sidebar-toggle-width / 2;
             padding: $vertical-spacing $padding-x-md +
                 $sidebar-closed-drawer-width/2 2 * $vertical-spacing
                 $padding-x-md;
+        }
+
+        ul {
+            // Hide ToC content for smoother looking transition
+            display: none;
         }
 
         &.toggled {
@@ -59,24 +120,31 @@
             @include block-shadow;
 
             .entry-toc {
-                overflow-y: scroll; //only show scrollbar when necessary
+                margin-right: 0;
+                padding-left: 0;
+                padding-right: 0;
+                overflow-y: scroll; // Only show scrollbar when necessary
+            }
+
+            ul {
+                display: block;
             }
 
             .toggle-toc {
                 position: initial;
                 float: right;
-                z-index: 1;
                 color: $primary-color;
                 background: none;
+                border-radius: initial;
                 &:hover {
-                    color: $secondary-color;
+                    color: $white;
+                    background-color: $primary-color-400;
                 }
             }
         }
     }
     @include xlg-up {
         position: relative;
-        // margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
         height: 100%;
 
         .sticky-sentinel {
@@ -93,67 +161,4 @@
             display: none;
         }
     }
-}
-
-nav.entry-toc {
-    top: 0;
-    height: 100vh;
-    position: sticky;
-    font-size: 12px;
-    text-align: left;
-    padding: $vertical-spacing $padding-x-md;
-}
-
-nav.entry-toc li {
-    list-style-type: none;
-    position: relative;
-    color: rgba(0, 0, 0, 0.87);
-    direction: ltr;
-}
-
-nav.entry-toc .section {
-    margin-top: 18px;
-    color: #111;
-    margin-bottom: 4px;
-    padding-bottom: 0px;
-    line-height: 20px;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.entry-toc .section.nosubs {
-    border-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 10px;
-}
-
-nav.entry-toc .subsection {
-    color: #444;
-    line-height: 18px;
-    font-size: 13px;
-}
-
-nav.entry-toc li > a {
-    opacity: 0.7;
-}
-
-nav.entry-toc li.active > a {
-    opacity: 1;
-}
-
-.entry-toc li:first-child {
-    font-size: 16px;
-    line-height: 22px;
-}
-
-.entry-toc li > a {
-    color: #616161;
-    display: block;
-    overflow: hidden;
-    padding-top: 2px;
-    padding-bottom: 2px;
-}
-
-.entry-toc li > a:hover {
-    opacity: 1;
 }
