@@ -21,6 +21,7 @@ export const TableOfContents = ({
     pageTitle
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
+    const [isSticky, setIsSticky] = useState(false)
     const tocRef = useRef<HTMLElement>(null)
 
     const toggle = () => {
@@ -29,7 +30,7 @@ export const TableOfContents = ({
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
-            if (tocRef.current && !tocRef.current.contains(e.target as Node)) {
+            if (!tocRef.current?.contains(e.target as Node)) {
                 setIsToggled(false)
             }
         }
@@ -41,61 +42,32 @@ export const TableOfContents = ({
     }, [])
 
     useEffect(() => {
-        const handleStickyChangeEvent = (e: CustomEvent) => {
-            const [toc, stuck] = [e.detail.target, e.detail.stuck]
-            toc.classList.toggle("sticky", stuck)
-        }
-
-        // Dispatches the `sticky-change` custom event
-        const fireStickyChangeEvent = (stuck: boolean, target: Element) => {
-            const e = new CustomEvent("sticky-change", {
-                detail: { stuck, target }
-            })
-            document.dispatchEvent(e)
-        }
-
         // Sets up an intersection observer to notify when the element with the class
         // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
         // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
         const observer = new IntersectionObserver((records, observer) => {
             for (const record of records) {
                 const targetInfo = record.boundingClientRect
-                // Selecting the whole "entry-sidbar" as the target for applying the "sticky"
-                // class although technically, "position: sticky" is applied one level down on
-                // "entry-toc". This allows us to condtionnally apply styles on the
-                // "entry-sidebar".
-                const stickyTarget = record.target.parentElement
-                if (stickyTarget) {
-                    // Started sticking.
-                    if (targetInfo.top < 0) {
-                        fireStickyChangeEvent(true, stickyTarget)
-                    }
-                    // Stopped sticking.
-                    if (targetInfo.bottom > 0) {
-                        fireStickyChangeEvent(false, stickyTarget)
-                    }
+                // Started sticking
+                if (targetInfo.top < 0) {
+                    setIsSticky(true)
+                }
+                // Stopped sticking
+                if (targetInfo.bottom > 0) {
+                    setIsSticky(false)
                 }
             }
         })
         const sentinel = document.querySelector(".sticky-sentinel")
         if (sentinel) observer.observe(sentinel)
-
-        document.addEventListener(
-            "sticky-change",
-            handleStickyChangeEvent as EventListener
-        )
-        return () => {
-            document.removeEventListener(
-                "sticky-change",
-                handleStickyChangeEvent as EventListener
-            )
-        }
-    })
+    }, [])
 
     return (
         <aside
             ref={tocRef}
-            className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}`}
+            className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}${
+                isSticky ? " sticky" : ""
+            }`}
         >
             <div className="sticky-sentinel" />
             <nav className="entry-toc">
