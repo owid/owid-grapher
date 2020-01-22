@@ -93,13 +93,7 @@ export const TableOfContents = ({
                         <li
                             key={i}
                             className={
-                                heading.isSubheading
-                                    ? "subsection"
-                                    : "section" +
-                                      (!headings[i + 1] ||
-                                      !headings[i + 1].isSubheading
-                                          ? " nosubs"
-                                          : "")
+                                heading.isSubheading ? "subsection" : "section"
                             }
                         >
                             <a onClick={toggle} href={`#${heading.slug}`}>
@@ -108,7 +102,7 @@ export const TableOfContents = ({
                         </li>
                     ))}
                     {isFootnotes ? (
-                        <li key="references" className="section nosubs">
+                        <li key="references" className="section">
                             <a onClick={toggle} href={`#references`}>
                                 References
                             </a>
@@ -117,7 +111,7 @@ export const TableOfContents = ({
                         undefined
                     )}
                     {isEntry && (
-                        <li key="citation" className="section nosubs">
+                        <li key="citation" className="section">
                             <a href={`#citation`}>Citation</a>
                         </li>
                     )}
