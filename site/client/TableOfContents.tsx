@@ -2,7 +2,7 @@ import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBookOpen } from "@fortawesome/free-solid-svg-icons/faBookOpen"
+import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 
 const TOC_CLASS_NAME = "entry-sidebar"
@@ -79,7 +79,7 @@ export const TableOfContents = ({
                     onClick={toggle}
                 >
                     <FontAwesomeIcon
-                        icon={isToggled ? faChevronLeft : faBookOpen}
+                        icon={isToggled ? faChevronLeft : faListAlt}
                         className="toggle-toc"
                     />
                 </button>
