@@ -488,7 +488,11 @@ export function getClosestYearByEntity(
 
         if (
             closestYear === undefined ||
-            Math.abs(closestYear - targetYear) > Math.abs(year - targetYear)
+            Math.abs(closestYear - targetYear) > Math.abs(year - targetYear) ||
+            // Prefer later years, e.g. if targetYear is 2010, prefer 2011 to 2009
+            (Math.abs(closestYear - targetYear) ===
+                Math.abs(year - targetYear) &&
+                year > closestYear)
         ) {
             yearByEntity[entity] = year
         }
