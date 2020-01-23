@@ -56,7 +56,7 @@ export class DataTableTransform {
         if (valueByYear !== undefined && year !== undefined) {
             value = valueByYear.get(year)
             if (value !== undefined) {
-                formatted = dim.formatValueShort(value)
+                formatted = dim.formatValueShort(value, { autoPrefix: false })
             }
         }
         return { key: dim.variableId, value, formattedValue: formatted }
