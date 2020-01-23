@@ -521,11 +521,10 @@ export class MapData {
         const { tolerance } = map
         const { years, entities } = mappableData
 
-        const closestYearByEntity = _.pickBy(
-            // Get the closest year for every entity as an object
-            getClosestYearByEntity({ years, entities }, targetYear),
-            // Filter out years which exceed the tolerance
-            year => Math.abs(year - targetYear) <= tolerance
+        const closestYearByEntity = getClosestYearByEntity(
+            { years, entities },
+            targetYear,
+            tolerance
         )
 
         return _.mapValues(closestYearByEntity, (year, entity) => ({
