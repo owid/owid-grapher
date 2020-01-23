@@ -1068,7 +1068,7 @@ api.post(
 
 api.router.put(
     "/datasets/:datasetId/uploadZip",
-    bodyParser.raw({ type: "application/zip", limit: "50mb" }),
+    bodyParser.raw({ type: "application/zip", limit: "128mb" }),
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
