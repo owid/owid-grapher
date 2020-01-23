@@ -468,3 +468,31 @@ export async function fetchJSON(url: string): Promise<any> {
 export function stripHTML(html: string): string {
     return striptags(html)
 }
+
+export function getClosestYearByEntity(
+    {
+        years = [],
+        entities = []
+    }: {
+        years: number[]
+        entities: string[]
+    },
+    targetYear: number
+) {
+    const yearByEntity: { [entity: string]: number } = {}
+
+    for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i]
+        const year = years[i]
+        const closestYear = yearByEntity[entity] as number | undefined
+
+        if (
+            closestYear === undefined ||
+            Math.abs(closestYear - targetYear) > Math.abs(year - targetYear)
+        ) {
+            yearByEntity[entity] = year
+        }
+    }
+
+    return yearByEntity
+}
