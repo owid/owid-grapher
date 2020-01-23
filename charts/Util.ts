@@ -477,7 +477,8 @@ export function getClosestYearByEntity(
         years: number[]
         entities: string[]
     },
-    targetYear: number
+    targetYear: number,
+    tolerance?: number
 ) {
     const yearByEntity: { [entity: string]: number } = {}
 
@@ -485,6 +486,14 @@ export function getClosestYearByEntity(
         const entity = entities[i]
         const year = years[i]
         const closestYear = yearByEntity[entity] as number | undefined
+
+        // Skip years that are beyond the tolerance
+        if (
+            tolerance !== undefined &&
+            Math.abs(year - targetYear) > tolerance
+        ) {
+            continue
+        }
 
         if (
             closestYear === undefined ||
