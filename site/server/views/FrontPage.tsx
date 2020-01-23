@@ -312,7 +312,7 @@ export const FrontPage = (props: {
                             <div className="owid-col flex-row">
                                 <div className="homepage-posts--explainers">
                                     <div className="header">
-                                        <h2>Latest research</h2>
+                                        <h2>Latest publications</h2>
                                     </div>
                                     <div className="list">
                                         {posts.slice(0, 8).map(post => (
