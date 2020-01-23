@@ -95,7 +95,7 @@ export const FrontPage = (props: {
                             data-track-click
                             data-track-note="homepage-scroll"
                         >
-                            Scroll to all research
+                            Scroll to all our articles
                             <span className="icon">
                                 <FontAwesomeIcon icon={faAngleDoubleDown} />
                             </span>
@@ -549,7 +549,10 @@ export const FrontPage = (props: {
 
                 <section id="entries" className="homepage-entries">
                     <div className="wrapper">
-                        <h2>Research publications</h2>
+                        <h2>
+                            All our articles on global problems and global
+                            changes
+                        </h2>
                         {entries.map(category => (
                             <div
                                 key={category.slug}
