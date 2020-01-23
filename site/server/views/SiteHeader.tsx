@@ -17,8 +17,8 @@ export const SiteHeader = () => {
                     <div className="topics-button-wrapper">
                         <a href="/#entries" className="topics-button">
                             <div className="label">
-                                Research <br />
-                                <strong>publications</strong>
+                                Articles <br />
+                                <strong>by topic</strong>
                             </div>
                             <div className="icon">
                                 <svg width="12" height="6">
