@@ -114,6 +114,7 @@ export {
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import * as striptags from "striptags"
+import * as parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -426,8 +427,6 @@ export function csvEscape(value: any): string {
     if (includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
     else return value
 }
-
-import * as parseUrl from "url-parse"
 
 export function urlToSlug(url: string): string {
     const urlobj = parseUrl(url)
