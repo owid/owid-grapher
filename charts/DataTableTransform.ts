@@ -1,8 +1,7 @@
 import { computed } from "mobx"
-
-import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
 import { reduce, max, sortBy } from "./Util"
+import { ChartConfig } from "./ChartConfig"
 
 export interface DimensionHeader {
     key: number
@@ -21,18 +20,18 @@ export interface DataTableRow {
 }
 
 export class DataTableTransform {
-    data: ChartData
+    chart: ChartConfig
 
-    constructor(data: ChartData) {
-        this.data = data
+    constructor(chart: ChartConfig) {
+        this.chart = chart
     }
 
     @computed get dimensions() {
-        return this.data.filledDimensions
+        return this.chart.data.filledDimensions
     }
 
     @computed get entities() {
-        return this.data.availableEntities
+        return this.chart.data.availableEntities
     }
 
     @computed get yearByVariable() {

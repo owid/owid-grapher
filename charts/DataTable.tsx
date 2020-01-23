@@ -16,12 +16,8 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.props.chart.entityType
     }
 
-    @computed get data() {
-        return this.props.chart.data
-    }
-
     @computed get transform() {
-        return new DataTableTransform(this.data)
+        return new DataTableTransform(this.props.chart)
     }
 
     renderHeaderRow() {
