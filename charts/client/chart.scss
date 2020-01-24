@@ -1020,31 +1020,72 @@ html.iframe .ChartPage {
 }
 
 .ExplorePage .data-table {
+    font-size: 0.9375rem;
     margin-top: 60px;
-    border: 1px solid #ccc;
+    border: none;
     background: white;
     width: 100%;
-    padding: 20px;
     border-spacing: 0px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    tr :first-child {
-        padding-left: 20px;
+    thead tr:last-child th {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     }
 
-    tr :last-child {
-        padding-right: 20px;
+    tr th:first-child,
+    tr td:first-child {
+        padding-left: 25px;
+    }
+
+    tr th:last-child,
+    tr td:last-child {
+        padding-right: 25px;
     }
 
     th {
-        padding-bottom: 10px;
+        padding-top: 15px;
+        padding-bottom: 8px;
+        vertical-align: text-top;
+    }
+
+    tr:first-child td {
+        padding-top: 8px;
+    }
+
+    tr:last-child td {
+        padding-bottom: 15px;
+    }
+
+    td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    th,
+    td {
+        padding-left: 15px;
+        padding-right: 15px;
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    tbody tr {
+        padding-top: 20px;
+        padding-bottom: 20px;
     }
 
     tbody tr:hover {
-        background: #eee;
+        background: rgba(0, 0, 0, 0.03);
     }
 
     .entity {
         text-align: left;
+        font-weight: 700;
     }
 
     .dimension {
