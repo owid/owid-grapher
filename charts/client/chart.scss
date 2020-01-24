@@ -3,14 +3,16 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 $controls-color: #3f9eff;
 
+// These should be between 0–100 in order to avoid conflicting with
+// site dropdowns, search overlays, etc.
 $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-ControlsFooter: 2;
 $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
-$zindex-Tooltip: 100;
-$zindex-DataSelector: 110;
-$zindex-IndicatorDropdown: 200;
+$zindex-Tooltip: 20;
+$zindex-DataSelector: 30;
+$zindex-IndicatorDropdown: 50;
 
 figure[data-grapher-src]:empty,
 .loading-chart {
