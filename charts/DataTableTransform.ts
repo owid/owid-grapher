@@ -9,6 +9,7 @@ export interface DimensionHeader {
     key: number
     name: string
     colSpan: number
+    unit?: string
 }
 
 export interface DimensionValue {
@@ -22,6 +23,14 @@ export interface DimensionValue {
 export interface DataTableRow {
     entity: string
     dimensionValues: DimensionValue[]
+}
+
+function getHeaderUnit(unit: string) {
+    return unit !== "%" ? unit : "percent"
+}
+
+function getValueUnit(unit: string) {
+    return unit !== "%" ? undefined : unit
 }
 
 export class DataTableTransform {
@@ -56,7 +65,8 @@ export class DataTableTransform {
         return this.dimensions.map(dim => ({
             key: dim.variableId,
             name: dim.displayName,
-            colSpan: this.targetYears.length
+            colSpan: this.targetYears.length,
+            unit: getHeaderUnit(dim.unit)
         }))
     }
 
@@ -75,7 +85,8 @@ export class DataTableTransform {
                 if (value !== undefined) {
                     formatted = dim.formatValueShort(value, {
                         autoPrefix: false,
-                        noTrailingZeroes: false
+                        noTrailingZeroes: false,
+                        unit: getValueUnit(dim.unit)
                     })
                 }
             }

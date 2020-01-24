@@ -28,7 +28,8 @@ export class DataTable extends React.Component<DataTableProps> {
                 </th>
                 {this.transform.dimensionHeaders.map(dh => (
                     <th key={dh.key} className="dimension" colSpan={dh.colSpan}>
-                        {dh.name}
+                        <span className="name">{dh.name}</span>
+                        <span className="unit">{dh.unit}</span>
                     </th>
                 ))}
             </tr>
