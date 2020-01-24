@@ -39,6 +39,20 @@ export const LongFormPage = (props: {
     const articleHeaderClasses = ["article-header"]
     if (post.tocHeadings.length > 0) {
         articleHeaderClasses.push("with-sidebar")
+        if (post.footnotes.length) {
+            post.tocHeadings.push({
+                text: "References",
+                slug: "references",
+                isSubheading: false
+            })
+        }
+        if (isEntry) {
+            post.tocHeadings.push({
+                text: "Citation",
+                slug: "citation",
+                isSubheading: false
+            })
+        }
     }
     if (formattingOptions.bodyClassName) {
         bodyClasses.push(formattingOptions.bodyClassName)
@@ -117,8 +131,6 @@ export const LongFormPage = (props: {
                                 <div>
                                     <TableOfContents
                                         headings={post.tocHeadings}
-                                        isFootnotes={!!post.footnotes.length}
-                                        isEntry={isEntry}
                                         pageTitle={pageTitle}
                                     />
                                 </div>
@@ -248,8 +260,6 @@ export const LongFormPage = (props: {
                         __html: `
                         runTableOfContents(${JSON.stringify({
                             headings: post.tocHeadings,
-                            isFootnotes: !!post.footnotes.length,
-                            isEntry,
                             pageTitle
                         })})
                         `

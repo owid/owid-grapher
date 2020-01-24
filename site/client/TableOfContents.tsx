@@ -9,15 +9,11 @@ const TOC_CLASS_NAME = "entry-sidebar"
 
 interface TableOfContentsData {
     headings: { isSubheading: boolean; slug: string; text: string }[]
-    isFootnotes: boolean
-    isEntry: boolean
     pageTitle: string
 }
 
 export const TableOfContents = ({
     headings,
-    isFootnotes,
-    isEntry,
     pageTitle
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
@@ -101,20 +97,6 @@ export const TableOfContents = ({
                             </a>
                         </li>
                     ))}
-                    {isFootnotes ? (
-                        <li key="references" className="section">
-                            <a onClick={toggle} href={`#references`}>
-                                References
-                            </a>
-                        </li>
-                    ) : (
-                        undefined
-                    )}
-                    {isEntry && (
-                        <li key="citation" className="section">
-                            <a href={`#citation`}>Citation</a>
-                        </li>
-                    )}
                 </ul>
             </nav>
         </aside>
