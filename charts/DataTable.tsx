@@ -2,9 +2,13 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+
 import { ChartConfig } from "./ChartConfig"
 import { capitalize } from "./Util"
 import { DataTableTransform, DataTableRow } from "./DataTableTransform"
+import { Tippy } from "./Tippy"
 
 interface DataTableProps {
     chart: ChartConfig
@@ -44,9 +48,24 @@ export class DataTable extends React.Component<DataTableProps> {
                 </td>
                 {row.dimensionValues.map(dv => (
                     <td key={dv.key} className="dimension">
-                        {dv.year !== undefined &&
-                            dv.targetYear !== dv.year &&
-                            `(${dv.year}) `}
+                        {dv.year !== undefined && dv.targetYear !== dv.year && (
+                            <Tippy
+                                content={
+                                    <ClosestYearNotice
+                                        targetYear={dv.targetYear}
+                                        year={dv.year}
+                                    />
+                                }
+                                arrow={false}
+                            >
+                                <span className="notice">
+                                    in {dv.year}{" "}
+                                    <span className="icon">
+                                        <FontAwesomeIcon icon={faInfoCircle} />
+                                    </span>
+                                </span>
+                            </Tippy>
+                        )}
                         {dv.formattedValue}
                     </td>
                 ))}
@@ -67,3 +86,17 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 }
+
+const ClosestYearNotice = ({
+    targetYear,
+    year
+}: {
+    targetYear?: number
+    year?: number
+}) => (
+    <div className="closest-year-notice">
+        <strong>Data not available for {targetYear}</strong>
+        <br />
+        Showing closest available year ({year})
+    </div>
+)
