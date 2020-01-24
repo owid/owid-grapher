@@ -27,7 +27,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     {capitalize(this.entityType)}
                 </th>
                 {this.transform.dimensionHeaders.map(dh => (
-                    <th key={dh.key} className="dimension">
+                    <th key={dh.key} className="dimension" colSpan={dh.colSpan}>
                         {dh.name}
                     </th>
                 ))}
@@ -43,6 +43,9 @@ export class DataTable extends React.Component<DataTableProps> {
                 </td>
                 {row.dimensionValues.map(dv => (
                     <td key={dv.key} className="dimension">
+                        {dv.year !== undefined &&
+                            dv.targetYear !== dv.year &&
+                            `(${dv.year}) `}
                         {dv.formattedValue}
                     </td>
                 ))}
