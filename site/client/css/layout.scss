@@ -101,7 +101,7 @@
     max-width: 33.33%;
 }
 
-@include md-up {
+@include lg-up {
     .owid-col--lg-0 {
         flex: 0;
     }

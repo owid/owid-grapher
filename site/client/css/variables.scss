@@ -32,56 +32,56 @@ $page-max-width: $text-min-content-width + $graph-min-content-width + 3 *
 */
 
 // md: graphs and text shown side by side.
-$md-min-width: $text-min-content-width + $graph-min-content-width + 3 *
+$lg-min-width: $text-min-content-width + $graph-min-content-width + 3 *
     $padding-x-md + $sidebar-closed-drawer-width;
-// lg: md + graphs shown side by side
-$lg-min-width: $text-max-content-width + $graph-max-content-width + 3 *
+// xlg: md + graphs shown side by side
+$xlg-min-width: $text-max-content-width + $graph-max-content-width + 3 *
     $padding-x-md + $sidebar-closed-drawer-width;
-// xlg: lg + permanent sidebar
-$xlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
+// xxlg: xlg + permanent sidebar
+$xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
     $padding-x-md + $sidebar-content-width;
 
 @mixin sm-only {
-    @media (max-width: $md-min-width - 0.0625rem) {
+    @media (max-width: $lg-min-width - 0.0625rem) {
         @content;
     }
 }
 
 // The full menu is shown from that breakpoint up
-@mixin md-up {
-    @media (min-width: $md-min-width) {
-        @content;
-    }
-}
-
-@mixin md-only {
-    @media (min-width: $md-min-width) and (max-width: $lg-min-width - 0.0625rem) {
-        @content;
-    }
-}
-
-// Blocks are shown side-by-side from that breakpoint up (when applicable)
-@mixin lg-down {
-    @media only screen and (max-width: $xlg-min-width - 0.0625rem) {
+@mixin lg-up {
+    @media (min-width: $lg-min-width) {
         @content;
     }
 }
 
 @mixin lg-only {
-    @media only screen and (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
+    @media (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
         @content;
     }
 }
 
-@mixin lg-up {
-    @media only screen and (min-width: $lg-min-width) {
+// Blocks are shown side-by-side from that breakpoint up (when applicable)
+@mixin xlg-down {
+    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
+@mixin xlg-only {
+    @media only screen and (min-width: $xlg-min-width) and (max-width: $xxlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
+@mixin xlg-up {
+    @media only screen and (min-width: $xlg-min-width) {
         @content;
     }
 }
 
 // The sidebar is shown from that breakpoint up
-@mixin xlg-up {
-    @media only screen and (min-width: $xlg-min-width) {
+@mixin xxlg-up {
+    @media only screen and (min-width: $xxlg-min-width) {
         @content;
     }
 }

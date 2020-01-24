@@ -185,7 +185,7 @@ body.single-post {
 
     .site-content {
         padding: $padding-x-sm / 2;
-        @include md-up {
+        @include lg-up {
             padding: $padding-x-sm;
         }
     }
@@ -194,7 +194,7 @@ body.single-post {
         max-width: $page-max-width;
         margin: 0 auto 1rem;
         padding: $padding-x-sm;
-        @include md-up {
+        @include lg-up {
             padding: $padding-x-md;
         }
         background: white;
@@ -400,7 +400,7 @@ h6:hover .deep-link {
     font-size: 17px;
 }
 
-@include md-up {
+@include lg-up {
     #homepage-blog {
         float: right;
         width: 30%;
@@ -691,7 +691,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     font-family: $serif-font-stack;
     font-weight: 400;
     line-height: 1.2;
-    @include md-up {
+    @include lg-up {
         font-size: 3rem;
     }
 }

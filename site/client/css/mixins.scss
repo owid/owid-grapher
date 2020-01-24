@@ -28,13 +28,13 @@
     padding-top: 1rem;
     padding-bottom: 1rem;
     @include wrapper-spacing-sm;
-    @include md-up {
+    @include lg-up {
         @include wrapper-spacing-md;
     }
 }
 
 @mixin left-media-columns {
-    @include md-up {
+    @include lg-up {
         &.with-image .content-wrapper {
             display: flex;
             figure {
@@ -71,7 +71,7 @@
 @mixin h3-style {
     font-family: $serif-font-stack;
     font-size: 1.75rem;
-    @include md-up {
+    @include lg-up {
         font-size: 2.25rem;
     }
     font-weight: 400;
@@ -93,7 +93,7 @@
 @mixin wrapper-x-spacing {
     @include wrapper-spacing-sm;
 
-    @include md-up {
+    @include lg-up {
         @include wrapper-spacing-md;
     }
 }

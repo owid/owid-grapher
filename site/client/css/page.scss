@@ -9,10 +9,10 @@
     }
     .offset {
         flex: 1;
-        @include lg-down {
+        @include xlg-down {
             margin-left: $sidebar-closed-drawer-width;
         }
-        @include xlg-up {
+        @include xxlg-up {
             &.offset-header {
                 margin-left: ($sidebar-content-width + 2 * $padding-x-md);
             }
@@ -22,7 +22,7 @@
     .article-header {
         @include wrapper-spacing-sm;
         max-width: $content-max-width + 2 * $padding-x-sm;
-        @include md-up {
+        @include lg-up {
             @include wrapper-spacing-md;
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
                 $padding-x-md;
@@ -34,20 +34,20 @@
         padding-top: 2rem;
         padding-bottom: 2 * $vertical-spacing;
 
-        @include lg-up {
+        @include xlg-up {
             padding-top: 4rem;
         }
-        @include xlg-up {
+        @include xxlg-up {
             padding-top: 6rem;
             padding-bottom: 3 * $vertical-spacing;
         }
         // }
 
         h1 {
-            @include md-up {
+            @include lg-up {
                 font-size: 4rem;
             }
-            @include xlg-up {
+            @include xxlg-up {
                 font-size: 5rem;
             }
         }

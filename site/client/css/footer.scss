@@ -102,7 +102,7 @@
     text-align: center;
     margin-top: 2rem;
 
-    @include md-up {
+    @include lg-up {
         text-align: left;
     }
 
@@ -122,7 +122,7 @@
         font-size: 1.125rem;
         display: block;
 
-        @include md-up {
+        @include lg-up {
             display: inline-block;
         }
 

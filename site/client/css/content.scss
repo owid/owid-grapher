@@ -171,7 +171,7 @@
  * Gutenberg (wordpress editor) blocks
  */
 .page .wp-block-columns {
-    @include md-up {
+    @include lg-up {
         display: flex;
         align-items: flex-start; // maintain columns original height to allow sticky positioning
 
@@ -206,7 +206,7 @@
             }
         }
     }
-    @include md-only {
+    @include lg-only {
         &.is-style-side-by-side {
             display: block;
             margin: 0 auto;
@@ -218,7 +218,7 @@
             }
         }
     }
-    @include lg-up {
+    @include xlg-up {
         &.is-style-side-by-side {
             .wp-block-column {
                 flex: 1 1 50%;
