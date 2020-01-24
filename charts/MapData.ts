@@ -3,7 +3,6 @@ import { mean, deviation } from "d3-array"
 import * as _ from "lodash"
 
 import { ChartConfig } from "./ChartConfig"
-import { defaultTo, isString, last, findClosest } from "./Util"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
@@ -12,6 +11,11 @@ import { DimensionWithData } from "./DimensionWithData"
 import { MapTopology } from "./MapTopology"
 
 import {
+    defaultTo,
+    isString,
+    last,
+    findClosest,
+    findClosestYear,
     round,
     toArray,
     keys,
@@ -23,8 +27,7 @@ import {
     sortedUniq,
     keyBy,
     isNumber,
-    sortBy,
-    getClosestYearByEntity
+    sortBy
 } from "./Util"
 
 export interface MapDataValue {
@@ -515,25 +518,28 @@ export class MapData {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { map, mappableData, targetYear } = this
-        if (targetYear === undefined) return {}
+        const { map, targetYear } = this
+        const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
+
+        if (targetYear === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = map
-        const { years, entities } = mappableData
+        const entities = _.keys(this.knownMapEntities)
 
-        const closestYearByEntity = getClosestYearByEntity(
-            { years, entities },
-            targetYear,
-            tolerance
-        )
+        const result: { [key: string]: MapDataValue } = {}
 
-        return _.mapValues(closestYearByEntity, (year, entity) => ({
-            value: this.dimension?.valueByEntityAndYear
-                .get(entity)
-                ?.get(year) as number | string,
-            entity,
-            year
-        }))
+        entities.forEach(entity => {
+            const valueByYear = valueByEntityAndYear.get(entity)
+            if (!valueByYear) return
+            const years = Array.from(valueByYear.keys())
+            const year = findClosestYear(years, targetYear, tolerance)
+            if (year === undefined) return
+            const value = valueByYear.get(year)
+            if (value === undefined) return
+            result[entity] = { entity, year, value }
+        })
+
+        return result
     }
 
     // Get the final data incorporating the binning colors
