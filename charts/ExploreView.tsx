@@ -137,6 +137,8 @@ export class ExploreView extends React.Component<ExploreProps> {
                     {this.renderChartTypes()}
                     {this.renderIndicatorSwitching()}
                     <ChartView chart={this.chart} bounds={this.bounds} />
+                </div>
+                <div>
                     <DataTable chart={this.chart} />
                 </div>
             </ExplorerViewContext.Provider>
