@@ -19,6 +19,7 @@ export const TableOfContents = ({
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
     const tocRef = useRef<HTMLElement>(null)
+    const stickySentinelRef = useRef<HTMLDivElement>(null)
 
     const toggle = () => {
         setIsToggled(!isToggled)
@@ -54,8 +55,9 @@ export const TableOfContents = ({
                 }
             }
         })
-        const sentinel = document.querySelector(".sticky-sentinel")
-        if (sentinel) observer.observe(sentinel)
+        if (stickySentinelRef.current) {
+            observer.observe(stickySentinelRef.current)
+        }
     }, [])
 
     return (
@@ -65,7 +67,7 @@ export const TableOfContents = ({
                 isSticky ? " sticky" : ""
             }`}
         >
-            <div className="sticky-sentinel" />
+            <div className="sticky-sentinel" ref={stickySentinelRef} />
             <nav className="entry-toc">
                 <button
                     aria-label={`${
