@@ -1101,4 +1101,22 @@ html.iframe .ChartPage {
             opacity: 0.5;
         }
     }
+
+    .notice {
+        opacity: 0.5;
+        padding-right: 8px;
+        font-size: 0.875rem;
+        cursor: default;
+
+        .icon {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+    }
+}
+
+.closest-year-notice {
+    max-width: 13rem;
+    text-align: center;
+    padding: 0.25rem;
 }
