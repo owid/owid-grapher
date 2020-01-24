@@ -469,43 +469,30 @@ export function stripHTML(html: string): string {
     return striptags(html)
 }
 
-export function getClosestYearByEntity(
-    {
-        years = [],
-        entities = []
-    }: {
-        years: number[]
-        entities: string[]
-    },
+export function findClosestYear(
+    years: number[],
     targetYear: number,
     tolerance?: number
-) {
-    const yearByEntity: { [entity: string]: number } = {}
+): number | undefined {
+    let closest: number | undefined
+    years.forEach(year => {
+        const currentYearDist = Math.abs(year - targetYear)
+        const closestYearDist = closest
+            ? Math.abs(closest - targetYear)
+            : Infinity
 
-    for (let i = 0; i < entities.length; i++) {
-        const entity = entities[i]
-        const year = years[i]
-        const closestYear = yearByEntity[entity] as number | undefined
-
-        // Skip years that are beyond the tolerance
-        if (
-            tolerance !== undefined &&
-            Math.abs(year - targetYear) > tolerance
-        ) {
-            continue
+        if (tolerance !== undefined && currentYearDist > tolerance) {
+            return
         }
 
         if (
-            closestYear === undefined ||
-            Math.abs(closestYear - targetYear) > Math.abs(year - targetYear) ||
+            closest === undefined ||
+            closestYearDist > currentYearDist ||
             // Prefer later years, e.g. if targetYear is 2010, prefer 2011 to 2009
-            (Math.abs(closestYear - targetYear) ===
-                Math.abs(year - targetYear) &&
-                year > closestYear)
+            (closestYearDist === currentYearDist && year > closest)
         ) {
-            yearByEntity[entity] = year
+            closest = year
         }
-    }
-
-    return yearByEntity
+    })
+    return closest
 }
