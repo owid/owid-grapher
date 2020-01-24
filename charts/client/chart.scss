@@ -1049,5 +1049,15 @@ html.iframe .ChartPage {
 
     .dimension {
         text-align: right;
+
+        .name,
+        .unit {
+            display: block;
+        }
+
+        .unit {
+            font-weight: 700;
+            opacity: 0.5;
+        }
     }
 }
