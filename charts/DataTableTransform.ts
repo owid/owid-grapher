@@ -1,17 +1,22 @@
 import { computed } from "mobx"
 import { DimensionWithData } from "./DimensionWithData"
-import { reduce, max, sortBy } from "./Util"
+import { sortBy, flatten, findClosestYear } from "./Util"
 import { ChartConfig } from "./ChartConfig"
+
+type TargetYears = [number] | [number, number]
 
 export interface DimensionHeader {
     key: number
     name: string
+    colSpan: number
 }
 
 export interface DimensionValue {
-    key: number
+    key: string
     value?: string | number
     formattedValue?: string
+    year?: number
+    targetYear?: number
 }
 
 export interface DataTableRow {
@@ -34,42 +39,63 @@ export class DataTableTransform {
         return this.chart.data.availableEntities
     }
 
-    @computed get yearByVariable() {
-        return reduce(
-            this.dimensions,
-            (map, dim) => map.set(dim.variableId, max(dim.years)),
-            new Map<number, number | undefined>()
-        )
+    @computed get targetYears(): TargetYears {
+        const mapTarget = this.chart.map.props.targetYear
+        const { timeDomain } = this.chart
+        if (this.chart.tab === "map" && mapTarget !== undefined) {
+            return [mapTarget]
+        } else if (timeDomain[0] !== undefined && timeDomain[1] !== undefined) {
+            if (timeDomain[0] === timeDomain[1]) return [timeDomain[0]]
+            else return [timeDomain[0], timeDomain[1]]
+        } else {
+            return [new Date().getFullYear()]
+        }
     }
 
     @computed get dimensionHeaders(): DimensionHeader[] {
         return this.dimensions.map(dim => ({
             key: dim.variableId,
-            name: dim.displayName
+            name: dim.displayName,
+            colSpan: this.targetYears.length
         }))
     }
 
-    makeDimensionValue(dim: DimensionWithData, entity: string): DimensionValue {
-        let value, formatted
+    makeDimensionValues(
+        dim: DimensionWithData,
+        entity: string,
+        targetYears: TargetYears
+    ): DimensionValue[] {
         const valueByYear = dim.valueByEntityAndYear.get(entity)
-        const year = this.yearByVariable.get(dim.variableId)
-        if (valueByYear !== undefined && year !== undefined) {
-            value = valueByYear.get(year)
-            if (value !== undefined) {
-                formatted = dim.formatValueShort(value, {
-                    autoPrefix: false,
-                    noTrailingZeroes: false
-                })
+        const years = Array.from(valueByYear?.keys() || [])
+        return targetYears.map((targetYear, index) => {
+            let value, formatted
+            const year = findClosestYear(years, targetYear, dim.tolerance)
+            if (valueByYear !== undefined && year !== undefined) {
+                value = valueByYear.get(year)
+                if (value !== undefined) {
+                    formatted = dim.formatValueShort(value, {
+                        autoPrefix: false,
+                        noTrailingZeroes: false
+                    })
+                }
             }
-        }
-        return { key: dim.variableId, value, formattedValue: formatted }
+            return {
+                key: `${dim.variableId}-${index}`,
+                value,
+                formattedValue: formatted,
+                year,
+                targetYear
+            }
+        })
     }
 
     @computed get rows(): DataTableRow[] {
         return this.entities.map(entity => ({
             entity: entity,
-            dimensionValues: this.dimensions.map(dim =>
-                this.makeDimensionValue(dim, entity)
+            dimensionValues: flatten(
+                this.dimensions.map(dim =>
+                    this.makeDimensionValues(dim, entity, this.targetYears)
+                )
             )
         }))
     }
