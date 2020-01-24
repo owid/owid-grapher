@@ -81,6 +81,6 @@ export class DataTableTransform {
             )
         })
 
-        return sortBy(filteredRows, r => r.dimensionValues[0].value)
+        return sortBy(filteredRows, r => r.entity)
     }
 }
