@@ -411,6 +411,20 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     singleYearPlay={true}
                 />
             )
+        } else if (chart.isSlopeChart) {
+            const years = this.boundedYears(chart.slopeChart.timelineYears)
+            if (years.length === 0) return null
+            return (
+                <Timeline
+                    years={years}
+                    onTargetChange={this.onScatterTargetChange}
+                    startYear={chart.slopeChart.startYear}
+                    endYear={chart.slopeChart.endYear}
+                    onStartDrag={this.onTimelineStart}
+                    onStopDrag={this.onTimelineStop}
+                    singleYearPlay={false}
+                />
+            )
         } else {
             const years = this.boundedYears(chart.lineChart.timelineYears)
             if (years.length === 0) return null
@@ -462,6 +476,8 @@ export class Controls {
             return true
         else if (chart.tab === "chart" && chart.isLineChart)
             return !chart.props.hideTimeline
+        else if (chart.tab === "chart" && chart.isSlopeChart)
+            return chart.slopeChart.hasTimeline
         else return false
     }
 
