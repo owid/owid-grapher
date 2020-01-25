@@ -1,5 +1,14 @@
 import { computed } from "mobx"
-import { some, isEmpty, sortBy, orderBy, max, values, flatten } from "./Util"
+import {
+    some,
+    isEmpty,
+    sortBy,
+    orderBy,
+    max,
+    values,
+    flatten,
+    uniq
+} from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { IChartTransform } from "./IChartTransform"
@@ -96,7 +105,7 @@ export class DiscreteBarTransform implements IChartTransform {
                 if (
                     currentDatum &&
                     Math.abs(currentDatum.year - targetYear) <
-                        Math.abs(year - targetYear)
+                    Math.abs(year - targetYear)
                 )
                     continue
 
@@ -126,11 +135,20 @@ export class DiscreteBarTransform implements IChartTransform {
             const colorScheme = chart.baseColorScheme
                 ? ColorSchemes[chart.baseColorScheme]
                 : undefined
-            const colors = colorScheme ? colorScheme.getColors(data.length) : []
+            const uniqValues = uniq(data.map(d => d.value))
+            const colors = colorScheme?.getColors(uniqValues.length) || []
             if (chart.props.invertColorScheme) colors.reverse()
 
-            data.forEach((d, i) => {
-                d.color = chart.data.keyColors[d.key] || colors[i] || d.color
+            // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
+            // Therefore, we create a map from all possible (unique) values to the corresponding color
+            const colorByValue = new Map<number, string>()
+            uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
+
+            data.forEach(d => {
+                d.color =
+                    chart.data.keyColors[d.key] ||
+                    colorByValue.get(d.value) ||
+                    d.color
             })
         }
 
@@ -168,15 +186,21 @@ export class DiscreteBarTransform implements IChartTransform {
         })
 
         const data = sortBy(allData, d => d.value)
-
         const colorScheme = chart.baseColorScheme
             ? ColorSchemes[chart.baseColorScheme]
             : undefined
-        const colors = colorScheme ? colorScheme.getColors(data.length) : []
+        const uniqValues = uniq(data.map(d => d.value))
+        const colors = colorScheme?.getColors(uniqValues.length) || []
         if (chart.props.invertColorScheme) colors.reverse()
 
-        data.forEach((d, i) => {
-            d.color = chart.data.keyColors[d.key] || colors[i] || d.color
+        const colorByValue = new Map<number, string>()
+        uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
+
+        data.forEach(d => {
+            d.color =
+                chart.data.keyColors[d.key] ||
+                colorByValue.get(d.value) ||
+                d.color
         })
 
         return sortBy(data, d => -d.value)
