@@ -14,7 +14,10 @@ const common = {
     moduleNameMapper: {
         "^(admin|site|charts|utils|db|settings|test)/(.*)$": "<rootDir>/$1/$2",
         "^settings$": "<rootDir>/settings",
-        "^serverSettings$": "<rootDir>/serverSettings"
+        "^serverSettings$": "<rootDir>/serverSettings",
+        // Jest cannot handle importing CSS
+        // https://stackoverflow.com/questions/39418555/syntaxerror-with-jest-and-react-and-importing-css-files
+        "\\.(css|less|sass|scss)$": "<rootDir>/test/styleMock.ts"
     }
 }
 
