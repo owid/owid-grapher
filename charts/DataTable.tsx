@@ -49,22 +49,10 @@ export class DataTable extends React.Component<DataTableProps> {
                 {row.dimensionValues.map(dv => (
                     <td key={dv.key} className="dimension">
                         {dv.year !== undefined && dv.targetYear !== dv.year && (
-                            <Tippy
-                                content={
-                                    <ClosestYearNotice
-                                        targetYear={dv.targetYear}
-                                        year={dv.year}
-                                    />
-                                }
-                                arrow={false}
-                            >
-                                <span className="notice">
-                                    in {dv.year}{" "}
-                                    <span className="icon">
-                                        <FontAwesomeIcon icon={faInfoCircle} />
-                                    </span>
-                                </span>
-                            </Tippy>
+                            <ClosestYearNotice
+                                year={dv.year}
+                                targetYear={dv.targetYear}
+                            />
                         )}
                         {dv.formattedValue}
                     </td>
@@ -94,9 +82,21 @@ const ClosestYearNotice = ({
     targetYear?: number
     year?: number
 }) => (
-    <div className="closest-year-notice">
-        <strong>Data not available for {targetYear}</strong>
-        <br />
-        Showing closest available year ({year})
-    </div>
+    <Tippy
+        content={
+            <div className="closest-year-notice">
+                <strong>Data not available for {targetYear}</strong>
+                <br />
+                Showing closest available year ({year})
+            </div>
+        }
+        arrow={false}
+    >
+        <span className="notice">
+            in {year}{" "}
+            <span className="icon">
+                <FontAwesomeIcon icon={faInfoCircle} />
+            </span>
+        </span>
+    </Tippy>
 )
