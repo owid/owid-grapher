@@ -338,7 +338,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.map.targetYear = targetStartYear
     }
 
-    @action.bound onScatterTargetChange({
+    @action.bound onChartTargetChange({
         targetStartYear,
         targetEndYear
     }: {
@@ -390,7 +390,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.scatter.startYear}
                     endYear={chart.scatter.endYear}
                     onStartDrag={this.onTimelineStart}
@@ -403,7 +403,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
                     onStartDrag={this.onTimelineStart}
@@ -417,7 +417,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.slopeChart.startYear}
                     endYear={chart.slopeChart.endYear}
                     onStartDrag={this.onTimelineStart}
@@ -431,7 +431,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
                     onStartDrag={this.onTimelineStart}
