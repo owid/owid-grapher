@@ -3,4 +3,5 @@ export interface TickFormattingOptions {
     unit?: string
     noTrailingZeroes?: boolean
     autoPrefix?: boolean
+    showPlus?: boolean
 }
