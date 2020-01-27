@@ -15,6 +15,7 @@ export const BlogIndexPage = (props: {
 }) => {
     const { posts, pageNum, numPages } = props
     const pageNums = _.range(1, numPages + 1)
+    const pageTitle = "Latest publications"
 
     return (
         <html>
@@ -23,14 +24,14 @@ export const BlogIndexPage = (props: {
                     `${settings.BAKED_BASE_URL}/blog` +
                     (pageNum > 1 ? `/page/${pageNum}` : "")
                 }
-                pageTitle="Latest research"
+                pageTitle={pageTitle}
             />
             <body className="blog">
                 <SiteHeader />
 
                 <main>
                     <div className="site-content">
-                        <h2>Latest research</h2>
+                        <h2>{pageTitle}</h2>
                         <ul className="posts">
                             {posts.map(post => (
                                 <li key={post.slug} className="post">

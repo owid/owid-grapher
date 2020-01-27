@@ -127,7 +127,7 @@ export const SiteFooter = ({
                                         data-track-click
                                         data-track-note="footer-navigation"
                                     >
-                                        Latest research
+                                        Latest publications
                                     </a>
                                 </li>
                                 <li>
