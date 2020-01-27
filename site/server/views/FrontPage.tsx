@@ -344,22 +344,22 @@ export const FrontPage = (props: {
                                                 </a>
                                             </div>
                                         ))}
+                                    <div className="see-all">
+                                        <a
+                                            href="/blog"
+                                            data-track-click
+                                            data-track-note="homepage-see-all-explainers"
+                                        >
+                                            <div className="label">
+                                                See all posts
+                                            </div>
+                                            <div className="icon">
+                                                <FontAwesomeIcon
+                                                    icon={faAngleRight}
+                                                />
+                                            </div>
+                                        </a>
                                     </div>
-                                    <a
-                                        href="/blog"
-                                        className="see-all"
-                                        data-track-click
-                                        data-track-note="homepage-see-all-explainers"
-                                    >
-                                        <div className="label">
-                                            See all posts
-                                        </div>
-                                        <div className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faAngleRight}
-                                            />
-                                        </div>
-                                    </a>
                                 </div>
                             </div>
                         </div>

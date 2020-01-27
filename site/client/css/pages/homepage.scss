@@ -324,16 +324,24 @@
     }
 
     .see-all {
-        font-size: 1.125rem;
-        padding: 0.75rem;
-        display: block;
-        text-align: center;
-        font-weight: 700;
-        color: $primary-color-700;
-        background-color: transparent;
-        border: 2px solid $primary-color-300;
-        transition: color 150ms ease, background-color 150ms ease,
-            border-color 150ms ease;
+        display: flex;
+        justify-content: center;
+        a {
+            font-size: 1.125rem;
+            padding: 0.75rem;
+            font-weight: 700;
+            color: $primary-color-700;
+            background-color: transparent;
+            border: 2px solid $primary-color-300;
+            transition: color 150ms ease, background-color 150ms ease,
+                border-color 150ms ease;
+
+            &:hover {
+                color: $primary-color-900;
+                background-color: $primary-color-300;
+                border-color: $primary-color-300;
+            }
+        }
 
         .icon,
         .label {
@@ -342,12 +350,6 @@
 
         .icon {
             margin-left: 0.5rem;
-        }
-
-        &:hover {
-            color: $primary-color-900;
-            background-color: $primary-color-300;
-            border-color: $primary-color-300;
         }
     }
 }
