@@ -470,19 +470,19 @@ export function stripHTML(html: string): string {
 }
 
 export function findClosestYear(
-    years: number[],
+    years: number[] | Iterable<number>,
     targetYear: number,
     tolerance?: number
 ): number | undefined {
     let closest: number | undefined
-    years.forEach(year => {
+    for (const year of years) {
         const currentYearDist = Math.abs(year - targetYear)
         const closestYearDist = closest
             ? Math.abs(closest - targetYear)
             : Infinity
 
         if (tolerance !== undefined && currentYearDist > tolerance) {
-            return
+            continue
         }
 
         if (
@@ -493,6 +493,6 @@ export function findClosestYear(
         ) {
             closest = year
         }
-    })
+    }
     return closest
 }
