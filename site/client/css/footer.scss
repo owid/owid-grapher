@@ -8,6 +8,11 @@
         padding: 2rem 0;
     }
 
+    .wrapper {
+        @include wrapper-x-spacing;
+        max-width: $wrapper-max-width;
+    }
+
     a {
         color: $primary-color-400;
         transition: color 150ms ease;
@@ -102,7 +107,7 @@
     }
 
     .wrapper {
-        max-width: $page-max-width-md;
+        @include content-wrapper;
     }
 
     p {
@@ -112,13 +117,9 @@
     }
 
     .donate-button {
-        background-color: $secondary-color;
+        display: inline-block;
         font-size: 1.125rem;
-        display: block;
-
-        @include md-up {
-            display: inline-block;
-        }
+        background-color: $secondary-color;
 
         .icon {
             margin-left: 0.5rem;

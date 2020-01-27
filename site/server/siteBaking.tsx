@@ -191,7 +191,7 @@ export async function renderSubscribePage() {
 }
 
 export async function renderBlogByPageNum(pageNum: number) {
-    const postsPerPage = 21
+    const postsPerPage = 20
 
     const allPosts = await wpdb.getBlogIndex()
 

@@ -1,10 +1,6 @@
 .wrapper {
-    @include wrapper-spacing-sm;
-    max-width: 75rem;
-
-    @include md-up {
-        @include wrapper-spacing-md;
-    }
+    @include wrapper-x-spacing;
+    max-width: $wrapper-max-width;
 }
 
 .owid-row {

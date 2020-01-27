@@ -29,7 +29,7 @@ export const BlogIndexPage = (props: {
             <body className="blog">
                 <SiteHeader />
 
-                <main>
+                <main className="wrapper">
                     <div className="site-content">
                         <h2>{pageTitle}</h2>
                         <ul className="posts">

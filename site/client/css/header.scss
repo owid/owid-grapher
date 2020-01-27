@@ -17,19 +17,16 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    @include lg-up {
-        max-width: $lg-min-width;
-    }
-
-    @include xlg-up {
-        max-width: $page-max-width-xlg;
-    }
     padding-top: 14px;
     padding-bottom: 11px;
+    @include wrapper-x-spacing;
 }
 
 .site-navigation {
-    display: flex;
+    display: none;
+    @include md-up {
+        display: flex;
+    }
 }
 
 .site-primary-navigation {
@@ -141,33 +138,35 @@
 }
 
 .header-logos-wrapper {
-    display: flex;
-    align-items: center;
-
-    .oxford-logo {
-        width: 9rem;
-    }
-
-    .gcdl-logo {
-        width: 2rem;
-        margin-left: 0.5rem;
-    }
-
-    .oxford-logo,
-    .gcdl-logo {
-        opacity: 0.85;
+    display: none;
+    @include md-up {
         display: flex;
         align-items: center;
 
-        img {
-            width: 100%;
+        .oxford-logo {
+            width: 9rem;
         }
-    }
 
-    @media (max-width: 68rem) {
+        .gcdl-logo {
+            width: 2rem;
+            margin-left: 0.5rem;
+        }
+
         .oxford-logo,
         .gcdl-logo {
-            display: none;
+            opacity: 0.85;
+            display: flex;
+            align-items: center;
+
+            img {
+                width: 100%;
+            }
+        }
+        @media (max-width: 68rem) {
+            .oxford-logo,
+            .gcdl-logo {
+                display: none;
+            }
         }
     }
 }
@@ -451,11 +450,17 @@
             display: none;
         }
     }
-    .site-navigation button {
+    .mobile-site-navigation button {
         background: transparent;
         border: none;
         padding: 1rem;
         color: white;
+    }
+}
+
+@include md-up {
+    .mobile-site-navigation {
+        display: none;
     }
 }
 

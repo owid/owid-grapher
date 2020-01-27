@@ -10,65 +10,83 @@ $vertical-spacing: 1rem;
 * Sizes
 */
 
-// In a two column layout (only in xlg for now), the total width including paddings is:
-// - a: $sidebar-content-width
-// - b: $padding-x-md
-// - c: $content-max-width
-// a + b + [65% to 80%]c + b + c + b
-
 $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
+$sidebar-padding-top: 2rem;
+$sidebar-toggle-width: 2rem;
+$sidebar-closed-drawer-width: $padding-x-sm;
+$text-min-content-width: 30rem;
+$text-max-content-width: 40rem;
+// NB: the side by side layout depends on
+// $graph-min-content-width < $text-max-content-width + $graph-max-content-width
+$graph-min-content-width: 44rem;
+$graph-max-content-width: 50rem;
 
-// Page
-$page-max-width-sm: $content-max-width + 2 * $padding-x-sm;
-$page-max-width-md: $content-max-width + 2 * $padding-x-md;
-// The sidebar is added from the lg breakpoint but is absolutely
-// positioned so the wrapper size does not need to accomodate it.
-// $page-max-width-lg
-// The left column of the side by side layout is capped at 80% of content-max-width (the right column)
-$page-max-width-xlg: $sidebar-content-width + 4 * $padding-x-md + 1.8 *
-    $content-max-width;
+$wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
+    $padding-x-md;
 
 /*******************************************************************************
- * Breakpoints
- */
+* Breakpoints
+*/
 
-$md-min-width: 960px;
-$lg-min-width: 2 * $sidebar-content-width + 4 * $padding-x-md +
-    $content-max-width;
-// The side by side layout is triggered when the left column reaches 65% of content-max-width (the right column)
-$xlg-min-width: $sidebar-content-width + 4 * $padding-x-md + 1.65 *
-    $content-max-width;
+//md
+$md-min-width: 55rem;
+// lg: graphs and text shown side by side.
+$lg-min-width: $text-min-content-width + $graph-min-content-width + 3 *
+    $padding-x-md + $sidebar-closed-drawer-width;
+// xlg: md + graphs shown side by side
+$xlg-min-width: $text-max-content-width + $graph-max-content-width + 3 *
+    $padding-x-md + $sidebar-closed-drawer-width;
+// xxlg: xlg + permanent sidebar
+$xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
+    $padding-x-md + $sidebar-content-width;
 
 @mixin sm-only {
-    @media (max-width: $md-min-width - 1px) {
+    @media (max-width: $md-min-width - 0.0625rem) {
         @content;
     }
 }
 
-// The full menu is shown from that breakpoint up
 @mixin md-up {
     @media (min-width: $md-min-width) {
         @content;
     }
 }
 
-// The sidebar is shown from that breakpoint up
-@mixin lg-only {
-    @media only screen and (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
+@mixin lg-up {
+    @media (min-width: $lg-min-width) {
         @content;
     }
 }
 
-@mixin lg-up {
-    @media only screen and (min-width: $lg-min-width) {
+@mixin lg-only {
+    @media (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
         @content;
     }
 }
 
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
+@mixin xlg-down {
+    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
+@mixin xlg-only {
+    @media only screen and (min-width: $xlg-min-width) and (max-width: $xxlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
 @mixin xlg-up {
     @media only screen and (min-width: $xlg-min-width) {
+        @content;
+    }
+}
+
+// The sidebar is shown from that breakpoint up
+@mixin xxlg-up {
+    @media only screen and (min-width: $xxlg-min-width) {
         @content;
     }
 }
@@ -120,6 +138,7 @@ $text-color: $primary-color-800;
 $secondary-text-color: $primary-color-600;
 $tertiary-text-color: $tertiary-color;
 $error-text-color: $secondary-color;
+$grey-text-color: #616161;
 
 /* Hyperlink colors */
 $link-color: #2162e6;
@@ -154,6 +173,7 @@ $controls-color: #3f9eff;
 $zindex-input: 1;
 $zindex-article-image: 10;
 $zindex-footnote: 10;
+$zindex-sidebar: 20;
 $zindex-popover: 100;
 $zindex-search-overlay: 100;
 $zindex-cookie-notice: 110;

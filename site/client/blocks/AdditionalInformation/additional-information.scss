@@ -37,18 +37,17 @@
             }
         }
         .content-wrapper {
+            @include wrapper-x-spacing;
             padding-top: 1.5rem;
             padding-bottom: 1.5rem;
-            @include wrapper-spacing-sm;
-            @include md-up {
-                @include wrapper-spacing-md;
-            }
+
             background-color: $primary-color-100;
         }
     }
 
     &[data-variation="full-width"] {
         background-color: $primary-color-100;
+        padding: 0 $padding-x-sm;
         @include md-up {
             margin-left: -#{$padding-x-md};
             margin-right: -#{$padding-x-md};

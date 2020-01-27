@@ -12,18 +12,6 @@
     display: table;
 }
 
-@include md-up {
-    .sm-only {
-        display: none !important;
-    }
-}
-
-@include sm-only {
-    .md-up {
-        display: none !important;
-    }
-}
-
 .nowrap {
     white-space: nowrap;
 }

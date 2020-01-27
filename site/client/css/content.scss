@@ -170,23 +170,25 @@
 /*******************************************************************************
  * Gutenberg (wordpress editor) blocks
  */
-@include xlg-up {
-    .page .wp-block-columns {
+.page .wp-block-columns {
+    @include lg-up {
         display: flex;
         align-items: flex-start; // maintain columns original height to allow sticky positioning
 
         .wp-block-column {
-            flex: 0 0 $content-max-width + $padding-x-md / 2;
-            padding: 0 0 0 $padding-x-md / 2;
             &:first-child {
-                flex: 1;
-                padding: 0 $padding-x-md / 2 0 0;
+                flex: 1 0 $text-min-content-width;
+                margin-right: $padding-x-md / 2;
+                max-width: $text-max-content-width;
 
                 > *:first-child {
                     margin-top: $vertical-spacing;
                 }
             }
             &:last-child {
+                flex: 1 0 $graph-min-content-width;
+                margin-left: $padding-x-md / 2;
+                max-width: $graph-max-content-width;
                 > *:first-child {
                     margin-top: $vertical-spacing;
                     padding-top: 0;
@@ -201,6 +203,26 @@
                     position: sticky;
                     position: -webkit-sticky;
                 }
+            }
+        }
+    }
+    @include lg-only {
+        &.is-style-side-by-side {
+            display: block;
+            margin: 0 auto;
+            width: $graph-max-content-width;
+            .wp-block-column {
+                flex: none;
+                max-width: $graph-max-content-width;
+                margin: 0;
+            }
+        }
+    }
+    @include xlg-up {
+        &.is-style-side-by-side {
+            .wp-block-column {
+                flex: 1 1 50%;
+                max-width: initial;
             }
         }
     }

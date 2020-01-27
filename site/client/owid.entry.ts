@@ -23,6 +23,7 @@ import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
+import { runTableOfContents } from "./TableOfContents"
 
 declare var window: any
 window.Grapher = Grapher
@@ -40,6 +41,7 @@ window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
 window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
+window.runTableOfContents = runTableOfContents
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 

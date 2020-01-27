@@ -1,63 +1,54 @@
 .page {
-    @include wrapper-spacing-sm;
-    max-width: $page-max-width-sm;
-    padding-bottom: 50px;
+    background-color: $primary-color-100;
 
-    @include md-up {
-        @include wrapper-spacing-md;
-        max-width: $page-max-width-md;
+    & > .content-wrapper {
+        padding-top: $vertical-spacing;
+        background-color: $body-bg;
     }
-
-    @include xlg-up {
-        max-width: $page-max-width-xlg;
+    &.with-sidebar {
+        & > .content-wrapper {
+            display: flex;
+            position: relative;
+        }
+        .offset {
+            flex: 1;
+            @include xlg-down {
+                margin-left: $sidebar-closed-drawer-width;
+            }
+            @include xxlg-up {
+                &.offset-header {
+                    margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+                }
+            }
+        }
+    }
+    .content-and-footnotes,
+    .article-header {
+        @include content-wrapper;
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
     }
 
     .article-header {
-        margin-bottom: 1rem;
+        padding-top: 2rem;
+        padding-bottom: 2 * $vertical-spacing;
 
-        @include xlg-up {
-            // About pages
-            text-align: center;
+        @include lg-up {
+            padding-top: 4rem;
         }
-
-        &.with-sidebar {
-            $header-margin-bottom: 2rem;
-            $header-padding-top: 2rem;
-            $header-padding-top-lg: 4rem;
-            $header-padding-top-xlg: 6rem;
-            position: relative;
-            margin-bottom: $header-margin-bottom;
-            text-align: left;
-            padding: $header-padding-top 0 2.5rem;
-            &::before {
-                content: "";
-                position: absolute;
-                margin-top: -$header-padding-top;
-                z-index: -1;
-                background-color: $primary-color-100;
-                width: 100vw;
-                height: 100%;
-                left: 50%;
-                margin-left: -50vw;
-            }
-            @include lg-up {
-                padding-top: $header-padding-top-lg;
-                &::before {
-                    margin-top: -$header-padding-top-lg;
-                }
-            }
-            @include xlg-up {
-                margin-bottom: $header-margin-bottom - 1rem; // chain reaction from aligning the top of the first elements of columns
-                padding-top: $header-padding-top-xlg;
-                padding-left: $sidebar-content-width + $padding-x-md;
-                &::before {
-                    margin-top: -$header-padding-top-xlg;
-                }
-            }
+        @include xlg-up {
+            padding-top: 6rem;
+            padding-bottom: 3 * $vertical-spacing;
         }
 
         h1 {
             @include md-up {
+                font-size: 3rem;
+            }
+
+            @include lg-up {
                 font-size: 4rem;
             }
             @include xlg-up {
@@ -90,7 +81,7 @@
             margin-top: 4rem;
             .cite {
                 font-size: 0.8125rem;
-                color: #616161;
+                color: $grey-text-color;
                 transition: all 0.2s;
                 &:hover {
                     color: $secondary-color;
@@ -101,10 +92,6 @@
             }
         }
     }
-}
-
-.contentAndFootnotes {
-    margin: 0 auto;
 }
 
 .columns {
