@@ -496,3 +496,42 @@ export function findClosestYear(
     }
     return closest
 }
+
+// _.mapValues() equivalent for ES6 Maps
+export function es6mapValues<K, V, M>(
+    input: Map<K, V>,
+    mapper: (value: V, key: K) => M
+): Map<K, M> {
+    return new Map(
+        Array.from(input, ([key, value]) => {
+            return [key, mapper(value, key)]
+        })
+    )
+}
+
+export interface DataValue {
+    year: number | undefined
+    value: number | string | undefined
+}
+
+export function valuesByEntityAtYears(
+    valueByEntityAndYear: Map<string, Map<number, string | number>>,
+    targetYears: number[],
+    tolerance: number = 0
+): Map<string, DataValue[]> {
+    return es6mapValues(valueByEntityAndYear, valueByYear => {
+        const years = Array.from(valueByYear.keys())
+        const values = targetYears.map(targetYear => {
+            let value
+            const year = findClosestYear(years, targetYear, tolerance)
+            if (year !== undefined) {
+                value = valueByYear.get(year)
+            }
+            return {
+                year,
+                value
+            }
+        })
+        return values
+    })
+}

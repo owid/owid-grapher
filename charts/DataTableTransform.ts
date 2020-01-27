@@ -1,28 +1,48 @@
 import { computed } from "mobx"
-import { DimensionWithData } from "./DimensionWithData"
-import { sortBy, flatten, findClosestYear } from "./Util"
+import { sortBy, valuesByEntityAtYears, es6mapValues, flatten } from "./Util"
 import { ChartConfig } from "./ChartConfig"
+import { DimensionWithData } from "./DimensionWithData"
 
 type TargetYears = [number] | [number, number]
 
-export interface DimensionHeader {
-    key: number
-    name: string
-    colSpan: number
-    unit?: string
+export interface Dimension {
+    dimension: DimensionWithData
+    columns: DimensionColumn[]
+    valuesByEntity: Map<string, DimensionValue[]>
+}
+
+export type ColumnType = "point"
+
+export interface DimensionColumn {
+    type: ColumnType
+    targetYear?: number
 }
 
 export interface DimensionValue {
-    key: string
     value?: string | number
     formattedValue?: string
     year?: number
-    targetYear?: number
+}
+
+export interface DataTableHeader {
+    key: number
+    name: string
+    unit?: string
+    subheaders: DimensionColumn[]
 }
 
 export interface DataTableRow {
     entity: string
-    dimensionValues: DimensionValue[]
+    values: DataTableValue[]
+}
+
+export type DataTableColumn = DimensionColumn
+
+export interface DataTableValue {
+    key: string
+    value?: string | number
+    formattedValue?: string
+    year?: number
 }
 
 function getHeaderUnit(unit: string) {
@@ -61,63 +81,79 @@ export class DataTableTransform {
         }
     }
 
-    @computed get dimensionHeaders(): DimensionHeader[] {
-        return this.dimensions.map(dim => ({
-            key: dim.variableId,
-            name: dim.displayName,
-            colSpan: this.targetYears.length,
-            unit: getHeaderUnit(dim.unit)
+    @computed get dimensionHeaders(): DataTableHeader[] {
+        return this.dimensionsWithValues.map(d => ({
+            key: d.dimension.variableId,
+            name: d.dimension.displayName,
+            unit: getHeaderUnit(d.dimension.unit),
+            subheaders: d.columns
         }))
     }
 
-    makeDimensionValues(
-        dim: DimensionWithData,
-        entity: string,
-        targetYears: TargetYears
-    ): DimensionValue[] {
-        const valueByYear = dim.valueByEntityAndYear.get(entity)
-        const years = Array.from(valueByYear?.keys() || [])
-        return targetYears.map((targetYear, index) => {
-            let value, formatted
-            const year = findClosestYear(years, targetYear, dim.tolerance)
-            if (valueByYear !== undefined && year !== undefined) {
-                value = valueByYear.get(year)
-                if (value !== undefined) {
-                    formatted = dim.formatValueShort(value, {
-                        autoPrefix: false,
-                        noTrailingZeroes: false,
-                        unit: getValueUnit(dim.unit)
+    @computed get dimensionsWithValues(): Dimension[] {
+        return this.dimensions.map(dim => {
+            const targetYears =
+                // If a targetYear override is specified on the dimension (scatter plots
+                // can do this) then use that target year and ignore the timeline.
+                dim.targetYear !== undefined
+                    ? [dim.targetYear]
+                    : this.targetYears
+
+            const valuesByEntity = valuesByEntityAtYears(
+                dim.valueByEntityAndYear,
+                targetYears,
+                dim.tolerance
+            )
+
+            // Add number formatting
+            const formattedValuesByEntity = es6mapValues(
+                valuesByEntity,
+                dvs => {
+                    return dvs?.map(dv => {
+                        let formattedValue
+                        if (dv.value !== undefined) {
+                            formattedValue = dim.formatValueShort(dv.value, {
+                                autoPrefix: false,
+                                noTrailingZeroes: false,
+                                unit: getValueUnit(dim.unit)
+                            })
+                        }
+                        return { ...dv, formattedValue }
                     })
                 }
-            }
+            )
+
             return {
-                key: `${dim.variableId}-${index}`,
-                value,
-                formattedValue: formatted,
-                year,
-                targetYear
+                dimension: dim,
+                columns: targetYears.map(targetYear => ({
+                    type: "point",
+                    targetYear
+                })),
+                valuesByEntity: formattedValuesByEntity
             }
         })
     }
 
-    @computed get rows(): DataTableRow[] {
-        return this.entities.map(entity => ({
-            entity: entity,
-            dimensionValues: flatten(
-                this.dimensions.map(dim =>
-                    this.makeDimensionValues(dim, entity, this.targetYears)
-                )
-            )
-        }))
+    @computed get displayColumns(): DataTableColumn[] {
+        return flatten(this.dimensionsWithValues.map(d => d.columns))
     }
 
-    @computed get displayRows() {
-        const filteredRows = this.rows.filter(row => {
-            return row.dimensionValues.some(
-                dv => dv.formattedValue !== undefined
+    @computed get displayRows(): DataTableRow[] {
+        const entities = sortBy(this.chart.data.availableEntities)
+        return entities.map(entity => {
+            const values = flatten(
+                this.dimensionsWithValues.map(d => {
+                    const values = d.valuesByEntity.get(entity) || []
+                    return values.map((v, index) => ({
+                        ...v,
+                        key: `${d.dimension.variableId}-${index}`
+                    }))
+                })
             )
+            return {
+                entity,
+                values
+            }
         })
-
-        return sortBy(filteredRows, r => r.entity)
     }
 }
