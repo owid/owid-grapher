@@ -603,6 +603,9 @@
         }
 
         .icon-right {
+            @include sm-only {
+                display: none;
+            }
             font-size: 1.25rem;
             color: $primary-color-400;
             margin-left: 1rem;

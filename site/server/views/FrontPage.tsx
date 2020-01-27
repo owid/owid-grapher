@@ -515,7 +515,7 @@ export const FrontPage = (props: {
                                         Sustainable Development Goals?
                                     </p>
                                 </div>
-                                <div className="icon-right md-up">
+                                <div className="icon-right">
                                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                                 </div>
                             </a>
@@ -539,7 +539,7 @@ export const FrontPage = (props: {
                                         development
                                     </p>
                                 </div>
-                                <div className="icon-right md-up">
+                                <div className="icon-right">
                                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                                 </div>
                             </a>
