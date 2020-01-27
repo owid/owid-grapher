@@ -6,8 +6,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { ChartConfig } from "./ChartConfig"
-import { capitalize } from "./Util"
-import { DataTableTransform, DataTableRow } from "./DataTableTransform"
+import { capitalize, some } from "./Util"
+import {
+    DataTableTransform,
+    DataTableRow,
+    DataTableColumn
+} from "./DataTableTransform"
 import { Tippy } from "./Tippy"
 
 interface DataTableProps {
@@ -24,45 +28,78 @@ export class DataTable extends React.Component<DataTableProps> {
         return new DataTableTransform(this.props.chart)
     }
 
-    renderHeaderRow() {
-        return (
-            <tr>
-                <th key="entity" className="entity">
-                    {capitalize(this.entityType)}
-                </th>
-                {this.transform.dimensionHeaders.map(dh => (
-                    <th key={dh.key} className="dimension" colSpan={dh.colSpan}>
-                        <span className="name">{dh.name}</span>
-                        <span className="unit">{dh.unit}</span>
-                    </th>
-                ))}
-            </tr>
+    @computed get hasSubheaders() {
+        return some(
+            this.transform.dimensionHeaders,
+            header => header.subheaders.length > 1
         )
     }
 
-    renderEntityRow(row: DataTableRow) {
+    renderHeaderRow() {
+        return (
+            <React.Fragment>
+                <tr>
+                    <th
+                        key="entity"
+                        className="entity"
+                        rowSpan={this.hasSubheaders ? 2 : 1}
+                    >
+                        {capitalize(this.entityType)}
+                    </th>
+                    {this.transform.dimensionHeaders.map(dh => (
+                        <th
+                            key={dh.key}
+                            className="dimension"
+                            colSpan={dh.subheaders.length}
+                        >
+                            <span className="name">{dh.name}</span>
+                            <span className="unit">{dh.unit}</span>
+                        </th>
+                    ))}
+                </tr>
+                {this.hasSubheaders && (
+                    <tr>
+                        {this.transform.dimensionHeaders.map(dh =>
+                            dh.subheaders.map((sh, index) => (
+                                <th key={index}>{sh.targetYear || sh.type}</th>
+                            ))
+                        )}
+                    </tr>
+                )}
+            </React.Fragment>
+        )
+    }
+
+    renderEntityRow(row: DataTableRow, columns: DataTableColumn[]) {
         return (
             <tr key={row.entity}>
                 <td key="entity" className="entity">
                     {row.entity}
                 </td>
-                {row.dimensionValues.map(dv => (
-                    <td key={dv.key} className="dimension">
-                        {dv.year !== undefined && dv.targetYear !== dv.year && (
-                            <ClosestYearNotice
-                                year={dv.year}
-                                targetYear={dv.targetYear}
-                            />
-                        )}
-                        {dv.formattedValue}
-                    </td>
-                ))}
+                {row.values.map((dv, index) => {
+                    const column = columns[index]
+                    return (
+                        <td key={dv.key} className="dimension">
+                            {dv.year !== undefined &&
+                                column.targetYear !== undefined &&
+                                column.targetYear !== dv.year && (
+                                    <ClosestYearNotice
+                                        year={dv.year}
+                                        targetYear={column.targetYear}
+                                    />
+                                )}
+                            {dv.formattedValue}
+                        </td>
+                    )
+                })}
             </tr>
         )
     }
 
     renderRows() {
-        return this.transform.displayRows.map(row => this.renderEntityRow(row))
+        return this.transform.displayRows.map(row =>
+            this.renderEntityRow(row, this.transform.displayColumns)
+        )
     }
 
     render() {
