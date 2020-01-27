@@ -1,3 +1,8 @@
+.wrapper {
+    @include wrapper-x-spacing;
+    max-width: $page-max-width;
+}
+
 .owid-row {
     margin: 0 -1rem;
     display: flex;
@@ -101,7 +106,7 @@
     max-width: 33.33%;
 }
 
-@include lg-up {
+@include md-up {
     .owid-col--lg-0 {
         flex: 0;
     }
