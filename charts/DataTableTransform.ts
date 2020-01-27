@@ -25,15 +25,30 @@ type TargetYears = [number] | [number, number]
 
 // Column types
 
-export type ColumnType = "single" | "start" | "end" | "delta" | "deltaRatio"
+export type ColumnType = "value" | "start" | "end" | "delta" | "deltaRatio"
 
 export class ColumnTypes {
-    static single: ColumnType = "single"
+    static value: ColumnType = "value"
     static start: ColumnType = "start"
     static end: ColumnType = "end"
     static delta: ColumnType = "delta"
     static deltaRatio: ColumnType = "deltaRatio"
 }
+
+// Sorting modes
+
+export type SortOrder = "asc" | "desc"
+
+export class SortOrders {
+    static asc: SortOrder = "asc"
+    static desc: SortOrder = "desc"
+}
+
+export interface Sortable {
+    sortable: boolean
+    sorted?: SortOrder
+}
+// onSort?: (sort: SortOrder | undefined) => void
 
 // Dimensions
 
@@ -57,19 +72,19 @@ export interface DimensionValue {
 
 // Data table types
 
-export interface DataTableHeader {
+export interface DataTableDimension extends Sortable {
     key: number
     name: string
     unit?: string
-    subheaders: DimensionColumn[]
+    columns: DataTableColumn[]
 }
+
+export type DataTableColumn = DimensionColumn & Sortable
 
 export interface DataTableRow {
     entity: string
     values: DataTableValue[]
 }
-
-export type DataTableColumn = DimensionColumn
 
 export interface DataTableValue {
     key: string
@@ -103,6 +118,7 @@ export class DataTableTransform {
         return this.chart.data.availableEntities
     }
 
+    // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
         const { tab } = this.chart
         if (tab === "chart") {
@@ -124,6 +140,7 @@ export class DataTableTransform {
         return TargetYearModes.point
     }
 
+    // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
         const mapTarget = this.chart.map.props.targetYear
         const { timeDomain } = this.chart
@@ -135,15 +152,6 @@ export class DataTableTransform {
         } else {
             return [new Date().getFullYear()]
         }
-    }
-
-    @computed get dimensionHeaders(): DataTableHeader[] {
-        return this.dimensionsWithValues.map(d => ({
-            key: d.dimension.variableId,
-            name: d.dimension.displayName,
-            unit: getHeaderUnit(d.dimension.unit),
-            subheaders: d.columns
-        }))
     }
 
     @computed get dimensionsWithValues(): Dimension[] {
@@ -192,11 +200,11 @@ export class DataTableTransform {
             const columns: DimensionColumn[] = [
                 ...targetYears.map((targetYear, index) => ({
                     type:
-                        targetYearMode === TargetYearModes.range
+                        targetYears.length === 2
                             ? index === 0
                                 ? ColumnTypes.start
                                 : ColumnTypes.end
-                            : ColumnTypes.single,
+                            : ColumnTypes.value,
                     targetYear,
                     targetYearMode
                 })),
@@ -262,8 +270,21 @@ export class DataTableTransform {
         })
     }
 
+    @computed get displayDimensions(): DataTableDimension[] {
+        return this.dimensionsWithValues.map(d => ({
+            key: d.dimension.variableId,
+            name: d.dimension.displayName,
+            unit: getHeaderUnit(d.dimension.unit),
+            sortable: d.columns.length === 1,
+            columns: d.columns.map(column => ({
+                ...column,
+                sortable: true
+            }))
+        }))
+    }
+
     @computed get displayColumns(): DataTableColumn[] {
-        return flatten(this.dimensionsWithValues.map(d => d.columns))
+        return flatten(this.displayDimensions.map(d => d.columns))
     }
 
     @computed get displayRows(): DataTableRow[] {

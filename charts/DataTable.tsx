@@ -1,17 +1,20 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, observable } from "mobx"
 import { observer } from "mobx-react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { ChartConfig } from "./ChartConfig"
-import { capitalize, some } from "./Util"
+import { capitalize, some, defaultTo } from "./Util"
 import {
     DataTableTransform,
     DataTableRow,
-    DataTableColumn,
-    TargetYearModes
+    DimensionColumn,
+    TargetYearModes,
+    SortOrder,
+    SortOrders,
+    ColumnType
 } from "./DataTableTransform"
 import { Tippy } from "./Tippy"
 
@@ -19,8 +22,70 @@ interface DataTableProps {
     chart: ChartConfig
 }
 
+interface DataTableState {
+    sort?: DataTableSortState
+}
+
+interface DataTableSortState {
+    dimension: "entity" | number // 'entity' or dimension index
+    column: ColumnType | undefined // the name or index of nested column?
+    order: SortOrder
+}
+
+const DEFAULT_SORT_STATE: DataTableSortState = {
+    dimension: "entity",
+    column: undefined,
+    order: SortOrders.asc
+}
+
 @observer
 export class DataTable extends React.Component<DataTableProps> {
+    @observable storedState: DataTableState = {}
+
+    @computed get state(): DataTableState {
+        return {
+            sort: this.sortState
+        }
+    }
+
+    @computed get sortState(): DataTableSortState {
+        let dimension = defaultTo(
+            this.state.sort?.dimension,
+            DEFAULT_SORT_STATE.dimension
+        )
+        let column = defaultTo(
+            this.state.sort?.column,
+            DEFAULT_SORT_STATE.column
+        )
+        const order = defaultTo(
+            this.state.sort?.order,
+            DEFAULT_SORT_STATE.order
+        )
+
+        if (typeof dimension === "number") {
+            dimension = Math.min(
+                dimension,
+                this.transform.displayDimensions.length - 1
+            )
+
+            const availableColumns = this.transform.displayDimensions[
+                dimension
+            ].columns
+                .filter(sub => sub.sortable)
+                .map(sub => sub.type)
+
+            if (column === undefined || !availableColumns.includes(column)) {
+                column = availableColumns[0]
+            }
+        }
+
+        return {
+            dimension,
+            column,
+            order
+        }
+    }
+
     @computed get entityType() {
         return this.props.chart.entityType
     }
@@ -31,10 +96,12 @@ export class DataTable extends React.Component<DataTableProps> {
 
     @computed get hasSubheaders() {
         return some(
-            this.transform.dimensionHeaders,
-            header => header.subheaders.length > 1
+            this.transform.displayDimensions,
+            header => header.columns.length > 1
         )
     }
+
+    // @action onSort({}: {})
 
     renderHeaderRow() {
         return (
@@ -47,11 +114,11 @@ export class DataTable extends React.Component<DataTableProps> {
                     >
                         {capitalize(this.entityType)}
                     </th>
-                    {this.transform.dimensionHeaders.map(dh => (
+                    {this.transform.displayDimensions.map(dh => (
                         <th
                             key={dh.key}
                             className="dimension"
-                            colSpan={dh.subheaders.length}
+                            colSpan={dh.columns.length}
                         >
                             <span className="name">{dh.name}</span>
                             <span className="unit">{dh.unit}</span>
@@ -60,8 +127,8 @@ export class DataTable extends React.Component<DataTableProps> {
                 </tr>
                 {this.hasSubheaders && (
                     <tr>
-                        {this.transform.dimensionHeaders.map(dh =>
-                            dh.subheaders.map((sh, index) => (
+                        {this.transform.displayDimensions.map(dh =>
+                            dh.columns.map((sh, index) => (
                                 <th key={index}>
                                     {sh.targetYearMode === TargetYearModes.point
                                         ? sh.targetYear
@@ -75,7 +142,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderEntityRow(row: DataTableRow, columns: DataTableColumn[]) {
+    renderEntityRow(row: DataTableRow, columns: DimensionColumn[]) {
         return (
             <tr key={row.entity}>
                 <td key="entity" className="entity">
