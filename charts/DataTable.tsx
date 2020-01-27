@@ -181,7 +181,6 @@ export class DataTable extends React.Component<DataTableProps> {
     renderValueCell(
         key: string,
         column: DataTableColumn,
-        index: number,
         dv: DimensionValue | undefined
     ) {
         let value: SingleValue | undefined
@@ -234,7 +233,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     const dimension = dimensions[dimIndex]
                     return dimension.columns.map((column, colIndex) => {
                         const key = `${dimIndex}-${colIndex}`
-                        return this.renderValueCell(key, column, colIndex, dv)
+                        return this.renderValueCell(key, column, dv)
                     })
                 })}
             </tr>
