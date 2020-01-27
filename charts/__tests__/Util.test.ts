@@ -1,4 +1,4 @@
-import { findClosestYear } from "../Util"
+import { findClosestYear, getStartEndValues, DataValue } from "../Util"
 
 function iteratorFromArray<T>(array: T[]): Iterable<T> {
     return array[Symbol.iterator]()
@@ -51,5 +51,29 @@ describe(findClosestYear, () => {
             expect(findClosestYear(years, 2013)).toEqual(2016)
             expect(findClosestYear(years, 2002)).toEqual(1990)
         })
+    })
+})
+
+describe(getStartEndValues, () => {
+    it("handles an empty array", () => {
+        const extent = getStartEndValues([]) as DataValue[]
+        expect(extent[0]).toEqual(undefined)
+        expect(extent[1]).toEqual(undefined)
+    })
+    it("handles a single element array", () => {
+        const extent = getStartEndValues([
+            { year: 2016, value: 1 }
+        ]) as DataValue[]
+        expect(extent[0].year).toEqual(2016)
+        expect(extent[1].year).toEqual(2016)
+    })
+    it("handles a multi-element array", () => {
+        const extent = getStartEndValues([
+            { year: 2016, value: -20 },
+            { year: 2014, value: 5 },
+            { year: 2017, value: 7 }
+        ]) as DataValue[]
+        expect(extent[0].year).toEqual(2014)
+        expect(extent[1].year).toEqual(2017)
     })
 })
