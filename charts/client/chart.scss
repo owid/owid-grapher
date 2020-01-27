@@ -1029,7 +1029,7 @@ html.iframe .ChartPage {
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    thead tr:last-child th {
+    thead tr th {
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     }
 
@@ -1043,10 +1043,15 @@ html.iframe .ChartPage {
         padding-right: 25px;
     }
 
-    th {
+    thead tr:first-child th {
         padding-top: 15px;
         padding-bottom: 8px;
         vertical-align: text-top;
+    }
+
+    th {
+        padding-top: 8px;
+        padding-bottom: 8px;
     }
 
     tr:first-child td {
