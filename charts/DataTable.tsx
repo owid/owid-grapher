@@ -10,7 +10,8 @@ import { capitalize, some } from "./Util"
 import {
     DataTableTransform,
     DataTableRow,
-    DataTableColumn
+    DataTableColumn,
+    TargetYearModes
 } from "./DataTableTransform"
 import { Tippy } from "./Tippy"
 
@@ -62,7 +63,7 @@ export class DataTable extends React.Component<DataTableProps> {
                         {this.transform.dimensionHeaders.map(dh =>
                             dh.subheaders.map((sh, index) => (
                                 <th key={index}>
-                                    {sh.type === "point"
+                                    {sh.targetYearMode === TargetYearModes.point
                                         ? sh.targetYear
                                         : sh.type}
                                 </th>
@@ -85,7 +86,8 @@ export class DataTable extends React.Component<DataTableProps> {
                     return (
                         <td key={dv.key} className="dimension">
                             {dv.year !== undefined &&
-                                column.targetYearMode === "point" &&
+                                column.targetYearMode ===
+                                    TargetYearModes.point &&
                                 column.targetYear !== undefined &&
                                 column.targetYear !== dv.year && (
                                     <ClosestYearNotice
@@ -95,7 +97,8 @@ export class DataTable extends React.Component<DataTableProps> {
                                 )}
                             {dv.formattedValue}
                             {dv.year !== undefined &&
-                                column.targetYearMode === "range" && (
+                                column.targetYearMode ===
+                                    TargetYearModes.range && (
                                     <span className="notice">
                                         {" "}
                                         in {dv.year}

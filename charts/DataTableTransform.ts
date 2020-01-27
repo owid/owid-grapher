@@ -25,10 +25,10 @@ type TargetYears = [number] | [number, number]
 
 // Column types
 
-export type ColumnType = "point" | "start" | "end" | "delta" | "deltaRatio"
+export type ColumnType = "single" | "start" | "end" | "delta" | "deltaRatio"
 
 export class ColumnTypes {
-    static point: ColumnType = "point"
+    static single: ColumnType = "single"
     static start: ColumnType = "start"
     static end: ColumnType = "end"
     static delta: ColumnType = "delta"
@@ -196,7 +196,7 @@ export class DataTableTransform {
                             ? index === 0
                                 ? ColumnTypes.start
                                 : ColumnTypes.end
-                            : ColumnTypes.point,
+                            : ColumnTypes.single,
                     targetYear,
                     targetYearMode
                 })),
