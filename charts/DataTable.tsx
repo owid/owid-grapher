@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, observable } from "mobx"
+import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -10,25 +10,32 @@ import { capitalize, some, defaultTo } from "./Util"
 import {
     DataTableTransform,
     DataTableRow,
-    DimensionColumn,
     TargetYearModes,
     SortOrder,
     SortOrders,
-    ColumnType
+    ColumnKey,
+    isSingleValue,
+    DataTableDimension,
+    ColumnKeys,
+    DataTableColumn,
+    DimensionValue,
+    isCompositeValue,
+    SingleValue,
+    CompositeValueKey
 } from "./DataTableTransform"
 import { Tippy } from "./Tippy"
 
-interface DataTableProps {
+export interface DataTableProps {
     chart: ChartConfig
 }
 
-interface DataTableState {
-    sort?: DataTableSortState
+export interface DataTableState {
+    sort: DataTableSortState
 }
 
 interface DataTableSortState {
     dimension: "entity" | number // 'entity' or dimension index
-    column: ColumnType | undefined // the name or index of nested column?
+    column: ColumnKey | undefined
     order: SortOrder
 }
 
@@ -38,46 +45,60 @@ const DEFAULT_SORT_STATE: DataTableSortState = {
     order: SortOrders.asc
 }
 
+const columnNameByType: Record<ColumnKey, string> = {
+    value: "Value",
+    start: "Start",
+    end: "End",
+    delta: "Change",
+    deltaRatio: "Change (%)"
+}
+
+function toggleSortOrder(order: SortOrder): SortOrder {
+    return order === SortOrders.asc ? SortOrders.desc : SortOrders.asc
+}
+
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    @observable storedState: DataTableState = {}
+    @observable private storedState: DataTableState = {
+        sort: DEFAULT_SORT_STATE
+    }
 
-    @computed get state(): DataTableState {
+    @computed get tableState(): DataTableState {
         return {
             sort: this.sortState
         }
     }
 
     @computed get sortState(): DataTableSortState {
-        let dimension = defaultTo(
-            this.state.sort?.dimension,
+        const dimension = defaultTo(
+            this.storedState.sort.dimension,
             DEFAULT_SORT_STATE.dimension
         )
-        let column = defaultTo(
-            this.state.sort?.column,
+        const column = defaultTo(
+            this.storedState.sort.column,
             DEFAULT_SORT_STATE.column
         )
         const order = defaultTo(
-            this.state.sort?.order,
+            this.storedState.sort.order,
             DEFAULT_SORT_STATE.order
         )
 
-        if (typeof dimension === "number") {
-            dimension = Math.min(
-                dimension,
-                this.transform.displayDimensions.length - 1
-            )
+        // if (typeof dimension === "number") {
+        //     dimension = Math.min(
+        //         dimension,
+        //         this.transform.displayDimensions.length - 1
+        //     )
 
-            const availableColumns = this.transform.displayDimensions[
-                dimension
-            ].columns
-                .filter(sub => sub.sortable)
-                .map(sub => sub.type)
+        //     const availableColumns = this.transform.displayDimensions[
+        //         dimension
+        //     ].columns
+        //         .filter(sub => sub.sortable)
+        //         .map(sub => sub.type)
 
-            if (column === undefined || !availableColumns.includes(column)) {
-                column = availableColumns[0]
-            }
-        }
+        //     if (column === undefined || !availableColumns.includes(column)) {
+        //         column = availableColumns[0]
+        //     }
+        // }
 
         return {
             dimension,
@@ -91,7 +112,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get transform() {
-        return new DataTableTransform(this.props.chart)
+        return new DataTableTransform(this.props.chart, this.tableState)
     }
 
     @computed get hasSubheaders() {
@@ -101,7 +122,17 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    // @action onSort({}: {})
+    @action.bound onSort(dimIndex: number, column: ColumnKey) {
+        const order =
+            this.tableState.sort.dimension === dimIndex &&
+            this.tableState.sort.column === column
+                ? toggleSortOrder(this.tableState.sort.order)
+                : SortOrders.asc
+
+        this.storedState.sort.dimension = dimIndex
+        this.storedState.sort.column = column
+        this.storedState.sort.order = order
+    }
 
     renderHeaderRow() {
         return (
@@ -127,12 +158,17 @@ export class DataTable extends React.Component<DataTableProps> {
                 </tr>
                 {this.hasSubheaders && (
                     <tr>
-                        {this.transform.displayDimensions.map(dh =>
-                            dh.columns.map((sh, index) => (
-                                <th key={index}>
+                        {this.transform.displayDimensions.map((dim, dimIndex) =>
+                            dim.columns.map((sh, index) => (
+                                <th
+                                    key={index}
+                                    onClick={() =>
+                                        this.onSort(dimIndex, sh.type)
+                                    }
+                                >
                                     {sh.targetYearMode === TargetYearModes.point
                                         ? sh.targetYear
-                                        : sh.type}
+                                        : columnNameByType[sh.type]}
                                 </th>
                             ))
                         )}
@@ -142,37 +178,64 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderEntityRow(row: DataTableRow, columns: DimensionColumn[]) {
+    renderValueCell(
+        key: string,
+        column: DataTableColumn,
+        index: number,
+        dv: DimensionValue | undefined
+    ) {
+        let value: SingleValue | undefined
+
+        if (
+            dv !== undefined &&
+            isSingleValue(dv) &&
+            column.type === ColumnKeys.value
+        ) {
+            value = dv
+        } else if (
+            dv !== undefined &&
+            isCompositeValue(dv) &&
+            column.type in dv
+        ) {
+            value = dv[column.type as CompositeValueKey] as SingleValue
+        }
+
+        if (value === undefined) {
+            return <td key={key} className="dimension" />
+        }
+
+        return (
+            <td key={key} className="dimension">
+                {value.year !== undefined &&
+                    column.targetYearMode === TargetYearModes.point &&
+                    column.targetYear !== undefined &&
+                    column.targetYear !== value.year && (
+                        <ClosestYearNotice
+                            year={value.year}
+                            targetYear={column.targetYear}
+                        />
+                    )}
+                {value.formattedValue}
+                {value.year !== undefined &&
+                    column.targetYearMode === TargetYearModes.range && (
+                        <span className="range-year"> in {value.year}</span>
+                    )}
+            </td>
+        )
+    }
+
+    renderEntityRow(row: DataTableRow, dimensions: DataTableDimension[]) {
         return (
             <tr key={row.entity}>
                 <td key="entity" className="entity">
                     {row.entity}
                 </td>
-                {row.values.map((dv, index) => {
-                    const column = columns[index]
-                    return (
-                        <td key={dv.key} className="dimension">
-                            {dv.year !== undefined &&
-                                column.targetYearMode ===
-                                    TargetYearModes.point &&
-                                column.targetYear !== undefined &&
-                                column.targetYear !== dv.year && (
-                                    <ClosestYearNotice
-                                        year={dv.year}
-                                        targetYear={column.targetYear}
-                                    />
-                                )}
-                            {dv.formattedValue}
-                            {dv.year !== undefined &&
-                                column.targetYearMode ===
-                                    TargetYearModes.range && (
-                                    <span className="notice">
-                                        {" "}
-                                        in {dv.year}
-                                    </span>
-                                )}
-                        </td>
-                    )
+                {row.dimensionValues.map((dv, dimIndex) => {
+                    const dimension = dimensions[dimIndex]
+                    return dimension.columns.map((column, colIndex) => {
+                        const key = `${dimIndex}-${colIndex}`
+                        return this.renderValueCell(key, column, colIndex, dv)
+                    })
                 })}
             </tr>
         )
@@ -180,7 +243,7 @@ export class DataTable extends React.Component<DataTableProps> {
 
     renderRows() {
         return this.transform.displayRows.map(row =>
-            this.renderEntityRow(row, this.transform.displayColumns)
+            this.renderEntityRow(row, this.transform.displayDimensions)
         )
     }
 
