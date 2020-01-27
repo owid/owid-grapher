@@ -23,7 +23,7 @@
         box-shadow: 0 0 30px rgba(#fff, 0.3);
     }
 
-    @include lg-up {
+    @include md-up {
         font-size: 1rem;
         text-align: left;
     }
@@ -46,7 +46,7 @@
 
         margin-top: 1rem;
 
-        @include lg-up {
+        @include md-up {
             margin-top: 0;
         }
     }
@@ -66,7 +66,7 @@
 
         flex: 1;
 
-        @include lg-up {
+        @include md-up {
             flex: 0;
             font-size: 1rem;
         }

@@ -55,7 +55,6 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
     }
 }
 
-// The full menu is shown from that breakpoint up
 @mixin lg-up {
     @media (min-width: $lg-min-width) {
         @content;

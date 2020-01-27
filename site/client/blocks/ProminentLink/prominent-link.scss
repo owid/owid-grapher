@@ -12,9 +12,7 @@
         margin-left: 0.6rem;
         transition: all 0.2s;
     }
-    @include lg-up {
-        // margin: 0 -#{$padding-x-md};
-    }
+
     background-color: $primary-color-100;
     border: 1px solid $primary-color-100;
     border-radius: 2px;
@@ -31,7 +29,7 @@
     a {
         display: block;
         padding: $padding-x-sm;
-        @include lg-up {
+        @include md-up {
             padding: $padding-x-md;
         }
         color: $primary-color-800;

@@ -32,24 +32,23 @@
         @include left-media-columns;
         h3 {
             padding: 1.5rem $padding-x-sm;
-            @include lg-up {
+            @include md-up {
                 padding: 1.5rem $padding-x-md;
             }
         }
         .content-wrapper {
+            @include wrapper-x-spacing;
             padding-top: 1.5rem;
             padding-bottom: 1.5rem;
-            @include wrapper-spacing-sm;
-            @include lg-up {
-                @include wrapper-spacing-md;
-            }
+
             background-color: $primary-color-100;
         }
     }
 
     &[data-variation="full-width"] {
         background-color: $primary-color-100;
-        @include lg-up {
+        padding: 0 $padding-x-sm;
+        @include md-up {
             margin-left: -#{$padding-x-md};
             margin-right: -#{$padding-x-md};
             padding: 0 $padding-x-md;

@@ -156,7 +156,7 @@ body.single-post {
 
     .site-content {
         padding: $padding-x-sm / 2;
-        @include lg-up {
+        @include md-up {
             padding: $padding-x-sm;
         }
     }
@@ -165,7 +165,7 @@ body.single-post {
         max-width: $page-max-width;
         margin: 0 auto 1rem;
         padding: $padding-x-sm;
-        @include lg-up {
+        @include md-up {
             padding: $padding-x-md;
         }
         background: white;

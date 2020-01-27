@@ -1,7 +1,7 @@
 .page {
     background-color: $primary-color-100;
 
-    .content-wrapper {
+    & > .content-wrapper {
         display: flex;
         position: relative;
         padding-top: $vertical-spacing;
@@ -22,8 +22,11 @@
     .article-header {
         @include wrapper-spacing-sm;
         max-width: $content-max-width + 2 * $padding-x-sm;
-        @include lg-up {
+        @include md-up {
             @include wrapper-spacing-md;
+            max-width: $content-max-width + 2 * $padding-x-md;
+        }
+        @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
                 $padding-x-md;
         }
@@ -34,20 +37,24 @@
         padding-top: 2rem;
         padding-bottom: 2 * $vertical-spacing;
 
-        @include xlg-up {
+        @include lg-up {
             padding-top: 4rem;
         }
-        @include xxlg-up {
+        @include xlg-up {
             padding-top: 6rem;
             padding-bottom: 3 * $vertical-spacing;
         }
         // }
 
         h1 {
+            @include md-up {
+                font-size: 3rem;
+            }
+
             @include lg-up {
                 font-size: 4rem;
             }
-            @include xxlg-up {
+            @include xlg-up {
                 font-size: 5rem;
             }
         }
