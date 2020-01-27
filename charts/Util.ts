@@ -54,7 +54,8 @@ import {
     pick,
     omit,
     difference,
-    sortedUniq
+    sortedUniq,
+    zip
 } from "lodash"
 export {
     isEqual,
@@ -110,7 +111,8 @@ export {
     pick,
     omit,
     difference,
-    sortedUniq
+    sortedUniq,
+    zip
 }
 
 import { format } from "d3-format"
@@ -557,8 +559,10 @@ export function valuesByEntityWithinYears(
     })
 }
 
-export function extentValues(values: DataValue[]): (DataValue | undefined)[] {
-    const minValue = minBy(values, dv => dv.year)
-    const maxValue = maxBy(values, dv => dv.year)
-    return [minValue, maxValue]
+export function getStartEndValues(
+    values: DataValue[]
+): (DataValue | undefined)[] {
+    const start = minBy(values, dv => dv.year)
+    const end = maxBy(values, dv => dv.year)
+    return [start, end]
 }
