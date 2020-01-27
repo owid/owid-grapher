@@ -353,7 +353,11 @@ export class DataTableTransform {
             }
 
             // We always want undefined values to be last
-            if (value === undefined) {
+            if (
+                value === undefined ||
+                (typeof value === "number" &&
+                    (!isFinite(value) || isNaN(value)))
+            ) {
                 return this.state.sort.order === SortOrders.asc
                     ? Infinity
                     : -Infinity
