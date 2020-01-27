@@ -1035,12 +1035,12 @@ html.iframe .ChartPage {
 
     tr th:first-child,
     tr td:first-child {
-        padding-left: 25px;
+        padding-left: 20px;
     }
 
     tr th:last-child,
     tr td:last-child {
-        padding-right: 25px;
+        padding-right: 20px;
     }
 
     thead tr:first-child th {
@@ -1072,6 +1072,7 @@ html.iframe .ChartPage {
         padding-left: 15px;
         padding-right: 15px;
         border-right: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: text-top;
     }
 
     th:last-child,
@@ -1084,8 +1085,12 @@ html.iframe .ChartPage {
         padding-bottom: 20px;
     }
 
+    tbody tr:nth-child(2n) td {
+        background-color: rgba(0, 0, 0, 0.017);
+    }
+
     tbody tr:hover {
-        background: rgba(0, 0, 0, 0.03);
+        background: rgba(0, 0, 0, 0.035);
     }
 
     .entity {
@@ -1117,6 +1122,14 @@ html.iframe .ChartPage {
             font-size: 0.75rem;
             opacity: 0.6;
         }
+    }
+
+    .range-year {
+        display: block;
+        opacity: 0.5;
+        font-size: 12px;
+        line-height: 1;
+        padding-bottom: 4px;
     }
 }
 
