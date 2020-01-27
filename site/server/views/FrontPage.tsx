@@ -381,8 +381,8 @@ export const FrontPage = (props: {
                                             target="_blank"
                                         >
                                             <p>
-                                                Receive an email every two weeks
-                                                on our latest research.
+                                                Receive our latest publications
+                                                by email every two weeks.
                                             </p>
                                             {/* <fieldset>
                                             <div className="owid-checkboxes">
