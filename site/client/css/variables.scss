@@ -31,7 +31,9 @@ $page-max-width: $text-min-content-width + $graph-min-content-width + 3 *
 * Breakpoints
 */
 
-// md: graphs and text shown side by side.
+//md
+$md-min-width: 55rem;
+// lg: graphs and text shown side by side.
 $lg-min-width: $text-min-content-width + $graph-min-content-width + 3 *
     $padding-x-md + $sidebar-closed-drawer-width;
 // xlg: md + graphs shown side by side
@@ -42,7 +44,13 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
     $padding-x-md + $sidebar-content-width;
 
 @mixin sm-only {
-    @media (max-width: $lg-min-width - 0.0625rem) {
+    @media (max-width: $md-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
+@mixin md-up {
+    @media (min-width: $md-min-width) {
         @content;
     }
 }
