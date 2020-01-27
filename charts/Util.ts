@@ -16,6 +16,8 @@ import {
     every,
     min,
     max,
+    minBy,
+    maxBy,
     compact,
     uniq,
     cloneDeep,
@@ -534,4 +536,29 @@ export function valuesByEntityAtYears(
         })
         return values
     })
+}
+
+export function valuesByEntityWithinYears(
+    valueByEntityAndYear: Map<string, Map<number, string | number>>,
+    range: (number | undefined)[],
+    boundsOnly: boolean = false
+): Map<string, DataValue[]> {
+    const start = range[0] !== undefined ? range[0] : -Infinity
+    const end = range[1] !== undefined ? range[1] : Infinity
+    return es6mapValues(valueByEntityAndYear, valueByYear => {
+        const years = Array.from(valueByYear.keys()).filter(
+            year => year >= start && year <= end
+        )
+        const values = years.map(year => ({
+            year,
+            value: valueByYear.get(year)
+        }))
+        return values
+    })
+}
+
+export function extentValues(values: DataValue[]): (DataValue | undefined)[] {
+    const minValue = minBy(values, dv => dv.year)
+    const maxValue = maxBy(values, dv => dv.year)
+    return [minValue, maxValue]
 }
