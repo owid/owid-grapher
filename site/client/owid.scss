@@ -162,12 +162,13 @@ body.single-post {
     }
 
     article {
-        max-width: $page-max-width;
-        margin: 0 auto 1rem;
+        @include content-wrapper;
         padding: $padding-x-sm;
         @include md-up {
             padding: $padding-x-md;
         }
+
+        margin-bottom: $vertical-spacing;
         background: white;
         border: 1px solid #ddd;
     }

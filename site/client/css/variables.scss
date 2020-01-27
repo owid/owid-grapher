@@ -22,9 +22,7 @@ $text-max-content-width: 40rem;
 $graph-min-content-width: 44rem;
 $graph-max-content-width: 50rem;
 
-// Page (not a single element but rather the concept of a wrapper around elements
-// would otherwise spread across the screen, e.g. the footer)
-$page-max-width: $text-min-content-width + $graph-min-content-width + 3 *
+$wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
     $padding-x-md;
 
 /*******************************************************************************

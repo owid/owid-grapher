@@ -98,6 +98,14 @@
     }
 }
 
+@mixin content-wrapper {
+    @include wrapper-x-spacing;
+    max-width: $content-max-width + 2 * $padding-x-sm;
+    @include md-up {
+        max-width: $content-max-width + 2 * $padding-x-md;
+    }
+}
+
 @mixin posts-list {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;

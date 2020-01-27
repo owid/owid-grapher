@@ -1,6 +1,6 @@
 .wrapper {
     @include wrapper-x-spacing;
-    max-width: $page-max-width;
+    max-width: $wrapper-max-width;
 }
 
 .owid-row {

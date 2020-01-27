@@ -10,7 +10,7 @@
 
     .wrapper {
         @include wrapper-x-spacing;
-        max-width: $page-max-width;
+        max-width: $wrapper-max-width;
     }
 
     a {
@@ -107,7 +107,7 @@
     }
 
     .wrapper {
-        max-width: $content-max-width;
+        @include content-wrapper;
     }
 
     p {

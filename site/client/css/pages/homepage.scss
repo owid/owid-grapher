@@ -444,12 +444,6 @@
     padding: 3rem 0;
     margin: 0;
 
-    @include sm-only {
-        .wrapper {
-            max-width: $content-max-width;
-        }
-    }
-
     h2 {
         font-family: $serif-font-stack;
         font-size: 1.5rem;
@@ -521,7 +515,7 @@
     }
 
     .wrapper {
-        max-width: $content-max-width;
+        @include content-wrapper;
     }
 
     h2 {

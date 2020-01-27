@@ -24,12 +24,7 @@
     }
     .content-and-footnotes,
     .article-header {
-        @include wrapper-spacing-sm;
-        max-width: $content-max-width + 2 * $padding-x-sm;
-        @include md-up {
-            @include wrapper-spacing-md;
-            max-width: $content-max-width + 2 * $padding-x-md;
-        }
+        @include content-wrapper;
         @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
                 $padding-x-md;
@@ -37,7 +32,6 @@
     }
 
     .article-header {
-        // &.with-sidebar {
         padding-top: 2rem;
         padding-bottom: 2 * $vertical-spacing;
 
@@ -48,7 +42,6 @@
             padding-top: 6rem;
             padding-bottom: 3 * $vertical-spacing;
         }
-        // }
 
         h1 {
             @include md-up {
