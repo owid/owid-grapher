@@ -1,21 +1,32 @@
 import { computed } from "mobx"
-import { sortBy, valuesByEntityAtYears, es6mapValues, flatten } from "./Util"
+
+import {
+    sortBy,
+    valuesByEntityAtYears,
+    es6mapValues,
+    flatten,
+    valuesByEntityWithinYears,
+    extentValues
+} from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DimensionWithData } from "./DimensionWithData"
+
+type TargetYearMode = "point" | "range"
 
 type TargetYears = [number] | [number, number]
 
 export interface Dimension {
     dimension: DimensionWithData
     columns: DimensionColumn[]
-    valuesByEntity: Map<string, DimensionValue[]>
+    valuesByEntity: Map<string, (DimensionValue | undefined)[]>
 }
 
-export type ColumnType = "point"
+export type ColumnType = "point" | "start" | "end"
 
 export interface DimensionColumn {
     type: ColumnType
     targetYear?: number
+    targetYearMode?: TargetYearMode
 }
 
 export interface DimensionValue {
@@ -68,6 +79,27 @@ export class DataTableTransform {
         return this.chart.data.availableEntities
     }
 
+    @computed get targetYearMode(): TargetYearMode {
+        const { tab } = this.chart
+        if (tab === "chart") {
+            if (
+                (this.chart.isLineChart &&
+                    !this.chart.lineChart.isSingleYear) ||
+                this.chart.isStackedArea ||
+                this.chart.isStackedBar
+            ) {
+                return "range"
+            }
+            if (
+                this.chart.isScatter &&
+                !this.chart.scatter.compareEndPointsOnly
+            ) {
+                return "range"
+            }
+        }
+        return "point"
+    }
+
     @computed get targetYears(): TargetYears {
         const mapTarget = this.chart.map.props.targetYear
         const { timeDomain } = this.chart
@@ -99,11 +131,24 @@ export class DataTableTransform {
                     ? [dim.targetYear]
                     : this.targetYears
 
-            const valuesByEntity = valuesByEntityAtYears(
-                dim.valueByEntityAndYear,
-                targetYears,
-                dim.tolerance
-            )
+            const targetYearMode =
+                dim.targetYear !== undefined ? "point" : this.targetYearMode
+
+            const valuesByEntity =
+                targetYearMode === "range"
+                    ? es6mapValues(
+                          valuesByEntityWithinYears(
+                              dim.valueByEntityAndYear,
+                              targetYears,
+                              true
+                          ),
+                          extentValues
+                      )
+                    : valuesByEntityAtYears(
+                          dim.valueByEntityAndYear,
+                          targetYears,
+                          dim.tolerance
+                      )
 
             // Add number formatting
             const formattedValuesByEntity = es6mapValues(
@@ -111,7 +156,7 @@ export class DataTableTransform {
                 dvs => {
                     return dvs?.map(dv => {
                         let formattedValue
-                        if (dv.value !== undefined) {
+                        if (dv && dv.value !== undefined) {
                             formattedValue = dim.formatValueShort(dv.value, {
                                 autoPrefix: false,
                                 noTrailingZeroes: false,
@@ -123,12 +168,22 @@ export class DataTableTransform {
                 }
             )
 
+            const columns: DimensionColumn[] = targetYears.map(
+                (targetYear, index) => ({
+                    type:
+                        targetYearMode === "range"
+                            ? index === 0
+                                ? "start"
+                                : "end"
+                            : "point",
+                    targetYear,
+                    targetYearMode
+                })
+            )
+
             return {
                 dimension: dim,
-                columns: targetYears.map(targetYear => ({
-                    type: "point",
-                    targetYear
-                })),
+                columns: columns,
                 valuesByEntity: formattedValuesByEntity
             }
         })

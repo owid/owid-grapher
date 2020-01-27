@@ -61,7 +61,11 @@ export class DataTable extends React.Component<DataTableProps> {
                     <tr>
                         {this.transform.dimensionHeaders.map(dh =>
                             dh.subheaders.map((sh, index) => (
-                                <th key={index}>{sh.targetYear || sh.type}</th>
+                                <th key={index}>
+                                    {sh.type === "point"
+                                        ? sh.targetYear
+                                        : sh.type}
+                                </th>
                             ))
                         )}
                     </tr>
@@ -81,6 +85,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     return (
                         <td key={dv.key} className="dimension">
                             {dv.year !== undefined &&
+                                column.targetYearMode === "point" &&
                                 column.targetYear !== undefined &&
                                 column.targetYear !== dv.year && (
                                     <ClosestYearNotice
@@ -89,6 +94,13 @@ export class DataTable extends React.Component<DataTableProps> {
                                     />
                                 )}
                             {dv.formattedValue}
+                            {dv.year !== undefined &&
+                                column.targetYearMode === "range" && (
+                                    <span className="notice">
+                                        {" "}
+                                        in {dv.year}
+                                    </span>
+                                )}
                         </td>
                     )
                 })}
