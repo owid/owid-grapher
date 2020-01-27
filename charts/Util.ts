@@ -235,6 +235,7 @@ export function formatValue(
 ): string {
     const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
     const autoPrefix = defaultTo(options.autoPrefix, true)
+    const showPlus = defaultTo(options.showPlus, false)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
     const isNoSpaceUnit = unit[0] === "%"
@@ -266,7 +267,9 @@ export function formatValue(
             if (value < 0) output = `>-${targetDigits}`
             else output = `<${targetDigits}`
         } else {
-            output = format(`,.${numDecimalPlaces}f`)(value)
+            output = format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
+                value
+            )
         }
 
         if (noTrailingZeroes) {
