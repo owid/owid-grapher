@@ -93,8 +93,31 @@
 @mixin wrapper-x-spacing {
     @include wrapper-spacing-sm;
 
-    @include lg-up {
+    @include md-up {
         @include wrapper-spacing-md;
+    }
+}
+
+@mixin posts-list {
+    margin-bottom: $vertical-spacing * 2;
+    list-style-type: none;
+
+    li {
+        margin-bottom: $vertical-spacing;
+    }
+
+    @media (min-width: 30rem) {
+        display: grid;
+        grid-gap: 1.5rem 1.25rem;
+        grid-template-columns: repeat(2, 1fr);
+
+        li {
+            margin-bottom: 0;
+        }
+    }
+
+    @include md-up {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 

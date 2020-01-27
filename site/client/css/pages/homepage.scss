@@ -401,15 +401,8 @@
 }
 
 .homepage-posts--explainers {
-    .list {
-        display: grid;
-        margin-bottom: 1.5rem;
-        grid-template-columns: repeat(2, 1fr);
-        grid-gap: 1.5rem 1.25rem;
-
-        @include md-up {
-            grid-template-columns: repeat(4, 1fr);
-        }
+    ul {
+        @include posts-list;
     }
 
     .thumbnail {
@@ -417,8 +410,7 @@
         transition: border-color 150ms ease;
     }
 
-    .list-item {
-        flex: 1;
+    li a {
         color: $primary-color-700;
         transition: color 150ms ease;
         font-family: $serif-font-stack;

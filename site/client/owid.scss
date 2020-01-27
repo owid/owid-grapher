@@ -100,17 +100,6 @@ header.blog-header h1 > a {
     color: white;
 }
 
-body.blog main {
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
-
-body.blog .site-content {
-    max-width: 1120px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 body.blog h2 {
     font-family: $serif-font-stack;
     font-weight: 400;
@@ -118,16 +107,7 @@ body.blog h2 {
 }
 
 body.blog ul.posts {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    margin-bottom: 1em;
-}
-
-body.blog li.post {
-    list-style-type: none;
-    width: calc(33.3333% - 2em);
-    margin-bottom: 2em;
+    @include posts-list;
 }
 
 body.blog li.post h3 {
@@ -162,18 +142,9 @@ body.blog li.post img {
     object-fit: cover;
 }
 
-@media only screen and (min-width: 768px) {
+@include md-up {
     body.blog main {
         margin-top: 40px;
-    }
-}
-
-@media only screen and (max-width: 767px) {
-    body.blog li.post {
-        width: 100%;
-        padding-bottom: 30px;
-        border-bottom: 1px solid #e0e0e0;
-        margin-bottom: 30px;
     }
 }
 

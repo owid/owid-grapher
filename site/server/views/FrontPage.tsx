@@ -314,15 +314,11 @@ export const FrontPage = (props: {
                                     <div className="header">
                                         <h2>Latest publications</h2>
                                     </div>
-                                    <div className="list">
+                                    <ul>
                                         {posts.slice(0, 8).map(post => (
-                                            <div
-                                                key={post.slug}
-                                                className="list-item-wrapper"
-                                            >
+                                            <li key={post.slug}>
                                                 <a
                                                     href={`/${post.path}`}
-                                                    className="list-item"
                                                     data-track-click
                                                     data-track-note="homepage-explainer"
                                                 >
@@ -342,8 +338,9 @@ export const FrontPage = (props: {
                                                         </h3>
                                                     </div>
                                                 </a>
-                                            </div>
+                                            </li>
                                         ))}
+                                    </ul>
                                     <div className="see-all">
                                         <a
                                             href="/blog"
