@@ -36,9 +36,9 @@ export const LongFormPage = (props: {
     })
 
     const bodyClasses = []
-    const articleHeaderClasses = ["article-header"]
+    let hasSidebar = false
     if (post.tocHeadings.length > 0) {
-        articleHeaderClasses.push("with-sidebar")
+        hasSidebar = true
         if (post.footnotes.length) {
             post.tocHeadings.push({
                 text: "References",
@@ -93,9 +93,13 @@ export const LongFormPage = (props: {
                     />
                 )}
                 <main>
-                    <article className="page">
+                    <article
+                        className={`page ${
+                            hasSidebar ? "with-sidebar" : "no-sidebar"
+                        }`}
+                    >
                         <div className="offset offset-header">
-                            <header className={articleHeaderClasses.join(" ")}>
+                            <header className="article-header">
                                 <h1 className="entry-title">{post.title}</h1>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">

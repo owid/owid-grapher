@@ -2,19 +2,23 @@
     background-color: $primary-color-100;
 
     & > .content-wrapper {
-        display: flex;
-        position: relative;
         padding-top: $vertical-spacing;
         background-color: $body-bg;
     }
-    .offset {
-        flex: 1;
-        @include xlg-down {
-            margin-left: $sidebar-closed-drawer-width;
+    &.with-sidebar {
+        & > .content-wrapper {
+            display: flex;
+            position: relative;
         }
-        @include xxlg-up {
-            &.offset-header {
-                margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+        .offset {
+            flex: 1;
+            @include xlg-down {
+                margin-left: $sidebar-closed-drawer-width;
+            }
+            @include xxlg-up {
+                &.offset-header {
+                    margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+                }
             }
         }
     }
