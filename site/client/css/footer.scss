@@ -102,13 +102,12 @@
     text-align: center;
     margin-top: 2rem;
 
-    @include lg-up {
+    @include md-up {
         text-align: left;
     }
 
     .wrapper {
-        @include wrapper-x-spacing;
-        max-width: $page-max-width;
+        max-width: $content-max-width;
     }
 
     p {
@@ -118,13 +117,9 @@
     }
 
     .donate-button {
-        background-color: $secondary-color;
+        display: inline-block;
         font-size: 1.125rem;
-        display: block;
-
-        @include lg-up {
-            display: inline-block;
-        }
+        background-color: $secondary-color;
 
         .icon {
             margin-left: 0.5rem;
