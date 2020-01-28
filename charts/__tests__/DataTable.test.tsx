@@ -26,7 +26,7 @@ describe(DataTable, () => {
         })
 
         it("renders a Country header", () => {
-            expect(view.find("thead th.entity").text()).toBe("Country")
+            expect(view.find("thead th.entity").text()).toContain("Country")
         })
 
         it("renders a variable name in header", () => {
@@ -62,12 +62,6 @@ describe(DataTable, () => {
         beforeAll(() => {
             const chart = setupChart(792, 3512)
             view = shallow(<DataTable chart={chart} />)
-        })
-
-        it("renders data in every row", () => {
-            const cells = view.find("tbody tr td.dimension")
-            const texts = cells.map(td => td.text())
-            expect(texts.filter(v => v.length === 0)).toHaveLength(0)
         })
 
         test.todo("renders the closest value within the specified tolerance")
