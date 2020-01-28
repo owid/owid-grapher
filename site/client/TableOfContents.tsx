@@ -147,17 +147,6 @@ export const TableOfContents = ({
         >
             <div className="sticky-sentinel" ref={stickySentinelRef} />
             <nav className="entry-toc">
-                <button
-                    aria-label={`${
-                        isToggled ? "Close" : "Open"
-                    } table of contents`}
-                    className="toggle-toc"
-                    onClick={toggle}
-                >
-                    <FontAwesomeIcon
-                        icon={isToggled ? faChevronLeft : faListAlt}
-                    />
-                </button>
                 <ul>
                     <li>
                         <a
@@ -189,6 +178,18 @@ export const TableOfContents = ({
                     ))}
                 </ul>
             </nav>
+            <div className="toggle-toc">
+                <button
+                    aria-label={`${
+                        isToggled ? "Close" : "Open"
+                    } table of contents`}
+                    onClick={toggle}
+                >
+                    <FontAwesomeIcon
+                        icon={isToggled ? faChevronLeft : faListAlt}
+                    />
+                </button>
+            </div>
         </aside>
     )
 }

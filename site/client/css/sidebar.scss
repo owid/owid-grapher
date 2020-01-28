@@ -70,36 +70,29 @@
 
         .toggle-toc {
             position: absolute;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            width: $sidebar-toggle-width;
-            height: $sidebar-toggle-width;
-            background-color: $primary-color;
-            &:hover {
-                background-color: $primary-color-700;
+            top: 0;
+            bottom: 0;
+            padding: $vertical-spacing 0;
+            right: -$sidebar-toggle-width / 2;
+            button {
+                position: sticky;
+                top: $vertical-spacing;
+                display: flex;
+                justify-content: center;
+                width: $sidebar-toggle-width;
+                height: $sidebar-toggle-width;
+                background-color: $primary-color;
+                &:hover {
+                    background-color: $primary-color-700;
+                }
+
+                color: $white;
+                border-radius: 50%;
+                outline: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
             }
-
-            color: $white;
-            border-radius: 50%;
-            outline: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-        }
-
-        .entry-toc {
-            // From: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x
-            // "If overflow-y is hidden, scroll or auto and this property is visible
-            // (default) it will implicitly compute to auto".
-            // As overflow-x:visible cannot be used, the entry-content has been pushed
-            // out to the right to accommodate the overflowing toggle-toc. The toggle-toc
-            // is part of the entry-toc to keep it in sync with its sticky behaviour,
-            // especially at the end of the document where the sidebar starts scrolling again.
-            margin-right: -$sidebar-toggle-width / 2;
-            padding: $vertical-spacing $padding-x-md +
-                $sidebar-closed-drawer-width/2 2 * $vertical-spacing
-                $padding-x-md;
         }
 
         ul {
@@ -112,26 +105,11 @@
             @include block-shadow;
 
             .entry-toc {
-                margin-right: 0;
-                padding-left: 0;
-                padding-right: 0;
                 overflow-y: scroll; // Only show scrollbar when necessary
             }
 
             ul {
                 display: block;
-            }
-
-            .toggle-toc {
-                position: initial;
-                float: right;
-                color: $primary-color;
-                background: none;
-                border-radius: initial;
-                &:hover {
-                    color: $white;
-                    background-color: $primary-color-400;
-                }
             }
         }
     }
