@@ -1029,18 +1029,18 @@ html.iframe .ChartPage {
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    thead tr th {
+    th {
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     tr th:first-child,
     tr td:first-child {
-        padding-left: 20px;
+        padding-left: 15px;
     }
 
     tr th:last-child,
     tr td:last-child {
-        padding-right: 20px;
+        padding-right: 15px;
     }
 
     thead tr:first-child th {
@@ -1062,9 +1062,13 @@ html.iframe .ChartPage {
         padding-bottom: 15px;
     }
 
-    td {
-        padding-top: 3px;
-        padding-bottom: 3px;
+    th.sortable {
+        cursor: pointer;
+    }
+
+    th.sorted,
+    th.sortable:hover {
+        background-color: rgba(0, 0, 0, 0.04);
     }
 
     th,
@@ -1080,6 +1084,11 @@ html.iframe .ChartPage {
         border-right: none;
     }
 
+    td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
     tbody tr {
         padding-top: 20px;
         padding-bottom: 20px;
@@ -1088,9 +1097,16 @@ html.iframe .ChartPage {
     tbody tr:nth-child(2n) td {
         background-color: rgba(0, 0, 0, 0.017);
     }
+    tbody tr:nth-child(2n) td.sorted {
+        background-color: rgba(0, 0, 0, 0.037);
+    }
+
+    td.sorted {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
 
     tbody tr:hover {
-        background: rgba(0, 0, 0, 0.035);
+        background-color: rgba(0, 0, 0, 0.035);
     }
 
     .entity {
@@ -1115,7 +1131,7 @@ html.iframe .ChartPage {
     .notice {
         opacity: 0.5;
         padding-right: 8px;
-        font-size: 0.875rem;
+        font-size: 13px;
         cursor: default;
 
         .icon {
@@ -1125,11 +1141,24 @@ html.iframe .ChartPage {
     }
 
     .range-year {
-        display: block;
         opacity: 0.5;
-        font-size: 12px;
-        line-height: 1;
+        font-size: 13px;
         padding-bottom: 4px;
+        padding-left: 2px;
+    }
+
+    th .sort-icon {
+        float: right;
+        opacity: 0.15;
+        padding-left: 5px;
+
+        &.active {
+            opacity: 1 !important;
+        }
+    }
+
+    th:hover .sort-icon {
+        opacity: 0.6;
     }
 }
 

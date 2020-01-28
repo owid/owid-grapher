@@ -1,12 +1,19 @@
 import * as React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
+import classnames from "classnames"
 
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { faSortAmountDownAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountDownAlt"
+import { faSortAmountUp } from "@fortawesome/free-solid-svg-icons/faSortAmountUp"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 import { ChartConfig } from "./ChartConfig"
 import { capitalize, some, defaultTo } from "./Util"
+import { Tippy } from "./Tippy"
 import {
     DataTableTransform,
     DataTableRow,
@@ -23,7 +30,6 @@ import {
     SingleValue,
     CompositeValueKey
 } from "./DataTableTransform"
-import { Tippy } from "./Tippy"
 
 export interface DataTableProps {
     chart: ChartConfig
@@ -33,15 +39,18 @@ export interface DataTableState {
     sort: DataTableSortState
 }
 
+// 'entity' or dimension index
+type SortDimension = "entity" | number
+
 interface DataTableSortState {
-    dimension: "entity" | number // 'entity' or dimension index
-    column: ColumnKey | undefined
+    dimension: SortDimension
+    dimensionColumn: ColumnKey | undefined
     order: SortOrder
 }
 
 const DEFAULT_SORT_STATE: DataTableSortState = {
     dimension: "entity",
-    column: undefined,
+    dimensionColumn: undefined,
     order: SortOrders.asc
 }
 
@@ -74,35 +83,32 @@ export class DataTable extends React.Component<DataTableProps> {
             this.storedState.sort.dimension,
             DEFAULT_SORT_STATE.dimension
         )
-        const column = defaultTo(
-            this.storedState.sort.column,
-            DEFAULT_SORT_STATE.column
+        const dimensionColumn = defaultTo(
+            this.storedState.sort.dimensionColumn,
+            DEFAULT_SORT_STATE.dimensionColumn
         )
         const order = defaultTo(
             this.storedState.sort.order,
             DEFAULT_SORT_STATE.order
         )
 
-        // if (typeof dimension === "number") {
-        //     dimension = Math.min(
-        //         dimension,
-        //         this.transform.displayDimensions.length - 1
-        //     )
-
-        //     const availableColumns = this.transform.displayDimensions[
-        //         dimension
-        //     ].columns
-        //         .filter(sub => sub.sortable)
-        //         .map(sub => sub.type)
-
-        //     if (column === undefined || !availableColumns.includes(column)) {
-        //         column = availableColumns[0]
-        //     }
-        // }
+        // TODO need to ensure config is valid
+        if (typeof dimension === "number") {
+            // dimension = Math.min(
+            //     dimension,
+            //     this.transform.dimensions.length - 1
+            // )
+            // const availableColumns = this.transform.dimensionsWithValues[
+            //     dimension
+            // ].columns.map(sub => sub.type)
+            // if (column === undefined || !availableColumns.includes(column)) {
+            //     column = availableColumns[0]
+            // }
+        }
 
         return {
             dimension,
-            column,
+            dimensionColumn,
             order
         }
     }
@@ -122,16 +128,41 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    @action.bound onSort(dimIndex: number, column: ColumnKey) {
+    @action.bound onSort(dimension: SortDimension, column?: ColumnKey) {
         const order =
-            this.tableState.sort.dimension === dimIndex &&
-            this.tableState.sort.column === column
+            this.tableState.sort.dimension === dimension &&
+            this.tableState.sort.dimensionColumn === column
                 ? toggleSortOrder(this.tableState.sort.order)
                 : SortOrders.asc
 
-        this.storedState.sort.dimension = dimIndex
-        this.storedState.sort.column = column
+        this.storedState.sort.dimension = dimension
+        this.storedState.sort.dimensionColumn = column
         this.storedState.sort.order = order
+    }
+
+    renderSortIcon(params: { type?: "text" | "numeric"; isActive?: boolean }) {
+        const type = defaultTo(params.type, "numeric")
+        const isActive = defaultTo(params.isActive, false)
+
+        const order = isActive ? this.tableState.sort.order : SortOrders.asc
+
+        let faIcon: IconDefinition
+
+        if (type === "text") {
+            faIcon =
+                order === SortOrders.desc ? faSortAlphaUpAlt : faSortAlphaDown
+        } else {
+            faIcon =
+                order === SortOrders.desc ? faSortAmountUp : faSortAmountDownAlt
+        }
+
+        return (
+            <span
+                className={classnames({ "sort-icon": true, active: isActive })}
+            >
+                <FontAwesomeIcon icon={faIcon} />
+            </span>
+        )
     }
 
     renderHeaderRow() {
@@ -140,35 +171,72 @@ export class DataTable extends React.Component<DataTableProps> {
                 <tr>
                     <th
                         key="entity"
-                        className="entity"
+                        className={classnames({
+                            entity: true,
+                            sortable: true,
+                            sorted: this.tableState.sort.dimension === "entity"
+                        })}
                         rowSpan={this.hasSubheaders ? 2 : 1}
+                        onClick={() => this.onSort("entity")}
                     >
                         {capitalize(this.entityType)}
+                        {this.renderSortIcon({
+                            type: "text",
+                            isActive:
+                                this.tableState.sort.dimension === "entity"
+                        })}
                     </th>
-                    {this.transform.displayDimensions.map(dh => (
+                    {this.transform.displayDimensions.map((dim, dimIndex) => (
                         <th
-                            key={dh.key}
-                            className="dimension"
-                            colSpan={dh.columns.length}
+                            key={dim.key}
+                            className={classnames({
+                                dimension: true,
+                                sortable: dim.sortable,
+                                sorted: dim.sorted
+                            })}
+                            rowSpan={
+                                this.hasSubheaders && dim.columns.length < 2
+                                    ? 2
+                                    : 1
+                            }
+                            colSpan={dim.columns.length}
+                            onClick={() =>
+                                dim.sortable &&
+                                this.onSort(dimIndex, ColumnKeys.value)
+                            }
                         >
-                            <span className="name">{dh.name}</span>
-                            <span className="unit">{dh.unit}</span>
+                            <span className="name">{dim.name}</span>
+                            <span className="unit">{dim.unit}</span>
+                            {dim.sortable &&
+                                this.renderSortIcon({
+                                    isActive:
+                                        this.tableState.sort.dimension ===
+                                        dimIndex
+                                })}
                         </th>
                     ))}
                 </tr>
                 {this.hasSubheaders && (
                     <tr>
                         {this.transform.displayDimensions.map((dim, dimIndex) =>
-                            dim.columns.map((sh, index) => (
+                            dim.columns.map((column, index) => (
                                 <th
                                     key={index}
+                                    className={classnames({
+                                        sortable: column.sortable,
+                                        sorted: column.sorted !== undefined
+                                    })}
                                     onClick={() =>
-                                        this.onSort(dimIndex, sh.type)
+                                        this.onSort(dimIndex, column.type)
                                     }
                                 >
-                                    {sh.targetYearMode === TargetYearModes.point
-                                        ? sh.targetYear
-                                        : columnNameByType[sh.type]}
+                                    {column.targetYearMode ===
+                                    TargetYearModes.point
+                                        ? column.targetYear
+                                        : columnNameByType[column.type]}
+                                    {this.renderSortIcon({
+                                        isActive: column.sorted !== undefined
+                                    })}
                                 </th>
                             ))
                         )}
@@ -204,7 +272,13 @@ export class DataTable extends React.Component<DataTableProps> {
         }
 
         return (
-            <td key={key} className="dimension">
+            <td
+                key={key}
+                className={classnames({
+                    dimension: true,
+                    sorted: column.sorted
+                })}
+            >
                 {value.year !== undefined &&
                     column.targetYearMode === TargetYearModes.point &&
                     column.targetYear !== undefined &&
@@ -226,7 +300,13 @@ export class DataTable extends React.Component<DataTableProps> {
     renderEntityRow(row: DataTableRow, dimensions: DataTableDimension[]) {
         return (
             <tr key={row.entity}>
-                <td key="entity" className="entity">
+                <td
+                    key="entity"
+                    className={classnames({
+                        entity: true,
+                        sorted: this.tableState.sort.dimension === "entity"
+                    })}
+                >
                     {row.entity}
                 </td>
                 {row.dimensionValues.map((dv, dimIndex) => {

@@ -242,75 +242,69 @@ export class DataTableTransform {
                 ...deltaColumns
             ]
 
-            const finalValueByEntity = es6mapValues(
-                valuesByEntity,
-                (dvs, entity) => {
-                    // There is always a column, but not always a data value (in the delta column the
-                    // value needs to be calculated)
-                    if (targetYears.length === 2) {
-                        const [start, end]: (SingleValue | undefined)[] = dvs
-                        const result: CompositeValue = {
-                            start: {
-                                ...start,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    start?.value
-                                )
-                            },
-                            end: {
-                                ...end,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    end?.value
-                                )
-                            },
-                            delta: undefined,
-                            deltaRatio: undefined
-                        }
-
-                        if (
-                            start !== undefined &&
-                            end !== undefined &&
-                            typeof start.value === "number" &&
-                            typeof end.value === "number"
-                        ) {
-                            const deltaValue = end.value - start.value
-                            const deltaRatioValue =
-                                (end.value - start.value) / start.value
-
-                            result.delta = {
-                                value: deltaValue,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    deltaValue
-                                )
-                            }
-                            result.deltaRatio = {
-                                value: deltaRatioValue,
-                                formattedValue:
-                                    isFinite(deltaRatioValue) &&
-                                    !isNaN(deltaRatioValue)
-                                        ? this.formatValue(
-                                              dim,
-                                              deltaRatioValue * 100,
-                                              { unit: "%", numDecimalPlaces: 0 }
-                                          )
-                                        : undefined
-                            }
-                        }
-                        return result
-                    } else {
-                        const dv = dvs[0]
-                        if (dv !== undefined) {
-                            return {
-                                ...dv,
-                                formattedValue: this.formatValue(dim, dv.value)
-                            }
-                        }
-                        return {}
+            const finalValueByEntity = es6mapValues(valuesByEntity, dvs => {
+                // There is always a column, but not always a data value (in the delta column the
+                // value needs to be calculated)
+                if (targetYears.length === 2) {
+                    const [start, end]: (SingleValue | undefined)[] = dvs
+                    const result: CompositeValue = {
+                        start: {
+                            ...start,
+                            formattedValue: this.formatValue(dim, start?.value)
+                        },
+                        end: {
+                            ...end,
+                            formattedValue: this.formatValue(dim, end?.value)
+                        },
+                        delta: undefined,
+                        deltaRatio: undefined
                     }
+
+                    if (
+                        start !== undefined &&
+                        end !== undefined &&
+                        typeof start.value === "number" &&
+                        typeof end.value === "number"
+                    ) {
+                        const deltaValue = end.value - start.value
+                        const deltaRatioValue =
+                            (end.value - start.value) / start.value
+
+                        result.delta = {
+                            value: deltaValue,
+                            formattedValue: this.formatValue(dim, deltaValue, {
+                                showPlus: true
+                            })
+                        }
+                        result.deltaRatio = {
+                            value: deltaRatioValue,
+                            formattedValue:
+                                isFinite(deltaRatioValue) &&
+                                !isNaN(deltaRatioValue)
+                                    ? this.formatValue(
+                                          dim,
+                                          deltaRatioValue * 100,
+                                          {
+                                              unit: "%",
+                                              numDecimalPlaces: 0,
+                                              showPlus: true
+                                          }
+                                      )
+                                    : undefined
+                        }
+                    }
+                    return result
+                } else {
+                    const dv = dvs[0]
+                    if (dv !== undefined) {
+                        return {
+                            ...dv,
+                            formattedValue: this.formatValue(dim, dv.value)
+                        }
+                    }
+                    return {}
                 }
-            )
+            })
 
             return {
                 dimension: dim,
@@ -321,14 +315,23 @@ export class DataTableTransform {
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
-        return this.dimensionsWithValues.map(d => ({
+        return this.dimensionsWithValues.map((d, dimIndex) => ({
             key: d.dimension.variableId,
             name: d.dimension.displayName,
             unit: getHeaderUnit(d.dimension.unit),
             sortable: d.columns.length === 1,
+            sorted:
+                d.columns.length === 1 && this.state.sort.dimension === dimIndex
+                    ? this.state.sort.order
+                    : undefined,
             columns: d.columns.map(column => ({
                 ...column,
-                sortable: true
+                sortable: true,
+                sorted:
+                    this.state.sort.dimension === dimIndex &&
+                    this.state.sort.dimensionColumn === column.type
+                        ? this.state.sort.order
+                        : undefined
             }))
         }))
     }
@@ -348,7 +351,8 @@ export class DataTableTransform {
             if (isSingleValue(dv)) {
                 value = dv.value
             } else if (isCompositeValue(dv)) {
-                const column = this.state.sort.column as CompositeValueKey
+                const column = this.state.sort
+                    .dimensionColumn as CompositeValueKey
                 value = dv[column]?.value
             }
 
