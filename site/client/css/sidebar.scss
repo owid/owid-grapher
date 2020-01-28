@@ -8,6 +8,13 @@
 
     &.sticky {
         background: $primary-color-100;
+
+        .entry-toc {
+            &::-webkit-scrollbar {
+                display: block;
+            }
+            @include scrollbar($primary-color-200, $primary-color-100);
+        }
     }
 
     .entry-toc {
@@ -16,6 +23,12 @@
         position: sticky;
         line-height: 1.3em;
         padding: $vertical-spacing 0;
+        overflow-y: auto;
+        scrollbar-width: none; // Firefox (non standard)
+        &::-webkit-scrollbar {
+            // Chromium (non standard)
+            display: none;
+        }
     }
 
     li {
@@ -105,8 +118,11 @@
             margin-left: 0;
             @include block-shadow;
 
-            .entry-toc {
-                overflow-y: scroll; // Only show scrollbar when necessary
+            .toggle-toc {
+                right: -$sidebar-toggle-width;
+                button {
+                    border-radius: 0 50% 50% 0;
+                }
             }
 
             ul {
@@ -123,10 +139,6 @@
             position: absolute;
             height: 1px;
             width: inherit;
-        }
-
-        .entry-toc {
-            overflow-y: scroll;
         }
 
         .toggle-toc {
