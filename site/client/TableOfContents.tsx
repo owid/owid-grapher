@@ -156,7 +156,6 @@ export const TableOfContents = ({
                 >
                     <FontAwesomeIcon
                         icon={isToggled ? faChevronLeft : faListAlt}
-                        className="toggle-toc"
                     />
                 </button>
                 <ul>
