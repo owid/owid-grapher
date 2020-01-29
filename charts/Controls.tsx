@@ -422,7 +422,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     endYear={chart.slopeChart.endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
-                    singleYearPlay={false}
+                    disablePlay={true}
                 />
             )
         } else {

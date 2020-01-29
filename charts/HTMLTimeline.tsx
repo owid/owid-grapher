@@ -39,6 +39,7 @@ interface TimelineProps {
     onStopDrag?: () => void
     singleYearMode?: boolean
     singleYearPlay?: boolean
+    disablePlay?: boolean
 }
 
 @observer
@@ -403,16 +404,18 @@ export class Timeline extends React.Component<TimelineProps> {
                 onTouchStart={this.onMouseDown}
                 onMouseDown={this.onMouseDown}
             >
-                <div
-                    onMouseDown={e => e.stopPropagation()}
-                    onClick={this.onTogglePlay}
-                >
-                    {isPlaying ? (
-                        <FontAwesomeIcon icon={faPause} />
-                    ) : (
-                        <FontAwesomeIcon icon={faPlay} />
-                    )}
-                </div>
+                {!this.props.disablePlay && (
+                    <div
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={this.onTogglePlay}
+                    >
+                        {isPlaying ? (
+                            <FontAwesomeIcon icon={faPause} />
+                        ) : (
+                            <FontAwesomeIcon icon={faPlay} />
+                        )}
+                    </div>
+                )}
                 <div>{formatYear(minYear)}</div>
                 <div className="slider">
                     <div
