@@ -8,7 +8,7 @@ import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, VNode } from "./Util"
+import { extend, keys, entries } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -627,7 +627,7 @@ export class AddEntityButton extends React.Component<{
 @observer
 export class ControlsOverlay extends React.Component<{
     id: string
-    children: VNode
+    children: JSX.Element
 }> {
     static contextType = ChartViewContext
     context!: ChartViewContextType
@@ -636,7 +636,7 @@ export class ControlsOverlay extends React.Component<{
         return this.context.chartView.overlays
     }
 
-    @action setOverlay(children: VNode) {
+    @action setOverlay(children: JSX.Element | undefined) {
         this.controlOverlays[this.props.id] = children
     }
 

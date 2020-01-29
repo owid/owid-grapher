@@ -224,7 +224,7 @@ export class ChartView extends React.Component<ChartViewProps> {
             .padBottom(this.isExport ? 0 : this.controls.footerHeight)
     }
 
-    @observable overlays: { [id: string]: VNode } = {}
+    @observable.shallow overlays: { [id: string]: JSX.Element | undefined } = {}
 
     @observable.ref popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false
