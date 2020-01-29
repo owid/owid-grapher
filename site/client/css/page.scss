@@ -2,26 +2,34 @@
     background-color: $primary-color-100;
 
     & > .content-wrapper {
+        position: relative;
         padding-top: $vertical-spacing;
         background-color: $body-bg;
     }
+
     &.with-sidebar {
-        & > .content-wrapper {
-            display: flex;
-            position: relative;
-        }
-        .offset {
-            flex: 1;
-            @include xlg-down {
+        @include xlg-down {
+            .offset-header,
+            .offset-content {
                 margin-left: $sidebar-closed-drawer-width;
             }
-            @include xxlg-up {
-                &.offset-header {
-                    margin-left: ($sidebar-content-width + 2 * $padding-x-md);
-                }
+        }
+        @include xxlg-up {
+            & > .content-wrapper {
+                display: flex;
+            }
+            .offset-header {
+                margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+            }
+            .offset-content {
+                flex: 1;
+            }
+            .content-and-footnotes {
+                margin: auto;
             }
         }
     }
+
     .content-and-footnotes,
     .article-header {
         @include content-wrapper;

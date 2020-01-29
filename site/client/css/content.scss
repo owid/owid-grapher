@@ -177,7 +177,9 @@
 
         .wp-block-column {
             &:first-child {
-                flex: 1 0 $text-min-content-width;
+                // set flex-shrink on text column to accomodate grapher
+                // resizing "slower" than it should during resizes
+                flex: 1 1 $text-min-content-width;
                 margin-right: $padding-x-md / 2;
                 max-width: $text-max-content-width;
 
@@ -220,8 +222,11 @@
     }
     @include xlg-up {
         &.is-style-side-by-side {
+            display: block;
             .wp-block-column {
-                flex: 1 1 50%;
+                flex: none; // not using flex here so charts resize properly
+                display: inline-block;
+                width: ($text-max-content-width + $graph-max-content-width) / 2;
                 max-width: initial;
             }
         }

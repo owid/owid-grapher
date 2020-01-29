@@ -98,7 +98,7 @@ export const LongFormPage = (props: {
                             hasSidebar ? "with-sidebar" : "no-sidebar"
                         }`}
                     >
-                        <div className="offset offset-header">
+                        <div className="offset-header">
                             <header className="article-header">
                                 <h1 className="entry-title">{post.title}</h1>
                                 {!formattingOptions.hideAuthors && (
@@ -139,7 +139,7 @@ export const LongFormPage = (props: {
                                     />
                                 </div>
                             )}
-                            <div className="offset">
+                            <div className="offset-content">
                                 <div className="content-and-footnotes">
                                     <div
                                         className="article-content"
