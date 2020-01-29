@@ -105,7 +105,7 @@ export class DiscreteBarTransform implements IChartTransform {
                 if (
                     currentDatum &&
                     Math.abs(currentDatum.year - targetYear) <
-                    Math.abs(year - targetYear)
+                        Math.abs(year - targetYear)
                 )
                     continue
 
