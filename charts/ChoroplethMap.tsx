@@ -250,13 +250,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
         if (this.hoverEnterFeature) return
 
-        const { renderFeatures } = this
+        const { projectionFeatures } = this
         const mouse = getRelativeMouse(
             this.base.current!.querySelector(".subunits"),
             ev
         )
 
-        const featuresWithDistance = renderFeatures.map(d => {
+        const featuresWithDistance = projectionFeatures.map(d => {
             return { feature: d, distance: Vector2.distance(d.center, mouse) }
         })
 
