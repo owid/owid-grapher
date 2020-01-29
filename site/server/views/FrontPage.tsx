@@ -314,15 +314,11 @@ export const FrontPage = (props: {
                                     <div className="header">
                                         <h2>Latest publications</h2>
                                     </div>
-                                    <div className="list">
+                                    <ul>
                                         {posts.slice(0, 8).map(post => (
-                                            <div
-                                                key={post.slug}
-                                                className="list-item-wrapper"
-                                            >
+                                            <li key={post.slug}>
                                                 <a
                                                     href={`/${post.path}`}
-                                                    className="list-item"
                                                     data-track-click
                                                     data-track-note="homepage-explainer"
                                                 >
@@ -342,24 +338,25 @@ export const FrontPage = (props: {
                                                         </h3>
                                                     </div>
                                                 </a>
-                                            </div>
+                                            </li>
                                         ))}
+                                    </ul>
+                                    <div className="see-all">
+                                        <a
+                                            href="/blog"
+                                            data-track-click
+                                            data-track-note="homepage-see-all-explainers"
+                                        >
+                                            <div className="label">
+                                                See all posts
+                                            </div>
+                                            <div className="icon">
+                                                <FontAwesomeIcon
+                                                    icon={faAngleRight}
+                                                />
+                                            </div>
+                                        </a>
                                     </div>
-                                    <a
-                                        href="/blog"
-                                        className="see-all"
-                                        data-track-click
-                                        data-track-note="homepage-see-all-explainers"
-                                    >
-                                        <div className="label">
-                                            See all posts
-                                        </div>
-                                        <div className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faAngleRight}
-                                            />
-                                        </div>
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -381,8 +378,8 @@ export const FrontPage = (props: {
                                             target="_blank"
                                         >
                                             <p>
-                                                Receive an email every two weeks
-                                                on our latest research.
+                                                Receive our latest publications
+                                                by email every two weeks.
                                             </p>
                                             {/* <fieldset>
                                             <div className="owid-checkboxes">
@@ -515,7 +512,7 @@ export const FrontPage = (props: {
                                         Sustainable Development Goals?
                                     </p>
                                 </div>
-                                <div className="icon-right md-up">
+                                <div className="icon-right">
                                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                                 </div>
                             </a>
@@ -539,7 +536,7 @@ export const FrontPage = (props: {
                                         development
                                     </p>
                                 </div>
-                                <div className="icon-right md-up">
+                                <div className="icon-right">
                                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                                 </div>
                             </a>

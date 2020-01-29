@@ -128,7 +128,7 @@ export class Header extends React.Component<{
                             <br /> in Data
                         </a>
                     </div>
-                    <nav className="site-navigation md-up">
+                    <nav className="site-navigation">
                         <div className="topics-button-wrapper">
                             <a
                                 href="/#entries"
@@ -224,7 +224,7 @@ export class Header extends React.Component<{
                             </div>
                         </div>
                     </nav>
-                    <div className="header-logos-wrapper md-up">
+                    <div className="header-logos-wrapper">
                         <a
                             href="https://www.oxfordmartin.ox.ac.uk/global-development"
                             className="oxford-logo"
@@ -244,7 +244,7 @@ export class Header extends React.Component<{
                             />
                         </a>
                     </div>
-                    <div className="site-navigation sm-only">
+                    <div className="mobile-site-navigation">
                         <button
                             onClick={this.onToggleSearch}
                             data-track-click

@@ -66,6 +66,14 @@ export class SlopeChartTransform implements IChartTransform {
         return defaultTo(max(this.timelineYears), 2000)
     }
 
+    @computed get hasTimeline(): boolean {
+        return (
+            this.minTimelineYear !== this.maxTimelineYear &&
+            this.timelineYears.length > 2 &&
+            !this.chart.props.hideTimeline
+        )
+    }
+
     @computed get startYear(): number {
         const minYear = defaultWith(
             this.chart.timeDomain[0],

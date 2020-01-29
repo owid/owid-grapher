@@ -1,97 +1,148 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
 
-.contentContainer {
-    @include lg-only {
-        position: relative;
-        .entry-sidebar {
-            width: $sidebar-content-width;
-            margin-left: -($sidebar-content-width + $padding-x-md);
-            height: 100%;
+.entry-sidebar {
+    width: $sidebar-content-width + 2 * $padding-x-md;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: $white;
+
+    &.sticky {
+        background: $primary-color-100;
+
+        .entry-toc {
+            &::-webkit-scrollbar {
+                display: block;
+            }
+            @include scrollbar($primary-color-200, $primary-color-100);
+        }
+    }
+
+    .entry-toc {
+        top: 0;
+        height: 100vh;
+        position: sticky;
+        line-height: 1.3em;
+        padding: $vertical-spacing 0;
+        overflow-y: auto;
+        scrollbar-width: none; // Firefox (non standard)
+        &::-webkit-scrollbar {
+            // Chromium (non standard)
+            display: none;
+        }
+    }
+
+    li {
+        list-style-type: none;
+        &.section {
+            margin-top: $vertical-spacing;
+            color: #111;
+            font-weight: 700;
+        }
+
+        &.subsection {
+            font-size: 0.8rem;
+        }
+
+        a {
+            display: block;
+            color: $grey-text-color;
+            font-size: 0.9rem;
+            border-left: 0.5rem solid transparent;
+            padding: $vertical-spacing/4 $padding-x-md;
+
+            &:hover {
+                background-color: $primary-color-200;
+            }
+        }
+
+        &.active a {
+            color: $primary-color;
+            background-color: $primary-color-200;
+            border-left-color: $primary-color;
+        }
+
+        &:first-child a {
+            font-size: 1rem;
+            background: none;
+            color: $grey-text-color;
+            border-left-color: transparent;
+
+            &:hover {
+                color: $primary-color;
+            }
+        }
+    }
+
+    @include xlg-down {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: $zindex-sidebar;
+        margin-left: -($sidebar-content-width + 2 * $padding-x-md) + $sidebar-closed-drawer-width;
+        transition: margin 300ms ease;
+
+        .toggle-toc {
             position: absolute;
+            top: 0;
+            bottom: 0;
+            padding: $vertical-spacing 0;
+            right: -$sidebar-toggle-width / 2;
+            button {
+                position: sticky;
+                top: $vertical-spacing;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: $sidebar-toggle-width;
+                height: $sidebar-toggle-width;
+                background-color: $primary-color;
+                &:hover {
+                    background-color: $primary-color-700;
+                }
+
+                color: $white;
+                border-radius: 50%;
+                outline: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+            }
+        }
+
+        ul {
+            // Hide ToC content for smoother looking transition
+            display: none;
+        }
+
+        &.toggled {
+            margin-left: 0;
+            @include block-shadow;
+
+            .toggle-toc {
+                right: -$sidebar-toggle-width;
+                button {
+                    border-radius: 0 50% 50% 0;
+                }
+            }
+
+            ul {
+                display: block;
+            }
         }
     }
-    @include lg-up {
-        .entry-sidebar {
-            padding-right: $padding-x-md;
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
+    @include xxlg-up {
+        position: relative;
+        height: 100%;
+        background-color: initial;
+
+        .sticky-sentinel {
+            position: absolute;
+            height: 1px;
+            width: inherit;
+        }
+
+        .toggle-toc {
+            display: none;
         }
     }
-    @include xlg-up {
-        display: flex;
-        .entry-sidebar {
-            margin-top: $vertical-spacing; // chain reaction from aligning the top of the first elements of columns
-            flex: 0 0 $sidebar-content-width;
-            margin-right: $padding-x-md;
-        }
-    }
-}
-
-nav.entry-toc {
-    display: none;
-    @include lg-up {
-        display: block;
-    }
-    top: 30px;
-    height: calc(100vh - 60px);
-    position: sticky;
-    font-size: 12px;
-    direction: rtl;
-    text-align: left;
-    overflow-y: scroll;
-    // padding-left: 16px;
-}
-
-nav.entry-toc li {
-    list-style-type: none;
-    position: relative;
-    color: rgba(0, 0, 0, 0.87);
-    direction: ltr;
-}
-
-nav.entry-toc .section {
-    margin-top: 18px;
-    color: #111;
-    margin-bottom: 4px;
-    padding-bottom: 0px;
-    line-height: 20px;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.entry-toc .section.nosubs {
-    border-bottom: 0;
-    margin-bottom: 0;
-    margin-top: 10px;
-}
-
-nav.entry-toc .subsection {
-    color: #444;
-    line-height: 18px;
-    font-size: 13px;
-}
-
-nav.entry-toc li > a {
-    opacity: 0.7;
-}
-
-nav.entry-toc li.active > a {
-    opacity: 1;
-}
-
-.entry-toc li:first-child {
-    font-size: 16px;
-    line-height: 22px;
-}
-
-.entry-toc li > a {
-    color: #616161;
-    display: block;
-    overflow: hidden;
-    padding-top: 2px;
-    padding-bottom: 2px;
-}
-
-.entry-toc li > a:hover {
-    opacity: 1;
 }

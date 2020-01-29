@@ -708,7 +708,6 @@ export class MapLegendView extends React.Component<MapLegendViewProps> {
                         onMouseLeave={onMouseLeave}
                     />
                 )}
-                />}
                 {mainLabel.render(
                     bounds.centerX - mainLabel.width / 2,
                     bounds.bottom - mainLabel.height

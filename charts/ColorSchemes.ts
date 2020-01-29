@@ -17,7 +17,7 @@ const longSchemeNames: { [key: string]: string } = {
     YlOrRd: "Yellow-Orange-Red shades",
     YlOrBr: "Yellow-Orange-Brown shades",
     Purples: "Purple shades",
-    //'Blues': 'Blue shades',
+    Blues: "Blue shades",
     Greens: "Green shades",
     Oranges: "Orange shades",
     Reds: "Red shades",

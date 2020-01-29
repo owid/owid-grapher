@@ -8,7 +8,7 @@ import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, VNode } from "./Util"
+import { extend, keys, entries } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -338,7 +338,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.map.targetYear = targetStartYear
     }
 
-    @action.bound onScatterTargetChange({
+    @action.bound onChartTargetChange({
         targetStartYear,
         targetEndYear
     }: {
@@ -390,7 +390,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.scatter.startYear}
                     endYear={chart.scatter.endYear}
                     onStartDrag={this.onTimelineStart}
@@ -403,12 +403,26 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     singleYearPlay={true}
+                />
+            )
+        } else if (chart.isSlopeChart) {
+            const years = this.boundedYears(chart.slopeChart.timelineYears)
+            if (years.length === 0) return null
+            return (
+                <Timeline
+                    years={years}
+                    onTargetChange={this.onChartTargetChange}
+                    startYear={chart.slopeChart.startYear}
+                    endYear={chart.slopeChart.endYear}
+                    onStartDrag={this.onTimelineStart}
+                    onStopDrag={this.onTimelineStop}
+                    disablePlay={true}
                 />
             )
         } else {
@@ -417,7 +431,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             return (
                 <Timeline
                     years={years}
-                    onTargetChange={this.onScatterTargetChange}
+                    onTargetChange={this.onChartTargetChange}
                     startYear={chart.lineChart.startYear}
                     endYear={chart.lineChart.endYear}
                     onStartDrag={this.onTimelineStart}
@@ -462,6 +476,8 @@ export class Controls {
             return true
         else if (chart.tab === "chart" && chart.isLineChart)
             return !chart.props.hideTimeline
+        else if (chart.tab === "chart" && chart.isSlopeChart)
+            return chart.slopeChart.hasTimeline
         else return false
     }
 
@@ -611,7 +627,7 @@ export class AddEntityButton extends React.Component<{
 @observer
 export class ControlsOverlay extends React.Component<{
     id: string
-    children: VNode
+    children: JSX.Element
 }> {
     static contextType = ChartViewContext
     context!: ChartViewContextType
@@ -620,7 +636,7 @@ export class ControlsOverlay extends React.Component<{
         return this.context.chartView.overlays
     }
 
-    @action setOverlay(children: VNode) {
+    @action setOverlay(children: JSX.Element | undefined) {
         this.controlOverlays[this.props.id] = children
     }
 

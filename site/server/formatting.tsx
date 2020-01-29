@@ -1,6 +1,5 @@
 import * as cheerio from "cheerio"
 const urlSlug = require("url-slug")
-const wpautop = require("wpautop")
 import * as _ from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
@@ -38,7 +37,6 @@ export interface FormattedPost {
     references: Reference[]
     excerpt: string
     imageUrl?: string
-    acknowledgements?: string
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
 }
 
@@ -107,16 +105,6 @@ export async function formatWordpressPost(
     let latexBlocks
     ;[html, latexBlocks] = extractLatex(html)
 
-    // Extract acknowledgements
-    let acknowledgements: string | undefined
-    html = html.replace(
-        /\[acknowledgements\]([\s\S]*?)\[\/acknowledgements\]/gm,
-        (_, ack) => {
-            acknowledgements = wpautop(ack)
-            return ``
-        }
-    )
-
     const references: Reference[] = []
     html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, (_, bibtex) => {
         references.push({}) // Todo
@@ -162,6 +150,7 @@ export async function formatWordpressPost(
     $info.remove()
 
     // Replace grapher iframes with static previews
+    const GRAPHER_PREVIEW_CLASS = "grapherPreview"
     if (grapherExports) {
         const grapherIframes = $("iframe")
             .toArray()
@@ -171,7 +160,7 @@ export async function formatWordpressPost(
             const src = el.attribs["src"]
             const chart = grapherExports.get(src)
             if (chart) {
-                const output = `<figure data-grapher-src="${src}" class="grapherPreview">
+                const output = `<figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
                         <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" /></div>
                         <div class="interactionNotice">
@@ -351,9 +340,8 @@ export async function formatWordpressPost(
         last: Cheerio
     }
 
-    function getColumns(): Columns {
-        const emptyColumns =
-            '<div class="wp-block-columns is-style-sticky-right"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>'
+    const getColumns = (style: string = "sticky-right"): Columns => {
+        const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
         const $columns = $(emptyColumns)
         return {
             wrapper: $columns,
@@ -362,11 +350,16 @@ export async function formatWordpressPost(
         }
     }
 
-    function isColumnsEmpty(columns: Columns) {
+    const isColumnsEmpty = (columns: Columns) => {
         return columns.first.children().length === 0 &&
             columns.last.children().length === 0
             ? true
             : false
+    }
+
+    const flushColumns = (columns: Columns, $section: Cheerio): Columns => {
+        $section.append(columns.wrapper)
+        return getColumns()
     }
 
     // Wrap content demarcated by headings into section blocks
@@ -380,12 +373,13 @@ export async function formatWordpressPost(
         const $start = $(start)
         const $section = $("<section>")
         let columns = getColumns()
+        let sideBySideColumns = getColumns("side-by-side")
         const $tempWrapper = $("<div>")
         const $contents = $tempWrapper
             .append($start.clone(), $start.nextUntil($("h2")))
             .contents()
 
-        $contents.each((_, el) => {
+        $contents.each((i, el) => {
             const $el = $(el)
             // Leave h2 at the section level, do not move into columns
             if (el.name === "h2") {
@@ -398,21 +392,40 @@ export async function formatWordpressPost(
                 ).length !== 0
             ) {
                 if (!isColumnsEmpty(columns)) {
-                    $section.append(columns.wrapper)
-                    columns = getColumns()
+                    columns = flushColumns(columns, $section)
                 }
                 $section.append($el)
             } else if (el.name === "h4") {
                 if (!isColumnsEmpty(columns)) {
-                    $section.append(columns.wrapper)
-                    columns = getColumns()
+                    columns = flushColumns(columns, $section)
                 }
                 columns.first.append($el)
-                $section.append(columns.wrapper)
-                columns = getColumns()
+                columns = flushColumns(columns, $section)
             } else {
-                // Move images to the right column
                 if (
+                    el.name === "figure" &&
+                    $el.hasClass(GRAPHER_PREVIEW_CLASS)
+                ) {
+                    if (isColumnsEmpty(sideBySideColumns)) {
+                        // Only fill the side by side buffer if there is an upcoming chart for a potential comparison.
+                        // Otherwise let the standard process (sticky right) take over.
+                        if (
+                            $contents[i].nextSibling?.attribs?.class ===
+                            GRAPHER_PREVIEW_CLASS
+                        ) {
+                            columns = flushColumns(columns, $section)
+                            sideBySideColumns.first.append($el)
+                        } else {
+                            columns.last.append($el)
+                        }
+                    } else {
+                        sideBySideColumns.last.append($el)
+                        $section.append(sideBySideColumns.wrapper)
+                        sideBySideColumns = getColumns("side-by-side")
+                    }
+                }
+                // Move images to the right column
+                else if (
                     el.name === "figure" ||
                     el.name === "iframe" ||
                     // Temporary support for old chart iframes
@@ -463,7 +476,6 @@ export async function formatWordpressPost(
         info: info,
         html: `${style}${$("body").html()}` as string,
         footnotes: footnotes,
-        acknowledgements: acknowledgements,
         references: references,
         excerpt:
             post.excerpt ||
