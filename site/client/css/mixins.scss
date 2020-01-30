@@ -129,29 +129,6 @@
     }
 }
 
-// https://codepen.io/team/css-tricks/pen/QWWXQzE
-@mixin scrollbar(
-    $thumb-color: $primary-color-200,
-    $background-color: $body-bg
-) {
-    // Scrollbar styling on a best effort basis (not part of standards)
-    // Firefox
-    scrollbar-width: thin;
-    scrollbar-color: $thumb-color $background-color;
-    // Chromium
-    &::-webkit-scrollbar {
-        width: 11px;
-    }
-    &::-webkit-scrollbar-track {
-        background: $background-color;
-    }
-    &::-webkit-scrollbar-thumb {
-        background-color: $thumb-color;
-        border-radius: 6px;
-        border: 3px solid $background-color;
-    }
-}
-
 @mixin hide {
     display: none;
 }
