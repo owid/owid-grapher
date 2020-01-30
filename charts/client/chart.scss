@@ -978,21 +978,31 @@ html.iframe .ChartPage {
     }
 }
 
-/* Copied from .ChartPage styles above for now */
-.ExplorePage main #explore {
+// Explorer styles
+
+.ExplorePage {
+    .top-controls-container,
+    .chart-view-container,
+    .data-table-container {
+        margin: 20px 0;
+    }
+}
+
+.ExplorePage .ChartView {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin: 0;
     width: 100%;
-    min-height: calc(100vh - 140px);
+    height: 100vh;
+    min-height: 40vw;
+    max-height: calc(100vh - 140px);
 }
 
 .ExplorePage .chart-type-buttons {
     display: flex;
     justify-content: flex-end;
-    margin: 20px auto;
+    margin-bottom: 20px;
 }
 
 .ExplorePage .chart-type-button {
@@ -1020,14 +1030,27 @@ html.iframe .ChartPage {
 }
 
 .ExplorePage .data-table {
-    font-size: 0.9375rem;
-    margin-top: 60px;
-    border: none;
-    background: white;
-    width: 100%;
-    border-spacing: 0px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+
+    // styles for the scroll container
+    .scroll-container {
+        max-width: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+            rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    }
+
+    table {
+        font-size: 0.9375rem;
+        border: none;
+        background: white;
+        width: auto;
+        margin: 0 auto;
+        border-spacing: 0px;
+    }
 
     th {
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -1112,6 +1135,7 @@ html.iframe .ChartPage {
     .entity {
         text-align: left;
         font-weight: 700;
+        max-width: 20rem;
     }
 
     .dimension {

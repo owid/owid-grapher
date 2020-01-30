@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { computed, autorun } from "mobx"
+import { computed, autorun, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
@@ -19,6 +19,8 @@ import * as urlBinding from "charts/UrlBinding"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
 import { Analytics } from "site/client/Analytics"
+import { throttle } from "./Util"
+import { bind } from "decko"
 
 export interface ChartTypeButton {
     type: ExplorerChartType
@@ -38,14 +40,12 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
 // This component was modeled after ChartView.
 //
 // TODO that ChartView handles but this doesn't:
-// * re-render on window resize event (throttled)
 // * FullStory event logging on bootstrap
 // * error logging via Analytics.logEvent on componentDidCatch
 //
 // -@jasoncrawford 2 Dec 2019
 
 interface ExploreProps {
-    bounds: Bounds
     model: ExploreModel
 }
 
@@ -58,19 +58,45 @@ export class ExploreView extends React.Component<ExploreProps> {
         containerNode: HTMLElement
         queryStr?: string
     }) {
-        const rect = containerNode.getBoundingClientRect()
-        const bounds = Bounds.fromRect(rect)
         const store = new RootStore()
         const model = new ExploreModel(store)
         model.populateFromQueryStr(queryStr)
-        return ReactDOM.render(
-            <ExploreView bounds={bounds} model={model} />,
-            containerNode
-        )
+        return ReactDOM.render(<ExploreView model={model} />, containerNode)
+    }
+
+    @observable.ref chartViewNode: React.RefObject<
+        HTMLDivElement
+    > = React.createRef()
+    @observable.ref chartViewBounds?: Bounds
+
+    onResizeThrottled: () => void = () => null
+
+    @bind onResize() {
+        const el = this.chartViewNode.current
+        if (el) {
+            const rect = el.getBoundingClientRect()
+            const bounds = Bounds.fromRect(rect)
+            runInAction(() => {
+                this.chartViewBounds = bounds
+            })
+        }
+    }
+
+    componentDidMount() {
+        this.onResizeThrottled = throttle(this.onResize, 200, {
+            leading: false,
+            trailing: true
+        })
+
+        window.addEventListener("resize", this.onResizeThrottled)
+
+        // Force initialization call
+        this.onResize()
     }
 
     componentWillUnmount() {
         this.model.dispose()
+        window.removeEventListener("resize", this.onResizeThrottled)
     }
 
     @computed get model() {
@@ -79,10 +105,6 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     @computed get chart() {
         return this.model.chart
-    }
-
-    @computed get bounds() {
-        return this.props.bounds
     }
 
     get childContext() {
@@ -133,13 +155,28 @@ export class ExploreView extends React.Component<ExploreProps> {
     render() {
         return (
             <ExplorerViewContext.Provider value={this.childContext}>
-                <div>
-                    {this.renderChartTypes()}
-                    {this.renderIndicatorSwitching()}
-                    <ChartView chart={this.chart} bounds={this.bounds} />
+                <div className="top-controls-container">
+                    <div className="wrapper">
+                        {this.renderChartTypes()}
+                        {this.renderIndicatorSwitching()}
+                    </div>
                 </div>
-                <div>
-                    <DataTable chart={this.chart} />
+                <div className="chart-view-container">
+                    <div className="wrapper">
+                        <div className="ChartView" ref={this.chartViewNode}>
+                            {this.chartViewBounds && (
+                                <ChartView
+                                    chart={this.chart}
+                                    bounds={this.chartViewBounds}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <div className="data-table-container">
+                    <div className="wrapper">
+                        <DataTable chart={this.chart} />
+                    </div>
                 </div>
             </ExplorerViewContext.Provider>
         )

@@ -17,7 +17,7 @@ import { SiteFooter } from "./SiteFooter"
 
 export const ExplorePage = () => {
     const script = `
-        var div = document.getElementById('explore');
+        var div = document.getElementById('ExploreView');
         var view = window.ExploreView.bootstrap({ containerNode: div, queryStr: window.location.search });
         view.bindToWindow();
     `
@@ -32,9 +32,7 @@ export const ExplorePage = () => {
             </Head>
             <body className="ExplorePage">
                 <SiteHeader />
-                <main>
-                    <div id="explore"></div>
-                </main>
+                <div id="ExploreView"></div>
                 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
                 <script src={webpack("commons.js")} />
                 <script src={webpack("owid.js")} />

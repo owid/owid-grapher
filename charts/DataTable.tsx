@@ -374,10 +374,14 @@ export class DataTable extends React.Component<DataTableProps> {
 
     render() {
         return (
-            <table className="data-table">
-                <thead>{this.renderHeaderRow()}</thead>
-                <tbody>{this.renderRows()}</tbody>
-            </table>
+            <div className="data-table">
+                <div className="scroll-container">
+                    <table>
+                        <thead>{this.renderHeaderRow()}</thead>
+                        <tbody>{this.renderRows()}</tbody>
+                    </table>
+                </div>
+            </div>
         )
     }
 }
