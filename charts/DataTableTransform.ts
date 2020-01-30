@@ -4,53 +4,31 @@ import {
     valuesByEntityAtYears,
     es6mapValues,
     valuesByEntityWithinYears,
-    getStartEndValues,
-    orderBy
+    getStartEndValues
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DimensionWithData } from "./DimensionWithData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { DataTableState } from "./DataTable"
 
 // Target year modes
 
 type TargetYearMode = "point" | "range"
 
-export class TargetYearModes {
-    static point: TargetYearMode = "point"
-    static range: TargetYearMode = "range"
+export const TargetYearModes: Record<TargetYearMode, TargetYearMode> = {
+    point: "point",
+    range: "range"
 }
 
 type TargetYears = [number] | [number, number]
-
-// Column types
-
-export type CompositeValueKey = "start" | "end" | "delta" | "deltaRatio"
-
-export type ColumnKey = "value" | CompositeValueKey
-
-export class ColumnKeys {
-    static value: ColumnKey = "value"
-    static start: ColumnKey = "start"
-    static end: ColumnKey = "end"
-    static delta: ColumnKey = "delta"
-    static deltaRatio: ColumnKey = "deltaRatio"
-}
 
 // Sorting modes
 
 export type SortOrder = "asc" | "desc"
 
-export class SortOrders {
-    static asc: SortOrder = "asc"
-    static desc: SortOrder = "desc"
+export const SortOrders: Record<SortOrder, SortOrder> = {
+    asc: "asc",
+    desc: "desc"
 }
-
-export interface Sortable {
-    sortable: boolean
-    sorted?: SortOrder
-}
-// onSort?: (sort: SortOrder | undefined) => void
 
 // Dimensions
 
@@ -61,28 +39,61 @@ export interface Dimension {
 }
 
 export interface DimensionColumn {
-    type: ColumnKey
+    key: SingleValueKey | RangeValueKey
     targetYear?: number
     targetYearMode?: TargetYearMode
 }
 
-// export interface DimensionValue {
-//     value?: string | number
-//     formattedValue?: string
-//     year?: number
-// }
+// Data value types
 
-export interface SingleValue {
+export interface Value {
     value?: string | number
     formattedValue?: string
     year?: number
 }
 
-type CompositeValue = Record<CompositeValueKey, SingleValue | undefined>
+// range (two point values)
 
-export type DimensionValue = SingleValue | CompositeValue
+export type RangeValueKey = "start" | "end" | "delta" | "deltaRatio"
+
+export const RangeValueKeys: Record<RangeValueKey, RangeValueKey> = {
+    start: "start",
+    end: "end",
+    delta: "delta",
+    deltaRatio: "deltaRatio"
+}
+
+export type RangeValue = Record<RangeValueKey, Value | undefined>
+
+export function isRangeValue(value: DimensionValue): value is RangeValue {
+    return "start" in value
+}
+
+// single point values
+
+export type SingleValueKey = "single"
+
+export const SingleValueKeys: Record<SingleValueKey, SingleValueKey> = {
+    single: "single"
+}
+
+export type SingleValue = Record<SingleValueKey, Value | undefined>
+
+export function isSingleValue(value: DimensionValue): value is SingleValue {
+    return "single" in value
+}
+
+// combined types
+
+export type DimensionValue = SingleValue | RangeValue
+
+export type ColumnKey = SingleValueKey | RangeValueKey
 
 // Data table types
+
+export interface Sortable {
+    sortable: boolean
+}
 
 export interface DataTableDimension extends Sortable {
     key: number
@@ -95,7 +106,7 @@ export type DataTableColumn = DimensionColumn & Sortable
 
 export interface DataTableRow {
     entity: string
-    dimensionValues: (DimensionValue | undefined)[]
+    dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
 }
 
 // Utilities
@@ -108,23 +119,11 @@ function getValueUnit(unit: string) {
     return unit !== "%" ? undefined : unit
 }
 
-export function isSingleValue(value: DimensionValue): value is SingleValue {
-    return !("start" in value)
-}
-
-export function isCompositeValue(
-    value: DimensionValue
-): value is CompositeValue {
-    return "start" in value
-}
-
 export class DataTableTransform {
     chart: ChartConfig
-    state: DataTableState
 
-    constructor(chart: ChartConfig, state: DataTableState) {
+    constructor(chart: ChartConfig) {
         this.chart = chart
-        this.state = state
     }
 
     @computed get dimensions() {
@@ -211,31 +210,30 @@ export class DataTableTransform {
                           ),
                           getStartEndValues
                       )
-                    : // In the "point" mode, we don't need to worry about
-                      valuesByEntityAtYears(
+                    : valuesByEntityAtYears(
                           dim.valueByEntityAndYear,
                           targetYears,
                           dim.tolerance
                       )
 
+            const isRange = targetYears.length === 2
+
             // Inject delta columns if we have start & end values to compare in the table.
             // One column for absolute difference, another for % difference.
-            const deltaColumns: DimensionColumn[] =
-                targetYears.length === 2
-                    ? [
-                          { type: ColumnKeys.delta },
-                          { type: ColumnKeys.deltaRatio }
-                      ]
-                    : []
+            const deltaColumns: DimensionColumn[] = isRange
+                ? [
+                      { key: RangeValueKeys.delta },
+                      { key: RangeValueKeys.deltaRatio }
+                  ]
+                : []
 
             const columns: DimensionColumn[] = [
                 ...targetYears.map((targetYear, index) => ({
-                    type:
-                        targetYears.length === 2
-                            ? index === 0
-                                ? ColumnKeys.start
-                                : ColumnKeys.end
-                            : ColumnKeys.value,
+                    key: isRange
+                        ? index === 0
+                            ? RangeValueKeys.start
+                            : RangeValueKeys.end
+                        : SingleValueKeys.single,
                     targetYear,
                     targetYearMode
                 })),
@@ -245,9 +243,9 @@ export class DataTableTransform {
             const finalValueByEntity = es6mapValues(valuesByEntity, dvs => {
                 // There is always a column, but not always a data value (in the delta column the
                 // value needs to be calculated)
-                if (targetYears.length === 2) {
-                    const [start, end]: (SingleValue | undefined)[] = dvs
-                    const result: CompositeValue = {
+                if (isRange) {
+                    const [start, end]: (Value | undefined)[] = dvs
+                    const result: RangeValue = {
                         start: {
                             ...start,
                             formattedValue: this.formatValue(dim, start?.value)
@@ -276,6 +274,7 @@ export class DataTableTransform {
                                 showPlus: true
                             })
                         }
+
                         result.deltaRatio = {
                             value: deltaRatioValue,
                             formattedValue:
@@ -295,14 +294,18 @@ export class DataTableTransform {
                     }
                     return result
                 } else {
+                    // if single year
                     const dv = dvs[0]
-                    if (dv !== undefined) {
-                        return {
-                            ...dv,
-                            formattedValue: this.formatValue(dim, dv.value)
-                        }
+                    const result: SingleValue = {
+                        single: { ...dv }
                     }
-                    return {}
+                    if (dv !== undefined) {
+                        result.single!.formattedValue = this.formatValue(
+                            dim,
+                            dv.value
+                        )
+                    }
+                    return result
                 }
             })
 
@@ -319,56 +322,15 @@ export class DataTableTransform {
             key: d.dimension.variableId,
             name: d.dimension.displayName,
             unit: getHeaderUnit(d.dimension.unit),
+            // A top-level header is only sortable if it has a
             sortable: d.columns.length === 1,
-            sorted:
-                d.columns.length === 1 && this.state.sort.dimension === dimIndex
-                    ? this.state.sort.order
-                    : undefined,
             columns: d.columns.map(column => ({
                 ...column,
-                sortable: true,
-                sorted:
-                    this.state.sort.dimension === dimIndex &&
-                    this.state.sort.dimensionColumn === column.type
-                        ? this.state.sort.order
-                        : undefined
+                // All columns are sortable for now, but in the future we will have a sparkline that
+                // is not sortable.
+                sortable: true
             }))
         }))
-    }
-
-    @computed get sortFunction(): (
-        row: DataTableRow
-    ) => number | string | undefined {
-        if (this.state.sort.dimension === "entity") {
-            return row => row.entity
-        }
-        return row => {
-            const dimIndex = this.state.sort.dimension as number
-            const dv = row.dimensionValues[dimIndex] as DimensionValue
-
-            let value: number | string | undefined
-
-            if (isSingleValue(dv)) {
-                value = dv.value
-            } else if (isCompositeValue(dv)) {
-                const column = this.state.sort
-                    .dimensionColumn as CompositeValueKey
-                value = dv[column]?.value
-            }
-
-            // We always want undefined values to be last
-            if (
-                value === undefined ||
-                (typeof value === "number" &&
-                    (!isFinite(value) || isNaN(value)))
-            ) {
-                return this.state.sort.order === SortOrders.asc
-                    ? Infinity
-                    : -Infinity
-            }
-
-            return value
-        }
     }
 
     @computed get displayRows(): DataTableRow[] {
@@ -382,6 +344,6 @@ export class DataTableTransform {
                 dimensionValues
             }
         })
-        return orderBy(rows, this.sortFunction, [this.state.sort.order])
+        return rows
     }
 }
