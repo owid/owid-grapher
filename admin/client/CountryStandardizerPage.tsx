@@ -608,7 +608,7 @@ export class CountryStandardizerPage extends React.Component {
                                 />
                                 <label
                                     htmlFor="customFile"
-                                    className="custom-file-control"
+                                    className="custom-file-label"
                                 >
                                     {this.fileUploadLabel}
                                 </label>
