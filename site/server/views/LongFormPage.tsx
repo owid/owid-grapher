@@ -148,7 +148,7 @@ export const LongFormPage = (props: {
                                         }}
                                     />
                                     <footer className="article-footer">
-                                        <div className="has-2-columns">
+                                        <div className="wp-block-columns">
                                             <div className="wp-block-column">
                                                 {post.footnotes.length ? (
                                                     <React.Fragment>
