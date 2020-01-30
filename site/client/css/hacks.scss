@@ -1,6 +1,0 @@
-// wpautop creates an unwanted <br> between the image
-// and its potential caption during formatting.
-// Re-evaluate once wpautop is no longer being used.
-.article-content figure > br {
-    display: none;
-}
