@@ -1,7 +1,6 @@
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { LongFormPage } from "./views/LongFormPage"
-import { BlogPostPage } from "./views/BlogPostPage"
 import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
@@ -155,21 +154,13 @@ async function renderPage(postApi: object) {
     const formattingOptions = extractFormattingOptions(post.content)
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
-    if (post.type === "post")
-        return renderToHtmlPage(
-            <BlogPostPage
-                post={formatted}
-                formattingOptions={formattingOptions}
-            />
-        )
-    else
-        return renderToHtmlPage(
-            <LongFormPage
-                entries={entries}
-                post={formatted}
-                formattingOptions={formattingOptions}
-            />
-        )
+    return renderToHtmlPage(
+        <LongFormPage
+            entries={entries}
+            post={formatted}
+            formattingOptions={formattingOptions}
+        />
+    )
 }
 
 export async function renderFrontPage() {
