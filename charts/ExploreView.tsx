@@ -31,7 +31,7 @@ export interface ChartTypeButton {
 const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
     { type: ChartType.LineChart, label: "Line", icon: faChartLine },
     { type: ChartType.StackedArea, label: "Area", icon: faChartArea },
-    { type: ChartType.StackedBar, label: "Stacked", icon: faChartBar },
+    { type: ChartType.StackedBar, label: "Stack", icon: faChartBar },
     { type: ChartType.DiscreteBar, label: "Bar", icon: faChartBar },
     { type: ChartType.SlopeChart, label: "Slope", icon: faChartLine },
     { type: ExploreModel.WorldMap, label: "Map", icon: faMap }
@@ -124,15 +124,19 @@ export class ExploreView extends React.Component<ExploreProps> {
                     this.model.chartType = button.type
                 }}
             >
-                <FontAwesomeIcon icon={button.icon} />
-                <div>{button.label}</div>
+                <div className="inner">
+                    <div className="icon">
+                        <FontAwesomeIcon icon={button.icon} />
+                    </div>
+                    <div className="label">{button.label}</div>
+                </div>
             </button>
         )
     }
 
-    renderChartTypes() {
+    renderChartTypeControl() {
         return (
-            <div className="chart-type-buttons">
+            <div className="chart-type-control">
                 {CHART_TYPE_BUTTONS.map(button =>
                     this.renderChartTypeButton(button)
                 )}
@@ -140,9 +144,9 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
-    renderIndicatorSwitching() {
+    renderIndicatorControl() {
         return (
-            <div className="indicator-bar">
+            <div className="indicator-control">
                 <IndicatorDropdown
                     placeholder="Select variable"
                     onChangeId={id => (this.model.indicatorId = id)}
@@ -157,8 +161,10 @@ export class ExploreView extends React.Component<ExploreProps> {
             <ExplorerViewContext.Provider value={this.childContext}>
                 <div className="top-controls-container">
                     <div className="wrapper">
-                        {this.renderChartTypes()}
-                        {this.renderIndicatorSwitching()}
+                        <div className="top-controls">
+                            {this.renderIndicatorControl()}
+                            {this.renderChartTypeControl()}
+                        </div>
                     </div>
                 </div>
                 <div className="chart-view-container">

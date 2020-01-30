@@ -1,5 +1,4 @@
 import * as React from "react"
-import AsyncSelect from "react-select/async"
 import { ValueType } from "react-select"
 import { bind } from "decko"
 
@@ -10,6 +9,8 @@ import {
 import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
 import { StoreEntry } from "./Store"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 
 export interface IndicatorDropdownProps {
     placeholder: string
@@ -56,17 +57,36 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     render() {
         const entry = this.props.indicatorEntry
         const entity = entry && entry.entity
-        return (
-            <AsyncSelect
-                className="indicator-dropdown"
-                onChange={this.onChange}
-                placeholder={this.props.placeholder}
-                defaultOptions={true}
-                loadOptions={this.loadOptions}
-                getOptionValue={this.getValue}
-                getOptionLabel={this.getLabel}
-                value={entity}
-            />
-        )
+        // return (
+        //     <AsyncSelect
+        //         className="indicator-dropdown"
+        //         onChange={this.onChange}
+        //         placeholder={this.props.placeholder}
+        //         defaultOptions={true}
+        //         loadOptions={this.loadOptions}
+        //         getOptionValue={this.getValue}
+        //         getOptionLabel={this.getLabel}
+        //         value={entity}
+        //     />
+        // )
+        if (!entity) {
+            return "Loading..."
+        } else {
+            return (
+                <div className="indicator-dropdown">
+                    <div className="indicator-current">
+                        <div className="indicator-info">
+                            <h1 className="indicator-title">{entity.title}</h1>
+                            <div className="indicator-metadata">
+                                {entity.sourceDesc}
+                            </div>
+                        </div>
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faChevronDown} />
+                        </span>
+                    </div>
+                </div>
+            )
+        }
     }
 }

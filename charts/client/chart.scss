@@ -1,5 +1,4 @@
-$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
-$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+@import "../../site/client/css/variables.scss";
 
 $controls-color: #3f9eff;
 
@@ -984,8 +983,118 @@ html.iframe .ChartPage {
     .top-controls-container,
     .chart-view-container,
     .data-table-container {
-        margin: 20px 0;
+        margin: 0 0 20px;
     }
+}
+
+.ExplorePage .top-controls-container {
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 1px 0px,
+        rgba(0, 0, 0, 0.1) 0px 1px 1px 0px;
+}
+
+.ExplorePage .top-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+}
+
+.ExplorePage .indicator-control {
+    .indicator-dropdown {
+        position: relative;
+        z-index: $zindex-IndicatorDropdown;
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.1rem 1rem 1.1rem 1.25rem;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+    }
+
+    .indicator-current {
+        font-family: $sans-serif-font-stack;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        line-height: 1.25;
+
+        h1 {
+            font-size: 1.5rem;
+            line-height: 1.2;
+            margin: 0 0 0.35rem;
+        }
+
+        .indicator-metadata {
+            font-size: 15px;
+            font-weight: 700;
+            opacity: 0.5;
+        }
+
+        .icon {
+            font-size: 1.125rem;
+            flex: 0;
+            opacity: 0.3;
+            margin-left: 1rem;
+        }
+    }
+
+    &:hover .indicator-current .icon {
+        opacity: 0.5;
+    }
+}
+
+.ExplorePage .chart-type-control {
+    flex: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ExplorePage .chart-type-button {
+    font-size: 15px;
+    font-weight: 900;
+    color: inherit;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+
+    &:last-child {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .inner {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        opacity: 0.6;
+        min-width: 4.5rem;
+        padding: 10px 15px 5px 15px;
+        border-bottom: 4px solid transparent;
+    }
+
+    .icon {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+
+    &:hover .inner {
+        opacity: 0.7;
+        border-bottom-color: rgba($primary-color, 0.1);
+    }
+}
+
+.ExplorePage .chart-type-button.selected .inner {
+    border-bottom-color: currentColor;
+    opacity: 1;
 }
 
 .ExplorePage .ChartView {
@@ -997,36 +1106,6 @@ html.iframe .ChartPage {
     height: 100vh;
     min-height: 40vw;
     max-height: calc(100vh - 140px);
-}
-
-.ExplorePage .chart-type-buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-}
-
-.ExplorePage .chart-type-button {
-    height: 54px;
-    width: 64px;
-    margin-left: 10px;
-    font-size: 14px;
-    font-variant: all-small-caps;
-    vertical-align: bottom;
-    color: #555;
-    background-color: white;
-    border: 1px solid #ccc;
-    outline: none;
-}
-
-.ExplorePage .chart-type-button.selected {
-    color: #333;
-    border: 1px solid #3f9eff;
-}
-
-.ExplorePage .indicator-dropdown {
-    position: relative;
-    z-index: $zindex-IndicatorDropdown;
-    margin: 20px auto;
 }
 
 .ExplorePage .data-table {
