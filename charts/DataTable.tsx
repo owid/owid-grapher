@@ -373,6 +373,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     render() {
+        if (!this.props.chart.data.isReady) return null
         return (
             <div className="data-table">
                 <div className="scroll-container">
