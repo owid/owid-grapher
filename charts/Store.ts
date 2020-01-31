@@ -89,6 +89,11 @@ export class IndicatorStore {
         return this.indicatorsById[id]
     }
 
+    async getAll(): Promise<StoreEntry<Indicator>[]> {
+        await this.fetchAllIdempotent()
+        return values(this.indicatorsById)
+    }
+
     async search(props: { query: string }): Promise<StoreEntry<Indicator>[]> {
         await this.fetchAllIdempotent()
         const { query } = props

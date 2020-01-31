@@ -990,7 +990,7 @@ html.iframe .ChartPage {
 .ExplorePage .top-controls-container {
     background-color: white;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 1px 0px,
-        rgba(0, 0, 0, 0.1) 0px 1px 1px 0px;
+        rgba(0, 0, 0, 0.15) 0px 1px 1px 0px;
 }
 
 .ExplorePage .top-controls {
@@ -1001,13 +1001,19 @@ html.iframe .ChartPage {
 }
 
 .ExplorePage .indicator-control {
+    display: flex;
+    justify-content: stretch;
+    position: relative;
+
     .indicator-dropdown {
         position: relative;
         z-index: $zindex-IndicatorDropdown;
         border-left: 1px solid rgba(0, 0, 0, 0.1);
         border-right: 1px solid rgba(0, 0, 0, 0.1);
-        padding: 1.1rem 1rem 1.1rem 1.25rem;
+        padding: 17px 16px 17px 20px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
 
         &:hover {
             background-color: rgba(0, 0, 0, 0.03);
@@ -1022,19 +1028,24 @@ html.iframe .ChartPage {
         line-height: 1.25;
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 21px;
             line-height: 1.2;
-            margin: 0 0 0.35rem;
+            margin: 0;
+
+            .none {
+                opacity: 0.6;
+            }
         }
 
         .indicator-metadata {
             font-size: 15px;
             font-weight: 700;
-            opacity: 0.5;
+            opacity: 0.6;
+            margin: 5px 0 0;
         }
 
         .icon {
-            font-size: 1.125rem;
+            font-size: 18px;
             flex: 0;
             opacity: 0.3;
             margin-left: 1rem;
@@ -1050,6 +1061,8 @@ html.iframe .ChartPage {
     flex: 0;
     display: flex;
     justify-content: flex-end;
+    // make sure 1px border is overlaid if the two control join
+    margin-left: -1px;
 }
 
 .ExplorePage .chart-type-button {
@@ -1087,7 +1100,7 @@ html.iframe .ChartPage {
     }
 
     &:hover .inner {
-        opacity: 0.7;
+        opacity: 0.85;
         border-bottom-color: rgba($primary-color, 0.1);
     }
 }
@@ -1108,6 +1121,134 @@ html.iframe .ChartPage {
     max-height: calc(100vh - 140px);
 }
 
+.ExplorePage .indicator-browser {
+    border-radius: 0 0 5px 5px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1),
+        0 16px 32px rgba(0, 0, 0, 0.1), 0 32px 64px rgba(0, 0, 0, 0.1);
+    width: 40rem;
+    max-width: 100vw;
+    overflow-y: scroll;
+    position: absolute;
+    top: 100%;
+    margin-top: 1px;
+    z-index: $zindex-IndicatorDropdown;
+    display: none;
+
+    &.is-open {
+        display: block;
+    }
+
+    .search {
+        font-size: 18px;
+        position: relative;
+
+        .search-input {
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: 700;
+            color: $primary-color;
+            line-height: 1.2;
+            outline: none;
+            width: 100%;
+            border: none;
+            padding: 15px 20px 15px 50px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+            &::placeholder {
+                color: rgba($primary-color, 0.35);
+            }
+
+            &:focus + .icon {
+                color: rgba($primary-color, 0.6);
+            }
+        }
+
+        .icon {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 20px;
+            color: rgba($primary-color, 0.3);
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+    }
+
+    .indicator-list {
+        max-height: 40rem;
+    }
+
+    .entity-option {
+        line-height: 1.3;
+        padding: 13px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .title {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #2064a2;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: rgba($primary-color, 0.6);
+            margin: 5px 0 0;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .metadata {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba($primary-color, 0.6);
+            margin: 5px 0 0;
+        }
+    }
+
+    .entity-option__disabled {
+        opacity: 0.5;
+    }
+    .entity-option__focused {
+        background-color: rgba($primary-color, 0.045);
+    }
+    .entity-option__selected {
+        // background-color: rgba($primary-color, 0.05);
+    }
+
+    .category {
+        font-family: $serif-font-stack;
+        font-size: 20px;
+        font-weight: 900;
+        color: black;
+        position: relative;
+        padding: 0 0 0 20px;
+        margin: 10px 0;
+
+        span {
+            background-color: white;
+            padding-right: 15px;
+        }
+
+        &::after {
+            content: "";
+            display: block;
+            border-bottom: 12px solid rgba(0, 0, 0, 0.08);
+            margin-top: -1em;
+            z-index: 0;
+        }
+    }
+}
+
 .ExplorePage .data-table {
     margin-top: 30px;
     display: flex;
@@ -1116,7 +1257,7 @@ html.iframe .ChartPage {
     // styles for the scroll container
     .scroll-container {
         max-width: 100%;
-        overflow-y: auto;
+        overflow: auto;
         -webkit-overflow-scrolling: touch;
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
             rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
