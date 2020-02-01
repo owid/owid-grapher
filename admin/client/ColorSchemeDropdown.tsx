@@ -76,19 +76,22 @@ export class ColorSchemeDropdown extends React.Component<
                 }}
             >
                 <div>{option.label}</div>
-                <span
-                    style={{
-                        backgroundImage: option.gradient,
-                        width: "6rem",
-                        height: "1.25rem",
-                        border: option.gradient ? "1px solid #aaa" : undefined,
 
-                        // Mirror the element if color schemes are inverted
-                        transform: invertedColorScheme
-                            ? "scaleX(-1)"
-                            : undefined
-                    }}
-                />
+                {option.gradient && (
+                    <span
+                        style={{
+                            backgroundImage: option.gradient,
+                            width: "6rem",
+                            height: "1.25rem",
+                            border: "1px solid #aaa",
+
+                            // Mirror the element if color schemes are inverted
+                            transform: invertedColorScheme
+                                ? "scaleX(-1)"
+                                : undefined
+                        }}
+                    />
+                )}
             </div>
         )
     }
