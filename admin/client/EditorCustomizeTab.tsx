@@ -1,5 +1,5 @@
 import * as React from "react"
-import Select, * as ReactSelect from "react-select"
+import Select, { ValueType } from "react-select"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
@@ -35,29 +35,31 @@ interface ColorSchemeOption {
 
 interface ColorSchemeDropdownProps {
     additionalColorSchemes: ColorSchemeOption[]
+    defaultValue?: string
     gradientColorCount: number
     invertedColorScheme: boolean
     onChange: (selected: ColorSchemeOption) => void
-    preselectedColorScheme: string | undefined
 }
 
 class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
     static defaultProps = {
+        additionalColorSchemes: [],
         gradientColorCount: 6
     }
 
-    @computed
-    get availableColorSchemes() {
-        return this.props.additionalColorSchemes.concat(
+    @computed get availableColorSchemes() {
+        const { additionalColorSchemes, gradientColorCount } = this.props
+
+        return additionalColorSchemes.concat(
             Object.entries(ColorSchemes).map(([key, scheme]) => {
                 return {
-                    value: key,
-                    label: (scheme as ColorScheme).name,
                     colorScheme: scheme as ColorScheme,
                     gradient: this.createLinearGradient(
                         scheme as ColorScheme,
-                        this.props.gradientColorCount
-                    )
+                        gradientColorCount
+                    ),
+                    label: (scheme as ColorScheme).name,
+                    value: key
                 }
             })
         )
@@ -74,7 +76,7 @@ class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
         return `linear-gradient(90deg, ${gradientEntries.join(", ")})`
     }
 
-    @action.bound onChange(selected: ReactSelect.ValueType<ColorSchemeOption>) {
+    @action.bound onChange(selected: ValueType<ColorSchemeOption>) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
         // we are not using the multi-option select we can force the type to be
@@ -84,6 +86,8 @@ class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
     }
 
     @action.bound formatOptionLabel(option: ColorSchemeOption) {
+        const { invertedColorScheme } = this.props
+
         return (
             <div
                 style={{
@@ -101,7 +105,7 @@ class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
                         border: option.gradient ? "1px solid #aaa" : undefined,
 
                         // Mirror the element if color schemes are inverted
-                        transform: this.props.invertedColorScheme
+                        transform: invertedColorScheme
                             ? "scaleX(-1)"
                             : undefined
                     }}
@@ -111,14 +115,17 @@ class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
     }
 
     render() {
+        const { defaultValue } = this.props
+
         return (
             <Select
-                defaultValue={this.availableColorSchemes.find(
-                    scheme => scheme.value === this.props.preselectedColorScheme
-                )}
                 label="Color scheme"
                 options={this.availableColorSchemes}
                 formatOptionLabel={this.formatOptionLabel}
+                onChange={this.onChange}
+                defaultValue={this.availableColorSchemes.find(
+                    scheme => scheme.value === defaultValue
+                )}
                 styles={{
                     singleValue: provided => {
                         return {
@@ -133,7 +140,6 @@ class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
                         }
                     }
                 }}
-                onChange={this.onChange}
             />
         )
     }
@@ -162,18 +168,16 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
             <React.Fragment>
                 <FieldsRow>
                     <ColorSchemeDropdown
-                        preselectedColorScheme={
-                            chart.baseColorScheme || "default"
-                        }
+                        defaultValue={chart.baseColorScheme || "default"}
                         onChange={this.onChange}
                         invertedColorScheme={!!chart.props.invertColorScheme}
                         additionalColorSchemes={[
                             {
-                                value: "default",
-                                label: "Default",
                                 colorScheme: undefined,
                                 gradient:
-                                    "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)"
+                                    "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
+                                label: "Default",
+                                value: "default"
                             }
                         ]}
                     />
