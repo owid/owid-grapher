@@ -1,4 +1,4 @@
-import React = require("react")
+import * as React from "react"
 import { computed, action } from "mobx"
 import Select, { ValueType } from "react-select"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
