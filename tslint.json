@@ -13,7 +13,7 @@
         "member-access": false,
         "curly": false,
         "no-string-literal": false,
-        "ordered-imports": false,
+        "ordered-imports": true,
         "arrow-parens": false,
         "quotemark": false,
         "interface-name": false,
