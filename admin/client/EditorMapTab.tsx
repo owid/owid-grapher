@@ -337,7 +337,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            defaultValue={currentColorScheme}
+                            initialValue={currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={
                                 !!mapConfig.props.colorSchemeInvert
