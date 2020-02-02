@@ -309,6 +309,17 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             : true
     }
 
+    @computed get additionalColorSchemes() {
+        return [
+            {
+                colorScheme: undefined,
+                gradient: undefined,
+                label: "Custom",
+                value: "custom"
+            }
+        ]
+    }
+
     render() {
         const { mapConfig } = this.props
 
@@ -327,14 +338,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                             invertedColorScheme={
                                 !!mapConfig.props.colorSchemeInvert
                             }
-                            additionalColorSchemes={[
-                                {
-                                    colorScheme: undefined,
-                                    gradient: undefined,
-                                    label: "Custom",
-                                    value: "custom"
-                                }
-                            ]}
+                            additionalColorSchemes={this.additionalColorSchemes}
                         />
                     </div>
                 </FieldsRow>

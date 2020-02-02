@@ -28,8 +28,16 @@ export class ColorSchemeDropdown extends React.Component<
         gradientColorCount: 6
     }
 
+    @computed get additionalColorSchemes() {
+        return this.props.additionalColorSchemes
+    }
+
+    @computed get gradientColorCount() {
+        return this.props.gradientColorCount
+    }
+
     @computed get availableColorSchemes() {
-        const { additionalColorSchemes, gradientColorCount } = this.props
+        const { additionalColorSchemes, gradientColorCount } = this
 
         return additionalColorSchemes.concat(
             Object.entries(ColorSchemes).map(([key, scheme]) => {
