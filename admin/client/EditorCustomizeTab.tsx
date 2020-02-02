@@ -41,17 +41,6 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.props.invertColorScheme = value || undefined
     }
 
-    @computed get additionalColorSchemes() {
-        return [
-            {
-                colorScheme: undefined,
-                gradient: "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
-                label: "Default",
-                value: "default"
-            }
-        ]
-    }
-
     render() {
         const { chart } = this.props
 
@@ -66,7 +55,15 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                             invertedColorScheme={
                                 !!chart.props.invertColorScheme
                             }
-                            additionalColorSchemes={this.additionalColorSchemes}
+                            additionalOptions={[
+                                {
+                                    colorScheme: undefined,
+                                    gradient:
+                                        "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
+                                    label: "Default",
+                                    value: "default"
+                                }
+                            ]}
                         />
                     </div>
                 </FieldsRow>

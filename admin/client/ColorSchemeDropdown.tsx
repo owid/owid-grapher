@@ -12,7 +12,7 @@ export interface ColorSchemeOption {
 }
 
 export interface ColorSchemeDropdownProps {
-    additionalColorSchemes: ColorSchemeOption[]
+    additionalOptions: ColorSchemeOption[]
     initialValue?: string
     gradientColorCount: number
     invertedColorScheme: boolean
@@ -24,35 +24,39 @@ export class ColorSchemeDropdown extends React.Component<
     ColorSchemeDropdownProps
 > {
     static defaultProps = {
-        additionalColorSchemes: [],
+        additionalOptions: [],
         gradientColorCount: 6,
         invertedColorScheme: false
     }
 
-    @computed get additionalColorSchemes() {
-        return this.props.additionalColorSchemes
+    @computed get additionalOptions() {
+        return this.props.additionalOptions
     }
 
     @computed get gradientColorCount() {
         return this.props.gradientColorCount
     }
 
-    @computed get availableColorSchemes() {
-        const { additionalColorSchemes, gradientColorCount } = this
-
-        return additionalColorSchemes.concat(
-            Object.entries(ColorSchemes).map(([key, scheme]) => {
+    @computed get colorSchemeOptions() {
+        return Object.entries(ColorSchemes)
+            .filter(([, v]) => v !== undefined)
+            .map(([key, scheme]) => {
                 return {
                     colorScheme: scheme as ColorScheme,
                     gradient: this.createLinearGradient(
                         scheme as ColorScheme,
-                        gradientColorCount
+                        this.gradientColorCount
                     ),
                     label: (scheme as ColorScheme).name,
                     value: key
                 }
             })
-        )
+    }
+
+    @computed get allOptions() {
+        const { additionalOptions } = this
+
+        return additionalOptions.concat(this.colorSchemeOptions)
     }
 
     createLinearGradient(colorScheme: ColorScheme, count: number) {
@@ -112,10 +116,10 @@ export class ColorSchemeDropdown extends React.Component<
 
         return (
             <Select
-                options={this.availableColorSchemes}
+                options={this.allOptions}
                 formatOptionLabel={this.formatOptionLabel}
                 onChange={this.onChange}
-                defaultValue={this.availableColorSchemes.find(
+                defaultValue={this.allOptions.find(
                     scheme => scheme.value === initialValue
                 )}
                 styles={{
