@@ -2,6 +2,7 @@ import React = require("react")
 import { computed, action } from "mobx"
 import Select, { ValueType } from "react-select"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import { observer } from "mobx-react"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
@@ -18,6 +19,7 @@ export interface ColorSchemeDropdownProps {
     onChange: (selected: ColorSchemeOption) => void
 }
 
+@observer
 export class ColorSchemeDropdown extends React.Component<
     ColorSchemeDropdownProps
 > {
@@ -101,7 +103,6 @@ export class ColorSchemeDropdown extends React.Component<
 
         return (
             <Select
-                label="Color scheme"
                 options={this.availableColorSchemes}
                 formatOptionLabel={this.formatOptionLabel}
                 onChange={this.onChange}
