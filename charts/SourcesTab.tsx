@@ -5,6 +5,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { ADMIN_BASE_URL } from "settings"
+
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { SourceWithDimension } from "./ChartData"

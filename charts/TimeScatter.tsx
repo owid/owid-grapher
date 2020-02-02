@@ -1,15 +1,15 @@
+import { select } from "d3-selection"
 import { action, computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ScaleType } from "./AxisScale"
+import { AxisScale } from "./AxisScale"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { ComparisonLine } from "./ComparisonLine"
 import { NoData } from "./NoData"
-
-import { select } from "d3-selection"
-import { AxisScale } from "./AxisScale"
 import { Tooltip } from "./Tooltip"
 import { cloneDeep, formatYear, guid, isEmpty, sortBy } from "./Util"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"

@@ -1,12 +1,12 @@
 import * as crypto from "crypto"
+import * as db from "db/db"
 import { User } from "db/model/User"
 import * as express from "express"
 import * as randomstring from "randomstring"
-import { BCryptHasher } from "../../utils/hashers"
-
-import * as db from "db/db"
 import { SECRET_KEY, SESSION_COOKIE_AGE } from "serverSettings"
 import { JsonError } from "utils/server/serverUtil"
+
+import { BCryptHasher } from "../../utils/hashers"
 
 export type CurrentUser = User
 

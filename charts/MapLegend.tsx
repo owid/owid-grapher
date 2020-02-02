@@ -2,6 +2,7 @@ import { sum } from "d3-array"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { Bounds } from "./Bounds"
 import {
     CategoricalBin,

@@ -1,3 +1,10 @@
+import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Bounds } from "charts/Bounds"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChartView } from "charts/ChartView"
+import { capitalize, includes } from "charts/Util"
 import {
     action,
     autorun,
@@ -11,14 +18,6 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { Bounds } from "charts/Bounds"
-import { ChartConfig } from "charts/ChartConfig"
-import { ChartView } from "charts/ChartView"
-import { capitalize, includes } from "charts/Util"
-
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminLayout } from "./AdminLayout"
 import {

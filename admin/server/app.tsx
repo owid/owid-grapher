@@ -1,17 +1,17 @@
 import * as express from "express"
-require("express-async-errors")
-const cookieParser = require("cookie-parser")
-const expressErrorSlack = require("express-error-slack")
+import * as React from "react"
 import "reflect-metadata"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 import { renderToHtmlPage } from "utils/server/serverUtil"
+
 import { AdminSPA } from "./AdminSPA"
 import { adminViews } from "./adminViews"
 import { api, publicApi } from "./api"
 import { authMiddleware } from "./authentication"
 import { testPages } from "./testPages"
-
-import * as React from "react"
+require("express-async-errors")
+const cookieParser = require("cookie-parser")
+const expressErrorSlack = require("express-error-slack")
 
 const app = express()
 

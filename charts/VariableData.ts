@@ -1,5 +1,6 @@
 import { action, computed, observable, reaction } from "mobx"
 import { BAKED_GRAPHER_URL } from "settings"
+
 import { ChartConfig } from "./ChartConfig"
 import {
     each,

@@ -1,5 +1,4 @@
 import * as algoliasearch from "algoliasearch"
-
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"

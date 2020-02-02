@@ -9,6 +9,7 @@ import {
 import { observer } from "mobx-react"
 import * as React from "react"
 import { readConfigFromHTML } from "site/client/Grapher"
+
 import { ChartFigureView } from "./ChartFigureView"
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

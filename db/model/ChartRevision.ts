@@ -5,6 +5,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn
 } from "typeorm"
+
 import { Chart } from "./Chart"
 import { User } from "./User"
 

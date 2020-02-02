@@ -1,8 +1,6 @@
 import * as algoliasearch from "algoliasearch"
-
-import { countries, Country } from "utils/countries"
-
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
+import { countries, Country } from "utils/countries"
 
 let algolia: algoliasearch.Client | undefined
 

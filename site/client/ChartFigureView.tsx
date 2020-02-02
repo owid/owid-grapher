@@ -1,10 +1,9 @@
-import { action, observable } from "mobx"
-import { observer } from "mobx-react"
-import * as React from "react"
-
 import { Bounds } from "charts/Bounds"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartView } from "charts/ChartView"
+import { action, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 
 // Wrapper for ChartView that uses css on figure element to determine the bounds
 @observer

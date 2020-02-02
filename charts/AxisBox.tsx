@@ -11,6 +11,7 @@
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { AxisScale } from "./AxisScale"
 import { AxisSpec } from "./AxisSpec"
 import { Bounds } from "./Bounds"

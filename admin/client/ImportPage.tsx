@@ -1,6 +1,9 @@
 // WIP
 
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { clone, difference, isEmpty, keys, uniq } from "charts/Util"
+import * as parse from "csv-parse"
 import {
     action,
     computed,
@@ -13,9 +16,6 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { Redirect } from "react-router-dom"
 
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import * as parse from "csv-parse"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminLayout } from "./AdminLayout"
 import { BindString, FieldsRow, NumericSelectField } from "./Forms"

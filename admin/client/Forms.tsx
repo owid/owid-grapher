@@ -4,19 +4,20 @@
  * Reusable React components to keep admin UI succint and consistent
  */
 
-import { bind } from "decko"
-import * as _ from "lodash"
-import { action, observable } from "mobx"
-import { observer } from "mobx-react"
-import * as React from "react"
-
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
 import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { capitalize, extend, pick } from "charts/Util"
+import { bind } from "decko"
+import * as _ from "lodash"
+import { action, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+
 import { Colorpicker } from "./Colorpicker"
+import { Tag, TagBadge } from "./TagBadge"
 
 export class FieldsRow extends React.Component<{}> {
     render() {
@@ -847,7 +848,6 @@ export class Timeago extends React.Component<{ time: Date }> {
     }
 }
 
-import { Tag, TagBadge } from "./TagBadge"
 
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.

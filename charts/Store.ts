@@ -1,5 +1,6 @@
 import { observable, runInAction } from "mobx"
 import { BAKED_BASE_URL } from "settings"
+
 import { Indicator } from "./Indicator"
 import { difference, fetchJSON, values } from "./Util"
 

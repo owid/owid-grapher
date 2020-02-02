@@ -1,15 +1,15 @@
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as urlBinding from "charts/UrlBinding"
 import { select } from "d3-selection"
 import "d3-transition"
 import { action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-
-import * as urlBinding from "charts/UrlBinding"
 import { Analytics } from "site/client/Analytics"
 import { FullStory } from "site/client/FullStory"
+
 import { Bounds } from "./Bounds"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartTab } from "./ChartTab"

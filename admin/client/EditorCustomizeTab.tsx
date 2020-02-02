@@ -10,6 +10,7 @@ import { debounce, keysOf } from "charts/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { ChartEditor } from "./ChartEditor"
 import {
     BindAutoString,

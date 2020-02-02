@@ -1,5 +1,4 @@
 import * as nodemailer from "nodemailer"
-
 import {
     EMAIL_HOST,
     EMAIL_HOST_PASSWORD,

@@ -1,4 +1,5 @@
 import { computed, observable } from "mobx"
+
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import {

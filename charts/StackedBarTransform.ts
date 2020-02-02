@@ -1,4 +1,5 @@
 import { computed } from "mobx"
+
 import { AxisSpec } from "./AxisSpec"
 import { ChartConfig } from "./ChartConfig"
 import { Colorable, Colorizer } from "./Colorizer"

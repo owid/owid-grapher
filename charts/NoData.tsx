@@ -1,10 +1,10 @@
+import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { ChartView } from "./ChartView"

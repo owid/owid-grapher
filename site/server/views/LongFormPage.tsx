@@ -4,7 +4,9 @@ import { CategoryWithEntries } from "db/wpdb"
 import * as React from "react"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 import { TableOfContents } from "site/client/TableOfContents"
+
 import { formatAuthors, FormattedPost, FormattingOptions } from "../formatting"
+
 import { CitationMeta } from "./CitationMeta"
 import { Head } from "./Head"
 import { SiteFooter } from "./SiteFooter"

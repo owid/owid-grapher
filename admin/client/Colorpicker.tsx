@@ -2,6 +2,7 @@ import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 import { lastOfNonEmptyArray } from "charts/Util"
 import { action } from "mobx"
 import * as React from "react"
+
 import { TextField } from "./Forms"
 
 export interface ColorpickerProps {

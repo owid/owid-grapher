@@ -1,5 +1,6 @@
 import { findIndex } from "lodash"
 import { computed } from "mobx"
+
 import { AxisSpec } from "./AxisSpec"
 import { ChartConfig } from "./ChartConfig"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"

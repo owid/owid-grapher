@@ -4,6 +4,7 @@ import { action, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { siteSearch, SiteSearchResults } from "site/siteSearch"
+
 import { SearchResults } from "./SearchResults"
 
 class HeaderSearchResults extends React.Component<{

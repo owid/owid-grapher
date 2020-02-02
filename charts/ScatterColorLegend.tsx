@@ -1,6 +1,7 @@
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { Colorable } from "./Colorizer"
 import { TextWrap } from "./TextWrap"
 import { includes, max, sum } from "./Util"

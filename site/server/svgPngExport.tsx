@@ -1,3 +1,4 @@
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import * as fs from "fs-extra"
 import * as path from "path"
 import * as sharp from "sharp"
@@ -6,7 +7,6 @@ declare var global: any
 global.window = { location: { search: "" } }
 global.App = { isEditor: false }
 
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
 export async function chartToSVG(
     jsonConfig: ChartConfigProps,

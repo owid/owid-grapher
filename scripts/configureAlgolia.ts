@@ -1,5 +1,4 @@
 import * as algoliasearch from "algoliasearch"
-
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { ALGOLIA_ID } from "settings"
 import { countries } from "utils/countries"

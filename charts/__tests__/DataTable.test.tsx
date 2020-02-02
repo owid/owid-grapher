@@ -1,7 +1,7 @@
 import { shallow, ShallowWrapper } from "enzyme"
 import * as React from "react"
-
 import * as fixtures from "test/fixtures"
+
 import { ChartConfig, ChartConfigProps } from "../ChartConfig"
 import { DataTable } from "../DataTable"
 

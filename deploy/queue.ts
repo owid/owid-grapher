@@ -3,6 +3,7 @@ import {
     DEPLOY_PENDING_FILE_PATH,
     DEPLOY_QUEUE_FILE_PATH
 } from "serverSettings"
+
 import { deploy } from "./deploy"
 
 const MAX_SUCCESSIVE_FAILURES = 2

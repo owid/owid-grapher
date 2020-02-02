@@ -14,6 +14,13 @@ import { select } from "d3-selection"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
+import { Bounds } from "./Bounds"
+import { NoData } from "./NoData"
+import { ScaleSelector } from "./ScaleSelector"
+import { ScaleType } from "./ScaleType"
+import { Text } from "./Text"
+import { TextWrap } from "./TextWrap"
 import {
     every,
     extend,
@@ -25,13 +32,6 @@ import {
     max,
     sortBy
 } from "./Util"
-
-import { Bounds } from "./Bounds"
-import { NoData } from "./NoData"
-import { ScaleSelector } from "./ScaleSelector"
-import { ScaleType } from "./ScaleType"
-import { Text } from "./Text"
-import { TextWrap } from "./TextWrap"
 import { SVGElement } from "./Util"
 import { domainExtent, getRelativeMouse } from "./Util"
 

@@ -1,3 +1,5 @@
+import { extent } from "d3-array"
+import { format } from "d3-format"
 import {
     capitalize,
     ceil,
@@ -54,6 +56,11 @@ import {
     values,
     without
 } from "lodash"
+import * as striptags from "striptags"
+import * as parseUrl from "url-parse"
+
+import { TickFormattingOptions } from "./TickFormattingOptions"
+import { Vector2 } from "./Vector2"
 export {
     isEqual,
     map,
@@ -111,12 +118,6 @@ export {
     sortedUniq
 }
 
-import { extent } from "d3-array"
-import { format } from "d3-format"
-import * as striptags from "striptags"
-
-import { TickFormattingOptions } from "./TickFormattingOptions"
-import { Vector2 } from "./Vector2"
 
 export type SVGElement = any
 export type VNode = any
@@ -426,7 +427,6 @@ export function csvEscape(value: any): string {
     else return value
 }
 
-import * as parseUrl from "url-parse"
 
 export function urlToSlug(url: string): string {
     const urlobj = parseUrl(url)

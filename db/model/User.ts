@@ -5,7 +5,9 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm"
+
 import { BCryptHasher } from "../../utils/hashers"
+
 import { Chart } from "./Chart"
 import { ChartRevision } from "./ChartRevision"
 import { Dataset } from "./Dataset"

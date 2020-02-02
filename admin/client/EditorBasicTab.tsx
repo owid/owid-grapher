@@ -1,14 +1,13 @@
-import { action, IReactionDisposer, observable, reaction } from "mobx"
-import { observer } from "mobx-react"
-import * as React from "react"
-
 import { DimensionSlot } from "charts/ChartConfig"
 import { ChartDimension } from "charts/ChartDimension"
 import { ChartTypeDefs, ChartTypeType } from "charts/ChartType"
 import { DimensionWithData } from "charts/DimensionWithData"
 import { includes, sample, sampleSize } from "charts/Util"
-
+import { action, IReactionDisposer, observable, reaction } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 import { canBeExplorable } from "utils/charts"
+
 import { ChartEditor } from "./ChartEditor"
 import { DimensionCard } from "./DimensionCard"
 import { EditableList, FieldsRow, Section, SelectField, Toggle } from "./Forms"

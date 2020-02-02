@@ -1,3 +1,9 @@
+import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
+import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import { bind } from "decko"
@@ -12,16 +18,9 @@ import {
 import { observer } from "mobx-react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { HeaderSearch } from "./HeaderSearch"
-
-import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
-import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
-import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { AmazonMenu } from "./AmazonMenu"
+import { HeaderSearch } from "./HeaderSearch"
 
 @observer
 export class Header extends React.Component<{

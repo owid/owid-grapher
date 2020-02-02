@@ -1,5 +1,6 @@
 import { computed } from "mobx"
 import React = require("react")
+
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { ChartView } from "./ChartView"

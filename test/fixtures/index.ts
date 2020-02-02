@@ -1,8 +1,7 @@
-import * as fs from "fs"
-
 import { ChartConfigProps } from "charts/ChartConfig"
 import { Indicator } from "charts/Indicator"
 import { DataForChart } from "charts/VariableData"
+import * as fs from "fs"
 
 export function readBuffer(fixture: string) {
     return fs.readFileSync(`test/fixtures/${fixture}.json`)

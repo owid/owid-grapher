@@ -2,6 +2,7 @@ import { action, autorun, computed, observable, runInAction, toJS } from "mobx"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { canBeExplorable } from "utils/charts"
+
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { Bounds } from "./Bounds"
 import { ChartData } from "./ChartData"

@@ -13,6 +13,7 @@ import {
     queryParamsToStr,
     strToQueryParams
 } from "utils/client/url"
+
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { ChartTabOption } from "./ChartTabOption"
 import { MapProjection } from "./MapProjection"

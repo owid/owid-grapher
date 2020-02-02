@@ -1,5 +1,7 @@
+import { defaultTo } from "charts/Util"
 import { DatabaseConnection } from "db/DatabaseConnection"
 import { decodeHTML } from "entities"
+import { Base64 } from "js-base64"
 import * as Knex from "knex"
 import fetch from "node-fetch"
 import {
@@ -12,11 +14,10 @@ import {
     WORDPRESS_DB_USER
 } from "serverSettings"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
+
+import { registerExitHandler } from "./cleanup"
 const urlSlug = require("url-slug")
 
-import { defaultTo } from "charts/Util"
-import { Base64 } from "js-base64"
-import { registerExitHandler } from "./cleanup"
 
 class WPDB {
     conn?: DatabaseConnection

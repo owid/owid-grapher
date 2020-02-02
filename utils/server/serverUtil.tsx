@@ -1,3 +1,4 @@
+import * as filenamify from "filenamify"
 import * as _ from "lodash"
 import * as ReactDOMServer from "react-dom/server"
 import * as settings from "settings"
@@ -98,5 +99,4 @@ export const splitOnLastWord = (s: string) => {
     }
 }
 
-import * as filenamify from "filenamify"
 export { filenamify }

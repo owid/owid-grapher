@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as settings from "settings"
+
 import { Head } from "./Head"
 
 export default function SubscribePage() {

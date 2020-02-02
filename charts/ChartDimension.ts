@@ -2,6 +2,7 @@
 // and a particular variable that it requests as data
 
 import { observable } from "mobx"
+
 import { extend } from "./Util"
 import { VariableDisplaySettings } from "./VariableData"
 

@@ -1,4 +1,5 @@
 import { computed } from "mobx"
+
 import { ChartEditor } from "./ChartEditor"
 
 // Responsible for determining what parts of the editor should be shown, based on the

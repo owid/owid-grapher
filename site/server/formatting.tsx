@@ -1,5 +1,4 @@
 import * as cheerio from "cheerio"
-const urlSlug = require("url-slug")
 import { FullPost, getTables } from "db/wpdb"
 import * as _ from "lodash"
 import * as path from "path"
@@ -8,8 +7,10 @@ import * as ReactDOMServer from "react-dom/server"
 import { HTTPS_ONLY } from "serverSettings"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 import { renderBlocks } from "site/client/blocks"
+
 import { GrapherExports } from "./grapherUtil"
 import Tablepress from "./views/Tablepress"
+const urlSlug = require("url-slug")
 
 const mjAPI = require("mathjax-node")
 

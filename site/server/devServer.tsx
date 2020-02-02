@@ -1,10 +1,8 @@
-import * as express from "express"
-require("express-async-errors")
-import * as path from "path"
-
 import * as db from "db/db"
 import { OldChart } from "db/model/Chart"
 import * as wpdb from "db/wpdb"
+import * as express from "express"
+import * as path from "path"
 import { BAKED_SITE_DIR, BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
     BAKED_DEV_SERVER_HOST,
@@ -30,9 +28,11 @@ import {
     renderSearchPage
 } from "site/server/siteBaking"
 import { expectInt, JsonError } from "utils/server/serverUtil"
+
 import { countriesIndexPage, countryProfilePage } from "./countryProfiles"
 import { makeSitemap } from "./sitemap"
 import { chartToSVG } from "./svgPngExport"
+require("express-async-errors")
 
 const devServer = express()
 

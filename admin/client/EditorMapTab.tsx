@@ -10,6 +10,7 @@ import { clone, extend, isEmpty, map, noop } from "charts/Util"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { ChartEditor } from "./ChartEditor"
 import {
     BindAutoFloat,

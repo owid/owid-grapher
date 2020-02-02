@@ -1,4 +1,5 @@
 import { computed, toJS } from "mobx"
+
 import { ChartConfig } from "./ChartConfig"
 import { Color } from "./Color"
 import { DataKey } from "./DataKey"

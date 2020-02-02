@@ -1,3 +1,4 @@
+import * as db from "db/db"
 import { Writable } from "stream"
 import {
     BaseEntity,
@@ -7,9 +8,8 @@ import {
     PrimaryGeneratedColumn,
     Unique
 } from "typeorm"
-
-import * as db from "db/db"
 import { csvRow, filenamify, slugify } from "utils/server/serverUtil"
+
 import { Source } from "./Source"
 import { User } from "./User"
 import { Variable } from "./Variable"

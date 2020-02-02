@@ -11,6 +11,7 @@ chart.interactive(domNode)
 
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { ChartView } from "./ChartView"

@@ -10,6 +10,7 @@ import {
     SiteSearchResults
 } from "site/siteSearch"
 import { Country } from "utils/countries"
+
 import { EmbedChart } from "./EmbedChart"
 
 class ChartResult extends React.Component<{

@@ -1,8 +1,7 @@
-import * as _ from "lodash"
-import { Writable } from "stream"
-
 import { VariableDisplaySettings } from "charts/VariableData"
 import * as db from "db/db"
+import * as _ from "lodash"
+import { Writable } from "stream"
 import { csvRow } from "utils/server/serverUtil"
 
 export namespace Variable {

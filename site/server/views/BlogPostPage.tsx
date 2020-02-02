@@ -1,11 +1,13 @@
 import * as React from "react"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
+
 import {
     formatAuthors,
     formatDate,
     FormattedPost,
     FormattingOptions
 } from "../formatting"
+
 import { Head } from "./Head"
 import { SiteFooter } from "./SiteFooter"
 import { SiteHeader } from "./SiteHeader"

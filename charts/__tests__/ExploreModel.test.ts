@@ -1,4 +1,5 @@
 import { RootStore } from "charts/Store"
+
 import { ChartType } from "../ChartType"
 import { ExploreModel } from "../ExploreModel"
 

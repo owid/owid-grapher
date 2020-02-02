@@ -1,9 +1,11 @@
+import { ExploreModel } from "charts/ExploreModel"
+import { RootStore } from "charts/Store"
 import { mount, ReactWrapper, shallow } from "enzyme"
 import { observe } from "mobx"
 import * as React from "react"
+import * as apiMock from "test/apiMock"
+import * as fixtures from "test/fixtures"
 
-import { ExploreModel } from "charts/ExploreModel"
-import { RootStore } from "charts/Store"
 import { Bounds } from "../Bounds"
 import { ChartType } from "../ChartType"
 import { ChartView } from "../ChartView"
@@ -14,9 +16,6 @@ import { LineChart } from "../LineChart"
 import { SlopeChart } from "../SlopeChart"
 import { StackedArea } from "../StackedArea"
 import { StackedBarChart } from "../StackedBarChart"
-
-import * as apiMock from "test/apiMock"
-import * as fixtures from "test/fixtures"
 
 const bounds = new Bounds(0, 0, 800, 600)
 const indicator = fixtures.readIndicators().indicators[0]

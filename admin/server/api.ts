@@ -1,9 +1,3 @@
-import * as bodyParser from "body-parser"
-import * as express from "express"
-import { Router } from "express"
-import * as _ from "lodash"
-import { getConnection } from "typeorm"
-
 import { ChartRedirect, PostReference } from "admin/client/ChartEditor"
 import { CountryDefByKey, CountryNameFormat } from "admin/CountryNameFormat"
 import {
@@ -11,6 +5,7 @@ import {
     syncDatasetToGitRepo
 } from "admin/server/gitDataExport"
 import { sendMail } from "admin/server/mail"
+import * as bodyParser from "body-parser"
 import { ChartConfigProps } from "charts/ChartConfig"
 import * as db from "db/db"
 import { Chart, OldChart } from "db/model/Chart"
@@ -22,9 +17,13 @@ import { UserInvitation } from "db/model/UserInvitation"
 import { getVariableData, writeVariableCSV } from "db/model/Variable"
 import * as wpdb from "db/wpdb"
 import { enqueueDeploy } from "deploy/queue"
+import * as express from "express"
+import { Router } from "express"
+import * as _ from "lodash"
 import { BAKE_ON_CHANGE, UNCATEGORIZED_TAG_ID } from "serverSettings"
 import { BAKED_BASE_URL } from "settings"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
+import { getConnection } from "typeorm"
 import { isExplorable } from "utils/charts"
 import { camelCaseProperties } from "utils/object"
 import { log } from "utils/server/log"
@@ -34,6 +33,7 @@ import {
     isValidSlug,
     JsonError
 } from "utils/server/serverUtil"
+
 import { CurrentUser, Request, Response } from "./authentication"
 
 // Little wrapper to automatically send returned objects as JSON, makes

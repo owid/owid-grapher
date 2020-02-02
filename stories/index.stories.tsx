@@ -1,8 +1,6 @@
-import * as React from "react"
-
 import { storiesOf } from "@storybook/react"
-
 import "charts/client/chart.scss"
+import * as React from "react"
 import { ChartStoryView } from "site/client/ChartStoryView"
 import { FeedbackForm } from "site/client/Feedback"
 import "site/client/owid.scss"

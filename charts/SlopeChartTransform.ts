@@ -1,4 +1,5 @@
 import { computed } from "mobx"
+
 import { ChartConfig } from "./ChartConfig"
 import { Colorable, Colorizer } from "./Colorizer"
 import { DimensionWithData } from "./DimensionWithData"

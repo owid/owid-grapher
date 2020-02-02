@@ -1,16 +1,16 @@
+import { ChartTypeDefsByKey } from "charts/ChartType"
+import { bind } from "decko"
+import * as _ from "lodash"
 import { action, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
-const timeago = require("timeago.js")()
-import * as _ from "lodash"
-
-import { ChartTypeDefsByKey } from "charts/ChartType"
-import { bind } from "decko"
 import { BAKED_GRAPHER_URL } from "settings"
+
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { EditableTags } from "./Forms"
 import { Link } from "./Link"
 import { Tag } from "./TagBadge"
+const timeago = require("timeago.js")()
 
 export interface ChartListItem {
     id: number

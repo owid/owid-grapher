@@ -1,6 +1,5 @@
-import { observe } from "mobx"
-
 import { IndicatorStore, RootStore } from "charts/Store"
+import { observe } from "mobx"
 import * as apiMock from "test/apiMock"
 import * as fixtures from "test/fixtures"
 

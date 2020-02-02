@@ -1,9 +1,9 @@
 import * as algoliasearch from "algoliasearch"
-import * as _ from "lodash"
-
 import * as db from "db/db"
+import * as _ from "lodash"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { ALGOLIA_ID } from "settings"
+
 import { configureAlgolia } from "./configureAlgolia"
 
 async function indexChartsToAlgolia() {

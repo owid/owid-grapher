@@ -1,7 +1,6 @@
-import * as _ from "lodash"
-
 import { ChartConfigProps } from "charts/ChartConfig"
 import { ChartTypeType } from "charts/ChartType"
+import * as _ from "lodash"
 import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeType[] = [

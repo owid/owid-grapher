@@ -1,17 +1,3 @@
-import * as Cookies from "js-cookie"
-import { action, computed, observable } from "mobx"
-import { observer } from "mobx-react"
-import * as React from "react"
-
-import { ADMIN_BASE_URL, ENV } from "settings"
-import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { ChartConfig } from "./ChartConfig"
-import { HighlightToggleConfig } from "./ChartConfig"
-import { ChartView } from "./ChartView"
-import { Timeline } from "./HTMLTimeline"
-import { entries, extend, keys } from "./Util"
-import { labelsByRegion, worldRegions } from "./WorldRegions"
-
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
@@ -24,7 +10,20 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as Cookies from "js-cookie"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { ADMIN_BASE_URL, ENV } from "settings"
+import { getQueryParams, getWindowQueryParams } from "utils/client/url"
+
+import { ChartConfig } from "./ChartConfig"
+import { HighlightToggleConfig } from "./ChartConfig"
+import { ChartView } from "./ChartView"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { Timeline } from "./HTMLTimeline"
+import { entries, extend, keys } from "./Util"
+import { labelsByRegion, worldRegions } from "./WorldRegions"
 
 @observer
 class EmbedMenu extends React.Component<{

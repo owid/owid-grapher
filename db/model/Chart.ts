@@ -10,6 +10,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm"
+
 import { ChartRevision } from "./ChartRevision"
 import { User } from "./User"
 import { getVariableData } from "./Variable"

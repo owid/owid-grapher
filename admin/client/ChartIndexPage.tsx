@@ -1,13 +1,14 @@
+import { uniq } from "charts/Util"
 import { action, computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
-const fuzzysort = require("fuzzysort")
 
-import { uniq } from "charts/Util"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminLayout } from "./AdminLayout"
 import { ChartList, ChartListItem } from "./ChartList"
 import { TextField } from "./Forms"
+const fuzzysort = require("fuzzysort")
+
 
 interface Searchable {
     chart: ChartListItem

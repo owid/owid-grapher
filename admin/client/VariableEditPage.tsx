@@ -13,6 +13,7 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
 import { ChartFigureView } from "site/client/ChartFigureView"
+
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminLayout } from "./AdminLayout"
 import { ChartList, ChartListItem } from "./ChartList"

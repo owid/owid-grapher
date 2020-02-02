@@ -1,11 +1,10 @@
 // This import has side-effects to do with React import binding, keep it up here
-import { ADMIN_SERVER_HOST, ADMIN_SERVER_PORT } from "settings"
-
-import { app } from "./app"
-
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
+import { ADMIN_SERVER_HOST, ADMIN_SERVER_PORT } from "settings"
 import { log } from "utils/server/log"
+
+import { app } from "./app"
 
 async function main() {
     try {

@@ -12,6 +12,7 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { FieldsRow, Modal, SelectField, TextField, Toggle } from "./Forms"
 const fuzzysort = require("fuzzysort")

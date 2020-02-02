@@ -1,24 +1,23 @@
 // Misc non-SPA views
+import * as db from "db/db"
+import { Dataset } from "db/model/Dataset"
+import { User } from "db/model/User"
+import { UserInvitation } from "db/model/UserInvitation"
 import { Router } from "express"
 import * as filenamify from "filenamify"
 import * as React from "react"
+import { renderPageById } from "site/server/siteBaking"
 import { getConnection } from "typeorm"
-
-import * as db from "db/db"
-import { Dataset } from "db/model/Dataset"
 import {
     expectInt,
     JsonError,
     renderToHtmlPage,
     tryInt
 } from "utils/server/serverUtil"
+
 import { tryLogin } from "./authentication"
 import { LoginPage } from "./LoginPage"
 import { RegisterPage } from "./RegisterPage"
-
-import { User } from "db/model/User"
-import { UserInvitation } from "db/model/UserInvitation"
-import { renderPageById } from "site/server/siteBaking"
 
 const adminViews = Router()
 

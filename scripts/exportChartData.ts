@@ -3,7 +3,6 @@
 import * as db from "db/db"
 import * as _ from "lodash"
 import * as parseArgs from "minimist"
-
 import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from "serverSettings"
 import { exec } from "utils/server/serverUtil"
 

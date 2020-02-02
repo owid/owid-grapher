@@ -1,17 +1,17 @@
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import * as db from "db/db"
+import { getVariableData } from "db/model/Variable"
+import * as fs from "fs-extra"
 import * as _ from "lodash"
 import * as parseArgs from "minimist"
 import * as parseUrl from "url-parse"
 const argv = parseArgs(process.argv.slice(2))
-import { getVariableData } from "db/model/Variable"
-import * as fs from "fs-extra"
 const md5 = require("md5")
 
 declare var global: any
 global.window = { location: { search: "" } }
 global.App = { isEditor: false }
 
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
 async function getChartsBySlug() {
     const chartsBySlug: Map<string, ChartConfigProps> = new Map()

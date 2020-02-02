@@ -1,9 +1,9 @@
 import { bind } from "decko"
+import { observer } from "mobx-react"
 import * as React from "react"
 import { ValueType } from "react-select"
 import AsyncSelect from "react-select/async"
 
-import { observer } from "mobx-react"
 import {
     ExplorerViewContext,
     ExplorerViewContextType

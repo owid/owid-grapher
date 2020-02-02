@@ -3,6 +3,7 @@ import { curveLinear, line as d3_line } from "d3-shape"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { AxisBox } from "./AxisBox"
 import { Bounds } from "./Bounds"
 import { evalEquation } from "./evalEquation"

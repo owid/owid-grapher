@@ -1,7 +1,6 @@
 import { groupBy, sum } from "lodash"
-import * as Stripe from "stripe"
-
 import { STRIPE_SECRET_KEY } from "serverSettings"
+import * as Stripe from "stripe"
 import { csvRow } from "utils/server/serverUtil"
 
 const stripe = new Stripe(STRIPE_SECRET_KEY)

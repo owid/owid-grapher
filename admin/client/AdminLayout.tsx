@@ -1,9 +1,9 @@
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminSidebar } from "./AdminSidebar"
 import { EditorFAQ } from "./EditorFAQ"

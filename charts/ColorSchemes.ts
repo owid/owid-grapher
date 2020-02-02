@@ -1,6 +1,7 @@
 import * as colorbrewer from "colorbrewer"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
+
 import { Color } from "./Color"
 import { clone, lastOfNonEmptyArray } from "./Util"
 

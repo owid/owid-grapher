@@ -1,4 +1,12 @@
+import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChartType } from "charts/ChartType"
+import { VariableDisplaySettings } from "charts/VariableData"
 import * as filenamify from "filenamify"
+import { Base64 } from "js-base64"
 import * as _ from "lodash"
 import {
     action,
@@ -12,18 +20,8 @@ import {
 import { observer } from "mobx-react"
 import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
-const timeago = require("timeago.js")()
-
-import { VariableDisplaySettings } from "charts/VariableData"
-
-import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ChartConfig } from "charts/ChartConfig"
-import { ChartType } from "charts/ChartType"
-import { Base64 } from "js-base64"
 import { ChartFigureView } from "site/client/ChartFigureView"
+
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { AdminLayout } from "./AdminLayout"
 import { ChartList, ChartListItem } from "./ChartList"
@@ -31,6 +29,8 @@ import { BindFloat, BindString, EditableTags, FieldsRow, Toggle } from "./Forms"
 import { Link } from "./Link"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
+const timeago = require("timeago.js")()
+
 
 class VariableEditable {
     @observable name: string = ""

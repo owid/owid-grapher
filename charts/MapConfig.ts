@@ -1,4 +1,5 @@
 import { computed, observable } from "mobx"
+
 import { ChartConfig } from "./ChartConfig"
 import { Color } from "./Color"
 import { MapData } from "./MapData"

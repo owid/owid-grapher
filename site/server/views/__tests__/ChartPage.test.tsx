@@ -1,13 +1,12 @@
-import { shallow, ShallowWrapper } from "enzyme"
-import * as React from "react"
-
 import { ChartConfigProps } from "charts/ChartConfig"
 import { extend } from "charts/Util"
+import { shallow, ShallowWrapper } from "enzyme"
+import * as React from "react"
+import * as fixtures from "test/fixtures"
+
 import { ChartPage } from "../ChartPage"
 import { SiteFooter } from "../SiteFooter"
 import { SiteHeader } from "../SiteHeader"
-
-import * as fixtures from "test/fixtures"
 
 describe(ChartPage, () => {
     let chart: ChartConfigProps

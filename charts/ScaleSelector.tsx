@@ -11,6 +11,7 @@
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
+
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ScaleType } from "./ScaleType"
 

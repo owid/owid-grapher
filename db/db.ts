@@ -2,6 +2,7 @@ import * as Knex from "knex"
 import * as mysql from "mysql"
 import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from "serverSettings"
 import * as typeorm from "typeorm"
+
 import { registerExitHandler } from "./cleanup"
 let connection: typeorm.Connection
 

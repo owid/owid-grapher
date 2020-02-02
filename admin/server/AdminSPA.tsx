@@ -1,7 +1,7 @@
 import * as _ from "lodash"
 import * as React from "react"
-
 import * as settings from "settings"
+
 import { webpack } from "./webpack"
 
 export function AdminSPA(props: { username: string; isSuperuser: boolean }) {

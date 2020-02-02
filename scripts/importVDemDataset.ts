@@ -1,11 +1,9 @@
+import * as db from "db/db"
 import * as fs from "fs-extra"
 import * as _ from "lodash"
-import * as XLSX from "xlsx"
-
 import { CSVStreamParser, parseCSV } from "utils/csv"
 import { findUrlsInText } from "utils/string"
-
-import * as db from "db/db"
+import * as XLSX from "xlsx"
 const CODEBOOK_FILE =
     "/Users/mispy/Bulk imports/2018 V-Dem Dataset/Original/codebook_current_20180604.xlsx"
 const DATA_FILE =

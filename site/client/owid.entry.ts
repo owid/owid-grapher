@@ -2,20 +2,18 @@
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
-import "charts/client/chart.scss"
-import "site/client/owid.scss"
-import "./oldScripts.js"
-
-const SmoothScroll = require("smooth-scroll")
-
 import { ChartView } from "charts/ChartView"
+import "charts/client/chart.scss"
 import { ExploreView } from "charts/ExploreView"
 import { Grapher } from "site/client/Grapher"
+import "site/client/owid.scss"
+
 import { Analytics } from "./Analytics"
 import { runBlocks } from "./blocks"
 import { runDonateForm } from "./DonateForm"
 import { runFeedback, runFeedbackPage } from "./Feedback"
 import { runNotFoundPage } from "./NotFoundPageMain"
+import "./oldScripts.js"
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runCookieNotice } from "./runCookieNotice"
 import { runCountryProfilePage } from "./runCountryProfilePage"
@@ -24,6 +22,9 @@ import { runSearchPage } from "./SearchPageMain"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runTableOfContents } from "./TableOfContents"
 import { getParent } from "./utils"
+
+const SmoothScroll = require("smooth-scroll")
+
 
 declare var window: any
 window.Grapher = Grapher

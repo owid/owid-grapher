@@ -1,5 +1,12 @@
 import { deviation, mean } from "d3-array"
 import { autorun, computed, reaction, runInAction, toJS } from "mobx"
+
+import { ChartConfig } from "./ChartConfig"
+import { ChoroplethData } from "./ChoroplethMap"
+import { Color } from "./Color"
+import { ColorScheme, ColorSchemes } from "./ColorSchemes"
+import { DimensionWithData } from "./DimensionWithData"
+import { MapTopology } from "./MapTopology"
 import {
     each,
     extend,
@@ -14,13 +21,6 @@ import {
     sortedUniq,
     toArray
 } from "./Util"
-
-import { ChartConfig } from "./ChartConfig"
-import { ChoroplethData } from "./ChoroplethMap"
-import { Color } from "./Color"
-import { ColorScheme, ColorSchemes } from "./ColorSchemes"
-import { DimensionWithData } from "./DimensionWithData"
-import { MapTopology } from "./MapTopology"
 import { defaultTo, findClosest, isString, last } from "./Util"
 import { entityNameForMap } from "./Util"
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as settings from "settings"
-
 import { webpack } from "utils/server/staticGen"
+
 import { Head } from "./Head"
 import { SiteFooter } from "./SiteFooter"
 import { SiteHeader } from "./SiteHeader"

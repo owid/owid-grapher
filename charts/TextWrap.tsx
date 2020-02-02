@@ -1,5 +1,6 @@
 import { computed } from "mobx"
 import * as React from "react"
+
 import { Bounds } from "./Bounds"
 import { FontSize } from "./FontSize"
 import { isEmpty, max, reduce, stripHTML } from "./Util"

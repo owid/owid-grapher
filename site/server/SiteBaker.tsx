@@ -1,18 +1,23 @@
+import { ChartConfigProps } from "charts/ChartConfig"
 import * as cheerio from "cheerio"
 import * as db from "db/db"
+import { Post } from "db/model/Post"
+import { getVariableData } from "db/model/Variable"
 import * as wpdb from "db/wpdb"
 import * as fs from "fs-extra"
 import * as glob from "glob"
 import { without } from "lodash"
 import * as _ from "lodash"
 import * as path from "path"
+import * as React from "react"
 import { BAKED_SITE_DIR, BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import * as settings from "settings"
 import * as shell from "shelljs"
+
+import { chartPage } from "./chartBaking"
+import { bakeCountries } from "./countryProfiles"
+import { embedSnippet } from "./embedCharts"
 import { extractFormattingOptions, formatPost } from "./formatting"
-import { BlogPostPage } from "./views/BlogPostPage"
-import { LongFormPage } from "./views/LongFormPage"
-const { BLOG_POSTS_PER_PAGE } = settings
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -35,15 +40,10 @@ import {
     renderToHtmlPage
 } from "./siteBaking"
 import { makeSitemap } from "./sitemap"
-
-import { ChartConfigProps } from "charts/ChartConfig"
-import { Post } from "db/model/Post"
-import { getVariableData } from "db/model/Variable"
-import * as React from "react"
-import { chartPage } from "./chartBaking"
-import { bakeCountries } from "./countryProfiles"
-import { embedSnippet } from "./embedCharts"
 import { bakeImageExports } from "./svgPngExport"
+import { BlogPostPage } from "./views/BlogPostPage"
+import { LongFormPage } from "./views/LongFormPage"
+const { BLOG_POSTS_PER_PAGE } = settings
 
 // Static site generator using Wordpress
 

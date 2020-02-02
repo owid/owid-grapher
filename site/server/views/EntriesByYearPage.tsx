@@ -1,9 +1,9 @@
-import React = require("react")
-
 import { Post } from "db/model/Post"
 import _ = require("lodash")
 import moment = require("moment")
+import React = require("react")
 import { BAKED_BASE_URL } from "settings"
+
 import { Head } from "./Head"
 import { SiteFooter } from "./SiteFooter"
 import { SiteHeader } from "./SiteHeader"

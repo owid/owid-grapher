@@ -3,6 +3,7 @@ import * as wpdb from "db/wpdb"
 import { decodeHTML } from "entities"
 import { QueryBuilder } from "knex"
 import * as _ from "lodash"
+
 import { Tag } from "./Tag"
 
 export namespace Post {

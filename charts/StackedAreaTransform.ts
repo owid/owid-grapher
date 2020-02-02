@@ -1,5 +1,6 @@
 import { scaleOrdinal } from "d3-scale"
 import { computed } from "mobx"
+
 import { AxisSpec } from "./AxisSpec"
 import { ChartConfig } from "./ChartConfig"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"

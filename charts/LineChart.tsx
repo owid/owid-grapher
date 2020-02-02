@@ -5,14 +5,13 @@
  *
  */
 
+import { extent } from "d3-array"
 import { easeLinear } from "d3-ease"
 import { select } from "d3-selection"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
-import { guid, last, sortBy } from "./Util"
 
-import { extent } from "d3-array"
 import { AxisBox } from "./AxisBox"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
@@ -23,6 +22,7 @@ import { Lines } from "./Lines"
 import { NoData } from "./NoData"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
 import { Tooltip } from "./Tooltip"
+import { guid, last, sortBy } from "./Util"
 import { formatYear } from "./Util"
 
 export interface LineChartValue {

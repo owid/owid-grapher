@@ -1,12 +1,11 @@
 // Testing pages for comparing local charts against live versions
 
-import { Router } from "express"
-import * as React from "react"
-
 import * as db from "db/db"
 import { Chart, OldChart } from "db/model/Chart"
+import { Router } from "express"
 import * as _ from "lodash"
 import * as querystring from "querystring"
+import * as React from "react"
 import { ADMIN_BASE_URL, BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { chartToSVG } from "site/server/svgPngExport"
 import { Head } from "site/server/views/Head"
