@@ -1,7 +1,7 @@
-import { WEBPACK_OUTPUT_PATH } from "serverSettings"
-import { ENV, WEBPACK_DEV_URL } from "settings"
 import * as fs from "fs-extra"
 import * as path from "path"
+import { WEBPACK_OUTPUT_PATH } from "serverSettings"
+import { ENV, WEBPACK_DEV_URL } from "settings"
 import urljoin = require("url-join")
 
 export function webpack(assetName: string) {

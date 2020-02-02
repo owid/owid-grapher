@@ -1,13 +1,13 @@
 import * as React from "react"
 
-import { JsonError } from "utils/server/serverUtil"
-import { Chart } from "db/model/Chart"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { ChartPage } from "site/server/views/ChartPage"
-import { renderToHtmlPage } from "site/server/siteBaking"
-import { getVariableData } from "db/model/Variable"
-import { Post } from "db/model/Post"
 import { urlToSlug } from "charts/Util"
+import { Chart } from "db/model/Chart"
+import { Post } from "db/model/Post"
+import { getVariableData } from "db/model/Variable"
+import { renderToHtmlPage } from "site/server/siteBaking"
+import { ChartPage } from "site/server/views/ChartPage"
+import { JsonError } from "utils/server/serverUtil"
 
 export async function chartDataJson(variableIds: number[]) {
     return await getVariableData(variableIds)

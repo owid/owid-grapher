@@ -1,8 +1,8 @@
+import { exit } from "db/cleanup"
 import { syncPostToGrapher } from "db/model/Post"
+import { enqueueDeploy } from "deploy/queue"
 import * as parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "serverSettings"
-import { enqueueDeploy } from "deploy/queue"
-import { exit } from "db/cleanup"
 const argv = parseArgs(process.argv.slice(2))
 
 async function main(

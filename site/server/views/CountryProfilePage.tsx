@@ -1,9 +1,9 @@
-import * as settings from "settings"
 import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import * as settings from "settings"
 import urljoin = require("url-join")
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export interface CountryProfileIndicator {
     name: string

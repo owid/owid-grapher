@@ -2,10 +2,10 @@ import * as React from "react"
 
 import { storiesOf } from "@storybook/react"
 
-import { FeedbackForm } from "site/client/Feedback"
-import { ChartStoryView } from "site/client/ChartStoryView"
-import "site/client/owid.scss"
 import "charts/client/chart.scss"
+import { ChartStoryView } from "site/client/ChartStoryView"
+import { FeedbackForm } from "site/client/Feedback"
+import "site/client/owid.scss"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 

@@ -1,9 +1,9 @@
-import * as React from "react"
 import { shallow } from "enzyme"
+import * as React from "react"
 
 import { ExplorePage } from "../ExplorePage"
-import { SiteHeader } from "../SiteHeader"
 import { SiteFooter } from "../SiteFooter"
+import { SiteHeader } from "../SiteHeader"
 
 describe(ExplorePage, () => {
     it("renders a site header", () => {

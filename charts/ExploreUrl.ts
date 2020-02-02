@@ -1,10 +1,10 @@
 import { computed } from "mobx"
 
-import { ObservableUrl } from "./UrlBinding"
-import { ExploreModel, ExplorerChartType } from "./ExploreModel"
-import { ChartUrl, ChartQueryParams } from "./ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { omit, extend } from "./Util"
+import { ChartQueryParams, ChartUrl } from "./ChartUrl"
+import { ExploreModel, ExplorerChartType } from "./ExploreModel"
+import { ObservableUrl } from "./UrlBinding"
+import { extend, omit } from "./Util"
 
 type ExploreQueryParams = Omit<ChartQueryParams, "tab"> & {
     type?: string

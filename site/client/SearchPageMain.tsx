@@ -1,10 +1,10 @@
-import ReactDOM = require("react-dom")
-import React = require("react")
-import { getWindowQueryParams, decodeQueryParam } from "utils/client/url"
-import { siteSearch, SiteSearchResults } from "site/siteSearch"
-import { SearchResults } from "site/client/SearchResults"
-import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
+import { observer } from "mobx-react"
+import React = require("react")
+import ReactDOM = require("react-dom")
+import { SearchResults } from "site/client/SearchResults"
+import { siteSearch, SiteSearchResults } from "site/siteSearch"
+import { decodeQueryParam, getWindowQueryParams } from "utils/client/url"
 
 @observer
 export class SearchPageMain extends React.Component {

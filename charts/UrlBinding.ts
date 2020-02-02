@@ -2,9 +2,9 @@
 
 import { reaction } from "mobx"
 import {
-    setWindowQueryStr,
+    QueryParams,
     queryParamsToStr,
-    QueryParams
+    setWindowQueryStr
 } from "utils/client/url"
 
 import { debounce } from "./Util"

@@ -5,13 +5,13 @@
  *
  */
 
-import { observable, computed, runInAction, when } from "mobx"
-import { extend } from "charts/Util"
 import { ChartConfig } from "charts/ChartConfig"
-import { EditorFeatures } from "./EditorFeatures"
-import { Admin } from "./Admin"
-import { BAKED_GRAPHER_URL } from "settings"
+import { extend } from "charts/Util"
 import _ = require("lodash")
+import { computed, observable, runInAction, when } from "mobx"
+import { BAKED_GRAPHER_URL } from "settings"
+import { Admin } from "./Admin"
+import { EditorFeatures } from "./EditorFeatures"
 
 export type EditorTab = string
 

@@ -1,29 +1,29 @@
-import "site/client/owid.scss"
-import "charts/client/chart.scss"
-import "./oldScripts.js"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
+import "charts/client/chart.scss"
+import "site/client/owid.scss"
+import "./oldScripts.js"
 
 const SmoothScroll = require("smooth-scroll")
 
-import { Analytics } from "./Analytics"
-import { runChartsIndexPage } from "./runChartsIndexPage"
-import { runHeaderMenus } from "./SiteHeaderMenus"
-import { runSearchPage } from "./SearchPageMain"
-import { runNotFoundPage } from "./NotFoundPageMain"
-import { runFeedback, runFeedbackPage } from "./Feedback"
-import { runDonateForm } from "./DonateForm"
-import { getParent } from "./utils"
-import { Grapher } from "site/client/Grapher"
 import { ChartView } from "charts/ChartView"
 import { ExploreView } from "charts/ExploreView"
-import { runVariableCountryPage } from "./runVariableCountryPage"
-import { runCountryProfilePage } from "./runCountryProfilePage"
-import { runCookieNotice } from "./runCookieNotice"
+import { Grapher } from "site/client/Grapher"
+import { Analytics } from "./Analytics"
 import { runBlocks } from "./blocks"
+import { runDonateForm } from "./DonateForm"
+import { runFeedback, runFeedbackPage } from "./Feedback"
+import { runNotFoundPage } from "./NotFoundPageMain"
+import { runChartsIndexPage } from "./runChartsIndexPage"
+import { runCookieNotice } from "./runCookieNotice"
+import { runCountryProfilePage } from "./runCountryProfilePage"
+import { runVariableCountryPage } from "./runVariableCountryPage"
+import { runSearchPage } from "./SearchPageMain"
+import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runTableOfContents } from "./TableOfContents"
+import { getParent } from "./utils"
 
 declare var window: any
 window.Grapher = Grapher

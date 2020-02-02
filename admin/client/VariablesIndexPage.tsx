@@ -1,19 +1,19 @@
-import * as React from "react"
-import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    action,
-    runInAction,
-    reaction,
-    IReactionDisposer
-} from "mobx"
 import * as _ from "lodash"
+import {
+    action,
+    computed,
+    IReactionDisposer,
+    observable,
+    reaction,
+    runInAction
+} from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 
-import { AdminLayout } from "./AdminLayout"
-import { SearchField, FieldsRow } from "./Forms"
-import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { FieldsRow, SearchField } from "./Forms"
+import { VariableList, VariableListItem } from "./VariableList"
 
 @observer
 export class VariablesIndexPage extends React.Component {

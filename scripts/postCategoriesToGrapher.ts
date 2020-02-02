@@ -1,8 +1,8 @@
-import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { Post } from "db/model/Post"
-import { decodeHTML } from "entities"
 import { Tag } from "db/model/Tag"
+import * as wpdb from "db/wpdb"
+import { decodeHTML } from "entities"
 import _ = require("lodash")
 
 async function main() {

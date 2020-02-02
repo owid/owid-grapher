@@ -1,14 +1,14 @@
-import * as React from "react"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { computed, action, observable } from "mobx"
+import * as React from "react"
 
-import { uniqBy, isTouchDevice } from "./Util"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ChartConfig } from "./ChartConfig"
 import { DataKeyInfo } from "./ChartData"
 import { ChartView } from "./ChartView"
 import { FuzzySearch } from "./FuzzySearch"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { isTouchDevice, uniqBy } from "./Util"
 
 // Metadata reflection hack - Mispy
 declare const global: any

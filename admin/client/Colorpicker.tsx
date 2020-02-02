@@ -1,8 +1,8 @@
-import * as React from "react"
+import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 import { lastOfNonEmptyArray } from "charts/Util"
-import { TextField } from "./Forms"
-import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
 import { action } from "mobx"
+import * as React from "react"
+import { TextField } from "./Forms"
 
 export interface ColorpickerProps {
     color?: string

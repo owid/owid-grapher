@@ -1,11 +1,11 @@
-import * as React from "react"
+import { action, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import * as React from "react"
 
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
 import { Modal, Timeago } from "./Forms"
 import { Link } from "./Link"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface UserIndexMeta {
     id: number

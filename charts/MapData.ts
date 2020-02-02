@@ -1,28 +1,28 @@
+import { deviation, mean } from "d3-array"
+import { autorun, computed, reaction, runInAction, toJS } from "mobx"
 import {
-    round,
-    toArray,
-    keys,
-    isEmpty,
-    reverse,
-    extend,
     each,
+    extend,
     find,
-    sortedUniq,
-    keyBy,
+    isEmpty,
     isNumber,
-    sortBy
+    keyBy,
+    keys,
+    reverse,
+    round,
+    sortBy,
+    sortedUniq,
+    toArray
 } from "./Util"
-import { computed, autorun, runInAction, reaction, toJS } from "mobx"
-import { mean, deviation } from "d3-array"
 
 import { ChartConfig } from "./ChartConfig"
-import { defaultTo, isString, last, findClosest } from "./Util"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
-import { entityNameForMap } from "./Util"
+import { Color } from "./Color"
+import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { DimensionWithData } from "./DimensionWithData"
 import { MapTopology } from "./MapTopology"
+import { defaultTo, findClosest, isString, last } from "./Util"
+import { entityNameForMap } from "./Util"
 
 export interface MapDataValue {
     entity: string

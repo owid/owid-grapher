@@ -1,8 +1,8 @@
 // This is where server-side only, potentially sensitive settings enter from the environment
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
-import { ENV } from "settings"
 import * as path from "path"
+import { ENV } from "settings"
 import { parseBool } from "utils/string"
 
 function expect(key: string): string {

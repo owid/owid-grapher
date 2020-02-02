@@ -1,25 +1,25 @@
-import { computed } from "mobx"
-import {
-    some,
-    min,
-    max,
-    isEmpty,
-    sortBy,
-    identity,
-    cloneDeep,
-    sortedUniq,
-    clone,
-    formatValue
-} from "./Util"
-import { ChartConfig } from "./ChartConfig"
-import { DataKey } from "./DataKey"
-import { LineChartSeries, LineChartValue } from "./LineChart"
-import { AxisSpec } from "./AxisSpec"
-import { defaultTo, formatYear, findClosest } from "./Util"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
 import { findIndex } from "lodash"
+import { computed } from "mobx"
+import { AxisSpec } from "./AxisSpec"
+import { ChartConfig } from "./ChartConfig"
+import { ColorScheme, ColorSchemes } from "./ColorSchemes"
+import { DataKey } from "./DataKey"
+import { DimensionWithData } from "./DimensionWithData"
+import { IChartTransform } from "./IChartTransform"
+import { LineChartSeries, LineChartValue } from "./LineChart"
+import {
+    clone,
+    cloneDeep,
+    formatValue,
+    identity,
+    isEmpty,
+    max,
+    min,
+    some,
+    sortBy,
+    sortedUniq
+} from "./Util"
+import { defaultTo, findClosest, formatYear } from "./Util"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

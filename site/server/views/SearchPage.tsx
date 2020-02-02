@@ -1,10 +1,10 @@
-import * as settings from "settings"
-import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as React from "react"
+import * as settings from "settings"
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export const SearchPage = () => {
     return (

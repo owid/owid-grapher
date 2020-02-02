@@ -1,5 +1,5 @@
 import { ChartView } from "charts/ChartView"
-import { throttle, isMobile } from "charts/Util"
+import { isMobile, throttle } from "charts/Util"
 import { CLASS_NAME as ADDITONAL_INFORMATION_CLASS_NAME } from "site/client/blocks/AdditionalInformation/AdditionalInformation"
 
 interface LoadableFigure {

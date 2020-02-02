@@ -1,29 +1,29 @@
-import * as React from "react"
-import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    action,
-    runInAction,
-    reaction,
-    IReactionDisposer
-} from "mobx"
 import * as parse from "csv-parse"
+import {
+    action,
+    computed,
+    IReactionDisposer,
+    observable,
+    reaction,
+    runInAction
+} from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 
 const unidecode = require("unidecode")
 const FuzzySet = require("fuzzyset")
 
-import { AdminLayout } from "./AdminLayout"
-import { SelectField, SelectGroupsField, SelectGroup } from "./Forms"
-import {
-    CountryNameFormat,
-    CountryNameFormatDefs,
-    CountryDefByKey
-} from "admin/CountryNameFormat"
-import { uniq, toString, csvEscape, values, sortBy } from "charts/Util"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    CountryDefByKey,
+    CountryNameFormat,
+    CountryNameFormatDefs
+} from "admin/CountryNameFormat"
+import { csvEscape, sortBy, toString, uniq, values } from "charts/Util"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { SelectField, SelectGroup, SelectGroupsField } from "./Forms"
 
 class CSV {
     @observable filename?: string

@@ -1,9 +1,9 @@
-import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
+import * as React from "react"
 
-import { DataTable } from "../DataTable"
-import { ChartConfig, ChartConfigProps } from "../ChartConfig"
 import * as fixtures from "test/fixtures"
+import { ChartConfig, ChartConfigProps } from "../ChartConfig"
+import { DataTable } from "../DataTable"
 
 function setupChart(id: number, varId: number) {
     const props = new ChartConfigProps(fixtures.readChart(id))

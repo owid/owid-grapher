@@ -1,11 +1,11 @@
-import * as React from "react"
-import { VariableDisplaySettings } from "charts/VariableData"
-import ReactDOM = require("react-dom")
-import { clone } from "charts/Util"
-import { computed, IReactionDisposer, observable } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
-import { ChartFigureView } from "./ChartFigureView"
+import { clone } from "charts/Util"
+import { VariableDisplaySettings } from "charts/VariableData"
+import { computed, IReactionDisposer, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import ReactDOM = require("react-dom")
+import { ChartFigureView } from "./ChartFigureView"
 
 interface Variable {
     id: number

@@ -2,12 +2,12 @@ import * as algoliasearch from "algoliasearch"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { ALGOLIA_ID } from "settings"
 import { formatPost, FormattedPost } from "site/server/formatting"
+import { countries } from "utils/countries"
 import { chunkParagraphs } from "utils/search"
 import { htmlToPlaintext } from "utils/string"
-import { countries } from "utils/countries"
 
 interface Tag {
     id: number

@@ -1,16 +1,16 @@
+import { capitalize, uniq } from "charts/Util"
+import { computed } from "mobx"
+import { observer } from "mobx-react"
+import React = require("react")
+import { BAKED_GRAPHER_URL } from "settings"
 import {
-    SiteSearchResults,
+    ArticleHit,
     ChartHit,
     CountryHit,
-    ArticleHit
+    SiteSearchResults
 } from "site/siteSearch"
-import { observer } from "mobx-react"
-import { computed } from "mobx"
-import React = require("react")
-import { EmbedChart } from "./EmbedChart"
-import { BAKED_GRAPHER_URL } from "settings"
-import { uniq, capitalize } from "charts/Util"
 import { Country } from "utils/countries"
+import { EmbedChart } from "./EmbedChart"
 
 class ChartResult extends React.Component<{
     hit: ChartHit

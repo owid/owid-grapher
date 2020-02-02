@@ -1,11 +1,11 @@
-import React = require("react")
-import ReactDOM = require("react-dom")
-import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { observable, action, toJS } from "mobx"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
+import { action, observable, toJS } from "mobx"
+import { observer } from "mobx-react"
+import React = require("react")
+import ReactDOM = require("react-dom")
 
 function sendFeedback(feedback: Feedback) {
     return new Promise((resolve, reject) => {

@@ -1,14 +1,14 @@
-import * as React from "react"
-import { map, flatten, some, includes, sortBy, filter, sum, guid } from "./Util"
-import { computed, action, observable } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { LineChartSeries, LineChartValue } from "./LineChart"
+import * as React from "react"
+import { AxisBox } from "./AxisBox"
 import { AxisScale } from "./AxisScale"
-import { Vector2 } from "./Vector2"
-import { getRelativeMouse, makeSafeForCSS, pointsToPath } from "./Util"
 import { Bounds } from "./Bounds"
 import { DataKey } from "./DataKey"
-import { AxisBox } from "./AxisBox"
+import { LineChartSeries, LineChartValue } from "./LineChart"
+import { filter, flatten, guid, includes, map, some, sortBy, sum } from "./Util"
+import { getRelativeMouse, makeSafeForCSS, pointsToPath } from "./Util"
+import { Vector2 } from "./Vector2"
 
 export interface LinesProps {
     axisBox: AxisBox

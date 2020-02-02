@@ -1,4 +1,4 @@
-import { uniq, values, entityNameForMap } from "./Util"
+import { entityNameForMap, uniq, values } from "./Util"
 
 const worldRegionByEntity: { [key: string]: string } = {
     Abkhazia: "Asia",

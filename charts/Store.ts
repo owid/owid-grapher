@@ -1,7 +1,7 @@
-import { Indicator } from "./Indicator"
 import { observable, runInAction } from "mobx"
-import { fetchJSON, difference, values } from "./Util"
 import { BAKED_BASE_URL } from "settings"
+import { Indicator } from "./Indicator"
+import { difference, fetchJSON, values } from "./Util"
 
 export class StoreEntry<EntityType> {
     @observable.ref isLoading: boolean = false

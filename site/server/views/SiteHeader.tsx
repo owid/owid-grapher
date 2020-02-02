@@ -1,7 +1,7 @@
-import * as React from "react"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as React from "react"
 
 export const SiteHeader = () => {
     return (

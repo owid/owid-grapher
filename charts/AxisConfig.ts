@@ -1,4 +1,4 @@
-import { observable, computed } from "mobx"
+import { computed, observable } from "mobx"
 import { AxisSpec } from "./AxisSpec"
 import { ScaleType } from "./ScaleType"
 import { defaultTo } from "./Util"

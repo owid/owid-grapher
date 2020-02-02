@@ -1,10 +1,10 @@
-import { observable, computed, autorun, IReactionDisposer } from "mobx"
+import { autorun, computed, IReactionDisposer, observable } from "mobx"
 
-import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartType, ChartTypeType } from "./ChartType"
 import { ExploreUrl } from "./ExploreUrl"
-import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
+import { RootStore, StoreEntry } from "./Store"
 
 export type ExplorerChartType = ChartTypeType | "WorldMap"
 

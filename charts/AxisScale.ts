@@ -6,9 +6,9 @@
  * @created 2017-02-11
  */
 
-import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { map, extend } from "./Util"
-import { observable, computed, toJS } from "mobx"
+import { scaleLinear, ScaleLinear, scaleLog, ScaleLogarithmic } from "d3-scale"
+import { computed, observable, toJS } from "mobx"
+import { extend, map } from "./Util"
 
 export type ScaleType = "linear" | "log"
 

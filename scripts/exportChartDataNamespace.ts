@@ -1,9 +1,9 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as path from "path"
 import * as db from "db/db"
 import * as _ from "lodash"
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import * as path from "path"
+import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from "serverSettings"
 
 import { exec } from "utils/server/serverUtil"
 

@@ -1,31 +1,31 @@
+import { computed } from "mobx"
+import { AxisSpec } from "./AxisSpec"
 import { ChartConfig } from "./ChartConfig"
+import { Colorable, Colorizer } from "./Colorizer"
+import { DimensionWithData } from "./DimensionWithData"
+import { IChartTransform } from "./IChartTransform"
+import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import {
-    some,
-    isEmpty,
-    intersection,
-    keyBy,
+    compact,
     extend,
-    isNumber,
-    has,
+    firstOfNonEmptyArray,
     groupBy,
-    sortBy,
-    map,
+    has,
     includes,
+    intersection,
+    isEmpty,
+    isNumber,
+    keyBy,
+    lastOfNonEmptyArray,
+    map,
+    some,
+    sortBy,
     sortedFindClosestIndex,
     sortedUniq,
-    firstOfNonEmptyArray,
-    lastOfNonEmptyArray,
-    uniq,
-    compact
+    uniq
 } from "./Util"
-import { computed } from "mobx"
 import { defaultTo, defaultWith, first, last } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
-import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
-import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent, findClosest } from "./Util"
-import { IChartTransform } from "./IChartTransform"
-import { Colorizer, Colorable } from "./Colorizer"
+import { domainExtent, findClosest, formatValue } from "./Util"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot

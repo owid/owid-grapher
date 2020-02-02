@@ -1,18 +1,18 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-    OneToMany
-} from "typeorm"
-import * as _ from "lodash"
-import * as db from "db/db"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { getVariableData } from "./Variable"
-import { User } from "./User"
-import { ChartRevision } from "./ChartRevision"
+import * as db from "db/db"
+import * as _ from "lodash"
 import { PUBLIC_TAG_PARENT_IDS } from "settings"
+import {
+    BaseEntity,
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn
+} from "typeorm"
+import { ChartRevision } from "./ChartRevision"
+import { User } from "./User"
+import { getVariableData } from "./Variable"
 
 @Entity("charts")
 export class Chart extends BaseEntity {

@@ -5,25 +5,25 @@
  *
  */
 
-import * as React from "react"
-import { last, guid, sortBy } from "./Util"
-import { computed, action, observable } from "mobx"
-import { observer } from "mobx-react"
-import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
+import { select } from "d3-selection"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { guid, last, sortBy } from "./Util"
 
-import { ChartConfig } from "./ChartConfig"
-import { Bounds } from "./Bounds"
-import { AxisBox } from "./AxisBox"
-import { StandardAxisBoxView } from "./StandardAxisBoxView"
-import { Lines } from "./Lines"
-import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
-import { ComparisonLine } from "./ComparisonLine"
-import { Tooltip } from "./Tooltip"
-import { NoData } from "./NoData"
-import { formatYear } from "./Util"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
+import { AxisBox } from "./AxisBox"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { ComparisonLine } from "./ComparisonLine"
+import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
+import { Lines } from "./Lines"
+import { NoData } from "./NoData"
+import { StandardAxisBoxView } from "./StandardAxisBoxView"
+import { Tooltip } from "./Tooltip"
+import { formatYear } from "./Util"
 
 export interface LineChartValue {
     x: number

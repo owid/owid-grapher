@@ -1,5 +1,5 @@
-import glob = require("glob")
 import fs = require("fs-extra")
+import glob = require("glob")
 
 const countryISOMapping = {
     AF: "AFG",

@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
-import * as sharp from "sharp"
 import * as path from "path"
+import * as sharp from "sharp"
 
 declare var global: any
 global.window = { location: { search: "" } }

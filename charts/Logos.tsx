@@ -1,5 +1,5 @@
-import * as React from "react"
 import { computed } from "mobx"
+import * as React from "react"
 
 export type LogoOption = "owid" | "core+owid"
 

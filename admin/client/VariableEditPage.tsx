@@ -1,23 +1,23 @@
-import * as React from "react"
-import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    runInAction,
-    autorun,
-    IReactionDisposer
-} from "mobx"
-import * as _ from "lodash"
-import { Prompt, Redirect } from "react-router-dom"
-import { AdminLayout } from "./AdminLayout"
-import { Link } from "./Link"
-import { BindString, BindFloat, FieldsRow } from "./Forms"
-import { VariableDisplaySettings } from "charts/VariableData"
 import { ChartConfig } from "charts/ChartConfig"
-import { ChartFigureView } from "site/client/ChartFigureView"
-import { ChartList, ChartListItem } from "./ChartList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { VariableDisplaySettings } from "charts/VariableData"
 import { Base64 } from "js-base64"
+import * as _ from "lodash"
+import {
+    autorun,
+    computed,
+    IReactionDisposer,
+    observable,
+    runInAction
+} from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { Prompt, Redirect } from "react-router-dom"
+import { ChartFigureView } from "site/client/ChartFigureView"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { ChartList, ChartListItem } from "./ChartList"
+import { BindFloat, BindString, FieldsRow } from "./Forms"
+import { Link } from "./Link"
 
 interface VariablePageData {
     id: number

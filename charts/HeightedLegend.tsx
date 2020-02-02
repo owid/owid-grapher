@@ -3,28 +3,28 @@
  *
  */
 
-import * as React from "react"
-import {
-    some,
-    noop,
-    includes,
-    cloneDeep,
-    max,
-    min,
-    sortBy,
-    sumBy,
-    flatten,
-    sign
-} from "./Util"
-import { defaultTo } from "./Util"
-import { computed, action } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "./TextWrap"
+import * as React from "react"
 import { AxisScale } from "./AxisScale"
 import { Bounds } from "./Bounds"
-import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
-import { ControlsOverlay, AddEntityButton } from "./Controls"
+import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { AddEntityButton, ControlsOverlay } from "./Controls"
 import { DataKey } from "./DataKey"
+import { TextWrap } from "./TextWrap"
+import {
+    cloneDeep,
+    flatten,
+    includes,
+    max,
+    min,
+    noop,
+    sign,
+    some,
+    sortBy,
+    sumBy
+} from "./Util"
+import { defaultTo } from "./Util"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2

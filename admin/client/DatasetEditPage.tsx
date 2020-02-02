@@ -1,36 +1,36 @@
-import * as React from "react"
-import { observer } from "mobx-react"
+import * as filenamify from "filenamify"
+import * as _ from "lodash"
 import {
-    observable,
-    computed,
-    runInAction,
-    autorun,
     action,
+    autorun,
+    computed,
     IReactionDisposer,
+    observable,
+    runInAction,
     when
 } from "mobx"
-import * as _ from "lodash"
+import { observer } from "mobx-react"
+import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
-import * as filenamify from "filenamify"
 const timeago = require("timeago.js")()
 
 import { VariableDisplaySettings } from "charts/VariableData"
 
-import { AdminLayout } from "./AdminLayout"
-import { Link } from "./Link"
-import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
-import { ChartList, ChartListItem } from "./ChartList"
-import { ChartConfig } from "charts/ChartConfig"
-import { ChartFigureView } from "site/client/ChartFigureView"
-import { ChartType } from "charts/ChartType"
-import { Tag } from "./TagBadge"
-import { VariableList, VariableListItem } from "./VariableList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { Base64 } from "js-base64"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
-import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChartType } from "charts/ChartType"
+import { Base64 } from "js-base64"
+import { ChartFigureView } from "site/client/ChartFigureView"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { ChartList, ChartListItem } from "./ChartList"
+import { BindFloat, BindString, EditableTags, FieldsRow, Toggle } from "./Forms"
+import { Link } from "./Link"
+import { Tag } from "./TagBadge"
+import { VariableList, VariableListItem } from "./VariableList"
 
 class VariableEditable {
     @observable name: string = ""

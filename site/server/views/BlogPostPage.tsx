@@ -1,14 +1,14 @@
-import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 import {
     formatAuthors,
     formatDate,
     FormattedPost,
     FormattingOptions
 } from "../formatting"
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export const BlogPostPage = (props: {
     post: FormattedPost

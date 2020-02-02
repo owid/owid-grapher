@@ -1,14 +1,14 @@
-import { extend } from "./Util"
-import * as React from "react"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as Cookies from "js-cookie"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import { ADMIN_BASE_URL } from "settings"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { SourceWithDimension } from "./ChartData"
-import * as Cookies from "js-cookie"
-import { ADMIN_BASE_URL } from "settings"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { extend } from "./Util"
 
 const linkifyHtml = require("linkifyjs/html")
 function linkify(s: string) {

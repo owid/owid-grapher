@@ -1,30 +1,30 @@
-import * as React from "react"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { ChartEditor } from "./ChartEditor"
-import { ChartConfig } from "charts/ChartConfig"
-import { ComparisonLineConfig } from "charts/ComparisonLine"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { AxisConfigProps } from "charts/AxisConfig"
+import { ChartConfig } from "charts/ChartConfig"
+import { Color } from "charts/Color"
+import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import { ComparisonLineConfig } from "charts/ComparisonLine"
+import { debounce, keysOf } from "charts/Util"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { ChartEditor } from "./ChartEditor"
 import {
-    NumberField,
-    SelectField,
-    Toggle,
-    FieldsRow,
-    Section,
     BindAutoString,
     BindString,
-    TextField,
     Button,
-    EditableListItem,
     ColorBox,
-    EditableList
+    EditableList,
+    EditableListItem,
+    FieldsRow,
+    NumberField,
+    Section,
+    SelectField,
+    TextField,
+    Toggle
 } from "./Forms"
-import { debounce, keysOf } from "charts/Util"
-import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
-import { Color } from "charts/Color"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {

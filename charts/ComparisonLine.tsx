@@ -1,12 +1,12 @@
 import { scaleLinear } from "d3-scale"
-import { line as d3_line, curveLinear } from "d3-shape"
-import { defaultTo, guid } from "./Util"
-import * as React from "react"
+import { curveLinear, line as d3_line } from "d3-shape"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import { AxisBox } from "./AxisBox"
-import { evalEquation } from "./evalEquation"
 import { Bounds } from "./Bounds"
+import { evalEquation } from "./evalEquation"
+import { defaultTo, guid } from "./Util"
 import { Vector2 } from "./Vector2"
 
 export interface ComparisonLineConfig {

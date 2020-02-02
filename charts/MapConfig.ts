@@ -1,9 +1,9 @@
-import { observable, computed } from "mobx"
-import { MapProjection } from "./MapProjection"
+import { computed, observable } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { MapData } from "./MapData"
-import { defaultTo } from "./Util"
 import { Color } from "./Color"
+import { MapData } from "./MapData"
+import { MapProjection } from "./MapProjection"
+import { defaultTo } from "./Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.

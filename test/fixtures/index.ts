@@ -1,7 +1,7 @@
 import * as fs from "fs"
 
-import { Indicator } from "charts/Indicator"
 import { ChartConfigProps } from "charts/ChartConfig"
+import { Indicator } from "charts/Indicator"
 import { DataForChart } from "charts/VariableData"
 
 export function readBuffer(fixture: string) {

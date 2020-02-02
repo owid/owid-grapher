@@ -1,29 +1,29 @@
-import * as React from "react"
-import { clone, isEmpty, noop, extend, map } from "charts/Util"
-import { computed, action } from "mobx"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Color } from "charts/Color"
+import { ColorSchemes } from "charts/ColorSchemes"
+import { MapConfig } from "charts/MapConfig"
+import { CategoricalBin, NumericBin } from "charts/MapData"
+import { MapProjection } from "charts/MapProjection"
+import { clone, extend, isEmpty, map, noop } from "charts/Util"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import { ChartEditor } from "./ChartEditor"
 import {
-    NumericSelectField,
-    NumberField,
-    SelectField,
-    TextField,
-    Toggle,
+    BindAutoFloat,
+    ColorBox,
     EditableList,
     EditableListItem,
-    ColorBox,
-    Section,
     FieldsRow,
-    BindAutoFloat
+    NumberField,
+    NumericSelectField,
+    Section,
+    SelectField,
+    TextField,
+    Toggle
 } from "./Forms"
-import { MapConfig } from "charts/MapConfig"
-import { MapProjection } from "charts/MapProjection"
-import { ColorSchemes } from "charts/ColorSchemes"
-import { NumericBin, CategoricalBin } from "charts/MapData"
-import { Color } from "charts/Color"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {

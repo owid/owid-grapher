@@ -1,9 +1,9 @@
 import React = require("react")
-import { Head } from "./Head"
 import { BAKED_BASE_URL } from "settings"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
 import { FeedbackForm } from "site/client/Feedback"
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export class FeedbackPage extends React.Component {
     render() {

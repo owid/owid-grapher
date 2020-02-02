@@ -1,28 +1,28 @@
+import { easeCubic } from "d3-ease"
+import { select } from "d3-selection"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
 import * as React from "react"
 import { Bounds } from "./Bounds"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
+import { ChartConfig } from "./ChartConfig"
+import { ChartLayout, ChartLayoutView } from "./ChartLayout"
+import { ChartView } from "./ChartView"
+import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import {
-    ChoroplethMap,
     ChoroplethData,
     ChoroplethDatum,
+    ChoroplethMap,
     GeoFeature,
     MapBracket,
     MapEntity
 } from "./ChoroplethMap"
-import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, formatYear } from "./Util"
-import { ChartConfig } from "./ChartConfig"
+import { LoadingChart } from "./LoadingChart"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
+import { MapLegend, MapLegendView } from "./MapLegend"
 import { MapProjection } from "./MapProjection"
 import { Tooltip } from "./Tooltip"
-import { select } from "d3-selection"
-import { easeCubic } from "d3-ease"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { ChartLayout, ChartLayoutView } from "./ChartLayout"
-import { ChartView } from "./ChartView"
-import { LoadingChart } from "./LoadingChart"
+import { formatYear, getRelativeMouse } from "./Util"
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 

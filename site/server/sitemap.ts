@@ -1,10 +1,10 @@
-import { Post } from "db/model/Post"
-import { Chart } from "db/model/Chart"
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
-import moment = require("moment")
 import db = require("db/db")
-import { countries } from "utils/countries"
+import { Chart } from "db/model/Chart"
+import { Post } from "db/model/Post"
+import moment = require("moment")
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import urljoin = require("url-join")
+import { countries } from "utils/countries"
 
 interface SitemapUrl {
     loc: string

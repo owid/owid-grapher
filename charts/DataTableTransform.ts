@@ -2,7 +2,7 @@ import { computed } from "mobx"
 
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
-import { reduce, max, sortBy } from "./Util"
+import { max, reduce, sortBy } from "./Util"
 
 export interface DimensionHeader {
     key: number

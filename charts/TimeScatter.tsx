@@ -1,19 +1,19 @@
-import * as React from "react"
-import { observable, computed, action, runInAction } from "mobx"
+import { action, computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import { AxisBox, AxisBoxView } from "./AxisBox"
+import { ScaleType } from "./AxisScale"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
-import { NoData } from "./NoData"
-import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./AxisScale"
+import { NoData } from "./NoData"
 
-import { sortBy, cloneDeep, isEmpty, guid, formatYear } from "./Util"
+import { select } from "d3-selection"
 import { AxisScale } from "./AxisScale"
+import { Tooltip } from "./Tooltip"
+import { cloneDeep, formatYear, guid, isEmpty, sortBy } from "./Util"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"
-import { select } from "d3-selection"
-import { Tooltip } from "./Tooltip"
 
 export interface ScatterSeries {
     color: string

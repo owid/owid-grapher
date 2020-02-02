@@ -8,31 +8,31 @@
  * @created 2017-03-09
  */
 
-import * as React from "react"
 import { scaleLinear, scaleOrdinal, ScaleOrdinal } from "d3-scale"
 import { schemeCategory10 } from "d3-scale-chromatic"
+import { select } from "d3-selection"
+import { action, computed } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { AxisScale } from "./AxisScale"
+import { Bounds } from "./Bounds"
+import { Triangle } from "./Marks"
+import { NoData } from "./NoData"
 import {
-    some,
-    last,
-    sortBy,
     cloneDeep,
-    flatten,
-    uniq,
-    min,
     find,
     first,
+    flatten,
+    guid,
     isEmpty,
-    guid
+    last,
+    min,
+    some,
+    sortBy,
+    uniq
 } from "./Util"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
-import { NoData } from "./NoData"
-import { AxisScale } from "./AxisScale"
-import { getRelativeMouse, makeSafeForCSS, intersection } from "./Util"
+import { getRelativeMouse, intersection, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"
-import { Triangle } from "./Marks"
-import { select } from "d3-selection"
 
 export interface ScatterSeries {
     color: string

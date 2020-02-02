@@ -1,9 +1,9 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
     BaseEntity,
-    ManyToOne
+    Column,
+    Entity,
+    ManyToOne,
+    PrimaryGeneratedColumn
 } from "typeorm"
 import { Chart } from "./Chart"
 import { User } from "./User"

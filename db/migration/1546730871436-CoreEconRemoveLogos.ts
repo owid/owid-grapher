@@ -1,5 +1,5 @@
-import { MigrationInterface, QueryRunner } from "typeorm"
 import { Chart } from "db/model/Chart"
+import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class CoreEconRemoveLogos1546730871436 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {

@@ -1,10 +1,10 @@
-import * as React from "react"
-import { sum, includes, max } from "./Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "./TextWrap"
-import { defaultTo } from "./Util"
+import * as React from "react"
 import { Colorable } from "./Colorizer"
+import { TextWrap } from "./TextWrap"
+import { includes, max, sum } from "./Util"
+import { defaultTo } from "./Util"
 
 export interface ScatterColorLegendProps {
     maxWidth: number

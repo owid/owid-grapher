@@ -1,24 +1,24 @@
 // WIP
 
-import * as React from "react"
-import { keys, isEmpty, difference, clone, uniq } from "charts/Util"
+import { clone, difference, isEmpty, keys, uniq } from "charts/Util"
 import {
-    observable,
-    computed,
     action,
+    computed,
+    IReactionDisposer,
+    observable,
     reaction,
-    runInAction,
-    IReactionDisposer
+    runInAction
 } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import { Redirect } from "react-router-dom"
 
-import * as parse from "csv-parse"
-import { BindString, NumericSelectField, FieldsRow } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as parse from "csv-parse"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { BindString, FieldsRow, NumericSelectField } from "./Forms"
 
 declare const App: any
 declare const window: any

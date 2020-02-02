@@ -8,28 +8,28 @@
  * @created 2017-03-09
  */
 
-import * as React from "react"
-import { observable, computed, action } from "mobx"
-import { intersection, without, compact, uniq } from "./Util"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import { AxisBox, AxisBoxView } from "./AxisBox"
+import { ScaleType } from "./AxisScale"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
+import { ComparisonLine } from "./ComparisonLine"
+import { ConnectedScatterLegend } from "./ConnectedScatterLegend"
 import { NoData } from "./NoData"
 import {
     PointsWithLabels,
     ScatterSeries,
     ScatterValue
 } from "./PointsWithLabels"
-import { TextWrap } from "./TextWrap"
-import { ConnectedScatterLegend } from "./ConnectedScatterLegend"
 import {
-    VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
+    VerticalColorLegend
 } from "./ScatterColorLegend"
-import { AxisBox, AxisBoxView } from "./AxisBox"
-import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./AxisScale"
-import { formatYear, first, last } from "./Util"
+import { TextWrap } from "./TextWrap"
+import { compact, intersection, uniq, without } from "./Util"
+import { first, formatYear, last } from "./Util"
 
 @observer
 export class ScatterPlot extends React.Component<{

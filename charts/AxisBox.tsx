@@ -8,16 +8,16 @@
  * @created 2017-02-11
  */
 
-import * as React from "react"
-import { observable, computed, reaction, action } from "mobx"
+import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
+import * as React from "react"
 import { AxisScale } from "./AxisScale"
-import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
-import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisSpec } from "./AxisSpec"
+import { Bounds } from "./Bounds"
+import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { ScaleType } from "./ScaleType"
 import { extend } from "./Util"
+import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
 
 interface AxisBoxProps {
     bounds: Bounds

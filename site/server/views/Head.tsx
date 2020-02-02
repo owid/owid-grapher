@@ -1,5 +1,5 @@
-import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
+import { BAKED_BASE_URL } from "settings"
 import { webpack } from "utils/server/staticGen"
 
 export const Head = (props: {

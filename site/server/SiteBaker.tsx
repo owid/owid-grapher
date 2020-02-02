@@ -1,49 +1,49 @@
+import * as cheerio from "cheerio"
+import * as db from "db/db"
+import * as wpdb from "db/wpdb"
 import * as fs from "fs-extra"
-import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash"
-import * as shell from "shelljs"
 import * as _ from "lodash"
-import * as cheerio from "cheerio"
-import * as wpdb from "db/wpdb"
-import * as db from "db/db"
+import * as path from "path"
+import { BAKED_SITE_DIR, BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import * as settings from "settings"
-import { formatPost, extractFormattingOptions } from "./formatting"
-import { LongFormPage } from "./views/LongFormPage"
+import * as shell from "shelljs"
+import { extractFormattingOptions, formatPost } from "./formatting"
 import { BlogPostPage } from "./views/BlogPostPage"
-import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
+import { LongFormPage } from "./views/LongFormPage"
 const { BLOG_POSTS_PER_PAGE } = settings
-import {
-    renderToHtmlPage,
-    renderFrontPage,
-    renderSubscribePage,
-    renderBlogByPageNum,
-    renderChartsPage,
-    renderExplorePage,
-    renderMenuJson,
-    renderSearchPage,
-    renderDonatePage,
-    entriesByYearPage,
-    makeAtomFeed,
-    feedbackPage,
-    renderNotFoundPage,
-    renderExplorableIndicatorsJson
-} from "./siteBaking"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports
 } from "./grapherUtil"
+import {
+    entriesByYearPage,
+    feedbackPage,
+    makeAtomFeed,
+    renderBlogByPageNum,
+    renderChartsPage,
+    renderDonatePage,
+    renderExplorableIndicatorsJson,
+    renderExplorePage,
+    renderFrontPage,
+    renderMenuJson,
+    renderNotFoundPage,
+    renderSearchPage,
+    renderSubscribePage,
+    renderToHtmlPage
+} from "./siteBaking"
 import { makeSitemap } from "./sitemap"
 
-import * as React from "react"
-import { embedSnippet } from "./embedCharts"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { getVariableData } from "db/model/Variable"
-import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
-import { bakeCountries } from "./countryProfiles"
+import { getVariableData } from "db/model/Variable"
+import * as React from "react"
 import { chartPage } from "./chartBaking"
+import { bakeCountries } from "./countryProfiles"
+import { embedSnippet } from "./embedCharts"
+import { bakeImageExports } from "./svgPngExport"
 
 // Static site generator using Wordpress
 

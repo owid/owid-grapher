@@ -1,40 +1,40 @@
+import * as bodyParser from "body-parser"
 import * as express from "express"
 import { Router } from "express"
 import * as _ from "lodash"
 import { getConnection } from "typeorm"
-import * as bodyParser from "body-parser"
 
-import * as db from "db/db"
-import * as wpdb from "db/wpdb"
-import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "serverSettings"
+import { ChartRedirect, PostReference } from "admin/client/ChartEditor"
+import { CountryDefByKey, CountryNameFormat } from "admin/CountryNameFormat"
 import {
-    JsonError,
-    expectInt,
-    isValidSlug,
-    absoluteUrl
-} from "utils/server/serverUtil"
-import { sendMail } from "admin/server/mail"
-import { OldChart, Chart } from "db/model/Chart"
-import { UserInvitation } from "db/model/UserInvitation"
-import { Request, Response, CurrentUser } from "./authentication"
-import { getVariableData, writeVariableCSV } from "db/model/Variable"
-import { ChartConfigProps } from "charts/ChartConfig"
-import { CountryNameFormat, CountryDefByKey } from "admin/CountryNameFormat"
-import { Dataset } from "db/model/Dataset"
-import { User } from "db/model/User"
-import {
-    syncDatasetToGitRepo,
-    removeDatasetFromGitRepo
+    removeDatasetFromGitRepo,
+    syncDatasetToGitRepo
 } from "admin/server/gitDataExport"
+import { sendMail } from "admin/server/mail"
+import { ChartConfigProps } from "charts/ChartConfig"
+import * as db from "db/db"
+import { Chart, OldChart } from "db/model/Chart"
 import { ChartRevision } from "db/model/ChartRevision"
+import { Dataset } from "db/model/Dataset"
 import { Post } from "db/model/Post"
+import { User } from "db/model/User"
+import { UserInvitation } from "db/model/UserInvitation"
+import { getVariableData, writeVariableCSV } from "db/model/Variable"
+import * as wpdb from "db/wpdb"
+import { enqueueDeploy } from "deploy/queue"
+import { BAKE_ON_CHANGE, UNCATEGORIZED_TAG_ID } from "serverSettings"
+import { BAKED_BASE_URL } from "settings"
+import { denormalizeLatestCountryData } from "site/server/countryProfiles"
+import { isExplorable } from "utils/charts"
 import { camelCaseProperties } from "utils/object"
 import { log } from "utils/server/log"
-import { denormalizeLatestCountryData } from "site/server/countryProfiles"
-import { BAKED_BASE_URL } from "settings"
-import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
-import { enqueueDeploy } from "deploy/queue"
-import { isExplorable } from "utils/charts"
+import {
+    absoluteUrl,
+    expectInt,
+    isValidSlug,
+    JsonError
+} from "utils/server/serverUtil"
+import { CurrentUser, Request, Response } from "./authentication"
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner

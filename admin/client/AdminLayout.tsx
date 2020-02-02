@@ -1,13 +1,13 @@
-import * as React from "react"
-import { observable, action, computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 
-import { Link } from "./Link"
-import { EditorFAQ } from "./EditorFAQ"
-import { AdminSidebar } from "./AdminSidebar"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminSidebar } from "./AdminSidebar"
+import { EditorFAQ } from "./EditorFAQ"
+import { Link } from "./Link"
 
 @observer
 class FixedOverlay extends React.Component<{ onDismiss: () => void }> {

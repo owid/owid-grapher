@@ -1,8 +1,8 @@
 // This is a port of a jQuery library:
 // https://github.com/kamens/jQuery-menu-aim
 
-import * as React from "react"
 import { bind } from "decko"
+import * as React from "react"
 
 import { getParent } from "./utils"
 

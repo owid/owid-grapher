@@ -1,12 +1,12 @@
+import * as _ from "lodash"
+import { computed, observable } from "mobx"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as _ from "lodash"
-import { observable, computed } from "mobx"
 import urljoin = require("url-join")
 
-import { AdminApp } from "./AdminApp"
 import { Json } from "charts/Util"
 import { queryParamsToStr } from "utils/client/url"
+import { AdminApp } from "./AdminApp"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
 

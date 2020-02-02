@@ -1,11 +1,11 @@
-import { some, union, min, max, find, isEmpty } from "./Util"
 import { computed } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { defaultTo, defaultWith, findClosest } from "./Util"
+import { Colorable, Colorizer } from "./Colorizer"
 import { DimensionWithData } from "./DimensionWithData"
-import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { IChartTransform } from "./IChartTransform"
-import { Colorizer, Colorable } from "./Colorizer"
+import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
+import { find, isEmpty, max, min, some, union } from "./Util"
+import { defaultTo, defaultWith, findClosest } from "./Util"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

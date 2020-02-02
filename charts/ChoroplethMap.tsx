@@ -1,13 +1,13 @@
-import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import * as topojson from "topojson"
 
-import { identity, sortBy, guid, getRelativeMouse } from "./Util"
 import { Bounds } from "./Bounds"
-import { MapProjections } from "./MapProjections"
 import { MapProjection } from "./MapProjection"
+import { MapProjections } from "./MapProjections"
 import { MapTopology } from "./MapTopology"
+import { getRelativeMouse, guid, identity, sortBy } from "./Util"
 import { Vector2 } from "./Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
 

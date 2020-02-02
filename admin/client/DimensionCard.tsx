@@ -1,20 +1,20 @@
-import * as React from "react"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { DimensionWithData } from "charts/DimensionWithData"
-import { ChartEditor } from "./ChartEditor"
-import {
-    Toggle,
-    EditableListItem,
-    BindAutoString,
-    BindAutoFloat
-} from "./Forms"
-import { Link } from "./Link"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { DimensionWithData } from "charts/DimensionWithData"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { ChartEditor } from "./ChartEditor"
+import {
+    BindAutoFloat,
+    BindAutoString,
+    EditableListItem,
+    Toggle
+} from "./Forms"
+import { Link } from "./Link"
 
 @observer
 export class DimensionCard extends React.Component<{

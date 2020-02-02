@@ -1,7 +1,7 @@
-import * as _ from "lodash"
-import * as parseUrl from "url-parse"
 import * as db from "db/db"
+import * as _ from "lodash"
 import * as parseArgs from "minimist"
+import * as parseUrl from "url-parse"
 const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"

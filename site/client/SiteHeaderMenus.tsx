@@ -1,25 +1,25 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import classnames from "classnames"
+import { CategoryWithEntries, EntryMeta } from "db/wpdb"
+import { bind } from "decko"
+import { find } from "lodash"
 import {
-    observable,
     action,
+    IReactionDisposer,
+    observable,
     reaction,
-    runInAction,
-    IReactionDisposer
+    runInAction
 } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import * as ReactDOM from "react-dom"
 import { HeaderSearch } from "./HeaderSearch"
-import { CategoryWithEntries, EntryMeta } from "db/wpdb"
-import classnames from "classnames"
-import { find } from "lodash"
-import { bind } from "decko"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
-import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { AmazonMenu } from "./AmazonMenu"
 

@@ -1,43 +1,43 @@
-import * as React from "react"
-import { observer } from "mobx-react"
 import {
-    observable,
-    computed,
-    runInAction,
-    autorun,
     action,
+    autorun,
+    computed,
+    IReactionDisposer,
+    observable,
     reaction,
-    IReactionDisposer
+    runInAction
 } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
-import { includes, capitalize } from "charts/Util"
 import { ChartConfig } from "charts/ChartConfig"
+import { ChartView } from "charts/ChartView"
+import { capitalize, includes } from "charts/Util"
 
+import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
 import {
     ChartEditor,
+    ChartRedirect,
     EditorDatabase,
     Log,
-    PostReference,
-    ChartRedirect
+    PostReference
 } from "./ChartEditor"
 import { EditorBasicTab } from "./EditorBasicTab"
-import { EditorDataTab } from "./EditorDataTab"
-import { EditorTextTab } from "./EditorTextTab"
 import { EditorCustomizeTab } from "./EditorCustomizeTab"
-import { EditorScatterTab } from "./EditorScatterTab"
-import { EditorMapTab } from "./EditorMapTab"
+import { EditorDataTab } from "./EditorDataTab"
 import { EditorHistoryTab } from "./EditorHistoryTab"
+import { EditorMapTab } from "./EditorMapTab"
 import { EditorReferencesTab } from "./EditorReferencesTab"
-import { SaveButtons } from "./SaveButtons"
+import { EditorScatterTab } from "./EditorScatterTab"
+import { EditorTextTab } from "./EditorTextTab"
 import { LoadingBlocker } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import { SaveButtons } from "./SaveButtons"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {

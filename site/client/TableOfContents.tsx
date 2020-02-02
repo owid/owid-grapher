@@ -1,9 +1,9 @@
-import * as React from "react"
-import { useState, useEffect, useRef } from "react"
-import * as ReactDOM from "react-dom"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
+import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as React from "react"
+import { useEffect, useRef, useState } from "react"
+import * as ReactDOM from "react-dom"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 

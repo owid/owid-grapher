@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 import * as randomstring from "randomstring"
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity("user_invitations")
 export class UserInvitation extends BaseEntity {

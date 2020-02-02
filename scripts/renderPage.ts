@@ -1,10 +1,10 @@
-import * as wpdb from "db/wpdb"
 import * as db from "db/db"
+import * as wpdb from "db/wpdb"
 import {
-    renderFrontPage,
-    renderSubscribePage,
     renderBlogByPageNum,
-    renderPageById
+    renderFrontPage,
+    renderPageById,
+    renderSubscribePage
 } from "site/server/siteBaking"
 
 async function main(target: string, isPreview?: boolean) {

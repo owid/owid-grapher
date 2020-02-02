@@ -1,14 +1,14 @@
-import * as React from "react"
-import { observer } from "mobx-react"
-import { readConfigFromHTML } from "site/client/Grapher"
-import {
-    computed,
-    observable,
-    runInAction,
-    autorun,
-    IReactionDisposer
-} from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
+import {
+    autorun,
+    computed,
+    IReactionDisposer,
+    observable,
+    runInAction
+} from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { readConfigFromHTML } from "site/client/Grapher"
 import { ChartFigureView } from "./ChartFigureView"
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

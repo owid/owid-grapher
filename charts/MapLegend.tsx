@@ -1,17 +1,17 @@
-import * as React from "react"
-import { min, max, map, each, last, sortBy, flatten, some, find } from "./Util"
-import { Bounds } from "./Bounds"
-import { computed, action } from "mobx"
+import { sum } from "d3-array"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { getRelativeMouse } from "./Util"
+import * as React from "react"
+import { Bounds } from "./Bounds"
 import {
-    MapLegendBin,
-    NumericBin,
     CategoricalBin,
-    MapDataValue
+    MapDataValue,
+    MapLegendBin,
+    NumericBin
 } from "./MapData"
 import { TextWrap } from "./TextWrap"
-import { sum } from "d3-array"
+import { each, find, flatten, last, map, max, min, some, sortBy } from "./Util"
+import { getRelativeMouse } from "./Util"
 
 const FOCUS_BORDER_COLOR = "#111"
 

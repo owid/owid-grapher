@@ -1,8 +1,8 @@
-import * as XLSX from "xlsx"
-import * as _ from "lodash"
 import * as fs from "fs-extra"
+import * as _ from "lodash"
+import * as XLSX from "xlsx"
 
-import { parseCSV, CSVStreamParser } from "utils/csv"
+import { CSVStreamParser, parseCSV } from "utils/csv"
 import { findUrlsInText } from "utils/string"
 
 import * as db from "db/db"

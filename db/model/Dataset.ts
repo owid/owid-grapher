@@ -1,18 +1,18 @@
+import { Writable } from "stream"
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
     BaseEntity,
+    Column,
+    Entity,
     ManyToOne,
+    PrimaryGeneratedColumn,
     Unique
 } from "typeorm"
-import { Writable } from "stream"
 
-import { User } from "./User"
-import { Source } from "./Source"
-import { Variable } from "./Variable"
-import { csvRow, slugify, filenamify } from "utils/server/serverUtil"
 import * as db from "db/db"
+import { csvRow, filenamify, slugify } from "utils/server/serverUtil"
+import { Source } from "./Source"
+import { User } from "./User"
+import { Variable } from "./Variable"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])

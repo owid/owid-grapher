@@ -1,11 +1,11 @@
-import * as React from "react"
-import { uniq } from "./Util"
 import { computed } from "mobx"
-import { Bounds } from "./Bounds"
+import * as React from "react"
 import { ScaleType } from "./AxisScale"
 import { AxisScale } from "./AxisScale"
+import { Bounds } from "./Bounds"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
+import { uniq } from "./Util"
 
 interface HorizontalAxisProps {
     scale: AxisScale

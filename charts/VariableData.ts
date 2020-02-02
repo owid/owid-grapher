@@ -1,22 +1,22 @@
+import { action, computed, observable, reaction } from "mobx"
+import { BAKED_GRAPHER_URL } from "settings"
+import { ChartConfig } from "./ChartConfig"
 import {
+    each,
     extend,
-    some,
-    isString,
+    fetchJSON,
     isNumber,
-    uniq,
-    sortedUniq,
-    min,
-    max,
+    isString,
     keyBy,
     keys,
-    values,
-    each,
+    max,
+    min,
+    some,
     sortBy,
-    fetchJSON
+    sortedUniq,
+    uniq,
+    values
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
-import { observable, computed, action, reaction } from "mobx"
-import { BAKED_GRAPHER_URL } from "settings"
 
 function formatYear(year: number): string {
     return year < 0 ? `${Math.abs(year)} BCE` : `${year}`

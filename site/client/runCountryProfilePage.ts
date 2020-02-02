@@ -1,6 +1,6 @@
 const fuzzysort = require("fuzzysort")
 import * as _ from "lodash"
-import { observable, computed, action, autorun } from "mobx"
+import { action, autorun, computed, observable } from "mobx"
 import { Analytics } from "./Analytics"
 interface ChartItem {
     title: string

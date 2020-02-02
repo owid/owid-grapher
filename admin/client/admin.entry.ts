@@ -1,5 +1,5 @@
-import "charts/client/charts.entry"
 import "admin/client/admin.scss"
+import "charts/client/charts.entry"
 
 window.$ = window.jQuery = require("jquery")
 

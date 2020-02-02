@@ -1,12 +1,12 @@
-import { ChartConfig } from "./ChartConfig"
-import React = require("react")
 import { computed } from "mobx"
-import { Header, HeaderHTML } from "./Header"
-import { SourcesFooter, SourcesFooterHTML } from "./SourcesFooter"
+import React = require("react")
 import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { ChartView } from "./ChartView"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ControlsOverlayView } from "./Controls"
-import { ChartView } from "./ChartView"
+import { Header, HeaderHTML } from "./Header"
+import { SourcesFooter, SourcesFooterHTML } from "./SourcesFooter"
 
 export interface ChartLayoutProps {
     chart: ChartConfig

@@ -1,6 +1,6 @@
-import * as React from "react"
+import { computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction } from "mobx"
+import * as React from "react"
 import { Prompt } from "react-router-dom"
 const timeago = require("timeago.js")()
 

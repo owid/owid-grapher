@@ -3,13 +3,13 @@ require("express-async-errors")
 const cookieParser = require("cookie-parser")
 const expressErrorSlack = require("express-error-slack")
 import "reflect-metadata"
-import { AdminSPA } from "./AdminSPA"
-import { authMiddleware } from "./authentication"
-import { api, publicApi } from "./api"
-import { testPages } from "./testPages"
-import { adminViews } from "./adminViews"
-import { renderToHtmlPage } from "utils/server/serverUtil"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
+import { renderToHtmlPage } from "utils/server/serverUtil"
+import { AdminSPA } from "./AdminSPA"
+import { adminViews } from "./adminViews"
+import { api, publicApi } from "./api"
+import { authMiddleware } from "./authentication"
+import { testPages } from "./testPages"
 
 import * as React from "react"
 

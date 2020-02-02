@@ -1,6 +1,6 @@
-import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { syncPostsToGrapher } from "db/model/Post"
+import * as wpdb from "db/wpdb"
 
 async function main() {
     try {

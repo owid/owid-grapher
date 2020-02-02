@@ -1,14 +1,14 @@
-import * as React from "react"
-import AsyncSelect from "react-select/async"
-import { ValueType } from "react-select"
 import { bind } from "decko"
+import * as React from "react"
+import { ValueType } from "react-select"
+import AsyncSelect from "react-select/async"
 
+import { observer } from "mobx-react"
 import {
     ExplorerViewContext,
     ExplorerViewContextType
 } from "./ExplorerViewContext"
 import { Indicator } from "./Indicator"
-import { observer } from "mobx-react"
 import { StoreEntry } from "./Store"
 
 export interface IndicatorDropdownProps {

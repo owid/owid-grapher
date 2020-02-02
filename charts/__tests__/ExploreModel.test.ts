@@ -1,6 +1,6 @@
-import { ExploreModel } from "../ExploreModel"
-import { ChartType } from "../ChartType"
 import { RootStore } from "charts/Store"
+import { ChartType } from "../ChartType"
+import { ExploreModel } from "../ExploreModel"
 
 const store = new RootStore()
 

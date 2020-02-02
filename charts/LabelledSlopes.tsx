@@ -8,32 +8,32 @@
  * @created 2017-02-11
  */
 
-import * as React from "react"
-import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
+import { scaleLinear, ScaleLinear, scaleLog, ScaleLogarithmic } from "d3-scale"
 import { select } from "d3-selection"
+import { action, computed } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 import {
     every,
-    first,
-    sortBy,
     extend,
-    max,
-    isEmpty,
-    intersection,
+    filter,
+    first,
     includes,
-    filter
+    intersection,
+    isEmpty,
+    max,
+    sortBy
 } from "./Util"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
 
-import { SVGElement } from "./Util"
-import { ScaleType } from "./ScaleType"
 import { Bounds } from "./Bounds"
-import { Text } from "./Text"
-import { TextWrap } from "./TextWrap"
 import { NoData } from "./NoData"
 import { ScaleSelector } from "./ScaleSelector"
-import { getRelativeMouse, domainExtent } from "./Util"
+import { ScaleType } from "./ScaleType"
+import { Text } from "./Text"
+import { TextWrap } from "./TextWrap"
+import { SVGElement } from "./Util"
+import { domainExtent, getRelativeMouse } from "./Util"
 
 export interface SlopeChartValue {
     x: number

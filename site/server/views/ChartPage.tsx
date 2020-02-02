@@ -1,15 +1,15 @@
 import { BAKED_GRAPHER_URL } from "settings"
 
+import * as _ from "lodash"
 import * as React from "react"
 import urljoin = require("url-join")
-import * as _ from "lodash"
 
-import { webpack } from "utils/server/staticGen"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { Head } from "./Head"
 import { Post } from "db/model/Post"
+import { webpack } from "utils/server/staticGen"
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export const ChartPage = (props: {
     chart: ChartConfigProps

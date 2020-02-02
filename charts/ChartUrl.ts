@@ -6,19 +6,19 @@
  * for specific countries and years.
  */
 
-import { isNumber, includes, filter, uniq, toString, isFinite } from "./Util"
-import { computed, when, runInAction, toJS } from "mobx"
-import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo } from "./Util"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
-import {
-    queryParamsToStr,
-    strToQueryParams,
-    QueryParams
-} from "utils/client/url"
-import { MapProjection } from "./MapProjection"
+import { computed, runInAction, toJS, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "settings"
+import {
+    QueryParams,
+    queryParamsToStr,
+    strToQueryParams
+} from "utils/client/url"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartTabOption } from "./ChartTabOption"
+import { MapProjection } from "./MapProjection"
 import { ObservableUrl } from "./UrlBinding"
+import { filter, includes, isFinite, isNumber, toString, uniq } from "./Util"
+import { defaultTo } from "./Util"
 
 export interface ChartQueryParams {
     tab?: string

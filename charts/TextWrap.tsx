@@ -1,9 +1,9 @@
-import { isEmpty, reduce, max, stripHTML } from "./Util"
 import { computed } from "mobx"
-import { FontSize } from "./FontSize"
-import { defaultTo } from "./Util"
-import { Bounds } from "./Bounds"
 import * as React from "react"
+import { Bounds } from "./Bounds"
+import { FontSize } from "./FontSize"
+import { isEmpty, max, reduce, stripHTML } from "./Util"
+import { defaultTo } from "./Util"
 
 export interface TextWrapProps {
     text: string

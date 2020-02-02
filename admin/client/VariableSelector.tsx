@@ -1,19 +1,19 @@
-import * as React from "react"
+import { DimensionSlot } from "charts/ChartConfig"
+import { each, groupBy, isString, sortBy } from "charts/Util"
+import { defaultTo } from "charts/Util"
 import * as _ from "lodash"
-import { groupBy, each, isString, sortBy } from "charts/Util"
 import {
-    computed,
     action,
-    observable,
     autorun,
-    runInAction,
-    IReactionDisposer
+    computed,
+    IReactionDisposer,
+    observable,
+    runInAction
 } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
-import { DimensionSlot } from "charts/ChartConfig"
-import { defaultTo } from "charts/Util"
-import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
+import { FieldsRow, Modal, SelectField, TextField, Toggle } from "./Forms"
 const fuzzysort = require("fuzzysort")
 
 interface VariableSelectorProps {

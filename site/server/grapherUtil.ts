@@ -1,13 +1,13 @@
 import * as glob from "glob"
 import * as parseUrl from "url-parse"
 const exec = require("child-process-promise").exec
-import * as path from "path"
 import * as _ from "lodash"
 import * as md5 from "md5"
+import * as path from "path"
 
-import { BAKED_BASE_URL } from "settings"
-import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
+import { BAKED_SITE_DIR } from "serverSettings"
+import { BAKED_BASE_URL } from "settings"
 import { bakeChartsToImages } from "site/server/bakeChartsToImages"
 import { log } from "utils/server/log"
 

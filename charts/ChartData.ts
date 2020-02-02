@@ -1,27 +1,27 @@
-import {
-    map,
-    every,
-    keyBy,
-    includes,
-    uniqWith,
-    cloneDeep,
-    union,
-    each,
-    sortBy,
-    without,
-    find,
-    extend,
-    uniq,
-    formatYear,
-    defaultTo,
-    slugify,
-    lastOfNonEmptyArray
-} from "./Util"
 import { computed, toJS } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { DataKey } from "./DataKey"
 import { Color } from "./Color"
+import { DataKey } from "./DataKey"
 import { DimensionWithData } from "./DimensionWithData"
+import {
+    cloneDeep,
+    defaultTo,
+    each,
+    every,
+    extend,
+    find,
+    formatYear,
+    includes,
+    keyBy,
+    lastOfNonEmptyArray,
+    map,
+    slugify,
+    sortBy,
+    union,
+    uniq,
+    uniqWith,
+    without
+} from "./Util"
 
 export interface DataKeyInfo {
     entity: string

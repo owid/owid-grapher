@@ -1,22 +1,22 @@
-import * as React from "react"
-import { computed, action, observable } from "mobx"
-import { observer } from "mobx-react"
-import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
+import { select } from "d3-selection"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
 
-import { includes, formatYear, guid, uniq, makeSafeForCSS } from "./Util"
-import { ChartConfig } from "./ChartConfig"
-import { Bounds } from "./Bounds"
 import { AxisBox, AxisGridLines } from "./AxisBox"
 import { AxisScale } from "./AxisScale"
-import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
 import { NoData } from "./NoData"
-import { Text } from "./Text"
 import {
-    VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
+    VerticalColorLegend
 } from "./ScatterColorLegend"
+import { Text } from "./Text"
 import { Tooltip } from "./Tooltip"
+import { formatYear, guid, includes, makeSafeForCSS, uniq } from "./Util"
+import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
 
 export interface StackedBarValue {
     x: number

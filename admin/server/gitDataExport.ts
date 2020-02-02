@@ -1,13 +1,13 @@
-import * as path from "path"
-import * as fs from "fs-extra"
-import { quote } from "shell-quote"
-import * as util from "util"
-import { JsonError, filenamify, exec } from "utils/server/serverUtil"
+import * as db from "db/db"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
+import * as fs from "fs-extra"
+import * as path from "path"
 import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
-import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
-import * as db from "db/db"
+import { GIT_DEFAULT_EMAIL, GIT_DEFAULT_USERNAME } from "settings"
+import { quote } from "shell-quote"
+import * as util from "util"
+import { exec, filenamify, JsonError } from "utils/server/serverUtil"
 
 async function datasetToReadme(dataset: Dataset): Promise<string> {
     const source = await Source.findOne({ datasetId: dataset.id })

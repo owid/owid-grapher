@@ -1,11 +1,11 @@
-import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
+import * as React from "react"
 
-import { ChartPage } from "../ChartPage"
-import { SiteHeader } from "../SiteHeader"
-import { SiteFooter } from "../SiteFooter"
-import { extend } from "charts/Util"
 import { ChartConfigProps } from "charts/ChartConfig"
+import { extend } from "charts/Util"
+import { ChartPage } from "../ChartPage"
+import { SiteFooter } from "../SiteFooter"
+import { SiteHeader } from "../SiteHeader"
 
 import * as fixtures from "test/fixtures"
 

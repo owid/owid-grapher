@@ -1,15 +1,15 @@
-import { Variable } from "./VariableData"
-import { observable, computed } from "mobx"
+import { computed, observable } from "mobx"
+import { ChartDimension } from "./ChartDimension"
+import { TickFormattingOptions } from "./TickFormattingOptions"
 import {
     defaultTo,
     formatValue,
-    some,
+    isNumber,
     isString,
-    sortBy,
-    isNumber
+    some,
+    sortBy
 } from "./Util"
-import { ChartDimension } from "./ChartDimension"
-import { TickFormattingOptions } from "./TickFormattingOptions"
+import { Variable } from "./VariableData"
 
 export class DimensionWithData {
     props: ChartDimension

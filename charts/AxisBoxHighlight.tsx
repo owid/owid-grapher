@@ -1,7 +1,7 @@
 import * as React from "react"
 import { AxisBox } from "./AxisBox"
-import { TextWrap } from "./TextWrap"
 import { Bounds } from "./Bounds"
+import { TextWrap } from "./TextWrap"
 
 export class AxisBoxHighlight extends React.Component<{
     axisBox: AxisBox

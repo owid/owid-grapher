@@ -1,11 +1,11 @@
-import { extend } from "./Util"
-import * as React from "react"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
-import { ChartConfig } from "./ChartConfig"
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { extend } from "./Util"
 
 interface DownloadTabProps {
     bounds: Bounds

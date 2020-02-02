@@ -1,21 +1,21 @@
-import * as React from "react"
-import { clone, map } from "charts/Util"
-import { computed, action, observable } from "mobx"
-import { observer } from "mobx-react"
-import { ChartConfig } from "charts/ChartConfig"
-import { DataKey } from "charts/DataKey"
-import {
-    EditableList,
-    EditableListItem,
-    EditableListItemProps,
-    ColorBox,
-    SelectField,
-    Section
-} from "./Forms"
-import { ChartEditor } from "./ChartEditor"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ChartConfig } from "charts/ChartConfig"
+import { DataKey } from "charts/DataKey"
+import { clone, map } from "charts/Util"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { ChartEditor } from "./ChartEditor"
+import {
+    ColorBox,
+    EditableList,
+    EditableListItem,
+    EditableListItemProps,
+    Section,
+    SelectField
+} from "./Forms"
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig

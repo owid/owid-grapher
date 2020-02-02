@@ -1,11 +1,11 @@
-import { flatten, uniq, sortBy, extend, csvEscape } from "./Util"
-import { Bounds } from "./Bounds"
-import * as React from "react"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { ChartConfig } from "./ChartConfig"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { action, computed } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { csvEscape, extend, flatten, sortBy, uniq } from "./Util"
 
 // Client-side data export from chart
 @observer

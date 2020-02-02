@@ -1,8 +1,8 @@
-import { WEBPACK_OUTPUT_PATH } from "serverSettings"
-import { ENV, WEBPACK_DEV_URL, BAKED_BASE_URL } from "settings"
 import * as fs from "fs-extra"
-import urljoin = require("url-join")
 import * as path from "path"
+import { WEBPACK_OUTPUT_PATH } from "serverSettings"
+import { BAKED_BASE_URL, ENV, WEBPACK_DEV_URL } from "settings"
+import urljoin = require("url-join")
 
 let manifest: { [key: string]: string }
 export function webpack(assetName: string, context?: string) {

@@ -1,15 +1,15 @@
-import * as React from "react"
+import { action, computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import * as React from "react"
 import { Prompt, Redirect } from "react-router-dom"
 const timeago = require("timeago.js")()
 
-import { AdminLayout } from "./AdminLayout"
-import { BindString, NumericSelectField, FieldsRow } from "./Forms"
-import { DatasetList, DatasetListItem } from "./DatasetList"
-import { ChartList, ChartListItem } from "./ChartList"
-import { TagBadge, Tag } from "./TagBadge"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout"
+import { ChartList, ChartListItem } from "./ChartList"
+import { DatasetList, DatasetListItem } from "./DatasetList"
+import { BindString, FieldsRow, NumericSelectField } from "./Forms"
+import { Tag, TagBadge } from "./TagBadge"
 
 interface TagPageData {
     id: number

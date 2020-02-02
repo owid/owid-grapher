@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
 import { DEPLOY_QUEUE_FILE_PATH } from "serverSettings"
-import { triggerDeploy, queueIsEmpty } from "./queue"
+import { queueIsEmpty, triggerDeploy } from "./queue"
 
 async function main() {
     // Listen for file changes

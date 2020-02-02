@@ -1,5 +1,5 @@
 // This import has side-effects to do with React import binding, keep it up here
-import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST } from "settings"
+import { ADMIN_SERVER_HOST, ADMIN_SERVER_PORT } from "settings"
 
 import { app } from "./app"
 

@@ -1,5 +1,5 @@
-import * as db from "db/db"
 import { syncDatasetToGitRepo } from "admin/server/gitDataExport"
+import * as db from "db/db"
 import { Dataset } from "db/model/Dataset"
 
 async function main() {

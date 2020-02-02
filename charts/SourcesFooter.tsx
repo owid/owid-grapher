@@ -1,13 +1,13 @@
-import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import * as parseUrl from "url-parse"
 
-import { TextWrap } from "./TextWrap"
-import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
-import { getRelativeMouse } from "./Util"
+import { ChartConfig } from "./ChartConfig"
+import { TextWrap } from "./TextWrap"
 import { Tooltip } from "./Tooltip"
+import { getRelativeMouse } from "./Util"
 
 // Metadata reflection hack - Mispy
 declare const global: any

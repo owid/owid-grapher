@@ -1,12 +1,12 @@
-import * as React from "react"
-import { extend, debounce } from "charts/Util"
-import { observable, computed, action, toJS } from "mobx"
-import { observer } from "mobx-react"
-import { ChartConfig, HighlightToggleConfig } from "charts/ChartConfig"
-import { ComparisonLineConfig } from "charts/ComparisonLine"
-import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ChartConfig, HighlightToggleConfig } from "charts/ChartConfig"
+import { ComparisonLineConfig } from "charts/ComparisonLine"
+import { debounce, extend } from "charts/Util"
+import { action, computed, observable, toJS } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import { NumberField, Section, SelectField, TextField, Toggle } from "./Forms"
 
 @observer
 export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {

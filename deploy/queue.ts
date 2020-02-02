@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
 import {
-    DEPLOY_QUEUE_FILE_PATH,
-    DEPLOY_PENDING_FILE_PATH
+    DEPLOY_PENDING_FILE_PATH,
+    DEPLOY_QUEUE_FILE_PATH
 } from "serverSettings"
 import { deploy } from "./deploy"
 

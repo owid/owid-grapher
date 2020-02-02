@@ -1,11 +1,11 @@
-import ReactDOM = require("react-dom")
-import * as React from "react"
-import * as Cookies from "js-cookie"
-import * as classnames from "classnames"
-import { observable, action, runInAction } from "mobx"
-import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as classnames from "classnames"
+import * as Cookies from "js-cookie"
+import { action, observable, runInAction } from "mobx"
+import { observer } from "mobx-react"
+import * as React from "react"
+import ReactDOM = require("react-dom")
 
 const VERSION: string = "2019-10-09"
 const COOKIE_NAME: string = "cookienotice"

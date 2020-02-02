@@ -1,26 +1,26 @@
 import { computed } from "mobx"
+import { AxisSpec } from "./AxisSpec"
+import { ChartConfig } from "./ChartConfig"
+import { Colorable, Colorizer } from "./Colorizer"
+import { DataKey } from "./DataKey"
+import { DimensionWithData } from "./DimensionWithData"
+import { IChartTransform } from "./IChartTransform"
+import { StackedBarSeries, StackedBarValue } from "./StackedBarChart"
 import {
-    includes,
-    identity,
-    extend,
-    some,
     cloneDeep,
-    find,
-    sortBy,
-    min,
-    max,
     defaultTo,
+    extend,
+    find,
     findClosest,
     formatYear,
+    identity,
+    includes,
+    max,
+    min,
+    some,
+    sortBy,
     uniq
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
-import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
-import { AxisSpec } from "./AxisSpec"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
-import { DataKey } from "./DataKey"
-import { Colorizer, Colorable } from "./Colorizer"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart

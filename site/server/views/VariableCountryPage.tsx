@@ -1,10 +1,10 @@
-import * as settings from "settings"
-import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { VariableDisplaySettings } from "charts/VariableData"
 import { defaultTo } from "charts/Util"
+import { VariableDisplaySettings } from "charts/VariableData"
+import * as React from "react"
+import * as settings from "settings"
+import { Head } from "./Head"
+import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export interface VariableCountryPageProps {
     country: {

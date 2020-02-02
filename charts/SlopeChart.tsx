@@ -1,16 +1,16 @@
-import * as React from "react"
-import { intersection, without, uniq } from "./Util"
-import { observable, computed, action } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import { isString } from "util"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
 import { NoData } from "./NoData"
 import {
-    VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
+    VerticalColorLegend
 } from "./ScatterColorLegend"
-import { isString } from "util"
+import { intersection, uniq, without } from "./Util"
 
 @observer
 export class SlopeChart extends React.Component<{

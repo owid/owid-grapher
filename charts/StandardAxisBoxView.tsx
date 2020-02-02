@@ -4,11 +4,11 @@
  * Default axis UI given a box and chart state.
  */
 
+import { action } from "mobx"
 import * as React from "react"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ChartConfig } from "./ChartConfig"
 import { ScaleType } from "./ScaleType"
-import { action } from "mobx"
 
 export interface StandardAxisBoxViewProps {
     axisBox: AxisBox

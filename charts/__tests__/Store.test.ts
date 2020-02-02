@@ -1,8 +1,8 @@
 import { observe } from "mobx"
 
-import { RootStore, IndicatorStore } from "charts/Store"
-import * as fixtures from "test/fixtures"
+import { IndicatorStore, RootStore } from "charts/Store"
 import * as apiMock from "test/apiMock"
+import * as fixtures from "test/fixtures"
 
 const indicatorsBuffer = fixtures.readBuffer("indicators")
 const indicator = fixtures.readIndicators().indicators[0]

@@ -1,8 +1,8 @@
-import * as settings from "settings"
 import * as React from "react"
+import * as settings from "settings"
 import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "./SiteHeader"
 
 export interface Country {
     name: string

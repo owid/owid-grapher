@@ -1,6 +1,6 @@
 import * as db from "db/db"
-import * as fs from "fs-extra"
 import { Chart } from "db/model/Chart"
+import * as fs from "fs-extra"
 import { csvRow } from "utils/server/serverUtil"
 
 async function dataExport() {

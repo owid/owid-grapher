@@ -1,12 +1,12 @@
-import { sortBy } from "./Util"
-import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
+import * as React from "react"
 import { ScaleType } from "./AxisScale"
 import { AxisScale } from "./AxisScale"
+import { Bounds } from "./Bounds"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
+import { sortBy } from "./Util"
 
 interface VerticalAxisProps {
     scale: AxisScale

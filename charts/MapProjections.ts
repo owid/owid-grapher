@@ -1,8 +1,8 @@
 import {
+    geoAzimuthalEqualArea,
+    geoConicConformal,
     geoPath,
     GeoPath,
-    geoConicConformal,
-    geoAzimuthalEqualArea,
     GeoProjection
 } from "d3-geo"
 import { computed } from "mobx"

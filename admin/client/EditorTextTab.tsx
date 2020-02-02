@@ -1,16 +1,16 @@
-import * as React from "react"
+import { LogoOption } from "charts/Logos"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 import { ChartEditor } from "./ChartEditor"
 import {
-    Toggle,
-    Section,
-    BindString,
-    BindAutoString,
     AutoTextField,
-    RadioGroup
+    BindAutoString,
+    BindString,
+    RadioGroup,
+    Section,
+    Toggle
 } from "./Forms"
-import { LogoOption } from "charts/Logos"
 const slugify = require("slugify")
 
 @observer

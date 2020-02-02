@@ -1,9 +1,9 @@
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
+import { decodeHTML } from "entities"
+import { QueryBuilder } from "knex"
 import * as _ from "lodash"
 import { Tag } from "./Tag"
-import { QueryBuilder } from "knex"
-import { decodeHTML } from "entities"
 
 export namespace Post {
     export interface Row {

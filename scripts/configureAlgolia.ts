@@ -1,7 +1,7 @@
 import * as algoliasearch from "algoliasearch"
 
-import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { ALGOLIA_ID } from "settings"
 import { countries } from "utils/countries"
 
 // This function initializes and applies settings to the Algolia search indices

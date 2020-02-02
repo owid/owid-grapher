@@ -1,15 +1,15 @@
-import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
 
+import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Bounds } from "./Bounds"
+import { ChartConfig } from "./ChartConfig"
+import { ChartView } from "./ChartView"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ControlsOverlay } from "./Controls"
-import { ChartConfig } from "./ChartConfig"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { ChartView } from "./ChartView"
 
 @observer
 export class Message extends React.Component<{

@@ -1,8 +1,8 @@
+import * as colorbrewer from "colorbrewer"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { clone, lastOfNonEmptyArray } from "./Util"
-import * as colorbrewer from "colorbrewer"
 import { Color } from "./Color"
+import { clone, lastOfNonEmptyArray } from "./Util"
 
 const longSchemeNames: { [key: string]: string } = {
     YlGn: "Yellow-Green shades",

@@ -1,21 +1,21 @@
+import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
+import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { select } from "d3-selection"
-import { first, last, sortBy, find } from "./Util"
-import * as React from "react"
-import { Bounds } from "./Bounds"
-import { getRelativeMouse, formatYear } from "./Util"
 import {
-    observable,
-    computed,
-    autorun,
     action,
-    runInAction,
-    IReactionDisposer
+    autorun,
+    computed,
+    IReactionDisposer,
+    observable,
+    runInAction
 } from "mobx"
 import { observer } from "mobx-react"
+import * as React from "react"
+import { Bounds } from "./Bounds"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
-import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { find, first, last, sortBy } from "./Util"
+import { formatYear, getRelativeMouse } from "./Util"
 
 interface TimelineProps {
     years: number[]

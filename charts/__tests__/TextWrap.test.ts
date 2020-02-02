@@ -1,5 +1,5 @@
-import { TextWrap } from "../TextWrap"
 import { Bounds } from "../Bounds"
+import { TextWrap } from "../TextWrap"
 
 const FONT_SIZE = 14
 
