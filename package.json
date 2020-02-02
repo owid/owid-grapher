@@ -164,7 +164,7 @@
         "react-modal": "^3.8.1",
         "react-recaptcha": "^2.3.10",
         "react-router-dom": "^5.0.1",
-        "react-select": "^3.0.8",
+        "react-select": "3.0.3",
         "react-tag-autocomplete": "https://github.com/mispy/react-tags",
         "react-zoom-pan-pinch": "^1.6.1",
         "reflect-metadata": "^0.1.13",
