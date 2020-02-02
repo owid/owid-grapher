@@ -47,20 +47,25 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
         return (
             <React.Fragment>
                 <FieldsRow>
-                    <ColorSchemeDropdown
-                        defaultValue={chart.baseColorScheme || "default"}
-                        onChange={this.onChange}
-                        invertedColorScheme={!!chart.props.invertColorScheme}
-                        additionalColorSchemes={[
-                            {
-                                colorScheme: undefined,
-                                gradient:
-                                    "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
-                                label: "Default",
-                                value: "default"
+                    <div className="form-group">
+                        <label>Color scheme</label>
+                        <ColorSchemeDropdown
+                            defaultValue={chart.baseColorScheme || "default"}
+                            onChange={this.onChange}
+                            invertedColorScheme={
+                                !!chart.props.invertColorScheme
                             }
-                        ]}
-                    />
+                            additionalColorSchemes={[
+                                {
+                                    colorScheme: undefined,
+                                    gradient:
+                                        "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
+                                    label: "Default",
+                                    value: "default"
+                                }
+                            ]}
+                        />
+                    </div>
                 </FieldsRow>
                 <FieldsRow>
                     <Toggle

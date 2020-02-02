@@ -1,5 +1,5 @@
 import * as React from "react"
-import { clone, isEmpty, noop, map } from "charts/Util"
+import { clone, isEmpty, noop } from "charts/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
@@ -323,21 +323,24 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         return (
             <Section name="Colors">
                 <FieldsRow>
-                    <ColorSchemeDropdown
-                        defaultValue={currentColorScheme}
-                        onChange={this.onColorScheme}
-                        invertedColorScheme={
-                            !!mapConfig.props.colorSchemeInvert
-                        }
-                        additionalColorSchemes={[
-                            {
-                                colorScheme: undefined,
-                                gradient: undefined,
-                                label: "Custom",
-                                value: "custom"
+                    <div className="form-group">
+                        <label>Color scheme</label>
+                        <ColorSchemeDropdown
+                            defaultValue={currentColorScheme}
+                            onChange={this.onColorScheme}
+                            invertedColorScheme={
+                                !!mapConfig.props.colorSchemeInvert
                             }
-                        ]}
-                    />
+                            additionalColorSchemes={[
+                                {
+                                    colorScheme: undefined,
+                                    gradient: undefined,
+                                    label: "Custom",
+                                    value: "custom"
+                                }
+                            ]}
+                        />
+                    </div>
                 </FieldsRow>
                 <FieldsRow>
                     <Toggle
