@@ -13,7 +13,9 @@
         "member-access": false,
         "curly": false,
         "no-string-literal": false,
-        "ordered-imports": true,
+        "ordered-imports": [true, {
+            "grouped-imports": true
+        }],
         "arrow-parens": false,
         "quotemark": false,
         "interface-name": false,
