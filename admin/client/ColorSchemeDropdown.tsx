@@ -13,7 +13,7 @@ export interface ColorSchemeOption {
 
 export interface ColorSchemeDropdownProps {
     additionalOptions: ColorSchemeOption[]
-    initialValue?: string
+    value?: string
     gradientColorCount: number
     invertedColorScheme: boolean
     onChange: (selected: ColorSchemeOption) => void
@@ -112,15 +112,13 @@ export class ColorSchemeDropdown extends React.Component<
     }
 
     render() {
-        const { initialValue } = this.props
-
         return (
             <Select
                 options={this.allOptions}
                 formatOptionLabel={this.formatOptionLabel}
                 onChange={this.onChange}
-                defaultValue={this.allOptions.find(
-                    scheme => scheme.value === initialValue
+                value={this.allOptions.find(
+                    scheme => scheme.value === this.props.value
                 )}
                 styles={{
                     singleValue: provided => {

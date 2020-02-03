@@ -50,7 +50,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            initialValue={chart.baseColorScheme || "default"}
+                            value={chart.baseColorScheme || "default"}
                             onChange={this.onChange}
                             invertedColorScheme={
                                 !!chart.props.invertColorScheme
