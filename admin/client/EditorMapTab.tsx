@@ -313,12 +313,14 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             : true
     }
 
-    render() {
+    @computed get currentColorScheme() {
         const { mapConfig } = this.props
 
-        const currentColorScheme = mapConfig.isCustomColors
-            ? "custom"
-            : mapConfig.baseColorScheme
+        return mapConfig.isCustomColors ? "custom" : mapConfig.baseColorScheme
+    }
+
+    render() {
+        const { mapConfig } = this.props
 
         return (
             <Section name="Colors">
@@ -326,7 +328,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            initialValue={currentColorScheme}
+                            value={this.currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={
                                 !!mapConfig.props.colorSchemeInvert
