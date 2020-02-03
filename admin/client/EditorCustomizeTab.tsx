@@ -58,8 +58,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
-                                    gradient:
-                                        "linear-gradient(90deg, #2e5778 0%, #2e5778 100%)",
+                                    gradient: undefined,
                                     label: "Default",
                                     value: "default"
                                 }
