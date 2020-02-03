@@ -205,32 +205,6 @@ add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
  * API fields
  */
 
-
-/*
- * Returns the first heading (requires the first block to be a Gutenberg block).
- * The rest of the content can remain in the classic editor.
- */
-
-function getFirstHeading(array $outerPost)
-{
-	$firstHeading = null;
-
-	if (getReadingContext($outerPost) === 'entry') {
-		// Checking the first block of the post (outerPost) for a reusable
-		// block (innerPost). Then get the first heading.
-		$outerPostBlocks = parse_blocks($outerPost['content']['raw']);
-		if ($outerPostBlocks[0]['blockName'] === "core/block") {
-			$innerPost = get_post($outerPostBlocks[0]['attrs']['ref']);
-			$innerPostBlocks = parse_blocks($innerPost->post_content);
-			if ($innerPostBlocks[0]['blockName'] === 'core/heading') {
-				$firstHeading = trim(strip_tags($innerPostBlocks[0]['innerHTML']));
-			}
-		}
-	}
-
-	return $firstHeading;
-}
-
 /*
  * Returns either the post's standard path or the path of the embedding entry (for blog
  * posts embedded in an entry)
@@ -315,11 +289,6 @@ add_action(
 			['post', 'page'],
 			'path',
 			['get_callback' => __NAMESPACE__ . '\getPath']
-		);
-		register_rest_field(
-			['post'],
-			'first_heading',
-			['get_callback' => __NAMESPACE__ . '\getFirstHeading']
 		);
 		register_rest_field(
 			'post',
