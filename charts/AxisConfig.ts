@@ -2,11 +2,12 @@ import { observable, computed } from "mobx"
 import { AxisSpec } from "./AxisSpec"
 import { ScaleType } from "./ScaleType"
 import { defaultTo } from "./Util"
+import { NumericInputValue } from "./ChartConfig"
 
 // Represents the actual entered configuration state in the editor
 export class AxisConfigProps {
-    @observable.ref min?: number = undefined
-    @observable.ref max?: number = undefined
+    @observable min?: NumericInputValue = new NumericInputValue()
+    @observable max?: NumericInputValue = new NumericInputValue()
     @observable.ref scaleType: ScaleType = "linear"
     @observable.ref canChangeScaleType?: true = undefined
     @observable label?: string = undefined
@@ -26,14 +27,14 @@ export class AxisConfig {
         if (this.scaleType === "log" && (this.props.min || 0) <= 0) {
             return undefined
         } else {
-            return this.props.min
+            return this.props.min ? this.props.min.value : undefined
         }
     }
 
     @computed get max(): number | undefined {
         if (this.scaleType === "log" && (this.props.max || 0) <= 0)
             return undefined
-        else return this.props.max
+        else return this.props.max ? this.props.max.value : undefined
     }
 
     @computed get scaleType(): ScaleType {

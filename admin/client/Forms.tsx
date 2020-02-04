@@ -145,10 +145,10 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
 export class SearchField extends TextField {}
 
-export interface NumberFieldProps {
+export interface NumberFieldProps<TValue> {
     label?: string
-    value: number | undefined
-    onValue: (value: number | undefined) => void
+    value?: TValue
+    onValue: (value: TValue) => void
     onEnter?: () => void
     onEscape?: () => void
     placeholder?: string
@@ -157,13 +157,40 @@ export interface NumberFieldProps {
     helpText?: string
 }
 
-export class NumberField extends React.Component<NumberFieldProps> {
+/**
+ * Like NumberField, but also capture the users text input
+ */
+export class NumberInputField extends React.Component<
+    NumberFieldProps<NumericInputValue>
+> {
+    render() {
+        const { props } = this
+
+        const textFieldProps = extend({}, props, {
+            value: props.value && props.value ? props.value.input : undefined,
+            onValue: (value: string) => {
+                const asNumber = parseFloat(value)
+                const nValue: NumericInputValue = {
+                    input: value,
+                    value: isNaN(asNumber) ? undefined : asNumber
+                }
+                props.onValue(nValue)
+            }
+        })
+
+        return <TextField {...textFieldProps} />
+    }
+}
+
+export class NumberField extends React.Component<
+    NumberFieldProps<number | undefined>
+> {
     render() {
         const { props } = this
 
         const textFieldProps = extend({}, props, {
             value:
-                props.value !== undefined ? props.value.toString() : undefined,
+                props.value && props.value ? props.value.toString() : undefined,
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
@@ -848,6 +875,7 @@ export class Timeago extends React.Component<{ time: Date }> {
 }
 
 import { TagBadge, Tag } from "./TagBadge"
+import { NumericInputValue } from "charts/ChartConfig"
 
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.
