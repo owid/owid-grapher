@@ -17,7 +17,8 @@ import {
     Button,
     EditableListItem,
     ColorBox,
-    EditableList
+    EditableList,
+    NumberInputField
 } from "./Forms"
 import { debounce, keysOf } from "charts/Util"
 import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
@@ -326,12 +327,12 @@ export class EditorCustomizeTab extends React.Component<{
                         {features.customYAxisScale && (
                             <React.Fragment>
                                 <FieldsRow>
-                                    <NumberField
+                                    <NumberInputField
                                         label={`Min`}
                                         value={yAxis.min}
                                         onValue={value => (yAxis.min = value)}
                                     />
-                                    <NumberField
+                                    <NumberInputField
                                         label={`Max`}
                                         value={yAxis.max}
                                         onValue={value => (yAxis.max = value)}
@@ -361,12 +362,12 @@ export class EditorCustomizeTab extends React.Component<{
                         {features.customXAxisScale && (
                             <React.Fragment>
                                 <FieldsRow>
-                                    <NumberField
+                                    <NumberInputField
                                         label={`Min`}
                                         value={xAxis.min}
                                         onValue={value => (xAxis.min = value)}
                                     />
-                                    <NumberField
+                                    <NumberInputField
                                         label={`Max`}
                                         value={xAxis.max}
                                         onValue={value => (xAxis.max = value)}

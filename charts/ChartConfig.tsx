@@ -44,6 +44,15 @@ export interface EntitySelection {
     color?: Color
 }
 
+export class NumericInputValue {
+    @observable value?: number = undefined
+
+    /**
+     * The value as entered by the user. May not be a valid number
+     */
+    @observable input?: string = undefined
+}
+
 export class DimensionSlot {
     chart: ChartConfig
     property: string
