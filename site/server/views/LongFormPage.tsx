@@ -22,13 +22,11 @@ export const LongFormPage = (props: {
     formattingOptions: FormattingOptions
 }) => {
     const { entries, post, formattingOptions } = props
-    const authorsText = formatAuthors(post.authors, true)
 
     const pageTitle = post.title
     const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
     const publishedYear = post.modifiedDate.getFullYear()
-
     const isEntry = entries.some(category => {
         return (
             category.entries.some(entry => entry.slug === post.slug) ||
@@ -39,8 +37,8 @@ export const LongFormPage = (props: {
             })
         )
     })
-
     const isPost = post.type === "post"
+    const authorsText = formatAuthors(post.authors, isEntry)
 
     const bodyClasses = []
     let hasSidebar = false
