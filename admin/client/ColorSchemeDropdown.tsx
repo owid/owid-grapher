@@ -120,17 +120,14 @@ export class ColorSchemeDropdown extends React.Component<
                 value={this.allOptions.find(
                     scheme => scheme.value === this.props.value
                 )}
+                components={{
+                    IndicatorSeparator: null
+                }}
                 styles={{
                     singleValue: provided => {
                         return {
                             ...provided,
                             width: "calc(100% - 10px)"
-                        }
-                    },
-                    indicatorSeparator: provided => {
-                        return {
-                            ...provided,
-                            visibility: "hidden"
                         }
                     }
                 }}
