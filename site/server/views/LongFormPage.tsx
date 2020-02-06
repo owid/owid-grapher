@@ -4,7 +4,12 @@ import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, FormattedPost, FormattingOptions } from "../formatting"
+import {
+    formatAuthors,
+    formatDate,
+    FormattedPost,
+    FormattingOptions
+} from "../formatting"
 import { CategoryWithEntries } from "db/wpdb"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -34,6 +39,8 @@ export const LongFormPage = (props: {
             })
         )
     })
+
+    const isPost = post.type === "post"
 
     const bodyClasses = []
     let hasSidebar = false
@@ -94,9 +101,9 @@ export const LongFormPage = (props: {
                 )}
                 <main>
                     <article
-                        className={`page ${
-                            hasSidebar ? "with-sidebar" : "no-sidebar"
-                        }`}
+                        className={`page${
+                            hasSidebar ? " with-sidebar" : " no-sidebar"
+                        }${isPost ? " thin-banner" : " large-banner"}`}
                     >
                         <div className="offset-header">
                             <header className="article-header">
@@ -106,18 +113,14 @@ export const LongFormPage = (props: {
                                         <a href="/team">by {authorsText}</a>
                                     </div>
                                 )}
+                                {isPost && <time>{formatDate(post.date)}</time>}
                                 {post.info && (
-                                    <div className="wp-block-columns">
-                                        <div className="wp-block-column">
-                                            <div
-                                                className="blog-info"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.info
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="wp-block-column"></div>
-                                    </div>
+                                    <div
+                                        className="blog-info"
+                                        dangerouslySetInnerHTML={{
+                                            __html: post.info
+                                        }}
+                                    />
                                 )}
                                 {isEntry && (
                                     <div className="tools">

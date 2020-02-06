@@ -1,6 +1,4 @@
 .page {
-    background-color: $primary-color-100;
-
     & > .content-wrapper {
         position: relative;
         padding-top: $vertical-spacing;
@@ -39,64 +37,100 @@
         }
     }
 
-    .article-header {
-        padding-top: 2rem;
-        padding-bottom: 2 * $vertical-spacing;
+    h1 {
+        margin-top: $vertical-spacing;
+        margin-bottom: $vertical-spacing * 2;
+        font-family: $serif-font-stack;
+        font-weight: 400;
+        line-height: 1.2;
+    }
 
-        @include lg-up {
-            padding-top: 4rem;
-        }
-        @include xlg-up {
-            padding-top: 6rem;
-            padding-bottom: 3 * $vertical-spacing;
-        }
+    .authors-byline {
+        margin-right: 1rem;
+        font-size: 1.125rem;
+        color: $secondary-text-color;
 
-        h1 {
-            @include md-up {
-                font-size: 3rem;
+        a {
+            color: inherit;
+
+            &:hover {
+                color: #c0023e;
             }
+        }
+    }
+
+    .blog-info {
+        @include info;
+        font-style: italic;
+        color: $secondary-text-color;
+    }
+
+    &.large-banner {
+        background-color: $primary-color-100;
+
+        .article-header {
+            padding-top: 2rem;
+            padding-bottom: 2 * $vertical-spacing;
 
             @include lg-up {
-                font-size: 4rem;
+                padding-top: 4rem;
             }
             @include xlg-up {
-                font-size: 5rem;
+                padding-top: 6rem;
+                padding-bottom: 3 * $vertical-spacing;
+            }
+
+            h1 {
+                @include md-up {
+                    font-size: 3rem;
+                }
+
+                @include lg-up {
+                    font-size: 4rem;
+                }
+                @include xlg-up {
+                    font-size: 5rem;
+                }
+            }
+
+            // Cite this research and other potential tools located at the top of entries
+            .tools {
+                display: flex;
+                margin-top: 3rem;
+                .cite {
+                    font-size: 0.8125rem;
+                    color: $grey-text-color;
+                    transition: all 0.2s;
+                    &:hover {
+                        color: $secondary-color;
+                    }
+                    svg {
+                        margin-right: 0.5rem;
+                    }
+                }
             }
         }
+    }
 
-        .authors-byline {
-            margin-right: 1rem;
-            font-family: $serif-font-stack;
-            font-size: 1.125rem;
-            color: $secondary-text-color;
+    &.thin-banner {
+        background-color: $tertiary-color-100;
+        .article-header {
+            padding-top: 2 * $vertical-spacing;
+            padding-bottom: 2 * $vertical-spacing;
 
-            a {
-                color: inherit;
-
-                &:hover {
-                    color: #c0023e;
-                }
+            h1 {
+                max-width: $content-max-width;
+                font-size: 2rem;
             }
-        }
 
-        .blog-info {
-            margin-bottom: 0;
-        }
+            time {
+                display: block;
+                font-size: 0.875rem;
+                color: $secondary-text-color;
+            }
 
-        // Cite this research and other potential tools located at the top of entries
-        .tools {
-            display: flex;
-            margin-top: 4rem;
-            .cite {
-                font-size: 0.8125rem;
-                color: $grey-text-color;
-                transition: all 0.2s;
-                &:hover {
-                    color: $secondary-color;
-                }
-                svg {
-                    margin-right: 0.5rem;
-                }
+            .blog-info {
+                margin-top: $vertical-spacing;
             }
         }
     }
@@ -120,6 +154,8 @@
 /* Notice for entries that are only a preliminary collection of relevant material */
 .pcrm {
     @include info;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
     padding: 0.625rem;
     text-align: center;
     background-color: $tertiary-color;
