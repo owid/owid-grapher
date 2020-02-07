@@ -27,6 +27,7 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
+import { BLOG_POSTS_PER_PAGE } from "settings"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -182,14 +183,12 @@ export async function renderSubscribePage() {
 }
 
 export async function renderBlogByPageNum(pageNum: number) {
-    const postsPerPage = 20
-
     const allPosts = await wpdb.getBlogIndex()
 
-    const numPages = Math.ceil(allPosts.length / postsPerPage)
+    const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
     const posts = allPosts.slice(
-        (pageNum - 1) * postsPerPage,
-        pageNum * postsPerPage
+        (pageNum - 1) * BLOG_POSTS_PER_PAGE,
+        pageNum * BLOG_POSTS_PER_PAGE
     )
 
     return renderToHtmlPage(
