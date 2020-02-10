@@ -147,32 +147,6 @@ body.blog li.post img {
     }
 }
 
-body.single-post {
-    main {
-        background: #f6f6f6;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .site-content {
-        padding: $padding-x-sm / 2;
-        @include md-up {
-            padding: $padding-x-sm;
-        }
-    }
-
-    article {
-        @include content-wrapper;
-        padding: $padding-x-sm;
-        @include md-up {
-            padding: $padding-x-md;
-        }
-
-        margin-bottom: $vertical-spacing;
-        background: white;
-        border: 1px solid #ddd;
-    }
-}
-
 h1.entry-title > a {
     color: #222;
 }
@@ -209,12 +183,6 @@ h1.entry-title > a:hover {
     .screen-reader-text {
         display: none;
     }
-}
-
-/* Optional abstract for blog posts */
-.blog-abstract {
-    background-color: #f8f7fe;
-    padding: 20px;
 }
 
 main {
