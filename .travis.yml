@@ -1,8 +1,8 @@
 language: node_js
 services:
     - mysql
-dist: xenial
 sudo: required
+dist: bionic
 before_script:
     - cp .env.travis .env
     - mysql -e 'CREATE DATABASE test_grapher;'
