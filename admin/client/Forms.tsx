@@ -167,7 +167,7 @@ export class NumberInputField extends React.Component<
         const { props } = this
 
         const textFieldProps = extend({}, props, {
-            value: props.value && props.value ? props.value.input : undefined,
+            value: props.value?.input,
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 const nValue: NumericInputValue = {
@@ -189,8 +189,7 @@ export class NumberField extends React.Component<
         const { props } = this
 
         const textFieldProps = extend({}, props, {
-            value:
-                props.value && props.value ? props.value.toString() : undefined,
+            value: props.value?.toString(),
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
