@@ -131,6 +131,7 @@ export class ColorSchemeDropdown extends React.Component<
                         }
                     }
                 }}
+                menuPlacement="auto"
             />
         )
     }
