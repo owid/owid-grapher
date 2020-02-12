@@ -222,12 +222,11 @@
     }
     @include xlg-up {
         &.is-style-side-by-side {
-            display: block;
             .wp-block-column {
-                flex: none; // not using flex here so charts resize properly
-                display: inline-block;
-                width: ($text-max-content-width + $graph-max-content-width) / 2;
-                max-width: initial;
+                flex: 0 0 ($text-max-content-width + $graph-max-content-width) /
+                    2;
+                max-width: ($text-max-content-width + $graph-max-content-width) /
+                    2; // forcing charts to behave when resizing up
             }
         }
     }
