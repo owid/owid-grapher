@@ -1,5 +1,5 @@
 import * as React from "react"
-import { clone, isEmpty, noop, extend, map } from "charts/Util"
+import { clone, isEmpty, noop } from "charts/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
@@ -18,12 +18,12 @@ import {
 } from "./Forms"
 import { MapConfig } from "charts/MapConfig"
 import { MapProjection } from "charts/MapProjection"
-import { ColorSchemes } from "charts/ColorSchemes"
 import { NumericBin, CategoricalBin } from "charts/MapData"
 import { Color } from "charts/Color"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
@@ -288,12 +288,13 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 
 @observer
 class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onColorScheme(schemeKey: string | undefined) {
+    @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { mapConfig } = this.props
-        if (schemeKey === "custom") {
+
+        if (selected.value === "custom") {
             mapConfig.props.customColorsActive = true
         } else {
-            mapConfig.props.baseColorScheme = schemeKey
+            mapConfig.props.baseColorScheme = selected.value
             mapConfig.props.customColorsActive = undefined
         }
     }
@@ -308,36 +309,43 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
             : true
     }
 
+    @computed get currentColorScheme() {
+        const { mapConfig } = this.props
+
+        return mapConfig.isCustomColors ? "custom" : mapConfig.baseColorScheme
+    }
+
     render() {
         const { mapConfig } = this.props
-        const availableColorSchemes = map(ColorSchemes, (v: any, k: any) =>
-            extend({}, v, { key: k })
-        ).filter((v: any) => !!v.name)
-        const currentColorScheme = mapConfig.isCustomColors
-            ? "custom"
-            : mapConfig.baseColorScheme
 
         return (
             <Section name="Colors">
                 <FieldsRow>
-                    <SelectField
-                        label="Color scheme"
-                        value={currentColorScheme}
-                        options={availableColorSchemes
-                            .map(d => d.key)
-                            .concat(["custom"])}
-                        optionLabels={availableColorSchemes
-                            .map(d => d.name)
-                            .concat(["custom"])}
-                        onValue={this.onColorScheme}
-                    />
+                    <div className="form-group">
+                        <label>Color scheme</label>
+                        <ColorSchemeDropdown
+                            value={this.currentColorScheme}
+                            onChange={this.onColorScheme}
+                            invertedColorScheme={
+                                !!mapConfig.props.colorSchemeInvert
+                            }
+                            additionalOptions={[
+                                {
+                                    colorScheme: undefined,
+                                    gradient: undefined,
+                                    label: "Custom",
+                                    value: "custom"
+                                }
+                            ]}
+                        />
+                    </div>
+                </FieldsRow>
+                <FieldsRow>
                     <Toggle
                         label="Invert colors"
                         value={mapConfig.props.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
-                </FieldsRow>
-                <FieldsRow>
                     <Toggle
                         label="Automatic classification"
                         value={!mapConfig.props.isManualBuckets}

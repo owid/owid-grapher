@@ -7,7 +7,6 @@ import { ComparisonLineConfig } from "charts/ComparisonLine"
 import { AxisConfigProps } from "charts/AxisConfig"
 import {
     NumberField,
-    SelectField,
     Toggle,
     FieldsRow,
     Section,
@@ -19,18 +18,23 @@ import {
     ColorBox,
     EditableList
 } from "./Forms"
-import { debounce, keysOf } from "charts/Util"
-import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
+import { debounce } from "charts/Util"
 import { Color } from "charts/Color"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
-    @action.bound onValue(value: string) {
+    @action.bound onChange(selected: ColorSchemeOption) {
+        // The onChange method can return an array of values (when multiple
+        // items can be selected) or a single value. Since we are certain that
+        // we are not using the multi-option select we can force the type to be
+        // a single value.
+
         this.props.chart.props.baseColorScheme =
-            value === "default" ? undefined : value
+            selected.value === "default" ? undefined : selected.value
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
@@ -40,27 +44,36 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
     render() {
         const { chart } = this.props
 
-        const availableColorSchemes = keysOf(ColorSchemes)
-        const colorSchemeLabels = availableColorSchemes.map(
-            scheme => (ColorSchemes[scheme] as ColorScheme).name
-        )
-
         return (
-            <FieldsRow>
-                <SelectField
-                    label="Color scheme"
-                    value={chart.baseColorScheme || "default"}
-                    onValue={this.onValue}
-                    options={["default"].concat(availableColorSchemes)}
-                    optionLabels={["Default"].concat(colorSchemeLabels)}
-                />
-                <br />
-                <Toggle
-                    label="Invert colors"
-                    value={!!chart.props.invertColorScheme}
-                    onValue={this.onInvertColorScheme}
-                />
-            </FieldsRow>
+            <React.Fragment>
+                <FieldsRow>
+                    <div className="form-group">
+                        <label>Color scheme</label>
+                        <ColorSchemeDropdown
+                            value={chart.baseColorScheme || "default"}
+                            onChange={this.onChange}
+                            invertedColorScheme={
+                                !!chart.props.invertColorScheme
+                            }
+                            additionalOptions={[
+                                {
+                                    colorScheme: undefined,
+                                    gradient: undefined,
+                                    label: "Default",
+                                    value: "default"
+                                }
+                            ]}
+                        />
+                    </div>
+                </FieldsRow>
+                <FieldsRow>
+                    <Toggle
+                        label="Invert colors"
+                        value={!!chart.props.invertColorScheme}
+                        onValue={this.onInvertColorScheme}
+                    />
+                </FieldsRow>
+            </React.Fragment>
         )
     }
 }
