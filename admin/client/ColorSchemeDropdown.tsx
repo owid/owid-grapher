@@ -3,6 +3,7 @@ import { computed, action } from "mobx"
 import Select, { ValueType } from "react-select"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 import { observer } from "mobx-react"
+import { bind } from "decko"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
@@ -79,7 +80,7 @@ export class ColorSchemeDropdown extends React.Component<
         this.props.onChange(selected as ColorSchemeOption)
     }
 
-    @action.bound formatOptionLabel(option: ColorSchemeOption) {
+    @bind formatOptionLabel(option: ColorSchemeOption) {
         const { invertedColorScheme } = this.props
 
         return (
