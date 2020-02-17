@@ -147,7 +147,7 @@ export class SearchField extends TextField {}
 
 export interface NumberFieldProps {
     label?: string
-    value?: number
+    value: number | undefined
     allowDecimal?: boolean
     allowNegative?: boolean
     onValue: (value: number | undefined) => void
