@@ -145,10 +145,10 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
 export class SearchField extends TextField {}
 
-export interface NumberFieldProps<TValue> {
+export interface NumberFieldProps {
     label?: string
-    value?: TValue
-    onValue: (value: TValue) => void
+    value?: number
+    onValue: (value: number) => void
     onEnter?: () => void
     onEscape?: () => void
     placeholder?: string
@@ -157,42 +157,32 @@ export interface NumberFieldProps<TValue> {
     helpText?: string
 }
 
-/**
- * Like NumberField, but also capture the users text input
- */
-export class NumberInputField extends React.Component<
-    NumberFieldProps<NumericInputValue>
-> {
-    render() {
-        const { props } = this
-
-        const textFieldProps = extend({}, props, {
-            value: props.value?.input,
-            onValue: (value: string) => {
-                const asNumber = parseFloat(value)
-                const nValue: NumericInputValue = {
-                    input: value,
-                    value: isNaN(asNumber) ? undefined : asNumber
-                }
-                props.onValue(nValue)
-            }
-        })
-
-        return <TextField {...textFieldProps} />
-    }
+export interface NumberFieldState {
+    inputValue?: string
 }
 
 export class NumberField extends React.Component<
-    NumberFieldProps<number | undefined>
+    NumberFieldProps,
+    NumberFieldState
 > {
+    constructor(props: NumberFieldProps) {
+        super(props)
+
+        this.state = {
+            inputValue: props.value?.toString()
+        }
+    }
+
     render() {
-        const { props } = this
+        const { props, state } = this
 
         const textFieldProps = extend({}, props, {
-            value: props.value?.toString(),
+            value: state.inputValue,
             onValue: (value: string) => {
+                this.setState({ inputValue: value })
+                console.log("inputValue", value)
                 const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+                if (!isNaN(asNumber)) props.onValue(asNumber)
             }
         })
 
@@ -874,7 +864,6 @@ export class Timeago extends React.Component<{ time: Date }> {
 }
 
 import { TagBadge, Tag } from "./TagBadge"
-import { NumericInputValue } from "charts/ChartConfig"
 
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.
