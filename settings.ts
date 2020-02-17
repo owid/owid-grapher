@@ -39,7 +39,7 @@ export const GIT_DEFAULT_USERNAME: string =
 export const GIT_DEFAULT_EMAIL: string =
     process.env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org"
 
-export const BLOG_POSTS_PER_PAGE: number = 21
+export const BLOG_POSTS_PER_PAGE: number = 20
 
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID || ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY || ""

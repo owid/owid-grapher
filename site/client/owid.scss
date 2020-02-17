@@ -40,7 +40,6 @@
 @import "site/client/blocks/Summary/summary.scss";
 
 @import "css/pages/faq.scss";
-@import "css/hacks.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
@@ -148,36 +147,6 @@ body.blog li.post img {
     }
 }
 
-body.single-post {
-    main {
-        background: #f6f6f6;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .site-content {
-        padding: $padding-x-sm / 2;
-        @include md-up {
-            padding: $padding-x-sm;
-        }
-    }
-
-    article {
-        @include content-wrapper;
-        padding: $padding-x-sm;
-        @include md-up {
-            padding: $padding-x-md;
-        }
-
-        margin-bottom: $vertical-spacing;
-        background: white;
-        border: 1px solid #ddd;
-    }
-
-    h1.entry-title {
-        margin: 0;
-    }
-}
-
 h1.entry-title > a {
     color: #222;
 }
@@ -214,19 +183,6 @@ h1.entry-title > a:hover {
     .screen-reader-text {
         display: none;
     }
-}
-
-/* The little section at the top of blog posts that links to related entries */
-.blog-info {
-    @include info;
-    font-style: italic;
-    color: $secondary-text-color;
-}
-
-/* Optional abstract for blog posts */
-.blog-abstract {
-    background-color: #f8f7fe;
-    padding: 20px;
 }
 
 main {
@@ -656,17 +612,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 /* Pages & Posts
 --------------------------------------------- */
-
-.article-header h1 {
-    margin-bottom: 1rem;
-    font-size: 2.25rem;
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    line-height: 1.2;
-    @include lg-up {
-        font-size: 3rem;
-    }
-}
 
 .article-content > section:not(:first-of-type) {
     margin-top: 60px;

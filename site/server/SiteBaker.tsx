@@ -10,7 +10,6 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
-import { BlogPostPage } from "./views/BlogPostPage"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
 const { BLOG_POSTS_PER_PAGE } = settings
 import {
@@ -175,18 +174,11 @@ export class SiteBaker {
             this.grapherExports
         )
         const html = renderToHtmlPage(
-            post.type === "post" ? (
-                <BlogPostPage
-                    post={formatted}
-                    formattingOptions={formattingOptions}
-                />
-            ) : (
-                <LongFormPage
-                    entries={entries}
-                    post={formatted}
-                    formattingOptions={formattingOptions}
-                />
-            )
+            <LongFormPage
+                entries={entries}
+                post={formatted}
+                formattingOptions={formattingOptions}
+            />
         )
 
         const outPath = path.join(BAKED_SITE_DIR, `${post.slug}.html`)

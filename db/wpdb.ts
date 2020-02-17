@@ -310,10 +310,20 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
             entries: pages.nodes
                 .filter(
                     (node: EntryNode) =>
-                        // Entries are being listed in root categories even when they
-                        // belong to subcategories. It is then necessary to filter them
-                        // out to avoid duplicates.
-                        // https://github.com/wp-graphql/wp-graphql/issues/1100
+                        /* As entries are sometimes listed at all levels of the category hierarchy
+                        (e.g. "Entries" > "Demographic Change" > "Life and Death" for "Child and
+                        Infant Mortality"), it is necessary to filter out duplicates, by giving precedent to
+                        the deepest level. In other words, if an entry is present in category 1 and category
+                        1.1, it will only show in category 1.1.
+
+                        N.B. Pre wp-graphql 0.6.0, entries would be returned at all levels of the category
+                        hierarchy, no matter what categories were effectively selected. 0.6.0 fixes that
+                        (cf. https://github.com/wp-graphql/wp-graphql/issues/1100). Even though this behaviour
+                        has been fixed, we still have potential duplicates, from the multiple hierarchical
+                        selection as noted above. The only difference is the nature of the duplicate, which can
+                        now be considered more intentional as it is coming from the data / CMS.
+                        Ultimately, this discrepency in the data should be addressed to make the system
+                        less permissive. */
                         !isEntryInSubcategories(node, children.nodes)
                 )
                 .map((node: EntryNode) => getEntryNode(node)),

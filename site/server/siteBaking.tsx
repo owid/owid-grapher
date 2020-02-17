@@ -1,7 +1,6 @@
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { LongFormPage } from "./views/LongFormPage"
-import { BlogPostPage } from "./views/BlogPostPage"
 import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
@@ -28,6 +27,7 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
+import { BLOG_POSTS_PER_PAGE } from "settings"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -155,21 +155,13 @@ async function renderPage(postApi: object) {
     const formattingOptions = extractFormattingOptions(post.content)
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
-    if (post.type === "post")
-        return renderToHtmlPage(
-            <BlogPostPage
-                post={formatted}
-                formattingOptions={formattingOptions}
-            />
-        )
-    else
-        return renderToHtmlPage(
-            <LongFormPage
-                entries={entries}
-                post={formatted}
-                formattingOptions={formattingOptions}
-            />
-        )
+    return renderToHtmlPage(
+        <LongFormPage
+            entries={entries}
+            post={formatted}
+            formattingOptions={formattingOptions}
+        />
+    )
 }
 
 export async function renderFrontPage() {
@@ -191,14 +183,12 @@ export async function renderSubscribePage() {
 }
 
 export async function renderBlogByPageNum(pageNum: number) {
-    const postsPerPage = 20
-
     const allPosts = await wpdb.getBlogIndex()
 
-    const numPages = Math.ceil(allPosts.length / postsPerPage)
+    const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
     const posts = allPosts.slice(
-        (pageNum - 1) * postsPerPage,
-        pageNum * postsPerPage
+        (pageNum - 1) * BLOG_POSTS_PER_PAGE,
+        pageNum * BLOG_POSTS_PER_PAGE
     )
 
     return renderToHtmlPage(
