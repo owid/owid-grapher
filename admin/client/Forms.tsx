@@ -148,7 +148,9 @@ export class SearchField extends TextField {}
 export interface NumberFieldProps {
     label?: string
     value?: number
-    onValue: (value: number) => void
+    allowDecimal?: boolean
+    allowNegative?: boolean
+    onValue: (value: number | undefined) => void
     onEnter?: () => void
     onEscape?: () => void
     placeholder?: string
@@ -157,7 +159,8 @@ export interface NumberFieldProps {
     helpText?: string
 }
 
-export interface NumberFieldState {
+interface NumberFieldState {
+    /** The state of user input. Allows users to input intermediately un-parsable values */
     inputValue?: string
 }
 
@@ -179,10 +182,14 @@ export class NumberField extends React.Component<
         const textFieldProps = extend({}, props, {
             value: state.inputValue,
             onValue: (value: string) => {
-                this.setState({ inputValue: value })
-                console.log("inputValue", value)
+                const allowInputRegex = new RegExp(
+                    (props.allowNegative ? "^-?" : "^") +
+                        (props.allowDecimal ? "\\d*\\.?\\d*$" : "\\d*$")
+                )
+                if (!allowInputRegex.test(value)) return
                 const asNumber = parseFloat(value)
-                if (!isNaN(asNumber)) props.onValue(asNumber)
+                this.setState({ inputValue: value })
+                props.onValue(isNaN(asNumber) ? undefined : asNumber)
             }
         })
 
