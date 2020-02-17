@@ -186,11 +186,7 @@ class NumericBinView extends React.Component<{
                     <FontAwesomeIcon icon={faPlus} />
                 </div>
                 <ColorBox color={bin.color} onColor={this.onColor} />
-                <NumberField
-                    value={bin.max}
-                    onValue={this.onMaximumValue}
-                    allowDecimal
-                />
+                <NumberField value={bin.max} onValue={this.onMaximumValue} />
                 {mapConfig.props.colorSchemeValues.length > 2 && (
                     <div className="clickable" onClick={this.onRemove}>
                         <FontAwesomeIcon icon={faMinus} />
