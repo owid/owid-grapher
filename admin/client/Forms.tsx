@@ -160,7 +160,7 @@ export interface NumberFieldProps {
 }
 
 interface NumberFieldState {
-    /** The state of user input. Allows users to input intermediately un-parsable values */
+    /** The state of user input when not able to be parsed. Allows users to input intermediately un-parsable values */
     inputValue?: string
 }
 
@@ -172,7 +172,7 @@ export class NumberField extends React.Component<
         super(props)
 
         this.state = {
-            inputValue: props.value?.toString()
+            inputValue: undefined
         }
     }
 
@@ -180,7 +180,7 @@ export class NumberField extends React.Component<
         const { props, state } = this
 
         const textFieldProps = extend({}, props, {
-            value: state.inputValue,
+            value: state.inputValue ?? props.value?.toString(),
             onValue: (value: string) => {
                 const allowInputRegex = new RegExp(
                     (props.allowNegative ? "^-?" : "^") +
@@ -188,8 +188,10 @@ export class NumberField extends React.Component<
                 )
                 if (!allowInputRegex.test(value)) return
                 const asNumber = parseFloat(value)
-                this.setState({ inputValue: value })
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
+                const isNumber = !isNaN(asNumber)
+                const inputMatches = value === asNumber.toString()
+                this.setState({ inputValue: inputMatches ? undefined : value })
+                props.onValue(isNumber ? asNumber : undefined)
             }
         })
 
