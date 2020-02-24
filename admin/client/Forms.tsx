@@ -71,7 +71,8 @@ export class TextField extends React.Component<TextFieldProps> {
             "placeholder",
             "title",
             "disabled",
-            "required"
+            "required",
+            "onBlur"
         ])
 
         return (
@@ -192,7 +193,11 @@ export class NumberField extends React.Component<
                 const inputMatches = value === asNumber.toString()
                 this.setState({ inputValue: inputMatches ? undefined : value })
                 props.onValue(isNumber ? asNumber : undefined)
-            }
+            },
+            onBlur: () =>
+                this.setState({
+                    inputValue: undefined
+                })
         })
 
         return <TextField {...textFieldProps} />
