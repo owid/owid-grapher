@@ -21,7 +21,7 @@ export class LoadingBlocker extends React.Component {
         }
         return (
             <div style={style}>
-                <FontAwesomeIcon icon={faSpinner} />
+                <FontAwesomeIcon icon={faSpinner} spin />
             </div>
         )
     }
