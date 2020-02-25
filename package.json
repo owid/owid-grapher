@@ -166,6 +166,7 @@
         "react-router-dom": "^5.0.1",
         "react-select": "^3.0.8",
         "react-tag-autocomplete": "https://github.com/mispy/react-tags",
+        "react-zoom-pan-pinch": "^1.6.1",
         "reflect-metadata": "^0.1.13",
         "sass-loader": "^7.1.0",
         "save-svg-as-png": "^1.4.14",

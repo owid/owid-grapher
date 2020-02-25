@@ -1,87 +1,101 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { useRef, useState, useEffect } from "react"
-import { LoadingBlocker } from "admin/client/LoadingBlocker"
-const Panzoom = require("@panzoom/panzoom")
+import { useState, useRef } from "react"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
+import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
+import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { PanzoomObject } from "@panzoom/panzoom/dist/src/types"
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
+import { LoadingBlocker } from "site/client/LoadingBlocker"
+
+const DEFAULT_MAX_ZOOM_SCALE = 2
 
 const Lightbox = ({
     children,
     containerNode
 }: {
-    children: React.ReactElement
+    children: any
     containerNode: Element | null
 }) => {
-    const containerRef = useRef<HTMLDivElement>(null!)
-
     const close = () => {
         if (containerNode) {
             ReactDOM.unmountComponentAtNode(containerNode)
         }
     }
+    const [maxScale, setMaxScale] = useState(DEFAULT_MAX_ZOOM_SCALE)
 
     return (
-        <div ref={containerRef} className="container">
-            <div className="content">{children}</div>
-            <button aria-label="Close" onClick={close} className="close">
-                <FontAwesomeIcon icon={faPlus} />
-            </button>
+        <div className="container">
+            <TransformWrapper
+                doubleClick={{ mode: "reset" }}
+                options={{ maxScale }}
+            >
+                {({ zoomIn, zoomOut, resetTransform }: any) => (
+                    <>
+                        <div className="content">
+                            <TransformComponent>
+                                {children(setMaxScale)}
+                            </TransformComponent>
+                        </div>
+                        <div className="tools">
+                            <button aria-label="Zoom in" onClick={zoomIn}>
+                                <FontAwesomeIcon icon={faSearchPlus} />
+                            </button>
+                            <button aria-label="Zoom out" onClick={zoomOut}>
+                                <FontAwesomeIcon icon={faSearchMinus} />
+                            </button>
+                            <button
+                                aria-label="Reset zoom"
+                                onClick={resetTransform}
+                            >
+                                <FontAwesomeIcon icon={faCompress} />
+                            </button>
+                            <button
+                                aria-label="Close"
+                                onClick={close}
+                                className="close"
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </button>
+                        </div>
+                    </>
+                )}
+            </TransformWrapper>
         </div>
     )
 }
 
-const Image = ({ src }: { src: string }) => {
+const Image = ({ src, setMaxScale }: { src: string; setMaxScale: any }) => {
     const [isLoaded, setIsLoaded] = useState(false)
-    const panzoom = useRef<PanzoomObject | null>(null)
+    // const panzoom = useRef<PanzoomObject | null>(null)
 
     const imageRef = useRef<HTMLImageElement>(null!)
-    const imageContainerRef = useRef<HTMLDivElement>(null!)
-
-    const toggleZoom = () => {
-        if (panzoom.current) {
-            if (panzoom.current.getScale() === 1) {
-                panzoom.current.zoom(
-                    imageRef.current.naturalWidth /
-                        imageRef.current.clientWidth,
-                    { animate: true }
-                )
-            } else {
-                panzoom.current.reset()
-            }
-        }
-    }
-
-    useEffect(() => {
-        if (imageRef.current.naturalWidth > imageRef.current.clientWidth) {
-            panzoom.current = Panzoom(imageContainerRef.current, {
-                panOnlyWhenZoomed: true,
-                maxScale:
-                    imageRef.current.naturalWidth / imageRef.current.clientWidth
-            })
-        }
-        return () => {
-            if (panzoom.current) {
-                panzoom.current.destroy()
-            }
-        }
-    }, [imageRef, isLoaded])
 
     return (
         <>
             {!isLoaded && <LoadingBlocker />}
-            <div ref={imageContainerRef}>
-                <img
-                    onLoad={() => {
-                        setIsLoaded(true)
-                    }}
-                    src={src}
-                    style={{ opacity: !isLoaded ? 0 : 1 }}
-                    onDoubleClick={toggleZoom}
-                    ref={imageRef}
-                />
-            </div>
+            <img
+                onLoad={() => {
+                    setIsLoaded(true)
+                    if (src.split(".").pop() === "svg") {
+                        setMaxScale(4)
+                    } else {
+                        if (
+                            imageRef.current.naturalWidth !==
+                            imageRef.current.clientWidth
+                        ) {
+                            setMaxScale(
+                                imageRef.current.naturalWidth /
+                                    imageRef.current.clientWidth
+                            )
+                        }
+                    }
+                }}
+                src={src}
+                style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
+                ref={imageRef}
+            />
         </>
     )
 }
@@ -101,7 +115,9 @@ export const runLightbox = () => {
             if (imgSrc) {
                 ReactDOM.render(
                     <Lightbox containerNode={lightboxContainer}>
-                        <Image src={imgSrc} />
+                        {(setMaxScale: any) => (
+                            <Image src={imgSrc} setMaxScale={setMaxScale} />
+                        )}
                     </Lightbox>,
                     lightboxContainer
                 )

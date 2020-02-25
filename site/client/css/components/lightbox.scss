@@ -14,20 +14,39 @@
         height: 100%;
         align-items: center;
         justify-content: center;
-        transition: opacity 300ms;
+        & > * {
+            cursor: grab;
+            &:active {
+                cursor: grabbing;
+            }
+        }
     }
-    .close {
+    .react-transform-component {
+        overflow: visible;
+    }
+    .tools {
         position: absolute;
-        margin: 1rem;
         top: 0;
         right: 0;
-        transform: rotate(45deg);
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: $white;
-        background: none;
-        border: none;
-        outline: none;
-        cursor: pointer;
+        padding: 1rem 0.5rem;
+        background-color: black;
+
+        button {
+            padding: 0 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            outline: none;
+            color: $white;
+            cursor: pointer;
+            background: none;
+            transition: color 0.3s;
+            &:hover {
+                color: lightgrey;
+            }
+        }
+        .close {
+            transform: rotate(45deg);
+        }
     }
 }
