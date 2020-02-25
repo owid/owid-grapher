@@ -107,6 +107,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                         label="Override X axis target year"
                         value={chart.scatter.xOverrideYear}
                         onValue={debounce(this.onXOverrideYear, 300)}
+                        allowNegative
                     />
                 </Section>
                 <Section name="Filtering">
