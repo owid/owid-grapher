@@ -343,11 +343,15 @@ export class EditorCustomizeTab extends React.Component<{
                                         label={`Min`}
                                         value={yAxis.min}
                                         onValue={value => (yAxis.min = value)}
+                                        allowDecimal
+                                        allowNegative
                                     />
                                     <NumberField
                                         label={`Max`}
                                         value={yAxis.max}
                                         onValue={value => (yAxis.max = value)}
+                                        allowDecimal
+                                        allowNegative
                                     />
                                 </FieldsRow>
                                 <Toggle
@@ -378,11 +382,15 @@ export class EditorCustomizeTab extends React.Component<{
                                         label={`Min`}
                                         value={xAxis.min}
                                         onValue={value => (xAxis.min = value)}
+                                        allowDecimal
+                                        allowNegative
                                     />
                                     <NumberField
                                         label={`Max`}
                                         value={xAxis.max}
                                         onValue={value => (xAxis.max = value)}
+                                        allowDecimal
+                                        allowNegative
                                     />
                                 </FieldsRow>
                                 <Toggle

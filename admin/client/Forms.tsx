@@ -71,7 +71,8 @@ export class TextField extends React.Component<TextFieldProps> {
             "placeholder",
             "title",
             "disabled",
-            "required"
+            "required",
+            "onBlur"
         ])
 
         return (
@@ -148,6 +149,8 @@ export class SearchField extends TextField {}
 export interface NumberFieldProps {
     label?: string
     value: number | undefined
+    allowDecimal?: boolean
+    allowNegative?: boolean
     onValue: (value: number | undefined) => void
     onEnter?: () => void
     onEscape?: () => void
@@ -157,17 +160,44 @@ export interface NumberFieldProps {
     helpText?: string
 }
 
-export class NumberField extends React.Component<NumberFieldProps> {
+interface NumberFieldState {
+    /** The state of user input when not able to be parsed. Allows users to input intermediately un-parsable values */
+    inputValue?: string
+}
+
+export class NumberField extends React.Component<
+    NumberFieldProps,
+    NumberFieldState
+> {
+    constructor(props: NumberFieldProps) {
+        super(props)
+
+        this.state = {
+            inputValue: undefined
+        }
+    }
+
     render() {
-        const { props } = this
+        const { props, state } = this
 
         const textFieldProps = extend({}, props, {
-            value:
-                props.value !== undefined ? props.value.toString() : undefined,
+            value: state.inputValue ?? props.value?.toString(),
             onValue: (value: string) => {
+                const allowInputRegex = new RegExp(
+                    (props.allowNegative ? "^-?" : "^") +
+                        (props.allowDecimal ? "\\d*\\.?\\d*$" : "\\d*$")
+                )
+                if (!allowInputRegex.test(value)) return
                 const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            }
+                const isNumber = !isNaN(asNumber)
+                const inputMatches = value === asNumber.toString()
+                this.setState({ inputValue: inputMatches ? undefined : value })
+                props.onValue(isNumber ? asNumber : undefined)
+            },
+            onBlur: () =>
+                this.setState({
+                    inputValue: undefined
+                })
         })
 
         return <TextField {...textFieldProps} />
