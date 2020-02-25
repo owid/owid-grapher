@@ -38,6 +38,7 @@
         "@fortawesome/free-regular-svg-icons": "^5.9.0",
         "@fortawesome/free-solid-svg-icons": "^5.9.0",
         "@fortawesome/react-fontawesome": "^0.1.4",
+        "@panzoom/panzoom": "^4.0.3",
         "@types/algoliasearch": "^3.30.12",
         "@types/bcrypt": "^3.0.0",
         "@types/body-parser": "^1.17.0",
