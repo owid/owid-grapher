@@ -9,17 +9,13 @@
         rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
     padding: 10px;
     background-color: #fff;
-    transition: box-shadow 100ms ease;
+    transition: all 300ms ease;
 }
 
-// Added by Max: Hover Effect of Images that load in Fancy Box
-.article-content a > img {
+.article-content .wp-block-column:nth-child(2) img:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
     cursor: zoom-in;
-}
-
-.article-content a > img:hover {
-    box-shadow: 0px 0px 1px 1px $link-color;
-    z-index: $zindex-article-image;
 }
 
 .article-content figure {
