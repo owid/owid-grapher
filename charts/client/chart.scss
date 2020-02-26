@@ -1180,7 +1180,7 @@ html.iframe .ChartPage {
         max-height: 40rem;
     }
 
-    .entity-option {
+    .indicator-option {
         line-height: 1.3;
         padding: 13px 20px;
         cursor: pointer;
@@ -1215,14 +1215,15 @@ html.iframe .ChartPage {
         }
     }
 
-    .entity-option__disabled {
+    .indicator-option__disabled {
         opacity: 0.5;
     }
-    .entity-option__focused {
-        background-color: rgba($primary-color, 0.045);
+    // needs higher specificity to override *__selected
+    .indicator-option.indicator-option__focused {
+        background-color: rgba($primary-color, 0.07);
     }
-    .entity-option__selected {
-        // background-color: rgba($primary-color, 0.05);
+    .indicator-option__selected {
+        background-color: rgba($primary-color, 0.03);
     }
 
     .category {

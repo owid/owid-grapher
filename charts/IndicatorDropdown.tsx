@@ -164,47 +164,6 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 }
 
-const createOption = (props: OptionProps<Indicator>) => {
-    const {
-        className,
-        data,
-        isDisabled,
-        isFocused,
-        isSelected,
-        innerRef,
-        innerProps
-    } = props
-    return (
-        <div
-            ref={innerRef}
-            className={classnames(
-                {
-                    "entity-option": true,
-                    "entity-option__disabled": isDisabled,
-                    "entity-option__focused": isFocused,
-                    "entity-option__selected": isSelected
-                },
-                className
-            )}
-            style={{ cursor: "pointer" }}
-            {...innerProps}
-        >
-            <IndicatorOption indicator={data as Indicator} />
-        </div>
-    )
-}
-
-// const createInput = (props: InputProps) => {
-//     return (
-//         <div className="search">
-//             <components.Input {...props} />
-//             <span className="icon">
-//                 <FontAwesomeIcon icon={faSearch} />
-//             </span>
-//         </div>
-//     )
-// }
-
 interface IndicatorBrowserProps {
     isOpen: boolean
     onChange: (indicator: Indicator) => void
@@ -229,7 +188,7 @@ export class IndicatorBrowser extends React.Component<IndicatorBrowserProps> {
         this.isLoading = false
     }
 
-    @computed get visibleIndicators(): Indicator[] {
+    @computed get filteredIndicators(): Indicator[] {
         if (this.search) {
             return this.indicators.filter(
                 indicator =>
@@ -277,17 +236,12 @@ export class IndicatorBrowser extends React.Component<IndicatorBrowserProps> {
                         "is-open": this.props.isOpen
                     })}
                 >
-                    {/* <h2 className="category">
-                    <span>Health</span>
-                </h2> */}
-
                     <Select
                         autoFocus={true}
                         backspaceRemovesValue={false}
                         escapeClearsValue={false}
                         components={{
-                            Option: createOption,
-                            // Input: createInput,
+                            Option: IndicatorOptionWrapper,
                             DropdownIndicator: null,
                             IndicatorSeparator: null
                         }}
@@ -295,30 +249,54 @@ export class IndicatorBrowser extends React.Component<IndicatorBrowserProps> {
                         filterOption={() => true} // disable filtering, will be handled elsewhere
                         getOptionValue={this.getValue}
                         hideSelectedOptions={false}
-                        // isDisabled={this.props.disabled}
                         isClearable={false}
-                        // isLoading={this.props.fetching}
+                        isLoading={this.isLoading}
                         menuIsOpen={true}
                         onChange={this.onChange}
                         onInputChange={this.onInputChange}
-                        options={this.visibleIndicators}
+                        options={this.filteredIndicators}
                         placeholder="Search..."
                         styles={selectStyles}
                         tabSelectsValue={false}
                         value={this.indicators.find(
                             i => i.id === this.props.selectedId
-                        )} // React complains if value is null, recommends empty string
-                        // noOptionsMessage={({ inputValue: any }: {}) =>
-                        //     !inputValue
-                        //         ? "Type to search..."
-                        //         : `Nothing found matching '${inputValue}'`
-                        // }
+                        )}
                     />
                 </div>
                 {this.props.isOpen && <Blanket onClick={this.onClose} />}
             </React.Fragment>
         )
     }
+}
+
+const IndicatorOptionWrapper = (props: OptionProps<Indicator>) => {
+    const {
+        className,
+        data,
+        isDisabled,
+        isFocused,
+        isSelected,
+        innerRef,
+        innerProps
+    } = props
+    return (
+        <div
+            ref={innerRef}
+            className={classnames(
+                {
+                    "indicator-option": true,
+                    "indicator-option__disabled": isDisabled,
+                    "indicator-option__focused": isFocused,
+                    "indicator-option__selected": isSelected
+                },
+                className
+            )}
+            style={{ cursor: "pointer" }}
+            {...innerProps}
+        >
+            <IndicatorOption indicator={data as Indicator} />
+        </div>
+    )
 }
 
 const IndicatorOption = (props: { indicator: Indicator }) => {
