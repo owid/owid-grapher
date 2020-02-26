@@ -24,6 +24,11 @@
     .react-transform-component {
         overflow: visible;
     }
+
+    .react-transform-element {
+        display: block; // prevent stretching large images on Safari
+    }
+
     .tools {
         position: absolute;
         top: 0;
