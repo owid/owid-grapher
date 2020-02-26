@@ -116,7 +116,7 @@ export const runLightbox = () => {
         document.body.appendChild(lightboxContainer)
     }
     Array.from(
-        document.querySelectorAll(
+        document.querySelectorAll<HTMLImageElement>(
             ".article-content .wp-block-column:nth-child(2) img"
         )
     ).forEach(img => {
