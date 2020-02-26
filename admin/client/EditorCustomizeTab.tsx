@@ -200,6 +200,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 label="Selection start"
                                 value={chart.props.minTime}
                                 onValue={debounce(this.onMinTime)}
+                                allowNegative
                             />
                         )}
                         <NumberField
@@ -210,6 +211,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                             }
                             value={chart.props.maxTime}
                             onValue={debounce(this.onMaxTime)}
+                            allowNegative
                         />
                     </FieldsRow>
                 )}
@@ -219,11 +221,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                             label="Timeline min"
                             value={this.timelineMinTime}
                             onValue={debounce(this.onTimelineMinTime)}
+                            allowNegative
                         />
                         <NumberField
                             label="Timeline max"
                             value={this.timelineMaxTime}
                             onValue={debounce(this.onTimelineMaxTime)}
+                            allowNegative
                         />
                     </FieldsRow>
                 )}
