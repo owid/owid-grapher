@@ -1,0 +1,15 @@
+.loading-blocker {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: black;
+    opacity: 0.5;
+    z-index: $zindex-loading-blocker;
+    font-size: 1.2rem;
+    color: $white;
+}

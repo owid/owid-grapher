@@ -24,9 +24,11 @@ const Lightbox = ({
         }
     }
     const [maxScale, setMaxScale] = useState(DEFAULT_MAX_ZOOM_SCALE)
+    const [isLoaded, setIsLoaded] = useState(false)
 
     return (
         <div className="container">
+            {!isLoaded && <LoadingBlocker />}
             <TransformWrapper
                 doubleClick={{ mode: "reset" }}
                 options={{ maxScale }}
@@ -35,7 +37,7 @@ const Lightbox = ({
                     <>
                         <div className="content">
                             <TransformComponent>
-                                {children(setMaxScale)}
+                                {children(isLoaded, setIsLoaded, setMaxScale)}
                             </TransformComponent>
                         </div>
                         <div className="tools">
@@ -66,15 +68,21 @@ const Lightbox = ({
     )
 }
 
-const Image = ({ src, setMaxScale }: { src: string; setMaxScale: any }) => {
-    const [isLoaded, setIsLoaded] = useState(false)
-    // const panzoom = useRef<PanzoomObject | null>(null)
-
+const Image = ({
+    src,
+    isLoaded,
+    setIsLoaded,
+    setMaxScale
+}: {
+    src: string
+    isLoaded: boolean
+    setIsLoaded: any
+    setMaxScale: any
+}) => {
     const imageRef = useRef<HTMLImageElement>(null!)
 
     return (
         <>
-            {!isLoaded && <LoadingBlocker />}
             <img
                 onLoad={() => {
                     setIsLoaded(true)
@@ -119,8 +127,17 @@ export const runLightbox = () => {
             if (imgSrc) {
                 ReactDOM.render(
                     <Lightbox containerNode={lightboxContainer}>
-                        {(setMaxScale: any) => (
-                            <Image src={imgSrc} setMaxScale={setMaxScale} />
+                        {(
+                            isLoaded: boolean,
+                            setIsLoaded: any,
+                            setMaxScale: any
+                        ) => (
+                            <Image
+                                src={imgSrc}
+                                isLoaded={isLoaded}
+                                setIsLoaded={setIsLoaded}
+                                setMaxScale={setMaxScale}
+                            />
                         )}
                     </Lightbox>,
                     lightboxContainer

@@ -5,7 +5,7 @@
         height: 100%;
         top: 0;
         z-index: $zindex-lightbox;
-        background-color: black;
+        background-color: #001023; // primary-color darkened 50%
     }
 
     .content {
@@ -29,7 +29,7 @@
         top: 0;
         right: 0;
         padding: 1rem 0.5rem;
-        background-color: black;
+        background-color: rgba(0, 0, 0, 0.7);
 
         button {
             padding: 0 1rem;
