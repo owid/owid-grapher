@@ -95,7 +95,7 @@ export class DataTable extends React.Component<DataTableProps> {
             DEFAULT_SORT_STATE.order
         )
 
-        // TODO need to ensure config is valid
+        // If not sorted by entity, then make sure the index of the chosen column exists
         if (dimIndex !== ENTITY_DIM_INDEX) {
             dimIndex = Math.min(dimIndex, this.transform.dimensions.length - 1)
             const availableColumns = this.transform.dimensionsWithValues[
@@ -321,10 +321,13 @@ export class DataTable extends React.Component<DataTableProps> {
         return (
             <td
                 key={key}
-                className={classnames({
-                    dimension: true,
-                    sorted: sorted
-                })}
+                className={classnames([
+                    "dimension",
+                    `dimension-${column.key}`,
+                    {
+                        sorted: sorted
+                    }
+                ])}
             >
                 {value.year !== undefined &&
                     column.targetYearMode === TargetYearModes.point &&
@@ -390,7 +393,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 }
 
-const ClosestYearNotice = ({
+export const ClosestYearNotice = ({
     targetYear,
     year
 }: {
