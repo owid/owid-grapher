@@ -107,7 +107,11 @@ export const runLightbox = () => {
         lightboxContainer.classList.add("lightbox")
         document.body.appendChild(lightboxContainer)
     }
-    Array.from(document.querySelectorAll("img")).forEach(img => {
+    Array.from(
+        document.querySelectorAll(
+            ".article-content .wp-block-column:nth-child(2) img"
+        )
+    ).forEach(img => {
         img.addEventListener("click", () => {
             const imgSrc = img.getAttribute("data-high-res-src")
                 ? img.getAttribute("data-high-res-src")
