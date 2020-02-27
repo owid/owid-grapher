@@ -314,7 +314,8 @@ export class DataTableTransform {
             key: d.dimension.variableId,
             name: d.dimension.displayName,
             unit: getHeaderUnit(d.dimension.unit),
-            // A top-level header is only sortable if it has a
+            // A top-level header is only sortable if it has a single nested column, because
+            // in that case the nested column is not rendered.
             sortable: d.columns.length === 1,
             columns: d.columns.map(column => ({
                 ...column,
