@@ -389,8 +389,8 @@ export const ClosestYearNotice = ({
     targetYear,
     year
 }: {
-    targetYear?: number
-    year?: number
+    targetYear: number
+    year: number
 }) => (
     <Tippy
         content={
