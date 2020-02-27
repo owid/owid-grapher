@@ -1,4 +1,4 @@
-.loading-blocker {
+.loading-indicator {
     position: fixed;
     display: flex;
     align-items: center;
@@ -9,7 +9,6 @@
     right: 0;
     background-color: black;
     opacity: 0.5;
-    z-index: $zindex-loading-blocker;
     font-size: 1.2rem;
     color: $white;
 }

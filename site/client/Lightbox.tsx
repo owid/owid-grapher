@@ -7,7 +7,7 @@ import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
 import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LoadingBlocker } from "site/client/LoadingBlocker"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 const DEFAULT_MAX_ZOOM_SCALE = 2
 
@@ -28,7 +28,7 @@ const Lightbox = ({
 
     return (
         <div className="container">
-            {!isLoaded && <LoadingBlocker />}
+            {!isLoaded && <LoadingIndicator />}
             <TransformWrapper
                 doubleClick={{ mode: "reset" }}
                 options={{ maxScale }}
@@ -41,18 +41,28 @@ const Lightbox = ({
                             </TransformComponent>
                         </div>
                         <div className="tools">
-                            <button aria-label="Zoom in" onClick={zoomIn}>
-                                <FontAwesomeIcon icon={faSearchPlus} />
-                            </button>
-                            <button aria-label="Zoom out" onClick={zoomOut}>
-                                <FontAwesomeIcon icon={faSearchMinus} />
-                            </button>
-                            <button
-                                aria-label="Reset zoom"
-                                onClick={resetTransform}
-                            >
-                                <FontAwesomeIcon icon={faCompress} />
-                            </button>
+                            {isLoaded && (
+                                <>
+                                    <button
+                                        aria-label="Zoom in"
+                                        onClick={zoomIn}
+                                    >
+                                        <FontAwesomeIcon icon={faSearchPlus} />
+                                    </button>
+                                    <button
+                                        aria-label="Zoom out"
+                                        onClick={zoomOut}
+                                    >
+                                        <FontAwesomeIcon icon={faSearchMinus} />
+                                    </button>
+                                    <button
+                                        aria-label="Reset zoom"
+                                        onClick={resetTransform}
+                                    >
+                                        <FontAwesomeIcon icon={faCompress} />
+                                    </button>
+                                </>
+                            )}
                             <button
                                 aria-label="Close"
                                 onClick={close}
