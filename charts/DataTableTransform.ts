@@ -12,22 +12,18 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 
 // Target year modes
 
-type TargetYearMode = "point" | "range"
-
-export const TargetYearModes: Record<TargetYearMode, TargetYearMode> = {
-    point: "point",
-    range: "range"
+export enum TargetYearMode {
+    point = "point",
+    range = "range"
 }
 
 type TargetYears = [number] | [number, number]
 
 // Sorting modes
 
-export type SortOrder = "asc" | "desc"
-
-export const SortOrders: Record<SortOrder, SortOrder> = {
-    asc: "asc",
-    desc: "desc"
+export enum SortOrder {
+    asc = "asc",
+    desc = "desc"
 }
 
 // Dimensions
@@ -54,13 +50,11 @@ export interface Value {
 
 // range (two point values)
 
-export type RangeValueKey = "start" | "end" | "delta" | "deltaRatio"
-
-export const RangeValueKeys: Record<RangeValueKey, RangeValueKey> = {
-    start: "start",
-    end: "end",
-    delta: "delta",
-    deltaRatio: "deltaRatio"
+export enum RangeValueKey {
+    start = "start",
+    end = "end",
+    delta = "delta",
+    deltaRatio = "deltaRatio"
 }
 
 export type RangeValue = Record<RangeValueKey, Value | undefined>
@@ -71,10 +65,8 @@ export function isRangeValue(value: DimensionValue): value is RangeValue {
 
 // single point values
 
-export type SingleValueKey = "single"
-
-export const SingleValueKeys: Record<SingleValueKey, SingleValueKey> = {
-    single: "single"
+export enum SingleValueKey {
+    single = "single"
 }
 
 export type SingleValue = Record<SingleValueKey, Value | undefined>
@@ -144,16 +136,16 @@ export class DataTableTransform {
                 this.chart.isStackedArea ||
                 this.chart.isStackedBar
             ) {
-                return TargetYearModes.range
+                return TargetYearMode.range
             }
             if (
                 this.chart.isScatter &&
                 !this.chart.scatter.compareEndPointsOnly
             ) {
-                return TargetYearModes.range
+                return TargetYearMode.range
             }
         }
-        return TargetYearModes.point
+        return TargetYearMode.point
     }
 
     // TODO move this logic to chart
@@ -195,11 +187,11 @@ export class DataTableTransform {
 
             const targetYearMode =
                 targetYears.length < 2
-                    ? TargetYearModes.point
+                    ? TargetYearMode.point
                     : this.targetYearMode
 
             const valuesByEntity =
-                targetYearMode === TargetYearModes.range
+                targetYearMode === TargetYearMode.range
                     ? // In the "range" mode, we receive all data values within the range. But we
                       // only want to plot the start & end values in the table.
                       // getStartEndValues() extracts these two values.
@@ -222,8 +214,8 @@ export class DataTableTransform {
             // One column for absolute difference, another for % difference.
             const deltaColumns: DimensionColumn[] = isRange
                 ? [
-                      { key: RangeValueKeys.delta },
-                      { key: RangeValueKeys.deltaRatio }
+                      { key: RangeValueKey.delta },
+                      { key: RangeValueKey.deltaRatio }
                   ]
                 : []
 
@@ -231,9 +223,9 @@ export class DataTableTransform {
                 ...targetYears.map((targetYear, index) => ({
                     key: isRange
                         ? index === 0
-                            ? RangeValueKeys.start
-                            : RangeValueKeys.end
-                        : SingleValueKeys.single,
+                            ? RangeValueKey.start
+                            : RangeValueKey.end
+                        : SingleValueKey.single,
                     targetYear,
                     targetYearMode
                 })),

@@ -17,9 +17,8 @@ import { Tippy } from "./Tippy"
 import {
     DataTableTransform,
     DataTableRow,
-    TargetYearModes,
+    TargetYearMode,
     SortOrder,
-    SortOrders,
     ColumnKey,
     isSingleValue,
     DataTableDimension,
@@ -28,9 +27,7 @@ import {
     isRangeValue,
     RangeValueKey,
     SingleValueKey,
-    Value,
-    SingleValueKeys,
-    RangeValueKeys
+    Value
 } from "./DataTableTransform"
 
 export interface DataTableProps {
@@ -54,7 +51,7 @@ export interface DataTableSortState {
 const DEFAULT_SORT_STATE: DataTableSortState = {
     dimIndex: ENTITY_DIM_INDEX,
     columnKey: undefined,
-    order: SortOrders.asc
+    order: SortOrder.asc
 }
 
 const columnNameByType: Record<ColumnKey, string> = {
@@ -66,7 +63,7 @@ const columnNameByType: Record<ColumnKey, string> = {
 }
 
 function inverseSortOrder(order: SortOrder): SortOrder {
-    return order === SortOrders.asc ? SortOrders.desc : SortOrders.asc
+    return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
 @observer
@@ -135,7 +132,7 @@ export class DataTable extends React.Component<DataTableProps> {
             } else if (
                 isRangeValue(dv) &&
                 columnKey !== undefined &&
-                columnKey in RangeValueKeys
+                columnKey in RangeValueKey
             ) {
                 value = dv[columnKey as RangeValueKey]?.value
             }
@@ -146,7 +143,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 (typeof value === "number" &&
                     (!isFinite(value) || isNaN(value)))
             ) {
-                return order === SortOrders.asc ? Infinity : -Infinity
+                return order === SortOrder.asc ? Infinity : -Infinity
             }
 
             return value
@@ -173,7 +170,7 @@ export class DataTable extends React.Component<DataTableProps> {
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
                 ? inverseSortOrder(sort.order)
-                : SortOrders.asc
+                : SortOrder.asc
 
         this.storedState.sort.dimIndex = dimIndex
         this.storedState.sort.columnKey = columnKey
@@ -192,10 +189,10 @@ export class DataTable extends React.Component<DataTableProps> {
 
         if (type === "text") {
             faIcon =
-                order === SortOrders.desc ? faSortAlphaUpAlt : faSortAlphaDown
+                order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
         } else {
             faIcon =
-                order === SortOrders.desc ? faSortAmountUp : faSortAmountDownAlt
+                order === SortOrder.desc ? faSortAmountUp : faSortAmountDownAlt
         }
 
         return (
@@ -245,7 +242,7 @@ export class DataTable extends React.Component<DataTableProps> {
                             colSpan={dim.columns.length}
                             onClick={() =>
                                 dim.sortable &&
-                                this.onSort(dimIndex, SingleValueKeys.single)
+                                this.onSort(dimIndex, SingleValueKey.single)
                             }
                         >
                             <span className="name">{dim.name}</span>
@@ -276,7 +273,7 @@ export class DataTable extends React.Component<DataTableProps> {
                                         }
                                     >
                                         {column.targetYearMode ===
-                                        TargetYearModes.point
+                                        TargetYearMode.point
                                             ? column.targetYear
                                             : columnNameByType[column.key]}
                                         {this.renderSortIcon({
@@ -322,7 +319,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 ])}
             >
                 {value.year !== undefined &&
-                    column.targetYearMode === TargetYearModes.point &&
+                    column.targetYearMode === TargetYearMode.point &&
                     column.targetYear !== undefined &&
                     column.targetYear !== value.year && (
                         <ClosestYearNotice
@@ -332,7 +329,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     )}
                 {value.formattedValue}
                 {value.year !== undefined &&
-                    column.targetYearMode === TargetYearModes.range && (
+                    column.targetYearMode === TargetYearMode.range && (
                         <span className="range-year"> in {value.year}</span>
                     )}
             </td>
