@@ -104,9 +104,10 @@ export const runLightbox = () => {
     }
     Array.from(
         document.querySelectorAll<HTMLImageElement>(
-            ".article-content .wp-block-column:nth-child(2) img"
+            ".article-content .wp-block-column:nth-child(2) img, .article-content .wp-block-columns.is-style-side-by-side img"
         )
     ).forEach(img => {
+        img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
             const imgSrc = img.getAttribute("data-high-res-src")
                 ? img.getAttribute("data-high-res-src")
