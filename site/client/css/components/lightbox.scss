@@ -10,19 +10,18 @@
 
     .content {
         display: flex;
-        width: 100%;
-        height: 100%;
         align-items: center;
         justify-content: center;
-        & > * {
-            cursor: grab;
-            &:active {
-                cursor: grabbing;
-            }
-        }
+        width: 100%;
+        height: 100%;
     }
+
     .react-transform-component {
         overflow: visible;
+        cursor: grab;
+        &:active {
+            cursor: grabbing;
+        }
     }
 
     .react-transform-element {

@@ -9,8 +9,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 
-const DEFAULT_MAX_ZOOM_SCALE = 2
-
 const Lightbox = ({
     children,
     containerNode
@@ -23,21 +21,18 @@ const Lightbox = ({
             ReactDOM.unmountComponentAtNode(containerNode)
         }
     }
-    const [maxScale, setMaxScale] = useState(DEFAULT_MAX_ZOOM_SCALE)
     const [isLoaded, setIsLoaded] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
 
     return (
-        <div className="container">
+        <div ref={containerRef} className="container">
             {!isLoaded && <LoadingIndicator />}
-            <TransformWrapper
-                doubleClick={{ mode: "reset" }}
-                options={{ maxScale }}
-            >
+            <TransformWrapper doubleClick={{ mode: "reset" }}>
                 {({ zoomIn, zoomOut, resetTransform }: any) => (
                     <>
                         <div className="content">
                             <TransformComponent>
-                                {children(isLoaded, setIsLoaded, setMaxScale)}
+                                {children(isLoaded, setIsLoaded)}
                             </TransformComponent>
                         </div>
                         <div className="tools">
@@ -81,38 +76,20 @@ const Lightbox = ({
 const Image = ({
     src,
     isLoaded,
-    setIsLoaded,
-    setMaxScale
+    setIsLoaded
 }: {
     src: string
     isLoaded: boolean
     setIsLoaded: any
-    setMaxScale: any
 }) => {
-    const imageRef = useRef<HTMLImageElement>(null!)
-
     return (
         <>
             <img
                 onLoad={() => {
                     setIsLoaded(true)
-                    if (src.split(".").pop() === "svg") {
-                        setMaxScale(4)
-                    } else {
-                        if (
-                            imageRef.current.naturalWidth !==
-                            imageRef.current.clientWidth
-                        ) {
-                            setMaxScale(
-                                imageRef.current.naturalWidth /
-                                    imageRef.current.clientWidth
-                            )
-                        }
-                    }
                 }}
                 src={src}
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
-                ref={imageRef}
             />
         </>
     )
@@ -137,16 +114,11 @@ export const runLightbox = () => {
             if (imgSrc) {
                 ReactDOM.render(
                     <Lightbox containerNode={lightboxContainer}>
-                        {(
-                            isLoaded: boolean,
-                            setIsLoaded: any,
-                            setMaxScale: any
-                        ) => (
+                        {(isLoaded: boolean, setIsLoaded: any) => (
                             <Image
                                 src={imgSrc}
                                 isLoaded={isLoaded}
                                 setIsLoaded={setIsLoaded}
-                                setMaxScale={setMaxScale}
                             />
                         )}
                     </Lightbox>,
