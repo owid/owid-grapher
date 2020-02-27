@@ -82,18 +82,10 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get sortState(): DataTableSortState {
-        let dimIndex = defaultTo(
-            this.storedState.sort.dimIndex,
-            DEFAULT_SORT_STATE.dimIndex
-        )
-        let columnKey = defaultTo(
-            this.storedState.sort.columnKey,
-            DEFAULT_SORT_STATE.columnKey
-        )
-        const order = defaultTo(
-            this.storedState.sort.order,
-            DEFAULT_SORT_STATE.order
-        )
+        let { dimIndex, columnKey, order } = {
+            ...DEFAULT_SORT_STATE,
+            ...this.storedState.sort
+        }
 
         // If not sorted by entity, then make sure the index of the chosen column exists
         if (dimIndex !== ENTITY_DIM_INDEX) {
