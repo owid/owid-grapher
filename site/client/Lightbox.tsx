@@ -5,16 +5,19 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
 import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
 import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 const Lightbox = ({
     children,
-    containerNode
+    containerNode,
+    imgSrc
 }: {
     children: any
     containerNode: Element | null
+    imgSrc: string
 }) => {
     const close = () => {
         if (containerNode) {
@@ -56,6 +59,13 @@ const Lightbox = ({
                                     >
                                         <FontAwesomeIcon icon={faCompress} />
                                     </button>
+                                    <a
+                                        href={imgSrc}
+                                        download={imgSrc.split("/").pop()}
+                                        aria-label="Download high resolution image"
+                                    >
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </a>
                                 </>
                             )}
                             <button
@@ -114,7 +124,7 @@ export const runLightbox = () => {
                 : img.src
             if (imgSrc) {
                 ReactDOM.render(
-                    <Lightbox containerNode={lightboxContainer}>
+                    <Lightbox imgSrc={imgSrc} containerNode={lightboxContainer}>
                         {(isLoaded: boolean, setIsLoaded: any) => (
                             <Image
                                 src={imgSrc}
