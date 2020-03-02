@@ -29,7 +29,7 @@ describe(DataTable, () => {
         })
 
         it("renders a table", () => {
-            expect(view.find("table.data-table")).toHaveLength(1)
+            expect(view.find(".data-table table")).toHaveLength(1)
         })
 
         it("renders a Country header", () => {

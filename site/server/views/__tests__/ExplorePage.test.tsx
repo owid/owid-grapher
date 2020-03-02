@@ -10,8 +10,8 @@ describe(ExplorePage, () => {
         expect(shallow(<ExplorePage />).find(SiteHeader).length).toBe(1)
     })
 
-    it("renders an 'explore' element", () => {
-        expect(shallow(<ExplorePage />).find("#explore").length).toBe(1)
+    it("renders an '#ExploreView' element", () => {
+        expect(shallow(<ExplorePage />).find("#ExploreView").length).toBe(1)
     })
 
     it("renders a site footer", () => {
