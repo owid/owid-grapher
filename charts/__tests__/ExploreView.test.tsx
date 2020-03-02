@@ -8,7 +8,6 @@ import { ChartType } from "../ChartType"
 import { LineChart } from "../LineChart"
 import { StackedArea } from "../StackedArea"
 import { StackedBarChart } from "../StackedBarChart"
-import { DiscreteBarChart } from "../DiscreteBarChart"
 import { SlopeChart } from "../SlopeChart"
 import { ChoroplethMap } from "../ChoroplethMap"
 import { RootStore } from "charts/Store"
@@ -41,7 +40,6 @@ function mockDataResponse() {
 async function whenDataReady(chartView: ChartView): Promise<void> {
     return new Promise(resolve => {
         const data = chartView.chart.data
-        if (data.isReady) resolve()
         observe(data, "isReady", () => {
             if (data.isReady) resolve()
         })
@@ -135,7 +133,7 @@ describe(ExploreView, () => {
         const chartTypes = [
             { key: ChartType.StackedArea, expectedView: StackedArea },
             { key: ChartType.StackedBar, expectedView: StackedBarChart },
-            { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
+            // { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
             { key: ChartType.SlopeChart, expectedView: SlopeChart },
             { key: "WorldMap", expectedView: ChoroplethMap }
         ]
@@ -166,8 +164,9 @@ describe(ExploreView, () => {
         apiMock.init()
         beforeAll(() => mockDataResponse())
 
-        it("loads an empty chart with no indicator", () => {
-            const view = shallow(<ExploreView model={getEmptyModel()} />)
+        it("loads an empty chart with no indicator", async () => {
+            const view = mount(<ExploreView model={getDefaultModel()} />)
+            await updateViewWhenReady(view)
             expect(view.find(ChartView)).toHaveLength(1)
         })
 
