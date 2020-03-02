@@ -242,7 +242,7 @@ export const LongFormPage = (props: {
                                 <a
                                     className="ab-item"
                                     aria-haspopup="true"
-                                    href="/wp/wp-admin/"
+                                    href={`${WORDPRESS_URL}/wp/wp-admin`}
                                 >
                                     Wordpress
                                 </a>
