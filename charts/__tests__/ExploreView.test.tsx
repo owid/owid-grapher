@@ -38,18 +38,34 @@ function mockDataResponse() {
     apiMock.mockVariable(104402)
 }
 
-async function whenReady(chartView: ChartView): Promise<void> {
+async function whenDataReady(chartView: ChartView): Promise<void> {
     return new Promise(resolve => {
         const data = chartView.chart.data
+        if (data.isReady) resolve()
         observe(data, "isReady", () => {
             if (data.isReady) resolve()
         })
     })
 }
 
+async function whenChartViewReady(exploreView: ExploreView) {
+    return new Promise(resolve => {
+        if (exploreView.chartViewBounds) resolve()
+        observe(exploreView, "chartViewBounds", () => {
+            if (exploreView.chartViewBounds) resolve()
+        })
+    })
+}
+
 async function updateViewWhenReady(exploreView: ReactWrapper) {
+    // Wait for chartView bounds to be calculated
+    const exploreViewInstance = exploreView.instance() as ExploreView
+    await whenChartViewReady(exploreViewInstance)
+    // Wait for data to load
     const chartView = exploreView.find(ChartView).first()
-    await whenReady(chartView.instance() as ChartView)
+    const chartViewInstance = chartView.instance() as ChartView
+    await whenDataReady(chartViewInstance)
+    // Update the view
     exploreView.update()
 }
 
