@@ -24,6 +24,7 @@ import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
+import { runLightbox } from "./Lightbox"
 
 declare var window: any
 window.Grapher = Grapher
@@ -42,6 +43,7 @@ window.runCountryProfilePage = runCountryProfilePage
 window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
 window.runTableOfContents = runTableOfContents
+window.runLightbox = runLightbox
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 

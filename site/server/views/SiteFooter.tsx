@@ -255,6 +255,7 @@ export const SiteFooter = ({
                         __html: `
                 runHeaderMenus();
                 runBlocks();
+                runLightbox();
                 runFeedback();
                 runCookieNotice();
                 if (!document.querySelector(".ChartPage")) {
