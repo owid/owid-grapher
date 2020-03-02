@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
 import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
@@ -25,15 +25,35 @@ const Lightbox = ({
         }
     }
     const [isLoaded, setIsLoaded] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                close()
+            }
+        }
+        document.addEventListener("keydown", handleKeyDown)
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [])
 
     return (
-        <div ref={containerRef} className="container">
+        <div className="container">
             {!isLoaded && <LoadingIndicator />}
             <TransformWrapper doubleClick={{ mode: "reset" }}>
                 {({ zoomIn, zoomOut, resetTransform }: any) => (
                     <>
-                        <div className="content">
+                        <div
+                            className="content"
+                            ref={contentRef}
+                            onClick={e => {
+                                if (e.target === contentRef.current) {
+                                    close()
+                                }
+                            }}
+                        >
                             <TransformComponent>
                                 {children(isLoaded, setIsLoaded)}
                             </TransformComponent>
