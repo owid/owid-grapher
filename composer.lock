@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0037bc50814ec6eb5b13cd2538df3e74",
+    "content-hash": "8035c9d08b557b1b4074016a60ae265a",
     "packages": [
         {
             "name": "composer/installers",
@@ -793,24 +793,6 @@
             "homepage": "https://wordpress.org/plugins/co-authors-plus/"
         },
         {
-            "name": "wpackagist-plugin/image-cleanup",
-            "version": "1.9.2",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/image-cleanup/",
-                "reference": "tags/1.9.2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/image-cleanup.1.9.2.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/image-cleanup/"
-        },
-        {
             "name": "wpackagist-plugin/mailgun",
             "version": "1.7.1",
             "source": {
@@ -901,24 +883,6 @@
             "homepage": "https://wordpress.org/plugins/redirection/"
         },
         {
-            "name": "wpackagist-plugin/regenerate-thumbnails",
-            "version": "3.1.2",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/regenerate-thumbnails/",
-                "reference": "tags/3.1.2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/regenerate-thumbnails.3.1.2.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/regenerate-thumbnails/"
-        },
-        {
             "name": "wpackagist-plugin/safe-svg",
             "version": "1.9.8",
             "source": {
@@ -953,24 +917,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/simple-custom-post-order/"
-        },
-        {
-            "name": "wpackagist-plugin/simple-embed-code",
-            "version": "2.3.2",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/simple-embed-code/",
-                "reference": "tags/2.3.2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-embed-code.2.3.2.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/simple-embed-code/"
         },
         {
             "name": "wpackagist-plugin/simple-history",
