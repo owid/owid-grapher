@@ -46,10 +46,10 @@
     "php": ">=7.1",
     "composer/installers": "1.8.0",
     "oscarotero/env": "1.2.0",
+    "vlucas/phpdotenv": "4.1.1",
     "roots/wordpress": "5.3.2",
     "roots/wp-config": "1.0.0",
     "roots/wp-password-bcrypt": "1.0.0",
-    "vlucas/phpdotenv": "3.6.0",
     "wp-api/basic-auth": "dev-master",
     "wp-graphql/wp-graphql": "0.6.1",
     "wpackagist-plugin/add-category-to-pages": "1.2",
@@ -75,8 +75,7 @@
   },
   "config": {
     "optimize-autoloader": true,
-    "preferred-install": "dist",
-    "sort-packages": true
+    "preferred-install": "dist"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,

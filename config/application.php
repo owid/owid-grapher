@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Your base production configuration goes in this file. Environment-specific
  * overrides go in their respective config/environments/{{WP_ENV}}.php file.
@@ -11,10 +10,18 @@
 
 use Roots\WPConfig\Config;
 
-/** @var string Directory containing all of the site's files */
+/**
+ * Directory containing all of the site's files
+ *
+ * @var string
+ */
 $root_dir = dirname(__DIR__);
 
-/** @var string Document Root */
+/**
+ * Document Root
+ *
+ * @var string
+ */
 $webroot_dir = $root_dir . '/web';
 
 /**
@@ -25,7 +32,7 @@ Env::init();
 /**
  * Use Dotenv to set required environment variables and load .env file in root
  */
-$dotenv = Dotenv\Dotenv::create($root_dir);
+$dotenv = Dotenv\Dotenv::createImmutable($root_dir);
 if (file_exists($root_dir . '/.env')) {
     $dotenv->load();
     $dotenv->required(['WP_HOME', 'WP_SITEURL']);
