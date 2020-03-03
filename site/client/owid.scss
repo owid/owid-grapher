@@ -673,7 +673,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         }
     }
 
-    > h5 {
+    .wp-block-columns h5 {
         font-family: $serif-font-stack;
         font-weight: 400;
         line-height: 1.2;
@@ -694,21 +694,8 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         text-align: center;
     }
 
-    > h6 {
-        margin-top: 40px;
-        margin-bottom: 5px;
-    }
-    > h6 + p img {
-        margin-top: 0;
-    }
-
-    > blockquote {
+    blockquote {
         font-style: italic;
-    }
-
-    > .tableContainer {
-        width: 100%;
-        overflow-x: auto;
     }
 
     /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education/#data-quality-definitions */
