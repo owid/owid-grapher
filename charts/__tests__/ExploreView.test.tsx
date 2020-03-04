@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { observe } from "mobx"

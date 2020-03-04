@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { ExploreModel } from "../ExploreModel"
 import { ChartType } from "../ChartType"
 import { RootStore } from "charts/Store"

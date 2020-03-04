@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { observe } from "mobx"
 
 import { RootStore, IndicatorStore } from "charts/Store"
