@@ -624,22 +624,10 @@
         font-size: 0.9rem;
         color: $primary-color-400;
     }
-    h5 {
-        margin: 0 0 0.75rem;
-        font-size: 1.4rem;
-        span {
-            white-space: nowrap;
-        }
-        svg {
-            margin-left: 0.5rem;
-            font-size: 0.8rem;
-            vertical-align: initial;
-            transition: margin 300ms ease;
-        }
-    }
 
     .category-entries {
         .entry-item-container {
+            position: relative;
             display: block;
             padding: 1rem;
             @include sm-only {
@@ -654,7 +642,6 @@
             grid-gap: 0.5rem;
 
             .entry-item-container {
-                position: relative;
                 padding: 1.5rem;
                 transition: box-shadow 300ms ease;
 
@@ -678,20 +665,8 @@
                     }
                     .entry-item {
                         svg {
-                            margin-left: 0.8rem;
+                            margin-right: -0.2rem;
                         }
-                    }
-                }
-                .entry-item {
-                    &:after {
-                        content: "";
-                        background-color: currentColor;
-                        position: absolute;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        top: 0;
-                        opacity: 0.05;
                     }
                 }
             }
@@ -699,25 +674,57 @@
     }
 
     .entry-item {
-        line-height: 1.3;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        line-height: 1.2;
+
+        &:after {
+            content: "";
+            background-color: currentColor;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            opacity: 0.05;
+        }
 
         .excerpt,
         .kpi {
             color: $primary-color;
-            font-size: 0.9rem;
-            strong {
-                font-weight: normal;
-            }
         }
 
         .excerpt {
-            margin: 0.2em 0 0.75em;
+            margin: 0.2rem 0 1rem;
+            font-weight: lighter;
+            font-size: 0.9rem;
         }
 
         .kpi {
+            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
             ul {
-                margin-left: 1rem;
-                font-weight: lighter;
+                list-style: none;
+            }
+            li {
+                display: inline;
+            }
+        }
+
+        h5 {
+            margin: 0;
+            font-size: 1rem;
+            text-align: right;
+            span {
+                white-space: nowrap;
+            }
+            svg {
+                margin-left: 0.5rem;
+                font-size: 0.8rem;
+                vertical-align: initial;
+                transition: margin 300ms ease;
             }
         }
     }
