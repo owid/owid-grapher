@@ -46,15 +46,7 @@ export const FrontPage = (props: {
                 data-track-note="homepage-entries"
             >
                 <div className="entry-item">
-                    <div className="entry-item-contents">
-                        <h5>
-                            {titleStart}
-                            <span>
-                                {titleEnd}
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </span>
-                        </h5>
-                        <p className="excerpt">{entry.excerpt}</p>
+                    <div className="top">
                         {entry.kpi && (
                             <div
                                 className="kpi"
@@ -63,6 +55,16 @@ export const FrontPage = (props: {
                                 }}
                             />
                         )}
+                        <p className="excerpt">{entry.excerpt}</p>
+                    </div>
+                    <div className="bottom">
+                        <h5>
+                            {titleStart}
+                            <span>
+                                {titleEnd}
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </span>
+                        </h5>
                     </div>
                 </div>
             </a>
