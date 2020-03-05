@@ -16,6 +16,8 @@ import {
     every,
     min,
     max,
+    minBy,
+    maxBy,
     compact,
     uniq,
     cloneDeep,
@@ -52,7 +54,8 @@ import {
     pick,
     omit,
     difference,
-    sortedUniq
+    sortedUniq,
+    zip
 } from "lodash"
 export {
     isEqual,
@@ -108,12 +111,14 @@ export {
     pick,
     omit,
     difference,
-    sortedUniq
+    sortedUniq,
+    zip
 }
 
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import * as striptags from "striptags"
+import * as parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -229,6 +234,8 @@ export function formatValue(
     options: TickFormattingOptions
 ): string {
     const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
+    const autoPrefix = defaultTo(options.autoPrefix, true)
+    const showPlus = defaultTo(options.showPlus, false)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
     const isNoSpaceUnit = unit[0] === "%"
@@ -236,7 +243,7 @@ export function formatValue(
     let output: string = value.toString()
 
     const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && absValue >= 1e6) {
+    if (!isNoSpaceUnit && autoPrefix && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
             output = formatValue(
@@ -260,7 +267,9 @@ export function formatValue(
             if (value < 0) output = `>-${targetDigits}`
             else output = `<${targetDigits}`
         } else {
-            output = format(`,.${numDecimalPlaces}f`)(value)
+            output = format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
+                value
+            )
         }
 
         if (noTrailingZeroes) {
@@ -426,8 +435,6 @@ export function csvEscape(value: any): string {
     else return value
 }
 
-import * as parseUrl from "url-parse"
-
 export function urlToSlug(url: string): string {
     const urlobj = parseUrl(url)
     const slug = last(urlobj.pathname.split("/").filter(x => x)) as string
@@ -467,4 +474,98 @@ export async function fetchJSON(url: string): Promise<any> {
 
 export function stripHTML(html: string): string {
     return striptags(html)
+}
+
+export function findClosestYear(
+    years: number[] | Iterable<number>,
+    targetYear: number,
+    tolerance?: number
+): number | undefined {
+    let closest: number | undefined
+    for (const year of years) {
+        const currentYearDist = Math.abs(year - targetYear)
+        const closestYearDist = closest
+            ? Math.abs(closest - targetYear)
+            : Infinity
+
+        if (tolerance !== undefined && currentYearDist > tolerance) {
+            continue
+        }
+
+        if (
+            closest === undefined ||
+            closestYearDist > currentYearDist ||
+            // Prefer later years, e.g. if targetYear is 2010, prefer 2011 to 2009
+            (closestYearDist === currentYearDist && year > closest)
+        ) {
+            closest = year
+        }
+    }
+    return closest
+}
+
+// _.mapValues() equivalent for ES6 Maps
+export function es6mapValues<K, V, M>(
+    input: Map<K, V>,
+    mapper: (value: V, key: K) => M
+): Map<K, M> {
+    return new Map(
+        Array.from(input, ([key, value]) => {
+            return [key, mapper(value, key)]
+        })
+    )
+}
+
+export interface DataValue {
+    year: number | undefined
+    value: number | string | undefined
+}
+
+export function valuesByEntityAtYears(
+    valueByEntityAndYear: Map<string, Map<number, string | number>>,
+    targetYears: number[],
+    tolerance: number = 0
+): Map<string, DataValue[]> {
+    return es6mapValues(valueByEntityAndYear, valueByYear => {
+        const years = Array.from(valueByYear.keys())
+        const values = targetYears.map(targetYear => {
+            let value
+            const year = findClosestYear(years, targetYear, tolerance)
+            if (year !== undefined) {
+                value = valueByYear.get(year)
+            }
+            return {
+                year,
+                value
+            }
+        })
+        return values
+    })
+}
+
+export function valuesByEntityWithinYears(
+    valueByEntityAndYear: Map<string, Map<number, string | number>>,
+    range: (number | undefined)[],
+    boundsOnly: boolean = false
+): Map<string, DataValue[]> {
+    const start = range[0] !== undefined ? range[0] : -Infinity
+    const end = range[1] !== undefined ? range[1] : Infinity
+    return es6mapValues(valueByEntityAndYear, valueByYear => {
+        const years = Array.from(valueByYear.keys()).filter(
+            year => year >= start && year <= end
+        )
+        const values = years.map(year => ({
+            year,
+            value: valueByYear.get(year)
+        }))
+        return values
+    })
+}
+
+export function getStartEndValues(
+    values: DataValue[]
+): (DataValue | undefined)[] {
+    const start = minBy(values, dv => dv.year)
+    const end = maxBy(values, dv => dv.year)
+    return [start, end]
 }

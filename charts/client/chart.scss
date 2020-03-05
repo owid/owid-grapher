@@ -3,14 +3,16 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 $controls-color: #3f9eff;
 
+// These should be between 0–100 in order to avoid conflicting with
+// site dropdowns, search overlays, etc.
 $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-ControlsFooter: 2;
 $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
-$zindex-Tooltip: 100;
-$zindex-DataSelector: 110;
-$zindex-IndicatorDropdown: 200;
+$zindex-Tooltip: 20;
+$zindex-DataSelector: 30;
+$zindex-IndicatorDropdown: 50;
 
 figure[data-grapher-src]:empty,
 .loading-chart {
@@ -1018,34 +1020,150 @@ html.iframe .ChartPage {
 }
 
 .ExplorePage .data-table {
+    font-size: 0.9375rem;
     margin-top: 60px;
-    border: 1px solid #ccc;
+    border: none;
     background: white;
     width: 100%;
-    padding: 20px;
     border-spacing: 0px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    tr :first-child {
-        padding-left: 20px;
+    th {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     }
 
-    tr :last-child {
-        padding-right: 20px;
+    tr th:first-child,
+    tr td:first-child {
+        padding-left: 15px;
+    }
+
+    tr th:last-child,
+    tr td:last-child {
+        padding-right: 15px;
+    }
+
+    thead tr:first-child th {
+        padding-top: 10px;
+        padding-bottom: 8px;
+        vertical-align: text-top;
     }
 
     th {
-        padding-bottom: 10px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    tr:first-child td {
+        padding-top: 8px;
+    }
+
+    tr:last-child td {
+        padding-bottom: 15px;
+    }
+
+    th.sortable {
+        cursor: pointer;
+    }
+
+    th.sorted,
+    th.sortable:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    th,
+    td {
+        padding-left: 15px;
+        padding-right: 15px;
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: text-top;
+    }
+
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    tbody tr {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    tbody tr:nth-child(2n) td {
+        background-color: rgba(0, 0, 0, 0.017);
+    }
+    tbody tr:nth-child(2n) td.sorted {
+        background-color: rgba(0, 0, 0, 0.037);
+    }
+
+    td.sorted {
+        background-color: rgba(0, 0, 0, 0.02);
     }
 
     tbody tr:hover {
-        background: #eee;
+        background-color: rgba(0, 0, 0, 0.035);
     }
 
     .entity {
         text-align: left;
+        font-weight: 700;
     }
 
     .dimension {
         text-align: right;
+
+        .name,
+        .unit {
+            display: block;
+        }
+
+        .unit {
+            font-weight: 700;
+            opacity: 0.5;
+        }
     }
+
+    .notice {
+        opacity: 0.5;
+        padding-right: 8px;
+        font-size: 13px;
+        cursor: default;
+
+        .icon {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+    }
+
+    .range-year {
+        opacity: 0.5;
+        font-size: 13px;
+        padding-bottom: 4px;
+        padding-left: 2px;
+    }
+
+    th .sort-icon {
+        float: right;
+        opacity: 0.15;
+        padding-left: 5px;
+
+        &.active {
+            opacity: 1 !important;
+        }
+    }
+
+    th:hover .sort-icon {
+        opacity: 0.6;
+    }
+}
+
+.closest-year-notice {
+    max-width: 13rem;
+    text-align: center;
+    padding: 0.25rem;
 }

@@ -1,4 +1,21 @@
+import { computed, autorun, runInAction, reaction, toJS } from "mobx"
+import { mean, deviation } from "d3-array"
+import * as _ from "lodash"
+
+import { ChartConfig } from "./ChartConfig"
+import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { Color } from "./Color"
+import { ChoroplethData } from "./ChoroplethMap"
+import { entityNameForMap } from "./Util"
+import { DimensionWithData } from "./DimensionWithData"
+import { MapTopology } from "./MapTopology"
+
 import {
+    defaultTo,
+    isString,
+    last,
+    findClosest,
+    findClosestYear,
     round,
     toArray,
     keys,
@@ -12,17 +29,6 @@ import {
     isNumber,
     sortBy
 } from "./Util"
-import { computed, autorun, runInAction, reaction, toJS } from "mobx"
-import { mean, deviation } from "d3-array"
-
-import { ChartConfig } from "./ChartConfig"
-import { defaultTo, isString, last, findClosest } from "./Util"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { Color } from "./Color"
-import { ChoroplethData } from "./ChoroplethMap"
-import { entityNameForMap } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
-import { MapTopology } from "./MapTopology"
 
 export interface MapDataValue {
     entity: string
@@ -512,36 +518,28 @@ export class MapData {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { map, mappableData, targetYear } = this
-        if (targetYear === undefined) return {}
+        const { map, targetYear } = this
+        const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
+
+        if (targetYear === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = map
-        const { years, values, entities } = mappableData
-        const currentValues: { [key: string]: MapDataValue } = {}
+        const entities = _.keys(this.knownMapEntities)
 
-        for (let i = 0; i < values.length; i++) {
-            const year = years[i]
-            if (year < targetYear - tolerance || year > targetYear + tolerance)
-                continue
+        const result: { [key: string]: MapDataValue } = {}
 
-            // Make sure we use the closest year within tolerance (favoring later years)
-            const entityName = entityNameForMap(entities[i])
-            const existing = currentValues[entityName]
-            if (
-                existing &&
-                Math.abs(existing.year - targetYear) <
-                    Math.abs(year - targetYear)
-            )
-                continue
+        entities.forEach(entity => {
+            const valueByYear = valueByEntityAndYear.get(entity)
+            if (!valueByYear) return
+            const years = Array.from(valueByYear.keys())
+            const year = findClosestYear(years, targetYear, tolerance)
+            if (year === undefined) return
+            const value = valueByYear.get(year)
+            if (value === undefined) return
+            result[entity] = { entity, year, value }
+        })
 
-            currentValues[entityName] = {
-                entity: entities[i],
-                year: years[i],
-                value: values[i]
-            }
-        }
-
-        return currentValues
+        return result
     }
 
     // Get the final data incorporating the binning colors
