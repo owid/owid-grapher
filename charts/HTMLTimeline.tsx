@@ -3,6 +3,7 @@ import { first, last, sortBy, find } from "./Util"
 import * as React from "react"
 import { Bounds } from "./Bounds"
 import { getRelativeMouse, formatYear } from "./Util"
+import { Analytics } from "site/client/Analytics"
 import {
     observable,
     computed,
@@ -152,6 +153,8 @@ export class Timeline extends React.Component<TimelineProps> {
     animRequest?: number
 
     @action.bound onStartPlaying() {
+        Analytics.logEvent("CHART_TIMELINE_PLAY")
+
         let lastTime: number | undefined
         const ticksPerSec = 5
 

@@ -729,7 +729,14 @@ export class ControlsFooterView extends React.Component<{
                                     }
                                     onClick={() => (chart.tab = tabName)}
                                 >
-                                    <a>{tabName}</a>
+                                    <a
+                                        data-track-click
+                                        data-track-note={
+                                            "chart-click-" + tabName
+                                        }
+                                    >
+                                        {tabName}
+                                    </a>
                                 </li>
                             )
                         )
@@ -739,6 +746,8 @@ export class ControlsFooterView extends React.Component<{
                             "tab clickable icon" +
                             (chart.tab === "download" ? " active" : "")
                         }
+                        data-track-click
+                        data-track-note="chart-click-download"
                         onClick={() => (chart.tab = "download")}
                         title="Download as .png or .svg"
                     >
@@ -747,13 +756,23 @@ export class ControlsFooterView extends React.Component<{
                         </a>
                     </li>
                     <li className="clickable icon">
-                        <a title="Share" onClick={this.onShareMenu}>
+                        <a
+                            title="Share"
+                            onClick={this.onShareMenu}
+                            data-track-click
+                            data-track-note="chart-click-share"
+                        >
                             <FontAwesomeIcon icon={faShareAlt} />
                         </a>
                     </li>
                     {hasSettingsMenu && (
                         <li className="clickable icon">
-                            <a title="Settings" onClick={this.onSettingsMenu}>
+                            <a
+                                title="Settings"
+                                onClick={this.onSettingsMenu}
+                                data-track-click
+                                data-track-note="chart-click-settings"
+                            >
                                 <FontAwesomeIcon icon={faCog} />
                             </a>
                         </li>
@@ -763,6 +782,8 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Open chart in new tab"
                                 href={chart.url.canonicalUrl}
+                                data-track-click
+                                data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
                                 <FontAwesomeIcon icon={faExpand} />

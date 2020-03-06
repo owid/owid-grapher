@@ -57,6 +57,7 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
 
 const search = document.querySelector("form#search-nav") as HTMLFormElement
 if (search) {
+    // Todo: Not seeing this event in Amplitude. Can this be removed?
     const input = search.querySelector("input[type=search]") as HTMLInputElement
     search.addEventListener("submit", ev => {
         ev.preventDefault()
