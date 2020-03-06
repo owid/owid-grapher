@@ -18,6 +18,7 @@ export class Analytics {
             props
         )
 
+        // Todo: switch to async/await when AmplitudeSDK switches off callbacks
         return new Promise((resolve, reject) => {
             if (!window.amplitude) {
                 // console.log(name, props)
