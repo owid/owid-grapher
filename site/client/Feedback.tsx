@@ -183,6 +183,8 @@ class FeedbackPrompt extends React.Component {
                     ) : (
                         <button
                             className="FeedbackPrompt"
+                            data-track-click
+                            data-track-note="page-open-feedback"
                             onClick={this.toggleOpen}
                         >
                             <FontAwesomeIcon icon={faEnvelope} /> Feedback
