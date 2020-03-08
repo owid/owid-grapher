@@ -706,7 +706,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education/#data-quality-definitions */
-    svg.latex:only-child {
+    mjx-container:only-child {
         display: block;
         margin: auto;
     }

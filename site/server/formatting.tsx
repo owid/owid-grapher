@@ -11,7 +11,12 @@ import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
 
-const mjAPI = require("mathjax-node")
+import { mathjax } from "mathjax-full/js/mathjax"
+import { TeX } from "mathjax-full/js/input/tex"
+import { SVG } from "mathjax-full/js/output/svg"
+import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor"
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -40,13 +45,6 @@ export interface FormattedPost {
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
 }
 
-mjAPI.config({
-    MathJax: {
-        // traditional MathJax configuration
-    }
-})
-mjAPI.start()
-
 function extractLatex(html: string): [string, string[]] {
     const latexBlocks: string[] = []
     html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
@@ -67,17 +65,24 @@ async function formatLatex(
 ): Promise<string> {
     if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
+    const adaptor = liteAdaptor()
+    RegisterHTMLHandler(adaptor)
+
+    const tex = new TeX({ packages: AllPackages })
+    const svg = new SVG({ fontCache: "local" })
+    const doc = mathjax.document("", {
+        InputJax: tex,
+        OutputJax: svg
+    })
+
     const compiled: string[] = []
     for (const latex of latexBlocks) {
         try {
-            const result = await mjAPI.typeset({
-                useFontCache: false,
-                useGlobalCache: false,
-                math: latex,
-                format: "TeX",
-                svg: true
+            const node = doc.convert(latex, {
+                display: true
             })
-            compiled.push(result.svg.replace("<svg", `<svg class="latex"`))
+            const outerHtml = adaptor.outerHTML(node)
+            compiled.push(outerHtml)
         } catch (err) {
             compiled.push(
                 `${latex} (Could not format equation due to MathJax error)`

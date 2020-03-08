@@ -135,7 +135,7 @@
         "lockfile": "^1.0.4",
         "lodash": "^4.17.13",
         "lodash-es": "^4.17.14",
-        "mathjax-node": "^2.1.1",
+        "mathjax-full": "^3.0.1",
         "md5": "^2.2.1",
         "mini-create-react-context": "^0.3.2",
         "minimatch": "^3.0.4",
