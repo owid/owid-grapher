@@ -115,7 +115,7 @@ export async function formatWordpressPost(
 
     // Footnotes
     const footnotes: string[] = []
-    html = html.replace(/\[ref\]([\s\S]*?)\[\/ref\]/gm, (_, footnote) => {
+    html = html.replace(/{ref}([\s\S]*?){\/ref}/gm, (_, footnote) => {
         if (formattingOptions.footnotes) {
             footnotes.push(footnote)
             const i = footnotes.length
