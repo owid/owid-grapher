@@ -37,12 +37,14 @@ const AdditionalInformation = ({
     const classes = [CLASS_NAME]
 
     useEffect(() => {
-        return () => {
-            if (refContainer.current) {
-                // tslint:disable-next-line: no-unused-expression
-                new MultiEmbedder(refContainer.current)
-            }
+        if (refContainer.current) {
+            // tslint:disable-next-line: no-unused-expression
+            new MultiEmbedder(refContainer.current)
         }
+        // Expands accordions for print media.
+        window.addEventListener("beforeprint", () => {
+            onOpenHandler()
+        })
     }, [hasBeenOpened])
 
     const onClickHandler = () => {
@@ -64,13 +66,6 @@ const AdditionalInformation = ({
     }
     if (height !== 0) {
         classes.push("open")
-    }
-
-    // Expands accordions for print media.
-    if (window.addEventListener) {
-        window.addEventListener("beforeprint", () => {
-            onOpenHandler()
-        })
     }
 
     const renderFullWidthVariation = () => {
