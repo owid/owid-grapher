@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { TextWrap } from "../TextWrap"
 import { Bounds } from "../Bounds"
 

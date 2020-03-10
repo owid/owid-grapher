@@ -5,7 +5,7 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { DataForChart } from "charts/VariableData"
 
 export function readBuffer(fixture: string) {
-    return fs.readFileSync(`test/fixtures/${fixture}.json`)
+    return fs.readFileSync(__dirname + `/${fixture}.json`)
 }
 
 function readObj(fixture: string) {

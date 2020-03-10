@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
 function createConfig(props: Partial<ChartConfigProps>) {
