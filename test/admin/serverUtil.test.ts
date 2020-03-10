@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 const { exec } = require("utils/server/serverUtil")
 
 describe("serverUtil", () => {

@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { findClosestYear, getStartEndValues, DataValue } from "../Util"
 
 function iteratorFromArray<T>(array: T[]): Iterable<T> {
