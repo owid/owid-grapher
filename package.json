@@ -24,7 +24,7 @@
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
         "testcheck": "yarn test && yarn typecheck && yarn prettify:check",
-        "deploy": "./bin/deploy.sh",
+        "deploy": "./siteBaker/deploy.sh",
         "serve": "yarn tsn admin/server/server.tsx",
         "bake": "yarn tsn scripts/bakeSite.ts",
         "deploy-queue": "yarn tsn deploy/watch.ts",
