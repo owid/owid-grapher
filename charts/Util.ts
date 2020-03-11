@@ -202,7 +202,7 @@ export function entityNameForMap(name: string) {
 export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
     return moment(`${zeroDay} 00+12:00`) // Treat dates as noon in GMT Timezone.
         .add(dayAsYear, "days")
-        .format("LL")
+        .format("MMM D, YYYY")
 }
 
 export function formatYear(year: number): string {
