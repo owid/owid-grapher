@@ -76,6 +76,47 @@
     line-height: 1.25em;
 }
 
+@mixin popover-box-button {
+    button {
+        padding: 0.7rem 0.85rem;
+        border: none;
+        border-radius: 3px;
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+        color: white;
+        cursor: pointer;
+        font-size: 15px;
+        background: #002147;
+
+        svg {
+            margin-right: 0.15rem;
+            color: rgba(white, 0.75);
+        }
+    }
+}
+
+@mixin popover-box-styles {
+    border-radius: 3px;
+    width: 23rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 3px 15px rgba(0, 0, 0, 0.25);
+    background: hsla(0, 0%, 100%, 0.98);
+    color: #333;
+
+    .header {
+        background: #002147;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    @include popover-box-button;
+}
+
 @mixin wrapper-spacing-sm {
     margin-left: auto;
     margin-right: auto;

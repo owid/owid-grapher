@@ -1,0 +1,41 @@
+.site-tools {
+    display: none;
+}
+@include md-up {
+    .site-tools {
+        position: fixed;
+        display: flex;
+        right: 20px;
+        bottom: 20px;
+        padding-top: 1rem;
+        border: none;
+
+        .prompt {
+            position: relative;
+            outline: none;
+            margin-left: 0.75rem;
+        }
+
+        .overlay {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        > div.active {
+            z-index: $zindex-popover;
+        }
+
+        .box {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            @include popover-box-styles;
+        }
+
+        @include popover-box-button;
+    }
+}

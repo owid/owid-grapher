@@ -88,7 +88,7 @@ export class FeedbackForm extends React.Component {
                 })}
                 onSubmit={this.onSubmit}
             >
-                <header>Leave us feedback</header>
+                <div className="header">Leave us feedback</div>
                 <div className="formBody">
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
@@ -132,11 +132,11 @@ export class FeedbackForm extends React.Component {
                         undefined
                     )}
                 </div>
-                <footer>
+                <div className="footer">
                     <button type="submit" disabled={loading}>
                         Send message
                     </button>
-                </footer>
+                </div>
             </form>
         )
     }
@@ -156,14 +156,20 @@ export class FeedbackPrompt extends React.Component {
 
     render() {
         return (
-            <div className="feedbackPromptContainer">
+            <div
+                className={`feedbackPromptContainer${
+                    this.isOpen ? " active" : ""
+                }`}
+            >
                 {this.isOpen && (
                     <>
                         <div
                             className="overlay"
                             onClick={this.onClickOutside}
                         />
-                        <FeedbackForm />
+                        <div className="box">
+                            <FeedbackForm />
+                        </div>
                     </>
                 )}
                 {this.isOpen ? (
@@ -187,7 +193,9 @@ export class FeedbackPrompt extends React.Component {
 
 export function runFeedbackPage() {
     ReactDOM.render(
-        <FeedbackForm />,
+        <div className="box">
+            <FeedbackForm />
+        </div>,
         document.querySelector(".FeedbackPage main")
     )
 }

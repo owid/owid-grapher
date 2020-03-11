@@ -8,7 +8,7 @@ export const NewsletterSubscription = () => {
     const [isOpen, setIsOpen] = useState(false)
 
     return (
-        <div className="newsletter-subscription">
+        <div className={`newsletter-subscription${isOpen ? " active" : ""}`}>
             {isOpen && (
                 <>
                     <div
@@ -17,7 +17,9 @@ export const NewsletterSubscription = () => {
                             setIsOpen(false)
                         }}
                     />
-                    <NewsletterSubscriptionForm />
+                    <div className="box">
+                        <NewsletterSubscriptionForm />
+                    </div>
                 </>
             )}
             <button
@@ -38,6 +40,9 @@ export const NewsletterSubscriptionForm = ({
 }: {
     context?: string
 }) => {
+    const idImmediate = `${context ? context + "-" : ""}immediate`
+    const idBiweekly = `${context ? context + "-" : ""}biweekly`
+
     return (
         <form
             action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
@@ -54,12 +59,10 @@ export const NewsletterSubscriptionForm = ({
                             type="checkbox"
                             value="1"
                             name="group[85302][1]"
-                            id={`${context ? context + "-" : ""}immediate`}
+                            id={idImmediate}
                             defaultChecked
                         />
-                        <label
-                            htmlFor={`${context ? context + "-" : ""}immediate`}
-                        >
+                        <label htmlFor={idImmediate}>
                             <div className="label-title">Immediate updates</div>
                             <div className="label-text">
                                 Get an email whenever we produce new content.
@@ -71,11 +74,9 @@ export const NewsletterSubscriptionForm = ({
                             type="checkbox"
                             value="2"
                             name="group[85302][2]"
-                            id={`${context ? context + "-" : ""}biweekly`}
+                            id={idBiweekly}
                         />
-                        <label
-                            htmlFor={`${context ? context + "-" : ""}biweekly`}
-                        >
+                        <label htmlFor={idBiweekly}>
                             <div className="label-title">Biweekly digest</div>
                             <div className="label-text">
                                 Get an email every two weeks.
@@ -84,7 +85,7 @@ export const NewsletterSubscriptionForm = ({
                     </div>
                 </div>
             </fieldset>
-            <div className="owid-inline-field">
+            <div className="email-submit owid-inline-field">
                 <input
                     placeholder="Your email address"
                     type="email"
