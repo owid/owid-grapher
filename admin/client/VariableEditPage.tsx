@@ -181,7 +181,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`Multiply all values by this amount`}
                                     />
                                 </FieldsRow>
-
                                 <FieldsRow>
                                     <Toggle
                                         value={
@@ -203,7 +202,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
-
                                 <BindString
                                     field="description"
                                     store={newVariable}
