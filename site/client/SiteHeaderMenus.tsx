@@ -289,7 +289,9 @@ export class Header extends React.Component<{
                 )}
                 {this.showNewsletterSubscription && (
                     <div className="newsletter-subscription">
-                        <NewsletterSubscriptionForm />
+                        <div className="box">
+                            <NewsletterSubscriptionForm />
+                        </div>
                     </div>
                 )}
                 {this.showCategories && (

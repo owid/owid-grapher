@@ -451,28 +451,6 @@
     }
 }
 
-.homepage-subscribe--newsletter {
-    display: flex;
-    flex: 1;
-
-    .shaded-box {
-        flex: 1;
-        padding: 2rem;
-        background-color: transparent;
-        border: 3px solid $text-color;
-        color: $text-color;
-    }
-    button[type="submit"] {
-        border-width: 1px;
-    }
-    .label-title {
-        font-weight: bold;
-    }
-    fieldset {
-        margin-bottom: 1rem;
-    }
-}
-
 .homepage-subscribe--social-media {
     .shaded-box {
         flex: 1;
