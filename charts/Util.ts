@@ -75,6 +75,7 @@ export {
     every,
     min,
     max,
+    maxBy,
     compact,
     uniq,
     cloneDeep,
@@ -443,6 +444,26 @@ export function urlToSlug(url: string): string {
 
 export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
+}
+
+// TODO use fetchText() in fetchJSON()
+// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
+export async function fetchText(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", function() {
+            resolve(this.responseText)
+        })
+        req.addEventListener("readystatechange", () => {
+            if (req.readyState === 4) {
+                if (req.status !== 200) {
+                    reject(new Error(`${req.status} ${req.statusText}`))
+                }
+            }
+        })
+        req.open("GET", url)
+        req.send()
+    })
 }
 
 export async function fetchJSON(url: string): Promise<any> {
