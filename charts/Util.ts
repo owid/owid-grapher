@@ -55,7 +55,8 @@ import {
     omit,
     difference,
     sortedUniq,
-    zip
+    zip,
+    partition
 } from "lodash"
 export {
     isEqual,
@@ -113,7 +114,8 @@ export {
     omit,
     difference,
     sortedUniq,
-    zip
+    zip,
+    partition
 }
 
 import { format } from "d3-format"
