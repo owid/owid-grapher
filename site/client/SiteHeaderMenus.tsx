@@ -20,7 +20,7 @@ import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 import { AmazonMenu } from "./AmazonMenu"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription"
@@ -264,7 +264,7 @@ export class Header extends React.Component<{
                             data-track-click
                             data-track-note="mobile-newsletter-button"
                         >
-                            <FontAwesomeIcon icon={faEnvelope} />
+                            <FontAwesomeIcon icon={faEnvelopeOpenText} />
                         </button>
                         <button
                             onClick={this.onToggleCategories}

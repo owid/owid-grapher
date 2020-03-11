@@ -1,7 +1,7 @@
 import * as React from "react"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export const SiteHeader = () => {
@@ -133,7 +133,7 @@ export const SiteHeader = () => {
                         data-track-click
                         data-track-note="mobile-newsletter-button"
                     >
-                        <FontAwesomeIcon icon={faEnvelope} />
+                        <FontAwesomeIcon icon={faEnvelopeOpenText} />
                     </button>
                     <button
                         data-track-click
