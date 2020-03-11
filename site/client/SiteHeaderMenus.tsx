@@ -20,8 +20,10 @@ import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
 
 import { AmazonMenu } from "./AmazonMenu"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription"
 
 @observer
 export class Header extends React.Component<{
@@ -36,6 +38,7 @@ export class Header extends React.Component<{
     // Mobile menu toggles
     @observable showSearch: boolean = false
     @observable showCategories: boolean = false
+    @observable showNewsletterSubscription: boolean = false
 
     dispose!: IReactionDisposer
 
@@ -58,6 +61,10 @@ export class Header extends React.Component<{
 
     @action.bound onToggleCategories() {
         this.showCategories = !this.showCategories
+    }
+
+    @action.bound onToggleNewsletterSubscription() {
+        this.showNewsletterSubscription = !this.showNewsletterSubscription
     }
 
     @action.bound setOpen(open: boolean) {
@@ -253,6 +260,13 @@ export class Header extends React.Component<{
                             <FontAwesomeIcon icon={faSearch} />
                         </button>
                         <button
+                            onClick={this.onToggleNewsletterSubscription}
+                            data-track-click
+                            data-track-note="mobile-newsletter-button"
+                        >
+                            <FontAwesomeIcon icon={faEnvelope} />
+                        </button>
+                        <button
                             onClick={this.onToggleCategories}
                             data-track-click
                             data-track-note="mobile-hamburger-button"
@@ -271,6 +285,11 @@ export class Header extends React.Component<{
                                 autoFocus
                             />
                         </form>
+                    </div>
+                )}
+                {this.showNewsletterSubscription && (
+                    <div className="newsletter-subscription">
+                        <NewsletterSubscriptionForm />
                     </div>
                 )}
                 {this.showCategories && (

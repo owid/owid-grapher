@@ -35,6 +35,7 @@
 @import "css/pages/faq.scss";
 
 @import "css/components/cookie-notice.scss";
+@import "css/components/newsletter-subscription.scss";
 @import "css/components/lightbox.scss";
 @import "css/components/loading-indicator.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
@@ -1275,22 +1276,36 @@ html:not(.js) {
     font-size: 0.9em;
 }
 
-@media (max-width: 800px) {
-    .feedbackPromptContainer {
-        display: none;
+.site-tools {
+    display: none;
+}
+@include md-up {
+    .site-tools {
+        position: fixed;
+        display: flex;
+        // align-items: flex-end;
+        right: 20px;
+        bottom: 20px;
+        border: none;
+        z-index: $zindex-popover;
+
+        .overlay {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
     }
 }
-
-.feedbackPromptContainer {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    border: none;
-    z-index: $zindex-popover;
-    text-align: right;
+.site-tools .prompt {
+    position: relative;
+    outline: none;
+    margin-left: 0.75rem;
 }
 
-.FeedbackPrompt,
+.site-tools .prompt,
 .FeedbackForm button {
     padding: 0.7rem 0.85rem;
     border: none;
@@ -1313,6 +1328,9 @@ html:not(.js) {
 }
 
 .FeedbackForm {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
     width: 23rem;
     max-width: 90vw;
     height: 600px;

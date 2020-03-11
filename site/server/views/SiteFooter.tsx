@@ -247,7 +247,7 @@ export const SiteFooter = ({
                         </div>
                     </div>
                 </div>
-                <div className="injectFeedback"></div>
+                <div className="site-tools" />
                 <script src={webpack("commons.js", "site")} />
                 <script src={webpack("owid.js", "site")} />
                 <script
@@ -256,7 +256,7 @@ export const SiteFooter = ({
                 runHeaderMenus();
                 runBlocks();
                 runLightbox();
-                runFeedback();
+                runSiteTools();
                 runCookieNotice();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
