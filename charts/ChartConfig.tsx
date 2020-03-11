@@ -165,8 +165,6 @@ export class ChartConfigProps {
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
-    @observable.ref yearIsDay: boolean = false
-    @observable.ref zeroDay?: string = undefined
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
@@ -221,8 +219,11 @@ export class ChartConfig {
     }
 
     @computed get formatYearFunction() {
-        return this.props.yearIsDay
-            ? (day: number) => formatDay(day, this.props.zeroDay)
+        const firstVar = this.vardata.variables[0]
+        if (!firstVar) return formatYear
+
+        return firstVar.display.yearIsDay
+            ? (day: number) => formatDay(day, firstVar.display.zeroDay)
             : formatYear
     }
 

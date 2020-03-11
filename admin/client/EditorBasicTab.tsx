@@ -8,14 +8,7 @@ import { ChartTypeDefs, ChartTypeType } from "charts/ChartType"
 import { DimensionWithData } from "charts/DimensionWithData"
 import { ChartDimension } from "charts/ChartDimension"
 
-import {
-    Toggle,
-    SelectField,
-    EditableList,
-    FieldsRow,
-    Section,
-    BindString
-} from "./Forms"
+import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
@@ -231,22 +224,6 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                             value={chart.props.hasMapTab}
                             onValue={value => (chart.props.hasMapTab = value)}
                             disabled={chart.props.isExplorable}
-                        />
-                    </FieldsRow>
-                    <FieldsRow>
-                        <Toggle
-                            label="Treat Year as Day"
-                            value={chart.props.yearIsDay}
-                            onValue={value => (chart.props.yearIsDay = value)}
-                        />
-                    </FieldsRow>
-                    <FieldsRow>
-                        <BindString
-                            field="zeroDay"
-                            store={chart.props}
-                            placeholder="Start day counter from YYYY-MM-DD"
-                            softCharacterLimit={10}
-                            disabled={!chart.props.yearIsDay}
                         />
                     </FieldsRow>
                 </Section>

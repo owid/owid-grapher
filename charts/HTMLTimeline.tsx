@@ -38,8 +38,6 @@ interface TimelineProps {
     }) => void
     onStartDrag?: () => void
     onStopDrag?: () => void
-    yearIsDay?: boolean
-    zeroDay?: string
     singleYearMode?: boolean
     singleYearPlay?: boolean
     disablePlay?: boolean

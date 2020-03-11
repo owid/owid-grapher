@@ -382,8 +382,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     startYear={map.data.targetYear}
                     endYear={map.data.targetYear}
                     singleYearMode={true}
-                    yearIsDay={chart.props.yearIsDay}
-                    zeroDay={chart.props.zeroDay}
                 />
             )
         } else if (chart.isScatter) {
@@ -397,8 +395,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     endYear={chart.scatter.endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
-                    yearIsDay={chart.props.yearIsDay}
-                    zeroDay={chart.props.zeroDay}
                 />
             )
         } else if (chart.isLineChart) {
@@ -413,8 +409,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     singleYearPlay={true}
-                    yearIsDay={chart.props.yearIsDay}
-                    zeroDay={chart.props.zeroDay}
                 />
             )
         } else if (chart.isSlopeChart) {
@@ -428,8 +422,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     endYear={chart.slopeChart.endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
-                    yearIsDay={chart.props.yearIsDay}
-                    zeroDay={chart.props.zeroDay}
                     disablePlay={true}
                 />
             )
@@ -444,8 +436,6 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     endYear={chart.lineChart.endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
-                    yearIsDay={chart.props.yearIsDay}
-                    zeroDay={chart.props.zeroDay}
                 />
             )
         }
