@@ -258,6 +258,7 @@ export const SiteFooter = ({
                 runLightbox();
                 runSiteTools();
                 runCookieNotice();
+                runCowid();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
                 }

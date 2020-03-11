@@ -1,0 +1,123 @@
+.cowid-table-container {
+    margin: 0 0 2rem;
+}
+
+.cowid-table {
+    font-size: 0.9375rem;
+    margin: 0;
+    border: none;
+    width: 100%;
+    border-spacing: 0px;
+
+    th {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    tr th:first-child,
+    tr td:first-child {
+        padding-left: 15px;
+    }
+
+    tr th:last-child,
+    tr td:last-child {
+        padding-right: 15px;
+    }
+
+    thead tr:first-child th {
+        padding-top: 10px;
+        padding-bottom: 8px;
+        vertical-align: text-top;
+    }
+
+    th {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    th.sortable {
+        cursor: pointer;
+    }
+
+    th,
+    td {
+        padding-left: 10px;
+        padding-right: 10px;
+        // border-right: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: text-top;
+    }
+
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    td {
+        padding-top: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    tbody tr {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .location {
+        text-align: right;
+        font-weight: 700;
+        width: 11em;
+    }
+
+    .dimension {
+        text-align: right;
+
+        .name,
+        .unit {
+            display: block;
+        }
+
+        .unit {
+            font-weight: 700;
+            opacity: 0.5;
+        }
+    }
+
+    td {
+        p {
+            margin: 0;
+        }
+    }
+
+    .faint {
+        opacity: 0.65;
+    }
+
+    .no-data {
+        opacity: 0.6;
+    }
+}
+
+.cowid-table-source {
+    font-size: 14px;
+    color: rgba($text-color, 0.75);
+}
+
+.cowid-loading,
+.cowid-error {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 3em 0;
+    font-weight: 700;
+    text-align: center;
+}
+
+.cowid-loading {
+    color: rgba($text-color, 0.5);
+    &:after {
+        content: "Loading table...";
+    }
+}
+
+.cowid-error {
+    color: #860000;
+}
