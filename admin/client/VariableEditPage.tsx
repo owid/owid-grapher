@@ -184,7 +184,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
                                 <FieldsRow>
                                     <Toggle
-                                        value={newVariable.display.yearIsDay}
+                                        value={
+                                            newVariable.display.yearIsDay ===
+                                            true
+                                        }
                                         onValue={value =>
                                             (newVariable.display.yearIsDay = value)
                                         }

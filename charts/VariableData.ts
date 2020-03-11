@@ -62,7 +62,7 @@ export class VariableDisplaySettings {
     @observable conversionFactor?: number = undefined
     @observable numDecimalPlaces?: number = undefined
     @observable tolerance?: number = undefined
-    @observable yearIsDay = false
+    @observable yearIsDay?: boolean = undefined
     @observable zeroDay?: string = undefined
 }
 
