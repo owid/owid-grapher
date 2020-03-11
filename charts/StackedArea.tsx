@@ -1,13 +1,5 @@
 import * as React from "react"
-import {
-    sortBy,
-    reverse,
-    clone,
-    last,
-    guid,
-    pointsToPath,
-    formatYear
-} from "./Util"
+import { sortBy, reverse, clone, last, guid, pointsToPath } from "./Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
@@ -330,7 +322,9 @@ export class StackedArea extends React.Component<{
                     <tbody>
                         <tr>
                             <td>
-                                <strong>{formatYear(refValue.x)}</strong>
+                                <strong>
+                                    {this.chart.formatYearFunction(refValue.x)}
+                                </strong>
                             </td>
                             <td></td>
                         </tr>

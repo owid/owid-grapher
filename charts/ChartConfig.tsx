@@ -4,7 +4,7 @@ import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo } from "./Util"
+import { defaultTo, formatDay, formatYear } from "./Util"
 import { VariableData, DataForChart } from "./VariableData"
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
@@ -165,6 +165,8 @@ export class ChartConfigProps {
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
+    @observable.ref yearIsDay: boolean = false
+    @observable.ref zeroDay?: string = undefined
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
@@ -216,6 +218,12 @@ export class ChartConfig {
 
     set baseFontSize(val: number) {
         this.setBaseFontSize = val
+    }
+
+    @computed get formatYearFunction() {
+        return this.props.yearIsDay
+            ? (day: number) => formatDay(day, this.props.zeroDay)
+            : formatYear
     }
 
     vardata: VariableData

@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, formatYear } from "./Util"
+import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -242,7 +242,11 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                 <div>
                                     in
                                     <br />
-                                    <span>{formatYear(tooltipDatum.year)}</span>
+                                    <span>
+                                        {this.context.chart.formatYearFunction(
+                                            tooltipDatum.year
+                                        )}
+                                    </span>
                                 </div>
                             )}
                         </div>

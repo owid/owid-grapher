@@ -115,6 +115,7 @@ export {
     zip
 }
 
+import moment = require("moment")
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import * as striptags from "striptags"
@@ -198,14 +199,19 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
+export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
+    return moment(`${zeroDay} 00+12:00`) // Treat dates as noon in GMT Timezone.
+        .add(dayAsYear, "days")
+        .format("LL")
+}
+
 export function formatYear(year: number): string {
     if (isNaN(year)) {
         console.warn(`Invalid year '${year}'`)
         return ""
     }
 
-    if (year < 0) return `${Math.abs(year)} BCE`
-    else return year.toString()
+    return year < 0 ? `${Math.abs(year)} BCE` : year.toString()
 }
 
 export function numberOnly(value: any): number | undefined {

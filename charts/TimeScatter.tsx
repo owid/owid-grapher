@@ -8,7 +8,7 @@ import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
 
-import { sortBy, cloneDeep, isEmpty, guid, formatYear } from "./Util"
+import { sortBy, cloneDeep, isEmpty, guid } from "./Util"
 import { AxisScale } from "./AxisScale"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"
@@ -118,11 +118,13 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
+        const formatFunction = this.props.chart.formatYearFunction
+
         const year = value.time.span
-            ? `${formatYear(value.time.span[0])} to ${formatYear(
+            ? `${formatFunction(value.time.span[0])} to ${formatFunction(
                   value.time.span[1]
               )}`
-            : formatYear(value.time.y)
+            : formatFunction(value.time.y)
 
         return (
             <Tooltip

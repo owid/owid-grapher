@@ -29,7 +29,7 @@ import {
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
-import { formatYear, first, last } from "./Util"
+import { first, last } from "./Util"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -185,7 +185,8 @@ export class ScatterPlot extends React.Component<{
             },
             get endpointsOnly() {
                 return that.transform.compareEndPointsOnly
-            }
+            },
+            formatYearFunction: that.chart.formatYearFunction
         })
     }
 
@@ -364,6 +365,7 @@ export class ScatterPlot extends React.Component<{
                     <ScatterTooltip
                         formatY={transform.yFormatTooltip}
                         formatX={transform.xFormatTooltip}
+                        formatYearFunction={this.chart.formatYearFunction}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
                         fontSize={this.chart.baseFontSize}
@@ -384,6 +386,7 @@ export class ScatterPlot extends React.Component<{
 interface ScatterTooltipProps {
     formatY: (value: number) => string
     formatX: (value: number) => string
+    formatYearFunction: (value: number) => string
     series: ScatterSeries
     maxWidth: number
     fontSize: number
@@ -430,6 +433,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         elements.push(heading)
         offset += heading.wrap.height + lineHeight
 
+        const formatFunction = this.props.formatYearFunction
+
         values.forEach(v => {
             const year = {
                 x: x,
@@ -438,10 +443,10 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                     maxWidth: maxWidth,
                     fontSize: 0.65 * fontSize,
                     text: v.time.span
-                        ? `${formatYear(v.time.span[0])} to ${formatYear(
-                              v.time.span[1]
-                          )}`
-                        : formatYear(v.time.y)
+                        ? `${formatFunction(
+                              v.time.span[0]
+                          )} to ${formatFunction(v.time.span[1])}`
+                        : formatFunction(v.time.y)
                 })
             }
             offset += year.wrap.height
