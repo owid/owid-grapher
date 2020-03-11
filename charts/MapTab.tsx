@@ -235,7 +235,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
                                       )
-                                    : `No data for ${inputYear}`}
+                                    : `No data for ${this.context.chart.formatYearFunction(
+                                          inputYear as number
+                                      )}`}
                             </span>
                             <br />
                             {tooltipDatum && tooltipDatum.year !== inputYear && (
