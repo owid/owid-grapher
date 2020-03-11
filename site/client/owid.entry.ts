@@ -13,7 +13,7 @@ import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runSearchPage } from "./SearchPageMain"
 import { runNotFoundPage } from "./NotFoundPageMain"
-import { runFeedback, runFeedbackPage } from "./Feedback"
+import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "./DonateForm"
 import { getParent } from "./utils"
 import { Grapher } from "site/client/Grapher"
@@ -25,6 +25,7 @@ import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
 import { runLightbox } from "./Lightbox"
+import { runSiteTools } from "./SiteTools"
 
 declare var window: any
 window.Grapher = Grapher
@@ -35,7 +36,7 @@ window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
-window.runFeedback = runFeedback
+window.runSiteTools = runSiteTools
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
