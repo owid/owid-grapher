@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { includes, formatYear, guid, uniq, makeSafeForCSS } from "./Util"
+import { includes, guid, uniq, makeSafeForCSS } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
 import { AxisBox, AxisGridLines } from "./AxisBox"
@@ -293,7 +293,7 @@ export class StackedBarChart extends React.Component<{
                     <br />
                     in
                     <br />
-                    <span>{formatYear(hoverBar.x)}</span>
+                    <span>{this.chart.formatYearFunction(hoverBar.x)}</span>
                 </p>
             </Tooltip>
         )

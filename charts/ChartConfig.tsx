@@ -4,7 +4,7 @@ import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo } from "./Util"
+import { defaultTo, formatDay, formatYear } from "./Util"
 import { VariableData, DataForChart } from "./VariableData"
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
@@ -216,6 +216,15 @@ export class ChartConfig {
 
     set baseFontSize(val: number) {
         this.setBaseFontSize = val
+    }
+
+    @computed get formatYearFunction() {
+        const firstVar = this.vardata.variables[0]
+        if (!firstVar) return formatYear
+
+        return firstVar.display.yearIsDay
+            ? (day: number) => formatDay(day, firstVar.display.zeroDay)
+            : formatYear
     }
 
     vardata: VariableData

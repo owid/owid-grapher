@@ -9,13 +9,14 @@ import {
     cloneDeep,
     sortedUniq,
     clone,
+    defaultTo,
+    findClosest,
     formatValue
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DataKey } from "./DataKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
-import { defaultTo, formatYear, findClosest } from "./Util"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { IChartTransform } from "./IChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
@@ -197,7 +198,7 @@ export class LineChartTransform implements IChartTransform {
         const { xDomain } = this
         return {
             label: this.chart.xAxis.label || "",
-            tickFormat: formatYear,
+            tickFormat: this.chart.formatYearFunction,
             domain: xDomain,
             scaleType: "linear",
             scaleTypeOptions: ["linear"],

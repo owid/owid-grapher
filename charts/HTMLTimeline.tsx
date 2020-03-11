@@ -2,7 +2,7 @@ import { select } from "d3-selection"
 import { first, last, sortBy, find } from "./Util"
 import * as React from "react"
 import { Bounds } from "./Bounds"
-import { getRelativeMouse, formatYear } from "./Util"
+import { getRelativeMouse } from "./Util"
 import { Analytics } from "site/client/Analytics"
 import {
     observable,
@@ -419,7 +419,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         )}
                     </div>
                 )}
-                <div>{formatYear(minYear)}</div>
+                <div>{this.context.chart.formatYearFunction(minYear)}</div>
                 <div className="slider">
                     <div
                         className="handle startMarker"
@@ -437,7 +437,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         style={{ left: `${endYearProgress * 100}%` }}
                     />
                 </div>
-                <div>{formatYear(maxYear)}</div>
+                <div>{this.context.chart.formatYearFunction(maxYear)}</div>
             </div>
         )
     }
