@@ -62,7 +62,7 @@ export const NewsletterSubscriptionForm = ({
                         >
                             <div className="label-title">Immediate updates</div>
                             <div className="label-text">
-                                Get emails whenever we produce new content.
+                                Get an email whenever we produce new content.
                             </div>
                         </label>
                     </div>
@@ -71,14 +71,14 @@ export const NewsletterSubscriptionForm = ({
                             type="checkbox"
                             value="2"
                             name="group[85302][2]"
-                            id={`${context ? context + "-" : ""}bi-weekly`}
+                            id={`${context ? context + "-" : ""}biweekly`}
                         />
                         <label
-                            htmlFor={`${context ? context + "-" : ""}bi-weekly`}
+                            htmlFor={`${context ? context + "-" : ""}biweekly`}
                         >
-                            <div className="label-title">Weekly digest</div>
+                            <div className="label-title">Biweekly digest</div>
                             <div className="label-text">
-                                Get bi-weekly emails with the biggest news.
+                                Get an email every two weeks.
                             </div>
                         </label>
                     </div>
