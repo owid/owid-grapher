@@ -46,11 +46,6 @@
         vertical-align: text-top;
     }
 
-    th:last-child,
-    td:last-child {
-        border-right: none;
-    }
-
     td {
         padding-top: 6px;
         padding-bottom: 6px;
@@ -60,6 +55,10 @@
     tbody tr {
         padding-top: 20px;
         padding-bottom: 20px;
+    }
+
+    tbody:last-child tr:last-child td {
+        border-bottom-color: rgba(0, 0, 0, 0.15);
     }
 
     .location {
@@ -97,9 +96,18 @@
     }
 }
 
-.covid-table-source {
-    font-size: 14px;
-    color: rgba($text-color, 0.75);
+.covid-table-note {
+    margin-top: 0.75em;
+
+    p {
+        font-size: 14px;
+        color: rgba($text-color, 0.75);
+        margin: 0 0 0.75em;
+    }
+
+    .tiny {
+        font-size: 13px;
+    }
 }
 
 .covid-loading,

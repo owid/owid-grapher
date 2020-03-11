@@ -10,7 +10,8 @@ import {
     formatValue,
     maxBy,
     groupBy,
-    entries
+    entries,
+    partition
 } from "charts/Util"
 
 interface CovidDatum {
@@ -141,6 +142,19 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return []
     }
 
+    @computed get renderData() {
+        const [shown, hidden] = partition(
+            this.byLocation,
+            d =>
+                d.location.indexOf("Diamond Princess") === -1 &&
+                (d.latest ? d.latest.total_cases >= 20 : false)
+        )
+        return {
+            shown: sortBy(shown, d => d.latest?.total_cases).reverse(),
+            hidden: sortBy(hidden, d => d.location)
+        }
+    }
+
     render() {
         if (this.isLoading) {
             return <div className="covid-loading"></div>
@@ -162,22 +176,28 @@ export class CovidTable extends React.Component<CovidTableProps> {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.byLocation
-                            .filter(d =>
-                                d.latest ? d.latest.total_cases >= 20 : false
-                            )
-                            .map(datum => (
-                                <CovidTableRow key={datum.id} datum={datum} />
-                            ))}
+                        {this.renderData.shown.map(datum => (
+                            <CovidTableRow key={datum.id} datum={datum} />
+                        ))}
                     </tbody>
                 </table>
-                <div className="covid-table-source">
+                <div className="covid-table-note">
+                    <p className="tiny">
+                        Countries with less than 20 confirmed cases are not
+                        shown. Cases from the Diamond Princess cruise ship are
+                        also not shown since these numbers are no longer
+                        changing over time.
+                    </p>
                     <p>
-                        Source:{" "}
+                        Data source:{" "}
                         <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports/">
                             WHO
                         </a>
-                        . Download the <a href={DATA_URL}>full dataset</a>.
+                        . Download the{" "}
+                        <a href="https://ourworldindata.org/coronavirus-source-data">
+                            full dataset
+                        </a>
+                        .
                     </p>
                 </div>
             </div>
