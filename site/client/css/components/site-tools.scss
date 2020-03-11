@@ -4,6 +4,7 @@
 @include md-up {
     .site-tools {
         position: fixed;
+        z-index: $zindex-popover;
         display: flex;
         right: 20px;
         bottom: 20px;
