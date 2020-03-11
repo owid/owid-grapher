@@ -10,16 +10,16 @@ import { SiteFooter } from "./SiteFooter"
 // This page is only used in development.
 // It is not intended to be exposed to the public.
 
-export const CowidPage = () => {
+export const CovidPage = () => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/cowid`}
+                canonicalUrl={`${settings.BAKED_BASE_URL}/covid`}
                 pageTitle="COVID-19"
             >
                 <link rel="stylesheet" href={webpack("commons.css")} />
             </Head>
-            <body className="CowidPage">
+            <body className="CovidPage">
                 <SiteHeader />
                 <main>
                     <article className="page no-sidebar large-banner">
@@ -83,8 +83,8 @@ export const CowidPage = () => {
                                             </div>
                                             <div className="wp-block-columns is-style-sticky-right">
                                                 <div className="wp-block-column">
-                                                    <div id="cowid-table-embed">
-                                                        <div className="cowid-loading"></div>
+                                                    <div id="covid-table-embed">
+                                                        <div className="covid-loading"></div>
                                                     </div>
                                                 </div>
                                                 <div className="wp-block-column"></div>

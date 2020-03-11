@@ -5,7 +5,7 @@ import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
 import { ExplorePage } from "./views/ExplorePage"
-import { CowidPage } from "./views/CowidPage"
+import { CovidPage } from "./views/CovidPage"
 import { SearchPage } from "./views/SearchPage"
 import { NotFoundPage } from "./views/NotFoundPage"
 import { DonatePage } from "./views/DonatePage"
@@ -74,8 +74,8 @@ export async function renderExplorePage() {
 }
 
 // Only used in the dev server
-export async function renderCowidPage() {
-    return renderToHtmlPage(<CowidPage />)
+export async function renderCovidPage() {
+    return renderToHtmlPage(<CovidPage />)
 }
 
 export async function renderExplorableIndicatorsJson() {
