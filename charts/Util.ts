@@ -447,7 +447,7 @@ export function sign(n: number) {
 }
 
 // TODO use fetchText() in fetchJSON()
-// decided not to do this while implementing our COWID page in order to prevent breaking something.
+// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export async function fetchText(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()

@@ -1,8 +1,8 @@
-.cowid-table-container {
+.covid-table-container {
     margin: 0 0 2rem;
 }
 
-.cowid-table {
+.covid-table {
     font-size: 0.9375rem;
     margin: 0;
     border: none;
@@ -97,13 +97,13 @@
     }
 }
 
-.cowid-table-source {
+.covid-table-source {
     font-size: 14px;
     color: rgba($text-color, 0.75);
 }
 
-.cowid-loading,
-.cowid-error {
+.covid-loading,
+.covid-error {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     padding: 3em 0;
@@ -111,13 +111,13 @@
     text-align: center;
 }
 
-.cowid-loading {
+.covid-loading {
     color: rgba($text-color, 0.5);
     &:after {
         content: "Loading table...";
     }
 }
 
-.cowid-error {
+.covid-error {
     color: #860000;
 }

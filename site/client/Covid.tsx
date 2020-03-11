@@ -13,7 +13,7 @@ import {
     entries
 } from "charts/Util"
 
-interface CowidDatum {
+interface CovidDatum {
     date: Date
     location: string
     total_cases: number
@@ -22,26 +22,26 @@ interface CowidDatum {
     new_deaths: number // can contain NaN
 }
 
-type CowidSeries = CowidDatum[]
+type CovidSeries = CovidDatum[]
 
-interface CowidDoublingRange {
-    latestDay: CowidDatum
-    halfDay: CowidDatum
+interface CovidDoublingRange {
+    latestDay: CovidDatum
+    halfDay: CovidDatum
     length: number | undefined
 }
 
-interface CowidCountryDatum {
+interface CovidCountryDatum {
     id: string
     location: string
-    series: CowidSeries
-    latest: CowidDatum | undefined
-    caseDoublingRange: CowidDoublingRange | undefined
+    series: CovidSeries
+    latest: CovidDatum | undefined
+    caseDoublingRange: CovidDoublingRange | undefined
 }
 
-type CowidCountrySeries = CowidCountryDatum[]
+type CovidCountrySeries = CovidCountryDatum[]
 
-interface CowidTableProps {
-    preloadData?: CowidSeries
+interface CovidTableProps {
+    preloadData?: CovidSeries
 }
 
 const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
@@ -56,11 +56,11 @@ function dateDiffInDays(a: Date, b: Date) {
 }
 
 function getDoublingRange(
-    series: CowidSeries,
-    accessor: (d: CowidDatum) => number
-): CowidDoublingRange | undefined {
+    series: CovidSeries,
+    accessor: (d: CovidDatum) => number
+): CovidDoublingRange | undefined {
     if (series.length > 1) {
-        const latestDay = maxBy(series, d => d.date) as CowidDatum
+        const latestDay = maxBy(series, d => d.date) as CovidDatum
         const latestValue = accessor(latestDay)
         const halfDay = maxBy(
             series.filter(d => accessor(d) <= latestValue / 2),
@@ -80,8 +80,8 @@ function getDoublingRange(
 }
 
 @observer
-export class CowidTable extends React.Component<CowidTableProps> {
-    @observable.ref data: CowidSeries | undefined =
+export class CovidTable extends React.Component<CovidTableProps> {
+    @observable.ref data: CovidSeries | undefined =
         this.props.preloadData ?? undefined
 
     @observable.ref isLoaded: boolean = !!this.props.preloadData
@@ -98,7 +98,7 @@ export class CowidTable extends React.Component<CowidTableProps> {
         this.isLoading = true
         try {
             const responseText = await fetchText(DATA_URL)
-            const rows: CowidSeries = csvParse(responseText).map(row => {
+            const rows: CovidSeries = csvParse(responseText).map(row => {
                 return {
                     date: new Date(row.date as string),
                     location: row.location as string,
@@ -117,11 +117,11 @@ export class CowidTable extends React.Component<CowidTableProps> {
         this.isLoading = false
     }
 
-    @computed get byLocation(): CowidCountrySeries {
+    @computed get byLocation(): CovidCountrySeries {
         if (this.data) {
             return entries(groupBy(this.data, d => d.location)).map(
                 ([location, series]) => {
-                    const sortedSeries: CowidSeries = sortBy(
+                    const sortedSeries: CovidSeries = sortBy(
                         series,
                         d => d.date
                     )
@@ -143,18 +143,18 @@ export class CowidTable extends React.Component<CowidTableProps> {
 
     render() {
         if (this.isLoading) {
-            return <div className="cowid-loading"></div>
+            return <div className="covid-loading"></div>
         }
         if (this.error) {
             return (
-                <div className="cowid-error">
-                    There was an error loading the table: {this.error}.
+                <div className="covid-error">
+                    There was an error loading the live table.
                 </div>
             )
         }
         return (
-            <div className="cowid-table-container">
-                <table className="cowid-table">
+            <div className="covid-table-container">
+                <table className="covid-table">
                     <thead>
                         <tr>
                             <th className="location">Location</th>
@@ -167,11 +167,11 @@ export class CowidTable extends React.Component<CowidTableProps> {
                                 d.latest ? d.latest.total_cases >= 20 : false
                             )
                             .map(datum => (
-                                <CowidTableRow key={datum.id} datum={datum} />
+                                <CovidTableRow key={datum.id} datum={datum} />
                             ))}
                     </tbody>
                 </table>
-                <div className="cowid-table-source">
+                <div className="covid-table-source">
                     <p>
                         Source:{" "}
                         <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports/">
@@ -185,8 +185,8 @@ export class CowidTable extends React.Component<CowidTableProps> {
     }
 }
 
-interface CowidTableRowProps {
-    datum: CowidCountryDatum
+interface CovidTableRowProps {
+    datum: CovidCountryDatum
 }
 
 function formatInt(n: number | undefined, defaultValue: string = ""): string {
@@ -199,7 +199,7 @@ function formatDate(date: Date): string {
     return defaultTimeFormat(date)
 }
 
-export class CowidTableRow extends React.Component<CowidTableRowProps> {
+export class CovidTableRow extends React.Component<CovidTableRowProps> {
     render() {
         const d = this.props.datum
         return (
@@ -249,9 +249,9 @@ export class CowidTableRow extends React.Component<CowidTableRowProps> {
     }
 }
 
-export function runCowid() {
-    const element = document.getElementById("cowid-table-embed")
+export function runCovid() {
+    const element = document.getElementById("covid-table-embed")
     if (element) {
-        ReactDOM.render(<CowidTable />, element)
+        ReactDOM.render(<CovidTable />, element)
     }
 }

@@ -26,7 +26,7 @@ import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
-import { runCowid } from "./Cowid"
+import { runCovid } from "./Covid"
 
 declare var window: any
 window.Grapher = Grapher
@@ -46,7 +46,7 @@ window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
 window.runTableOfContents = runTableOfContents
 window.runLightbox = runLightbox
-window.runCowid = runCowid
+window.runCovid = runCovid
 
 Analytics.logEvent("OWID_PAGE_LOAD")
 
