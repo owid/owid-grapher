@@ -164,6 +164,8 @@ class VariableEditRow extends React.Component<{
         const { isBulkImport } = this.props
         const { newVariable } = this
 
+        // Todo: can we reuse code from VariableEditPage?
+
         return (
             <div className="VariableEditRow row">
                 <Prompt
@@ -215,6 +217,24 @@ class VariableEditRow extends React.Component<{
                                     field="conversionFactor"
                                     store={newVariable.display}
                                     helpText={`Multiply all values by this amount`}
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <Toggle
+                                    value={
+                                        newVariable.display.yearIsDay === true
+                                    }
+                                    onValue={value =>
+                                        (newVariable.display.yearIsDay = value)
+                                    }
+                                    label="Treat year column as day series"
+                                />
+                                <BindString
+                                    label="Zero Day as YYYY-MM-DD"
+                                    field="zeroDay"
+                                    store={newVariable.display}
+                                    disabled={!newVariable.display.yearIsDay}
+                                    helpText={`The day series starts on this date.`}
                                 />
                             </FieldsRow>
                             <BindString

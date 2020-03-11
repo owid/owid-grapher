@@ -1,4 +1,4 @@
-import { extend } from "./Util"
+import { extend, min, max } from "./Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -35,6 +35,14 @@ export class SourcesTab extends React.Component<{
             ? `${ADMIN_BASE_URL}/admin/datasets/${variable.datasetId}`
             : undefined
 
+        const minYear = min(variable.years)
+        const maxYear = max(variable.years)
+        let timespan = ""
+        if (minYear !== undefined && maxYear !== undefined)
+            timespan = `${this.props.chart.formatYearFunction(
+                minYear
+            )} – ${this.props.chart.formatYearFunction(maxYear)}`
+
         return (
             <div key={source.id} className="datasource-wrapper">
                 <h2>
@@ -63,10 +71,10 @@ export class SourcesTab extends React.Component<{
                                 <td>{variable.coverage}</td>
                             </tr>
                         ) : null}
-                        {variable.timespan ? (
+                        {timespan ? (
                             <tr>
                                 <td>Variable time span</td>
-                                <td>{variable.timespan}</td>
+                                <td>{timespan}</td>
                             </tr>
                         ) : null}
                         {dimension.unitConversionFactor !== 1 ? (

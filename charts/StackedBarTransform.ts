@@ -11,7 +11,6 @@ import {
     max,
     defaultTo,
     findClosest,
-    formatYear,
     uniq
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
@@ -137,7 +136,7 @@ export class StackedBarTransform implements IChartTransform {
     @computed get xAxisSpec(): AxisSpec {
         const { chart, xDomainDefault } = this
         return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
-            tickFormat: (year: number) => formatYear(year),
+            tickFormat: this.chart.formatYearFunction,
             hideFractionalTicks: true,
             hideGridlines: true
         }) as AxisSpec

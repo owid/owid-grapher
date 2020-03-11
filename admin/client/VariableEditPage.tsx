@@ -11,7 +11,7 @@ import * as _ from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
-import { BindString, BindFloat, FieldsRow } from "./Forms"
+import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { VariableDisplaySettings } from "charts/VariableData"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "site/client/ChartFigureView"
@@ -179,6 +179,27 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <Toggle
+                                        value={
+                                            newVariable.display.yearIsDay ===
+                                            true
+                                        }
+                                        onValue={value =>
+                                            (newVariable.display.yearIsDay = value)
+                                        }
+                                        label="Treat year column as day series"
+                                    />
+                                    <BindString
+                                        label="Zero Day as YYYY-MM-DD"
+                                        field="zeroDay"
+                                        store={newVariable.display}
+                                        disabled={
+                                            !newVariable.display.yearIsDay
+                                        }
+                                        helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
                                 <BindString

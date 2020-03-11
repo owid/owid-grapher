@@ -21,7 +21,6 @@ import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
 import { ComparisonLine } from "./ComparisonLine"
 import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
-import { formatYear } from "./Util"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
 
@@ -131,7 +130,9 @@ export class LineChart extends React.Component<{
                     <tbody>
                         <tr>
                             <td>
-                                <strong>{formatYear(hoverX)}</strong>
+                                <strong>
+                                    {this.chart.formatYearFunction(hoverX)}
+                                </strong>
                             </td>
                             <td></td>
                         </tr>
