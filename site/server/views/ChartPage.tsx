@@ -1,4 +1,6 @@
 import { BAKED_GRAPHER_URL } from "settings"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 import * as React from "react"
 import urljoin = require("url-join")
@@ -91,9 +93,11 @@ export const ChartPage = (props: {
 
                     {post && (
                         <div className="originReference">
-                            This chart is part of a collection of research. For
-                            more information, see{" "}
-                            <a href={chart.originUrl}>{post.title}</a>.
+                            <a href={chart.originUrl}>
+                                Here is all our research and data on{" "}
+                                <strong>{post.title}</strong>.
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
                         </div>
                     )}
                     <noscript id="fallback">

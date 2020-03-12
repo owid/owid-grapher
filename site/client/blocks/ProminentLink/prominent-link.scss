@@ -1,10 +1,6 @@
-.article-content .wp-block-owid-prominent-link {
-    @include left-media-columns;
+.article-content .wp-block-owid-prominent-link,
+.ChartPage .originReference {
     @include block-shadow;
-    h3 {
-        @include h3-style;
-        margin-top: 0;
-    }
     svg {
         width: 0.4em;
         height: 1em;
@@ -40,5 +36,13 @@
             text-decoration: none;
             color: $primary-color;
         }
+    }
+}
+
+.article-content .wp-block-owid-prominent-link {
+    @include left-media-columns;
+    h3 {
+        @include h3-style;
+        margin-top: 0;
     }
 }
