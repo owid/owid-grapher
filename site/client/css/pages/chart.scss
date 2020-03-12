@@ -6,7 +6,7 @@
     flex-direction: column;
     margin: 0;
     width: 100%;
-    height: calc(100vh - 140px);
+    height: calc(100vh - 225px);
 }
 
 #fallback > img {
@@ -18,13 +18,14 @@
     // See prominent-link.scss for base styles
     .originReference {
         max-width: 800px;
-        margin: 2 * $vertical-spacing auto;
+        margin: $vertical-spacing auto 0;
         font-size: 1.3rem;
         text-align: center;
         svg {
             width: 0.7em;
-            position: absolute;
-            margin-top: 0.4em; // vertical align hack
+        }
+        a {
+            padding: $padding-x-sm;
         }
     }
 }
