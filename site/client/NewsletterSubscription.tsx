@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export const NewsletterSubscription = () => {
     const [isOpen, setIsOpen] = useState(false)
+    const subscribeText = "Subscribe to receive updates"
+    const closeText = "Close"
 
     return (
         <div className={`newsletter-subscription${isOpen ? " active" : ""}`}>
@@ -23,14 +25,20 @@ export const NewsletterSubscription = () => {
                 </>
             )}
             <button
-                aria-label="Subscribe to our content updates"
+                aria-label={isOpen ? closeText : subscribeText}
                 className="prompt"
+                data-track-click
+                data-track-note={
+                    isOpen
+                        ? "dialog-close-newsletter"
+                        : "dialog-open-newsletter"
+                }
                 onClick={() => {
                     setIsOpen(!isOpen)
                 }}
             >
-                <FontAwesomeIcon icon={isOpen ? faTimes : faEnvelopeOpenText} />
-                {isOpen ? " Close" : " Subscribe to receive updates"}
+                <FontAwesomeIcon icon={isOpen ? faTimes : faEnvelopeOpenText} />{" "}
+                {isOpen ? closeText : subscribeText}
             </button>
         </div>
     )
