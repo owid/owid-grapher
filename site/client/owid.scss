@@ -33,6 +33,8 @@
 @import "css/pages/homepage.scss";
 @import "css/pages/donate.scss";
 @import "css/pages/faq.scss";
+@import "css/pages/covid.scss";
+@import "css/pages/chart.scss";
 
 @import "css/components/cookie-notice.scss";
 @import "css/components/site-tools.scss";
@@ -42,9 +44,6 @@
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
 @import "site/client/blocks/Summary/summary.scss";
-
-@import "css/pages/faq.scss";
-@import "css/pages/covid.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
