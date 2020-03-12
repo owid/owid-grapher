@@ -602,3 +602,19 @@ export function getStartEndValues(
     const end = maxBy(values, dv => dv.year)
     return [start, end]
 }
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+
+// From https://stackoverflow.com/a/15289883
+export function dateDiffInDays(a: Date, b: Date) {
+    // Discard the time and time-zone information.
+    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
+    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
+    return Math.floor((utca - utcb) / MS_PER_DAY)
+}
+
+export function addDays(date: Date, days: number): Date {
+    const newDate = new Date(date.getTime())
+    newDate.setDate(newDate.getDate() + days)
+    return newDate
+}
