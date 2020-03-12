@@ -497,7 +497,7 @@ export class Controls {
         return this.props.chart.tab === "map"
     }
 
-    @computed get hasSpace(): boolean {
+    @computed get widthIsGreaterThan700(): boolean {
         return this.props.width > 700
     }
 
@@ -515,7 +515,7 @@ export class Controls {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && numLines > 1) numLines -= 1
+        if (this.widthIsGreaterThan700 && numLines > 1) numLines -= 1
         return numLines
     }
 
@@ -702,20 +702,11 @@ export class ControlsFooterView extends React.Component<{
         this.props.controls.props.chartView.isSelectingData = true
     }
 
-    render() {
+    private _getTabsElement() {
         const { props } = this
-        const {
-            isShareMenuActive,
-            isSettingsMenuActive,
-            hasSettingsMenu,
-            hasTimeline,
-            hasInlineControls,
-            hasAddButton,
-            hasSpace
-        } = props.controls
-        const { chart, chartView } = props.controls.props
-
-        const tabs = (
+        const { hasSettingsMenu } = props.controls
+        const { chart } = props.controls.props
+        return (
             <nav className="tabs">
                 <ul>
                     {chart.availableTabs.map(tabName => {
@@ -793,10 +784,13 @@ export class ControlsFooterView extends React.Component<{
                 </ul>
             </nav>
         )
+    }
 
-        const timeline = hasTimeline && <TimelineControl chart={chart} />
-
-        const extraControls = hasInlineControls && (
+    private _getInlineControlsElement() {
+        const { props } = this
+        const { hasAddButton } = props.controls
+        const { chart } = props.controls.props
+        return (
             <div className="extraControls">
                 {chart.data.canAddData && !hasAddButton && (
                     <button type="button" onClick={this.onDataSelect}>
@@ -837,40 +831,64 @@ export class ControlsFooterView extends React.Component<{
                 )}
             </div>
         )
+    }
+
+    render() {
+        const { props } = this
+        const {
+            isShareMenuActive,
+            isSettingsMenuActive,
+            hasTimeline,
+            hasInlineControls,
+            widthIsGreaterThan700
+        } = props.controls
+        const { chart, chartView } = props.controls.props
+
+        const tabsElement = this._getTabsElement()
+        const timelineElement = hasTimeline && <TimelineControl chart={chart} />
+        const inlineControlsElement =
+            hasInlineControls && this._getInlineControlsElement()
+
+        const shareMenuElement = isShareMenuActive && (
+            <ShareMenu
+                chartView={chartView}
+                chart={chart}
+                onDismiss={this.onShareMenu}
+            />
+        )
+        const settingsMenuElement = isSettingsMenuActive && (
+            <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
+        )
 
         return (
             <div
                 className="ControlsFooter"
                 style={{ height: props.controls.footerHeight }}
             >
-                {hasTimeline && (hasInlineControls || !hasSpace) && (
-                    <div className="footerRowSingle">{timeline}</div>
-                )}
-                {hasInlineControls && !hasSpace && (
-                    <div className="footerRowSingle">{extraControls}</div>
-                )}
-                {hasSpace && (
-                    <div className="footerRowMulti">
-                        <div>
-                            {hasInlineControls ? extraControls : timeline}
-                        </div>
-                        {tabs}
+                {hasTimeline &&
+                    (hasInlineControls || !widthIsGreaterThan700) && (
+                        <div className="footerRowSingle">{timelineElement}</div>
+                    )}
+                {hasInlineControls && !widthIsGreaterThan700 && (
+                    <div className="footerRowSingle">
+                        {inlineControlsElement}
                     </div>
                 )}
-                {!hasSpace && <div className="footerRowSingle">{tabs}</div>}
-                {isShareMenuActive && (
-                    <ShareMenu
-                        chartView={chartView}
-                        chart={chart}
-                        onDismiss={this.onShareMenu}
-                    />
+                {widthIsGreaterThan700 && (
+                    <div className="footerRowMulti">
+                        <div>
+                            {hasInlineControls
+                                ? inlineControlsElement
+                                : timelineElement}
+                        </div>
+                        {tabsElement}
+                    </div>
                 )}
-                {isSettingsMenuActive && (
-                    <SettingsMenu
-                        chart={chart}
-                        onDismiss={this.onSettingsMenu}
-                    />
+                {!widthIsGreaterThan700 && (
+                    <div className="footerRowSingle">{tabsElement}</div>
                 )}
+                {shareMenuElement}
+                {settingsMenuElement}
             </div>
         )
     }
