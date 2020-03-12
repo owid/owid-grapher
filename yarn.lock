@@ -15638,6 +15638,11 @@ timers-browserify@^2.0.4:
   dependencies:
     setimmediate "^1.0.4"
 
+timezone-mock@^1.0.18:
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/timezone-mock/-/timezone-mock-1.0.18.tgz#4b8978d6d414483711a5346435de37a1f0d20a8d"
+  integrity sha512-/q+TjPYR/tuW4gL2VZUmmSyVzun2ZFUMMFfmf4O82dZ1Yv8ymTk2lY7Ke2+dvy9bh+A27wlGUT0jKS1HZHdPIg==
+
 tiny-emitter@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tiny-emitter/-/tiny-emitter-2.1.0.tgz#1d1a56edfc51c43e863cbb5382a72330e3555423"

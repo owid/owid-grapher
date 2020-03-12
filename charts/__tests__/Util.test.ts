@@ -1,6 +1,13 @@
 #! /usr/bin/env jest
 
-import { findClosestYear, getStartEndValues, DataValue } from "../Util"
+import * as timezoneMock from "timezone-mock"
+
+import {
+    findClosestYear,
+    getStartEndValues,
+    DataValue,
+    formatDay
+} from "../Util"
 
 function iteratorFromArray<T>(array: T[]): Iterable<T> {
     return array[Symbol.iterator]()
@@ -77,5 +84,27 @@ describe(getStartEndValues, () => {
         ]) as DataValue[]
         expect(extent[0].year).toEqual(2014)
         expect(extent[1].year).toEqual(2017)
+    })
+})
+
+describe(formatDay, () => {
+    describe("timezones", () => {
+        it("formats date consistently in GMT", () => {
+            timezoneMock.register("Europe/London")
+            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            timezoneMock.unregister()
+        })
+
+        it("formats date consistently in US/Pacific", () => {
+            timezoneMock.register("US/Pacific")
+            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            timezoneMock.unregister()
+        })
+
+        it("formats date consistently in US/Pacific", () => {
+            timezoneMock.register("Australia/Adelaide")
+            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            timezoneMock.unregister()
+        })
     })
 })
