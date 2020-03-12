@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { observable, computed, action } from "mobx"
 import { csvParse, timeFormat, extent, scaleLinear } from "d3"
 import { bind } from "decko"
+import classnames from "classnames"
 
 import {
     fetchText,
@@ -16,7 +17,9 @@ import {
     max,
     keyBy,
     dateDiffInDays,
-    addDays
+    addDays,
+    orderBy,
+    defaultTo
 } from "charts/Util"
 
 const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
@@ -26,7 +29,7 @@ const CASE_THRESHOLD = 10
 const CURRENT_COLOR = "#1d3d63"
 const HIGHLIGHT_COLOR = "#B04A00"
 const DEFAULT_COLOR = "rgba(0, 33, 71, 0.25)"
-const DEFAULT_FAINT_COLOR = "rgba(0, 33, 71, 0.09)"
+const DEFAULT_FAINT_COLOR = "rgba(0, 33, 71, 0.25)"
 
 interface CovidDatum {
     date: Date
@@ -87,27 +90,6 @@ function getDoublingRange(
     return undefined
 }
 
-// each column has a specific accessor so we can identify which column the table is sorted by
-// (it can also be none)
-const accessors = {
-    country_total_cases: (d: CovidCountryDatum) => d.latest?.total_cases,
-    country_new_cases: (d: CovidCountryDatum) => d.latest?.new_cases
-}
-
-interface GlobalState {
-    // when hovering over bars
-    focusDay: Date
-    sort: [string, "asc" | "desc"]
-}
-
-interface RowState {
-    // when hovering over (?) we want to highlight the specific day in the chart that
-    // the rate refers to
-    // possibly can achieve this by having a component with colspan=2
-    highlightTotalDay: Date
-    highlightDailyDay: Date
-}
-
 class CovidTransformFactory {
     static promise: Promise<CovidTransform>
     static async fetch() {}
@@ -116,8 +98,107 @@ class CovidTransformFactory {
 
 class CovidTransform {}
 
+type AccessorKey =
+    | "location"
+    | "country_total_cases"
+    | "country_new_cases"
+    | "country_days_to_double"
+
+const accessors: Record<AccessorKey, any> = {
+    location: (d: CovidCountryDatum) => d.location,
+    country_total_cases: (d: CovidCountryDatum) => d.latest?.total_cases,
+    country_new_cases: (d: CovidCountryDatum) => d.latest?.new_cases,
+    country_days_to_double: (d: CovidCountryDatum) =>
+        d.caseDoublingRange?.length
+}
+
+enum SortOrder {
+    asc = "asc",
+    desc = "desc"
+}
+
+const DEFAULT_SORT_ORDER = SortOrder.asc
+
+function inverseSortOrder(order: SortOrder): SortOrder {
+    return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
+}
+
 class CovidTableState {
-    @observable.ref highlightDate: Date | undefined = undefined
+    @observable.ref sortKey: AccessorKey = "country_total_cases"
+    @observable.ref sortOrder: SortOrder = SortOrder.desc
+}
+
+interface HeaderCellProps {
+    children: React.ReactNode
+    className?: string
+    sortKey?: AccessorKey
+    currentSortKey?: AccessorKey
+    currentSortOrder?: SortOrder
+    isSorted?: boolean
+    onSort?: (key: AccessorKey) => void
+}
+
+class HeaderCell extends React.Component<HeaderCellProps> {
+    @bind onClick() {
+        if (this.props.sortKey && this.props.onSort) {
+            this.props.onSort(this.props.sortKey)
+        }
+    }
+
+    render() {
+        const {
+            className,
+            sortKey,
+            currentSortKey,
+            currentSortOrder,
+            children
+        } = this.props
+        const isSorted = sortKey !== undefined && sortKey === currentSortKey
+        return (
+            <th
+                className={classnames(className, {
+                    sortable: sortKey,
+                    sorted: isSorted
+                })}
+                onClick={this.onClick}
+            >
+                {children}
+                {sortKey !== undefined && (
+                    <SortIcon
+                        sortOrder={
+                            isSorted && currentSortOrder
+                                ? currentSortOrder
+                                : DEFAULT_SORT_ORDER
+                        }
+                        isActive={isSorted}
+                    />
+                )}
+            </th>
+        )
+    }
+}
+
+interface SortIconProps {
+    sortOrder: SortOrder
+    isActive: boolean
+}
+
+const SortIcon = (props: SortIconProps) => {
+    const isActive = defaultTo(props.isActive, false)
+
+    return (
+        <span
+            className={classnames("sort-icon", props.sortOrder, {
+                active: isActive
+            })}
+        />
+    )
+}
+
+function parseIntOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseInt(s)
+    return isNaN(value) ? undefined : value
 }
 
 @observer
@@ -145,10 +226,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
                 return {
                     date: new Date(row.date as string),
                     location: row.location as string,
-                    total_cases: parseInt(row.total_cases as string),
-                    total_deaths: parseInt(row.total_deaths as string),
-                    new_cases: parseInt(row.new_cases as string),
-                    new_deaths: parseInt(row.new_deaths as string)
+                    total_cases: parseIntOrUndefined(row.total_cases),
+                    total_deaths: parseIntOrUndefined(row.total_deaths),
+                    new_cases: parseIntOrUndefined(row.new_cases),
+                    new_deaths: parseIntOrUndefined(row.new_deaths)
                 }
             })
             this.data = rows
@@ -160,7 +241,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         this.isLoading = false
     }
 
-    @computed get byLocation(): CovidCountrySeries {
+    @computed get countrySeries(): CovidCountrySeries {
         if (this.data) {
             return entries(groupBy(this.data, d => d.location)).map(
                 ([location, series]) => {
@@ -185,18 +266,20 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 
     @computed get renderData() {
+        const sortedSeries = orderBy(
+            this.countrySeries,
+            accessors[this.state.sortKey],
+            this.state.sortOrder
+        )
         const [shown, hidden] = partition(
-            this.byLocation,
+            sortedSeries,
             d =>
                 d.location.indexOf("Diamond Princess") === -1 &&
                 (d.latest && d.latest.total_cases !== undefined
                     ? d.latest.total_cases >= CASE_THRESHOLD
                     : false)
         )
-        return {
-            shown: sortBy(shown, d => d.latest?.total_cases).reverse(),
-            hidden: sortBy(hidden, d => d.location)
-        }
+        return { shown, hidden }
     }
 
     @computed get dateRange(): DateRange {
@@ -209,8 +292,13 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return [addDays(new Date(), -difference), new Date()]
     }
 
-    @action.bound onHighlightDate(date: Date | undefined) {
-        this.state.highlightDate = date
+    @action.bound onSort(newKey: AccessorKey) {
+        const { sortKey, sortOrder } = this.state
+        this.state.sortOrder =
+            sortKey === newKey && sortOrder === DEFAULT_SORT_ORDER
+                ? inverseSortOrder(DEFAULT_SORT_ORDER)
+                : DEFAULT_SORT_ORDER
+        this.state.sortKey = newKey
     }
 
     render() {
@@ -229,26 +317,47 @@ export class CovidTable extends React.Component<CovidTableProps> {
                 <table className="covid-table">
                     <thead>
                         <tr>
-                            <th className="location">
+                            <HeaderCell
+                                className="location"
+                                sortKey="location"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                            >
                                 <strong>Location</strong>
-                            </th>
-                            <th>
+                            </HeaderCell>
+                            <HeaderCell
+                                sortKey="country_total_cases"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                            >
                                 <strong>Total confirmed cases</strong> <br />
                                 <span className="faint">
                                     over the last 14 days
                                 </span>
-                            </th>
-                            <th>
+                            </HeaderCell>
+                            <HeaderCell
+                                sortKey="country_days_to_double"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                            >
                                 How long did it take for the number of{" "}
                                 <strong>confirmed cases to double</strong>?
-                            </th>
-                            <th>
+                            </HeaderCell>
+                            <HeaderCell
+                                sortKey="country_new_cases"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                            >
                                 <strong>Daily new confirmed cases</strong>{" "}
                                 <br />
                                 <span className="faint">
                                     over the last 14 days
                                 </span>
-                            </th>
+                            </HeaderCell>
                         </tr>
                     </thead>
                     <tbody>
@@ -257,7 +366,6 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                 key={datum.id}
                                 datum={datum}
                                 dateRange={this.dateRange}
-                                onHighlightDate={this.onHighlightDate}
                                 state={this.state}
                             />
                         ))}
@@ -302,7 +410,6 @@ function formatDate(
     if (humanize) {
         const diff = dateDiffInDays(new Date(), date)
         if (diff === 0) return "today"
-        if (diff === 1) return "yesterday"
     }
     return defaultTimeFormat(date)
 }
@@ -374,10 +481,8 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
     }
 
     @computed get hightlightedX(): number | undefined {
-        const highlightDate =
-            this.highlightDate || this.props.state.highlightDate
-        if (highlightDate) {
-            return this.dateToIndex(highlightDate)
+        if (this.highlightDate) {
+            return this.dateToIndex(this.highlightDate)
         }
         return undefined
     }
@@ -429,14 +534,14 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                         </div>
                     </div>
                 </td>
-                <td className="doubling-days large-value">
+                <td className="doubling-days">
                     {d.caseDoublingRange !== undefined ? (
                         `${d.caseDoublingRange.length} ${nouns.days(
                             d.caseDoublingRange.length
                         )}`
                     ) : (
                         <span className="no-data">
-                            Not enough data available yet
+                            Not enough data available
                         </span>
                     )}
                 </td>
