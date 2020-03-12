@@ -30,6 +30,7 @@ export const NewsletterSubscription = () => {
                 }}
             >
                 <FontAwesomeIcon icon={isOpen ? faTimes : faEnvelopeOpenText} />
+                {isOpen ? " Close" : " Subscribe to receive updates"}
             </button>
         </div>
     )
@@ -65,7 +66,8 @@ export const NewsletterSubscriptionForm = ({
                         <label htmlFor={idImmediate}>
                             <div className="label-title">Immediate updates</div>
                             <div className="label-text">
-                                Get an email whenever we produce new content.
+                                Receive an email from us whenever we publish new
+                                work (maximum 1 per day).
                             </div>
                         </label>
                     </div>
@@ -79,7 +81,8 @@ export const NewsletterSubscriptionForm = ({
                         <label htmlFor={idBiweekly}>
                             <div className="label-title">Biweekly digest</div>
                             <div className="label-text">
-                                Get an email every two weeks.
+                                Receive an overview of our recent work every two
+                                weeks.
                             </div>
                         </label>
                     </div>
