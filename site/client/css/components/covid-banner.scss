@@ -1,0 +1,12 @@
+.covid-banner {
+    margin-bottom: 2 * $vertical-spacing;
+    font-size: 1.3rem;
+    text-align: center;
+    background-color: $tertiary-color;
+    &:hover {
+        background-color: $tertiary-color-brighter;
+    }
+    svg.svg-inline--fa {
+        width: 0.7em;
+    }
+}
