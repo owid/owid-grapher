@@ -447,16 +447,8 @@ function formatInt(
 
 const defaultTimeFormat = utcFormat("%B %e")
 
-function formatDate(
-    date: Date | undefined,
-    defaultValue: string = "",
-    humanize: boolean = true
-): string {
+function formatDate(date: Date | undefined, defaultValue: string = ""): string {
     if (date === undefined) return defaultValue
-    if (humanize) {
-        const diff = dateDiffInDays(new Date(), date)
-        if (diff === 0) return "today"
-    }
     return defaultTimeFormat(date)
 }
 
