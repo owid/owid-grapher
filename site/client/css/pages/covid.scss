@@ -121,14 +121,21 @@ $table-bg: $body-bg;
     }
 
     td.total-cases {
-        width: 15%;
+        width: 10%;
     }
 
     td.doubling-days {
         font-size: 20px;
         font-weight: 700;
+        line-height: 1;
         text-align: left;
-        width: 20%;
+        width: 30%;
+        border-right: 1px solid rgba($primary-color, 0.1);
+
+        .label {
+            font-size: 14px;
+            opacity: 0.45;
+        }
     }
 
     td.new-cases {

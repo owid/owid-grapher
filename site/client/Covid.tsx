@@ -2,7 +2,7 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { observable, computed, action } from "mobx"
-import { csvParse, timeFormat, extent, scaleLinear } from "d3"
+import { csvParse, timeFormat, scaleLinear } from "d3"
 import { bind } from "decko"
 import classnames from "classnames"
 
@@ -90,26 +90,13 @@ function getDoublingRange(
     return undefined
 }
 
-class CovidTransformFactory {
-    static promise: Promise<CovidTransform>
-    static async fetch() {}
-    static async get() {}
-}
-
-class CovidTransform {}
-
-type AccessorKey =
-    | "location"
-    | "country_total_cases"
-    | "country_new_cases"
-    | "country_days_to_double"
+type AccessorKey = "location" | "totalCases" | "newCases" | "daysToDouble"
 
 const accessors: Record<AccessorKey, any> = {
     location: (d: CovidCountryDatum) => d.location,
-    country_total_cases: (d: CovidCountryDatum) => d.latest?.total_cases,
-    country_new_cases: (d: CovidCountryDatum) => d.latest?.new_cases,
-    country_days_to_double: (d: CovidCountryDatum) =>
-        d.caseDoublingRange?.length
+    totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
+    newCases: (d: CovidCountryDatum) => d.latest?.new_cases,
+    daysToDouble: (d: CovidCountryDatum) => d.caseDoublingRange?.length
 }
 
 enum SortOrder {
@@ -124,7 +111,7 @@ function inverseSortOrder(order: SortOrder): SortOrder {
 }
 
 class CovidTableState {
-    @observable.ref sortKey: AccessorKey = "country_total_cases"
+    @observable.ref sortKey: AccessorKey = "totalCases"
     @observable.ref sortOrder: SortOrder = SortOrder.desc
 }
 
@@ -274,7 +261,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         const [shown, hidden] = partition(
             sortedSeries,
             d =>
-                d.location.indexOf("Diamond Princess") === -1 &&
+                d.location.indexOf("International") === -1 &&
                 (d.latest && d.latest.total_cases !== undefined
                     ? d.latest.total_cases >= CASE_THRESHOLD
                     : false)
@@ -327,7 +314,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                 <strong>Location</strong>
                             </HeaderCell>
                             <HeaderCell
-                                sortKey="country_total_cases"
+                                sortKey="totalCases"
                                 currentSortKey={this.state.sortKey}
                                 currentSortOrder={this.state.sortOrder}
                                 onSort={this.onSort}
@@ -338,7 +325,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                 </span>
                             </HeaderCell>
                             <HeaderCell
-                                sortKey="country_days_to_double"
+                                sortKey="daysToDouble"
                                 currentSortKey={this.state.sortKey}
                                 currentSortOrder={this.state.sortOrder}
                                 onSort={this.onSort}
@@ -347,7 +334,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                 <strong>confirmed cases to double</strong>?
                             </HeaderCell>
                             <HeaderCell
-                                sortKey="country_new_cases"
+                                sortKey="newCases"
                                 currentSortKey={this.state.sortKey}
                                 currentSortOrder={this.state.sortOrder}
                                 onSort={this.onSort}
@@ -429,16 +416,20 @@ const nouns = {
 
 const TimeSeriesValue = ({
     value,
-    date
+    date,
+    latest
 }: {
     value: string | undefined
     date: Date | undefined
+    latest?: boolean
 }) => (
     <div className="time-series-value">
         {value !== undefined ? (
             <>
                 <span className="count">{value}</span>
-                <span className="date">{formatDate(date)}</span>
+                <span className="date">
+                    {latest ? "latest WHO data" : formatDate(date)}
+                </span>
             </>
         ) : (
             undefined
@@ -528,17 +519,25 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                         </div>
                         <div className="value">
                             <TimeSeriesValue
-                                value={formatInt(d.latest?.total_cases)}
+                                value={`${formatInt(
+                                    d.latest?.total_cases
+                                )} total`}
                                 date={d.latest?.date}
+                                latest={true}
                             />
                         </div>
                     </div>
                 </td>
                 <td className="doubling-days">
                     {d.caseDoublingRange !== undefined ? (
-                        `${d.caseDoublingRange.length} ${nouns.days(
-                            d.caseDoublingRange.length
-                        )}`
+                        <>
+                            <span className="days">
+                                {d.caseDoublingRange.length}{" "}
+                                {nouns.days(d.caseDoublingRange.length)}
+                            </span>{" "}
+                            <br />
+                            <span className="label">to double</span>
+                        </>
                     ) : (
                         <span className="no-data">
                             Not enough data available
@@ -555,7 +554,9 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                                 y={d => d.new_cases}
                                 renderValue={d => (
                                     <TimeSeriesValue
-                                        value={formatInt(d && d.new_cases)}
+                                        value={`+${formatInt(
+                                            d && d.new_cases
+                                        )}`}
                                         date={d && d.date}
                                     />
                                 )}
@@ -565,8 +566,9 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                         </div>
                         <div className="value">
                             <TimeSeriesValue
-                                value={formatInt(d.latest?.new_cases)}
+                                value={`+${formatInt(d.latest?.new_cases)} new`}
                                 date={d.latest?.date}
+                                latest={true}
                             />
                         </div>
                     </div>
@@ -594,14 +596,13 @@ export class Bars<T> extends React.Component<BarsProps<T>> {
     }
 
     @computed get barHeightScale() {
-        let domain = extent(
+        const maxY = max(
             this.props.data
                 .map(this.props.y)
                 .filter(d => d !== undefined) as number[]
         )
-        if (domain[0] === undefined) domain = [0, 1]
         return scaleLinear()
-            .domain(domain)
+            .domain([0, maxY !== undefined ? maxY : 1])
             .range([0, 1])
     }
 
