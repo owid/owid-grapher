@@ -24,6 +24,15 @@ $table-bg: $body-bg;
 
     thead tr:last-child th {
         border-bottom: 2px solid rgba($primary-color, 0.15);
+
+        &.sortable:hover {
+            border-bottom-color: rgba($primary-color, 0.4);
+        }
+
+        &.sorted,
+        &.sorted:hover {
+            border-bottom-color: $primary-color;
+        }
     }
 
     th {
@@ -43,14 +52,6 @@ $table-bg: $body-bg;
 
     th.sortable {
         cursor: pointer;
-    }
-
-    th.sorted,
-    th.sortable:hover {
-        background: linear-gradient(
-            $table-bg 0%,
-            mix($primary-color, white, 4%) 100%
-        );
     }
 
     th .sort-icon {
