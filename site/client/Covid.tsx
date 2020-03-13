@@ -27,7 +27,7 @@ const CASE_THRESHOLD = 10
 
 // bar colors
 const CURRENT_COLOR = "#1d3d63"
-const HIGHLIGHT_COLOR = "#B04A00"
+const HIGHLIGHT_COLOR = "#d42b21"
 const DEFAULT_COLOR = "rgba(0, 33, 71, 0.25)"
 const DEFAULT_FAINT_COLOR = "rgba(0, 33, 71, 0.25)"
 
