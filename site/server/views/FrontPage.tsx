@@ -14,6 +14,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { splitOnLastWord } from "utils/server/serverUtil"
 import { NewsletterSubscriptionForm } from "site/client/NewsletterSubscription"
+import { CovidBanner } from "./CovidBanner"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -317,6 +318,7 @@ export const FrontPage = (props: {
                                     <div className="header">
                                         <h2>Latest publications</h2>
                                     </div>
+                                    <CovidBanner />
                                     <ul>
                                         {posts.slice(0, 8).map(post => (
                                             <li key={post.slug}>

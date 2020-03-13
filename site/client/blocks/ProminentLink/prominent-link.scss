@@ -1,5 +1,6 @@
 .article-content .wp-block-owid-prominent-link,
-.ChartPage .originReference {
+.ChartPage .originReference,
+.covid-banner {
     @include block-shadow;
     svg {
         width: 0.4em;
