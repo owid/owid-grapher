@@ -2,7 +2,7 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { observable, computed, action } from "mobx"
-import { csvParse, timeFormat, scaleLinear } from "d3"
+import { csvParse, utcFormat, scaleLinear } from "d3"
 import { bind } from "decko"
 import classnames from "classnames"
 
@@ -445,7 +445,7 @@ function formatInt(
     return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
 }
 
-const defaultTimeFormat = timeFormat("%e %B")
+const defaultTimeFormat = utcFormat("%e %B")
 
 function formatDate(
     date: Date | undefined,
