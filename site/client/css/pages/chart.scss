@@ -1,12 +1,17 @@
-.ChartPage main figure[data-grapher-src],
-#fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0;
-    width: 100%;
-    height: calc(100vh - 225px);
+.ChartPage main {
+    @include md-up {
+        margin: 2 * $vertical-spacing $padding-x-md 0;
+    }
+    figure[data-grapher-src],
+    #fallback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin: 0 0 $vertical-spacing;
+        width: 100%;
+        height: calc(100vh - 250px);
+    }
 }
 
 #fallback > img {
@@ -18,7 +23,7 @@
     // See prominent-link.scss for base styles
     .originReference {
         max-width: 800px;
-        margin: $vertical-spacing auto 0;
+        margin: 0 auto;
         font-size: 1.3rem;
         text-align: center;
         svg {
