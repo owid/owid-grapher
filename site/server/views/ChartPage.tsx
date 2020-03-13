@@ -95,7 +95,7 @@ export const ChartPage = (props: {
                         <div className="originReference">
                             <a href={chart.originUrl}>
                                 Here is all our research and data on{" "}
-                                <strong>{post.title}</strong>.
+                                <strong>{post.title}</strong>
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </a>
                         </div>
