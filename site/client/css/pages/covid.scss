@@ -62,7 +62,7 @@ $table-bg: $body-bg;
         &.asc:after {
             content: "";
             display: inline-block;
-            border-width: 0 6px 5px 6px;
+            border-width: 0 7px 6px 7px;
             border-color: transparent transparent $text-color transparent;
             border-style: solid;
         }
@@ -70,7 +70,7 @@ $table-bg: $body-bg;
         &.desc:after {
             content: "";
             display: inline-block;
-            border-width: 5px 6px 0 6px;
+            border-width: 6px 7px 0 7px;
             border-color: $text-color transparent transparent transparent;
             border-style: solid;
         }
