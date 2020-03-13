@@ -189,13 +189,13 @@ $table-bg: $body-bg;
             font-size: 13px;
             font-weight: 400;
             display: block;
-            opacity: 0.65;
+            opacity: 1;
         }
 
         .date.latest {
             font-size: 12px;
             font-weight: 400;
-            opacity: 0.55;
+            opacity: 0.65;
         }
     }
 
@@ -287,9 +287,9 @@ $table-bg: $body-bg;
         bottom: 0;
         text-align: right;
         margin-right: 6px;
-        text-shadow: 0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg,
-            0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg,
-            0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg;
+        text-shadow: 0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg,
+            0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg,
+            0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg;
         z-index: 1;
     }
 }

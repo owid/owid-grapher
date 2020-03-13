@@ -487,7 +487,7 @@ const TimeSeriesValue = ({
             <>
                 <span className="count">{value}</span>
                 <span className={classnames("date", { latest: latest })}>
-                    {latest ? "latest WHO data" : formatDate(date)}
+                    {formatDate(date)}
                 </span>
             </>
         ) : (
@@ -632,6 +632,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                                         d.latest?.total_cases
                                     )} total`}
                                     date={d.latest?.date}
+                                    latest={true}
                                 />
                             </div>
                         </div>
@@ -669,6 +670,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                                         { showPlus: true }
                                     )} new`}
                                     date={d.latest?.date}
+                                    latest={true}
                                 />
                             </div>
                         </div>
