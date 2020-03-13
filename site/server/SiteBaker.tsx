@@ -60,7 +60,7 @@ export class SiteBaker {
     async bakeRedirects() {
         const redirects = [
             // RSS feed
-            "/feed /atom.xml 302",
+            "/feed /atom.xml 302!",
 
             // Backwards compatibility-- admin urls
             "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
@@ -107,7 +107,7 @@ export class SiteBaker {
                     `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
                         /__/g,
                         "/"
-                    )} ${row.action_code}`
+                    )} ${row.action_code}!`
             )
         )
 
@@ -130,7 +130,7 @@ export class SiteBaker {
         for (const row of chartRedirectRows) {
             const trueSlug = JSON.parse(row.trueSlug)
             if (row.slug !== trueSlug) {
-                redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302`)
+                redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302!`)
             }
         }
 
