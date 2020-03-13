@@ -222,8 +222,7 @@ figure[data-grapher-src]:empty:after,
         z-index: $zindex-ControlsFooter;
         color: #777;
 
-        .footerRowSingle,
-        .footerRowMulti {
+        .footerRowSingle {
             border-top: 1px solid #e1e1e1;
             box-sizing: content-box;
             width: 100%;
@@ -234,23 +233,11 @@ figure[data-grapher-src]:empty:after,
             width: 100%;
         }
 
-        .footerRowMulti {
-            display: flex;
-
-            > * {
-                width: 50%;
-            }
-        }
-
         .extraControls {
             display: flex;
             height: 100%;
             align-items: center;
             font-size: 0.8em;
-        }
-
-        .footerRowMulti .extraControls {
-            padding-left: 0.5em;
         }
 
         .footerRowSingle .extraControls {
