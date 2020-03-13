@@ -445,7 +445,7 @@ function formatInt(
     return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
 }
 
-const defaultTimeFormat = utcFormat("%e %B")
+const defaultTimeFormat = utcFormat("%B %e")
 
 function formatDate(
     date: Date | undefined,
