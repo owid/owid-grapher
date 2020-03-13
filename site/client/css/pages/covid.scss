@@ -256,10 +256,9 @@ $table-bg: $body-bg;
         right: 100%;
         text-align: right;
         margin-right: 6px;
-        box-shadow: 0 0 6px 3px rgba($table-bg, 0.3);
-        background-color: rgba($table-bg, 0.3);
-        text-shadow: 0 0 1px $table-bg, 0 0 2px $table-bg, 0 0 3px $table-bg,
-            0 0 4px $table-bg, 0 0 5px $table-bg;
+        text-shadow: 0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg,
+            0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg,
+            0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg;
         z-index: 1;
     }
 }
