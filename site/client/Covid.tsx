@@ -6,6 +6,8 @@ import { csvParse, timeFormat, scaleLinear } from "d3"
 import { bind } from "decko"
 import classnames from "classnames"
 
+import { TickFormattingOptions } from "charts/TickFormattingOptions"
+
 import {
     fetchText,
     sortBy,
@@ -435,8 +437,12 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 }
 
-function formatInt(n: number | undefined, defaultValue: string = ""): string {
-    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, {})
+function formatInt(
+    n: number | undefined,
+    defaultValue: string = "",
+    options: TickFormattingOptions = {}
+): string {
+    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
 }
 
 const defaultTimeFormat = timeFormat("%e %B")
@@ -642,9 +648,11 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                                     y={d => d.new_cases}
                                     renderValue={d => (
                                         <TimeSeriesValue
-                                            value={`+${formatInt(
-                                                d && d.new_cases
-                                            )}`}
+                                            value={formatInt(
+                                                d && d.new_cases,
+                                                "",
+                                                { showPlus: true }
+                                            )}
                                             date={d && d.date}
                                         />
                                     )}
@@ -655,8 +663,10 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                             </div>
                             <div className="value">
                                 <TimeSeriesValue
-                                    value={`+${formatInt(
-                                        d.latest?.new_cases
+                                    value={`${formatInt(
+                                        d.latest?.new_cases,
+                                        "",
+                                        { showPlus: true }
                                     )} new`}
                                     date={d.latest?.date}
                                 />
