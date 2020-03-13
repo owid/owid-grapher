@@ -497,10 +497,6 @@ export class Controls {
         return this.props.chart.tab === "map"
     }
 
-    @computed get widthIsGreaterThan700(): boolean {
-        return this.props.width > 700
-    }
-
     @computed get hasAddButton(): boolean {
         const { chart } = this.props
         return (
@@ -515,7 +511,6 @@ export class Controls {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
-        if (this.widthIsGreaterThan700 && numLines > 1) numLines -= 1
         return numLines
     }
 
@@ -839,15 +834,25 @@ export class ControlsFooterView extends React.Component<{
             isShareMenuActive,
             isSettingsMenuActive,
             hasTimeline,
-            hasInlineControls,
-            widthIsGreaterThan700
+            hasInlineControls
         } = props.controls
         const { chart, chartView } = props.controls.props
 
-        const tabsElement = this._getTabsElement()
-        const timelineElement = hasTimeline && <TimelineControl chart={chart} />
-        const inlineControlsElement =
-            hasInlineControls && this._getInlineControlsElement()
+        const timelineElement = hasTimeline && (
+            <div className="footerRowSingle">
+                <TimelineControl chart={this.props.controls.props.chart} />
+            </div>
+        )
+
+        const inlineControlsElement = hasInlineControls && (
+            <div className="footerRowSingle">
+                {this._getInlineControlsElement()}
+            </div>
+        )
+
+        const tabsElement = (
+            <div className="footerRowSingle">{this._getTabsElement()}</div>
+        )
 
         const shareMenuElement = isShareMenuActive && (
             <ShareMenu
@@ -856,6 +861,7 @@ export class ControlsFooterView extends React.Component<{
                 onDismiss={this.onShareMenu}
             />
         )
+
         const settingsMenuElement = isSettingsMenuActive && (
             <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
         )
@@ -865,28 +871,9 @@ export class ControlsFooterView extends React.Component<{
                 className="ControlsFooter"
                 style={{ height: props.controls.footerHeight }}
             >
-                {hasTimeline &&
-                    (hasInlineControls || !widthIsGreaterThan700) && (
-                        <div className="footerRowSingle">{timelineElement}</div>
-                    )}
-                {hasInlineControls && !widthIsGreaterThan700 && (
-                    <div className="footerRowSingle">
-                        {inlineControlsElement}
-                    </div>
-                )}
-                {widthIsGreaterThan700 && (
-                    <div className="footerRowMulti">
-                        <div>
-                            {hasInlineControls
-                                ? inlineControlsElement
-                                : timelineElement}
-                        </div>
-                        {tabsElement}
-                    </div>
-                )}
-                {!widthIsGreaterThan700 && (
-                    <div className="footerRowSingle">{tabsElement}</div>
-                )}
+                {timelineElement}
+                {inlineControlsElement}
+                {tabsElement}
                 {shareMenuElement}
                 {settingsMenuElement}
             </div>
