@@ -6,7 +6,7 @@ export const CovidBanner = () => {
     return (
         <div className="covid-banner">
             <a href="/coronavirus">
-                Our up to date work on{" "}
+                Our up-to-date work on{" "}
                 <strong>
                     Coronavirus Disease (COVID-19) – Research and Statistics
                 </strong>
