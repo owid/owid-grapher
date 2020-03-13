@@ -299,6 +299,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return [addDays(new Date(), -difference), new Date()]
     }
 
+    @computed get lastUpdated(): Date | undefined {
+        return max(this.data?.map(d => d.date))
+    }
+
     @action.bound onSort(newKey: AccessorKey) {
         const { sortKey, sortOrder } = this.state
         this.state.sortOrder =
@@ -358,8 +362,16 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                     <strong>Total confirmed cases</strong>{" "}
                                     <br />
                                     <span className="note">
-                                        WHO data. Up to date for 10&nbsp;AM
-                                        (CET) on 12 March.
+                                        WHO data.{" "}
+                                        {this.lastUpdated !== undefined ? (
+                                            <>
+                                                Up to date for 10&nbsp;AM (CET)
+                                                on{" "}
+                                                {formatDate(this.lastUpdated)}.
+                                            </>
+                                        ) : (
+                                            undefined
+                                        )}
                                     </span>
                                 </HeaderCell>
                             )}
@@ -373,8 +385,16 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                     <strong>Daily new confirmed cases</strong>{" "}
                                     <br />
                                     <span className="note">
-                                        WHO data. Up to date for 10&nbsp;AM CET
-                                        on 12 March.
+                                        WHO data.{" "}
+                                        {this.lastUpdated !== undefined ? (
+                                            <>
+                                                Up to date for 10&nbsp;AM (CET)
+                                                on{" "}
+                                                {formatDate(this.lastUpdated)}.
+                                            </>
+                                        ) : (
+                                            undefined
+                                        )}
                                     </span>
                                 </HeaderCell>
                             )}
