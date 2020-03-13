@@ -1,35 +1,49 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
-import { observable, computed } from "mobx"
-import { csvParse, timeFormat } from "d3"
+import { observable, computed, action } from "mobx"
+import { csvParse, timeFormat, scaleLinear } from "d3"
+import { bind } from "decko"
+import classnames from "classnames"
+
+import { TickFormattingOptions } from "charts/TickFormattingOptions"
 
 import {
     fetchText,
     sortBy,
-    formatValue,
     maxBy,
     groupBy,
     entries,
-    partition
+    partition,
+    formatValue,
+    max,
+    keyBy,
+    dateDiffInDays,
+    addDays,
+    orderBy,
+    defaultTo,
+    throttle
 } from "charts/Util"
+
+const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
+const CASE_THRESHOLD = 10
+
+// bar colors
+const CURRENT_COLOR = "#1d3d63"
+const HIGHLIGHT_COLOR = "#d42b21"
+const DEFAULT_COLOR = "rgba(0, 33, 71, 0.25)"
+const DEFAULT_FAINT_COLOR = "rgba(0, 33, 71, 0.25)"
 
 interface CovidDatum {
     date: Date
     location: string
-    total_cases: number
-    total_deaths: number // can contain NaN
-    new_cases: number // can contain NaN
-    new_deaths: number // can contain NaN
+    total_cases: number | undefined
+    total_deaths: number | undefined
+    new_cases: number | undefined
+    new_deaths: number | undefined
 }
 
 type CovidSeries = CovidDatum[]
-
-interface CovidDoublingRange {
-    latestDay: CovidDatum
-    halfDay: CovidDatum
-    length: number | undefined
-}
 
 interface CovidCountryDatum {
     id: string
@@ -41,32 +55,31 @@ interface CovidCountryDatum {
 
 type CovidCountrySeries = CovidCountryDatum[]
 
+interface CovidDoublingRange {
+    latestDay: CovidDatum
+    halfDay: CovidDatum
+    length: number | undefined
+}
+
 interface CovidTableProps {
     preloadData?: CovidSeries
 }
 
-const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-// From https://stackoverflow.com/a/15289883
-function dateDiffInDays(a: Date, b: Date) {
-    // Discard the time and time-zone information.
-    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
-    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
-    return Math.floor((utca - utcb) / MS_PER_DAY)
-}
+type DateRange = [Date, Date]
 
 function getDoublingRange(
     series: CovidSeries,
-    accessor: (d: CovidDatum) => number
+    accessor: (d: CovidDatum) => number | undefined
 ): CovidDoublingRange | undefined {
     if (series.length > 1) {
         const latestDay = maxBy(series, d => d.date) as CovidDatum
         const latestValue = accessor(latestDay)
-        const halfDay = maxBy(
-            series.filter(d => accessor(d) <= latestValue / 2),
-            d => d.date
-        )
+        if (latestValue === undefined) return undefined
+        const filteredSeries = series.filter(d => {
+            const value = accessor(d)
+            return value && value <= latestValue / 2
+        })
+        const halfDay = maxBy(filteredSeries, d => d.date)
         if (halfDay !== undefined) {
             return {
                 latestDay,
@@ -80,6 +93,108 @@ function getDoublingRange(
     return undefined
 }
 
+type AccessorKey = "location" | "totalCases" | "newCases" | "daysToDouble"
+
+const accessors: Record<AccessorKey, any> = {
+    location: (d: CovidCountryDatum) => d.location,
+    totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
+    newCases: (d: CovidCountryDatum) => d.latest?.new_cases,
+    daysToDouble: (d: CovidCountryDatum) => d.caseDoublingRange?.length
+}
+
+enum SortOrder {
+    asc = "asc",
+    desc = "desc"
+}
+
+const DEFAULT_SORT_ORDER = SortOrder.asc
+
+function inverseSortOrder(order: SortOrder): SortOrder {
+    return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
+}
+
+class CovidTableState {
+    @observable.ref sortKey: AccessorKey = "totalCases"
+    @observable.ref sortOrder: SortOrder = SortOrder.desc
+    @observable.ref isMobile: boolean = true
+}
+
+interface HeaderCellProps {
+    children: React.ReactNode
+    className?: string
+    sortKey?: AccessorKey
+    currentSortKey?: AccessorKey
+    currentSortOrder?: SortOrder
+    isSorted?: boolean
+    colSpan?: number
+    onSort?: (key: AccessorKey) => void
+}
+
+class HeaderCell extends React.Component<HeaderCellProps> {
+    @bind onClick() {
+        if (this.props.sortKey && this.props.onSort) {
+            this.props.onSort(this.props.sortKey)
+        }
+    }
+
+    render() {
+        const {
+            className,
+            sortKey,
+            currentSortKey,
+            currentSortOrder,
+            children,
+            colSpan
+        } = this.props
+        const isSorted = sortKey !== undefined && sortKey === currentSortKey
+        return (
+            <th
+                className={classnames(className, {
+                    sortable: sortKey,
+                    sorted: isSorted
+                })}
+                onClick={this.onClick}
+                colSpan={colSpan}
+            >
+                {children}
+                {sortKey !== undefined && (
+                    <SortIcon
+                        sortOrder={
+                            isSorted && currentSortOrder
+                                ? currentSortOrder
+                                : DEFAULT_SORT_ORDER
+                        }
+                        isActive={isSorted}
+                    />
+                )}
+            </th>
+        )
+    }
+}
+
+interface SortIconProps {
+    sortOrder: SortOrder
+    isActive: boolean
+}
+
+const SortIcon = (props: SortIconProps) => {
+    const isActive = defaultTo(props.isActive, false)
+
+    return (
+        <span
+            className={classnames("sort-icon", props.sortOrder, {
+                active: isActive
+            })}
+        />
+    )
+}
+
+function parseIntOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseInt(s)
+    return isNaN(value) ? undefined : value
+}
+
 @observer
 export class CovidTable extends React.Component<CovidTableProps> {
     @observable.ref data: CovidSeries | undefined =
@@ -89,10 +204,27 @@ export class CovidTable extends React.Component<CovidTableProps> {
     @observable.ref isLoading: boolean = false
     @observable.ref error: string | undefined = undefined
 
+    @observable state = new CovidTableState()
+
     componentDidMount() {
         if (!this.props.preloadData) {
             this.loadData()
         }
+        this.onResizeThrottled = throttle(this.onResize, 400)
+        window.addEventListener("resize", this.onResizeThrottled)
+        this.onResize()
+    }
+
+    componentWillUnmount() {
+        if (this.onResizeThrottled) {
+            window.removeEventListener("resize", this.onResizeThrottled)
+        }
+    }
+
+    onResizeThrottled?: () => void
+
+    @action.bound onResize() {
+        this.state.isMobile = window.innerWidth <= 680
     }
 
     async loadData() {
@@ -103,10 +235,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
                 return {
                     date: new Date(row.date as string),
                     location: row.location as string,
-                    total_cases: parseInt(row.total_cases as string),
-                    total_deaths: parseInt(row.total_deaths as string),
-                    new_cases: parseInt(row.new_cases as string),
-                    new_deaths: parseInt(row.new_deaths as string)
+                    total_cases: parseIntOrUndefined(row.total_cases),
+                    total_deaths: parseIntOrUndefined(row.total_deaths),
+                    new_cases: parseIntOrUndefined(row.new_cases),
+                    new_deaths: parseIntOrUndefined(row.new_deaths)
                 }
             })
             this.data = rows
@@ -118,7 +250,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         this.isLoading = false
     }
 
-    @computed get byLocation(): CovidCountrySeries {
+    @computed get countrySeries(): CovidCountrySeries {
         if (this.data) {
             return entries(groupBy(this.data, d => d.location)).map(
                 ([location, series]) => {
@@ -143,21 +275,48 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 
     @computed get renderData() {
-        const [shown, hidden] = partition(
-            this.byLocation,
-            d =>
-                d.location.indexOf("Diamond Princess") === -1 &&
-                (d.latest ? d.latest.total_cases >= 20 : false)
+        const sortedSeries = orderBy(
+            this.countrySeries,
+            accessors[this.state.sortKey],
+            this.state.sortOrder
         )
-        return {
-            shown: sortBy(shown, d => d.latest?.total_cases).reverse(),
-            hidden: sortBy(hidden, d => d.location)
+        const [shown, hidden] = partition(
+            sortedSeries,
+            d =>
+                d.location.indexOf("International") === -1 &&
+                (d.latest && d.latest.total_cases !== undefined
+                    ? d.latest.total_cases >= CASE_THRESHOLD
+                    : false)
+        )
+        return { shown, hidden }
+    }
+
+    @computed get dateRange(): DateRange {
+        const difference = 13 // inclusive, so 14 days technically
+        if (this.data !== undefined && this.data.length > 0) {
+            const maxDate = max(this.data.map(d => d.date)) as Date
+            const minDate = addDays(maxDate, -difference)
+            return [minDate, maxDate]
         }
+        return [addDays(new Date(), -difference), new Date()]
+    }
+
+    @computed get lastUpdated(): Date | undefined {
+        return max(this.data?.map(d => d.date))
+    }
+
+    @action.bound onSort(newKey: AccessorKey) {
+        const { sortKey, sortOrder } = this.state
+        this.state.sortOrder =
+            sortKey === newKey && sortOrder === DEFAULT_SORT_ORDER
+                ? inverseSortOrder(DEFAULT_SORT_ORDER)
+                : DEFAULT_SORT_ORDER
+        this.state.sortKey = newKey
     }
 
     render() {
         if (this.isLoading) {
-            return <div className="covid-loading"></div>
+            return null
         }
         if (this.error) {
             return (
@@ -167,26 +326,99 @@ export class CovidTable extends React.Component<CovidTableProps> {
             )
         }
         return (
-            <div className="covid-table-container">
+            <div
+                className={classnames("covid-table-container", {
+                    "covid-table-mobile": this.state.isMobile
+                })}
+            >
                 <table className="covid-table">
                     <thead>
                         <tr>
-                            <th className="location">Location</th>
-                            <th></th>
+                            <HeaderCell
+                                className="location"
+                                sortKey="location"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                            >
+                                <strong>Location</strong>
+                            </HeaderCell>
+                            <HeaderCell
+                                sortKey="daysToDouble"
+                                currentSortKey={this.state.sortKey}
+                                currentSortOrder={this.state.sortOrder}
+                                onSort={this.onSort}
+                                colSpan={this.state.isMobile ? 2 : 1}
+                            >
+                                How long did it take for the number of{" "}
+                                <strong>total confirmed cases to double</strong>
+                                ?
+                            </HeaderCell>
+                            {!this.state.isMobile && (
+                                <HeaderCell
+                                    sortKey="totalCases"
+                                    currentSortKey={this.state.sortKey}
+                                    currentSortOrder={this.state.sortOrder}
+                                    onSort={this.onSort}
+                                >
+                                    <strong>Total confirmed cases</strong>{" "}
+                                    <br />
+                                    <span className="note">
+                                        WHO data.{" "}
+                                        {this.lastUpdated !== undefined ? (
+                                            <>
+                                                Up to date for 10&nbsp;AM (CET)
+                                                on{" "}
+                                                {formatDate(this.lastUpdated)}.
+                                            </>
+                                        ) : (
+                                            undefined
+                                        )}
+                                    </span>
+                                </HeaderCell>
+                            )}
+                            {!this.state.isMobile && (
+                                <HeaderCell
+                                    sortKey="newCases"
+                                    currentSortKey={this.state.sortKey}
+                                    currentSortOrder={this.state.sortOrder}
+                                    onSort={this.onSort}
+                                >
+                                    <strong>Daily new confirmed cases</strong>{" "}
+                                    <br />
+                                    <span className="note">
+                                        WHO data.{" "}
+                                        {this.lastUpdated !== undefined ? (
+                                            <>
+                                                Up to date for 10&nbsp;AM (CET)
+                                                on{" "}
+                                                {formatDate(this.lastUpdated)}.
+                                            </>
+                                        ) : (
+                                            undefined
+                                        )}
+                                    </span>
+                                </HeaderCell>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
                         {this.renderData.shown.map(datum => (
-                            <CovidTableRow key={datum.id} datum={datum} />
+                            <CovidTableRow
+                                key={datum.id}
+                                datum={datum}
+                                dateRange={this.dateRange}
+                                state={this.state}
+                            />
                         ))}
                     </tbody>
                 </table>
                 <div className="covid-table-note">
                     <p className="tiny">
-                        Countries with less than 20 confirmed cases are not
-                        shown. Cases from the Diamond Princess cruise ship are
-                        also not shown since these numbers are no longer
-                        changing over time.
+                        Countries with less than {CASE_THRESHOLD} confirmed
+                        cases are not shown. Cases from the Diamond Princess
+                        cruise ship are also not shown since these numbers are
+                        no longer changing over time.
                     </p>
                     <p>
                         Data source:{" "}
@@ -205,66 +437,336 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 }
 
-interface CovidTableRowProps {
-    datum: CovidCountryDatum
-}
-
-function formatInt(n: number | undefined, defaultValue: string = ""): string {
-    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, {})
+function formatInt(
+    n: number | undefined,
+    defaultValue: string = "",
+    options: TickFormattingOptions = {}
+): string {
+    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
 }
 
 const defaultTimeFormat = timeFormat("%e %B")
 
-function formatDate(date: Date): string {
+function formatDate(
+    date: Date | undefined,
+    defaultValue: string = "",
+    humanize: boolean = true
+): string {
+    if (date === undefined) return defaultValue
+    if (humanize) {
+        const diff = dateDiffInDays(new Date(), date)
+        if (diff === 0) return "today"
+    }
     return defaultTimeFormat(date)
 }
 
+function pluralify(singular: string, plural: string) {
+    return (num: number | undefined) => {
+        if (num === undefined) return ""
+        if (num === 1) return singular
+        return plural
+    }
+}
+
+const nouns = {
+    cases: pluralify("case", "cases"),
+    days: pluralify("day", "days")
+}
+
+const TimeSeriesValue = ({
+    value,
+    date,
+    latest
+}: {
+    value: string | undefined
+    date: Date | undefined
+    latest?: boolean
+}) => (
+    <div className="time-series-value">
+        {value !== undefined ? (
+            <>
+                <span className="count">{value}</span>
+                <span className={classnames("date", { latest: latest })}>
+                    {latest ? "latest WHO data" : formatDate(date)}
+                </span>
+            </>
+        ) : (
+            undefined
+        )}
+    </div>
+)
+
+interface CovidTableRowProps {
+    datum: CovidCountryDatum
+    dateRange: DateRange
+    state: CovidTableState
+    onHighlightDate: (date: Date | undefined) => void
+}
+
+@observer
 export class CovidTableRow extends React.Component<CovidTableRowProps> {
+    static defaultProps = {
+        onHighlightDate: () => undefined
+    }
+
+    @observable.ref highlightDate: Date | undefined = undefined
+
+    @computed get data() {
+        const d = this.props.datum
+        const [start, end] = this.props.dateRange
+        return d.series.filter(d => d.date >= start && d.date <= end)
+    }
+
+    @bind dateToIndex(date: Date): number {
+        return dateDiffInDays(date, this.props.dateRange[0])
+    }
+
+    @bind dateFromIndex(index: number): Date {
+        return addDays(this.props.dateRange[0], index)
+    }
+
+    @computed get xDomain(): [number, number] {
+        const [start, end] = this.props.dateRange
+        return [0, dateDiffInDays(end, start)]
+    }
+
+    @computed get currentX(): number | undefined {
+        const { datum, state } = this.props
+        if (state.isMobile && datum.latest) {
+            return this.dateToIndex(datum.latest.date)
+        }
+        return undefined
+    }
+
+    @computed get hightlightedX(): number | undefined {
+        const { datum, state } = this.props
+        if (state.isMobile && datum.caseDoublingRange) {
+            return this.dateToIndex(datum.caseDoublingRange.halfDay.date)
+        }
+        if (this.highlightDate) {
+            return this.dateToIndex(this.highlightDate)
+        }
+        return undefined
+    }
+
+    @bind x(d: CovidDatum): number {
+        return this.dateToIndex(d.date)
+    }
+
+    @bind onBarHover(d: CovidDatum | undefined, i: number | undefined) {
+        let date
+        if (d !== undefined) {
+            date = d.date
+        } else if (i !== undefined) {
+            date = this.dateFromIndex(i)
+        } else {
+            date = undefined
+        }
+        this.highlightDate = date
+    }
+
     render() {
         const d = this.props.datum
+        const state = this.props.state
         return (
             <tr>
                 <td className="location">{d.location}</td>
-                {/* <td>{formatInt(d.latest?.total_cases, "0")}</td>
-                <td>{formatInt(d.latest?.total_deaths, "0")}</td>
-                <td>{formatInt(d.daysPerDoubling, "")}</td> */}
-                <td className="daysPerDoubling">
+                <td className="doubling-days">
                     {d.caseDoublingRange !== undefined ? (
                         <>
-                            <p>
-                                Confirmed cases have doubled in the last{" "}
-                                <strong>
-                                    {formatInt(d.caseDoublingRange.length, "")}{" "}
-                                    days
-                                </strong>
-                            </p>
-                            <p className="faint">
-                                From{" "}
-                                <strong>
-                                    {formatInt(
-                                        d.caseDoublingRange.halfDay.total_cases
-                                    )}
-                                </strong>{" "}
-                                cases on{" "}
-                                {formatDate(d.caseDoublingRange.halfDay.date)}{" "}
-                                to{" "}
-                                <strong>
-                                    {formatInt(
-                                        d.caseDoublingRange.latestDay
-                                            .total_cases
-                                    )}
-                                </strong>{" "}
-                                cases on{" "}
-                                {formatDate(d.caseDoublingRange.latestDay.date)}
-                            </p>
+                            <span className="label">doubled in</span> <br />
+                            <span className="days">
+                                {d.caseDoublingRange.length}
+                                &nbsp;
+                                {nouns.days(d.caseDoublingRange.length)}
+                            </span>
                         </>
                     ) : (
                         <span className="no-data">
-                            Not enough data available yet
+                            Not enough data available
                         </span>
                     )}
                 </td>
+                {state.isMobile && (
+                    <td className="plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.total_cases}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
+                        </div>
+                    </td>
+                )}
+                {!state.isMobile && (
+                    <td className="total-cases plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.total_cases}
+                                    renderValue={d => (
+                                        <TimeSeriesValue
+                                            value={formatInt(
+                                                d && d.total_cases
+                                            )}
+                                            date={d && d.date}
+                                        />
+                                    )}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
+                            <div className="value">
+                                <TimeSeriesValue
+                                    value={`${formatInt(
+                                        d.latest?.total_cases
+                                    )} total`}
+                                    date={d.latest?.date}
+                                />
+                            </div>
+                        </div>
+                    </td>
+                )}
+                {!state.isMobile && (
+                    <td className="new-cases plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.new_cases}
+                                    renderValue={d => (
+                                        <TimeSeriesValue
+                                            value={formatInt(
+                                                d && d.new_cases,
+                                                "",
+                                                { showPlus: true }
+                                            )}
+                                            date={d && d.date}
+                                        />
+                                    )}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
+                            <div className="value">
+                                <TimeSeriesValue
+                                    value={`${formatInt(
+                                        d.latest?.new_cases,
+                                        "",
+                                        { showPlus: true }
+                                    )} new`}
+                                    date={d.latest?.date}
+                                />
+                            </div>
+                        </div>
+                    </td>
+                )}
             </tr>
+        )
+    }
+}
+
+interface BarsProps<T> {
+    data: T[]
+    x: (d: T) => number
+    y: (d: T) => number | undefined
+    xDomain: [number, number]
+    onHover: (d: T | undefined, index: number | undefined) => void
+    currentX?: number
+    highlightedX?: number
+    renderValue?: (d: T | undefined) => JSX.Element
+}
+
+@observer
+export class Bars<T> extends React.Component<BarsProps<T>> {
+    static defaultProps = {
+        onHover: () => undefined
+    }
+
+    @computed get barHeightScale() {
+        const maxY = max(
+            this.props.data
+                .map(this.props.y)
+                .filter(d => d !== undefined) as number[]
+        )
+        return scaleLinear()
+            .domain([0, maxY !== undefined ? maxY : 1])
+            .range([0, 1])
+    }
+
+    @bind barHeight(d: T | undefined) {
+        if (d !== undefined) {
+            const value = this.props.y(d)
+            if (value !== undefined) {
+                const ratio = this.barHeightScale(value)
+                return `${ratio * 100}%`
+            }
+        }
+        return "0%"
+    }
+
+    @bind barColor(d: number) {
+        if (d === this.props.currentX) return CURRENT_COLOR
+        if (d === this.props.highlightedX) return HIGHLIGHT_COLOR
+        if (this.props.highlightedX !== undefined) return DEFAULT_FAINT_COLOR
+        return DEFAULT_COLOR
+    }
+
+    @computed get bars(): (T | undefined)[] {
+        const indexed = keyBy(this.props.data, this.props.x)
+        const [start, end] = this.props.xDomain
+        const result = []
+        for (let i = start; i <= end; i++) {
+            result.push(indexed[i])
+        }
+        return result
+    }
+
+    render() {
+        return (
+            <div
+                className="covid-bars"
+                onMouseLeave={() => this.props.onHover(undefined, undefined)}
+            >
+                {this.bars.map((d, i) => (
+                    <div
+                        key={i}
+                        className="bar-wrapper"
+                        onMouseEnter={() => this.props.onHover(d, i)}
+                    >
+                        {this.props.highlightedX === i &&
+                            d !== undefined &&
+                            this.props.renderValue && (
+                                <div
+                                    className="hanging-value"
+                                    style={{ color: HIGHLIGHT_COLOR }}
+                                >
+                                    {this.props.renderValue(d)}
+                                </div>
+                            )}
+                        <div
+                            className="bar"
+                            style={{
+                                height: this.barHeight(d),
+                                backgroundColor: this.barColor(i)
+                            }}
+                        ></div>
+                    </div>
+                ))}
+            </div>
         )
     }
 }

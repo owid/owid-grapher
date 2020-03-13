@@ -83,9 +83,7 @@ export const CovidPage = () => {
                                             </div>
                                             <div className="wp-block-columns is-style-sticky-right">
                                                 <div className="wp-block-column">
-                                                    <div id="covid-table-embed">
-                                                        <div className="covid-loading"></div>
-                                                    </div>
+                                                    <div id="covid-table-embed"></div>
                                                 </div>
                                                 <div className="wp-block-column"></div>
                                             </div>
