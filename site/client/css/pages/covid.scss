@@ -16,26 +16,6 @@ $table-bg: $body-bg;
         text-align: left;
         border-bottom: 1px solid rgba($primary-color, 0.08);
         border-right: 1px solid rgba($primary-color, 0.12);
-
-        &:last-child {
-            border-right: none;
-        }
-    }
-
-    thead tr:last-child th {
-        border-bottom: 2px solid rgba($primary-color, 0.15);
-
-        &.sortable:hover {
-            border-bottom-color: rgba($primary-color, 0.4);
-        }
-
-        &.sorted,
-        &.sorted:hover {
-            border-bottom-color: $primary-color;
-        }
-    }
-
-    th {
         padding-top: 8px;
         padding-bottom: 8px;
         line-height: 1.3;
@@ -48,6 +28,29 @@ $table-bg: $body-bg;
             rgba($table-bg, 0.97) 85%,
             rgba($table-bg, 0.93) 100%
         );
+
+        &:last-child {
+            border-right: none;
+        }
+
+        .note {
+            font-size: 13px;
+            font-weight: 400;
+            opacity: 0.6;
+        }
+    }
+
+    thead tr:last-child th {
+        border-bottom: 2px solid rgba($primary-color, 0.15);
+
+        &.sortable:hover {
+            border-bottom-color: rgba($primary-color, 0.4);
+        }
+
+        &.sorted,
+        &.sorted:hover {
+            border-bottom-color: $secondary-color;
+        }
     }
 
     th.sortable {
@@ -63,16 +66,24 @@ $table-bg: $body-bg;
             content: "";
             display: inline-block;
             border-width: 0 7px 6px 7px;
-            border-color: transparent transparent $text-color transparent;
+            border-color: transparent;
             border-style: solid;
+            border-bottom-color: $primary-color;
+        }
+        &.active.asc:after {
+            border-bottom-color: $secondary-color;
         }
 
         &.desc:after {
             content: "";
             display: inline-block;
             border-width: 6px 7px 0 7px;
-            border-color: $text-color transparent transparent transparent;
+            border-color: transparent;
             border-style: solid;
+            border-top-color: $primary-color;
+        }
+        &.active.desc:after {
+            border-top-color: $secondary-color;
         }
 
         &.active {
@@ -117,20 +128,27 @@ $table-bg: $body-bg;
         line-height: 1.4;
         padding-top: 10px;
         padding-bottom: 10px;
-        width: 30%;
+        width: 35%;
     }
 
     td.total-cases {
-        width: 10%;
+        width: 15%;
     }
 
     td.doubling-days {
         font-size: 20px;
         font-weight: 700;
-        line-height: 1;
+        line-height: 1.1;
         text-align: left;
-        width: 30%;
-        border-right: 1px solid rgba($primary-color, 0.1);
+        width: 35%;
+        // border-right: 1px solid rgba($primary-color, 0.1);
+
+        .days {
+            color: $secondary-color;
+            display: block;
+            margin-top: 3px;
+            margin-bottom: 5px;
+        }
 
         .label {
             font-size: 14px;
@@ -164,13 +182,20 @@ $table-bg: $body-bg;
             font-size: 16px;
             font-weight: 700;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .date {
             font-size: 13px;
+            font-weight: 400;
             display: block;
-            opacity: 0.75;
+            opacity: 0.65;
+        }
+
+        .date.latest {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.55;
         }
     }
 
@@ -233,6 +258,10 @@ $table-bg: $body-bg;
     height: 3em;
     display: flex;
 
+    .covid-table-mobile & {
+        width: 70px;
+    }
+
     .bar-wrapper {
         flex: 1;
         height: 100%;
@@ -250,10 +279,12 @@ $table-bg: $body-bg;
     }
 
     .hanging-value {
-        display: inline;
+        display: inline-block;
         pointer-events: none;
         position: absolute;
+        top: 0;
         right: 100%;
+        bottom: 0;
         text-align: right;
         margin-right: 6px;
         text-shadow: 0 0 2px $table-bg, 0 0 2px $table-bg, 0 0 2px $table-bg,
