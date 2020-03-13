@@ -109,11 +109,9 @@ export const ChartPage = (props: {
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
                 </main>
-                <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
-                <script src={webpack("commons.js")} />
-                <script src={webpack("owid.js")} />
-                <script dangerouslySetInnerHTML={{ __html: script }} />
                 <SiteFooter />
+                <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
+                <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>
     )

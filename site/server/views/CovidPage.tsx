@@ -157,8 +157,6 @@ export const CovidPage = () => {
                 </main>
 
                 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
-                <script src={webpack("commons.js")} />
-                <script src={webpack("owid.js")} />
                 <SiteFooter />
             </body>
         </html>
