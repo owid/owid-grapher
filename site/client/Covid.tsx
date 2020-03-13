@@ -113,6 +113,7 @@ function inverseSortOrder(order: SortOrder): SortOrder {
 class CovidTableState {
     @observable.ref sortKey: AccessorKey = "totalCases"
     @observable.ref sortOrder: SortOrder = SortOrder.desc
+    @observable.ref isMobile: boolean = true
 }
 
 interface HeaderCellProps {
@@ -122,6 +123,7 @@ interface HeaderCellProps {
     currentSortKey?: AccessorKey
     currentSortOrder?: SortOrder
     isSorted?: boolean
+    colSpan?: number
     onSort?: (key: AccessorKey) => void
 }
 
@@ -138,7 +140,8 @@ class HeaderCell extends React.Component<HeaderCellProps> {
             sortKey,
             currentSortKey,
             currentSortOrder,
-            children
+            children,
+            colSpan
         } = this.props
         const isSorted = sortKey !== undefined && sortKey === currentSortKey
         return (
@@ -148,6 +151,7 @@ class HeaderCell extends React.Component<HeaderCellProps> {
                     sorted: isSorted
                 })}
                 onClick={this.onClick}
+                colSpan={colSpan}
             >
                 {children}
                 {sortKey !== undefined && (
@@ -300,7 +304,11 @@ export class CovidTable extends React.Component<CovidTableProps> {
             )
         }
         return (
-            <div className="covid-table-container">
+            <div
+                className={classnames("covid-table-container", {
+                    "covid-table-mobile": this.state.isMobile
+                })}
+            >
                 <table className="covid-table">
                     <thead>
                         <tr>
@@ -314,37 +322,46 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                 <strong>Location</strong>
                             </HeaderCell>
                             <HeaderCell
-                                sortKey="totalCases"
-                                currentSortKey={this.state.sortKey}
-                                currentSortOrder={this.state.sortOrder}
-                                onSort={this.onSort}
-                            >
-                                <strong>Total confirmed cases</strong> <br />
-                                <span className="faint">
-                                    over the last 14 days
-                                </span>
-                            </HeaderCell>
-                            <HeaderCell
                                 sortKey="daysToDouble"
                                 currentSortKey={this.state.sortKey}
                                 currentSortOrder={this.state.sortOrder}
                                 onSort={this.onSort}
+                                colSpan={this.state.isMobile ? 2 : 1}
                             >
                                 How long did it take for the number of{" "}
-                                <strong>confirmed cases to double</strong>?
+                                <strong>total confirmed cases to double</strong>
+                                ?
                             </HeaderCell>
-                            <HeaderCell
-                                sortKey="newCases"
-                                currentSortKey={this.state.sortKey}
-                                currentSortOrder={this.state.sortOrder}
-                                onSort={this.onSort}
-                            >
-                                <strong>Daily new confirmed cases</strong>{" "}
-                                <br />
-                                <span className="faint">
-                                    over the last 14 days
-                                </span>
-                            </HeaderCell>
+                            {!this.state.isMobile && (
+                                <HeaderCell
+                                    sortKey="totalCases"
+                                    currentSortKey={this.state.sortKey}
+                                    currentSortOrder={this.state.sortOrder}
+                                    onSort={this.onSort}
+                                >
+                                    <strong>Total confirmed cases</strong>{" "}
+                                    <br />
+                                    <span className="note">
+                                        WHO data. Up to date for 10&nbsp;AM
+                                        (CET) on 12 March.
+                                    </span>
+                                </HeaderCell>
+                            )}
+                            {!this.state.isMobile && (
+                                <HeaderCell
+                                    sortKey="newCases"
+                                    currentSortKey={this.state.sortKey}
+                                    currentSortOrder={this.state.sortOrder}
+                                    onSort={this.onSort}
+                                >
+                                    <strong>Daily new confirmed cases</strong>{" "}
+                                    <br />
+                                    <span className="note">
+                                        WHO data. Up to date for 10&nbsp;AM CET
+                                        on 12 March.
+                                    </span>
+                                </HeaderCell>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -386,7 +403,7 @@ function formatInt(n: number | undefined, defaultValue: string = ""): string {
     return n === undefined || isNaN(n) ? defaultValue : formatValue(n, {})
 }
 
-const defaultTimeFormat = timeFormat("%e %b")
+const defaultTimeFormat = timeFormat("%e %B")
 
 function formatDate(
     date: Date | undefined,
@@ -427,7 +444,7 @@ const TimeSeriesValue = ({
         {value !== undefined ? (
             <>
                 <span className="count">{value}</span>
-                <span className="date">
+                <span className={classnames("date", { latest: latest })}>
                     {latest ? "latest WHO data" : formatDate(date)}
                 </span>
             </>
@@ -471,7 +488,19 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
         return [0, dateDiffInDays(end, start)]
     }
 
+    @computed get currentX(): number | undefined {
+        const { datum, state } = this.props
+        if (state.isMobile && datum.latest) {
+            return this.dateToIndex(datum.latest.date)
+        }
+        return undefined
+    }
+
     @computed get hightlightedX(): number | undefined {
+        const { datum, state } = this.props
+        if (state.isMobile && datum.caseDoublingRange) {
+            return this.dateToIndex(datum.caseDoublingRange.halfDay.date)
+        }
         if (this.highlightDate) {
             return this.dateToIndex(this.highlightDate)
         }
@@ -496,47 +525,19 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
 
     render() {
         const d = this.props.datum
+        const state = this.props.state
         return (
             <tr>
                 <td className="location">{d.location}</td>
-                <td className="total-cases plot-cell">
-                    <div className="trend">
-                        <div className="plot">
-                            <Bars<CovidDatum>
-                                data={this.data}
-                                xDomain={this.xDomain}
-                                x={this.x}
-                                y={d => d.total_cases}
-                                renderValue={d => (
-                                    <TimeSeriesValue
-                                        value={formatInt(d && d.total_cases)}
-                                        date={d && d.date}
-                                    />
-                                )}
-                                highlightedX={this.hightlightedX}
-                                onHover={this.onBarHover}
-                            />
-                        </div>
-                        <div className="value">
-                            <TimeSeriesValue
-                                value={`${formatInt(
-                                    d.latest?.total_cases
-                                )} total`}
-                                date={d.latest?.date}
-                                latest={true}
-                            />
-                        </div>
-                    </div>
-                </td>
                 <td className="doubling-days">
                     {d.caseDoublingRange !== undefined ? (
                         <>
+                            <span className="label">doubled in</span> <br />
                             <span className="days">
-                                {d.caseDoublingRange.length}{" "}
+                                {d.caseDoublingRange.length}
+                                &nbsp;
                                 {nouns.days(d.caseDoublingRange.length)}
-                            </span>{" "}
-                            <br />
-                            <span className="label">to double</span>
+                            </span>
                         </>
                     ) : (
                         <span className="no-data">
@@ -544,35 +545,89 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                         </span>
                     )}
                 </td>
-                <td className="new-cases plot-cell">
-                    <div className="trend">
-                        <div className="plot">
-                            <Bars<CovidDatum>
-                                data={this.data}
-                                xDomain={this.xDomain}
-                                x={this.x}
-                                y={d => d.new_cases}
-                                renderValue={d => (
-                                    <TimeSeriesValue
-                                        value={`+${formatInt(
-                                            d && d.new_cases
-                                        )}`}
-                                        date={d && d.date}
-                                    />
-                                )}
-                                highlightedX={this.hightlightedX}
-                                onHover={this.onBarHover}
-                            />
+                {state.isMobile && (
+                    <td className="plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.total_cases}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
                         </div>
-                        <div className="value">
-                            <TimeSeriesValue
-                                value={`+${formatInt(d.latest?.new_cases)} new`}
-                                date={d.latest?.date}
-                                latest={true}
-                            />
+                    </td>
+                )}
+                {!state.isMobile && (
+                    <td className="total-cases plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.total_cases}
+                                    renderValue={d => (
+                                        <TimeSeriesValue
+                                            value={formatInt(
+                                                d && d.total_cases
+                                            )}
+                                            date={d && d.date}
+                                        />
+                                    )}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
+                            <div className="value">
+                                <TimeSeriesValue
+                                    value={`${formatInt(
+                                        d.latest?.total_cases
+                                    )} total`}
+                                    date={d.latest?.date}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </td>
+                    </td>
+                )}
+                {!state.isMobile && (
+                    <td className="new-cases plot-cell">
+                        <div className="trend">
+                            <div className="plot">
+                                <Bars<CovidDatum>
+                                    data={this.data}
+                                    xDomain={this.xDomain}
+                                    x={this.x}
+                                    y={d => d.new_cases}
+                                    renderValue={d => (
+                                        <TimeSeriesValue
+                                            value={`+${formatInt(
+                                                d && d.new_cases
+                                            )}`}
+                                            date={d && d.date}
+                                        />
+                                    )}
+                                    currentX={this.currentX}
+                                    highlightedX={this.hightlightedX}
+                                    onHover={this.onBarHover}
+                                />
+                            </div>
+                            <div className="value">
+                                <TimeSeriesValue
+                                    value={`+${formatInt(
+                                        d.latest?.new_cases
+                                    )} new`}
+                                    date={d.latest?.date}
+                                />
+                            </div>
+                        </div>
+                    </td>
+                )}
             </tr>
         )
     }
