@@ -19,7 +19,8 @@ import {
     dateDiffInDays,
     addDays,
     orderBy,
-    defaultTo
+    defaultTo,
+    throttle
 } from "charts/Util"
 
 const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
@@ -207,6 +208,21 @@ export class CovidTable extends React.Component<CovidTableProps> {
         if (!this.props.preloadData) {
             this.loadData()
         }
+        this.onResizeThrottled = throttle(this.onResize, 400)
+        window.addEventListener("resize", this.onResizeThrottled)
+        this.onResize()
+    }
+
+    componentWillUnmount() {
+        if (this.onResizeThrottled) {
+            window.removeEventListener("resize", this.onResizeThrottled)
+        }
+    }
+
+    onResizeThrottled?: () => void
+
+    @action.bound onResize() {
+        this.state.isMobile = window.innerWidth <= 680
     }
 
     async loadData() {
