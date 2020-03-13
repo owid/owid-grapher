@@ -65,7 +65,9 @@ export class DiscreteBarTransform implements IChartTransform {
                 this.chart.props.showYearLabels || datum.year !== targetYear
             return (
                 datum.formatValue(datum.value) +
-                (showYearLabels ? ` (in ${datum.year})` : "")
+                (showYearLabels
+                    ? ` (${this.chart.formatYearFunction(datum.year)})`
+                    : "")
             )
         }
     }
