@@ -523,8 +523,8 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
     }
 
     @computed get currentX(): number | undefined {
-        const { datum, state } = this.props
-        if (state.isMobile && datum.latest) {
+        const { datum } = this.props
+        if (datum.latest) {
             return this.dateToIndex(datum.latest.date)
         }
         return undefined
@@ -713,8 +713,8 @@ export class Bars<T> extends React.Component<BarsProps<T>> {
     }
 
     @bind barColor(d: number) {
-        if (d === this.props.currentX) return CURRENT_COLOR
         if (d === this.props.highlightedX) return HIGHLIGHT_COLOR
+        if (d === this.props.currentX) return CURRENT_COLOR
         if (this.props.highlightedX !== undefined) return DEFAULT_FAINT_COLOR
         return DEFAULT_COLOR
     }
