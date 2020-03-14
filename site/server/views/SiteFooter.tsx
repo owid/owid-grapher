@@ -248,6 +248,7 @@ export const SiteFooter = ({
                     </div>
                 </div>
                 <div className="site-tools" />
+                <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
                 <script src={webpack("commons.js", "site")} />
                 <script src={webpack("owid.js", "site")} />
                 <script
