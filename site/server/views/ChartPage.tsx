@@ -110,7 +110,6 @@ export const ChartPage = (props: {
                     </noscript>
                 </main>
                 <SiteFooter />
-                <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>
