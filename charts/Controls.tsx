@@ -497,6 +497,10 @@ export class Controls {
         return this.props.chart.tab === "map"
     }
 
+    @computed get hasSpace(): boolean {
+        return this.props.width > 700
+    }
+
     @computed get hasAddButton(): boolean {
         const { chart } = this.props
         return (
@@ -511,6 +515,7 @@ export class Controls {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
+        if (this.hasSpace && numLines > 1) numLines -= 1
         return numLines
     }
 
@@ -834,7 +839,8 @@ export class ControlsFooterView extends React.Component<{
             isShareMenuActive,
             isSettingsMenuActive,
             hasTimeline,
-            hasInlineControls
+            hasInlineControls,
+            hasSpace
         } = props.controls
         const { chart, chartView } = props.controls.props
 
@@ -844,14 +850,19 @@ export class ControlsFooterView extends React.Component<{
             </div>
         )
 
-        const inlineControlsElement = hasInlineControls && (
+        const inlineControlsElement = hasInlineControls && !hasSpace && (
             <div className="footerRowSingle">
                 {this._getInlineControlsElement()}
             </div>
         )
 
         const tabsElement = (
-            <div className="footerRowSingle">{this._getTabsElement()}</div>
+            <div className="footerRowMulti">
+                {hasInlineControls && hasSpace && (
+                    <div>{this._getInlineControlsElement()}</div>
+                )}
+                {this._getTabsElement()}
+            </div>
         )
 
         const shareMenuElement = isShareMenuActive && (
