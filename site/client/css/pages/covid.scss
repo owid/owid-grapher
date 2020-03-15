@@ -246,6 +246,10 @@ $table-bg: $body-bg;
     }
 }
 
+.covid-table-mobile .info-icon {
+    font-size: inherit !important;
+}
+
 .covid-table-embed:empty,
 .covid-error {
     border-top: 1px solid rgba($primary-color, 0.08);
@@ -270,10 +274,6 @@ $table-bg: $body-bg;
     width: 84px; // should be a multiple of 14
     height: 3em;
     display: flex;
-
-    .covid-table-mobile & {
-        width: 70px;
-    }
 
     .bar-wrapper {
         flex: 1;
