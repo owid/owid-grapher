@@ -6,7 +6,11 @@ import { csvParse, utcFormat, scaleLinear } from "d3"
 import { bind } from "decko"
 import classnames from "classnames"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle"
+
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
+import { Tippy } from "charts/Tippy"
 
 import {
     fetchText,
@@ -58,7 +62,8 @@ type CovidCountrySeries = CovidCountryDatum[]
 interface CovidDoublingRange {
     latestDay: CovidDatum
     halfDay: CovidDatum
-    length: number | undefined
+    length: number
+    ratio: number
 }
 
 interface CovidTableProps {
@@ -80,14 +85,14 @@ function getDoublingRange(
             return value && value <= latestValue / 2
         })
         const halfDay = maxBy(filteredSeries, d => d.date)
-        if (halfDay !== undefined) {
-            return {
-                latestDay,
-                halfDay,
-                length: dateDiffInDays(latestDay.date, halfDay.date)
-            }
-        } else {
-            return undefined
+        if (halfDay === undefined) return undefined
+        const halfValue = accessor(halfDay)
+        if (halfValue === undefined) return undefined
+        return {
+            latestDay,
+            halfDay,
+            length: dateDiffInDays(latestDay.date, halfDay.date),
+            ratio: latestValue / halfValue
         }
     }
     return undefined
@@ -570,7 +575,23 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                             <span className="days">
                                 {d.caseDoublingRange.length}
                                 &nbsp;
-                                {nouns.days(d.caseDoublingRange.length)}
+                                {nouns.days(d.caseDoublingRange.length)}&nbsp;
+                                <Tippy
+                                    content={
+                                        <DoublingInfoTooltip
+                                            caseDoublingRange={
+                                                d.caseDoublingRange
+                                            }
+                                        />
+                                    }
+                                    maxWidth={270}
+                                >
+                                    <span className="info-icon">
+                                        <FontAwesomeIcon
+                                            icon={faQuestionCircle}
+                                        />
+                                    </span>
+                                </Tippy>
                             </span>
                         </>
                     ) : (
@@ -763,6 +784,41 @@ export class Bars<T> extends React.Component<BarsProps<T>> {
             </div>
         )
     }
+}
+
+export const DoublingInfoTooltip = (props: {
+    caseDoublingRange: CovidDoublingRange
+}) => {
+    const { latestDay, halfDay, ratio, length } = props.caseDoublingRange
+    return (
+        <div className="covid-tooltip">
+            The total confirmed cases in {latestDay.location} have increased by{" "}
+            <span className="growth-rate">{ratio.toFixed(1)}x</span> in the{" "}
+            <span className="period">last {length} days</span>.
+            <table className="values">
+                <tr>
+                    <td className="value from-color">
+                        {formatInt(halfDay.total_cases)}{" "}
+                        {nouns.cases(halfDay.total_cases)}
+                    </td>
+                    <td>on</td>
+                    <td className="date from-color">
+                        {formatDate(halfDay.date)}
+                    </td>
+                </tr>
+                <tr>
+                    <td className="value to-color">
+                        {formatInt(latestDay.total_cases)}{" "}
+                        {nouns.cases(latestDay.total_cases)}
+                    </td>
+                    <td>on</td>
+                    <td className="date to-color">
+                        {formatDate(latestDay.date)}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    )
 }
 
 export function runCovid() {
