@@ -26,7 +26,7 @@ import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
-import { runCovid } from "./Covid"
+import { runCovid } from "./covid/index"
 
 declare var window: any
 window.Grapher = Grapher
