@@ -25,7 +25,7 @@ import {
     throttle
 } from "charts/Util"
 
-const DATA_URL = "https://cowid.netlify.com/data/full_data.csv"
+const DATA_URL = "https://covid.ourworldindata.org/data/full_data.csv"
 const CASE_THRESHOLD = 10
 
 // bar colors
