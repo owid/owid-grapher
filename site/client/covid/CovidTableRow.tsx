@@ -109,7 +109,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                                             noun={nouns.cases}
                                         />
                                     }
-                                    maxWidth={270}
+                                    maxWidth={260}
                                 >
                                     <span className="info-icon">
                                         <FontAwesomeIcon

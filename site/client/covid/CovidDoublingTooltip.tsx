@@ -11,8 +11,9 @@ export const CovidDoublingTooltip = (props: {
     const { latestDay, halfDay, ratio, length } = props.caseDoublingRange
     return (
         <div className="covid-tooltip">
-            The total confirmed cases in {latestDay.location} have increased by{" "}
-            <span className="growth-rate">{ratio.toFixed(1)}x</span> in the{" "}
+            The number of total confirmed cases in {latestDay.location} has
+            increased{" "}
+            <span className="growth-rate">{ratio.toFixed(1)}-times</span> in the{" "}
             <span className="period">last {length} days</span>.
             <table className="values">
                 <tr>
