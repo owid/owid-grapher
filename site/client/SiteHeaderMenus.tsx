@@ -237,8 +237,8 @@ export class Header extends React.Component<{
                             className="oxford-logo"
                         >
                             <img
-                                src="/oxford-logo-transparent.png"
-                                alt="University of Oxford logo"
+                                src="/oms-logo.svg"
+                                alt="Oxford Martin School logo"
                             />
                         </a>
                         <a
