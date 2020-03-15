@@ -136,23 +136,40 @@ $table-bg: $body-bg;
     }
 
     td.doubling-days {
-        font-size: 20px;
-        font-weight: 700;
         line-height: 1.1;
         text-align: left;
         width: 35%;
-        // border-right: 1px solid rgba($primary-color, 0.1);
 
         .days {
+            font-size: 20px;
+            font-weight: 700;
             color: $secondary-color;
             display: block;
             margin-top: 3px;
             margin-bottom: 5px;
+            white-space: nowrap;
         }
 
         .label {
             font-size: 14px;
+            font-weight: 700;
             opacity: 0.45;
+        }
+
+        .info-icon {
+            font-size: 15px;
+            color: rgba($primary-color, 0.2);
+            transition: color 200ms ease;
+
+            &:hover {
+                color: rgba($primary-color, 0.65);
+            }
+        }
+
+        .no-data {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.6;
         }
     }
 
@@ -168,10 +185,6 @@ $table-bg: $body-bg;
 
     .faint {
         opacity: 0.65;
-    }
-
-    .no-data {
-        opacity: 0.6;
     }
 
     .time-series-value {
@@ -291,5 +304,55 @@ $table-bg: $body-bg;
             0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg,
             0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg;
         z-index: 1;
+    }
+}
+
+.covid-tooltip {
+    display: block;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: rgba($primary-color, 0.8);
+    padding: 8px;
+    text-align: center;
+
+    .period {
+        font-weight: 700;
+        color: $secondary-color;
+    }
+
+    .growth-rate {
+        font-weight: 700;
+        color: $primary-color;
+    }
+
+    table.values {
+        margin: 8px auto 0;
+        padding: 0;
+        width: auto;
+        border: none;
+        border-spacing: 0px;
+
+        td {
+            padding: 0 2px;
+        }
+
+        .value {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .date {
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .from-color {
+            color: $secondary-color;
+        }
+
+        .to-color {
+            color: $primary-color;
+        }
     }
 }
