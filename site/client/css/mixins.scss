@@ -76,6 +76,13 @@
     line-height: 1.25em;
 }
 
+@mixin button-disabled {
+    &:disabled {
+        opacity: 0.5;
+        cursor: auto;
+    }
+}
+
 @mixin popover-box-button {
     button {
         padding: 0.7rem 0.85rem;
@@ -87,10 +94,7 @@
         font-size: 15px;
         background: #002147;
 
-        &:disabled {
-            opacity: 0.5;
-            cursor: auto;
-        }
+        @include button-disabled;
 
         svg {
             margin-right: 0.15rem;
