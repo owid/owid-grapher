@@ -5,6 +5,8 @@
 
     button[type="submit"] {
         border-width: 1px;
+
+        @include button-disabled;
     }
 
     .label-title {

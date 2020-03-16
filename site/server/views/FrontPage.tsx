@@ -375,7 +375,10 @@ export const FrontPage = (props: {
                                 <div className="newsletter-subscription">
                                     <div className="box">
                                         <h2>Subscribe to our newsletter</h2>
-                                        <NewsletterSubscriptionForm context="homepage" />
+                                        <div className="root">
+                                            {/* Hydrated in runSiteTools() */}
+                                            <NewsletterSubscriptionForm context="homepage" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
