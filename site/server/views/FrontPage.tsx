@@ -126,7 +126,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/media-logos-wide.png"
+                                                src={`${settings.BAKED_BASE_URL}/media-logos-wide.png`}
                                                 alt="Logos of the publications that have used our content"
                                             />
                                             <div className="hover-note">
@@ -149,7 +149,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/university-logos-wide.png"
+                                                src={`${settings.BAKED_BASE_URL}/university-logos-wide.png`}
                                                 alt="Logos of the universities that have used our content"
                                             />
                                             <div className="hover-note">
@@ -456,7 +456,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src="/sdg-wheel.png"
+                                        src={`${settings.BAKED_BASE_URL}/sdg-wheel.png`}
                                         alt="SDG Tracker logo"
                                     />
                                 </div>
@@ -481,7 +481,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src="/teaching-hub.svg"
+                                        src={`${settings.BAKED_BASE_URL}/teaching-hub.svg`}
                                         alt="Teaching Hub logo"
                                     />
                                 </div>
