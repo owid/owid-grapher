@@ -68,12 +68,14 @@ interface PointsWithLabelsProps {
     onMouseLeave: () => void
     onClick: () => void
     hideLines: boolean
+    formatLabel: (v: ScatterValue) => string
 }
 
 interface ScatterRenderValue {
     position: Vector2
     size: number
     fontSize: number
+    label: string
     time: {
         x: number
         y: number
@@ -318,7 +320,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         ),
                         size: Math.sqrt(area / Math.PI),
                         fontSize: fontScale(d.size || 1),
-                        time: v.time
+                        time: v.time,
+                        label: this.props.formatLabel(v)
                     }
                 })
 
@@ -366,7 +369,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const pos = firstValue.position.subtract(
             nextSegment.normalize().times(5)
         )
-        let bounds = Bounds.forText(firstValue.time.y.toString(), {
+        let bounds = Bounds.forText(firstValue.label, {
             x: pos.x,
             y: pos.y,
             fontSize: fontSize,
@@ -388,7 +391,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             )
 
         return {
-            text: firstValue.time.y.toString(),
+            text: firstValue.label,
             fontSize: fontSize,
             bounds: bounds,
             series: series,
@@ -437,7 +440,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
 
-            let bounds = Bounds.forText(v.time.y.toString(), {
+            let bounds = Bounds.forText(v.label, {
                 x: pos.x,
                 y: pos.y,
                 fontSize: fontSize,
@@ -459,7 +462,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 )
 
             return {
-                text: v.time.y.toString(),
+                text: v.label,
                 fontSize: fontSize,
                 bounds: bounds,
                 series: series,
@@ -519,7 +522,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return {
             text:
                 hideLines && series.isForeground
-                    ? lastValue.time.y.toString()
+                    ? lastValue.label
                     : series.text,
             fontSize: fontSize,
             bounds: labelBounds,
