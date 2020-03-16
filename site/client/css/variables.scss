@@ -10,6 +10,11 @@ $vertical-spacing: 1rem;
 * Sizes
 */
 
+$mobile-header-wrapper-height: 3.5rem;
+$mobile-header-border-height: 0.25rem;
+$mobile-header-height: $mobile-header-wrapper-height +
+    $mobile-header-border-height;
+
 $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
 $sidebar-padding-top: 2rem;

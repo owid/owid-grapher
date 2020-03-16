@@ -6,7 +6,10 @@
     flex-direction: column;
     margin: 0;
     width: 100%;
-    height: calc(100vh - 225px);
+    height: calc(100vh - #{$mobile-header-height});
+    @include md-up {
+        height: calc(100vh - 225px);
+    }
 }
 
 #fallback > img {
