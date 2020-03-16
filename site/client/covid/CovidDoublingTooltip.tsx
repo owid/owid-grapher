@@ -16,26 +16,28 @@ export const CovidDoublingTooltip = (props: {
             <span className="growth-rate">{ratio.toFixed(1)}-times</span> in the{" "}
             <span className="period">last {length} days</span>.
             <table className="values">
-                <tr>
-                    <td className="value from-color">
-                        {formatInt(halfDay.total_cases)}{" "}
-                        {noun(halfDay.total_cases)}
-                    </td>
-                    <td>on</td>
-                    <td className="date from-color">
-                        {formatDate(halfDay.date)}
-                    </td>
-                </tr>
-                <tr>
-                    <td className="value to-color">
-                        {formatInt(latestDay.total_cases)}{" "}
-                        {noun(latestDay.total_cases)}
-                    </td>
-                    <td>on</td>
-                    <td className="date to-color">
-                        {formatDate(latestDay.date)}
-                    </td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td className="value from-color">
+                            {formatInt(halfDay.total_cases)}{" "}
+                            {noun(halfDay.total_cases)}
+                        </td>
+                        <td>on</td>
+                        <td className="date from-color">
+                            {formatDate(halfDay.date)}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td className="value to-color">
+                            {formatInt(latestDay.total_cases)}{" "}
+                            {noun(latestDay.total_cases)}
+                        </td>
+                        <td>on</td>
+                        <td className="date to-color">
+                            {formatDate(latestDay.date)}
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     )
