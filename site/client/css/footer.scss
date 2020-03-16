@@ -66,20 +66,7 @@
 
     .partner-logo {
         max-width: 10rem;
-        display: block;
         margin-bottom: 0.25rem;
-
-        @include sm-only {
-            margin: 0 auto 0.5rem;
-        }
-    }
-
-    .donate-link {
-        border: 2px solid $primary-color-600;
-        padding: 0.5rem;
-    }
-
-    .logos a {
         display: block;
         transition: opacity 150ms ease, filter 150ms ease;
         filter: grayscale(1);
@@ -89,6 +76,21 @@
             filter: grayscale(0);
             opacity: 1;
         }
+
+        @include sm-only {
+            margin: 0 auto 0.5rem;
+        }
+    }
+
+    .gcdl-logo {
+        float: right;
+        width: 2.75rem;
+        margin: 0 0 0 1rem;
+    }
+
+    .donate-link {
+        border: 2px solid $primary-color-600;
+        padding: 0.5rem;
     }
 
     .logos img {
