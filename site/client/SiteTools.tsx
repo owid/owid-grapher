@@ -17,10 +17,14 @@ const SiteTools = () => {
 
 export const runSiteTools = () => {
     ReactDOM.render(<SiteTools />, document.querySelector(".site-tools"))
-    ReactDOM.hydrate(
-        <NewsletterSubscriptionForm context="homepage" />,
-        document.querySelector(
-            ".homepage-subscribe .newsletter-subscription .root"
-        )
+
+    const newsletterSubscriptionFormRootHomepage = document.querySelector(
+        ".homepage-subscribe .newsletter-subscription .root"
     )
+    if (newsletterSubscriptionFormRootHomepage) {
+        ReactDOM.hydrate(
+            <NewsletterSubscriptionForm context="homepage" />,
+            newsletterSubscriptionFormRootHomepage
+        )
+    }
 }
