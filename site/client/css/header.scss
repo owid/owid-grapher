@@ -144,11 +144,11 @@
         align-items: center;
 
         .oxford-logo {
-            height: 4.0625rem;
+            width: 126px;
         }
 
         .gcdl-logo {
-            height: 3.875rem;
+            width: 50px;
             margin-left: 0.35rem;
         }
 
@@ -159,8 +159,8 @@
             align-items: center;
 
             img {
-                height: 100%;
-                width: auto;
+                height: auto;
+                width: 100%;
             }
         }
         @media (max-width: 68rem) {
