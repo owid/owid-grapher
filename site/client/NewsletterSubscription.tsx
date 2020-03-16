@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export const NewsletterSubscription = () => {
     const [isOpen, setIsOpen] = useState(false)
+
     const subscribeText = "Subscribe to receive updates"
     const closeText = "Close"
 
@@ -49,8 +50,25 @@ export const NewsletterSubscriptionForm = ({
 }: {
     context?: string
 }) => {
-    const idImmediate = `${context ? context + "-" : ""}immediate`
-    const idBiweekly = `${context ? context + "-" : ""}biweekly`
+    const IMMEDIATE = "1"
+    const BIWEEKLY = "2"
+    const idImmediate = `mce-group[85302]-85302-0${
+        context ? "-" + context : ""
+    }`
+    const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
+
+    const [frequencies, setFrequencies] = useState([IMMEDIATE])
+    const isSubmittable = frequencies.length !== 0
+
+    const updateFrequencies = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setFrequencies([e.target.value, ...frequencies])
+        } else {
+            setFrequencies(
+                frequencies.filter(frequency => frequency !== e.target.value)
+            )
+        }
+    }
 
     return (
         <form
@@ -66,10 +84,11 @@ export const NewsletterSubscriptionForm = ({
                     <div className="owid-checkbox-block">
                         <input
                             type="checkbox"
-                            value="1"
-                            name="group[85302][1]"
+                            value={IMMEDIATE}
+                            name={`group[85302][${IMMEDIATE}]`}
                             id={idImmediate}
-                            defaultChecked
+                            checked={frequencies.includes(IMMEDIATE)}
+                            onChange={updateFrequencies}
                         />
                         <label htmlFor={idImmediate}>
                             <div className="label-title">Immediate updates</div>
@@ -82,9 +101,11 @@ export const NewsletterSubscriptionForm = ({
                     <div className="owid-checkbox-block">
                         <input
                             type="checkbox"
-                            value="2"
-                            name="group[85302][2]"
+                            value={BIWEEKLY}
+                            name={`group[85302][${BIWEEKLY}]`}
                             id={idBiweekly}
+                            checked={frequencies.includes(BIWEEKLY)}
+                            onChange={updateFrequencies}
                         />
                         <label htmlFor={idBiweekly}>
                             <div className="label-title">Biweekly digest</div>
@@ -94,6 +115,11 @@ export const NewsletterSubscriptionForm = ({
                             </div>
                         </label>
                     </div>
+                    {frequencies.length === 0 && (
+                        <div className="alert">
+                            Please select at least one option.
+                        </div>
+                    )}
                 </div>
             </fieldset>
             <div className="email-submit owid-inline-field">
@@ -103,7 +129,11 @@ export const NewsletterSubscriptionForm = ({
                     className="owid-inline-input"
                     name="EMAIL"
                 />
-                <button type="submit" className="owid-inline-button">
+                <button
+                    type="submit"
+                    className="owid-inline-button"
+                    disabled={!isSubmittable}
+                >
                     Subscribe
                 </button>
             </div>

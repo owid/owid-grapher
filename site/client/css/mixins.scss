@@ -87,6 +87,11 @@
         font-size: 15px;
         background: #002147;
 
+        &:disabled {
+            opacity: 0.5;
+            cursor: auto;
+        }
+
         svg {
             margin-right: 0.15rem;
             color: rgba(white, 0.75);

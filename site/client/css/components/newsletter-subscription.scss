@@ -19,6 +19,11 @@
     fieldset {
         margin-bottom: 1rem;
     }
+
+    .alert {
+        font-size: 0.9rem;
+        color: $error-text-color;
+    }
 }
 
 .homepage-subscribe .newsletter-subscription {
