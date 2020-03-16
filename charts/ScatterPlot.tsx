@@ -333,6 +333,7 @@ export class ScatterPlot extends React.Component<{
                     onMouseOver={this.onScatterMouseOver}
                     onMouseLeave={this.onScatterMouseLeave}
                     onClick={this.onScatterClick}
+                    formatLabel={d => this.chart.formatYearFunction(d.time.y)}
                 />
                 <ScatterColorLegendView
                     legend={legend}
