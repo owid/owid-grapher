@@ -2,6 +2,7 @@ import * as React from "react"
 import { webpack } from "utils/server/staticGen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { BAKED_BASE_URL } from "settings"
 
 export const SiteFooter = ({
     hideDonate = false
@@ -188,19 +189,8 @@ export const SiteFooter = ({
                                     data-track-note="footer-navigation"
                                 >
                                     <img
-                                        src="/oxford-logo-rect.png"
-                                        alt="University of Oxford logo"
-                                    />
-                                </a>
-                                <a
-                                    href="https://global-change-data-lab.org/"
-                                    className="partner-logo"
-                                    data-track-click
-                                    data-track-note="footer-navigation"
-                                >
-                                    <img
-                                        src="/gcdl-logo.png"
-                                        alt="Global Change Data Lab logo"
+                                        src={`${BAKED_BASE_URL}/oms-logo.svg`}
+                                        alt="Oxford Martin School logo"
                                     />
                                 </a>
                                 <a
@@ -235,6 +225,17 @@ export const SiteFooter = ({
                                     <a href="/about#legal">legal disclaimer</a>.
                                 </p>
                                 <p>
+                                    <a
+                                        href="https://global-change-data-lab.org/"
+                                        className="partner-logo gcdl-logo"
+                                        data-track-click
+                                        data-track-note="footer-navigation"
+                                    >
+                                        <img
+                                            src={`${BAKED_BASE_URL}/gcdl-logo-narrow.png`}
+                                            alt="Global Change Data Lab logo"
+                                        />
+                                    </a>
                                     Our World In Data is a project of the{" "}
                                     <a href="https://global-change-data-lab.org/">
                                         Global Change Data Lab
