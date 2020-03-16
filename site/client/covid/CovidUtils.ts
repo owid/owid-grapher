@@ -8,10 +8,10 @@ import {
     CovidSeries,
     CovidDatum,
     CovidDoublingRange,
-    CovidAccessorKey,
+    CovidSortKey,
     CovidCountryDatum,
     SortOrder,
-    CovidAccessor
+    CovidSortAccessor
 } from "./CovidTypes"
 
 export function inverseSortOrder(order: SortOrder): SortOrder {
@@ -75,7 +75,7 @@ export function getDoublingRange(
     return undefined
 }
 
-export const accessors: Record<CovidAccessorKey, CovidAccessor> = {
+export const accessors: Record<CovidSortKey, CovidSortAccessor> = {
     location: (d: CovidCountryDatum) => d.location,
     totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
     newCases: (d: CovidCountryDatum) => d.latest?.new_cases,
