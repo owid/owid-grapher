@@ -29,16 +29,17 @@ export interface CovidDoublingRange {
 
 export type DateRange = [Date, Date]
 
-export type CovidAccessorKey =
-    | "location"
-    | "totalCases"
-    | "newCases"
-    | "totalDeaths"
-    | "newDeaths"
-    | "daysToDoubleCases"
-    | "daysToDoubleDeaths"
+export enum CovidSortKey {
+    location = "location",
+    totalCases = "totalCases",
+    newCases = "newCases",
+    totalDeaths = "totalDeaths",
+    newDeaths = "newDeaths",
+    daysToDoubleCases = "daysToDoubleCases",
+    daysToDoubleDeaths = "daysToDoubleDeaths"
+}
 
-export type CovidAccessor = (
+export type CovidSortAccessor = (
     datum: CovidCountryDatum
 ) => string | number | undefined
 

@@ -2,21 +2,18 @@ import * as React from "react"
 import { bind } from "decko"
 import classnames from "classnames"
 
-import { SortOrder } from "charts/DataTableTransform"
-
-import { CovidAccessorKey } from "./CovidTypes"
+import { CovidSortKey, SortOrder } from "./CovidTypes"
 import { CovidTableSortIcon } from "./CovidTableSortIcon"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 
 export interface CovidTableHeaderCellProps {
     children: React.ReactNode
     className?: string
-    sortKey?: CovidAccessorKey
-    currentSortKey?: CovidAccessorKey
+    sortKey?: CovidSortKey
+    currentSortKey?: CovidSortKey
     currentSortOrder?: SortOrder
-    isSorted?: boolean
     colSpan?: number
-    onSort?: (key: CovidAccessorKey) => void
+    onSort?: (key: CovidSortKey) => void
 }
 
 export class CovidTableHeaderCell extends React.Component<
@@ -32,16 +29,20 @@ export class CovidTableHeaderCell extends React.Component<
         const {
             className,
             sortKey,
-            currentSortKey,
-            currentSortOrder,
             children,
-            colSpan
+            colSpan,
+            currentSortKey,
+            currentSortOrder
         } = this.props
+
         const isSorted = sortKey !== undefined && sortKey === currentSortKey
+        const order =
+            isSorted && currentSortOrder ? currentSortOrder : DEFAULT_SORT_ORDER
+
         return (
             <th
                 className={classnames(className, {
-                    sortable: sortKey,
+                    sortable: sortKey !== undefined,
                     sorted: isSorted
                 })}
                 onClick={this.onClick}
@@ -49,14 +50,7 @@ export class CovidTableHeaderCell extends React.Component<
             >
                 {children}
                 {sortKey !== undefined && (
-                    <CovidTableSortIcon
-                        sortOrder={
-                            isSorted && currentSortOrder
-                                ? currentSortOrder
-                                : DEFAULT_SORT_ORDER
-                        }
-                        isActive={isSorted}
-                    />
+                    <CovidTableSortIcon sortOrder={order} isActive={isSorted} />
                 )}
             </th>
         )

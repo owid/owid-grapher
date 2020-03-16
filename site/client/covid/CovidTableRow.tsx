@@ -3,21 +3,18 @@ import { observable, computed } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle"
-
 import { dateDiffInDays, addDays } from "charts/Util"
 
 import { CovidCountryDatum, DateRange, CovidDatum } from "./CovidTypes"
-import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
-import { formatInt } from "./CovidUtils"
 import { CovidTableState } from "./CovidTable"
-import { Tippy } from "charts/Tippy"
-import { nouns } from "./CovidConstants"
-import { CovidBars } from "./CovidBars"
-import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
+import {
+    CovidTableColumnKey,
+    columns,
+    CovidTableCellSpec
+} from "./CovidTableColumns"
 
 export interface CovidTableRowProps {
+    columns: CovidTableColumnKey[]
     datum: CovidCountryDatum
     dateRange: DateRange
     state: CovidTableState
@@ -86,134 +83,29 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
         this.highlightDate = date
     }
 
+    @computed get cellProps(): CovidTableCellSpec {
+        return {
+            datum: this.props.datum,
+            isMobile: this.props.state.isMobile,
+            bars: {
+                data: this.data,
+                xDomain: this.xDomain,
+                x: this.x,
+                currentX: this.currentX,
+                highlightedX: this.hightlightedX,
+                onHover: this.onBarHover
+            }
+        }
+    }
+
     render() {
-        const d = this.props.datum
-        const state = this.props.state
         return (
             <tr>
-                <td className="location">{d.location}</td>
-                <td className="doubling-days">
-                    {d.caseDoublingRange !== undefined ? (
-                        <>
-                            <span className="label">doubled in</span> <br />
-                            <span className="days">
-                                {d.caseDoublingRange.length}
-                                &nbsp;
-                                {nouns.days(d.caseDoublingRange.length)}&nbsp;
-                                <Tippy
-                                    content={
-                                        <CovidDoublingTooltip
-                                            caseDoublingRange={
-                                                d.caseDoublingRange
-                                            }
-                                            noun={nouns.cases}
-                                        />
-                                    }
-                                    maxWidth={260}
-                                >
-                                    <span className="info-icon">
-                                        <FontAwesomeIcon
-                                            icon={faQuestionCircle}
-                                        />
-                                    </span>
-                                </Tippy>
-                            </span>
-                        </>
-                    ) : (
-                        <span className="no-data">
-                            Not enough data available
-                        </span>
-                    )}
-                </td>
-                {state.isMobile && (
-                    <td className="plot-cell">
-                        <div className="trend">
-                            <div className="plot">
-                                <CovidBars<CovidDatum>
-                                    data={this.data}
-                                    xDomain={this.xDomain}
-                                    x={this.x}
-                                    y={d => d.total_cases}
-                                    currentX={this.currentX}
-                                    highlightedX={this.hightlightedX}
-                                    onHover={this.onBarHover}
-                                />
-                            </div>
-                        </div>
-                    </td>
-                )}
-                {!state.isMobile && (
-                    <td className="total-cases plot-cell">
-                        <div className="trend">
-                            <div className="plot">
-                                <CovidBars<CovidDatum>
-                                    data={this.data}
-                                    xDomain={this.xDomain}
-                                    x={this.x}
-                                    y={d => d.total_cases}
-                                    renderValue={d => (
-                                        <CovidTimeSeriesValue
-                                            value={formatInt(
-                                                d && d.total_cases
-                                            )}
-                                            date={d && d.date}
-                                        />
-                                    )}
-                                    currentX={this.currentX}
-                                    highlightedX={this.hightlightedX}
-                                    onHover={this.onBarHover}
-                                />
-                            </div>
-                            <div className="value">
-                                <CovidTimeSeriesValue
-                                    value={`${formatInt(
-                                        d.latest?.total_cases
-                                    )} total`}
-                                    date={d.latest?.date}
-                                    latest={true}
-                                />
-                            </div>
-                        </div>
-                    </td>
-                )}
-                {!state.isMobile && (
-                    <td className="new-cases plot-cell">
-                        <div className="trend">
-                            <div className="plot">
-                                <CovidBars<CovidDatum>
-                                    data={this.data}
-                                    xDomain={this.xDomain}
-                                    x={this.x}
-                                    y={d => d.new_cases}
-                                    renderValue={d => (
-                                        <CovidTimeSeriesValue
-                                            value={formatInt(
-                                                d && d.new_cases,
-                                                "",
-                                                { showPlus: true }
-                                            )}
-                                            date={d && d.date}
-                                        />
-                                    )}
-                                    currentX={this.currentX}
-                                    highlightedX={this.hightlightedX}
-                                    onHover={this.onBarHover}
-                                />
-                            </div>
-                            <div className="value">
-                                <CovidTimeSeriesValue
-                                    value={`${formatInt(
-                                        d.latest?.new_cases,
-                                        "",
-                                        { showPlus: true }
-                                    )} new`}
-                                    date={d.latest?.date}
-                                    latest={true}
-                                />
-                            </div>
-                        </div>
-                    </td>
-                )}
+                {this.props.columns.map(key => (
+                    <React.Fragment key={key}>
+                        {columns[key].cell(this.cellProps)}
+                    </React.Fragment>
+                ))}
             </tr>
         )
     }

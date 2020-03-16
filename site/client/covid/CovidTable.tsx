@@ -4,8 +4,6 @@ import { observer } from "mobx-react"
 import { csvParse } from "d3"
 import classnames from "classnames"
 
-import { CovidTableHeaderCell as HeaderCell } from "./CovidTableHeaderCell"
-
 import {
     throttle,
     entries,
@@ -22,7 +20,7 @@ import {
 import { DATA_URL, CASE_THRESHOLD, DEFAULT_SORT_ORDER } from "./CovidConstants"
 
 import {
-    CovidAccessorKey,
+    CovidSortKey,
     CovidSeries,
     CovidCountrySeries,
     DateRange,
@@ -33,20 +31,26 @@ import {
     parseIntOrUndefined,
     getDoublingRange,
     accessors,
-    inverseSortOrder,
-    formatDate
+    inverseSortOrder
 } from "./CovidUtils"
 
 import { CovidTableRow } from "./CovidTableRow"
+import {
+    CovidTableColumnKey,
+    CovidTableHeaderSpec,
+    columns
+} from "./CovidTableColumns"
 
 export class CovidTableState {
-    @observable.ref sortKey: CovidAccessorKey = "totalCases"
+    @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
     @observable.ref sortOrder: SortOrder = SortOrder.desc
     @observable.ref isMobile: boolean = true
 }
 
 export interface CovidTableProps {
     preloadData?: CovidSeries
+    columns: CovidTableColumnKey[]
+    mobileColumns: CovidTableColumnKey[]
 }
 
 @observer
@@ -58,7 +62,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     @observable.ref isLoading: boolean = false
     @observable.ref error: string | undefined = undefined
 
-    @observable state = new CovidTableState()
+    @observable tableState = new CovidTableState()
 
     componentDidMount() {
         if (!this.props.preloadData) {
@@ -78,7 +82,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     onResizeThrottled?: () => void
 
     @action.bound onResize() {
-        this.state.isMobile = window.innerWidth <= 680
+        this.tableState.isMobile = window.innerWidth <= 680
     }
 
     async loadData() {
@@ -135,8 +139,8 @@ export class CovidTable extends React.Component<CovidTableProps> {
     @computed get renderData() {
         const sortedSeries = orderBy(
             this.countrySeries,
-            accessors[this.state.sortKey],
-            this.state.sortOrder
+            accessors[this.tableState.sortKey],
+            this.tableState.sortOrder
         )
         const [shown, hidden] = partition(
             sortedSeries,
@@ -160,16 +164,33 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 
     @computed get lastUpdated(): Date | undefined {
-        return max(this.data?.map(d => d.date))
+        return this.dateRange[1]
     }
 
-    @action.bound onSort(newKey: CovidAccessorKey) {
-        const { sortKey, sortOrder } = this.state
-        this.state.sortOrder =
+    @computed get columns(): CovidTableColumnKey[] {
+        return this.tableState.isMobile
+            ? this.props.mobileColumns
+            : this.props.columns
+    }
+
+    @action.bound onSort(newKey: CovidSortKey) {
+        const { sortKey, sortOrder } = this.tableState
+        this.tableState.sortOrder =
             sortKey === newKey && sortOrder === DEFAULT_SORT_ORDER
                 ? inverseSortOrder(DEFAULT_SORT_ORDER)
                 : DEFAULT_SORT_ORDER
-        this.state.sortKey = newKey
+        this.tableState.sortKey = newKey
+    }
+
+    @computed get headerCellProps(): CovidTableHeaderSpec {
+        const { sortKey, sortOrder, isMobile } = this.tableState
+        return {
+            currentSortKey: sortKey,
+            currentSortOrder: sortOrder,
+            isMobile: isMobile,
+            lastUpdated: this.lastUpdated,
+            onSort: this.onSort
+        }
     }
 
     render() {
@@ -186,87 +207,27 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return (
             <div
                 className={classnames("covid-table-container", {
-                    "covid-table-mobile": this.state.isMobile
+                    "covid-table-mobile": this.tableState.isMobile
                 })}
             >
                 <table className="covid-table">
                     <thead>
                         <tr>
-                            <HeaderCell
-                                className="location"
-                                sortKey="location"
-                                currentSortKey={this.state.sortKey}
-                                currentSortOrder={this.state.sortOrder}
-                                onSort={this.onSort}
-                            >
-                                <strong>Location</strong>
-                            </HeaderCell>
-                            <HeaderCell
-                                sortKey="daysToDoubleCases"
-                                currentSortKey={this.state.sortKey}
-                                currentSortOrder={this.state.sortOrder}
-                                onSort={this.onSort}
-                                colSpan={this.state.isMobile ? 2 : 1}
-                            >
-                                How long did it take for the number of{" "}
-                                <strong>total confirmed cases to double</strong>
-                                ?
-                            </HeaderCell>
-                            {!this.state.isMobile && (
-                                <HeaderCell
-                                    sortKey="totalCases"
-                                    currentSortKey={this.state.sortKey}
-                                    currentSortOrder={this.state.sortOrder}
-                                    onSort={this.onSort}
-                                >
-                                    <strong>Total confirmed cases</strong>{" "}
-                                    <br />
-                                    <span className="note">
-                                        WHO data.{" "}
-                                        {this.lastUpdated !== undefined ? (
-                                            <>
-                                                Up to date for 10&nbsp;AM (CET)
-                                                on{" "}
-                                                {formatDate(this.lastUpdated)}.
-                                            </>
-                                        ) : (
-                                            undefined
-                                        )}
-                                    </span>
-                                </HeaderCell>
-                            )}
-                            {!this.state.isMobile && (
-                                <HeaderCell
-                                    sortKey="newCases"
-                                    currentSortKey={this.state.sortKey}
-                                    currentSortOrder={this.state.sortOrder}
-                                    onSort={this.onSort}
-                                >
-                                    <strong>Daily new confirmed cases</strong>{" "}
-                                    <br />
-                                    <span className="note">
-                                        WHO data.{" "}
-                                        {this.lastUpdated !== undefined ? (
-                                            <>
-                                                Up to date for 10&nbsp;AM (CET)
-                                                on{" "}
-                                                {formatDate(this.lastUpdated)}.
-                                            </>
-                                        ) : (
-                                            undefined
-                                        )}
-                                    </span>
-                                </HeaderCell>
-                            )}
+                            {this.columns.map(key => (
+                                <React.Fragment key={key}>
+                                    {columns[key].header(this.headerCellProps)}
+                                </React.Fragment>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
                         {this.renderData.shown.map(datum => (
                             <CovidTableRow
+                                columns={this.columns}
                                 key={datum.id}
                                 datum={datum}
                                 dateRange={this.dateRange}
-                                state={this.state}
+                                state={this.tableState}
                             />
                         ))}
                     </tbody>
