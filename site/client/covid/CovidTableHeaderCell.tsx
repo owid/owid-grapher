@@ -8,7 +8,7 @@ import { CovidAccessorKey } from "./CovidTypes"
 import { CovidTableSortIcon } from "./CovidTableSortIcon"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 
-export interface CovidHeaderCellProps {
+export interface CovidTableHeaderCellProps {
     children: React.ReactNode
     className?: string
     sortKey?: CovidAccessorKey
@@ -19,7 +19,9 @@ export interface CovidHeaderCellProps {
     onSort?: (key: CovidAccessorKey) => void
 }
 
-export class CovidHeaderCell extends React.Component<CovidHeaderCellProps> {
+export class CovidTableHeaderCell extends React.Component<
+    CovidTableHeaderCellProps
+> {
     @bind onClick() {
         if (this.props.sortKey && this.props.onSort) {
             this.props.onSort(this.props.sortKey)

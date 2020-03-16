@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { csvParse } from "d3"
 import classnames from "classnames"
 
-import { CovidHeaderCell as HeaderCell } from "./CovidHeaderCell"
+import { CovidTableHeaderCell as HeaderCell } from "./CovidTableHeaderCell"
 
 import {
     throttle,
