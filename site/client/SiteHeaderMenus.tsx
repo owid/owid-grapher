@@ -14,6 +14,8 @@ import classnames from "classnames"
 import { find } from "lodash"
 import { bind } from "decko"
 
+import { BAKED_BASE_URL } from "settings"
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
@@ -237,7 +239,7 @@ export class Header extends React.Component<{
                             className="oxford-logo"
                         >
                             <img
-                                src="/oms-logo.svg"
+                                src={`${BAKED_BASE_URL}/oms-logo.svg`}
                                 alt="Oxford Martin School logo"
                             />
                         </a>
@@ -246,7 +248,7 @@ export class Header extends React.Component<{
                             className="gcdl-logo"
                         >
                             <img
-                                src="/gcdl-logo-narrow.png"
+                                src={`${BAKED_BASE_URL}/gcdl-logo-narrow.png`}
                                 alt="Global Change Data Lab logo"
                             />
                         </a>

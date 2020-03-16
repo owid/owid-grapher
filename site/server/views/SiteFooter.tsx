@@ -210,7 +210,7 @@ export const SiteFooter = ({
                                     data-track-note="footer-navigation"
                                 >
                                     <img
-                                        src="/yc-logo.png"
+                                        src={`${BAKED_BASE_URL}/yc-logo.png`}
                                         alt="Y Combinator logo"
                                     />
                                 </a>
