@@ -174,7 +174,7 @@ export class FeedbackPrompt extends React.Component {
                 )}
                 {this.isOpen ? (
                     <button className="prompt" onClick={this.toggleOpen}>
-                        <FontAwesomeIcon icon={faTimes} />
+                        <FontAwesomeIcon icon={faTimes} /> Close
                     </button>
                 ) : (
                     <button
@@ -183,7 +183,7 @@ export class FeedbackPrompt extends React.Component {
                         data-track-note="page-open-feedback"
                         onClick={this.toggleOpen}
                     >
-                        <FontAwesomeIcon icon={faCommentAlt} />
+                        <FontAwesomeIcon icon={faCommentAlt} /> Feedback
                     </button>
                 )}
             </div>
