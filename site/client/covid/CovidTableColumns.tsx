@@ -102,6 +102,11 @@ const daysToDoubleGenerator = (
                             <CovidBars<CovidDatum>
                                 {...bars}
                                 y={accessorDatum}
+                                highlightedX={
+                                    range !== undefined
+                                        ? bars.x(range.halfDay)
+                                        : undefined
+                                }
                             />
                         </div>
                     </div>
