@@ -64,7 +64,8 @@
     "wpackagist-plugin/safe-svg": "1.9.8",
     "wpackagist-plugin/simple-custom-post-order": "2.4.9",
     "wpackagist-plugin/simple-history": "2.33.2",
-    "wpackagist-plugin/tablepress": "1.10"
+    "wpackagist-plugin/tablepress": "1.10",
+    "wpackagist-plugin/enable-media-replace": "3.3.11"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.5.4",
