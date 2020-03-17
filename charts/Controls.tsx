@@ -515,7 +515,8 @@ export class Controls {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && numLines > 1) numLines -= 1
+        if (this.hasSpace && this.hasInlineControls && numLines > 1)
+            numLines -= 1
         return numLines
     }
 
@@ -856,13 +857,15 @@ export class ControlsFooterView extends React.Component<{
             </div>
         )
 
-        const tabsElement = (
+        const tabsElement = hasSpace ? (
             <div className="footerRowMulti">
-                {hasInlineControls && hasSpace && (
-                    <div>{this._getInlineControlsElement()}</div>
-                )}
+                <div>
+                    {hasInlineControls && this._getInlineControlsElement()}
+                </div>
                 {this._getTabsElement()}
             </div>
+        ) : (
+            <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
 
         const shareMenuElement = isShareMenuActive && (
