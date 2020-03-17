@@ -14,7 +14,8 @@ import {
     partition,
     max,
     fetchText,
-    addDays
+    addDays,
+    extend
 } from "charts/Util"
 
 import { DATA_URL, CASE_THRESHOLD, DEFAULT_SORT_ORDER } from "./CovidConstants"
@@ -44,13 +45,18 @@ import {
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
     @observable.ref sortOrder: SortOrder = SortOrder.desc
-    @observable.ref isMobile: boolean = true
+    @observable.ref isMobile: boolean = false
+
+    constructor(state: Partial<CovidTableState>) {
+        extend(this, state)
+    }
 }
 
 export interface CovidTableProps {
-    preloadData?: CovidSeries
     columns: CovidTableColumnKey[]
     mobileColumns: CovidTableColumnKey[]
+    preloadData?: CovidSeries
+    defaultState?: Partial<CovidTableState>
 }
 
 @observer
@@ -62,7 +68,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     @observable.ref isLoading: boolean = false
     @observable.ref error: string | undefined = undefined
 
-    @observable tableState = new CovidTableState()
+    @observable tableState = new CovidTableState(this.props.defaultState)
 
     componentDidMount() {
         if (!this.props.preloadData) {
