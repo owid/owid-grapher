@@ -21,7 +21,7 @@ export interface CovidBarsProps<T> {
     onHover: (d: T | undefined, index: number | undefined) => void
     currentX?: number
     highlightedX?: number
-    renderValue?: (d: T | undefined) => JSX.Element
+    renderValue?: (d: T | undefined) => JSX.Element | undefined
 }
 
 @observer
