@@ -122,13 +122,18 @@ export const NewsletterSubscriptionForm = ({
                     )}
                 </div>
             </fieldset>
-            <div className="email-submit owid-inline-field">
-                <input
-                    placeholder="Your email address"
-                    type="email"
-                    className="owid-inline-input"
-                    name="EMAIL"
-                />
+            <input
+                placeholder="Your email address"
+                type="email"
+                className="owid-inline-input"
+                name="EMAIL"
+            />
+            <div className="privacy-submit">
+                <div className="privacy-notice">
+                    By subscribing you are agreeing to <br />
+                    the terms of our{" "}
+                    <a href="/privacy-policy">privacy policy</a>.
+                </div>
                 <button
                     type="submit"
                     className="owid-inline-button"
