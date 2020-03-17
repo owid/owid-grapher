@@ -24,6 +24,7 @@
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
+        "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "testcheck": "yarn test && yarn typecheck && yarn prettify:check",
         "deploy": "./bin/deploy.sh",
         "serve": "yarn tsn admin/server/server.tsx",

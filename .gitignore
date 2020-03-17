@@ -17,3 +17,4 @@ datasetsExport
 .tscache
 .queue
 .pending
+coverage/
