@@ -132,13 +132,13 @@ $table-bg: $body-bg;
     }
 
     td.total-cases {
-        width: 15%;
+        width: 8%;
     }
 
     td.doubling-days {
         line-height: 1.1;
         text-align: left;
-        width: 35%;
+        width: 30%;
 
         .days {
             font-size: 20px;
@@ -174,7 +174,7 @@ $table-bg: $body-bg;
     }
 
     td.new-cases {
-        width: 15%;
+        width: 8%;
     }
 
     td {
@@ -278,6 +278,18 @@ $table-bg: $body-bg;
 
 .covid-error {
     color: #860000;
+}
+
+.covid-table-mobile {
+    .covid-bars {
+        width: 100%;
+        max-width: 70px;
+        height: 2.5em;
+    }
+
+    .trend .plot {
+        flex: 1;
+    }
 }
 
 .covid-bars {
