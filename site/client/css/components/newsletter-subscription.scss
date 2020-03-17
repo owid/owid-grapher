@@ -26,6 +26,33 @@
         font-size: 0.9rem;
         color: $error-text-color;
     }
+
+    input {
+        width: 100%;
+        font-size: inherit;
+    }
+
+    .privacy-submit {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: $vertical-spacing;
+
+        .privacy-notice {
+            font-size: 0.8rem;
+            text-align: right;
+
+            a {
+                color: $link-color;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        button {
+            margin-left: 1rem;
+        }
+    }
 }
 
 .homepage-subscribe .newsletter-subscription {
@@ -50,18 +77,5 @@
 .site-header .newsletter-subscription {
     .box {
         padding: 1rem;
-    }
-    .email-submit {
-        flex-direction: column;
-        align-items: flex-end;
-
-        input {
-            width: 100%;
-            font-size: inherit;
-        }
-
-        button {
-            margin-top: $vertical-spacing;
-        }
     }
 }
