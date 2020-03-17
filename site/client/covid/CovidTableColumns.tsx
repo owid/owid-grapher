@@ -180,7 +180,7 @@ const newGenerator = (accessor: IntAccessor) => (props: CovidTableCellSpec) => {
                             date={datum.latest.date}
                             latest={true}
                             tooltip={
-                                datum.latest.new_cases === 0 ? (
+                                accessor(datum.latest) === 0 ? (
                                     <div className="covid-tooltip">
                                         Values can be zero for countries that
                                         haven't sent a daily update to the WHO.

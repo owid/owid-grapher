@@ -25,7 +25,7 @@ export const CovidTimeSeriesValue = ({
                 <span className="count">
                     {value}{" "}
                     {tooltip && (
-                        <Tippy content={tooltip} maxWidth={230}>
+                        <Tippy content={tooltip} maxWidth={250}>
                             <span className="help-icon">
                                 <FontAwesomeIcon icon={faQuestionCircle} />
                             </span>
