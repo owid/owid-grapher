@@ -210,6 +210,16 @@ $table-bg: $body-bg;
             font-weight: 400;
             opacity: 0.65;
         }
+
+        .help-icon {
+            font-size: 15px;
+            color: rgba($primary-color, 0.3);
+            transition: color 200ms ease;
+
+            &:hover {
+                color: rgba($primary-color, 0.65);
+            }
+        }
     }
 
     .trend {
