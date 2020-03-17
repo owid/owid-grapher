@@ -1,26 +1,47 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import { CovidTable } from "./CovidTable"
+import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
 
-export function runCovid() {
-    const element = document.getElementById("covid-table-embed")
-    if (element) {
-        ReactDOM.render(
-            <CovidTable
-                columns={[
-                    CovidTableColumnKey.location,
-                    CovidTableColumnKey.daysToDoubleCases,
-                    CovidTableColumnKey.totalCases,
-                    CovidTableColumnKey.newCases
-                ]}
-                mobileColumns={[
-                    CovidTableColumnKey.location,
-                    CovidTableColumnKey.daysToDoubleCases
-                ]}
-            />,
-            element
-        )
+type Measure = "cases" | "deaths"
+
+const propsByMeasure: Record<Measure, CovidTableProps> = {
+    cases: {
+        columns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleCases,
+            CovidTableColumnKey.totalCases,
+            CovidTableColumnKey.newCases
+        ],
+        mobileColumns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleCases
+        ]
+    },
+    deaths: {
+        columns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleDeaths,
+            CovidTableColumnKey.totalDeaths,
+            CovidTableColumnKey.newDeaths
+        ],
+        mobileColumns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleDeaths
+        ]
     }
+}
+
+export function runCovid() {
+    const elements = Array.from(
+        document.querySelectorAll("*[data-covid-table], #covid-table-embed")
+    )
+    elements.forEach(element => {
+        const measure: Measure =
+            element.getAttribute("data-measure") === "deaths"
+                ? "deaths"
+                : "cases"
+        ReactDOM.render(<CovidTable {...propsByMeasure[measure]} />, element)
+    })
 }
