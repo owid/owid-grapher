@@ -85,6 +85,15 @@ export const CovidPage = () => {
                                                 <div className="wp-block-column">
                                                     <div
                                                         data-covid-table
+                                                        data-measure="deaths"
+                                                    ></div>
+                                                </div>
+                                                <div className="wp-block-column"></div>
+                                            </div>
+                                            <div className="wp-block-columns is-style-sticky-right">
+                                                <div className="wp-block-column">
+                                                    <div
+                                                        data-covid-table
                                                         data-measure="cases"
                                                     ></div>
                                                 </div>
