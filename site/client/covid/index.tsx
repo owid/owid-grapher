@@ -7,7 +7,10 @@ import { SortOrder, CovidSortKey } from "./CovidTypes"
 
 type Measure = "cases" | "deaths"
 
-const propsByMeasure: Record<Measure, CovidTableProps> = {
+const CASE_THRESHOLD = 20
+const DEATH_THRESHOLD = 5
+
+const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
     cases: {
         columns: [
             CovidTableColumnKey.location,
@@ -22,7 +25,16 @@ const propsByMeasure: Record<Measure, CovidTableProps> = {
         defaultState: {
             sortKey: CovidSortKey.totalCases,
             sortOrder: SortOrder.desc
-        }
+        },
+        filter: d =>
+            d.location.indexOf("International") === -1 &&
+            (d.latest && d.latest.total_cases !== undefined
+                ? d.latest.total_cases >= CASE_THRESHOLD
+                : false),
+        note: `Countries with less than ${CASE_THRESHOLD} confirmed
+            cases are not shown. Cases from the Diamond Princess
+            cruise ship are also not shown since these numbers are
+            no longer changing over time.`
     },
     deaths: {
         columns: [
@@ -38,7 +50,16 @@ const propsByMeasure: Record<Measure, CovidTableProps> = {
         defaultState: {
             sortKey: CovidSortKey.totalDeaths,
             sortOrder: SortOrder.desc
-        }
+        },
+        filter: d =>
+            d.location.indexOf("International") === -1 &&
+            (d.latest && d.latest.total_deaths !== undefined
+                ? d.latest.total_deaths >= DEATH_THRESHOLD
+                : false),
+        note: `Countries with less than ${DEATH_THRESHOLD} confirmed
+            deaths are not shown. Deaths from the Diamond Princess
+            cruise ship are also not shown since these numbers are
+            no longer changing over time.`
     }
 }
 
