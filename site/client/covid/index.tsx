@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom"
 
 import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
+import { SortOrder, CovidSortKey } from "./CovidTypes"
 
 type Measure = "cases" | "deaths"
 
@@ -17,7 +18,11 @@ const propsByMeasure: Record<Measure, CovidTableProps> = {
         mobileColumns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleCases
-        ]
+        ],
+        defaultState: {
+            sortKey: CovidSortKey.totalCases,
+            sortOrder: SortOrder.desc
+        }
     },
     deaths: {
         columns: [
@@ -29,7 +34,11 @@ const propsByMeasure: Record<Measure, CovidTableProps> = {
         mobileColumns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths
-        ]
+        ],
+        defaultState: {
+            sortKey: CovidSortKey.totalDeaths,
+            sortOrder: SortOrder.desc
+        }
     }
 }
 
