@@ -9,7 +9,13 @@ import {
     CovidTableHeaderCell as HeaderCell,
     CovidTableHeaderCellProps
 } from "./CovidTableHeaderCell"
-import { CovidSortKey, CovidCountryDatum, CovidDatum } from "./CovidTypes"
+import {
+    CovidSortKey,
+    CovidCountryDatum,
+    CovidDatum,
+    NounGenerator,
+    CovidDoublingRange
+} from "./CovidTypes"
 import { formatDate, formatInt } from "./CovidUtils"
 import { CovidBarsProps, CovidBars } from "./CovidBars"
 import { nouns } from "./CovidConstants"
@@ -20,7 +26,10 @@ export enum CovidTableColumnKey {
     location = "location",
     totalCases = "totalCases",
     newCases = "newCases",
-    daysToDoubleCases = "daysToDoubleCases"
+    totalDeaths = "totalDeaths",
+    newDeaths = "newDeaths",
+    daysToDoubleCases = "daysToDoubleCases",
+    daysToDoubleDeaths = "daysToDoubleDeaths"
 }
 
 export type CovidTableHeaderSpec = Omit<
@@ -44,6 +53,138 @@ export interface CovidTableColumnSpec {
     sortKey: CovidSortKey
     header: (props: CovidTableHeaderSpec) => JSX.Element
     cell: (props: CovidTableCellSpec) => JSX.Element
+}
+
+type IntAccessor = (d: CovidDatum) => number | undefined
+type RangeAccessor = (d: CovidCountryDatum) => CovidDoublingRange | undefined
+
+const daysToDoubleGenerator = (
+    accessorDatum: IntAccessor,
+    accessorRange: RangeAccessor,
+    noun: NounGenerator
+) => (props: CovidTableCellSpec) => {
+    const { datum, bars, isMobile } = props
+    const range = accessorRange(datum)
+    return (
+        <React.Fragment>
+            <td className="doubling-days">
+                {range !== undefined ? (
+                    <>
+                        <span className="label">doubled in</span> <br />
+                        <span className="days">
+                            {range.length}
+                            &nbsp;
+                            {nouns.days(range.length)}&nbsp;
+                            <Tippy
+                                content={
+                                    <CovidDoublingTooltip
+                                        doublingRange={range}
+                                        noun={noun}
+                                        accessor={accessorDatum}
+                                    />
+                                }
+                                maxWidth={260}
+                            >
+                                <span className="info-icon">
+                                    <FontAwesomeIcon icon={faInfoCircle} />
+                                </span>
+                            </Tippy>
+                        </span>
+                    </>
+                ) : (
+                    <span className="no-data">Not enough data available</span>
+                )}
+            </td>
+            {isMobile && (
+                <td className="plot-cell">
+                    <div className="trend">
+                        <div className="plot">
+                            <CovidBars<CovidDatum>
+                                {...bars}
+                                y={accessorDatum}
+                            />
+                        </div>
+                    </div>
+                </td>
+            )}
+        </React.Fragment>
+    )
+}
+
+const totalGenerator = (accessor: IntAccessor) => (
+    props: CovidTableCellSpec
+) => {
+    const { bars, datum } = props
+    return (
+        <td className="total-cases plot-cell">
+            <div className="trend">
+                <div className="plot">
+                    <CovidBars<CovidDatum>
+                        {...bars}
+                        y={accessor}
+                        renderValue={d =>
+                            d && accessor(d) !== undefined ? (
+                                <CovidTimeSeriesValue
+                                    value={formatInt(accessor(d))}
+                                    date={d.date}
+                                />
+                            ) : (
+                                undefined
+                            )
+                        }
+                    />
+                </div>
+                <div className="value">
+                    {datum.latest && accessor(datum.latest) !== undefined && (
+                        <CovidTimeSeriesValue
+                            value={`${formatInt(accessor(datum.latest))} total`}
+                            date={datum.latest.date}
+                            latest={true}
+                        />
+                    )}
+                </div>
+            </div>
+        </td>
+    )
+}
+
+const newGenerator = (accessor: IntAccessor) => (props: CovidTableCellSpec) => {
+    const { bars, datum } = props
+    return (
+        <td className="new-cases plot-cell">
+            <div className="trend">
+                <div className="plot">
+                    <CovidBars<CovidDatum>
+                        {...bars}
+                        y={accessor}
+                        renderValue={d =>
+                            d && accessor(d) !== undefined ? (
+                                <CovidTimeSeriesValue
+                                    value={formatInt(accessor(d), "", {
+                                        showPlus: true
+                                    })}
+                                    date={d && d.date}
+                                />
+                            ) : (
+                                undefined
+                            )
+                        }
+                    />
+                </div>
+                <div className="value">
+                    {datum.latest && accessor(datum.latest) !== undefined && (
+                        <CovidTimeSeriesValue
+                            value={`${formatInt(accessor(datum.latest), "", {
+                                showPlus: true
+                            })} new`}
+                            date={datum.latest.date}
+                            latest={true}
+                        />
+                    )}
+                </div>
+            </div>
+        </td>
+    )
 }
 
 // TODO
@@ -76,59 +217,29 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 <strong>total confirmed cases to double</strong>?
             </HeaderCell>
         ),
-        cell: props => {
-            const { datum, bars, isMobile } = props
-            const { caseDoublingRange } = datum
-            return (
-                <React.Fragment>
-                    <td className="doubling-days">
-                        {caseDoublingRange !== undefined ? (
-                            <>
-                                <span className="label">doubled in</span> <br />
-                                <span className="days">
-                                    {caseDoublingRange.length}
-                                    &nbsp;
-                                    {nouns.days(caseDoublingRange.length)}&nbsp;
-                                    <Tippy
-                                        content={
-                                            <CovidDoublingTooltip
-                                                caseDoublingRange={
-                                                    caseDoublingRange
-                                                }
-                                                noun={nouns.cases}
-                                            />
-                                        }
-                                        maxWidth={260}
-                                    >
-                                        <span className="info-icon">
-                                            <FontAwesomeIcon
-                                                icon={faInfoCircle}
-                                            />
-                                        </span>
-                                    </Tippy>
-                                </span>
-                            </>
-                        ) : (
-                            <span className="no-data">
-                                Not enough data available
-                            </span>
-                        )}
-                    </td>
-                    {isMobile && (
-                        <td className="plot-cell">
-                            <div className="trend">
-                                <div className="plot">
-                                    <CovidBars<CovidDatum>
-                                        {...bars}
-                                        y={d => d.total_cases}
-                                    />
-                                </div>
-                            </div>
-                        </td>
-                    )}
-                </React.Fragment>
-            )
-        }
+        cell: daysToDoubleGenerator(
+            d => d.total_cases,
+            d => d.caseDoublingRange,
+            nouns.cases
+        )
+    },
+    daysToDoubleDeaths: {
+        sortKey: CovidSortKey.daysToDoubleDeaths,
+        header: props => (
+            <HeaderCell
+                {...props}
+                sortKey={CovidSortKey.daysToDoubleDeaths}
+                colSpan={props.isMobile ? 2 : 1}
+            >
+                How long did it take for the number of{" "}
+                <strong>total confirmed deaths to double</strong>?
+            </HeaderCell>
+        ),
+        cell: daysToDoubleGenerator(
+            d => d.total_deaths,
+            d => d.deathDoublingRange,
+            nouns.deaths
+        )
     },
     totalCases: {
         sortKey: CovidSortKey.totalCases,
@@ -148,36 +259,27 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: props => {
-            const { bars, datum } = props
-            return (
-                <td className="total-cases plot-cell">
-                    <div className="trend">
-                        <div className="plot">
-                            <CovidBars<CovidDatum>
-                                {...bars}
-                                y={d => d.total_cases}
-                                renderValue={d => (
-                                    <CovidTimeSeriesValue
-                                        value={formatInt(d && d.total_cases)}
-                                        date={d && d.date}
-                                    />
-                                )}
-                            />
-                        </div>
-                        <div className="value">
-                            <CovidTimeSeriesValue
-                                value={`${formatInt(
-                                    datum.latest?.total_cases
-                                )} total`}
-                                date={datum.latest?.date}
-                                latest={true}
-                            />
-                        </div>
-                    </div>
-                </td>
-            )
-        }
+        cell: totalGenerator(d => d.total_cases)
+    },
+    totalDeaths: {
+        sortKey: CovidSortKey.totalDeaths,
+        header: props => (
+            <HeaderCell {...props} sortKey={CovidSortKey.totalDeaths}>
+                <strong>Total confirmed deaths</strong> <br />
+                <span className="note">
+                    WHO data.{" "}
+                    {props.lastUpdated !== undefined ? (
+                        <>
+                            Up to date for 10&nbsp;AM (CET) on{" "}
+                            {formatDate(props.lastUpdated)}.
+                        </>
+                    ) : (
+                        undefined
+                    )}
+                </span>
+            </HeaderCell>
+        ),
+        cell: totalGenerator(d => d.total_deaths)
     },
     newCases: {
         sortKey: CovidSortKey.newCases,
@@ -197,41 +299,26 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: props => {
-            const { bars, datum } = props
-            return (
-                <td className="new-cases plot-cell">
-                    <div className="trend">
-                        <div className="plot">
-                            <CovidBars<CovidDatum>
-                                {...bars}
-                                y={d => d.new_cases}
-                                renderValue={d => (
-                                    <CovidTimeSeriesValue
-                                        value={formatInt(d && d.new_cases, "", {
-                                            showPlus: true
-                                        })}
-                                        date={d && d.date}
-                                    />
-                                )}
-                            />
-                        </div>
-                        <div className="value">
-                            <CovidTimeSeriesValue
-                                value={`${formatInt(
-                                    datum.latest?.new_cases,
-                                    "",
-                                    {
-                                        showPlus: true
-                                    }
-                                )} new`}
-                                date={datum.latest?.date}
-                                latest={true}
-                            />
-                        </div>
-                    </div>
-                </td>
-            )
-        }
+        cell: newGenerator(d => d.new_cases)
+    },
+    newDeaths: {
+        sortKey: CovidSortKey.newDeaths,
+        header: props => (
+            <HeaderCell {...props} sortKey={CovidSortKey.newDeaths}>
+                <strong>Daily new confirmed deaths</strong> <br />
+                <span className="note">
+                    WHO data.{" "}
+                    {props.lastUpdated !== undefined ? (
+                        <>
+                            Up to date for 10&nbsp;AM (CET) on{" "}
+                            {formatDate(props.lastUpdated)}.
+                        </>
+                    ) : (
+                        undefined
+                    )}
+                </span>
+            </HeaderCell>
+        ),
+        cell: newGenerator(d => d.new_deaths)
     }
 }

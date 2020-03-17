@@ -75,7 +75,7 @@ export function getDoublingRange(
     return undefined
 }
 
-export const accessors: Record<CovidSortKey, CovidSortAccessor> = {
+export const sortAccessors: Record<CovidSortKey, CovidSortAccessor> = {
     location: (d: CovidCountryDatum) => d.location,
     totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
     newCases: (d: CovidCountryDatum) => d.latest?.new_cases,

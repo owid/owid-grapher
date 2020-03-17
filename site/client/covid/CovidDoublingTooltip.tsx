@@ -1,17 +1,18 @@
 import * as React from "react"
 
-import { CovidDoublingRange, NounGenerator } from "./CovidTypes"
+import { CovidDoublingRange, NounGenerator, CovidDatum } from "./CovidTypes"
 import { formatInt, formatDate } from "./CovidUtils"
 
 export const CovidDoublingTooltip = (props: {
-    caseDoublingRange: CovidDoublingRange
+    doublingRange: CovidDoublingRange
     noun: NounGenerator
+    accessor: (d: CovidDatum) => number | undefined
 }) => {
-    const { noun } = props
-    const { latestDay, halfDay, ratio, length } = props.caseDoublingRange
+    const { noun, accessor } = props
+    const { latestDay, halfDay, ratio, length } = props.doublingRange
     return (
         <div className="covid-tooltip">
-            The number of total confirmed cases in {latestDay.location} has
+            The number of total confirmed {noun()} in {latestDay.location} has
             increased{" "}
             <span className="growth-rate">{ratio.toFixed(1)}-times</span> in the{" "}
             <span className="period">last {length} days</span>.
@@ -19,8 +20,8 @@ export const CovidDoublingTooltip = (props: {
                 <tbody>
                     <tr>
                         <td className="value from-color">
-                            {formatInt(halfDay.total_cases)}{" "}
-                            {noun(halfDay.total_cases)}
+                            {formatInt(accessor(halfDay))}{" "}
+                            {noun(accessor(halfDay))}
                         </td>
                         <td>on</td>
                         <td className="date from-color">
@@ -29,8 +30,8 @@ export const CovidDoublingTooltip = (props: {
                     </tr>
                     <tr>
                         <td className="value to-color">
-                            {formatInt(latestDay.total_cases)}{" "}
-                            {noun(latestDay.total_cases)}
+                            {formatInt(accessor(latestDay))}{" "}
+                            {noun(accessor(latestDay))}
                         </td>
                         <td>on</td>
                         <td className="date to-color">

@@ -30,7 +30,7 @@ import {
 import {
     parseIntOrUndefined,
     getDoublingRange,
-    accessors,
+    sortAccessors,
     inverseSortOrder
 } from "./CovidUtils"
 
@@ -137,10 +137,20 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 
     @computed get renderData() {
+        const { sortKey, sortOrder } = this.tableState
+        const accessor = sortAccessors[sortKey]
         const sortedSeries = orderBy(
             this.countrySeries,
-            accessors[this.tableState.sortKey],
-            this.tableState.sortOrder
+            d => {
+                const value = accessor(d)
+                // In order for undefined values to always be last, we map them to +- Infinity
+                return value !== undefined
+                    ? value
+                    : sortOrder === SortOrder.asc
+                    ? Infinity
+                    : -Infinity
+            },
+            sortOrder
         )
         const [shown, hidden] = partition(
             sortedSeries,

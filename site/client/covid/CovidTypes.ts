@@ -48,6 +48,6 @@ export enum SortOrder {
     desc = "desc"
 }
 
-export type NounKey = "cases" | "days"
+export type NounKey = "cases" | "deaths" | "days"
 
 export type NounGenerator = (n?: number) => string

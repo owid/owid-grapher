@@ -16,5 +16,6 @@ export const DEFAULT_SORT_ORDER = SortOrder.asc
 
 export const nouns: Record<NounKey, NounGenerator> = {
     cases: createNoun("case", "cases"),
+    deaths: createNoun("death", "deaths"),
     days: createNoun("day", "days")
 }
