@@ -3,9 +3,6 @@ import { createNoun } from "./CovidUtils"
 
 export const DATA_URL = "https://covid.ourworldindata.org/data/full_data.csv"
 
-// hides any table rows which have less than that number of cases
-export const CASE_THRESHOLD = 10
-
 // bar colors
 export const CURRENT_COLOR = "#1d3d63"
 export const HIGHLIGHT_COLOR = "#d42b21"

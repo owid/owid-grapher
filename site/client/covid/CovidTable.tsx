@@ -18,14 +18,15 @@ import {
     extend
 } from "charts/Util"
 
-import { DATA_URL, CASE_THRESHOLD, DEFAULT_SORT_ORDER } from "./CovidConstants"
+import { DATA_URL, DEFAULT_SORT_ORDER } from "./CovidConstants"
 
 import {
     CovidSortKey,
     CovidSeries,
     CovidCountrySeries,
     DateRange,
-    SortOrder
+    SortOrder,
+    CovidCountryDatum
 } from "./CovidTypes"
 
 import {
@@ -55,12 +56,21 @@ export class CovidTableState {
 export interface CovidTableProps {
     columns: CovidTableColumnKey[]
     mobileColumns: CovidTableColumnKey[]
+    defaultState: Partial<CovidTableState>
+    filter: (datum: CovidCountryDatum) => any
     preloadData?: CovidSeries
-    defaultState?: Partial<CovidTableState>
+    note?: JSX.Element | string
 }
 
 @observer
 export class CovidTable extends React.Component<CovidTableProps> {
+    static defaultProps: CovidTableProps = {
+        columns: [],
+        mobileColumns: [],
+        filter: d => d,
+        defaultState: {}
+    }
+
     @observable.ref data: CovidSeries | undefined =
         this.props.preloadData ?? undefined
 
@@ -158,14 +168,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
             },
             sortOrder
         )
-        const [shown, hidden] = partition(
-            sortedSeries,
-            d =>
-                d.location.indexOf("International") === -1 &&
-                (d.latest && d.latest.total_cases !== undefined
-                    ? d.latest.total_cases >= CASE_THRESHOLD
-                    : false)
-        )
+        const [shown, hidden] = partition(sortedSeries, this.props.filter)
         return { shown, hidden }
     }
 
@@ -249,12 +252,9 @@ export class CovidTable extends React.Component<CovidTableProps> {
                     </tbody>
                 </table>
                 <div className="covid-table-note">
-                    <p className="tiny">
-                        Countries with less than {CASE_THRESHOLD} confirmed
-                        cases are not shown. Cases from the Diamond Princess
-                        cruise ship are also not shown since these numbers are
-                        no longer changing over time.
-                    </p>
+                    {this.props.note && (
+                        <p className="tiny">{this.props.note}</p>
+                    )}
                     <p>
                         Data source:{" "}
                         <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports/">
