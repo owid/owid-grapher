@@ -169,7 +169,7 @@ $table-bg: $body-bg;
         .no-data {
             font-size: 14px;
             font-weight: 400;
-            opacity: 0.6;
+            opacity: 0.45;
         }
     }
 
@@ -210,6 +210,16 @@ $table-bg: $body-bg;
             font-weight: 400;
             opacity: 0.65;
         }
+
+        .help-icon {
+            font-size: 15px;
+            color: rgba($primary-color, 0.3);
+            transition: color 200ms ease;
+
+            &:hover {
+                color: rgba($primary-color, 0.65);
+            }
+        }
     }
 
     .trend {
@@ -246,6 +256,10 @@ $table-bg: $body-bg;
     }
 }
 
+.covid-table-mobile .info-icon {
+    font-size: inherit !important;
+}
+
 .covid-table-embed:empty,
 .covid-error {
     border-top: 1px solid rgba($primary-color, 0.08);
@@ -270,10 +284,6 @@ $table-bg: $body-bg;
     width: 84px; // should be a multiple of 14
     height: 3em;
     display: flex;
-
-    .covid-table-mobile & {
-        width: 70px;
-    }
 
     .bar-wrapper {
         flex: 1;
@@ -324,6 +334,7 @@ $table-bg: $body-bg;
     .growth-rate {
         font-weight: 700;
         color: $primary-color;
+        white-space: nowrap;
     }
 
     table.values {
