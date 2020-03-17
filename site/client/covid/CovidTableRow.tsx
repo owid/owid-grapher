@@ -51,17 +51,14 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
     @computed get currentX(): number | undefined {
         const { datum } = this.props
         if (datum.latest) {
-            return this.dateToIndex(datum.latest.date)
+            return this.x(datum.latest)
         }
         return undefined
     }
 
     @computed get hightlightedX(): number | undefined {
-        const { datum, state } = this.props
-        if (state.isMobile && datum.caseDoublingRange) {
-            return this.dateToIndex(datum.caseDoublingRange.halfDay.date)
-        }
-        if (this.highlightDate) {
+        const { state } = this.props
+        if (!state.isMobile && this.highlightDate) {
             return this.dateToIndex(this.highlightDate)
         }
         return undefined
