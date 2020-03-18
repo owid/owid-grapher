@@ -27,9 +27,7 @@ export const ExplorePage = () => {
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/explore`}
                 pageTitle="Explore"
-            >
-                <link rel="stylesheet" href={webpack("commons.css")} />
-            </Head>
+            ></Head>
             <body className="ExplorePage">
                 <SiteHeader />
                 <main>

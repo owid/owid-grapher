@@ -16,9 +16,7 @@ export const CovidPage = () => {
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/covid`}
                 pageTitle="COVID-19"
-            >
-                <link rel="stylesheet" href={webpack("commons.css")} />
-            </Head>
+            ></Head>
             <body className="CovidPage">
                 <SiteHeader />
                 <main>
