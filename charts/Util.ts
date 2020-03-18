@@ -137,6 +137,7 @@ import parseUrl from "url-parse"
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
+import { EPOCH_DATE } from "settings"
 
 export type SVGElement = any
 export type VNode = any
@@ -213,7 +214,7 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
-export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
+export function formatDay(dayAsYear: number, zeroDay = EPOCH_DATE): string {
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.

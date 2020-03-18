@@ -10,6 +10,8 @@ import {
     sortBy
 } from "./Util"
 import { observable, computed } from "mobx"
+import moment from "moment"
+import { EPOCH_DATE } from "settings"
 
 export class VariableDisplaySettings {
     @observable name?: string = undefined
@@ -46,13 +48,15 @@ export class Variable {
         retrievedDate: string
         additionalInfo: string
     }
-    @observable.ref years: number[] = []
+    @observable.ref rawYears: number[] = []
     @observable.ref entities: string[] = []
     @observable.ref values: (string | number)[] = []
 
     constructor(json: any) {
         for (const key in this) {
-            if (key in json) {
+            if (key === "rawYears") {
+                this.rawYears = json.years
+            } else if (key in json) {
                 if (key === "display") {
                     extend(this.display, json.display)
                 } else {
@@ -60,6 +64,16 @@ export class Variable {
                 }
             }
         }
+    }
+
+    @computed get years(): number[] {
+        if (this.display.yearIsDay) {
+            const epoch = moment.utc(EPOCH_DATE)
+            const zeroDay = moment.utc(this.display.zeroDay)
+            const diff = zeroDay.diff(epoch, "days")
+            return this.rawYears.map(y => y + diff)
+        }
+        return this.rawYears
     }
 
     @computed get annotationMap() {

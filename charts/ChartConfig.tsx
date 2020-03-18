@@ -1,4 +1,21 @@
-import { extend, map, filter, includes, uniqWith, isEqual, first } from "./Util"
+import {
+    extend,
+    map,
+    filter,
+    includes,
+    uniqWith,
+    isEqual,
+    first,
+    defaultTo,
+    formatDay,
+    formatYear,
+    uniq,
+    values,
+    keyBy,
+    fetchJSON,
+    each,
+    keys
+} from "./Util"
 import {
     observable,
     computed,
@@ -12,17 +29,6 @@ import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import {
-    defaultTo,
-    formatDay,
-    formatYear,
-    uniq,
-    values,
-    keyBy,
-    fetchJSON,
-    each,
-    keys
-} from "./Util"
 import { Variable } from "./Variable"
 import {
     OwidDataset,
@@ -60,6 +66,7 @@ import {
     Time,
     TimeBounds
 } from "./TimeBounds"
+import { EPOCH_DATE } from "settings"
 
 declare const App: any
 declare const window: any
@@ -335,7 +342,7 @@ export class ChartConfig {
     @computed get formatYearFunction() {
         const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar
-            ? (day: number) => formatDay(day, yearIsDayVar.display.zeroDay)
+            ? (day: number) => formatDay(day, EPOCH_DATE)
             : formatYear
     }
 
