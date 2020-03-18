@@ -5,7 +5,7 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
-import { AxisScale } from "./AxisScale"
+import { AxisScale, ScaleType } from "./AxisScale"
 import { Color } from "./Color"
 import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisGridLines } from "./AxisBox"
@@ -133,9 +133,16 @@ export class DiscreteBarChart extends React.Component<{
             ? this.allData
             : this.currentData
         ).map(d => d.value)
-        const minX = Math.min(0, min(allValues) as number)
-        const maxX = Math.max(0, max(allValues) as number)
-        return [minX, maxX]
+
+        const minStart = this.isLogScale ? 1 : 0
+        return [
+            Math.min(minStart, min(allValues) as number),
+            Math.max(minStart, max(allValues) as number)
+        ]
+    }
+
+    @computed get isLogScale() {
+        return this.chart.yAxis.scaleType === "log"
     }
 
     @computed get xRange() {
@@ -196,11 +203,12 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed get barPlacements() {
         const { currentData, xScale } = this
+        const xMin = this.xDomainDefault[0]
         return currentData.map(d => {
             const isNegative = d.value < 0
-            const barX = isNegative ? xScale.place(d.value) : xScale.place(0)
+            const barX = isNegative ? xScale.place(d.value) : xScale.place(xMin)
             const barWidth = isNegative
-                ? xScale.place(0) - barX
+                ? xScale.place(xMin) - barX
                 : xScale.place(d.value) - barX
 
             return { x: barX, width: barWidth }
@@ -241,6 +249,11 @@ export class DiscreteBarChart extends React.Component<{
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2
+        const xMin = this.xDomainDefault[0]
+
+        const onScaleTypeChange = (scaleType: ScaleType) => {
+            this.chart.yAxis.scaleType = scaleType
+        }
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -252,7 +265,15 @@ export class DiscreteBarChart extends React.Component<{
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisView bounds={bounds} axis={xAxis} />
+                <HorizontalAxisView
+                    bounds={bounds}
+                    axis={xAxis}
+                    onScaleTypeChange={
+                        this.chart.yAxis.canChangeScaleType
+                            ? onScaleTypeChange
+                            : undefined
+                    }
+                />
                 <AxisGridLines
                     orient="bottom"
                     scale={xScale}
@@ -262,9 +283,9 @@ export class DiscreteBarChart extends React.Component<{
                     const isNegative = d.value < 0
                     const barX = isNegative
                         ? xScale.place(d.value)
-                        : xScale.place(0)
+                        : xScale.place(xMin)
                     const barWidth = isNegative
-                        ? xScale.place(0) - barX
+                        ? xScale.place(xMin) - barX
                         : xScale.place(d.value) - barX
 
                     // Using transforms for positioning to enable better (subpixel) transitions
