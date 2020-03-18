@@ -74,7 +74,6 @@ export const ChartPage = (props: {
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
-                <link rel="stylesheet" href={webpack("commons.css")} />
                 <link
                     rel="preload"
                     href={`/grapher/data/variables/${variableIds.join(
