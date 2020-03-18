@@ -154,7 +154,30 @@ export class DiscreteBarTransform implements IChartTransform {
             })
         }
 
+        if (this.isLogScale) this._filterDataForLogScaleInPlace(dataByKey)
+
         return orderBy(values(dataByKey), ["value", "key"], ["desc", "asc"])
+    }
+
+    private _filterDataForLogScaleInPlace(dataByKey: {
+        [key: string]: DiscreteBarDatum
+    }) {
+        Object.keys(dataByKey).forEach(key => {
+            const datum = dataByKey[key]
+            if (datum.value === 0) delete dataByKey[key]
+        })
+    }
+
+    private _filterArrayForLogScale(allData: DiscreteBarDatum[]) {
+        // It seems the approach we follow with log scales in the other charts is to filter out zero values.
+        // This is because, as d3 puts it: "a log scale domain must be strictly-positive or strictly-negative;
+        // the domain must not include or cross zero". We may want to update to d3 5.8 and explore switching to
+        // scaleSymlog which handles a wider domain.
+        return allData.filter(datum => datum.value !== 0)
+    }
+
+    @computed get isLogScale() {
+        return this.chart.yAxis.scaleType === "log"
     }
 
     @computed get allData(): DiscreteBarDatum[] {
@@ -187,7 +210,11 @@ export class DiscreteBarTransform implements IChartTransform {
             }
         })
 
-        const data = sortBy(allData, d => d.value)
+        const filteredData = this.isLogScale
+            ? this._filterArrayForLogScale(allData)
+            : allData
+
+        const data = sortBy(filteredData, d => d.value)
         const colorScheme = chart.baseColorScheme
             ? ColorSchemes[chart.baseColorScheme]
             : undefined

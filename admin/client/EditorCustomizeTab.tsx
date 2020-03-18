@@ -338,9 +338,9 @@ export class EditorCustomizeTab extends React.Component<{
 
         return (
             <div>
-                {features.customYAxis && (
+                {features.canCustomizeYAxis && (
                     <Section name="Y Axis">
-                        {features.customYAxisScale && (
+                        {features.canCustomizeYAxisScale && (
                             <React.Fragment>
                                 <FieldsRow>
                                     <NumberField
@@ -368,7 +368,7 @@ export class EditorCustomizeTab extends React.Component<{
                                 />
                             </React.Fragment>
                         )}
-                        {features.customYAxisLabel && (
+                        {features.canCustomizeYAxisLabel && (
                             <BindString
                                 label="Label"
                                 field="label"
@@ -377,9 +377,9 @@ export class EditorCustomizeTab extends React.Component<{
                         )}
                     </Section>
                 )}
-                {features.customXAxis && (
+                {features.canCustomizeXAxis && (
                     <Section name="X Axis">
-                        {features.customXAxisScale && (
+                        {features.canCustomizeXAxisScale && (
                             <React.Fragment>
                                 <FieldsRow>
                                     <NumberField
@@ -407,7 +407,7 @@ export class EditorCustomizeTab extends React.Component<{
                                 />
                             </React.Fragment>
                         )}
-                        {features.customXAxisLabel && (
+                        {features.canCustomizeXAxisLabel && (
                             <BindString
                                 label="Label"
                                 field="label"

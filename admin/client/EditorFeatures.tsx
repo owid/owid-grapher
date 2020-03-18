@@ -13,32 +13,28 @@ export class EditorFeatures {
         return this.editor.chart
     }
 
-    @computed get customYAxisScale() {
-        return (
-            !this.chart.isStackedArea &&
-            !this.chart.isDiscreteBar &&
-            !this.chart.isStackedBar
-        )
+    @computed get canCustomizeYAxisScale() {
+        return !this.chart.isStackedArea && !this.chart.isStackedBar
     }
 
-    @computed get customXAxisScale() {
+    @computed get canCustomizeXAxisScale() {
         return this.chart.isScatter
     }
 
-    @computed get customYAxisLabel() {
+    @computed get canCustomizeYAxisLabel() {
         return this.chart.isScatter
     }
 
-    @computed get customXAxisLabel() {
+    @computed get canCustomizeXAxisLabel() {
         return true
     }
 
-    @computed get customYAxis() {
-        return this.customYAxisScale || this.customYAxisLabel
+    @computed get canCustomizeYAxis() {
+        return this.canCustomizeYAxisScale || this.canCustomizeYAxisLabel
     }
 
-    @computed get customXAxis() {
-        return this.customXAxisScale || this.customXAxisLabel
+    @computed get canCustomizeXAxis() {
+        return this.canCustomizeXAxisScale || this.canCustomizeXAxisLabel
     }
 
     @computed get timeDomain() {
