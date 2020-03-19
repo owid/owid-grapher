@@ -262,7 +262,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             <HeaderCell {...props} sortKey={CovidSortKey.totalCases}>
                 <strong>Total confirmed cases</strong> <br />
                 <span className="note">
-                    WHO data.{" "}
+                    ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -282,7 +282,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             <HeaderCell {...props} sortKey={CovidSortKey.totalDeaths}>
                 <strong>Total confirmed deaths</strong> <br />
                 <span className="note">
-                    WHO data.{" "}
+                    ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -302,7 +302,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             <HeaderCell {...props} sortKey={CovidSortKey.newCases}>
                 <strong>Daily new confirmed cases</strong> <br />
                 <span className="note">
-                    WHO data.{" "}
+                    ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -322,7 +322,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             <HeaderCell {...props} sortKey={CovidSortKey.newDeaths}>
                 <strong>Daily new confirmed deaths</strong> <br />
                 <span className="note">
-                    WHO data.{" "}
+                    ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
