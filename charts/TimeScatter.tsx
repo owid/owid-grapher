@@ -642,6 +642,7 @@ export class TimeScatter extends React.Component<{
                     axisBox={axisBox}
                     onXScaleChange={this.onXScaleChange}
                     onYScaleChange={this.onYScaleChange}
+                    showTickMarks={false}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (

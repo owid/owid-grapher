@@ -234,6 +234,7 @@ export interface AxisBoxViewProps {
     onYScaleChange: (scaleType: ScaleType) => void
     onXScaleChange: (scaleType: ScaleType) => void
     highlightValue?: { x: number; y: number }
+    showTickMarks: boolean
 }
 
 @observer
@@ -243,15 +244,22 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
     }
 
     render() {
-        const { axisBox, onYScaleChange, onXScaleChange } = this.props
+        const {
+            axisBox,
+            onYScaleChange,
+            onXScaleChange,
+            showTickMarks
+        } = this.props
         const { bounds, xScale, yScale, xAxis, yAxis, innerBounds } = axisBox
 
         return (
             <g className="AxisBoxView">
                 <HorizontalAxisView
                     bounds={bounds}
+                    axisPosition={innerBounds.bottom}
                     axis={xAxis}
                     onScaleTypeChange={onXScaleChange}
+                    showTickMarks={showTickMarks}
                 />
                 <VerticalAxisView
                     bounds={bounds}

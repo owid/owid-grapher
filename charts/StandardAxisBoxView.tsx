@@ -33,6 +33,7 @@ export class StandardAxisBoxView extends React.Component<
                 axisBox={axisBox}
                 onXScaleChange={this.onXScaleChange}
                 onYScaleChange={this.onYScaleChange}
+                showTickMarks={true}
             />
         )
     }

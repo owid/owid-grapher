@@ -273,6 +273,7 @@ export class DiscreteBarChart extends React.Component<{
                             ? onScaleTypeChange
                             : undefined
                     }
+                    axisPosition={innerBounds.bottom}
                 />
                 <AxisGridLines
                     orient="bottom"
