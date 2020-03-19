@@ -239,7 +239,7 @@
         @include info;
         margin-top: 1rem;
         margin-bottom: 2rem;
-        padding: $vertical-spacing $padding-x-sm;
+        padding: $padding-x-sm;
         background-color: $tertiary-color;
         h2 {
             span {
@@ -256,7 +256,7 @@
         @include info;
         margin-top: 1rem;
         margin-bottom: 2rem;
-        padding: $vertical-spacing $padding-x-sm;
+        padding: $padding-x-sm;
         background-color: $tertiary-color;
         .title {
             font-weight: bold;
