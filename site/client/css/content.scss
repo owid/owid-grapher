@@ -228,3 +228,41 @@
         }
     }
 }
+
+/*******************************************************************************
+ * Notices
+ */
+
+.article-content {
+    /* Notice for entries that are only a preliminary collection of relevant material */
+    .pcrm {
+        @include info;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+        padding: $padding-x-sm;
+        background-color: $tertiary-color;
+        h2 {
+            span {
+                @include hide;
+            }
+            margin: 0 0 0.5rem;
+            font-size: inherit;
+            text-transform: uppercase;
+        }
+    }
+
+    /* Used for in-page notices (e.g. /coronavirus) */
+    .notice {
+        @include info;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+        padding: $padding-x-sm;
+        background-color: $tertiary-color;
+        .title {
+            font-weight: bold;
+            margin: 0 0 0.5rem;
+            font-size: inherit;
+            text-transform: uppercase;
+        }
+    }
+}

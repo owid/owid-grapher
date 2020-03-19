@@ -1,6 +1,6 @@
 .site-header {
     background-color: $primary-color;
-    border-bottom: 4px solid $secondary-color;
+    border-bottom: $mobile-header-border-height solid $secondary-color;
 }
 
 .site-logo a {
@@ -144,21 +144,22 @@
         align-items: center;
 
         .oxford-logo {
-            width: 9rem;
+            width: 126px;
         }
 
         .gcdl-logo {
-            width: 2rem;
-            margin-left: 0.5rem;
+            width: 50px;
+            margin-left: 0.35rem;
         }
 
         .oxford-logo,
         .gcdl-logo {
-            opacity: 0.85;
+            opacity: 0.75;
             display: flex;
             align-items: center;
 
             img {
+                height: auto;
                 width: 100%;
             }
         }
@@ -436,6 +437,7 @@
 
 @include sm-only {
     .site-header .wrapper {
+        height: $mobile-header-wrapper-height;
         padding: 0;
     }
     .site-navigation-bar {
@@ -444,7 +446,7 @@
     }
     .site-logo a {
         font-size: 1.25rem;
-        padding: 1rem;
+        padding: 0 1rem;
         // do not break "Our world in data" on mobile
         br {
             display: none;
@@ -453,7 +455,7 @@
     .mobile-site-navigation button {
         background: transparent;
         border: none;
-        padding: 1rem;
+        padding: 0 1rem;
         color: white;
     }
 }

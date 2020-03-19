@@ -12,7 +12,6 @@ import {
     find,
     extend,
     uniq,
-    formatYear,
     defaultTo,
     slugify,
     lastOfNonEmptyArray
@@ -183,8 +182,8 @@ export class ChartData {
         ) {
             const { minYear, maxYear } = this
             if (minYear !== undefined) {
-                const timeFrom = formatYear(minYear)
-                const timeTo = formatYear(
+                const timeFrom = chart.formatYearFunction(minYear)
+                const timeTo = chart.formatYearFunction(
                     maxYear !== undefined ? maxYear : minYear
                 )
                 const time =

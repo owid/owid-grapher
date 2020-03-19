@@ -2,7 +2,7 @@ import React = require("react")
 import ReactDOM = require("react-dom")
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons/faEnvelope"
+import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { observable, action, toJS } from "mobx"
 import classnames from "classnames"
@@ -88,7 +88,7 @@ export class FeedbackForm extends React.Component {
                 })}
                 onSubmit={this.onSubmit}
             >
-                <header>Leave us feedback</header>
+                <div className="header">Leave us feedback</div>
                 <div className="formBody">
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
@@ -132,18 +132,18 @@ export class FeedbackForm extends React.Component {
                         undefined
                     )}
                 </div>
-                <footer>
+                <div className="footer">
                     <button type="submit" disabled={loading}>
                         Send message
                     </button>
-                </footer>
+                </div>
             </form>
         )
     }
 }
 
 @observer
-class FeedbackPrompt extends React.Component {
+export class FeedbackPrompt extends React.Component {
     @observable isOpen: boolean = false
 
     @action.bound toggleOpen() {
@@ -156,56 +156,46 @@ class FeedbackPrompt extends React.Component {
 
     render() {
         return (
-            <React.Fragment>
-                <div
-                    onClick={this.onClickOutside}
-                    style={{
-                        display: this.isOpen ? "block" : "none",
-                        position: "fixed",
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: "rgba(255,255,255,.05)"
-                    }}
-                />
-                <div className="feedbackPromptContainer">
-                    <div style={{ display: this.isOpen ? "block" : "none" }}>
-                        <FeedbackForm />
-                    </div>
-                    {this.isOpen ? (
-                        <button
-                            className="FeedbackPrompt"
-                            onClick={this.toggleOpen}
-                        >
-                            <FontAwesomeIcon icon={faTimes} /> Close
-                        </button>
-                    ) : (
-                        <button
-                            className="FeedbackPrompt"
-                            data-track-click
-                            data-track-note="page-open-feedback"
-                            onClick={this.toggleOpen}
-                        >
-                            <FontAwesomeIcon icon={faEnvelope} /> Feedback
-                        </button>
-                    )}
-                </div>
-            </React.Fragment>
+            <div
+                className={`feedbackPromptContainer${
+                    this.isOpen ? " active" : ""
+                }`}
+            >
+                {this.isOpen && (
+                    <>
+                        <div
+                            className="overlay"
+                            onClick={this.onClickOutside}
+                        />
+                        <div className="box">
+                            <FeedbackForm />
+                        </div>
+                    </>
+                )}
+                {this.isOpen ? (
+                    <button className="prompt" onClick={this.toggleOpen}>
+                        <FontAwesomeIcon icon={faTimes} /> Close
+                    </button>
+                ) : (
+                    <button
+                        className="prompt"
+                        data-track-click
+                        data-track-note="page-open-feedback"
+                        onClick={this.toggleOpen}
+                    >
+                        <FontAwesomeIcon icon={faCommentAlt} /> Feedback
+                    </button>
+                )}
+            </div>
         )
     }
 }
 
-export function runFeedback() {
-    ReactDOM.render(
-        <FeedbackPrompt />,
-        document.querySelector(".injectFeedback")
-    )
-}
-
 export function runFeedbackPage() {
     ReactDOM.render(
-        <FeedbackForm />,
+        <div className="box">
+            <FeedbackForm />
+        </div>,
         document.querySelector(".FeedbackPage main")
     )
 }

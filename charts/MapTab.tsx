@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, formatYear } from "./Util"
+import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -235,14 +235,20 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
                                       )
-                                    : `No data for ${inputYear}`}
+                                    : `No data for ${this.context.chart.formatYearFunction(
+                                          inputYear as number
+                                      )}`}
                             </span>
                             <br />
                             {tooltipDatum && tooltipDatum.year !== inputYear && (
                                 <div>
                                     in
                                     <br />
-                                    <span>{formatYear(tooltipDatum.year)}</span>
+                                    <span>
+                                        {this.context.chart.formatYearFunction(
+                                            tooltipDatum.year
+                                        )}
+                                    </span>
                                 </div>
                             )}
                         </div>

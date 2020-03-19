@@ -1,10 +1,10 @@
-import { extend, map, filter, includes, uniqWith, isEqual } from "./Util"
+import { extend, map, filter, includes, uniqWith, isEqual, first } from "./Util"
 import { observable, computed, action, autorun, toJS, runInAction } from "mobx"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo } from "./Util"
+import { defaultTo, formatDay, formatYear } from "./Util"
 import { VariableData, DataForChart } from "./VariableData"
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
@@ -216,6 +216,16 @@ export class ChartConfig {
 
     set baseFontSize(val: number) {
         this.setBaseFontSize = val
+    }
+
+    @computed get formatYearFunction() {
+        const yearIsDayVar = first(
+            this.vardata.variables.filter(v => v.display.yearIsDay)
+        )
+
+        return yearIsDayVar
+            ? (day: number) => formatDay(day, yearIsDayVar.display.zeroDay)
+            : formatYear
     }
 
     vardata: VariableData

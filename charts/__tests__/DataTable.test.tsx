@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
 

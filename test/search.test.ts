@@ -1,3 +1,5 @@
+#! /usr/bin/env jest
+
 import { chunkParagraphs } from "utils/search"
 import { htmlToPlaintext } from "utils/string"
 

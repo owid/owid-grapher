@@ -4,6 +4,7 @@ import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
+import { useTriggerWhenClickOutside } from "./hooks"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 
@@ -42,18 +43,7 @@ export const TableOfContents = ({
         setIsToggled(!isToggled)
     }
 
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (!tocRef.current?.contains(e.target as Node)) {
-                setIsToggled(false)
-            }
-        }
-        document.addEventListener("mousedown", handleClick)
-
-        return () => {
-            document.removeEventListener("mousedown", handleClick)
-        }
-    }, [])
+    useTriggerWhenClickOutside(tocRef, setIsToggled)
 
     useEffect(() => {
         // Sets up an intersection observer to notify when the element with the class

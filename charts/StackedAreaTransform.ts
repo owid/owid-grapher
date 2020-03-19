@@ -10,14 +10,16 @@ import {
     extend,
     find,
     identity,
-    sortedUniq
+    sortedUniq,
+    formatValue,
+    defaultTo,
+    findClosest
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { DataKey } from "./DataKey"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { formatValue, formatYear, defaultTo, findClosest } from "./Util"
 import { IChartTransform } from "./IChartTransform"
 
 // Responsible for translating chart configuration into the form
@@ -282,7 +284,7 @@ export class StackedAreaTransform implements IChartTransform {
     @computed get xAxis(): AxisSpec {
         const { chart, xDomainDefault } = this
         return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
-            tickFormat: (year: number) => formatYear(year),
+            tickFormat: this.chart.formatYearFunction,
             hideFractionalTicks: true,
             hideGridlines: true
         }) as AxisSpec

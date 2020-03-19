@@ -14,14 +14,18 @@ import classnames from "classnames"
 import { find } from "lodash"
 import { bind } from "decko"
 
+import { BAKED_BASE_URL } from "settings"
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 import { AmazonMenu } from "./AmazonMenu"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription"
 
 @observer
 export class Header extends React.Component<{
@@ -36,6 +40,7 @@ export class Header extends React.Component<{
     // Mobile menu toggles
     @observable showSearch: boolean = false
     @observable showCategories: boolean = false
+    @observable showNewsletterSubscription: boolean = false
 
     dispose!: IReactionDisposer
 
@@ -58,6 +63,10 @@ export class Header extends React.Component<{
 
     @action.bound onToggleCategories() {
         this.showCategories = !this.showCategories
+    }
+
+    @action.bound onToggleNewsletterSubscription() {
+        this.showNewsletterSubscription = !this.showNewsletterSubscription
     }
 
     @action.bound setOpen(open: boolean) {
@@ -230,8 +239,8 @@ export class Header extends React.Component<{
                             className="oxford-logo"
                         >
                             <img
-                                src="/oxford-logo-transparent.png"
-                                alt="University of Oxford logo"
+                                src={`${BAKED_BASE_URL}/oms-logo.svg`}
+                                alt="Oxford Martin School logo"
                             />
                         </a>
                         <a
@@ -239,7 +248,7 @@ export class Header extends React.Component<{
                             className="gcdl-logo"
                         >
                             <img
-                                src="/gcdl-logo-narrow.png"
+                                src={`${BAKED_BASE_URL}/gcdl-logo-narrow.png`}
                                 alt="Global Change Data Lab logo"
                             />
                         </a>
@@ -251,6 +260,13 @@ export class Header extends React.Component<{
                             data-track-note="mobile-search-button"
                         >
                             <FontAwesomeIcon icon={faSearch} />
+                        </button>
+                        <button
+                            onClick={this.onToggleNewsletterSubscription}
+                            data-track-click
+                            data-track-note="mobile-newsletter-button"
+                        >
+                            <FontAwesomeIcon icon={faEnvelopeOpenText} />
                         </button>
                         <button
                             onClick={this.onToggleCategories}
@@ -271,6 +287,13 @@ export class Header extends React.Component<{
                                 autoFocus
                             />
                         </form>
+                    </div>
+                )}
+                {this.showNewsletterSubscription && (
+                    <div className="newsletter-subscription">
+                        <div className="box">
+                            <NewsletterSubscriptionForm />
+                        </div>
                     </div>
                 )}
                 {this.showCategories && (

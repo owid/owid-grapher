@@ -1,0 +1,66 @@
+.ChartPage main figure[data-grapher-src],
+#fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0;
+    width: 100%;
+    height: calc(100vh - #{$mobile-header-height});
+    @include md-up {
+        height: calc(100vh - 225px);
+    }
+}
+
+#fallback > img {
+    max-width: 100%;
+    border: 1px solid #ccc;
+}
+
+.ChartPage main {
+    // See prominent-link.scss for base styles
+    .originReference {
+        max-width: 800px;
+        margin: $vertical-spacing auto 0;
+        font-size: 1.3rem;
+        text-align: center;
+        svg {
+            width: 0.7em;
+        }
+        a {
+            padding: $padding-x-sm;
+        }
+    }
+}
+
+html.iframe .ChartPage {
+    background-color: inherit;
+
+    > main {
+        min-height: inherit;
+    }
+
+    figure {
+        height: 100vh;
+    }
+
+    .site-header {
+        display: none;
+    }
+
+    .donate-footer {
+        display: none;
+    }
+
+    .cookie-notice {
+        display: none;
+    }
+
+    .site-footer {
+        display: none;
+    }
+
+    .originReference {
+        display: none;
+    }
+}

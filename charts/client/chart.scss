@@ -923,62 +923,8 @@ figure[data-grapher-src]:empty:after,
     }
 }
 
-.ChartPage main figure[data-grapher-src],
-#fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0;
-    width: 100%;
-    height: calc(100vh - 140px);
-}
-
-#fallback > img {
-    max-width: 100%;
-    border: 1px solid #ccc;
-}
-
-.ChartPage main {
-    .originReference {
-        margin-top: 0.5rem;
-        text-align: center;
-    }
-}
-
-html.iframe .ChartPage {
-    background-color: inherit;
-
-    > main {
-        min-height: inherit;
-    }
-
-    figure {
-        height: 100vh;
-    }
-
-    .site-header {
-        display: none;
-    }
-
-    .donate-footer {
-        display: none;
-    }
-
-    .cookie-notice {
-        display: none;
-    }
-
-    .site-footer {
-        display: none;
-    }
-
-    .originReference {
-        display: none;
-    }
-}
-
 /* Copied from .ChartPage styles above for now */
+// MB: .ChartPage styles moved to site/ tree
 .ExplorePage main #explore {
     display: flex;
     align-items: center;

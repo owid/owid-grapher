@@ -33,15 +33,18 @@
 @import "css/pages/homepage.scss";
 @import "css/pages/donate.scss";
 @import "css/pages/faq.scss";
+@import "css/pages/covid.scss";
+@import "css/pages/chart.scss";
 
 @import "css/components/cookie-notice.scss";
+@import "css/components/site-tools.scss";
+@import "css/components/newsletter-subscription.scss";
 @import "css/components/lightbox.scss";
 @import "css/components/loading-indicator.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
+@import "css/components/covid-banner.scss";
 @import "site/client/blocks/Summary/summary.scss";
-
-@import "css/pages/faq.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
@@ -705,10 +708,11 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         font-style: italic;
     }
 
-    /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education/#data-quality-definitions */
+    /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education#methodology */
     mjx-container:only-child {
         display: block;
         margin: auto;
+        max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
     }
 }
 
@@ -1275,70 +1279,13 @@ html:not(.js) {
     font-size: 0.9em;
 }
 
-@media (max-width: 800px) {
-    .feedbackPromptContainer {
-        display: none;
-    }
-}
-
-.feedbackPromptContainer {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    border: none;
-    z-index: $zindex-popover;
-    text-align: right;
-}
-
-.FeedbackPrompt,
-.FeedbackForm button {
-    padding: 0.7rem 0.85rem;
-    border: none;
-    border-radius: 3px;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
-    color: white;
-    cursor: pointer;
-    font-size: 15px;
-    background: #002147;
-    margin-top: 10px;
-
-    svg {
-        margin-right: 0.15rem;
-        color: rgba(white, 0.75);
-    }
-
-    &:disabled {
-        opacity: 0.8;
-    }
-}
-
 .FeedbackForm {
-    width: 23rem;
-    max-width: 90vw;
-    height: 600px;
     height: calc(100vh - 100px);
     max-height: 600px;
-    border-radius: 3px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 3px 15px rgba(0, 0, 0, 0.25);
-    background: hsla(0, 0%, 100%, 0.98);
-    color: #333;
-    text-align: left;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     transition: opacity 0.25s ease-in-out;
-    text-align: left;
 
     &.loading > * {
         opacity: 0.5;
-    }
-
-    > header {
-        background: #002147;
-        color: white;
-        font-size: 1rem;
-        font-weight: 700;
-        padding: 0.5rem 1rem;
     }
 
     > div.formBody {
@@ -1399,7 +1346,7 @@ html:not(.js) {
         }
     }
 
-    > footer {
+    > .footer {
         box-shadow: 0 -0.07143rem 0.85714rem rgba(0, 0, 0, 0.08);
         padding: 0.8rem 1rem;
         display: flex;
@@ -1484,5 +1431,11 @@ html:not(.js) {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .box {
+        margin: $vertical-spacing 0;
+
+        @include popover-box-styles;
     }
 }

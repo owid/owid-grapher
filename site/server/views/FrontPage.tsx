@@ -13,6 +13,8 @@ import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookS
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { splitOnLastWord } from "utils/server/serverUtil"
+import { NewsletterSubscriptionForm } from "site/client/NewsletterSubscription"
+import { CovidBanner } from "./CovidBanner"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -124,7 +126,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/media-logos-wide.png"
+                                                src={`${settings.BAKED_BASE_URL}/media-logos-wide.png`}
                                                 alt="Logos of the publications that have used our content"
                                             />
                                             <div className="hover-note">
@@ -147,7 +149,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src="/university-logos-wide.png"
+                                                src={`${settings.BAKED_BASE_URL}/university-logos-wide.png`}
                                                 alt="Logos of the universities that have used our content"
                                             />
                                             <div className="hover-note">
@@ -316,6 +318,7 @@ export const FrontPage = (props: {
                                     <div className="header">
                                         <h2>Latest publications</h2>
                                     </div>
+                                    <CovidBanner />
                                     <ul>
                                         {posts.slice(0, 8).map(post => (
                                             <li key={post.slug}>
@@ -369,58 +372,13 @@ export const FrontPage = (props: {
                     <div className="wrapper">
                         <div className="owid-row">
                             <div className="owid-col owid-col--lg-2 flex-row owid-padding-bottom--sm-3">
-                                <div className="homepage-subscribe--newsletter">
-                                    <div className="shaded-box">
+                                <div className="newsletter-subscription">
+                                    <div className="box">
                                         <h2>Subscribe to our newsletter</h2>
-                                        <form
-                                            action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
-                                            method="post"
-                                            id="mc-embedded-subscribe-form"
-                                            name="mc-embedded-subscribe-form"
-                                            target="_blank"
-                                        >
-                                            <p>
-                                                Receive our latest publications
-                                                by email every two weeks.
-                                            </p>
-                                            {/* <fieldset>
-                                            <div className="owid-checkboxes">
-                                                <div className="owid-checkbox-block">
-                                                    <input type="checkbox" id="weekly" value="weekly" name="type" defaultChecked />
-                                                    <label htmlFor="weekly">
-                                                        <div className="label-title">Weekly digest</div>
-                                                        <div className="label-text">Get weekly emails with the biggest news.</div>
-                                                    </label>
-                                                </div>
-                                                <div className="owid-checkbox-block">
-                                                    <input type="checkbox" id="immediate" value="immediate" name="type" />
-                                                    <label htmlFor="immediate">
-                                                        <div className="label-title">Immediate updates</div>
-                                                        <div className="label-text">Get emails whenever we produce new content.</div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </fieldset> */}
-                                            <div className="owid-inline-field">
-                                                <input
-                                                    placeholder="Your email address"
-                                                    type="email"
-                                                    className="owid-inline-input"
-                                                    name="EMAIL"
-                                                />
-                                                <button
-                                                    type="submit"
-                                                    className="owid-inline-button"
-                                                >
-                                                    Subscribe
-                                                </button>
-                                            </div>
-                                            <input
-                                                type="hidden"
-                                                name="b_18058af086319ba6afad752ec_2e166c1fc1"
-                                                tabIndex={-1}
-                                            />
-                                        </form>
+                                        <div className="root">
+                                            {/* Hydrated in runSiteTools() */}
+                                            <NewsletterSubscriptionForm context="homepage" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -501,7 +459,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src="/sdg-wheel.png"
+                                        src={`${settings.BAKED_BASE_URL}/sdg-wheel.png`}
                                         alt="SDG Tracker logo"
                                     />
                                 </div>
@@ -526,7 +484,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src="/teaching-hub.svg"
+                                        src={`${settings.BAKED_BASE_URL}/teaching-hub.svg`}
                                         alt="Teaching Hub logo"
                                     />
                                 </div>

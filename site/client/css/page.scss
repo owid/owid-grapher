@@ -63,6 +63,9 @@
         @include info;
         font-style: italic;
         color: $secondary-text-color;
+        p {
+            margin-bottom: 0.5rem;
+        }
     }
 
     &.large-banner {
@@ -148,23 +151,5 @@
 
     @include sm-only {
         display: block;
-    }
-}
-
-/* Notice for entries that are only a preliminary collection of relevant material */
-.pcrm {
-    @include info;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-    padding: 0.625rem;
-    text-align: center;
-    background-color: $tertiary-color;
-    h2 {
-        span {
-            @include hide;
-        }
-        margin: 0 0 0.5rem;
-        font-size: inherit;
-        text-transform: uppercase;
     }
 }

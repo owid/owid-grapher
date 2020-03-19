@@ -10,6 +10,11 @@ $vertical-spacing: 1rem;
 * Sizes
 */
 
+$mobile-header-wrapper-height: 3.5rem;
+$mobile-header-border-height: 0.25rem;
+$mobile-header-height: $mobile-header-wrapper-height +
+    $mobile-header-border-height;
+
 $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
 $sidebar-padding-top: 2rem;
@@ -120,6 +125,7 @@ $secondary-color: #d42b21;
 
 /* Yellow */
 $tertiary-color: #f8c723;
+$tertiary-color-brighter: #f9cf44;
 $tertiary-color-100: #f4eddb;
 $tertiary-color-400: $tertiary-color;
 $tertiary-color-700: #d8b43b;

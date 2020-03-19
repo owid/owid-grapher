@@ -1,0 +1,81 @@
+.newsletter-subscription form {
+    p {
+        margin-top: 0;
+    }
+
+    button[type="submit"] {
+        border-width: 1px;
+
+        @include button-disabled;
+    }
+
+    .label-title {
+        font-weight: bold;
+    }
+
+    .label-text {
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    fieldset {
+        margin-bottom: 1rem;
+    }
+
+    .alert {
+        font-size: 0.9rem;
+        color: $error-text-color;
+    }
+
+    input {
+        width: 100%;
+        font-size: inherit;
+    }
+
+    .privacy-submit {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: $vertical-spacing;
+
+        .privacy-notice {
+            font-size: 0.8rem;
+            text-align: right;
+
+            a {
+                color: $link-color;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        button {
+            margin-left: 1rem;
+        }
+    }
+}
+
+.homepage-subscribe .newsletter-subscription {
+    flex: 1;
+    .box {
+        padding: 2rem;
+        border: 3px solid $text-color;
+        color: $text-color;
+    }
+}
+
+.site-header .newsletter-subscription {
+    .box {
+        background-color: $body-bg;
+        width: 100%;
+        border-radius: initial;
+        margin: 0;
+    }
+}
+
+.site-tools .newsletter-subscription,
+.site-header .newsletter-subscription {
+    .box {
+        padding: 1rem;
+    }
+}

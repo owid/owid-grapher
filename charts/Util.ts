@@ -55,7 +55,8 @@ import {
     omit,
     difference,
     sortedUniq,
-    zip
+    zip,
+    partition
 } from "lodash"
 export {
     isEqual,
@@ -75,6 +76,7 @@ export {
     every,
     min,
     max,
+    maxBy,
     compact,
     uniq,
     cloneDeep,
@@ -112,9 +114,11 @@ export {
     omit,
     difference,
     sortedUniq,
-    zip
+    zip,
+    partition
 }
 
+import moment = require("moment")
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import * as striptags from "striptags"
@@ -198,14 +202,23 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
+export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
+    // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
+    // This will force moment to format in UTC time instead of local time,
+    // making dates consistent no matter what timezone the user is in.
+    return moment
+        .utc(zeroDay)
+        .add(dayAsYear, "days")
+        .format("MMM D, YYYY")
+}
+
 export function formatYear(year: number): string {
     if (isNaN(year)) {
         console.warn(`Invalid year '${year}'`)
         return ""
     }
 
-    if (year < 0) return `${Math.abs(year)} BCE`
-    else return year.toString()
+    return year < 0 ? `${Math.abs(year)} BCE` : year.toString()
 }
 
 export function numberOnly(value: any): number | undefined {
@@ -445,6 +458,26 @@ export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
 }
 
+// TODO use fetchText() in fetchJSON()
+// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
+export async function fetchText(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", function() {
+            resolve(this.responseText)
+        })
+        req.addEventListener("readystatechange", () => {
+            if (req.readyState === 4) {
+                if (req.status !== 200) {
+                    reject(new Error(`${req.status} ${req.statusText}`))
+                }
+            }
+        })
+        req.open("GET", url)
+        req.send()
+    })
+}
+
 export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
@@ -568,4 +601,20 @@ export function getStartEndValues(
     const start = minBy(values, dv => dv.year)
     const end = maxBy(values, dv => dv.year)
     return [start, end]
+}
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+
+// From https://stackoverflow.com/a/15289883
+export function dateDiffInDays(a: Date, b: Date) {
+    // Discard the time and time-zone information.
+    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
+    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
+    return Math.floor((utca - utcb) / MS_PER_DAY)
+}
+
+export function addDays(date: Date, days: number): Date {
+    const newDate = new Date(date.getTime())
+    newDate.setDate(newDate.getDate() + days)
+    return newDate
 }

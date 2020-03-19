@@ -515,7 +515,8 @@ export class Controls {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && numLines > 1) numLines -= 1
+        if (this.hasSpace && this.hasInlineControls && numLines > 1)
+            numLines -= 1
         return numLines
     }
 
@@ -702,20 +703,11 @@ export class ControlsFooterView extends React.Component<{
         this.props.controls.props.chartView.isSelectingData = true
     }
 
-    render() {
+    private _getTabsElement() {
         const { props } = this
-        const {
-            isShareMenuActive,
-            isSettingsMenuActive,
-            hasSettingsMenu,
-            hasTimeline,
-            hasInlineControls,
-            hasAddButton,
-            hasSpace
-        } = props.controls
-        const { chart, chartView } = props.controls.props
-
-        const tabs = (
+        const { hasSettingsMenu } = props.controls
+        const { chart } = props.controls.props
+        return (
             <nav className="tabs">
                 <ul>
                     {chart.availableTabs.map(tabName => {
@@ -793,10 +785,13 @@ export class ControlsFooterView extends React.Component<{
                 </ul>
             </nav>
         )
+    }
 
-        const timeline = hasTimeline && <TimelineControl chart={chart} />
-
-        const extraControls = hasInlineControls && (
+    private _getInlineControlsElement() {
+        const { props } = this
+        const { hasAddButton } = props.controls
+        const { chart } = props.controls.props
+        return (
             <div className="extraControls">
                 {chart.data.canAddData && !hasAddButton && (
                     <button type="button" onClick={this.onDataSelect}>
@@ -837,40 +832,64 @@ export class ControlsFooterView extends React.Component<{
                 )}
             </div>
         )
+    }
+
+    render() {
+        const { props } = this
+        const {
+            isShareMenuActive,
+            isSettingsMenuActive,
+            hasTimeline,
+            hasInlineControls,
+            hasSpace
+        } = props.controls
+        const { chart, chartView } = props.controls.props
+
+        const timelineElement = hasTimeline && (
+            <div className="footerRowSingle">
+                <TimelineControl chart={this.props.controls.props.chart} />
+            </div>
+        )
+
+        const inlineControlsElement = hasInlineControls && !hasSpace && (
+            <div className="footerRowSingle">
+                {this._getInlineControlsElement()}
+            </div>
+        )
+
+        const tabsElement = hasSpace ? (
+            <div className="footerRowMulti">
+                <div>
+                    {hasInlineControls && this._getInlineControlsElement()}
+                </div>
+                {this._getTabsElement()}
+            </div>
+        ) : (
+            <div className="footerRowSingle">{this._getTabsElement()}</div>
+        )
+
+        const shareMenuElement = isShareMenuActive && (
+            <ShareMenu
+                chartView={chartView}
+                chart={chart}
+                onDismiss={this.onShareMenu}
+            />
+        )
+
+        const settingsMenuElement = isSettingsMenuActive && (
+            <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
+        )
 
         return (
             <div
                 className="ControlsFooter"
                 style={{ height: props.controls.footerHeight }}
             >
-                {hasTimeline && (hasInlineControls || !hasSpace) && (
-                    <div className="footerRowSingle">{timeline}</div>
-                )}
-                {hasInlineControls && !hasSpace && (
-                    <div className="footerRowSingle">{extraControls}</div>
-                )}
-                {hasSpace && (
-                    <div className="footerRowMulti">
-                        <div>
-                            {hasInlineControls ? extraControls : timeline}
-                        </div>
-                        {tabs}
-                    </div>
-                )}
-                {!hasSpace && <div className="footerRowSingle">{tabs}</div>}
-                {isShareMenuActive && (
-                    <ShareMenu
-                        chartView={chartView}
-                        chart={chart}
-                        onDismiss={this.onShareMenu}
-                    />
-                )}
-                {isSettingsMenuActive && (
-                    <SettingsMenu
-                        chart={chart}
-                        onDismiss={this.onSettingsMenu}
-                    />
-                )}
+                {timelineElement}
+                {inlineControlsElement}
+                {tabsElement}
+                {shareMenuElement}
+                {settingsMenuElement}
             </div>
         )
     }

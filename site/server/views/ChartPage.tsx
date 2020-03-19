@@ -1,4 +1,6 @@
 import { BAKED_GRAPHER_URL } from "settings"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 import * as React from "react"
 import urljoin = require("url-join")
@@ -72,7 +74,6 @@ export const ChartPage = (props: {
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
-                <link rel="stylesheet" href={webpack("commons.css")} />
                 <link
                     rel="preload"
                     href={`/grapher/data/variables/${variableIds.join(
@@ -91,9 +92,11 @@ export const ChartPage = (props: {
 
                     {post && (
                         <div className="originReference">
-                            This chart is part of a collection of research. For
-                            more information, see{" "}
-                            <a href={chart.originUrl}>{post.title}</a>.
+                            <a href={chart.originUrl}>
+                                Here is all our research and data on{" "}
+                                <strong>{post.title}</strong>.
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
                         </div>
                     )}
                     <noscript id="fallback">
@@ -105,11 +108,8 @@ export const ChartPage = (props: {
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
                 </main>
-                <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
-                <script src={webpack("commons.js")} />
-                <script src={webpack("owid.js")} />
-                <script dangerouslySetInnerHTML={{ __html: script }} />
                 <SiteFooter />
+                <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>
     )
