@@ -257,8 +257,8 @@ export class CovidTable extends React.Component<CovidTableProps> {
                     )}
                     <p>
                         Data source:{" "}
-                        <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports/">
-                            WHO
+                        <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
+                            ECDC
                         </a>
                         . Download the{" "}
                         <a href="https://ourworldindata.org/coronavirus-source-data">

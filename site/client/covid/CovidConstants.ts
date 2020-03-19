@@ -1,7 +1,8 @@
 import { SortOrder, NounKey, NounGenerator } from "./CovidTypes"
 import { createNoun } from "./CovidUtils"
 
-export const DATA_URL = "https://covid.ourworldindata.org/data/full_data.csv"
+export const DATA_URL =
+    "https://covid.ourworldindata.org/data/ecdc/full_data.csv"
 
 // bar colors
 export const CURRENT_COLOR = "#1d3d63"
