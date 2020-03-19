@@ -45,7 +45,7 @@ export class DataTab extends React.Component<{
                 const row = [
                     entity,
                     vardata.entityMetaByKey[entity].code || "",
-                    year
+                    chart.formatYearFunction(year)
                 ]
 
                 let rowHasSomeValue = false
