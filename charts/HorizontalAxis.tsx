@@ -6,6 +6,7 @@ import { ScaleType } from "./AxisScale"
 import { AxisScale } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
+import { AxisTickMarks } from "./AxisTickMarks"
 
 interface HorizontalAxisProps {
     scale: AxisScale
@@ -115,12 +116,30 @@ export class HorizontalAxis {
 export class HorizontalAxisView extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
+    axisPosition: number
+    showTickMarks?: boolean
     onScaleTypeChange?: (scale: ScaleType) => void
 }> {
     render() {
-        const { bounds, axis, onScaleTypeChange } = this.props
+        const {
+            bounds,
+            axis,
+            onScaleTypeChange,
+            axisPosition,
+            showTickMarks
+        } = this.props
         const { scale, ticks, label, labelOffset } = axis
         const textColor = "#666"
+
+        const tickMarks = showTickMarks ? (
+            <AxisTickMarks
+                tickMarkTopPosition={axisPosition}
+                tickMarkXPositions={ticks.map(tick => scale.place(tick))}
+                color={textColor}
+            />
+        ) : (
+            undefined
+        )
 
         return (
             <g className="HorizontalAxis">
@@ -129,6 +148,7 @@ export class HorizontalAxisView extends React.Component<{
                         bounds.centerX - label.width / 2,
                         bounds.bottom - label.height
                     )}
+                {tickMarks}
                 {ticks.map((tick, i) => {
                     return (
                         <text
