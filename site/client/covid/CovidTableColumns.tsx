@@ -116,7 +116,7 @@ const daysToDoubleGenerator = (
     )
 }
 
-const totalGenerator = (accessor: IntAccessor) => (
+const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
     props: CovidTableCellSpec
 ) => {
     const { bars, datum } = props
@@ -142,7 +142,9 @@ const totalGenerator = (accessor: IntAccessor) => (
                 <div className="value">
                     {datum.latest && accessor(datum.latest) !== undefined && (
                         <CovidTimeSeriesValue
-                            value={`${formatInt(accessor(datum.latest))} total`}
+                            value={`${formatInt(accessor(datum.latest))} ${noun(
+                                accessor(datum.latest)
+                            )}`}
                             date={datum.latest.date}
                             latest={true}
                         />
@@ -153,7 +155,9 @@ const totalGenerator = (accessor: IntAccessor) => (
     )
 }
 
-const newGenerator = (accessor: IntAccessor) => (props: CovidTableCellSpec) => {
+const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
+    props: CovidTableCellSpec
+) => {
     const { bars, datum } = props
     return (
         <td className="new-cases plot-cell">
@@ -181,7 +185,7 @@ const newGenerator = (accessor: IntAccessor) => (props: CovidTableCellSpec) => {
                         <CovidTimeSeriesValue
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true
-                            })} new`}
+                            })} ${noun(accessor(datum.latest))}`}
                             date={datum.latest.date}
                             latest={true}
                         />
@@ -264,7 +268,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: totalGenerator(d => d.total_cases)
+        cell: totalGenerator(d => d.total_cases, nouns.cases)
     },
     totalDeaths: {
         sortKey: CovidSortKey.totalDeaths,
@@ -284,7 +288,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: totalGenerator(d => d.total_deaths)
+        cell: totalGenerator(d => d.total_deaths, nouns.deaths)
     },
     newCases: {
         sortKey: CovidSortKey.newCases,
@@ -304,7 +308,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: newGenerator(d => d.new_cases)
+        cell: newGenerator(d => d.new_cases, nouns.cases)
     },
     newDeaths: {
         sortKey: CovidSortKey.newDeaths,
@@ -324,6 +328,6 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: newGenerator(d => d.new_deaths)
+        cell: newGenerator(d => d.new_deaths, nouns.deaths)
     }
 }
