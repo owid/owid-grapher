@@ -714,22 +714,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         margin: auto;
         max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
     }
-
-    .alert {
-        @include info;
-        margin-top: 1rem;
-        margin-bottom: 2rem;
-        padding: 0.625rem;
-        text-align: center;
-        border: 2px solid $secondary-color;
-        background-color: #f4bfbb;
-        .title {
-            font-weight: bold;
-            margin: 0 0 0.5rem;
-            font-size: inherit;
-            text-transform: uppercase;
-        }
-    }
 }
 
 hr {
