@@ -130,7 +130,10 @@ export class DimensionCard extends React.Component<{
                             auto={dimension.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
                         />
-                        {(chart.isScatter || chart.isDiscreteBar) && (
+                        {(chart.isScatter ||
+                            chart.isDiscreteBar ||
+                            (chart.isLineChart &&
+                                chart.lineChart.isSingleYear)) && (
                             <BindAutoFloat
                                 field="tolerance"
                                 store={dimension.props.display}
