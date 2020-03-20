@@ -1344,6 +1344,19 @@ html:not(.js) {
             flex: 1;
             resize: none;
         }
+
+        .notice {
+            @include info;
+            margin-top: $vertical-spacing;
+            padding: 1rem;
+            background-color: $tertiary-color;
+            color: $primary-color;
+            .title {
+                font-weight: bold;
+                margin: 0 0 0.5rem;
+                font-size: inherit;
+            }
+        }
     }
 
     > .footer {
