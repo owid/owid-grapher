@@ -2,7 +2,11 @@ import * as React from "react"
 import { extend, debounce } from "charts/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig, HighlightToggleConfig } from "charts/ChartConfig"
+import {
+    ChartConfig,
+    HighlightToggleConfig,
+    ScatterPointLabelStrategy
+} from "charts/ChartConfig"
 import { ComparisonLineConfig } from "charts/ComparisonLine"
 import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
@@ -77,6 +81,10 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
         chart.props.hideConnectedScatterLines = value
     }
 
+    @action.bound onChangeScatterPointLabelStrategy(value: string) {
+        this.props.chart.props.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
+    }
+
     render() {
         const {
             hasHighlightToggle,
@@ -108,6 +116,13 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                         value={chart.scatter.xOverrideYear}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
+                    />
+                </Section>
+                <Section name="Point Labels">
+                    <SelectField
+                        value={chart.props.scatterPointLabelStrategy}
+                        onValue={this.onChangeScatterPointLabelStrategy}
+                        options={["year", "y", "x"]}
                     />
                 </Section>
                 <Section name="Filtering">

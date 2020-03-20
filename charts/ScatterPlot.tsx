@@ -280,6 +280,20 @@ export class ScatterPlot extends React.Component<{
         return !!this.chart.props.hideConnectedScatterLines
     }
 
+    @computed private get scatterPointLabelFormatFunction() {
+        const scatterPointLabelFormatFunctions = {
+            year: (scatterValue: ScatterValue) =>
+                this.chart.formatYearFunction(scatterValue.time.y),
+            y: (scatterValue: ScatterValue) =>
+                this.transform.yFormatTooltip(scatterValue.y),
+            x: (scatterValue: ScatterValue) =>
+                this.transform.xFormatTooltip(scatterValue.x)
+        }
+
+        return scatterPointLabelFormatFunctions[
+            this.chart.props.scatterPointLabelStrategy || "year"
+        ]
+    }
     render() {
         if (this.transform.failMessage)
             return (
@@ -334,7 +348,7 @@ export class ScatterPlot extends React.Component<{
                     onMouseOver={this.onScatterMouseOver}
                     onMouseLeave={this.onScatterMouseLeave}
                     onClick={this.onScatterClick}
-                    formatLabel={d => this.chart.formatYearFunction(d.time.y)}
+                    formatLabel={this.scatterPointLabelFormatFunction}
                 />
                 <ScatterColorLegendView
                     legend={legend}
