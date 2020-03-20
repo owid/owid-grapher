@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c894ad7e8fbaf80a37baac8518783fe",
+    "content-hash": "34178e6d0486eaa91b732739c65bd169",
     "packages": [
         {
             "name": "composer/installers",
@@ -650,16 +650,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.7.0",
+            "version": "v0.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "50b773a48647af583baa9e7b2d185eb3c5ad148e"
+                "reference": "7fb5c594bac45079cf95e14540930382c3c2b2c6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/50b773a48647af583baa9e7b2d185eb3c5ad148e",
-                "reference": "50b773a48647af583baa9e7b2d185eb3c5ad148e",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/7fb5c594bac45079cf95e14540930382c3c2b2c6",
+                "reference": "7fb5c594bac45079cf95e14540930382c3c2b2c6",
                 "shasum": ""
             },
             "require": {
@@ -715,10 +715,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.7.0",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.7.1",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2020-02-22T21:59:56+00:00"
+            "time": "2020-03-18T19:09:54+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -884,7 +884,7 @@
         },
         {
             "name": "wpackagist-plugin/redirection",
-            "version": "4.7",
+            "version": "4.7.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/redirection/",
@@ -892,7 +892,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/redirection.zip?timestamp=1581750837"
+                "url": "https://downloads.wordpress.org/plugin/redirection.zip?timestamp=1584192505"
             },
             "require": {
                 "composer/installers": "~1.0"
