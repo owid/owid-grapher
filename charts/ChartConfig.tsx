@@ -44,6 +44,11 @@ export interface EntitySelection {
     color?: Color
 }
 
+// When a user hovers over a connected series line in a ScatterPlot we show
+// a label for each point. By default that value will be from the "year" column
+// but by changing this option the column used for the x or y axis could be used instead.
+export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
+
 export class DimensionSlot {
     chart: ChartConfig
     property: string
@@ -184,6 +189,8 @@ export class ChartConfigProps {
 
     // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     @observable hideConnectedScatterLines?: boolean = undefined
+    @observable
+    scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable excludedEntities?: number[] = undefined
