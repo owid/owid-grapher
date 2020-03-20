@@ -132,8 +132,7 @@ export class DimensionCard extends React.Component<{
                         />
                         {(chart.isScatter ||
                             chart.isDiscreteBar ||
-                            (chart.isLineChart &&
-                                chart.lineChart.isSingleYear)) && (
+                            chart.isLineChart) && (
                             <BindAutoFloat
                                 field="tolerance"
                                 store={dimension.props.display}
