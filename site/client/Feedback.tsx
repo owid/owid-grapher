@@ -91,6 +91,16 @@ export class FeedbackForm extends React.Component {
                 <div className="header">Leave us feedback</div>
                 <div className="formBody">
                     <div className="formSection">
+                        <div className="notice">
+                            <p className="title">We welcome your feedback.</p>
+                            <p>
+                                In the current situation we read and consider
+                                all feedback, but can not promise to reply to
+                                all.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
                         <input
                             id="feedback.name"
