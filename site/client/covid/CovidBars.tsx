@@ -6,12 +6,12 @@ import { bind } from "decko"
 
 import { max, keyBy } from "charts/Util"
 
-import {
-    HIGHLIGHT_COLOR,
-    CURRENT_COLOR,
-    DEFAULT_FAINT_COLOR,
-    DEFAULT_COLOR
-} from "./CovidConstants"
+export enum BarState {
+    highlighted = "highlighted",
+    current = "current",
+    normal = "normal",
+    faint = "faint"
+}
 
 export interface CovidBarsProps<T> {
     data: T[]
@@ -52,11 +52,11 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
         return "0%"
     }
 
-    @bind barColor(d: number) {
-        if (d === this.props.highlightedX) return HIGHLIGHT_COLOR
-        if (d === this.props.currentX) return CURRENT_COLOR
-        if (this.props.highlightedX !== undefined) return DEFAULT_FAINT_COLOR
-        return DEFAULT_COLOR
+    @bind barState(d: number): BarState {
+        if (d === this.props.highlightedX) return BarState.highlighted
+        if (d === this.props.currentX) return BarState.current
+        if (this.props.highlightedX !== undefined) return BarState.faint
+        return BarState.normal
     }
 
     @computed get bars(): (T | undefined)[] {
@@ -84,18 +84,14 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
                         {this.props.highlightedX === i &&
                             d !== undefined &&
                             this.props.renderValue && (
-                                <div
-                                    className="hanging-value"
-                                    style={{ color: HIGHLIGHT_COLOR }}
-                                >
+                                <div className="hanging-value highlighted highlighted-color">
                                     {this.props.renderValue(d)}
                                 </div>
                             )}
                         <div
-                            className="bar"
+                            className={`bar ${this.barState(i)}`}
                             style={{
-                                height: this.barHeight(d),
-                                backgroundColor: this.barColor(i)
+                                height: this.barHeight(d)
                             }}
                         ></div>
                     </div>
