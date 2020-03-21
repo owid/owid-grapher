@@ -121,7 +121,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className="total-cases plot-cell">
+        <td className={`total-cases plot-cell measure--${noun()}`}>
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -130,6 +130,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         renderValue={d =>
                             d && accessor(d) !== undefined ? (
                                 <CovidTimeSeriesValue
+                                    className="highlighted"
                                     value={formatInt(accessor(d))}
                                     date={d.date}
                                 />
@@ -142,6 +143,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                 <div className="value">
                     {datum.latest && accessor(datum.latest) !== undefined && (
                         <CovidTimeSeriesValue
+                            className="current"
                             value={`${formatInt(accessor(datum.latest))} ${noun(
                                 accessor(datum.latest)
                             )}`}
@@ -160,7 +162,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className="new-cases plot-cell">
+        <td className={`new-cases plot-cell measure--${noun()}`}>
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -169,6 +171,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         renderValue={d =>
                             d && accessor(d) !== undefined ? (
                                 <CovidTimeSeriesValue
+                                    className="highlighted"
                                     value={formatInt(accessor(d), "", {
                                         showPlus: true
                                     })}
@@ -183,6 +186,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                 <div className="value">
                     {datum.latest && accessor(datum.latest) !== undefined && (
                         <CovidTimeSeriesValue
+                            className="current"
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true
                             })} ${noun(accessor(datum.latest))}`}
@@ -219,11 +223,16 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
         header: props => (
             <HeaderCell
                 {...props}
+                className={`measure--${nouns.cases()}`}
                 sortKey={CovidSortKey.daysToDoubleCases}
                 colSpan={props.isMobile ? 2 : 1}
             >
                 How long did it take for the number of{" "}
-                <strong>total confirmed cases to double</strong>?
+                <strong>
+                    total confirmed <span className="measure">cases</span> to
+                    double
+                </strong>
+                ?
             </HeaderCell>
         ),
         cell: daysToDoubleGenerator(
@@ -237,11 +246,16 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
         header: props => (
             <HeaderCell
                 {...props}
+                className={`measure--${nouns.deaths()}`}
                 sortKey={CovidSortKey.daysToDoubleDeaths}
                 colSpan={props.isMobile ? 2 : 1}
             >
                 How long did it take for the number of{" "}
-                <strong>total confirmed deaths to double</strong>?
+                <strong>
+                    total confirmed <span className="measure">deaths</span> to
+                    double
+                </strong>
+                ?
             </HeaderCell>
         ),
         cell: daysToDoubleGenerator(
@@ -253,8 +267,15 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
     totalCases: {
         sortKey: CovidSortKey.totalCases,
         header: props => (
-            <HeaderCell {...props} sortKey={CovidSortKey.totalCases}>
-                <strong>Total confirmed cases</strong> <br />
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.cases()}`}
+                sortKey={CovidSortKey.totalCases}
+            >
+                <strong>
+                    Total confirmed <span className="measure">cases</span>
+                </strong>{" "}
+                <br />
                 <span className="note">
                     ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
@@ -273,8 +294,15 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
     totalDeaths: {
         sortKey: CovidSortKey.totalDeaths,
         header: props => (
-            <HeaderCell {...props} sortKey={CovidSortKey.totalDeaths}>
-                <strong>Total confirmed deaths</strong> <br />
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.deaths()}`}
+                sortKey={CovidSortKey.totalDeaths}
+            >
+                <strong>
+                    Total confirmed <span className="measure">deaths</span>
+                </strong>{" "}
+                <br />
                 <span className="note">
                     ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
@@ -293,8 +321,15 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
     newCases: {
         sortKey: CovidSortKey.newCases,
         header: props => (
-            <HeaderCell {...props} sortKey={CovidSortKey.newCases}>
-                <strong>Daily new confirmed cases</strong> <br />
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.cases()}`}
+                sortKey={CovidSortKey.newCases}
+            >
+                <strong>
+                    Daily new confirmed <span className="measure">cases</span>
+                </strong>{" "}
+                <br />
                 <span className="note">
                     ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
@@ -313,8 +348,15 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
     newDeaths: {
         sortKey: CovidSortKey.newDeaths,
         header: props => (
-            <HeaderCell {...props} sortKey={CovidSortKey.newDeaths}>
-                <strong>Daily new confirmed deaths</strong> <br />
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.deaths()}`}
+                sortKey={CovidSortKey.newDeaths}
+            >
+                <strong>
+                    Daily new confirmed <span className="measure">deaths</span>
+                </strong>{" "}
+                <br />
                 <span className="note">
                     ECDC data.{" "}
                     {props.lastUpdated !== undefined ? (
