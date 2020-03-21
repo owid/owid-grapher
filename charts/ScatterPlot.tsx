@@ -421,8 +421,9 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
 
     formatValueX(value: ScatterValue) {
         let s = "X Axis: " + this.props.formatX(value.x)
+        const formatYear = this.props.formatYearFunction
         if (!value.time.span && value.time.y !== value.time.x)
-            s += ` (data from ${value.time.x})`
+            s += ` (data from ${formatYear(value.time.x)})`
         return s
     }
 
