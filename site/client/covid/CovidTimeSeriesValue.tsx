@@ -12,14 +12,16 @@ export const CovidTimeSeriesValue = ({
     value,
     date,
     latest,
-    tooltip
+    tooltip,
+    className
 }: {
     value: string | undefined
     date: Date | undefined
     latest?: boolean
     tooltip?: JSX.Element | string
+    className?: string
 }) => (
-    <div className="time-series-value">
+    <div className={classnames("time-series-value", className)}>
         {value !== undefined ? (
             <>
                 <span className="count">

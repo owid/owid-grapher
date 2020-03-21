@@ -131,10 +131,6 @@ $table-bg: $body-bg;
         width: 35%;
     }
 
-    td.total-cases {
-        width: 8%;
-    }
-
     td.doubling-days {
         line-height: 1.1;
         text-align: left;
@@ -173,18 +169,10 @@ $table-bg: $body-bg;
         }
     }
 
-    td.new-cases {
-        width: 8%;
-    }
-
     td {
         p {
             margin: 0;
         }
-    }
-
-    .faint {
-        opacity: 0.65;
     }
 
     .time-series-value {
@@ -309,7 +297,6 @@ $table-bg: $body-bg;
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: rgba($primary-color, 0.3);
         min-height: 1px;
     }
 
@@ -376,6 +363,58 @@ $table-bg: $body-bg;
 
         .to-color {
             color: $primary-color;
+        }
+    }
+}
+
+// themes
+
+.time-series-value {
+    &.highlighted {
+        color: #d42b21;
+    }
+}
+
+.covid-bars {
+    .bar {
+        background-color: rgba($primary-color, 0.3);
+        &.current {
+            background-color: #1d3d63;
+        }
+        &.highlighted {
+            background-color: #d42b21;
+        }
+    }
+}
+
+.measure--deaths {
+    $measure-color: #760000;
+
+    .time-series-value.current .count,
+    .measure {
+        color: $measure-color;
+    }
+
+    .bar {
+        background-color: rgba(desaturate($measure-color, 70%), 0.2);
+        &.current {
+            background-color: $measure-color;
+        }
+    }
+}
+
+.measure--cases {
+    $measure-color: #c34507;
+
+    .time-series-value.current .count,
+    .measure {
+        color: $measure-color;
+    }
+
+    .bar {
+        background-color: rgba(desaturate($measure-color, 70%), 0.2);
+        &.current {
+            background-color: $measure-color;
         }
     }
 }
