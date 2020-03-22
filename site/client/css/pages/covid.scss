@@ -415,7 +415,7 @@ $table-bg: $body-bg;
 
     &.sorted .sort-icon,
     &.sortable:hover .sort-icon {
-        color: $measure-color;
+        color: $measure-color !important;
     }
 
     .time-series-value.current .count,
@@ -453,7 +453,7 @@ $table-bg: $body-bg;
 
     &.sorted .sort-icon,
     &.sortable:hover .sort-icon {
-        color: $measure-color;
+        color: $measure-color !important;
     }
 
     .time-series-value.current .count,
