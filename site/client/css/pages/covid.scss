@@ -466,7 +466,7 @@ $table-bg: $body-bg;
     }
 
     .bar {
-        background-color: rgba(desaturate($measure-color, 40%), 0.25);
+        background-color: rgba(desaturate($measure-color, 35%), 0.3);
         &.current {
             background-color: $measure-color;
         }
