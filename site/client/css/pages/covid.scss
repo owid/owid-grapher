@@ -42,15 +42,6 @@ $table-bg: $body-bg;
 
     thead tr:last-child th {
         border-bottom: 2px solid rgba($primary-color, 0.15);
-
-        &.sortable:hover {
-            border-bottom-color: rgba($primary-color, 0.4);
-        }
-
-        &.sorted,
-        &.sorted:hover {
-            border-bottom-color: $secondary-color;
-        }
     }
 
     th.sortable {
@@ -68,10 +59,10 @@ $table-bg: $body-bg;
             border-width: 0 7px 6px 7px;
             border-color: transparent;
             border-style: solid;
-            border-bottom-color: $primary-color;
+            border-bottom-color: currentColor;
         }
         &.active.asc:after {
-            border-bottom-color: $secondary-color;
+            border-bottom-color: currentColor;
         }
 
         &.desc:after {
@@ -80,10 +71,10 @@ $table-bg: $body-bg;
             border-width: 6px 7px 0 7px;
             border-color: transparent;
             border-style: solid;
-            border-top-color: $primary-color;
+            border-top-color: currentColor;
         }
         &.active.desc:after {
-            border-top-color: $secondary-color;
+            border-top-color: currentColor;
         }
 
         &.active {
@@ -135,30 +126,35 @@ $table-bg: $body-bg;
         line-height: 1.1;
         text-align: left;
         width: 30%;
+        padding-left: 15px;
 
         .days {
             font-size: 20px;
             font-weight: 700;
-            color: $secondary-color;
-            display: block;
+            display: inline-block;
             margin-top: 3px;
             margin-bottom: 5px;
             white-space: nowrap;
+            padding: 3px 9px 3px 10px;
+            margin: 4px -9px 0 -10px;
+            line-height: 1.5rem;
+            border-radius: 2rem;
         }
 
         .label {
             font-size: 14px;
             font-weight: 700;
-            opacity: 0.45;
+            opacity: 0.7;
         }
 
         .info-icon {
             font-size: 15px;
-            color: rgba($primary-color, 0.2);
-            transition: color 200ms ease;
+            color: currentColor;
+            transition: opacity 200ms ease;
+            opacity: 0.45;
 
             &:hover {
-                color: rgba($primary-color, 0.65);
+                opacity: 1;
             }
         }
 
@@ -387,34 +383,95 @@ $table-bg: $body-bg;
     }
 }
 
+.covid-table {
+    thead tr th {
+        &.sortable:hover {
+            border-bottom-color: rgba($primary-color, 0.4);
+        }
+
+        &.sorted,
+        &.sorted:hover {
+            border-bottom-color: $secondary-color;
+
+            .sort-icon {
+                color: $secondary-color;
+            }
+        }
+    }
+}
+
 .measure--deaths {
-    $measure-color: #760000;
+    $measure-color: #ab0000;
+    $highlight-color: $measure-color;
+
+    &.sortable:hover {
+        border-bottom-color: rgba($measure-color, 0.4) !important;
+    }
+
+    &.sorted,
+    &.sorted:hover {
+        border-bottom-color: $measure-color !important;
+    }
+
+    &.sorted .sort-icon,
+    &.sortable:hover .sort-icon {
+        color: $measure-color;
+    }
 
     .time-series-value.current .count,
     .measure {
         color: $measure-color;
     }
 
+    .time-series-value.highlighted {
+        color: $highlight-color;
+    }
+
     .bar {
-        background-color: rgba(desaturate($measure-color, 70%), 0.2);
+        background-color: rgba(desaturate($measure-color, 40%), 0.25);
         &.current {
             background-color: $measure-color;
+        }
+        &.highlighted {
+            background-color: $highlight-color;
         }
     }
 }
 
 .measure--cases {
-    $measure-color: #c34507;
+    $measure-color: #ca3a77;
+    $highlight-color: $measure-color;
+
+    &.sortable:hover {
+        border-bottom-color: rgba($measure-color, 0.4) !important;
+    }
+
+    &.sorted,
+    &.sorted:hover {
+        border-bottom-color: $measure-color !important;
+    }
+
+    &.sorted .sort-icon,
+    &.sortable:hover .sort-icon {
+        color: $measure-color;
+    }
 
     .time-series-value.current .count,
     .measure {
         color: $measure-color;
     }
 
+    .time-series-value.highlighted {
+        color: $highlight-color;
+    }
+
     .bar {
-        background-color: rgba(desaturate($measure-color, 70%), 0.2);
+        background-color: rgba(desaturate($measure-color, 40%), 0.25);
         &.current {
             background-color: $measure-color;
+        }
+        &.highlighted {
+            background-color: $highlight-color;
         }
     }
 }
