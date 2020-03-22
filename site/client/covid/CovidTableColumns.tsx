@@ -181,9 +181,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                     {datum.latest && accessor(datum.latest) !== undefined && (
                         <CovidTimeSeriesValue
                             className="current"
-                            value={`${formatInt(accessor(datum.latest))} ${noun(
-                                accessor(datum.latest)
-                            )}`}
+                            value={`${formatInt(accessor(datum.latest))} total`}
                             date={datum.latest.date}
                             latest={true}
                         />
@@ -226,7 +224,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                             className="current"
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true
-                            })} ${noun(accessor(datum.latest))}`}
+                            })} new`}
                             date={datum.latest.date}
                             latest={true}
                         />
