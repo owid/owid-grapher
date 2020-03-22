@@ -1,4 +1,5 @@
 import * as React from "react"
+import { scaleThreshold, interpolateLab, scaleLinear } from "d3"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
@@ -58,10 +59,36 @@ export interface CovidTableColumnSpec {
 type IntAccessor = (d: CovidDatum) => number | undefined
 type RangeAccessor = (d: CovidCountryDatum) => CovidDoublingRange | undefined
 
+// Deaths color scales
+
+const deathsDoubingTextColorScale = scaleThreshold<number, string>()
+    .domain([12])
+    .range(["white", "rgba(0,0,0,0.5)"])
+
+const deathsDoubingBackgColorScale = scaleLinear<string>()
+    .domain([1, 3, 13])
+    .range(["#8a0000", "#bf0000", "#eee"])
+    .interpolate(interpolateLab)
+    .clamp(true)
+
+// Cases color scales
+
+const casesDoubingTextColorScale = scaleThreshold<number, string>()
+    .domain([12])
+    .range(["white", "rgba(0,0,0,0.5)"])
+
+const casesDoubingBackgColorScale = scaleLinear<string>()
+    .domain([1, 3, 13])
+    .range(["#b11c5b", "#CA3A77", "#eee"])
+    .interpolate(interpolateLab)
+    .clamp(true)
+
 const daysToDoubleGenerator = (
     accessorDatum: IntAccessor,
     accessorRange: RangeAccessor,
-    noun: NounGenerator
+    noun: NounGenerator,
+    doubingBackgColorScale: (n: number) => string,
+    doubingTextColorScale: (n: number) => string
 ) => (props: CovidTableCellSpec) => {
     const { datum, bars, isMobile } = props
     const range = accessorRange(datum)
@@ -70,25 +97,35 @@ const daysToDoubleGenerator = (
             <td className="doubling-days">
                 {range !== undefined ? (
                     <>
-                        <span className="label">doubled in</span> <br />
-                        <span className="days">
-                            {range.length}
-                            &nbsp;
-                            {nouns.days(range.length)}&nbsp;
-                            <Tippy
-                                content={
-                                    <CovidDoublingTooltip
-                                        doublingRange={range}
-                                        noun={noun}
-                                        accessor={accessorDatum}
-                                    />
-                                }
-                                maxWidth={260}
+                        <span>
+                            <span className="label">doubled in</span> <br />
+                            <span
+                                className="days"
+                                style={{
+                                    backgroundColor: doubingBackgColorScale(
+                                        range.length
+                                    ),
+                                    color: doubingTextColorScale(range.length)
+                                }}
                             >
-                                <span className="info-icon">
-                                    <FontAwesomeIcon icon={faInfoCircle} />
-                                </span>
-                            </Tippy>
+                                {range.length}
+                                &nbsp;
+                                {nouns.days(range.length)}&nbsp;
+                                <Tippy
+                                    content={
+                                        <CovidDoublingTooltip
+                                            doublingRange={range}
+                                            noun={noun}
+                                            accessor={accessorDatum}
+                                        />
+                                    }
+                                    maxWidth={260}
+                                >
+                                    <span className="info-icon">
+                                        <FontAwesomeIcon icon={faInfoCircle} />
+                                    </span>
+                                </Tippy>
+                            </span>
                         </span>
                     </>
                 ) : (
@@ -96,7 +133,7 @@ const daysToDoubleGenerator = (
                 )}
             </td>
             {isMobile && (
-                <td className="plot-cell">
+                <td className={`plot-cell measure--${noun()}`}>
                     <div className="trend">
                         <div className="plot">
                             <CovidBars<CovidDatum>
@@ -121,7 +158,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className={`total-cases plot-cell measure--${noun()}`}>
+        <td className={`plot-cell measure--${noun()}`}>
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -162,7 +199,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className={`new-cases plot-cell measure--${noun()}`}>
+        <td className={`plot-cell measure--${noun()}`}>
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -238,7 +275,9 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
         cell: daysToDoubleGenerator(
             d => d.total_cases,
             d => d.caseDoublingRange,
-            nouns.cases
+            nouns.cases,
+            casesDoubingBackgColorScale,
+            casesDoubingTextColorScale
         )
     },
     daysToDoubleDeaths: {
@@ -261,7 +300,9 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
         cell: daysToDoubleGenerator(
             d => d.total_deaths,
             d => d.deathDoublingRange,
-            nouns.deaths
+            nouns.deaths,
+            deathsDoubingBackgColorScale,
+            deathsDoubingTextColorScale
         )
     },
     totalCases: {
