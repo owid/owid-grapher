@@ -77,10 +77,10 @@ export function getDoublingRange(
 
 export const sortAccessors: Record<CovidSortKey, CovidSortAccessor> = {
     location: (d: CovidCountryDatum) => d.location,
-    totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
-    newCases: (d: CovidCountryDatum) => d.latest?.new_cases,
-    totalDeaths: (d: CovidCountryDatum) => d.latest?.total_deaths,
-    newDeaths: (d: CovidCountryDatum) => d.latest?.new_deaths,
+    totalCases: (d: CovidCountryDatum) => d.latest?.totalCases,
+    newCases: (d: CovidCountryDatum) => d.latest?.newCases,
+    totalDeaths: (d: CovidCountryDatum) => d.latest?.totalDeaths,
+    newDeaths: (d: CovidCountryDatum) => d.latest?.newDeaths,
     daysToDoubleCases: (d: CovidCountryDatum) => d.caseDoublingRange?.length,
     daysToDoubleDeaths: (d: CovidCountryDatum) => d.deathDoublingRange?.length
 }

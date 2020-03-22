@@ -28,8 +28,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         },
         filter: d =>
             d.location.indexOf("International") === -1 &&
-            (d.latest && d.latest.total_cases !== undefined
-                ? d.latest.total_cases >= CASE_THRESHOLD
+            (d.latest && d.latest.totalCases !== undefined
+                ? d.latest.totalCases >= CASE_THRESHOLD
                 : false),
         note: `Countries with less than ${CASE_THRESHOLD} confirmed
             cases are not shown. Cases from the Diamond Princess
@@ -53,8 +53,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         },
         filter: d =>
             d.location.indexOf("International") === -1 &&
-            (d.latest && d.latest.total_deaths !== undefined
-                ? d.latest.total_deaths >= DEATH_THRESHOLD
+            (d.latest && d.latest.totalDeaths !== undefined
+                ? d.latest.totalDeaths >= DEATH_THRESHOLD
                 : false),
         note: `Countries with less than ${DEATH_THRESHOLD} confirmed
             deaths are not shown. Deaths from the Diamond Princess

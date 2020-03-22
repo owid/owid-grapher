@@ -109,10 +109,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
                 return {
                     date: new Date(row.date as string),
                     location: row.location as string,
-                    total_cases: parseIntOrUndefined(row.total_cases),
-                    total_deaths: parseIntOrUndefined(row.total_deaths),
-                    new_cases: parseIntOrUndefined(row.new_cases),
-                    new_deaths: parseIntOrUndefined(row.new_deaths)
+                    totalCases: parseIntOrUndefined(row.total_cases),
+                    totalDeaths: parseIntOrUndefined(row.total_deaths),
+                    newCases: parseIntOrUndefined(row.new_cases),
+                    newDeaths: parseIntOrUndefined(row.new_deaths)
                 }
             })
             this.data = rows
@@ -139,11 +139,11 @@ export class CovidTable extends React.Component<CovidTableProps> {
                         latest: maxBy(series, d => d.date),
                         caseDoublingRange: getDoublingRange(
                             sortedSeries,
-                            d => d.total_cases
+                            d => d.totalCases
                         ),
                         deathDoublingRange: getDoublingRange(
                             sortedSeries,
-                            d => d.total_deaths
+                            d => d.totalDeaths
                         )
                     }
                 }

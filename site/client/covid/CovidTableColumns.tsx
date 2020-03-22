@@ -271,7 +271,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             </HeaderCell>
         ),
         cell: daysToDoubleGenerator(
-            d => d.total_cases,
+            d => d.totalCases,
             d => d.caseDoublingRange,
             nouns.cases,
             casesDoubingBackgColorScale,
@@ -296,7 +296,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             </HeaderCell>
         ),
         cell: daysToDoubleGenerator(
-            d => d.total_deaths,
+            d => d.totalDeaths,
             d => d.deathDoublingRange,
             nouns.deaths,
             deathsDoubingBackgColorScale,
@@ -328,7 +328,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: totalGenerator(d => d.total_cases, nouns.cases)
+        cell: totalGenerator(d => d.totalCases, nouns.cases)
     },
     totalDeaths: {
         sortKey: CovidSortKey.totalDeaths,
@@ -355,7 +355,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: totalGenerator(d => d.total_deaths, nouns.deaths)
+        cell: totalGenerator(d => d.totalDeaths, nouns.deaths)
     },
     newCases: {
         sortKey: CovidSortKey.newCases,
@@ -382,7 +382,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: newGenerator(d => d.new_cases, nouns.cases)
+        cell: newGenerator(d => d.newCases, nouns.cases)
     },
     newDeaths: {
         sortKey: CovidSortKey.newDeaths,
@@ -409,6 +409,6 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </span>
             </HeaderCell>
         ),
-        cell: newGenerator(d => d.new_deaths, nouns.deaths)
+        cell: newGenerator(d => d.newDeaths, nouns.deaths)
     }
 }

@@ -1,10 +1,10 @@
 export interface CovidDatum {
     date: Date
     location: string
-    total_cases: number | undefined
-    total_deaths: number | undefined
-    new_cases: number | undefined
-    new_deaths: number | undefined
+    totalCases: number | undefined
+    totalDeaths: number | undefined
+    newCases: number | undefined
+    newDeaths: number | undefined
 }
 
 export type CovidSeries = CovidDatum[]
