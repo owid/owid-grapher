@@ -6,7 +6,7 @@ import { ChartConfig } from "./ChartConfig"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
-import { entityNameForMap } from "./Util"
+import { entityNameForMap, formatYear } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { MapTopology } from "./MapTopology"
 
@@ -567,5 +567,9 @@ export class MapData {
                   else return formatValueLong(d)
               }
             : () => ""
+    }
+
+    @computed get formatYear(): (year: number) => string {
+        return this.dimension ? this.dimension.formatYear : formatYear
     }
 }
