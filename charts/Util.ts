@@ -618,3 +618,19 @@ export function addDays(date: Date, days: number): Date {
     newDate.setDate(newDate.getDate() + days)
     return newDate
 }
+
+export async function retryPromise<T>(
+    promiseGetter: () => Promise<T>,
+    maxRetries: number = 3
+) {
+    let retried = 0
+    let lastError
+    while (retried++ < maxRetries) {
+        try {
+            return await promiseGetter()
+        } catch (error) {
+            lastError = error
+        }
+    }
+    throw lastError
+}
