@@ -14,7 +14,7 @@ export const DonatePage = () => {
             >
                 <script src="https://js.stripe.com/v3/" />
                 <script
-                    src={`https://www.google.com/recaptcha/api.js?render=${settings.RECAPTCHA_SITE_KEY}`}
+                    src={`https://www.google.com/recaptcha/api.js?render=explicit`}
                 />
             </Head>
             <body>
