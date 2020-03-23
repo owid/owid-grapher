@@ -1,7 +1,6 @@
 import * as React from "react"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { csvParse } from "d3"
 import classnames from "classnames"
 
 import {
@@ -13,12 +12,11 @@ import {
     orderBy,
     partition,
     max,
-    fetchText,
     addDays,
     extend
 } from "charts/Util"
 
-import { DATA_URL, DEFAULT_SORT_ORDER } from "./CovidConstants"
+import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 
 import {
     CovidSortKey,
@@ -29,12 +27,7 @@ import {
     CovidCountryDatum
 } from "./CovidTypes"
 
-import {
-    parseIntOrUndefined,
-    getDoublingRange,
-    sortAccessors,
-    inverseSortOrder
-} from "./CovidUtils"
+import { getDoublingRange, sortAccessors, inverseSortOrder } from "./CovidUtils"
 
 import { CovidTableRow } from "./CovidTableRow"
 import {
@@ -42,6 +35,7 @@ import {
     CovidTableHeaderSpec,
     columns
 } from "./CovidTableColumns"
+import { fetchECDCData } from "./CovidFetch"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
@@ -104,18 +98,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     async loadData() {
         this.isLoading = true
         try {
-            const responseText = await fetchText(DATA_URL)
-            const rows: CovidSeries = csvParse(responseText).map(row => {
-                return {
-                    date: new Date(row.date as string),
-                    location: row.location as string,
-                    totalCases: parseIntOrUndefined(row.total_cases),
-                    totalDeaths: parseIntOrUndefined(row.total_deaths),
-                    newCases: parseIntOrUndefined(row.new_cases),
-                    newDeaths: parseIntOrUndefined(row.new_deaths)
-                }
-            })
-            this.data = rows
+            this.data = await fetchECDCData()
             this.isLoaded = true
             this.error = undefined
         } catch (error) {
