@@ -6,10 +6,13 @@ import {
     some,
     isString,
     sortBy,
-    isNumber
+    isNumber,
+    formatDay,
+    formatYear
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { formatDate } from "site/server/formatting"
 
 export class DimensionWithData {
     props: ChartDimension
@@ -136,6 +139,13 @@ export class DimensionWithData {
                     ...options
                 })
         }
+    }
+
+    @computed get formatYear(): (year: number) => string {
+        const { yearIsDay, zeroDay } = this.variable.display
+        return yearIsDay
+            ? (year: number) => formatDay(year, zeroDay)
+            : formatYear
     }
 
     @computed get values() {
