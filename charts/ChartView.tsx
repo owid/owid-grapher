@@ -448,6 +448,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidCatch(error: any, info: any) {
         this.hasError = true
-        Analytics.logEvent("CHART_ERROR", { error, info })
+        Analytics.logChartError(error, info)
     }
 }

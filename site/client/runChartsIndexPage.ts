@@ -62,7 +62,7 @@ class ChartFilter {
     }
 
     @action.bound logSearchQuery() {
-        Analytics.logEvent("Charts Page Filter", { query: this.query })
+        Analytics.logChartsPageSearchQuery(this.query)
     }
 
     timeout?: NodeJS.Timeout

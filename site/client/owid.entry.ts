@@ -48,7 +48,7 @@ window.runTableOfContents = runTableOfContents
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 
-Analytics.logEvent("OWID_PAGE_LOAD")
+Analytics.logPageLoad()
 
 // tslint:disable-next-line:no-unused-expression
 new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
@@ -69,10 +69,10 @@ document.addEventListener("click", async ev => {
         // navigates away from a page. An earlier implementation had a
         // timeout to send the event before navigating, but it broke
         // CMD+CLICK for opening a new tab.
-        Analytics.logEvent("OWID_SITE_CLICK", {
-            text: trackedElement.innerText,
-            href: trackedElement.getAttribute("href"),
-            note: trackedElement.getAttribute("data-track-note")
-        })
+        Analytics.logSiteClick(
+            trackedElement.innerText,
+            trackedElement.getAttribute("href") || undefined,
+            trackedElement.getAttribute("data-track-note") || undefined
+        )
     }
 })

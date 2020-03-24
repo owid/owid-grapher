@@ -154,6 +154,6 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     componentDidCatch(error: any, info: any) {
-        Analytics.logEvent("EXPLORE_ERROR", { error, info })
+        Analytics.logExploreError(error, info)
     }
 }
