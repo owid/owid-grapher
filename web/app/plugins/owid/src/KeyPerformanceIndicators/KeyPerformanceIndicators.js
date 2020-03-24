@@ -8,8 +8,9 @@ const KeyPerformanceIndicators = ({
   setKeyPerformanceIndicators
 }) => {
   const helpText = `Example:<br /> 
-  - KPI with some <strong>**bold text**</strong><br />
-  - another KPI`;
+  KPI with some <strong>**bold text**</strong><br />
+  [EMPTY LINE]<br />
+  KPI subtitle`;
 
   return (
     <>
@@ -21,6 +22,7 @@ const KeyPerformanceIndicators = ({
       />
       <h3>Preview</h3>
       <div
+        className="md-preview"
         dangerouslySetInnerHTML={{
           __html: keyPerformanceIndicators.rendered
         }}
