@@ -42,7 +42,7 @@ export class DataTab extends React.Component<{
 
         entitiesUniq.forEach(entity => {
             yearsUniq.forEach(year => {
-                const row = [
+                const row: (string | number)[] = [
                     entity,
                     vardata.entityMetaByKey[entity].code || "",
                     chart.formatYearFunction(year)
