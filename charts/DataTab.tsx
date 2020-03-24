@@ -34,9 +34,12 @@ export class DataTab extends React.Component<{
 
         const rows: string[] = []
 
-        const titleRow = chart.yearIsDayVar
-            ? ["Entity", "Code", "Date"]
-            : ["Entity", "Code", "Year"]
+        const titleRow = [
+            "Entity",
+            "Code",
+            chart.yearIsDayVar ? "Date" : "Year"
+        ]
+
         dimensions.forEach(dim => {
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
