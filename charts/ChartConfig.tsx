@@ -117,7 +117,7 @@ export class ChartConfigProps {
         if (initial) {
             for (const key in this) {
                 if (key in initial) {
-                    ;(this as any)[key] = (initial as any)[key]
+                    ; (this as any)[key] = (initial as any)[key]
                 }
             }
         }
@@ -225,11 +225,12 @@ export class ChartConfig {
         this.setBaseFontSize = val
     }
 
-    @computed get formatYearFunction() {
-        const yearIsDayVar = first(
-            this.vardata.variables.filter(v => v.display.yearIsDay)
-        )
+    @computed get yearIsDayVar() {
+        return first(this.vardata.variables.filter(v => v.display.yearIsDay))
+    }
 
+    @computed get formatYearFunction() {
+        const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar
             ? (day: number) => formatDay(day, yearIsDayVar.display.zeroDay)
             : formatYear
@@ -442,7 +443,7 @@ export class ChartConfig {
     @action.bound update(json: any) {
         for (const key in this.props) {
             if (key in json && key !== "xAxis" && key !== "yAxis") {
-                ;(this.props as any)[key] = json[key]
+                ; (this.props as any)[key] = json[key]
             }
         }
 

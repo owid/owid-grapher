@@ -34,7 +34,7 @@ export class DataTab extends React.Component<{
 
         const rows: string[] = []
 
-        const titleRow = ["Entity", "Code", "Year"]
+        const titleRow = chart.yearIsDayVar ? ["Entity", "Code", "Date"] : ["Entity", "Code", "Year"]
         dimensions.forEach(dim => {
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
@@ -45,7 +45,7 @@ export class DataTab extends React.Component<{
                 const row = [
                     entity,
                     vardata.entityMetaByKey[entity].code || "",
-                    year
+                    chart.formatYearFunction(year)
                 ]
 
                 let rowHasSomeValue = false
