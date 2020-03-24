@@ -117,7 +117,7 @@ export class ChartConfigProps {
         if (initial) {
             for (const key in this) {
                 if (key in initial) {
-                    ; (this as any)[key] = (initial as any)[key]
+                    ;(this as any)[key] = (initial as any)[key]
                 }
             }
         }
@@ -443,7 +443,7 @@ export class ChartConfig {
     @action.bound update(json: any) {
         for (const key in this.props) {
             if (key in json && key !== "xAxis" && key !== "yAxis") {
-                ; (this.props as any)[key] = json[key]
+                ;(this.props as any)[key] = json[key]
             }
         }
 
