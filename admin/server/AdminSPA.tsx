@@ -22,6 +22,10 @@ export function AdminSPA(props: { username: string; isSuperuser: boolean }) {
                 <title>owid-admin</title>
                 <meta name="description" content="" />
                 <link
+                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700"
+                    rel="stylesheet"
+                />
+                <link
                     href={webpack("commons.css")}
                     rel="stylesheet"
                     type="text/css"
