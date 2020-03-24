@@ -31,6 +31,7 @@ interface MapWithLegendProps {
     choroplethData: ChoroplethData
     years: number[]
     inputYear?: number
+    formatYear: (year: number) => string
     legendData: MapLegendBin[]
     legendTitle: string
     projection: MapProjection
@@ -177,7 +178,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             defaultFill,
             bounds,
             inputYear,
-            mapToDataEntities
+            mapToDataEntities,
+            formatYear
         } = this.props
         const {
             focusBracket,
@@ -235,7 +237,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
                                       )
-                                    : `No data for ${this.context.chart.formatYearFunction(
+                                    : `No data for ${formatYear(
                                           inputYear as number
                                       )}`}
                             </span>
@@ -244,11 +246,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                 <div>
                                     in
                                     <br />
-                                    <span>
-                                        {this.context.chart.formatYearFunction(
-                                            tooltipDatum.year
-                                        )}
-                                    </span>
+                                    <span>{formatYear(tooltipDatum.year)}</span>
                                 </div>
                             )}
                         </div>
@@ -317,6 +315,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         projection={map.projection}
                         defaultFill={map.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
+                        formatYear={map.data.formatYear}
                     />
                 ) : (
                     <LoadingChart bounds={layout.innerBounds} />

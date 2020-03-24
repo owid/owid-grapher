@@ -283,7 +283,7 @@ export class ScatterPlot extends React.Component<{
     @computed private get scatterPointLabelFormatFunction() {
         const scatterPointLabelFormatFunctions = {
             year: (scatterValue: ScatterValue) =>
-                this.chart.formatYearFunction(scatterValue.time.y),
+                this.chart.formatYearFunction(scatterValue.year),
             y: (scatterValue: ScatterValue) =>
                 this.transform.yFormatTooltip(scatterValue.y),
             x: (scatterValue: ScatterValue) =>
@@ -381,7 +381,8 @@ export class ScatterPlot extends React.Component<{
                     <ScatterTooltip
                         formatY={transform.yFormatTooltip}
                         formatX={transform.xFormatTooltip}
-                        formatYearFunction={this.chart.formatYearFunction}
+                        formatYYear={transform.yFormatYear}
+                        formatXYear={transform.xFormatYear}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
                         fontSize={this.chart.baseFontSize}
@@ -402,7 +403,8 @@ export class ScatterPlot extends React.Component<{
 interface ScatterTooltipProps {
     formatY: (value: number) => string
     formatX: (value: number) => string
-    formatYearFunction: (value: number) => string
+    formatYYear: (value: number) => string
+    formatXYear: (value: number) => string
     series: ScatterSeries
     maxWidth: number
     fontSize: number
@@ -421,7 +423,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
 
     formatValueX(value: ScatterValue) {
         let s = "X Axis: " + this.props.formatX(value.x)
-        const formatYear = this.props.formatYearFunction
+        const formatYear = this.props.formatXYear
         if (!value.time.span && value.time.y !== value.time.x)
             s += ` (data from ${formatYear(value.time.x)})`
         return s
@@ -450,7 +452,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         elements.push(heading)
         offset += heading.wrap.height + lineHeight
 
-        const formatFunction = this.props.formatYearFunction
+        const { formatYYear } = this.props
 
         values.forEach(v => {
             const year = {
@@ -460,10 +462,10 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                     maxWidth: maxWidth,
                     fontSize: 0.65 * fontSize,
                     text: v.time.span
-                        ? `${formatFunction(
-                              v.time.span[0]
-                          )} to ${formatFunction(v.time.span[1])}`
-                        : formatFunction(v.time.y)
+                        ? `${formatYYear(v.time.span[0])} to ${formatYYear(
+                              v.time.span[1]
+                          )}`
+                        : formatYYear(v.time.y)
                 })
             }
             offset += year.wrap.height

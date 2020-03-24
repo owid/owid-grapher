@@ -39,9 +39,9 @@ export class SourcesTab extends React.Component<{
         const maxYear = max(variable.years)
         let timespan = ""
         if (minYear !== undefined && maxYear !== undefined)
-            timespan = `${this.props.chart.formatYearFunction(
+            timespan = `${dimension.formatYear(
                 minYear
-            )} – ${this.props.chart.formatYearFunction(maxYear)}`
+            )} – ${dimension.formatYear(maxYear)}`
 
         return (
             <div key={source.id} className="datasource-wrapper">

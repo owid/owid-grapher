@@ -16,7 +16,8 @@ import {
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
     uniq,
-    compact
+    compact,
+    formatYear
 } from "./Util"
 import { computed } from "mobx"
 import { defaultTo, defaultWith, first, last } from "./Util"
@@ -574,6 +575,14 @@ export class ScatterTransform implements IChartTransform {
         return this.isRelativeMode || !this.xDimension
             ? this.xAxis.tickFormat
             : this.xDimension.formatValueLong
+    }
+
+    @computed get yFormatYear(): (year: number) => string {
+        return this.yDimension ? this.yDimension.formatYear : formatYear
+    }
+
+    @computed get xFormatYear(): (year: number) => string {
+        return this.xDimension ? this.xDimension.formatYear : formatYear
     }
 
     @computed get currentData(): ScatterSeries[] {
