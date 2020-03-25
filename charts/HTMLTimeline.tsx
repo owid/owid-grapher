@@ -153,7 +153,7 @@ export class Timeline extends React.Component<TimelineProps> {
     animRequest?: number
 
     @action.bound onStartPlaying() {
-        Analytics.logEvent("CHART_TIMELINE_PLAY")
+        Analytics.logChartTimelinePlay(this.context.chart.props.slug)
 
         let lastTime: number | undefined
         const ticksPerSec = 5

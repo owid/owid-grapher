@@ -1,11 +1,50 @@
 declare var window: any
 
+// Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
+interface GAEvent {
+    hitType: string
+    eventCategory: string
+    eventAction: string
+    eventLabel?: string
+    eventValue?: number
+}
+
 export class Analytics {
-    static amplitudeSessionId(): string | undefined {
-        return window.amplitude ? window.amplitude.getSessionId() : undefined
+    static logChartError(error: any, info: any) {
+        this.logToAmplitude("CHART_ERROR", { error, info })
     }
 
-    static logEvent(name: string, props?: any): Promise<void> {
+    static logExploreError(error: any, info: any) {
+        this.logToAmplitude("EXPLORE_ERROR", { error, info })
+    }
+
+    static logChartTimelinePlay(slug?: string) {
+        this.logToAmplitude("CHART_TIMELINE_PLAY")
+        this.logToGA("Chart", "TimelinePlay", slug)
+    }
+
+    static logPageNotFound(url: string) {
+        this.logToAmplitude("NOT_FOUND", { href: url })
+    }
+
+    static logChartsPageSearchQuery(query: string) {
+        this.logToAmplitude("Charts Page Filter", { query })
+    }
+
+    static logSiteClick(text: string, href?: string, note?: string) {
+        this.logToAmplitude("OWID_SITE_CLICK", {
+            text,
+            href,
+            note
+        })
+        this.logToGA("SiteClick", note || "unknown-category", text)
+    }
+
+    static logPageLoad() {
+        this.logToAmplitude("OWID_PAGE_LOAD")
+    }
+
+    private static logToAmplitude(name: string, props?: any) {
         props = Object.assign(
             {},
             {
@@ -17,17 +56,23 @@ export class Analytics {
             },
             props
         )
+        if (window.amplitude)
+            window.amplitude.getInstance().logEvent(name, props)
+    }
 
-        // Todo: switch to async/await when AmplitudeSDK switches off callbacks
-        return new Promise((resolve, reject) => {
-            if (!window.amplitude) {
-                // console.log(name, props)
-                resolve()
-            } else {
-                window.amplitude.getInstance().logEvent(name, props, () => {
-                    resolve()
-                })
-            }
-        })
+    private static logToGA(
+        eventCategory: string,
+        eventAction: string,
+        eventLabel?: string,
+        eventValue?: number
+    ) {
+        const event: GAEvent = {
+            hitType: "event",
+            eventCategory,
+            eventAction,
+            eventLabel,
+            eventValue
+        }
+        if (window.ga) window.ga("send", event)
     }
 }

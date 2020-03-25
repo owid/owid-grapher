@@ -612,6 +612,8 @@ export class AddEntityButton extends React.Component<{
             <button
                 className="addDataButton clickable"
                 onClick={onClick}
+                data-track-click
+                data-track-note="chart-add-entity"
                 style={buttonStyle}
             >
                 <span className="icon">
