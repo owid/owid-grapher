@@ -341,9 +341,7 @@ export class ChartConfig {
 
     @computed get formatYearFunction() {
         const yearIsDayVar = this.yearIsDayVar
-        return yearIsDayVar
-            ? (day: number) => formatDay(day, EPOCH_DATE)
-            : formatYear
+        return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
     }
 
     data: ChartData

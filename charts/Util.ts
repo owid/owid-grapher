@@ -214,12 +214,12 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
-export function formatDay(dayAsYear: number, zeroDay = EPOCH_DATE): string {
+export function formatDay(dayAsYear: number): string {
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
     return moment
-        .utc(zeroDay)
+        .utc(EPOCH_DATE)
         .add(dayAsYear, "days")
         .format("MMM D, YYYY")
 }
