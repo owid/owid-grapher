@@ -621,6 +621,10 @@ export function dateDiffInDays(a: Date, b: Date) {
     return Math.floor((utca - utcb) / MS_PER_DAY)
 }
 
+export function diffDateISOStringInDays(a: string, b: string): number {
+    return moment.utc(a).diff(moment.utc(b), "days")
+}
+
 export function addDays(date: Date, days: number): Date {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)

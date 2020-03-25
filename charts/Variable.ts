@@ -7,10 +7,10 @@ import {
     sortedUniq,
     min,
     max,
-    sortBy
+    sortBy,
+    diffDateISOStringInDays
 } from "./Util"
 import { observable, computed } from "mobx"
-import moment from "moment"
 import { EPOCH_DATE } from "settings"
 
 export class VariableDisplaySettings {
@@ -67,10 +67,11 @@ export class Variable {
     }
 
     @computed get years(): number[] {
-        if (this.display.yearIsDay) {
-            const epoch = moment.utc(EPOCH_DATE)
-            const zeroDay = moment.utc(this.display.zeroDay)
-            const diff = zeroDay.diff(epoch, "days")
+        if (this.display.yearIsDay && this.display.zeroDay !== undefined) {
+            const diff = diffDateISOStringInDays(
+                this.display.zeroDay,
+                EPOCH_DATE
+            )
             return this.rawYears.map(y => y + diff)
         }
         return this.rawYears
