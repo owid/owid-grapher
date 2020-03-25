@@ -9,12 +9,6 @@ import { Bounds } from "./Bounds"
 import { getRelativeMouse } from "./Util"
 import { Tooltip } from "./Tooltip"
 
-// Metadata reflection hack - Mispy
-declare const global: any
-if (typeof global !== "undefined") {
-    global.MouseEvent = {}
-}
-
 interface SourcesFooterProps {
     chart: ChartConfig
     maxWidth: number

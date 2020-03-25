@@ -10,12 +10,6 @@ import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-// Metadata reflection hack - Mispy
-declare const global: any
-if (typeof global !== "undefined") {
-    global.MouseEvent = {}
-}
-
 @observer
 export class DataSelectorMulti extends React.Component<{
     chart: ChartConfig
