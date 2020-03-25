@@ -225,11 +225,12 @@ export class ChartConfig {
         this.setBaseFontSize = val
     }
 
-    @computed get formatYearFunction() {
-        const yearIsDayVar = first(
-            this.vardata.variables.filter(v => v.display.yearIsDay)
-        )
+    @computed get yearIsDayVar() {
+        return first(this.vardata.variables.filter(v => v.display.yearIsDay))
+    }
 
+    @computed get formatYearFunction() {
+        const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar
             ? (day: number) => formatDay(day, yearIsDayVar.display.zeroDay)
             : formatYear
