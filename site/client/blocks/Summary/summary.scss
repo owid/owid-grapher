@@ -1,9 +1,5 @@
 .wp-block-owid-summary {
     @include block-spacing;
-    @include md-up {
-        padding-left: 1.5 * $padding-x-md;
-        padding-right: 1.5 * $padding-x-md;
-    }
 
     border: 1px solid $primary-color;
     border-top-width: 5px;
@@ -17,14 +13,10 @@
         text-align: center;
         color: inherit;
     }
-    ul {
-        list-style-position: inside;
-        padding-left: 0;
-    }
-
     li {
         margin-bottom: 0.5rem;
         a {
+            display: block;
             color: inherit;
             transition: all 150ms;
             &:hover,

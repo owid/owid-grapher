@@ -790,6 +790,25 @@ hr.datasources-hr {
     }
 }
 
+.article-content ol,
+.article-content ul {
+    margin-bottom: 30px;
+    padding-left: 40px;
+    font-weight: normal;
+}
+
+.article-content ul ul {
+    margin-bottom: 0;
+}
+
+.article-content > p > ul > li {
+    margin-bottom: 5px;
+}
+
+.article-content ol > li {
+    margin-bottom: 10px;
+}
+
 .article-content iframe {
     display: block;
     margin-left: auto;
