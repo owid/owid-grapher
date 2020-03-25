@@ -166,7 +166,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     }
 
     @computed get dateRange(): DateRange {
-        const difference = 13 // inclusive, so 14 days technically
+        const difference = this.tableState.isMobile ? 13 : 20 // inclusive, so 21 days technically
         if (this.data !== undefined && this.data.length > 0) {
             const maxDate = max(this.data.map(d => d.date)) as Date
             const minDate = addDays(maxDate, -difference)
