@@ -224,9 +224,59 @@ $table-bg: $body-bg;
             padding-left: 6px;
         }
     }
+
+    td.location-tests {
+        font-size: 15px;
+        text-align: right;
+        vertical-align: baseline;
+        width: 40%;
+        border-right: 1px solid rgba($primary-color, 0.1);
+    }
+
+    td.total-tests {
+        font-size: 15px;
+        font-weight: 700;
+        text-align: right;
+        width: 1%;
+    }
+
+    td.total-tests-bar {
+        width: 90%;
+        padding-left: 0;
+        border-left: 1px solid rgba($primary-color, 0.1);
+
+        .bar {
+            height: 1.25em;
+            min-width: 1px;
+            background-color: $primary-color-600;
+            margin-left: -1px;
+        }
+    }
+
+    td.testing-notes {
+        font-size: 13px;
+        color: rgba($primary-color, 0.65);
+
+        .official {
+            font-size: 1rem;
+            margin-right: 5px;
+            color: orange;
+
+            &.is-official {
+                color: green;
+            }
+        }
+    }
+
+    td.date {
+        font-size: 14px;
+        color: rgba($primary-color, 0.5);
+        width: 1%;
+        white-space: nowrap;
+    }
 }
 
-.covid-table-note {
+.covid-table-footer {
     margin-top: 0.75em;
 
     p {

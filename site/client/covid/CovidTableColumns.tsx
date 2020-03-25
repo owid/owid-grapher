@@ -1,8 +1,11 @@
 import * as React from "react"
-import { scaleThreshold, interpolateLab, scaleLinear } from "d3"
+import { scaleThreshold, interpolateLab, scaleLinear, ScaleLinear } from "d3"
+import classnames from "classnames"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
+import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
 
 import { Tippy } from "charts/Tippy"
 
@@ -25,12 +28,16 @@ import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
 
 export enum CovidTableColumnKey {
     location = "location",
+    locationTests = "locationTests",
     totalCases = "totalCases",
     newCases = "newCases",
     totalDeaths = "totalDeaths",
     newDeaths = "newDeaths",
     daysToDoubleCases = "daysToDoubleCases",
-    daysToDoubleDeaths = "daysToDoubleDeaths"
+    daysToDoubleDeaths = "daysToDoubleDeaths",
+    totalTests = "totalTests",
+    testDate = "testDate",
+    testSource = "testSource"
 }
 
 export type CovidTableHeaderSpec = Omit<
@@ -48,10 +55,13 @@ export interface CovidTableCellSpec {
         CovidBarsProps<CovidDatum>,
         "data" | "xDomain" | "x" | "currentX" | "highlightedX" | "onHover"
     >
+    totalTestsBarScale: ScaleLinear<number, number>
+    countryColors: Record<string, string>
+    baseRowSpan: number
 }
 
 export interface CovidTableColumnSpec {
-    sortKey: CovidSortKey
+    sortKey?: CovidSortKey
     header: (props: CovidTableHeaderSpec) => JSX.Element
     cell: (props: CovidTableCellSpec) => JSX.Element
 }
@@ -94,7 +104,7 @@ const daysToDoubleGenerator = (
     const range = accessorRange(datum)
     return (
         <React.Fragment>
-            <td className="doubling-days">
+            <td className="doubling-days" rowSpan={props.baseRowSpan}>
                 {range !== undefined ? (
                     <>
                         <span>
@@ -133,7 +143,10 @@ const daysToDoubleGenerator = (
                 )}
             </td>
             {isMobile && (
-                <td className={`plot-cell measure--${noun()}`}>
+                <td
+                    className={`plot-cell measure--${noun()}`}
+                    rowSpan={props.baseRowSpan}
+                >
                     <div className="trend">
                         <div className="plot">
                             <CovidBars<CovidDatum>
@@ -158,7 +171,10 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className={`plot-cell measure--${noun()}`}>
+        <td
+            className={`plot-cell measure--${noun()}`}
+            rowSpan={props.baseRowSpan}
+        >
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -197,7 +213,10 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
 ) => {
     const { bars, datum } = props
     return (
-        <td className={`plot-cell measure--${noun()}`}>
+        <td
+            className={`plot-cell measure--${noun()}`}
+            rowSpan={props.baseRowSpan}
+        >
             <div className="trend">
                 <div className="plot">
                     <CovidBars<CovidDatum>
@@ -251,7 +270,28 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 <strong>Location</strong>
             </HeaderCell>
         ),
-        cell: props => <td className="location">{props.datum.location}</td>
+        cell: props => (
+            <td className="location" rowSpan={props.baseRowSpan}>
+                {props.datum.location}
+            </td>
+        )
+    },
+    locationTests: {
+        sortKey: CovidSortKey.location,
+        header: props => (
+            <HeaderCell
+                {...props}
+                className="location-tests"
+                sortKey={CovidSortKey.location}
+            >
+                <strong>Location</strong>
+            </HeaderCell>
+        ),
+        cell: props => (
+            <td className="location-tests" rowSpan={props.baseRowSpan}>
+                {props.datum.location}
+            </td>
+        )
     },
     daysToDoubleCases: {
         sortKey: CovidSortKey.daysToDoubleCases,
@@ -410,5 +450,121 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
             </HeaderCell>
         ),
         cell: newGenerator(d => d.newDeaths, nouns.deaths)
+    },
+    totalTests: {
+        sortKey: CovidSortKey.totalTests,
+        header: props => (
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.tests()}`}
+                sortKey={CovidSortKey.totalTests}
+                colSpan={2}
+            >
+                <strong>
+                    Total <span className="measure">tests</span>
+                </strong>
+            </HeaderCell>
+        ),
+        cell: props => (
+            <React.Fragment>
+                <td
+                    className={`measure--${nouns.tests()} total-tests`}
+                    rowSpan={1}
+                >
+                    {formatInt(
+                        props.datum.latestWithTests?.tests?.totalTests,
+                        ""
+                    )}
+                </td>
+                <td
+                    className={`measure--${nouns.tests()} total-tests-bar`}
+                    rowSpan={1}
+                >
+                    {props.datum.latestWithTests?.tests?.totalTests !==
+                        undefined && (
+                        <div
+                            className="bar"
+                            style={{
+                                backgroundColor:
+                                    props.countryColors[props.datum.location],
+                                width: `${props.totalTestsBarScale(
+                                    props.datum.latestWithTests.tests.totalTests
+                                ) * 100}%`
+                            }}
+                        />
+                    )}
+                </td>
+            </React.Fragment>
+        )
+    },
+    testDate: {
+        sortKey: CovidSortKey.testDate,
+        header: props => (
+            <HeaderCell
+                {...props}
+                className={`measure--${nouns.tests()}`}
+                sortKey={CovidSortKey.testDate}
+            >
+                <strong>Date</strong>
+            </HeaderCell>
+        ),
+        cell: props => (
+            <td className="date" rowSpan={1}>
+                {formatDate(props.datum.latestWithTests?.date, "")}
+            </td>
+        )
+    },
+    testSource: {
+        header: props => (
+            <HeaderCell {...props} className={`measure--${nouns.tests()}`}>
+                <strong>Source</strong>
+            </HeaderCell>
+        ),
+        cell: props => {
+            if (props.datum.latestWithTests?.tests === undefined)
+                return <td></td>
+
+            const { date, tests } = props.datum.latestWithTests
+            const {
+                sourceURL,
+                sourceLabel,
+                publicationDate,
+                remarks,
+                nonOfficial
+            } = tests
+            return (
+                <td className="testing-notes">
+                    <span
+                        className={classnames("official", {
+                            "is-official": !nonOfficial
+                        })}
+                    >
+                        <Tippy
+                            content={
+                                <div className="covid-tooltip">
+                                    <a href={sourceURL}>{sourceLabel}</a>
+                                    <br />
+                                    Refers to: {formatDate(date)}
+                                    <br />
+                                    Published: {formatDate(publicationDate)}
+                                    <br />
+                                    Remarks: {remarks}
+                                </div>
+                            }
+                        >
+                            <span>
+                                {nonOfficial ? (
+                                    <FontAwesomeIcon
+                                        icon={faExclamationCircle}
+                                    />
+                                ) : (
+                                    <FontAwesomeIcon icon={faCheckCircle} />
+                                )}
+                            </span>
+                        </Tippy>
+                    </span>
+                </td>
+            )
+        }
     }
 }

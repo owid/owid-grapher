@@ -33,9 +33,12 @@ import { CovidTableRow } from "./CovidTableRow"
 import {
     CovidTableColumnKey,
     CovidTableHeaderSpec,
-    columns
+    columns,
+    CovidTableCellSpec
 } from "./CovidTableColumns"
 import { fetchECDCData } from "./CovidFetch"
+import { scaleLinear, schemeCategory10 } from "d3"
+import { fromPairs, uniq } from "lodash"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
@@ -52,8 +55,10 @@ export interface CovidTableProps {
     mobileColumns: CovidTableColumnKey[]
     defaultState: Partial<CovidTableState>
     filter: (datum: CovidCountryDatum) => any
+    loadData: () => Promise<CovidSeries>
     preloadData?: CovidSeries
-    note?: JSX.Element | string
+    extraRow?: (props: CovidTableCellSpec) => JSX.Element | undefined
+    footer?: JSX.Element
 }
 
 @observer
@@ -62,6 +67,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         columns: [],
         mobileColumns: [],
         filter: d => d,
+        loadData: fetchECDCData,
         defaultState: {}
     }
 
@@ -98,7 +104,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     async loadData() {
         this.isLoading = true
         try {
-            this.data = await fetchECDCData()
+            this.data = await this.props.loadData()
             this.isLoaded = true
             this.error = undefined
         } catch (error) {
@@ -120,6 +126,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
                         location: location,
                         series: sortedSeries,
                         latest: maxBy(series, d => d.date),
+                        latestWithTests: maxBy(
+                            series.filter(d => d.tests),
+                            d => d.date
+                        ),
                         caseDoublingRange: getDoublingRange(
                             sortedSeries,
                             d => d.totalCases
@@ -135,7 +145,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return []
     }
 
-    @computed get renderData() {
+    @computed get rowData() {
         const { sortKey, sortOrder } = this.tableState
         const accessor = sortAccessors[sortKey]
         const sortedSeries = orderBy(
@@ -169,6 +179,13 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return this.dateRange[1]
     }
 
+    @computed get totalTestsBarScale() {
+        const maxTests = max(this.data?.map(d => d.tests?.totalTests))
+        return scaleLinear()
+            .domain([0, maxTests ?? 1])
+            .range([0, 1])
+    }
+
     @computed get columns(): CovidTableColumnKey[] {
         return this.tableState.isMobile
             ? this.props.mobileColumns
@@ -193,6 +210,14 @@ export class CovidTable extends React.Component<CovidTableProps> {
             lastUpdated: this.lastUpdated,
             onSort: this.onSort
         }
+    }
+
+    @computed get countryColors(): Record<string, string> {
+        const locations = uniq((this.data || []).map(d => d.location))
+        const colors = schemeCategory10
+        return fromPairs(
+            locations.map((l, i) => [l, colors[i % colors.length]])
+        )
     }
 
     render() {
@@ -223,33 +248,23 @@ export class CovidTable extends React.Component<CovidTableProps> {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.renderData.shown.map(datum => (
+                        {this.rowData.shown.map(datum => (
                             <CovidTableRow
-                                columns={this.columns}
                                 key={datum.id}
                                 datum={datum}
-                                dateRange={this.dateRange}
+                                columns={this.columns}
+                                transform={{
+                                    dateRange: this.dateRange,
+                                    totalTestsBarScale: this.totalTestsBarScale,
+                                    countryColors: this.countryColors
+                                }}
+                                extraRow={this.props.extraRow}
                                 state={this.tableState}
                             />
                         ))}
                     </tbody>
                 </table>
-                <div className="covid-table-note">
-                    {this.props.note && (
-                        <p className="tiny">{this.props.note}</p>
-                    )}
-                    <p>
-                        Data source:{" "}
-                        <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
-                            ECDC
-                        </a>
-                        . Download the{" "}
-                        <a href="https://ourworldindata.org/coronavirus-source-data">
-                            full dataset
-                        </a>
-                        .
-                    </p>
-                </div>
+                <div className="covid-table-footer">{this.props.footer}</div>
             </div>
         )
     }

@@ -82,5 +82,7 @@ export const sortAccessors: Record<CovidSortKey, CovidSortAccessor> = {
     totalDeaths: (d: CovidCountryDatum) => d.latest?.totalDeaths,
     newDeaths: (d: CovidCountryDatum) => d.latest?.newDeaths,
     daysToDoubleCases: (d: CovidCountryDatum) => d.caseDoublingRange?.length,
-    daysToDoubleDeaths: (d: CovidCountryDatum) => d.deathDoublingRange?.length
+    daysToDoubleDeaths: (d: CovidCountryDatum) => d.deathDoublingRange?.length,
+    totalTests: (d: CovidCountryDatum) => d.latestWithTests?.tests?.totalTests,
+    testDate: (d: CovidCountryDatum) => d.latestWithTests?.date
 }

@@ -56,7 +56,8 @@ import {
     difference,
     sortedUniq,
     zip,
-    partition
+    partition,
+    range
 } from "lodash"
 export {
     isEqual,
@@ -115,7 +116,8 @@ export {
     difference,
     sortedUniq,
     zip,
-    partition
+    partition,
+    range
 }
 
 import moment = require("moment")
