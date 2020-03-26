@@ -71,14 +71,10 @@ Daily exports from the live OWID database are published here and can be used for
 | [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz)   | Table structure and metadata, everything except data_values | ~5 MB  |
 | [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations            | >100MB |
 
-This sequence of commands will create a database, then download and import all OWID charts and their data:
+This script will create a database, then download and import all OWID charts and their data:
 
 ```bash
-mysql -e "CREATE DATABASE owid;"
-curl -Lo /tmp/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
-gunzip < /tmp/owid_metadata.sql.gz | mysql -D owid
-curl -Lo /tmp/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
+./scripts/downloadAndCreateDatabase.sh
 ```
 
 Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
