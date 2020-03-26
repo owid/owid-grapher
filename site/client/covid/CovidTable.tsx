@@ -186,7 +186,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         }
     }
 
-    @computed get truncated() {
+    @computed get isTruncated() {
         return this.rowData.truncated.length > 0
     }
 
@@ -262,11 +262,6 @@ export class CovidTable extends React.Component<CovidTableProps> {
             )
         }
 
-        const rowGroups: [string, CovidCountrySeries][] = [
-            ["shown", this.rowData.shown],
-            ["truncated", this.rowData.truncated]
-        ]
-
         return (
             <div
                 className={classnames("covid-table-container", {
@@ -275,7 +270,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
             >
                 <div
                     className={classnames("covid-table-wrapper", {
-                        truncated: this.truncated
+                        truncated: this.isTruncated
                     })}
                 >
                     <table className="covid-table">
@@ -291,27 +286,24 @@ export class CovidTable extends React.Component<CovidTableProps> {
                             </tr>
                         </thead>
                         <tbody>
-                            {rowGroups.map(([groupName, series]) =>
-                                series.map(datum => (
-                                    <CovidTableRow
-                                        key={datum.id}
-                                        className={groupName}
-                                        datum={datum}
-                                        columns={this.columns}
-                                        transform={{
-                                            dateRange: this.dateRange,
-                                            totalTestsBarScale: this
-                                                .totalTestsBarScale,
-                                            countryColors: this.countryColors
-                                        }}
-                                        extraRow={this.props.extraRow}
-                                        state={this.tableState}
-                                    />
-                                ))
-                            )}
+                            {this.rowData.shown.map(datum => (
+                                <CovidTableRow
+                                    key={datum.id}
+                                    datum={datum}
+                                    columns={this.columns}
+                                    transform={{
+                                        dateRange: this.dateRange,
+                                        totalTestsBarScale: this
+                                            .totalTestsBarScale,
+                                        countryColors: this.countryColors
+                                    }}
+                                    extraRow={this.props.extraRow}
+                                    state={this.tableState}
+                                />
+                            ))}
                         </tbody>
                     </table>
-                    {this.truncated && (
+                    {this.isTruncated && (
                         <div className="show-more" onClick={this.onShowMore}>
                             <button className="button">
                                 <span className="icon">
