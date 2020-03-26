@@ -2,6 +2,7 @@ import * as React from "react"
 import { observable, computed } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
+import { ScaleLinear } from "d3"
 
 import { dateDiffInDays, addDays } from "charts/Util"
 
@@ -13,11 +14,19 @@ import {
     CovidTableCellSpec
 } from "./CovidTableColumns"
 
+export interface CovidTableTransform {
+    dateRange: DateRange
+    totalTestsBarScale: ScaleLinear<number, number>
+    countryColors: Record<string, string>
+}
+
 export interface CovidTableRowProps {
     columns: CovidTableColumnKey[]
     datum: CovidCountryDatum
-    dateRange: DateRange
+    transform: CovidTableTransform
     state: CovidTableState
+    className?: string
+    extraRow?: (props: CovidTableCellSpec) => JSX.Element | undefined
     onHighlightDate: (date: Date | undefined) => void
 }
 
@@ -31,20 +40,20 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
 
     @computed get data() {
         const d = this.props.datum
-        const [start, end] = this.props.dateRange
+        const [start, end] = this.props.transform.dateRange
         return d.series.filter(d => d.date >= start && d.date <= end)
     }
 
     @bind dateToIndex(date: Date): number {
-        return dateDiffInDays(date, this.props.dateRange[0])
+        return dateDiffInDays(date, this.props.transform.dateRange[0])
     }
 
     @bind dateFromIndex(index: number): Date {
-        return addDays(this.props.dateRange[0], index)
+        return addDays(this.props.transform.dateRange[0], index)
     }
 
     @computed get xDomain(): [number, number] {
-        const [start, end] = this.props.dateRange
+        const [start, end] = this.props.transform.dateRange
         return [0, dateDiffInDays(end, start)]
     }
 
@@ -91,19 +100,31 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                 currentX: this.currentX,
                 highlightedX: this.hightlightedX,
                 onHover: this.onBarHover
-            }
+            },
+            totalTestsBarScale: this.props.transform.totalTestsBarScale,
+            countryColors: this.props.transform.countryColors,
+            baseRowSpan: this.props.extraRow ? 2 : 1
         }
     }
 
     render() {
         return (
-            <tr>
-                {this.props.columns.map(key => (
-                    <React.Fragment key={key}>
-                        {columns[key].cell(this.cellProps)}
-                    </React.Fragment>
-                ))}
-            </tr>
+            <React.Fragment>
+                <tr className={this.props.className}>
+                    {this.props.columns.map(key => (
+                        <React.Fragment key={key}>
+                            {columns[key].cell(this.cellProps)}
+                        </React.Fragment>
+                    ))}
+                </tr>
+                {this.props.extraRow ? (
+                    <tr className={this.props.className}>
+                        {this.props.extraRow(this.cellProps)}
+                    </tr>
+                ) : (
+                    undefined
+                )}
+            </React.Fragment>
         )
     }
 }

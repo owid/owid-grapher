@@ -4,6 +4,65 @@ $table-bg: $body-bg;
     margin: 0 0 2rem;
 }
 
+.covid-table-wrapper {
+    &.truncated {
+        position: relative;
+    }
+
+    .show-more {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        text-align: center;
+        padding: 1em;
+        cursor: pointer;
+        border-bottom: 3px solid $primary-color;
+
+        &:hover {
+            border-bottom-color: $secondary-color;
+        }
+
+        .button {
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 10px 8px;
+            display: inline-block;
+            background-color: $primary-color;
+            color: white;
+            border: none;
+            border-radius: 3em;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+
+            .icon {
+                padding: 0 8px;
+                opacity: 0.6;
+            }
+        }
+
+        &:hover .button {
+            background-color: $secondary-color;
+        }
+
+        &:after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 12em;
+            pointer-events: none;
+            background: linear-gradient(
+                rgba($table-bg, 0) 0%,
+                $table-bg 90%,
+                $table-bg 100%
+            );
+            z-index: 1;
+        }
+    }
+}
+
 .covid-table {
     margin: 0;
     border: none;
@@ -106,7 +165,7 @@ $table-bg: $body-bg;
     }
 
     tbody:last-child tr:last-child td {
-        border-bottom-color: rgba($primary-color, 0.15);
+        border-bottom-color: rgba($primary-color, 0.22);
     }
 
     .location {
@@ -124,7 +183,7 @@ $table-bg: $body-bg;
 
     td.doubling-days {
         line-height: 1.1;
-        text-align: left;
+        text-align: center;
         width: 30%;
         padding-left: 15px;
 
@@ -224,9 +283,59 @@ $table-bg: $body-bg;
             padding-left: 6px;
         }
     }
+
+    td.location-tests {
+        font-size: 15px;
+        text-align: right;
+        vertical-align: baseline;
+        width: 40%;
+        border-right: 1px solid rgba($primary-color, 0.1);
+    }
+
+    td.total-tests {
+        font-size: 15px;
+        font-weight: 700;
+        text-align: right;
+        width: 1%;
+    }
+
+    td.total-tests-bar {
+        width: 90%;
+        padding-left: 0;
+        border-left: 1px solid rgba($primary-color, 0.1);
+
+        .bar {
+            height: 1.25em;
+            min-width: 1px;
+            background-color: $primary-color-600;
+            margin-left: -1px;
+        }
+    }
+
+    td.testing-notes {
+        font-size: 13px;
+        color: rgba($primary-color, 0.65);
+
+        .official {
+            font-size: 1rem;
+            margin-right: 5px;
+            color: orange;
+
+            &.is-official {
+                color: green;
+            }
+        }
+    }
+
+    td.date {
+        font-size: 14px;
+        color: rgba($primary-color, 0.5);
+        width: 1%;
+        white-space: nowrap;
+    }
 }
 
-.covid-table-note {
+.covid-table-footer {
     margin-top: 0.75em;
 
     p {
@@ -329,7 +438,6 @@ $table-bg: $body-bg;
     .growth-rate {
         font-weight: 700;
         color: $primary-color;
-        white-space: nowrap;
     }
 
     table.values {
@@ -466,7 +574,7 @@ $table-bg: $body-bg;
     }
 
     .bar {
-        background-color: rgba(desaturate($measure-color, 40%), 0.25);
+        background-color: rgba(desaturate($measure-color, 35%), 0.3);
         &.current {
             background-color: $measure-color;
         }

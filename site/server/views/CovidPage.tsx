@@ -1,7 +1,5 @@
 import * as React from "react"
 import * as settings from "settings"
-
-import { webpack } from "utils/server/staticGen"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -96,6 +94,21 @@ export const CovidPage = () => {
                                                     ></div>
                                                 </div>
                                                 <div className="wp-block-column"></div>
+                                            </div>
+                                            <div className="wp-block-columns is-style-sticky-right">
+                                                <div className="wp-block-column">
+                                                    <div
+                                                        data-covid-table
+                                                        data-measure="tests"
+                                                    ></div>
+                                                </div>
+                                                <div className="wp-block-column"></div>
+                                            </div>
+                                            <div className="wp-block-columns is-style-sticky-right">
+                                                <div
+                                                    data-covid-table
+                                                    data-measure="deathsAndCases"
+                                                ></div>
                                             </div>
                                             <div className="wp-block-columns is-style-sticky-right">
                                                 <div className="wp-block-column">

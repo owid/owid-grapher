@@ -37,7 +37,7 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
                 .filter(d => d !== undefined) as number[]
         )
         return scaleLinear()
-            .domain([0, maxY !== undefined ? maxY : 1])
+            .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
             .range([0, 1])
     }
 

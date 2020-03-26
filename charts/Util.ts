@@ -56,7 +56,8 @@ import {
     difference,
     sortedUniq,
     zip,
-    partition
+    partition,
+    range
 } from "lodash"
 export {
     isEqual,
@@ -115,7 +116,8 @@ export {
     difference,
     sortedUniq,
     zip,
-    partition
+    partition,
+    range
 }
 
 import moment = require("moment")
@@ -617,4 +619,20 @@ export function addDays(date: Date, days: number): Date {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
     return newDate
+}
+
+export async function retryPromise<T>(
+    promiseGetter: () => Promise<T>,
+    maxRetries: number = 3
+) {
+    let retried = 0
+    let lastError
+    while (retried++ < maxRetries) {
+        try {
+            return await promiseGetter()
+        } catch (error) {
+            lastError = error
+        }
+    }
+    throw lastError
 }
