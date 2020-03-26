@@ -33,7 +33,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         ],
         defaultState: {
             sortKey: CovidSortKey.totalCases,
-            sortOrder: SortOrder.desc
+            sortOrder: SortOrder.desc,
+            truncate: true
         },
         filter: d =>
             d.location.indexOf("International") === -1 &&
@@ -76,7 +77,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         ],
         defaultState: {
             sortKey: CovidSortKey.totalDeaths,
-            sortOrder: SortOrder.desc
+            sortOrder: SortOrder.desc,
+            truncate: true
         },
         filter: d =>
             d.location.indexOf("International") === -1 &&
@@ -187,7 +189,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         ],
         defaultState: {
             sortKey: CovidSortKey.totalDeaths,
-            sortOrder: SortOrder.desc
+            sortOrder: SortOrder.desc,
+            truncate: true
         },
         filter: d =>
             d.location.indexOf("International") === -1 &&

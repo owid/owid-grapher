@@ -4,6 +4,69 @@ $table-bg: $body-bg;
     margin: 0 0 2rem;
 }
 
+.covid-table-wrapper {
+    &.truncated {
+        position: relative;
+    }
+
+    tr.truncated {
+        visibility: collapse;
+    }
+
+    .show-more {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        text-align: center;
+        padding: 1em;
+        cursor: pointer;
+        border-bottom: 3px solid $primary-color;
+
+        &:hover {
+            border-bottom-color: $secondary-color;
+        }
+
+        .button {
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 10px 8px;
+            display: inline-block;
+            background-color: $primary-color;
+            color: white;
+            border: none;
+            border-radius: 3em;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+
+            .icon {
+                padding: 0 8px;
+                opacity: 0.6;
+            }
+        }
+
+        &:hover .button {
+            background-color: $secondary-color;
+        }
+
+        &:after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 12em;
+            pointer-events: none;
+            background: linear-gradient(
+                rgba($table-bg, 0) 0%,
+                $table-bg 90%,
+                $table-bg 100%
+            );
+            z-index: 1;
+        }
+    }
+}
+
 .covid-table {
     margin: 0;
     border: none;
@@ -106,7 +169,7 @@ $table-bg: $body-bg;
     }
 
     tbody:last-child tr:last-child td {
-        border-bottom-color: rgba($primary-color, 0.15);
+        border-bottom-color: rgba($primary-color, 0.22);
     }
 
     .location {

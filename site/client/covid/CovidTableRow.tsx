@@ -25,6 +25,7 @@ export interface CovidTableRowProps {
     datum: CovidCountryDatum
     transform: CovidTableTransform
     state: CovidTableState
+    className?: string
     extraRow?: (props: CovidTableCellSpec) => JSX.Element | undefined
     onHighlightDate: (date: Date | undefined) => void
 }
@@ -109,7 +110,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
     render() {
         return (
             <React.Fragment>
-                <tr>
+                <tr className={this.props.className}>
                     {this.props.columns.map(key => (
                         <React.Fragment key={key}>
                             {columns[key].cell(this.cellProps)}
@@ -117,7 +118,9 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                     ))}
                 </tr>
                 {this.props.extraRow ? (
-                    <tr>{this.props.extraRow(this.cellProps)}</tr>
+                    <tr className={this.props.className}>
+                        {this.props.extraRow(this.cellProps)}
+                    </tr>
                 ) : (
                     undefined
                 )}
