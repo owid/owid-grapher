@@ -13,7 +13,7 @@ import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "charts/Tippy"
 
-type Measure = "cases" | "deaths" | "tests"
+type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 
 const CASE_THRESHOLD = 20
 const DEATH_THRESHOLD = 5
@@ -168,6 +168,53 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </td>
             )
         }
+    },
+    deathsAndCases: {
+        loadData: fetchECDCData,
+        columns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleDeaths,
+            CovidTableColumnKey.totalDeaths,
+            CovidTableColumnKey.newDeaths,
+            CovidTableColumnKey.daysToDoubleCases,
+            CovidTableColumnKey.totalCases,
+            CovidTableColumnKey.newCases
+        ],
+        mobileColumns: [
+            CovidTableColumnKey.location,
+            CovidTableColumnKey.daysToDoubleDeaths,
+            CovidTableColumnKey.daysToDoubleCases
+        ],
+        defaultState: {
+            sortKey: CovidSortKey.totalDeaths,
+            sortOrder: SortOrder.desc
+        },
+        filter: d =>
+            d.location.indexOf("International") === -1 &&
+            (d.latest && d.latest.totalCases !== undefined
+                ? d.latest.totalCases >= CASE_THRESHOLD
+                : false),
+        footer: (
+            <React.Fragment>
+                <p className="tiny">
+                    Countries with less than {CASE_THRESHOLD} confirmed cases
+                    are not shown. Cases from the Diamond Princess cruise ship
+                    are also not shown since these numbers are no longer
+                    changing over time.
+                </p>
+                <p>
+                    Data source:{" "}
+                    <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
+                        ECDC
+                    </a>
+                    . Download the{" "}
+                    <a href="https://ourworldindata.org/coronavirus-source-data">
+                        full dataset
+                    </a>
+                    .
+                </p>
+            </React.Fragment>
+        )
     }
 }
 
@@ -186,7 +233,7 @@ export function runCovid() {
         const attr = element.getAttribute("data-measure")
         const measure = oneOf<Measure>(
             attr,
-            ["tests", "deaths", "cases"],
+            ["tests", "deaths", "cases", "deathsAndCases"],
             "cases"
         )
         ReactDOM.render(<CovidTable {...propsByMeasure[measure]} />, element)
