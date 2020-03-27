@@ -10,6 +10,10 @@
     @include md-up {
         height: calc(100vh - 225px);
     }
+
+    @include lg-up {
+        min-height: 600px;
+    }
 }
 
 #fallback > img {
