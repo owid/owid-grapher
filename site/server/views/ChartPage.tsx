@@ -5,8 +5,6 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import * as React from "react"
 import urljoin = require("url-join")
 import * as _ from "lodash"
-
-import { webpack } from "utils/server/staticGen"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -92,7 +90,7 @@ export const ChartPage = (props: {
 
                     {post && (
                         <div className="originReference">
-                            <a href={chart.originUrl}>
+                            <a href={`/${post.slug}`}>
                                 Here is all our research and data on{" "}
                                 <strong>{post.title}</strong>.
                                 <FontAwesomeIcon icon={faArrowRight} />
