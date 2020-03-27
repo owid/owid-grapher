@@ -10,11 +10,14 @@ export const CovidDoublingTooltip = (props: {
 }) => {
     const { noun, accessor } = props
     const { latestDay, halfDay, ratio, length } = props.doublingRange
+    const exactRatioWording =
+        ratio.toFixed(1) === "2.0"
+            ? "doubled"
+            : `increased by a factor of ${ratio.toFixed(1)}`
     return (
         <div className="covid-tooltip">
-            The number of total confirmed {noun()} in {latestDay.location} has
-            increased{" "}
-            <span className="growth-rate">{ratio.toFixed(1)}-times</span> in the{" "}
+            The number of total confirmed {noun()} in {latestDay.location} has{" "}
+            <span className="growth-rate">{exactRatioWording}</span> in the{" "}
             <span className="period">last {length} days</span>.
             <table className="values">
                 <tbody>

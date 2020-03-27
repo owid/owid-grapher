@@ -6,7 +6,8 @@ import {
     findClosestYear,
     getStartEndValues,
     DataValue,
-    formatDay
+    formatDay,
+    retryPromise
 } from "../Util"
 
 function iteratorFromArray<T>(array: T[]): Iterable<T> {
@@ -106,5 +107,30 @@ describe(formatDay, () => {
             expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
             timezoneMock.unregister()
         })
+    })
+})
+
+describe(retryPromise, () => {
+    function resolveAfterNthRetry(nth: number, message: string = "success") {
+        let retried = 0
+        return () =>
+            new Promise((resolve, reject) =>
+                retried++ >= nth ? resolve(message) : reject()
+            )
+    }
+
+    it("resolves when promise succeeds first-time", async () => {
+        const promiseGetter = resolveAfterNthRetry(0, "success")
+        expect(retryPromise(promiseGetter, 1)).resolves.toEqual("success")
+    })
+
+    it("resolves when promise succeeds before retry limit", async () => {
+        const promiseGetter = resolveAfterNthRetry(2, "success")
+        expect(retryPromise(promiseGetter, 3)).resolves.toEqual("success")
+    })
+
+    it("rejects when promise doesn't succeed within retry limit", async () => {
+        const promiseGetter = resolveAfterNthRetry(3, "success")
+        expect(retryPromise(promiseGetter, 3)).rejects.toBeUndefined()
     })
 })

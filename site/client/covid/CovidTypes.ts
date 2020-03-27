@@ -1,10 +1,13 @@
+import { CovidTestsDatum } from "./CovidFetch"
+
 export interface CovidDatum {
     date: Date
     location: string
-    total_cases: number | undefined
-    total_deaths: number | undefined
-    new_cases: number | undefined
-    new_deaths: number | undefined
+    totalCases?: number
+    totalDeaths?: number
+    newCases?: number
+    newDeaths?: number
+    tests?: CovidTestsDatum
 }
 
 export type CovidSeries = CovidDatum[]
@@ -14,6 +17,7 @@ export interface CovidCountryDatum {
     location: string
     series: CovidSeries
     latest: CovidDatum | undefined
+    latestWithTests: CovidDatum | undefined
     caseDoublingRange: CovidDoublingRange | undefined
     deathDoublingRange: CovidDoublingRange | undefined
 }
@@ -36,18 +40,20 @@ export enum CovidSortKey {
     totalDeaths = "totalDeaths",
     newDeaths = "newDeaths",
     daysToDoubleCases = "daysToDoubleCases",
-    daysToDoubleDeaths = "daysToDoubleDeaths"
+    daysToDoubleDeaths = "daysToDoubleDeaths",
+    totalTests = "totalTests",
+    testDate = "testDate"
 }
 
 export type CovidSortAccessor = (
     datum: CovidCountryDatum
-) => string | number | undefined
+) => Date | string | number | undefined
 
 export enum SortOrder {
     asc = "asc",
     desc = "desc"
 }
 
-export type NounKey = "cases" | "deaths" | "days"
+export type NounKey = "cases" | "deaths" | "tests" | "days"
 
 export type NounGenerator = (n?: number) => string
