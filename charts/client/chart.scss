@@ -937,6 +937,14 @@ figure[data-grapher-src]:empty:after,
     }
 }
 
+.SelectEntitiesButton {
+    color: $controls-color;
+
+    svg {
+        margin-right: 3px;
+    }
+}
+
 .Tooltip {
     z-index: $zindex-Tooltip;
 }

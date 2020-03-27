@@ -163,6 +163,7 @@ export class ChartConfigProps {
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
+    @observable.ref entityTypePlural?: string = undefined
     @observable.ref hideTimeline?: true = undefined
 
     // Always show year in labels for bar charts
@@ -358,6 +359,10 @@ export class ChartConfig {
 
     @computed get entityType() {
         return defaultTo(this.props.entityType, "country")
+    }
+
+    @computed get entityTypePlural() {
+        return defaultTo(this.props.entityType, "countries")
     }
 
     @computed get tab() {
