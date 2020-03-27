@@ -1,10 +1,11 @@
+import { scaleLinear } from "d3-scale"
 import { line as d3_line, curveLinear } from "d3-shape"
-import { guid } from "./Util"
+import { defaultTo, guid } from "./Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { AxisBox } from "./AxisBox"
-import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
+import { evalEquation } from "./evalEquation"
 import { Bounds } from "./Bounds"
 import { Vector2 } from "./Vector2"
 
@@ -18,19 +19,33 @@ export class ComparisonLine extends React.Component<{
     axisBox: AxisBox
     comparisonLine: ComparisonLineConfig
 }> {
-    @computed private get controlData(): [number, number][] {
+    @computed get controlData(): [number, number][] {
         const { comparisonLine, axisBox } = this.props
         const { xScale, yScale } = axisBox
-        return generateComparisonLinePoints(
-            comparisonLine.yEquals,
-            xScale.domain,
-            yScale.domain,
-            xScale.scaleType,
-            yScale.scaleType
-        )
+
+        const yEquals = defaultTo(comparisonLine.yEquals, "x")
+        const yFunc = (x: number) =>
+            evalEquation(yEquals, { x: x, e: Math.E, pi: Math.PI }, x)
+
+        // Construct control data by running the equation across sample points
+        const numPoints = 100
+        const scale = scaleLinear()
+            .domain([0, 100])
+            .range(xScale.domain)
+        const controlData: Array<[number, number]> = []
+        for (let i = 0; i < numPoints; i++) {
+            const x = scale(i)
+            const y = yFunc(x)
+
+            if (xScale.scaleType === "log" && x <= 0) continue
+            if (yScale.scaleType === "log" && y <= 0) continue
+            controlData.push([x, y])
+        }
+
+        return controlData
     }
 
-    @computed private get linePath(): string | null {
+    @computed get linePath(): string | null {
         const { controlData } = this
         const { xScale, yScale } = this.props.axisBox
         const line = d3_line()
@@ -40,7 +55,7 @@ export class ComparisonLine extends React.Component<{
         return line(controlData)
     }
 
-    @computed private get placedLabel():
+    @computed get placedLabel():
         | { x: number; y: number; bounds: Bounds; angle: number; text: string }
         | undefined {
         const { label } = this.props.comparisonLine
@@ -69,7 +84,7 @@ export class ComparisonLine extends React.Component<{
         }
     }
 
-    private renderUid!: number
+    renderUid!: number
     componentWillMount() {
         this.renderUid = guid()
     }
@@ -91,31 +106,22 @@ export class ComparisonLine extends React.Component<{
                     </clipPath>
                 </defs>
                 <path
-                    id={`path-${renderUid}`}
                     d={linePath || undefined}
                     clipPath={`url(#axisBounds-${renderUid})`}
+                    fill="none"
+                    stroke="#ccc"
                 />
                 {placedLabel && (
                     <text
-                        className="ComparisonLineLabel"
+                        x={placedLabel.x - placedLabel.bounds.width / 2}
+                        y={placedLabel.y - 3}
+                        fill="#999"
+                        transform={`rotate(${placedLabel.angle},${
+                            placedLabel.x
+                        },${placedLabel.y - 3})`}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
-                        <textPath
-                            baseline-shift="-0.2rem"
-                            href={`#path-${renderUid}`}
-                            startOffset="90%"
-                            className="ComparisonLineLabelShadow"
-                            dy="-0.33em"
-                        >
-                            {placedLabel.text}
-                        </textPath>
-                        <textPath
-                            baseline-shift="-0.2rem"
-                            href={`#path-${renderUid}`}
-                            startOffset="90%"
-                        >
-                            {placedLabel.text}
-                        </textPath>
+                        {placedLabel.text}
                     </text>
                 )}
             </g>

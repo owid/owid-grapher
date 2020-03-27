@@ -780,25 +780,6 @@ figure[data-grapher-src]:empty:after,
             background: $controls-color;
         }
     }
-
-    .ComparisonLine {
-        .ComparisonLineLabel {
-            font-size: 80%;
-            opacity: 0.9;
-            text-anchor: end;
-            fill: #999;
-        }
-        .ComparisonLineLabelShadow {
-            stroke: white;
-            stroke-width: 0.3em;
-        }
-        path {
-            opacity: 0.9;
-            fill: none;
-            stroke: #ccc;
-            stroke-dasharray: 2 2;
-        }
-    }
 }
 
 .chart.portrait .DataSelectorMulti {
