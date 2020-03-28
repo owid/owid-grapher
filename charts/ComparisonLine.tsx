@@ -7,6 +7,7 @@ import { AxisBox } from "./AxisBox"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "./Bounds"
 import { Vector2 } from "./Vector2"
+import { StyleBlock, CssMap } from "./StyleBlock"
 
 export interface ComparisonLineConfig {
     label?: string
@@ -74,12 +75,35 @@ export class ComparisonLine extends React.Component<{
         this.renderUid = guid()
     }
 
+    private get styles() {
+        const props: CssMap = {
+            ".ComparisonLineLabel": {
+                fontSize: "80%",
+                opacity: 0.9,
+                textAnchor: "end",
+                fill: "#999"
+            },
+            ".ComparisonLineLabelShadow": {
+                stroke: "white",
+                strokeWidth: "0.3em"
+            },
+            ".ComparisonLine": {
+                opacity: 0.9,
+                fill: "none",
+                stroke: "#ccc",
+                strokeDasharray: "2 2"
+            }
+        }
+        return new StyleBlock(props)
+    }
+
     render() {
         const { innerBounds } = this.props.axisBox
         const { linePath, renderUid, placedLabel } = this
 
         return (
-            <g className="ComparisonLine">
+            <g>
+                {this.styles.toElement()}
                 <defs>
                     <clipPath id={`axisBounds-${renderUid}`}>
                         <rect
@@ -91,6 +115,7 @@ export class ComparisonLine extends React.Component<{
                     </clipPath>
                 </defs>
                 <path
+                    className="ComparisonLine"
                     id={`path-${renderUid}`}
                     d={linePath || undefined}
                     clipPath={`url(#axisBounds-${renderUid})`}
@@ -101,7 +126,7 @@ export class ComparisonLine extends React.Component<{
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
                         <textPath
-                            baseline-shift="-0.2rem"
+                            baselineShift="-0.2rem"
                             href={`#path-${renderUid}`}
                             startOffset="90%"
                             className="ComparisonLineLabelShadow"
@@ -110,7 +135,7 @@ export class ComparisonLine extends React.Component<{
                             {placedLabel.text}
                         </textPath>
                         <textPath
-                            baseline-shift="-0.2rem"
+                            baselineShift="-0.2rem"
                             href={`#path-${renderUid}`}
                             startOffset="90%"
                         >
