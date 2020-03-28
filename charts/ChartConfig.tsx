@@ -362,7 +362,7 @@ export class ChartConfig {
     }
 
     @computed get entityTypePlural() {
-        return defaultTo(this.props.entityType, "countries")
+        return defaultTo(this.props.entityTypePlural, "countries")
     }
 
     @computed get tab() {

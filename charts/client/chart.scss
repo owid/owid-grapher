@@ -266,7 +266,7 @@ figure[data-grapher-src]:empty:after,
         .extraControls button {
             margin: 0;
             font-size: 1em;
-            color: #666;
+            color: $controls-color;
         }
 
         nav.tabs ul {
