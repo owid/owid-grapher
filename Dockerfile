@@ -8,9 +8,14 @@ ADD https://files.ourworldindata.org/owid_metadata.sql.gz /docker-entrypoint-ini
 ADD https://files.ourworldindata.org/owid_chartdata.sql.gz /docker-entrypoint-initdb.d/01-data.sql.gz
 # https://github.com/docker-library/mysql/issues/624
 RUN chmod 0777 /docker-entrypoint-initdb.d/*
+
 # Explicitly trigger database import to speed up mysqld startup in final image.
-# --datadir is changed because default is volume that does not persist.
 # https://serverfault.com/questions/796762/creating-a-docker-mysql-container-with-a-prepared-database-scheme/915845#915845
+
+# prevent mysqld from starting after DB import
+RUN ["sed", "-i", "s/exec \"$@\"/echo \"skipping $@\"/", "/entrypoint.sh"]
+
+# --datadir is changed because default is volume that does not persist.
 RUN ["/entrypoint.sh", "--datadir", "/init-db"]
 
 
