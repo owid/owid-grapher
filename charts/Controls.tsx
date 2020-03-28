@@ -20,7 +20,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
@@ -798,8 +798,9 @@ export class ControlsFooterView extends React.Component<{
                 {chart.data.canAddData && !hasAddButton && (
                     <button type="button" onClick={this.onDataSelect}>
                         {chart.isScatter || chart.isSlopeChart ? (
-                            <span>
-                                <FontAwesomeIcon icon={faSearch} /> Search
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                                {`Select ${chart.entityTypePlural}`}
                             </span>
                         ) : (
                             <span>
