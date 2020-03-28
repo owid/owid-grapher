@@ -386,6 +386,11 @@ testPages.get("/embedVariants", async (req, res) => {
     res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))
 })
 
+testPages.get("/chartFeatureUsage.json", async (req, res) => {
+    const report = await Chart.getChartFeatureUsage()
+    res.send(JSON.stringify(report, null, 2))
+})
+
 testPages.get("/:slug.svg", async (req, res) => {
     const chart = await OldChart.getBySlug(req.params.slug)
     const vardata = await chart.getVariableData()
