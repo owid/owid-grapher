@@ -1370,6 +1370,21 @@ html:not(.js) {
             margin: 0;
         }
     }
+
+    .doneMessage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+
+        .icon {
+            font-size: 3rem;
+            color: rgba($primary-color, 0.6);
+        }
+    }
 }
 
 .CountryProfilePage {
