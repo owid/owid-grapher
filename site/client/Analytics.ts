@@ -12,10 +12,12 @@ interface GAEvent {
 export class Analytics {
     static logChartError(error: any, info: any) {
         this.logToAmplitude("CHART_ERROR", { error, info })
+        this.logToGA("Errors", "Chart")
     }
 
     static logExploreError(error: any, info: any) {
         this.logToAmplitude("EXPLORE_ERROR", { error, info })
+        this.logToGA("Errors", "Explore")
     }
 
     static logChartTimelinePlay(slug?: string) {
@@ -25,10 +27,12 @@ export class Analytics {
 
     static logPageNotFound(url: string) {
         this.logToAmplitude("NOT_FOUND", { href: url })
+        this.logToGA("Errors", "NotFound", url)
     }
 
     static logChartsPageSearchQuery(query: string) {
         this.logToAmplitude("Charts Page Filter", { query })
+        this.logToGA("ChartsPage", "Filter")
     }
 
     static logSiteClick(text: string, href?: string, note?: string) {
