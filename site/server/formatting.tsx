@@ -10,13 +10,7 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
-
-import { mathjax } from "mathjax-full/js/mathjax"
-import { TeX } from "mathjax-full/js/input/tex"
-import { SVG } from "mathjax-full/js/output/svg"
-import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor"
-import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
-import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
+import { initMathJax } from "./MathJax"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -65,24 +59,12 @@ async function formatLatex(
 ): Promise<string> {
     if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
-    const adaptor = liteAdaptor()
-    RegisterHTMLHandler(adaptor)
-
-    const tex = new TeX({ packages: AllPackages })
-    const svg = new SVG({ fontCache: "local" })
-    const doc = mathjax.document("", {
-        InputJax: tex,
-        OutputJax: svg
-    })
+    const formatLatex = initMathJax()
 
     const compiled: string[] = []
     for (const latex of latexBlocks) {
         try {
-            const node = doc.convert(latex, {
-                display: true
-            })
-            const outerHtml = adaptor.outerHTML(node)
-            compiled.push(outerHtml)
+            compiled.push(formatLatex(latex))
         } catch (err) {
             compiled.push(
                 `${latex} (Could not format equation due to MathJax error)`
