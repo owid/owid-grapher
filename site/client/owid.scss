@@ -1344,18 +1344,18 @@ html:not(.js) {
             flex: 1;
             resize: none;
         }
+    }
 
-        .notice {
-            @include info;
-            margin-top: $vertical-spacing;
-            padding: 1rem;
-            background-color: $tertiary-color;
-            color: $primary-color;
-            .title {
-                font-weight: bold;
-                margin: 0 0 0.5rem;
-                font-size: inherit;
-            }
+    .notice {
+        @include info;
+        margin-top: 0;
+        padding: 1rem;
+        background-color: $tertiary-color;
+        color: $primary-color;
+        .title {
+            font-weight: bold;
+            margin: 0 0 0.5rem;
+            font-size: inherit;
         }
     }
 
@@ -1368,6 +1368,29 @@ html:not(.js) {
 
         button {
             margin: 0;
+        }
+    }
+
+    .doneMessage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+
+        h3 {
+            margin: 1rem 0;
+        }
+
+        p {
+            margin: 1rem 0;
+        }
+
+        .icon {
+            font-size: 3rem;
+            color: rgba($primary-color, 0.45);
         }
     }
 }
