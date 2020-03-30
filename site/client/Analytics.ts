@@ -32,7 +32,7 @@ export class Analytics {
 
     static logChartsPageSearchQuery(query: string) {
         this.logToAmplitude("Charts Page Filter", { query })
-        this.logToGA("ChartsPage", "Filter")
+        this.logToGA("ChartsPage", "Filter", query)
     }
 
     static logSiteClick(text: string, href?: string, note?: string) {
