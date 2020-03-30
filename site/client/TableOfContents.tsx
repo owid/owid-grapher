@@ -170,6 +170,8 @@ export const TableOfContents = ({
             </nav>
             <div className="toggle-toc">
                 <button
+                    data-track-click
+                    data-track-note="page-toggle-toc"
                     aria-label={`${
                         isToggled ? "Close" : "Open"
                     } table of contents`}
