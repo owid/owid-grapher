@@ -1,11 +1,10 @@
-import { scaleLinear } from "d3-scale"
 import { line as d3_line, curveLinear } from "d3-shape"
-import { defaultTo, guid } from "./Util"
+import { guid } from "./Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { AxisBox } from "./AxisBox"
-import { evalEquation } from "./evalEquation"
+import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "./Bounds"
 import { Vector2 } from "./Vector2"
 
@@ -19,33 +18,19 @@ export class ComparisonLine extends React.Component<{
     axisBox: AxisBox
     comparisonLine: ComparisonLineConfig
 }> {
-    @computed get controlData(): [number, number][] {
+    @computed private get controlData(): [number, number][] {
         const { comparisonLine, axisBox } = this.props
         const { xScale, yScale } = axisBox
-
-        const yEquals = defaultTo(comparisonLine.yEquals, "x")
-        const yFunc = (x: number) =>
-            evalEquation(yEquals, { x: x, e: Math.E, pi: Math.PI }, x)
-
-        // Construct control data by running the equation across sample points
-        const numPoints = 100
-        const scale = scaleLinear()
-            .domain([0, 100])
-            .range(xScale.domain)
-        const controlData: Array<[number, number]> = []
-        for (let i = 0; i < numPoints; i++) {
-            const x = scale(i)
-            const y = yFunc(x)
-
-            if (xScale.scaleType === "log" && x <= 0) continue
-            if (yScale.scaleType === "log" && y <= 0) continue
-            controlData.push([x, y])
-        }
-
-        return controlData
+        return generateComparisonLinePoints(
+            comparisonLine.yEquals,
+            xScale.domain,
+            yScale.domain,
+            xScale.scaleType,
+            yScale.scaleType
+        )
     }
 
-    @computed get linePath(): string | null {
+    @computed private get linePath(): string | null {
         const { controlData } = this
         const { xScale, yScale } = this.props.axisBox
         const line = d3_line()
@@ -55,7 +40,7 @@ export class ComparisonLine extends React.Component<{
         return line(controlData)
     }
 
-    @computed get placedLabel():
+    @computed private get placedLabel():
         | { x: number; y: number; bounds: Bounds; angle: number; text: string }
         | undefined {
         const { label } = this.props.comparisonLine
@@ -84,7 +69,7 @@ export class ComparisonLine extends React.Component<{
         }
     }
 
-    renderUid!: number
+    private renderUid!: number
     componentWillMount() {
         this.renderUid = guid()
     }
@@ -94,7 +79,7 @@ export class ComparisonLine extends React.Component<{
         const { linePath, renderUid, placedLabel } = this
 
         return (
-            <g className="ComparisonLine">
+            <g>
                 <defs>
                     <clipPath id={`axisBounds-${renderUid}`}>
                         <rect
@@ -106,22 +91,45 @@ export class ComparisonLine extends React.Component<{
                     </clipPath>
                 </defs>
                 <path
+                    style={{
+                        opacity: 0.9,
+                        fill: "none",
+                        stroke: "#ccc",
+                        strokeDasharray: "2 2"
+                    }}
+                    id={`path-${renderUid}`}
                     d={linePath || undefined}
                     clipPath={`url(#axisBounds-${renderUid})`}
-                    fill="none"
-                    stroke="#ccc"
                 />
                 {placedLabel && (
                     <text
-                        x={placedLabel.x - placedLabel.bounds.width / 2}
-                        y={placedLabel.y - 3}
-                        fill="#999"
-                        transform={`rotate(${placedLabel.angle},${
-                            placedLabel.x
-                        },${placedLabel.y - 3})`}
+                        style={{
+                            fontSize: "80%",
+                            opacity: 0.9,
+                            textAnchor: "end",
+                            fill: "#999"
+                        }}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
-                        {placedLabel.text}
+                        <textPath
+                            baselineShift="-0.2rem"
+                            href={`#path-${renderUid}`}
+                            startOffset="90%"
+                            style={{
+                                stroke: "white",
+                                strokeWidth: "0.3em"
+                            }}
+                            dy="-0.33em"
+                        >
+                            {placedLabel.text}
+                        </textPath>
+                        <textPath
+                            baselineShift="-0.2rem"
+                            href={`#path-${renderUid}`}
+                            startOffset="90%"
+                        >
+                            {placedLabel.text}
+                        </textPath>
                     </text>
                 )}
             </g>
