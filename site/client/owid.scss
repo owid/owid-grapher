@@ -709,10 +709,14 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education#methodology */
-    svg.latex:only-child {
+    mjx-container:only-child {
         display: block;
         margin: auto;
-        max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
+        text-align: center;
+
+        svg {
+            max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
+        }
     }
 }
 
