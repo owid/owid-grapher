@@ -18,6 +18,8 @@ const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-pre
     <path fill="currentColor" opacity="0.6" d="M239.76,234.78A27.5,27.5,0,0,1,217,192a87.76,87.76,0,1,0-145.9,0A27.5,27.5,0,1,1,25.37,222.6,142.17,142.17,0,0,1,1.24,143.17C1.24,64.45,65.28.41,144,.41s142.76,64,142.76,142.76a142.17,142.17,0,0,1-24.13,79.43A27.47,27.47,0,0,1,239.76,234.78Z" transform="translate(0 -0.41)"/>
 </svg>`
 
+const formatMathJax = initMathJax()
+
 export interface Reference {}
 
 export interface FormattedPost {
@@ -62,12 +64,10 @@ async function formatLatex(
     // return early so we don't do unnecessary work for sites without latex
     if (!latexBlocks.length) return html
 
-    const formatLatex = initMathJax()
-
     const compiled: string[] = []
     for (const latex of latexBlocks) {
         try {
-            compiled.push(formatLatex(latex))
+            compiled.push(formatMathJax(latex))
         } catch (err) {
             compiled.push(
                 `${latex} (Could not format equation due to MathJax error)`

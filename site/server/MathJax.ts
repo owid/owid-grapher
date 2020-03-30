@@ -16,7 +16,7 @@ export function initMathJax() {
         OutputJax: svg
     })
 
-    return function formatLatex(latex: string): string {
+    return function format(latex: string): string {
         const node = doc.convert(latex, {
             display: true
         })
