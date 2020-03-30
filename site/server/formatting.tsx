@@ -59,6 +59,9 @@ async function formatLatex(
 ): Promise<string> {
     if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
+    // return early so we don't do unnecessary work for sites without latex
+    if (!latexBlocks.length) return html
+
     const formatLatex = initMathJax()
 
     const compiled: string[] = []
