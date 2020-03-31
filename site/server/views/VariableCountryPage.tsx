@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { VariableDisplaySettings } from "charts/VariableData"
+import { VariableDisplaySettings } from "charts/Variable"
 import { defaultTo } from "charts/Util"
 
 export interface VariableCountryPageProps {

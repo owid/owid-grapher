@@ -14,7 +14,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import * as filenamify from "filenamify"
 const timeago = require("timeago.js")()
 
-import { VariableDisplaySettings } from "charts/VariableData"
+import { VariableDisplaySettings } from "charts/Variable"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"

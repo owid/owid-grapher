@@ -148,7 +148,7 @@ export class MapData {
         autorun(() => {
             const hasVariable =
                 chart.map.variableId &&
-                chart.vardata.variablesById[chart.map.variableId]
+                chart.variablesById[chart.map.variableId]
             if (!hasVariable && chart.data.primaryVariable) {
                 const variableId = chart.data.primaryVariable.id
                 runInAction(() => (chart.map.props.variableId = variableId))
@@ -176,16 +176,13 @@ export class MapData {
     @computed get map() {
         return this.chart.map
     }
-    @computed get vardata() {
-        return this.chart.vardata
-    }
 
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
-        const { map, vardata } = this
+        const { map } = this
         return (
             map.variableId !== undefined &&
-            !!vardata.variablesById[map.variableId]
+            !!this.chart.variablesById[map.variableId]
         )
     }
 

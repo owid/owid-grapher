@@ -13,7 +13,7 @@ async function main() {
         chart.isLocalExport = true
         const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
         const vardata = await getVariableData(variableIds)
-        chart.vardata.receiveData(vardata)
+        chart.receiveData(vardata)
 
         c.config.data = chart.data.json
         console.log(c.id)

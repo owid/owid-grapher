@@ -60,7 +60,7 @@ export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
                     chart.dimensions.map(d => d.variableId)
                 )
                 const vardata = await getVariableData(variableIds)
-                chart.vardata.receiveData(vardata)
+                chart.receiveData(vardata)
                 fs.writeFile(outPath, chart.staticSVG)
             }
         }

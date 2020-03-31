@@ -17,7 +17,7 @@ function setupChart(
         ...configOverrides
     })
     const chart = new ChartConfig(props)
-    chart.vardata.receiveData(fixtures.readVariable(varId))
+    chart.receiveData(fixtures.readVariable(varId))
     return chart
 }
 

@@ -14,7 +14,7 @@ export async function chartToSVG(
 ): Promise<string> {
     const chart = new ChartConfig(jsonConfig)
     chart.isLocalExport = true
-    chart.vardata.receiveData(vardata)
+    chart.receiveData(vardata)
     return chart.staticSVG
 }
 
@@ -25,7 +25,7 @@ export async function bakeImageExports(
 ) {
     const chart = new ChartConfig(jsonConfig)
     chart.isLocalExport = true
-    chart.vardata.receiveData(vardata)
+    chart.receiveData(vardata)
     const outPath = path.join(outDir, chart.props.slug as string)
 
     return Promise.all([
