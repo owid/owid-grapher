@@ -53,16 +53,12 @@ export class ChartData {
         this.chart = chart
     }
 
-    @computed get vardata() {
-        return this.chart.vardata
-    }
-
     // ChartData is ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
-        const { chart, vardata } = this
+        const { chart } = this
         return every(
             chart.dimensions,
-            dim => !!vardata.variablesById[dim.variableId]
+            dim => !!chart.variablesById[dim.variableId]
         )
     }
 
@@ -70,7 +66,7 @@ export class ChartData {
         if (!this.isReady) return []
 
         return map(this.chart.dimensions, (dim, i) => {
-            const variable = this.vardata.variablesById[dim.variableId]
+            const variable = this.chart.variablesById[dim.variableId]
             return new DimensionWithData(i, dim, variable)
         })
     }
@@ -236,7 +232,7 @@ export class ChartData {
 
     @computed get isSingleEntity(): boolean {
         return (
-            this.vardata.availableEntities.length === 1 ||
+            this.chart.availableEntities.length === 1 ||
             this.chart.addCountryMode === "change-country"
         )
     }
@@ -262,14 +258,14 @@ export class ChartData {
     }
 
     @computed get selectionData(): Array<{ key: DataKey; color?: Color }> {
-        const { chart, vardata, primaryDimensions } = this
+        const { chart, primaryDimensions } = this
         let validSelections = chart.props.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
             const dimension = primaryDimensions[sel.index]
             if (!dimension) return false
 
             // Entity must be within that dimension
-            const entityMeta = vardata.entityMetaById[sel.entityId]
+            const entityMeta = chart.entityMetaById[sel.entityId]
             if (
                 !entityMeta ||
                 !includes(dimension.variable.entitiesUniq, entityMeta.name)
@@ -295,7 +291,7 @@ export class ChartData {
         return map(validSelections, sel => {
             return {
                 key: this.keyFor(
-                    vardata.entityMetaById[sel.entityId].name,
+                    chart.entityMetaById[sel.entityId].name,
                     sel.index
                 ),
                 color: sel.color
@@ -359,13 +355,13 @@ export class ChartData {
 
     // Map keys back to their components for storage
     set selectedKeys(keys: DataKey[]) {
-        const { chart, vardata } = this
+        const { chart } = this
         if (!this.isReady) return
 
         const selection = map(keys, datakey => {
             const { entity, index } = this.lookupKey(datakey)
             return {
-                entityId: vardata.entityMetaByKey[entity].id,
+                entityId: chart.entityMetaByKey[entity].id,
                 index: index,
                 color: this.keyColors[datakey]
             }
@@ -391,7 +387,7 @@ export class ChartData {
         each(primaryDimensions, (dim, index) => {
             const { variable } = dim
             each(variable.entitiesUniq, entity => {
-                const entityMeta = chart.vardata.entityMetaByKey[entity]
+                const entityMeta = chart.entityMetaByKey[entity]
                 const key = this.keyFor(entity, index)
 
                 // Full label completely represents the data in the key and is used in the editor
@@ -482,7 +478,7 @@ export class ChartData {
     @computed get primaryVariable() {
         const yDimension = find(this.chart.dimensions, { property: "y" })
         return yDimension
-            ? this.vardata.variablesById[yDimension.variableId]
+            ? this.chart.variablesById[yDimension.variableId]
             : undefined
     }
 

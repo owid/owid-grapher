@@ -3,7 +3,7 @@
 
 import { observable } from "mobx"
 import { extend } from "./Util"
-import { VariableDisplaySettings } from "./VariableData"
+import { VariableDisplaySettings } from "./Variable"
 
 export class ChartDimension {
     @observable property!: string

@@ -65,7 +65,7 @@ export async function bakeChartsToImages(
                     chart.dimensions.map(d => d.variableId)
                 )
                 const vardata = await getVariableData(variableIds)
-                chart.vardata.receiveData(vardata)
+                chart.receiveData(vardata)
 
                 let svgCode = chart.staticSVG
                 if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)

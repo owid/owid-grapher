@@ -267,8 +267,7 @@ export class ChartUrl implements ObservableUrl {
 
                         if (chart.data.canChangeEntity) {
                             chart.data.availableEntities.forEach(entity => {
-                                const entityMeta =
-                                    chart.vardata.entityMetaByKey[entity]
+                                const entityMeta = chart.entityMetaByKey[entity]
                                 if (
                                     entityMeta.code === entityCodes[0] ||
                                     entityMeta.name === entityCodes[0]
@@ -281,9 +280,7 @@ export class ChartUrl implements ObservableUrl {
                                 datakey => {
                                     const meta = chart.data.lookupKey(datakey)
                                     const entityMeta =
-                                        chart.vardata.entityMetaByKey[
-                                            meta.entity
-                                        ]
+                                        chart.entityMetaByKey[meta.entity]
                                     return (
                                         includes(entityCodes, meta.shortCode) ||
                                         includes(

@@ -61,7 +61,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
             chart.props.excludedEntities = []
         }
 
-        const entityId = chart.vardata.entityMetaByKey[entity].id
+        const entityId = chart.entityMetaByKey[entity].id
         if (chart.props.excludedEntities.indexOf(entityId) === -1)
             chart.props.excludedEntities.push(entityId)
     }
@@ -70,7 +70,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
         const { chart } = this.props
         if (!chart.props.excludedEntities) return
 
-        const entityId = chart.vardata.entityMetaByKey[entity].id
+        const entityId = chart.entityMetaByKey[entity].id
         chart.props.excludedEntities = chart.props.excludedEntities.filter(
             e => e !== entityId
         )

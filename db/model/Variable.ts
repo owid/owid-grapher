@@ -3,7 +3,7 @@ import { Writable } from "stream"
 
 import * as db from "db/db"
 import { csvRow } from "utils/server/serverUtil"
-import { VariableDisplaySettings } from "charts/VariableData"
+import { VariableDisplaySettings } from "charts/Variable"
 
 export namespace Variable {
     export interface Row {

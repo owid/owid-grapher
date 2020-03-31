@@ -1,5 +1,5 @@
 import * as React from "react"
-import { VariableDisplaySettings } from "charts/VariableData"
+import { VariableDisplaySettings } from "charts/Variable"
 import ReactDOM = require("react-dom")
 import { clone } from "charts/Util"
 import { computed, IReactionDisposer, observable } from "mobx"

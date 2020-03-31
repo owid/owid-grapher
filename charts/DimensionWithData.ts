@@ -1,4 +1,4 @@
-import { Variable } from "./VariableData"
+import { Variable } from "./Variable"
 import { observable, computed } from "mobx"
 import {
     defaultTo,
@@ -12,7 +12,6 @@ import {
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { formatDate } from "site/server/formatting"
 
 export class DimensionWithData {
     props: ChartDimension

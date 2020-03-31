@@ -172,7 +172,7 @@ export class SlopeChartTransform implements IChartTransform {
 
         const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
         const { keyColors } = chart.data
-        const entityKey = this.chart.vardata.entityMetaByKey
+        const entityKey = this.chart.entityMetaByKey
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])

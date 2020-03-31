@@ -1,11 +1,35 @@
 import { extend, map, filter, includes, uniqWith, isEqual, first } from "./Util"
-import { observable, computed, action, autorun, toJS, runInAction } from "mobx"
+import {
+    observable,
+    computed,
+    action,
+    autorun,
+    toJS,
+    runInAction,
+    reaction
+} from "mobx"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo, formatDay, formatYear } from "./Util"
-import { VariableData, DataForChart } from "./VariableData"
+import {
+    defaultTo,
+    formatDay,
+    formatYear,
+    uniq,
+    values,
+    keyBy,
+    fetchJSON,
+    each,
+    keys
+} from "./Util"
+import { Variable } from "./Variable"
+import {
+    OwidDataset,
+    EntityMeta,
+    TabularDataset,
+    tabularDataToOwidDataset
+} from "./OwidDataset"
 import { ChartData } from "./ChartData"
 import { DimensionWithData } from "./DimensionWithData"
 import { MapConfig, MapConfigProps } from "./MapConfig"
@@ -26,6 +50,7 @@ import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
+import { BAKED_GRAPHER_URL } from "settings"
 
 declare const App: any
 declare const window: any
@@ -142,6 +167,9 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
+    @observable.ref tabularData?: TabularDataset = undefined
+    @observable.ref externalUrl?: string = undefined
+
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
     @observable.ref maxTime?: number = undefined
@@ -215,6 +243,60 @@ export class ChartConfig {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
+    @observable.ref variablesById: { [id: number]: Variable } = {}
+    @observable.ref entityMetaById: { [id: number]: EntityMeta } = {}
+
+    @computed get availableEntities(): string[] {
+        return keys(this.entityMetaByKey)
+    }
+
+    @action.bound private async downloadData() {
+        if (this.props.tabularData) {
+            this.receiveData(tabularDataToOwidDataset(this.props.tabularData))
+            return
+        }
+
+        if (this.props.externalUrl) {
+            const json = await fetchJSON(this.props.externalUrl)
+            this.receiveData(json)
+            return
+        }
+
+        if (this.variableIds.length === 0 || this.isNode) {
+            // No data to download
+            return
+        }
+
+        if (window.admin) {
+            const json = await window.admin.getJSON(
+                `/api/data/variables/${this.dataFileName}`
+            )
+            this.receiveData(json)
+        } else {
+            const json = await fetchJSON(this.dataUrl)
+            this.receiveData(json)
+        }
+    }
+
+    @action.bound receiveData(json: OwidDataset) {
+        const variablesById: { [id: string]: Variable } = {}
+        const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
+        for (const key in json.variables) {
+            const variable = new Variable(json.variables[key])
+            variable.entities = variable.entities.map(
+                id => entityMetaById[id].name
+            )
+            variablesById[key] = variable
+        }
+        each(entityMetaById, (e, id) => (e.id = +id))
+        this.variablesById = variablesById
+        this.entityMetaById = entityMetaById
+    }
+
+    @computed get entityMetaByKey() {
+        return keyBy(this.entityMetaById, "name")
+    }
+
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
         if (this.isMediaCard) return 24
@@ -227,7 +309,11 @@ export class ChartConfig {
     }
 
     @computed get yearIsDayVar() {
-        return first(this.vardata.variables.filter(v => v.display.yearIsDay))
+        return first(this.variables.filter(v => v.display.yearIsDay))
+    }
+
+    @computed get variables(): Variable[] {
+        return values(this.variablesById)
     }
 
     @computed get formatYearFunction() {
@@ -237,7 +323,6 @@ export class ChartConfig {
             : formatYear
     }
 
-    vardata: VariableData
     data: ChartData
     url: ChartUrl
 
@@ -245,12 +330,26 @@ export class ChartConfig {
         return window.self !== window.top
     }
 
-    get isEditor(): boolean {
-        return App.isEditor
+    private get isEditor(): boolean {
+        return typeof App !== "undefined" && App.isEditor
     }
 
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
+    }
+
+    @computed.struct private get variableIds() {
+        return uniq(this.dimensions.map(d => d.variableId))
+    }
+
+    @computed get dataFileName(): string {
+        return `${this.variableIds.join("+")}.json?v=${
+            this.isEditor ? undefined : this.cacheTag
+        }`
+    }
+
+    @computed get dataUrl(): string {
+        return `${BAKED_GRAPHER_URL}/data/variables/${this.dataFileName}`
     }
 
     @computed get hasOWIDLogo(): boolean {
@@ -281,7 +380,8 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
-        this.vardata = new VariableData(this)
+        reaction(() => this.variableIds, this.downloadData)
+        this.downloadData()
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
 
@@ -469,8 +569,6 @@ export class ChartConfig {
     }
 
     @computed.struct get json() {
-        const { props } = this
-
         const json: any = toJS(this.props)
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -565,9 +663,5 @@ export class ChartConfig {
 
     @computed get isExplorable(): boolean {
         return this.props.isExplorable
-    }
-
-    receiveData(data: DataForChart) {
-        this.vardata.receiveData(data)
     }
 }

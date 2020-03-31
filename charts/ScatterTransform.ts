@@ -154,7 +154,7 @@ export class ScatterTransform implements IChartTransform {
         const entityIds = this.chart.props.excludedEntities || []
         return entityIds
             .map(id => {
-                const meta = this.chart.vardata.entityMetaById[id]
+                const meta = this.chart.entityMetaById[id]
                 return meta && meta.name
             })
             .filter(d => d)
