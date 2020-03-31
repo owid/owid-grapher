@@ -77,6 +77,9 @@ export class Analytics {
             eventLabel,
             eventValue
         }
-        if (window.ga) window.ga("send", event)
+        if (window.ga) {
+            const tracker = window.ga.getAll()[0]
+            if (tracker) tracker.send(event)
+        }
     }
 }
