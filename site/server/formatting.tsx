@@ -10,6 +10,7 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
+import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
 
 // A modifed FontAwesome icon
@@ -324,6 +325,16 @@ export async function formatWordpressPost(
             $heading.prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }
     })
+
+    // Related charts
+    if (post.relatedCharts) {
+        const $firstH2 = $("body > h2:first-of-type")
+        $firstH2.before(
+            ReactDOMServer.renderToStaticMarkup(
+                <RelatedCharts charts={post.relatedCharts} />
+            )
+        )
+    }
 
     interface Columns {
         wrapper: Cheerio

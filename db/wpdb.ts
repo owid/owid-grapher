@@ -17,6 +17,7 @@ const urlSlug = require("url-slug")
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
+import { getRelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -477,9 +478,13 @@ export interface FullPost {
     excerpt?: string
     imageUrl?: string
     postId?: number
+    relatedCharts?: []
 }
 
-export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
+export async function getFullPost(
+    postApi: any,
+    excludeContent?: boolean
+): Promise<FullPost> {
     return {
         id: postApi.id,
         postId: postApi.postId, // for previews, the `id` is the revision ID, this field stores the original post ID
@@ -497,20 +502,23 @@ export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
         excerpt: decodeHTML(postApi.excerpt.rendered),
         imageUrl:
             BAKED_BASE_URL +
-            defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg")
+            defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg"),
+        relatedCharts: await getRelatedCharts(postApi.id)
     }
 }
 
-let cachedPosts: FullPost[] | undefined
+let cachedPosts: Promise<FullPost[]> | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
 
     // TODO: do not get post content in the first place
     const posts = await getPosts(["post"])
 
-    cachedPosts = posts.map(post => {
-        return getFullPost(post, true)
-    })
+    cachedPosts = Promise.all(
+        posts.map(post => {
+            return getFullPost(post, true)
+        })
+    )
 
     return cachedPosts
 }
