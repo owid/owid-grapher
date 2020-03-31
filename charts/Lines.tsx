@@ -95,9 +95,8 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @action.bound onMouseMove(ev: MouseEvent) {
-        // const {axisBox, data} = this.props
-        const { axisBox, xScale, yScale } = this.props
+    @action.bound onCursorMove(ev: MouseEvent | TouchEvent) {
+        const { axisBox, xScale } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
@@ -110,6 +109,10 @@ export class Lines extends React.Component<LinesProps> {
         }
 
         this.props.onHover(hoverX)
+    }
+
+    @action.bound onCursorLeave(ev: MouseEvent | TouchEvent) {
+        this.props.onHover(undefined)
     }
 
     @computed get bounds() {
@@ -180,14 +183,20 @@ export class Lines extends React.Component<LinesProps> {
         const base = this.base.current as SVGGElement
         this.container = base.closest("svg") as SVGElement
 
-        this.container.addEventListener("mousemove", this.onMouseMove)
-        this.container.addEventListener("mouseleave", this.onMouseMove)
+        this.container.addEventListener("mousemove", this.onCursorMove)
+        this.container.addEventListener("mouseleave", this.onCursorLeave)
+        this.container.addEventListener("touchstart", this.onCursorMove)
+        this.container.addEventListener("touchmove", this.onCursorMove)
+        this.container.addEventListener("touchend", this.onCursorLeave)
     }
 
     componentWillUnmount() {
         if (this.container) {
-            this.container.removeEventListener("mousemove", this.onMouseMove)
-            this.container.removeEventListener("mouseleave", this.onMouseMove)
+            this.container.removeEventListener("mousemove", this.onCursorMove)
+            this.container.removeEventListener("mouseleave", this.onCursorLeave)
+            this.container.removeEventListener("touchstart", this.onCursorMove)
+            this.container.removeEventListener("touchmove", this.onCursorMove)
+            this.container.removeEventListener("touchend", this.onCursorLeave)
         }
     }
 

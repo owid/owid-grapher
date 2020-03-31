@@ -47,7 +47,9 @@ export class Areas extends React.Component<AreasProps> {
 
     @observable hoverIndex?: number
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound onCursorMove(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ) {
         const { axisBox, data } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
@@ -62,6 +64,13 @@ export class Areas extends React.Component<AreasProps> {
             this.hoverIndex = undefined
         }
 
+        this.props.onHover(this.hoverIndex)
+    }
+
+    @action.bound onCursorLeave(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ) {
+        this.hoverIndex = undefined
         this.props.onHover(this.hoverIndex)
     }
 
@@ -140,8 +149,11 @@ export class Areas extends React.Component<AreasProps> {
             <g
                 ref={this.base}
                 className="Areas"
-                onMouseMove={this.onMouseMove}
-                onMouseLeave={this.onMouseMove}
+                onMouseMove={this.onCursorMove}
+                onMouseLeave={this.onCursorLeave}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+                onTouchEnd={this.onCursorLeave}
             >
                 <rect
                     x={xScale.range[0]}
