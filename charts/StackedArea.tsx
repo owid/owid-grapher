@@ -154,6 +154,7 @@ export class Areas extends React.Component<AreasProps> {
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
                 onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
             >
                 <rect
                     x={xScale.range[0]}

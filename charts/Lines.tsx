@@ -188,6 +188,7 @@ export class Lines extends React.Component<LinesProps> {
         this.container.addEventListener("touchstart", this.onCursorMove)
         this.container.addEventListener("touchmove", this.onCursorMove)
         this.container.addEventListener("touchend", this.onCursorLeave)
+        this.container.addEventListener("touchcancel", this.onCursorLeave)
     }
 
     componentWillUnmount() {
@@ -197,6 +198,10 @@ export class Lines extends React.Component<LinesProps> {
             this.container.removeEventListener("touchstart", this.onCursorMove)
             this.container.removeEventListener("touchmove", this.onCursorMove)
             this.container.removeEventListener("touchend", this.onCursorLeave)
+            this.container.removeEventListener(
+                "touchcancel",
+                this.onCursorLeave
+            )
         }
     }
 
