@@ -19,7 +19,29 @@ RUN ["sed", "-i", "s/exec \"$@\"/echo \"skipping $@\"/", "/entrypoint.sh"]
 RUN ["/entrypoint.sh", "--datadir", "/init-db"]
 
 
+
+### real container #################################################
+
 FROM mysql:5.7
 
 COPY --from=builder /init-db /var/lib/mysql
+COPY . /app
+
+ENV MYSQL_ALLOW_EMPTY_PASSWORD=yes
+ENV MYSQL_DATABASE=owid
+ENV DB_NAME=owid
+
+# Installing Node.js 12.x and Yarn
+RUN set -x \
+      && apt-get update && apt-get install -y curl jq \
+      && NODE_VERSION=$(jq -r .engines.node /app/package.json) \
+      && DEB_FILE="nodejs_${NODE_VERSION}-1nodesource1_amd64.deb" \
+      && curl -sLO "https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/${DEB_FILE}" \
+      && apt-get install -y ./"${DEB_FILE}" && rm "${DEB_FILE}" \
+      && curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+      && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+      && apt-get update && apt-get install -y yarn \
+      && rm -rf /var/lib/apt/lists/*
+
+#RUN cd app && yarn
 
