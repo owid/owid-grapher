@@ -34,18 +34,20 @@ export async function chartToSVG(
 export async function bakeImageExports(
     outDir: string,
     jsonConfig: ChartConfigProps,
-    vardata: any
+    vardata: any,
+    optimizeSvgs = false
 ) {
     const chart = new ChartConfig(jsonConfig)
     chart.isLocalExport = true
     chart.vardata.receiveData(vardata)
     const outPath = path.join(outDir, chart.props.slug as string)
 
-    const optimizedSvg = await optimizeSvg(chart.staticSVG)
+    let svgCode = chart.staticSVG
+    if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
     return Promise.all([
         fs
-            .writeFile(`${outPath}.svg`, optimizedSvg)
+            .writeFile(`${outPath}.svg`, svgCode)
             .then(_ => console.log(`${outPath}.svg`)),
         sharp(Buffer.from(chart.staticSVG), { density: 144 })
             .png()
