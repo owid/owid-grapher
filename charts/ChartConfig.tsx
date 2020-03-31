@@ -168,7 +168,7 @@ export class ChartConfigProps {
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
     @observable.ref tabularData?: TabularDataset = undefined
-    @observable.ref externalUrl?: string = undefined
+    @observable.ref externalDataUrl?: string = undefined
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: number = undefined
@@ -256,8 +256,8 @@ export class ChartConfig {
             return
         }
 
-        if (this.props.externalUrl) {
-            const json = await fetchJSON(this.props.externalUrl)
+        if (this.props.externalDataUrl) {
+            const json = await fetchJSON(this.props.externalDataUrl)
             this.receiveData(json)
             return
         }
