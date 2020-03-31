@@ -1,6 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor"
+import { Section } from "./Forms"
 import { computed, action } from "mobx"
 const timeago = require("timeago.js")()
 
@@ -54,6 +55,8 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
+        const chartConfigObject = this.props.editor.currentChartJson
+        chartConfigObject.externalDataUrl = this.props.editor.chart.dataUrl
         return (
             <div>
                 {this.logs.map((log, i) => (
@@ -64,6 +67,14 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                         ></LogRenderer>
                     </ul>
                 ))}
+                <Section name="Debug Version">
+                    <textarea
+                        rows={7}
+                        readOnly
+                        className="form-control"
+                        value={JSON.stringify(chartConfigObject, undefined, 2)}
+                    />
+                </Section>
             </div>
         )
     }
