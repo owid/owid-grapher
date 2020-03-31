@@ -10,6 +10,7 @@ import {
     WORDPRESS_API_USER
 } from "serverSettings"
 import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
+import * as db from "db/db"
 import * as Knex from "knex"
 import fetch from "node-fetch"
 const urlSlug = require("url-slug")
@@ -17,7 +18,7 @@ const urlSlug = require("url-slug")
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
-import { getRelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -465,6 +466,20 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     return revisions[0]
 }
 
+export async function getRelatedCharts(
+    postId: number
+): Promise<RelatedChart[]> {
+    return db.query(`
+        SELECT
+            charts.config->>"$.slug" AS slug,
+            charts.config->>"$.title" AS title
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
+        WHERE post_tags.post_id=${postId}
+    `)
+}
+
 export interface FullPost {
     id: number
     type: "post" | "page"
@@ -478,7 +493,7 @@ export interface FullPost {
     excerpt?: string
     imageUrl?: string
     postId?: number
-    relatedCharts?: []
+    relatedCharts?: RelatedChart[]
 }
 
 export async function getFullPost(

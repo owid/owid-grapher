@@ -10,7 +10,10 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
-import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import {
+    RelatedCharts,
+    RelatedChart
+} from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
 
 // A modifed FontAwesome icon
@@ -40,6 +43,7 @@ export interface FormattedPost {
     excerpt: string
     imageUrl?: string
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    relatedCharts?: RelatedChart[]
 }
 
 function extractLatex(html: string): [string, string[]] {
@@ -131,6 +135,25 @@ export async function formatWordpressPost(
     html = html.replace(new RegExp("/app/uploads", "g"), "/uploads")
 
     const $ = cheerio.load(html)
+
+    // Related charts
+    // Mimicking SSR output of additional information block from PHP
+    if (post.relatedCharts) {
+        const $firstHeading = $(
+            "body > h2:first-of-type, body > h3:first-of-type"
+        ).first()
+        $firstHeading.before(`
+            <block type="additional-information">
+                <content>
+                    <h3>Related charts</h3>
+                    ${ReactDOMServer.renderToStaticMarkup(
+                        <div>
+                            <RelatedCharts charts={post.relatedCharts} />
+                        </div>
+                    )}
+                </content>
+            </block>`)
+    }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks($)
@@ -326,16 +349,6 @@ export async function formatWordpressPost(
         }
     })
 
-    // Related charts
-    if (post.relatedCharts) {
-        const $firstH2 = $("body > h2:first-of-type")
-        $firstH2.before(
-            ReactDOMServer.renderToStaticMarkup(
-                <RelatedCharts charts={post.relatedCharts} />
-            )
-        )
-    }
-
     interface Columns {
         wrapper: Cheerio
         first: Cheerio
@@ -485,7 +498,8 @@ export async function formatWordpressPost(
                 .first()
                 .text(),
         imageUrl: post.imageUrl,
-        tocHeadings: tocHeadings
+        tocHeadings: tocHeadings,
+        relatedCharts: post.relatedCharts
     }
 }
 
@@ -563,7 +577,8 @@ export async function formatPost(
             references: [],
             excerpt: post.excerpt || "",
             imageUrl: post.imageUrl,
-            tocHeadings: []
+            tocHeadings: [],
+            relatedCharts: post.relatedCharts
         }
     } else {
         // Override formattingOptions if specified in the post (as an HTML comment)
