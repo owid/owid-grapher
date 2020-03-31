@@ -14,10 +14,10 @@ const svgoConfig: svgo.Options = {
     plugins: [{ collapseGroups: false }, { removeViewBox: false }]
 }
 
-const SVGO = new svgo(svgoConfig)
+const svgoInstance = new svgo(svgoConfig)
 
 async function optimizeSvg(svgString: string): Promise<string> {
-    const optimizedSvg = await SVGO.optimize(svgString)
+    const optimizedSvg = await svgoInstance.optimize(svgString)
     return optimizedSvg.data
 }
 
