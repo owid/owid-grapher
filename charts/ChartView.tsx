@@ -140,10 +140,10 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get authorWidth() {
-        return this.isPortrait ? 400 : 850
+        return this.isPortrait ? 400 : 680
     }
     @computed get authorHeight() {
-        return this.isPortrait ? 640 : 600
+        return this.isPortrait ? 640 : 480
     }
 
     // If the available space is very small, we use all of the space given to us
