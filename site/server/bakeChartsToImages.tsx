@@ -40,7 +40,7 @@ async function getChartsBySlug() {
 export async function bakeChartsToImages(
     chartUrls: string[],
     outDir: string,
-    optimizeSvg = false
+    optimizeSvgs = false
 ) {
     await fs.mkdirp(outDir)
     const chartsBySlug = await getChartsBySlug()
