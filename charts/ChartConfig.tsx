@@ -380,8 +380,9 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
-        reaction(() => this.variableIds, this.downloadData)
-        this.downloadData()
+        reaction(() => this.variableIds, this.downloadData, {
+            fireImmediately: true
+        })
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
 
