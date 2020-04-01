@@ -21,7 +21,7 @@ const svgoConfig: svgo.Options = {
 
 const svgoInstance = new svgo(svgoConfig)
 
-async function optimizeSvg(svgString: string): Promise<string> {
+export async function optimizeSvg(svgString: string): Promise<string> {
     const optimizedSvg = await svgoInstance.optimize(svgString)
     return optimizedSvg.data
 }

@@ -5,6 +5,7 @@ import * as parseArgs from "minimist"
 const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
+import { optimizeSvg } from "./svgPngExport"
 const md5 = require("md5")
 
 declare var global: any
@@ -36,7 +37,11 @@ async function getChartsBySlug() {
     return chartsBySlug
 }
 
-export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
+export async function bakeChartsToImages(
+    chartUrls: string[],
+    outDir: string,
+    optimizeSvg = false
+) {
     await fs.mkdirp(outDir)
     const chartsBySlug = await getChartsBySlug()
 
@@ -61,7 +66,11 @@ export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
                 )
                 const vardata = await getVariableData(variableIds)
                 chart.vardata.receiveData(vardata)
-                fs.writeFile(outPath, chart.staticSVG)
+
+                let svgCode = chart.staticSVG
+                if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+
+                fs.writeFile(outPath, svgCode)
             }
         }
     }
