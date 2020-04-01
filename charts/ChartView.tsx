@@ -170,13 +170,13 @@ export class ChartView extends React.Component<ChartViewProps> {
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed get paddedWidth(): number {
         return this.isPortrait
-            ? this.containerBounds.width * 0.9
-            : this.containerBounds.width * 0.9
+            ? this.containerBounds.width * 0.95
+            : this.containerBounds.width * 0.95
     }
     @computed get paddedHeight(): number {
         return this.isPortrait
-            ? this.containerBounds.height * 0.9
-            : this.containerBounds.height * 0.9
+            ? this.containerBounds.height * 0.95
+            : this.containerBounds.height * 0.95
     }
     @computed get scaleToFitIdeal(): number {
         return Math.min(
