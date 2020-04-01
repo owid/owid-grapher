@@ -26,11 +26,10 @@ export class DataTab extends React.Component<{
         const dimensions = chart.data.filledDimensions.filter(
             d => d.property !== "color"
         )
-        const entitiesUniq = sortBy(
-            uniq(flatten(dimensions.map(d => d.entitiesUniq)))
-        ) as string[]
+        const allUniqChartEntities = chart.uniqueEntitiesAcrossDimensions
+
         // only get days if chart has a day-indexed variable
-        const yearsUniq = sortBy(
+        const indexingYears = sortBy(
             dayIndexedCSV
                 ? yearIsDayVar?.yearsUniq
                 : uniq(flatten(dimensions.map(d => d.yearsUniq)))
@@ -49,8 +48,8 @@ export class DataTab extends React.Component<{
         })
         rows.push(titleRow.join(","))
 
-        entitiesUniq.forEach(entity => {
-            yearsUniq.forEach(year => {
+        allUniqChartEntities.forEach(entity => {
+            indexingYears.forEach(year => {
                 const row: (string | number)[] = [
                     entity,
                     chart.entityMetaByKey[entity].code ?? "",
@@ -59,10 +58,11 @@ export class DataTab extends React.Component<{
 
                 let rowHasSomeValue = false
                 dimensions.forEach(dim => {
-                    const fixedYearDimension =
+                    // If chart has day-based variables, only show latest value for year-based variables
+                    const isFixedYearDimension =
                         dayIndexedCSV && !dim.yearIsDayVar
 
-                    const value = fixedYearDimension
+                    const value = isFixedYearDimension
                         ? dim.latestValueforEntity(entity)
                         : dim.valueByEntityAndYear.get(entity)?.get(year)
 
