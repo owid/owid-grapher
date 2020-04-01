@@ -10,7 +10,7 @@ export interface RelatedChart {
 const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
 export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
-    const [currentChart, setCurrentChart] = useState<RelatedChart | null>(null)
+    const [currentChart, setCurrentChart] = useState<RelatedChart>(charts[0])
 
     return (
         <div className={RELATED_CHARTS_CLASS_NAME}>
@@ -18,7 +18,14 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                 <div className="wp-block-column">
                     <ul>
                         {charts.map(chart => (
-                            <li key={chart.slug}>
+                            <li
+                                className={
+                                    currentChart.slug === chart.slug
+                                        ? "active"
+                                        : ""
+                                }
+                                key={chart.slug}
+                            >
                                 <a
                                     onClick={() =>
                                         setCurrentChart({

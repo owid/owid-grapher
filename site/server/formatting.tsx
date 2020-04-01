@@ -145,7 +145,7 @@ export async function formatWordpressPost(
         $firstHeading.before(`
             <block type="additional-information">
                 <content>
-                    <h3>Related charts</h3>
+                    <h3>All our charts on ${post.title}</h3>
                     ${ReactDOMServer.renderToStaticMarkup(
                         <div>
                             <RelatedCharts charts={post.relatedCharts} />
