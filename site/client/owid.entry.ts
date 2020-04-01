@@ -24,6 +24,7 @@ import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
+import { runRelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
@@ -45,6 +46,7 @@ window.runCountryProfilePage = runCountryProfilePage
 window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
 window.runTableOfContents = runTableOfContents
+window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 
