@@ -1,5 +1,5 @@
 import { VariableDisplaySettings } from "./Variable"
-import * as lodash from "lodash"
+import { uniq } from "./Util"
 
 interface OwidRow {
     entity: string
