@@ -138,7 +138,7 @@ export async function formatWordpressPost(
 
     // Related charts
     // Mimicking SSR output of additional information block from PHP
-    if (post.relatedCharts) {
+    if (post.relatedCharts && post.relatedCharts.length !== 0) {
         const $firstHeading = $(
             "body > h2:first-of-type, body > h3:first-of-type"
         ).first()
