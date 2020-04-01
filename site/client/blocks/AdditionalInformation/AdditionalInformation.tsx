@@ -126,7 +126,7 @@ export const render = ($: CheerioStatic) => {
             $block
                 .find("h3")
                 .remove()
-                .html() || "Additional information"
+                .text() || "Additional information"
         const image =
             variation === VARIATION_MERGE_LEFT
                 ? $block
