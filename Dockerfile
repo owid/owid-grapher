@@ -33,7 +33,7 @@ ENV DB_NAME=owid
 
 # Installing Node.js 12.x and Yarn
 RUN set -x \
-      && apt-get update && apt-get install -y curl jq \
+      && apt-get update && apt-get install -y curl jq git make g++ \
       && NODE_VERSION=$(jq -r .engines.node /app/package.json) \
       && DEB_FILE="nodejs_${NODE_VERSION}-1nodesource1_amd64.deb" \
       && curl -sLO "https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/${DEB_FILE}" \
