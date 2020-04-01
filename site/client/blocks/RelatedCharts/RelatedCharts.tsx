@@ -27,6 +27,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 key={chart.slug}
                             >
                                 <a
+                                    href="#all-charts-preview"
                                     onClick={() =>
                                         setCurrentChart({
                                             title: chart.title,
@@ -40,7 +41,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                         ))}
                     </ul>
                 </div>
-                <div className="wp-block-column">
+                <div className="wp-block-column" id="all-charts-preview">
                     {currentChart ? (
                         <iframe
                             src={`/grapher/${currentChart.slug}`}
