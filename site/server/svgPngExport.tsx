@@ -10,8 +10,13 @@ global.App = { isEditor: false }
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
 const svgoConfig: svgo.Options = {
-    floatPrecision: 1,
-    plugins: [{ collapseGroups: false }, { removeViewBox: false }]
+    floatPrecision: 2,
+    plugins: [
+        { collapseGroups: false }, // breaks the "Our World in Data" logo in the upper right
+        { removeUnknownsAndDefaults: false }, // would remove hrefs from links (<a>)
+        { removeViewBox: false },
+        { removeXMLNS: false }
+    ]
 }
 
 const svgoInstance = new svgo(svgoConfig)
