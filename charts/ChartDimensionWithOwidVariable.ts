@@ -195,7 +195,7 @@ export class ChartDimensionWithOwidVariable {
         return max(this.years) as number
     }
 
-    @computed latestValueforEntity(entity: string) {
+    latestValueforEntity(entity: string) {
         return this.valueByEntityAndYear.get(entity)?.get(this.latestYear)
     }
 
