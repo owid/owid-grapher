@@ -4,12 +4,37 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin: 0;
+    margin: 0 auto;
     width: 100%;
+
+    // Defined in chart.authorWidth & chart.authorHeight (the landscape values)
+    $author-width: 680px;
+    $author-height: 480px;
+    $ideal-ratio: $author-width / $author-height;
+
+    $max-width: 1250px; // The rough max-width across all pages on the site
+    $max-height: $max-width / $ideal-ratio;
+
+    // On small viewports always use the full available height.
+    // We only leave space for the mobile header and fill the rest.
     height: calc(100vh - #{$mobile-header-height});
+
     @include md-up {
+        // On larger viewports, we want to leave more space at the bottom to make the entry link
+        // more visible. It doesn't need to be fully visible, just enough to pop out to the user.
         height: calc(100vh - 175px);
-        max-height: 950px;
+    }
+
+    // At this point, the ratio-preserving sizing kicks in, so we want to mirror that in the CSS
+    // to avoid using unnecessary space.
+    @media (min-width: $author-width) {
+        // We no longer use the full height
+        max-height: #{1 / $ideal-ratio * 100}vw;
+    }
+
+    @media (min-width: $max-width) {
+        max-width: $max-width;
+        max-height: $max-height;
     }
 }
 
