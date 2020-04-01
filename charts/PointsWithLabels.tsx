@@ -573,7 +573,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     private hideUnselectedLabels(labelsByPriority: ScatterLabel[]) {
         labelsByPriority
-            .filter(label => !label.series.isFocus)
+            .filter(label => !label.series.isFocus && !label.series.isHover)
             .forEach(label => (label.isHidden = true))
     }
 
