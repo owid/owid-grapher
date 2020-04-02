@@ -174,7 +174,8 @@ export async function formatWordpressPost(
             const src = el.attribs["src"]
             const chart = grapherExports.get(src)
             if (chart) {
-                const output = `<figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
+                const output = `
+                <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
                         <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" /></div>
                         <div class="interactionNotice">
@@ -182,7 +183,7 @@ export async function formatWordpressPost(
                             <span class="label">Click to open interactive version</span>
                         </div>
                     </a>
-                </div>`
+                </figure>`
                 if (el.parent.tagName === "p") {
                     // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
                     // so we are lifting the <figure> out.
