@@ -43,6 +43,7 @@
 @import "css/components/loading-indicator.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
+@import "site/client/blocks/RelatedCharts/related-charts.scss";
 @import "css/components/covid-banner.scss";
 @import "site/client/blocks/Summary/summary.scss";
 
@@ -245,7 +246,6 @@ h6:hover .deep-link {
     text-align: center;
 }
 
-.article-content a,
 .article-footer a {
     @include owid-link;
 }

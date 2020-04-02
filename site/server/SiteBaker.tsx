@@ -11,7 +11,7 @@ import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
-const { BLOG_POSTS_PER_PAGE } = settings
+const { BLOG_POSTS_PER_PAGE, OPTIMIZE_SVG_EXPORTS } = settings
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -192,7 +192,7 @@ export class SiteBaker {
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = wpdb.getFullPost(postApi)
+            const post = await wpdb.getFullPost(postApi)
             // blog: handled separately
             // isPostEmbedded: post displayed in the entry only (not on its own
             // page), skipping.
@@ -414,7 +414,8 @@ export class SiteBaker {
                 await bakeImageExports(
                     `${BAKED_SITE_DIR}/grapher/exports`,
                     chart,
-                    vardata
+                    vardata,
+                    OPTIMIZE_SVG_EXPORTS
                 )
                 this.stage(svgPath)
                 this.stage(pngPath)
