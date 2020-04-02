@@ -18,6 +18,10 @@
         <script src="http://localhost:8090/js/owid.js"></script>
         <script src="chart.js"></script>
         <script>
+            if (typeof sandboxChart === "undefined")
+                alert(
+                    "To use the Sandbox, first paste a ChartConfig object into 'sandbox/chart.js'. A sample is provided for you in 'sandbox/chart.sample.js'"
+                )
             var figure = document.getElementsByTagName("figure")[0]
 
             try {
