@@ -14,7 +14,7 @@ export interface TabularDataset {
 export function tabularDataToOwidDataset(dataset: TabularDataset): OwidDataset {
     const { rows } = dataset
     const entityKey: { [id: string]: EntityMeta } = {}
-    const entities = lodash.uniq(rows.map(row => row.entity))
+    const entities = uniq(rows.map(row => row.entity))
     const entitiesByName: { [name: string]: number } = {}
     entities.forEach((entityName, index) => {
         entitiesByName[entityName] = index
