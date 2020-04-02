@@ -123,8 +123,8 @@ export {
 import moment = require("moment")
 import { format } from "d3-format"
 import { extent } from "d3-array"
-import * as striptags from "striptags"
-import * as parseUrl from "url-parse"
+import striptags from "striptags"
+import parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"

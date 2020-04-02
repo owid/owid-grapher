@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer
 } from "mobx"
-import * as parse from "csv-parse"
+import parse from "csv-parse"
 
 const unidecode = require("unidecode")
 const FuzzySet = require("fuzzyset")

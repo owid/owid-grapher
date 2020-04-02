@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
-import * as sharp from "sharp"
+import sharp from "sharp"
 import * as path from "path"
-import * as svgo from "svgo"
+import svgo from "svgo"
 
 declare var global: any
 global.window = { location: { search: "" } }

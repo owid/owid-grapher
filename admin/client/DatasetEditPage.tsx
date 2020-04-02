@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import * as _ from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-import * as filenamify from "filenamify"
+import filenamify from "filenamify"
 const timeago = require("timeago.js")()
 
 import { VariableDisplaySettings } from "charts/Variable"

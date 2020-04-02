@@ -1,4 +1,4 @@
-import * as algoliasearch from "algoliasearch"
+import algoliasearch from "algoliasearch"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"

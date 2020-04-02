@@ -98,5 +98,5 @@ export const splitOnLastWord = (s: string) => {
     }
 }
 
-import * as filenamify from "filenamify"
+import filenamify from "filenamify"
 export { filenamify }

@@ -11,7 +11,7 @@ import {
 } from "serverSettings"
 import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
 import * as db from "db/db"
-import * as Knex from "knex"
+import Knex from "knex"
 import fetch from "node-fetch"
 const urlSlug = require("url-slug")
 

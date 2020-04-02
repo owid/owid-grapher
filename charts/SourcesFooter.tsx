@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import * as parseUrl from "url-parse"
+import parseUrl from "url-parse"
 
 import { TextWrap } from "./TextWrap"
 import { ChartConfig } from "./ChartConfig"

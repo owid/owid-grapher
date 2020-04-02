@@ -1,4 +1,4 @@
-import * as parseArgs from "minimist"
+import parseArgs from "minimist"
 import { tryDeployAndTerminate } from "deploy/deploy"
 const argv = parseArgs(process.argv.slice(2))
 

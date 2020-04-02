@@ -1,4 +1,4 @@
-import * as express from "express"
+import express from "express"
 require("express-async-errors")
 import * as path from "path"
 
