@@ -746,7 +746,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return foregroundGroups.map(series => {
             const lastValue = last(series.values) as ScatterRenderValue
             const strokeWidth =
-                (series.isHover ? 3 : isSubtleForeground ? 0.8 : 2) +
+                (series.isHover ? 3 : isSubtleForeground ? 1.5 : 2) +
                 lastValue.size * 0.05
 
             if (series.values.length === 1) {
@@ -807,7 +807,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                 .join(" ")}
                             fill="none"
                             strokeWidth={strokeWidth}
-                            opacity={isSubtleForeground ? 0.6 : 1}
+                            opacity={isSubtleForeground ? 0.9 : 1}
                             markerStart={`url(#${series.displayKey}-circle-${renderUid})`}
                             markerMid={`url(#${series.displayKey}-circle-${renderUid})`}
                             markerEnd={
