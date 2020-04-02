@@ -1,4 +1,4 @@
-import * as algoliasearch from "algoliasearch"
+import algoliasearch from "algoliasearch"
 
 import { countries, Country } from "utils/countries"
 

@@ -13,7 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
-import * as parse from "csv-parse"
+import parse from "csv-parse"
 import { BindString, NumericSelectField, FieldsRow } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"

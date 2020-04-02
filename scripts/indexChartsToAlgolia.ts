@@ -1,4 +1,4 @@
-import * as algoliasearch from "algoliasearch"
+import algoliasearch from "algoliasearch"
 import * as _ from "lodash"
 
 import * as db from "db/db"

@@ -1,5 +1,5 @@
 import { csvParse } from "d3"
-import * as moment from "moment"
+import moment from "moment"
 
 import { CovidSeries } from "./CovidTypes"
 import { fetchText, retryPromise } from "charts/Util"

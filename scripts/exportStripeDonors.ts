@@ -1,4 +1,4 @@
-import * as Stripe from "stripe"
+import Stripe from "stripe"
 import { groupBy, sum } from "lodash"
 
 import { STRIPE_SECRET_KEY } from "serverSettings"

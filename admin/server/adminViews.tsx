@@ -1,6 +1,6 @@
 // Misc non-SPA views
 import { Router } from "express"
-import * as filenamify from "filenamify"
+import filenamify from "filenamify"
 import * as React from "react"
 import { getConnection } from "typeorm"
 
