@@ -13,10 +13,17 @@ const charts = [
     }
 ]
 
-it("renders chart links and loads them on click", () => {
+it("renders active chart links and loads respective chart on click", () => {
     const wrapper = mount(<RelatedCharts charts={charts} />)
 
     expect(wrapper.find("li")).toHaveLength(2)
+
+    expect(
+        wrapper
+            .find("li")
+            .first()
+            .hasClass("active")
+    ).toEqual(true)
 
     expect(
         wrapper
@@ -32,4 +39,11 @@ it("renders chart links and loads them on click", () => {
             wrapper.find(`iframe[src="/grapher/${charts[idx].slug}"]`)
         ).toHaveLength(1)
     })
+
+    expect(
+        wrapper
+            .find("li")
+            .last()
+            .hasClass("active")
+    ).toEqual(true)
 })

@@ -10,7 +10,7 @@ export interface RelatedChart {
 const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
 export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
-    const [currentChart, setCurrentChart] = useState<RelatedChart>(charts[0])
+    const [currentChart, setCurrentChart] = useState<RelatedChart | null>(null)
 
     return (
         <div className={RELATED_CHARTS_CLASS_NAME}>
@@ -20,7 +20,10 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                         {charts.map(chart => (
                             <li
                                 className={
-                                    currentChart.slug === chart.slug
+                                    (currentChart === null &&
+                                        chart.slug === charts[0].slug) ||
+                                    (currentChart &&
+                                        currentChart.slug === chart.slug)
                                         ? "active"
                                         : ""
                                 }
@@ -51,7 +54,14 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 border: "0px none"
                             }}
                         ></iframe>
-                    ) : null}
+                    ) : (
+                        // Taking advantage of the MultiEmbedder call in AdditionalInformation for
+                        // first renders to prevent wrong chart width calculations due to collapsed
+                        // height.
+                        <figure
+                            data-grapher-src={`/grapher/${charts[0].slug}`}
+                        />
+                    )}
                 </div>
             </div>
         </div>
