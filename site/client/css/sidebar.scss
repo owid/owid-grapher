@@ -78,9 +78,6 @@
             button {
                 position: sticky;
                 top: $vertical-spacing;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 width: $sidebar-toggle-width;
                 height: $sidebar-toggle-width;
                 background-color: $primary-color;
