@@ -1,8 +1,6 @@
 import * as _ from "lodash"
 import parseUrl from "url-parse"
 import * as db from "db/db"
-import parseArgs from "minimist"
-const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
 import { optimizeSvg } from "./svgPngExport"
