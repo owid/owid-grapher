@@ -134,6 +134,17 @@ export async function formatWordpressPost(
     // No need for wordpress urls
     html = html.replace(new RegExp("/app/uploads", "g"), "/uploads")
 
+    // Give "Add country" text (and variations) the appearance of "+ Add Country" chart control
+    html = html.replace(
+        /(\+ )?[a|A]dd [c|C]ountry/g,
+        `<span class="add-country">
+            <span class="icon">
+                <svg width="16" height="16"><path d="M3,8 h10 m-5,-5 v10"></path></svg>
+            </span>
+            Add country
+        </span>`
+    )
+
     const $ = cheerio.load(html)
 
     // Related charts

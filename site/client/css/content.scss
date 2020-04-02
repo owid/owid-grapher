@@ -273,3 +273,43 @@
         }
     }
 }
+
+.article-content {
+    span.add-country {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: $controls-color;
+
+        .icon {
+            position: relative;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 3px;
+            vertical-align: text-bottom;
+
+            svg {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            path {
+                stroke: #fff;
+                stroke-width: 2px;
+            }
+
+            &::before {
+                display: block;
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 16px;
+                height: 16px;
+                background-color: $controls-color;
+                border-radius: 50%;
+            }
+        }
+    }
+}
