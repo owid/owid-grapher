@@ -1,6 +1,7 @@
 const path = require("path")
 const ExtractTextPlugin = require("extract-text-webpack-plugin")
 const ManifestPlugin = require("webpack-manifest-plugin")
+const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 const Dotenv = require("dotenv-webpack")
 
 module.exports = (env, argv) => {
@@ -95,6 +96,10 @@ module.exports = (env, argv) => {
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
+
+            // Remove all moment locales except for "en"
+            // This way of doing so is recommended by Moment itself: https://momentjs.com/docs/#/use-it/webpack/
+            new MomentLocalesPlugin(),
 
             // This plugin loads settings from .env so we can import them
             // Note that this means the settings become part of the client-side JS at webpack build time, not at server run time

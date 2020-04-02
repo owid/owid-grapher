@@ -11080,6 +11080,13 @@ module-definition@^3.1.0:
     ast-module-types "^2.4.0"
     node-source-walk "^4.0.0"
 
+moment-locales-webpack-plugin@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/moment-locales-webpack-plugin/-/moment-locales-webpack-plugin-1.2.0.tgz#9af83876a44053706b868ceece5119584d10d7aa"
+  integrity sha512-QAi5v0OlPUP7GXviKMtxnpBAo8WmTHrUNN7iciAhNOEAd9evCOvuN0g1N7ThIg3q11GLCkjY1zQ2saRcf/43nQ==
+  dependencies:
+    lodash.difference "^4.5.0"
+
 moment@^2.24.0:
   version "2.24.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
