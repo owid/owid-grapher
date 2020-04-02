@@ -1,5 +1,3 @@
-import * as _ from "lodash"
-
 import { ChartConfigProps } from "charts/ChartConfig"
 import { ChartTypeType } from "charts/ChartType"
 import { EXPLORER } from "settings"
@@ -101,7 +99,8 @@ export function canBeExplorable(config: ChartConfigProps) {
 export function isExplorable(config: ChartConfigProps): boolean {
     return (
         (config.isExplorable ||
-            _.includes(FORCE_EXPLORABLE_CHART_IDS, config.id)) &&
+            (config.id !== undefined &&
+                FORCE_EXPLORABLE_CHART_IDS.includes(config.id))) &&
         canBeExplorable(config)
     )
 }

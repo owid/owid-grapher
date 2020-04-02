@@ -1,4 +1,4 @@
-import { maxBy } from "lodash"
+import { maxBy } from "charts/Util"
 import { utcFormat } from "d3"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
