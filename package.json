@@ -32,7 +32,8 @@
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "yarn tsn node_modules/.bin/start-storybook -p 6006",
         "build-storybook": "build-storybook",
-        "bundlesize": "ENV=production webpack -p && bundlesize"
+        "bundlesize": "ENV=production webpack -p && bundlesize",
+        "bundlesize-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlesize"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.19",
