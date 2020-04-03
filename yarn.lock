@@ -2652,6 +2652,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.7.tgz#4f2563bad652b2acb1722d7e7aae2b0ff62d192c"
   integrity sha512-1YKeT4JitGgE4SOzyB9eMwO0nGVNkNEsm9qlIt1Lqm/tG2QEiSMTD4kS3aO6L+w5SClLVxALmIBESK6Mk5wX0A==
 
+"@types/node@>=8.1.0":
+  version "13.11.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.11.0.tgz#390ea202539c61c8fa6ba4428b57e05bc36dc47b"
+  integrity sha512-uM4mnmsIIPK/yeO+42F2RQhGUIs39K2RFmugcJANppXe6J1nvH87PvzPZYpza7Xhhs8Yn9yIAVdLZ84z61+0xQ==
+
 "@types/nodemailer@^6.2.0":
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.2.0.tgz#369d3c6ff51201670f3e5469b00c1d204ec8f894"
@@ -2849,13 +2854,6 @@
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
-
-"@types/stripe@^6.31.15":
-  version "6.31.15"
-  resolved "https://registry.yarnpkg.com/@types/stripe/-/stripe-6.31.15.tgz#e160dfae41bec079dcd4a9bc7c2a5883f87b72a0"
-  integrity sha512-dKNNOy136pijduTAJfFw6iJYp5WC8Fd4BPEJwpYO8S80hdDCHxR5rlw/EjBp5Ko/whPS4QL7qCnrE6VUGzoPUA==
-  dependencies:
-    "@types/node" "*"
 
 "@types/svgo@^1.3.2":
   version "1.3.2"
@@ -15017,15 +15015,13 @@ strip-outer@^1.0.0, strip-outer@^1.0.1:
   dependencies:
     escape-string-regexp "^1.0.2"
 
-stripe@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-7.1.0.tgz#8e6ba9eefd9947c7e051b7cce23d224148293d1b"
-  integrity sha512-5xZE/HrQ1WjEds5+z6JfcLtXoEbOV5LxfIE0x8YACqqvelNVyW0aErfeUIFSjSgniEDLWvQalb1l2Bx2LQqV0w==
+stripe@^8.38.0:
+  version "8.38.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.38.0.tgz#0b673a690be8fac79026c33fa656a3a2e3a49ee9"
+  integrity sha512-dhYHHJMJIOTtP9f1IaOKt+RKFSiSci2q2oNrRM3HLMNFi6ahZvMWKE2+bLetwFa4CZZLt9x2SXM7dPrL3KRVng==
   dependencies:
-    lodash.isplainobject "^4.0.6"
+    "@types/node" ">=8.1.0"
     qs "^6.6.0"
-    safe-buffer "^5.1.1"
-    uuid "^3.3.2"
 
 striptags@^3.1.1:
   version "3.1.1"
