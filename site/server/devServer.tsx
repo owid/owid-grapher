@@ -19,7 +19,7 @@ import {
     renderExplorableIndicatorsJson,
     renderCovidPage
 } from "site/server/siteBaking"
-import { chartPage, chartDataJson } from "site/server/chartBaking"
+import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
     BAKED_DEV_SERVER_PORT,
     BAKED_DEV_SERVER_HOST,
@@ -80,7 +80,7 @@ devServer.get("/grapher/latest", async (req, res) => {
 devServer.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await chartPage(req.params.slug))
+    res.send(await chartPageFromSlug(req.params.slug))
 })
 
 devServer.get("/", async (req, res) => {

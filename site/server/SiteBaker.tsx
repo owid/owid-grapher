@@ -42,7 +42,7 @@ import { getVariableData } from "db/model/Variable"
 import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
-import { chartPage } from "./chartBaking"
+import { chartPageFromConfig } from "./chartBaking"
 
 // Static site generator using Wordpress
 
@@ -366,7 +366,7 @@ export class SiteBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
-        await fs.writeFile(outPath, await chartPage(chart.slug as string))
+        await fs.writeFile(outPath, await chartPageFromConfig(chart))
         this.stage(outPath)
     }
 
@@ -385,6 +385,9 @@ export class SiteBaker {
             if (err.code !== "ENOENT") console.error(err)
         }
 
+        // Always bake the html for every chart; it's cheap to do so
+        await this.bakeChartPage(chart)
+
         const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
@@ -395,9 +398,6 @@ export class SiteBaker {
         if (!isSameVersion || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
-
-        // Always bake the html for every chart; it's cheap to do so
-        await this.bakeChartPage(chart)
 
         try {
             await fs.mkdirp(`${BAKED_SITE_DIR}/grapher/exports/`)
