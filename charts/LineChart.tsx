@@ -17,7 +17,11 @@ import { Bounds } from "./Bounds"
 import { AxisBox } from "./AxisBox"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
 import { Lines } from "./Lines"
-import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
+import {
+    HeightedLegend,
+    HeightedLegendItem,
+    HeightedLegendComponent
+} from "./HeightedLegend"
 import { ComparisonLine } from "./ComparisonLine"
 import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
@@ -36,6 +40,7 @@ export interface LineChartSeries {
     values: LineChartValue[]
     classed?: string
     isProjection?: boolean
+    annotation?: string
     formatValue: (value: number) => string
 }
 
@@ -68,23 +73,25 @@ export class LineChart extends React.Component<{
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get legendItems() {
+    @computed private get legendItems(): HeightedLegendItem[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.transform.groupedData
         if (toShow.some(g => !!g.isProjection))
             toShow = this.transform.groupedData.filter(g => g.isProjection)
 
-        return toShow.map(d => {
-            const lastValue = (last(d.values) as LineChartValue).y
-
+        return toShow.map(series => {
+            const lastValue = (last(series.values) as LineChartValue).y
+            const annotation =
+                this.chart.data.getAnnotationForKey(series.key) || undefined
             return {
-                color: d.color,
-                key: d.key,
+                color: series.color,
+                key: series.key,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.chart.hideLegend
                     ? ""
-                    : `${this.chart.data.formatKey(d.key)}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                    : `${this.chart.data.getLabelForKey(series.key)}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                annotation,
                 yValue: lastValue
             }
         })
@@ -188,7 +195,7 @@ export class LineChart extends React.Component<{
                                                 marginRight: "2px"
                                             }}
                                         />{" "}
-                                        {chart.data.formatKey(series.key)}
+                                        {chart.data.getLabelForKey(series.key)}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {!value
@@ -324,13 +331,13 @@ export class LineChart extends React.Component<{
                             />
                         ))}
                     {legend && (
-                        <HeightedLegendView
+                        <HeightedLegendComponent
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
                             yScale={axisBox.yScale}
                             onClick={this.onLegendClick}
-                            clickableMarks={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.data.canAddData}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
                         />

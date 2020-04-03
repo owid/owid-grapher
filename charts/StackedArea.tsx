@@ -7,14 +7,18 @@ import { Bounds } from "./Bounds"
 import { AxisBox } from "./AxisBox"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"
-import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
+import {
+    HeightedLegend,
+    HeightedLegendItem,
+    HeightedLegendComponent
+} from "./HeightedLegend"
 import { NoData } from "./NoData"
 import { Tooltip } from "./Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface StackedAreaValue {
     x: number
@@ -35,7 +39,7 @@ export interface StackedAreaSeries {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     axisBox: AxisBox
     data: StackedAreaSeries[]
-    focusKeys: DataKey[]
+    focusKeys: EntityDimensionKey[]
     onHover: (hoverIndex: number | undefined) => void
 }
 
@@ -218,20 +222,20 @@ export class StackedArea extends React.Component<{
         })
     }
 
-    @computed get legendItems() {
+    @computed get legendItems(): HeightedLegendItem[] {
         const { transform, midpoints } = this
         const items = transform.stackedData
             .map((d, i) => ({
                 color: d.color,
                 key: d.key,
-                label: this.chart.data.formatKey(d.key),
+                label: this.chart.data.getLabelForKey(d.key),
                 yValue: midpoints[i]
             }))
             .reverse()
         return items
     }
 
-    @computed get legend(): HeightedLegend | undefined {
+    @computed private get legend(): HeightedLegend | undefined {
         if (this.chart.hideLegend) return undefined
 
         const that = this
@@ -352,7 +356,7 @@ export class StackedArea extends React.Component<{
                                                 backgroundColor: blockColor
                                             }}
                                         />{" "}
-                                        {chart.data.formatKey(series.key)}
+                                        {chart.data.getLabelForKey(series.key)}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {value.isFake
@@ -453,7 +457,7 @@ export class StackedArea extends React.Component<{
                 <StandardAxisBoxView axisBox={axisBox} chart={chart} />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {legend && (
-                        <HeightedLegendView
+                        <HeightedLegendComponent
                             legend={legend}
                             x={bounds.right - legend.width}
                             yScale={axisBox.yScale}
@@ -461,7 +465,7 @@ export class StackedArea extends React.Component<{
                             onClick={this.onLegendClick}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
-                            clickableMarks={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.data.canAddData}
                         />
                     )}
                     <Areas

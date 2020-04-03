@@ -605,11 +605,11 @@ export class ScatterTransform implements IChartTransform {
         // As needed, join the individual year data points together to create an "arrow chart"
         dataByEntityAndYear.forEach((dataByYear, entity) => {
             // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
-            const datakey = chart.data.keyFor(entity, 0)
+            const datakey = chart.data.makeEntityDimensionKey(entity, 0)
 
             const group = {
                 key: datakey,
-                label: chart.data.formatKey(datakey),
+                label: chart.data.getLabelForKey(datakey),
                 color: "#ffcb1f", // Default color
                 size: 0,
                 values: []
