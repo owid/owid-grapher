@@ -6,7 +6,7 @@ import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { formatPost, FormattedPost } from "site/server/formatting"
 import { chunkParagraphs } from "utils/search"
-import { htmlToPlaintext } from "utils/string"
+import { htmlToPlaintext } from "utils/htmlToString"
 import { countries } from "utils/countries"
 
 interface Tag {
