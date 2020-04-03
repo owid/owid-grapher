@@ -1,4 +1,4 @@
-import { flatten, uniq, sortBy, extend, csvEscape } from "./Util"
+import { flatten, uniq, sortBy, extend, csvEscape, last, first } from "./Util"
 import { Bounds } from "./Bounds"
 import * as React from "react"
 import { computed, action } from "mobx"
@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { DimensionWithData } from "./DimensionWithData"
 
 // Client-side data export from chart
 @observer
@@ -23,12 +24,18 @@ export class DataTab extends React.Component<{
         const yearIsDayVar = chart.yearIsDayVar
         const dayIndexedCSV = yearIsDayVar ? true : false
 
+        // returns true if given dimension is year-based in a chart with day-based variable
+        const isFixedYearDimension = (dim: DimensionWithData) => {
+            return dayIndexedCSV && !dim.yearIsDayVar
+        }
+
         const dimensions = chart.data.filledDimensions.filter(
             d => d.property !== "color"
         )
-        const allUniqChartEntities = chart.uniqueEntitiesAcrossDimensions
+        const uniqueEntitiesAcrossDimensions =
+            chart.uniqueEntitiesAcrossDimensions
 
-        // only get days if chart has a day-indexed variable
+        // only get days if chart has a day-indexed variable, else get years across dimensions
         const indexingYears = sortBy(
             dayIndexedCSV
                 ? yearIsDayVar?.yearsUniq
@@ -37,18 +44,15 @@ export class DataTab extends React.Component<{
 
         const rows: string[] = []
 
-        const titleRow = [
-            "Entity",
-            "Code",
-            chart.yearIsDayVar ? "Date" : "Year"
-        ]
+        const titleRow = ["Entity", "Code", dayIndexedCSV ? "Date" : "Year"]
 
         dimensions.forEach(dim => {
+            if (isFixedYearDimension(dim)) titleRow.push("Year")
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
         rows.push(titleRow.join(","))
 
-        allUniqChartEntities.forEach(entity => {
+        uniqueEntitiesAcrossDimensions.forEach(entity => {
             indexingYears.forEach(year => {
                 const row: (string | number)[] = [
                     entity,
@@ -58,13 +62,18 @@ export class DataTab extends React.Component<{
 
                 let rowHasSomeValue = false
                 dimensions.forEach(dim => {
-                    // If chart has day-based variables, only show latest value for year-based variables
-                    const isFixedYearDimension =
-                        dayIndexedCSV && !dim.yearIsDayVar
-
-                    const value = isFixedYearDimension
-                        ? dim.latestValueforEntity(entity)
-                        : dim.valueByEntityAndYear.get(entity)?.get(year)
+                    let value = null
+                    if (isFixedYearDimension(dim)) {
+                        const latestYearValue = dim.latestValueforEntity(entity)
+                        if (latestYearValue) {
+                            row.push(
+                                dim.formatYear(first(latestYearValue) as number)
+                            )
+                            value = last(latestYearValue)
+                        } else row.push("")
+                    } else {
+                        value = dim.valueByEntityAndYear.get(entity)?.get(year)
+                    }
 
                     if (value) {
                         row.push(value)
