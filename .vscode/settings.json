@@ -9,9 +9,19 @@
         "bakedSite": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.tslint": true
+        "source.fixAll.eslint": true
     },
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+
+    // For JS, TS and TSX we want to have formatOnSave provided by eslint (via prettier)
+    "[javascript]": {
+        "editor.formatOnSave": false
+    },
+    "[typescript]": {
+        "editor.formatOnSave": false
+    },
+    "[typescriptreact]": {
+        "editor.formatOnSave": false
+    }
 }
