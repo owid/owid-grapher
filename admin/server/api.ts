@@ -281,9 +281,16 @@ async function saveChart(
             }
         }
 
-        // Bump chart version, very important for cachebusting
-        if (existingConfig) newConfig.version = existingConfig.version + 1
-        else newConfig.version = 1
+        if (existingConfig) {
+            // Bump chart version, very important for cachebusting
+            newConfig.version = existingConfig.version + 1
+        } else if (newConfig.version) {
+            // If a chart is republished, we want to keep incrementing the old version number,
+            // otherwise it can lead to clients receiving cached versions of the old data.
+            newConfig.version += 1
+        } else {
+            newConfig.version = 1
+        }
 
         // Execute the actual database update or creation
         const now = new Date()
