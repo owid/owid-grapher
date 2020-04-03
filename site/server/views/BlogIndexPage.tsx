@@ -7,7 +7,6 @@ import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { formatAuthors, formatDate } from "../formatting"
 import { FullPost } from "../../../db/wpdb"
-import { CovidBanner } from "./CovidBanner"
 
 export const BlogIndexPage = (props: {
     posts: FullPost[]
@@ -33,7 +32,6 @@ export const BlogIndexPage = (props: {
                 <main className="wrapper">
                     <div className="site-content">
                         <h2>{pageTitle}</h2>
-                        <CovidBanner />
                         <ul className="posts">
                             {posts.map(post => (
                                 <li key={post.slug} className="post">

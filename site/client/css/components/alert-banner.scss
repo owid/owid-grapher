@@ -1,0 +1,46 @@
+.alert-banner {
+    .content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: $vertical-spacing / 2 1rem; // match header spacing
+        color: $primary-color;
+        font-size: 0.9rem;
+        background-color: $tertiary-color;
+        &:hover {
+            background-color: $tertiary-color-brighter;
+        }
+
+        @include md-up {
+            display: block;
+            text-align: center;
+        }
+
+        .text {
+            display: inline;
+            margin-right: 1rem;
+
+            a {
+                color: inherit;
+                font-weight: bold;
+                &:hover {
+                    color: $link-color;
+                }
+            }
+        }
+
+        a.read-more {
+            white-space: nowrap;
+            font-size: 0.8rem;
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            color: $white;
+            background-color: $primary-color;
+            &:hover {
+                background-color: $primary-color-700;
+            }
+            transition: 200ms;
+            border-radius: 3px;
+        }
+    }
+}
