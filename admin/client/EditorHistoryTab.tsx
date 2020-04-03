@@ -55,8 +55,12 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
-        const chartConfigObject = this.props.editor.currentChartJson
-        chartConfigObject.externalDataUrl = this.props.editor.chart.dataUrl
+        // Avoid modifying the original JSON object
+        // Due to mobx memoizing computed values, the JSON can be mutated.
+        const chartConfigObject = {
+            ...this.props.editor.currentChartJson,
+            externalDataUrl: this.props.editor.chart.dataUrl
+        }
         return (
             <div>
                 {this.logs.map((log, i) => (
