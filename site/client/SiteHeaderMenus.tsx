@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
-import { find } from "lodash"
+import { find } from "charts/Util"
 import { bind } from "decko"
 
 import { BAKED_BASE_URL } from "settings"

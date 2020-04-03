@@ -3,7 +3,7 @@ import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear, schemeCategory10 } from "d3"
-import { fromPairs, uniq } from "lodash"
+import { fromPairs, uniq } from "charts/Util"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"

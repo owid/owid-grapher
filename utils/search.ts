@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import { flatten } from "charts/Util"
 
 const chunk = require("chunk-text")
 
@@ -10,7 +10,7 @@ export function chunkSentences(text: string, maxChunkLength: number): string[] {
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g
-    const sentences = _.flatten(
+    const sentences = flatten(
         text
             .split(sentenceRegex)
             .map(s =>
@@ -50,7 +50,7 @@ export function chunkParagraphs(
     text: string,
     maxChunkLength: number
 ): string[] {
-    const paragraphs = _.flatten(
+    const paragraphs = flatten(
         text
             .split("\n\n")
             .map(p =>

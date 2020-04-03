@@ -1,5 +1,5 @@
 const fuzzysort = require("fuzzysort")
-import * as _ from "lodash"
+import { keyBy } from "charts/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { Analytics } from "./Analytics"
 interface ChartItem {
@@ -39,7 +39,7 @@ class ChartFilter {
     }
 
     @computed get resultsByTitle(): { [key: string]: SearchResult } {
-        return _.keyBy(this.searchResults, "target")
+        return keyBy(this.searchResults, "target")
     }
 
     constructor() {
@@ -57,7 +57,7 @@ class ChartFilter {
             li: li,
             ul: li.closest("ul") as HTMLUListElement
         }))
-        this.chartItemsByTitle = _.keyBy(this.chartItems, "title")
+        this.chartItemsByTitle = keyBy(this.chartItems, "title")
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 

@@ -20,7 +20,7 @@ import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { IChartTransform } from "./IChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
-import { findIndex } from "lodash"
+import { findIndex } from "./Util"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

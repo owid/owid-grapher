@@ -1,4 +1,4 @@
-import { mapKeys } from "lodash"
+import { mapKeys } from "charts/Util"
 
 declare var window: any
 
