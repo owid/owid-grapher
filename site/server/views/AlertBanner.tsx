@@ -9,9 +9,7 @@ export const AlertBanner = () => {
                     <a href="/coronavirus"> Coronavirus pandemic </a>
                     on one page.
                 </div>
-                <a className="read-more" href="/coronavirus">
-                    Read more
-                </a>
+                <a href="/coronavirus">Read more</a>
             </div> */}
         </div>
     )

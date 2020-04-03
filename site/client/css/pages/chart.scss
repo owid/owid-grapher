@@ -70,22 +70,11 @@ html.iframe .ChartPage {
         height: 100vh;
     }
 
-    .site-header {
-        display: none;
-    }
-
-    .donate-footer {
-        display: none;
-    }
-
-    .cookie-notice {
-        display: none;
-    }
-
-    .site-footer {
-        display: none;
-    }
-
+    .site-header,
+    .alert-banner,
+    .donate-footer,
+    .cookie-notice,
+    .site-footer,
     .originReference {
         display: none;
     }
