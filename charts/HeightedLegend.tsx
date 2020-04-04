@@ -211,7 +211,7 @@ class PlacedMarkComponent extends React.Component<{
                     mark.mark.annotationTextWrap.render(
                         needsLines ? markerX2 + MARKER_MARGIN : markerX1,
                         mark.bounds.y + mark.mark.textWrap.height,
-                        { fill: annotationColor }
+                        { fill: annotationColor, className: "textAnnotation" }
                     )}
             </g>
         )
