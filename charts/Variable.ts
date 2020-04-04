@@ -65,10 +65,11 @@ export class Variable {
     @computed get annotationMap() {
         const map = new Map()
         if (!this.display.entityAnnotationsMap) return map
+        const delimiter = ":"
         this.display.entityAnnotationsMap.split("\n").forEach(line => {
-            const words = line.split(":")
+            const words = line.split(delimiter)
             const key = words.shift()
-            map.set(key, words.join(" "))
+            map.set(key, words.join(delimiter))
         })
         return map
     }
