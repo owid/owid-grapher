@@ -40,7 +40,6 @@ export interface LineChartSeries {
     values: LineChartValue[]
     classed?: string
     isProjection?: boolean
-    annotation?: string
     formatValue: (value: number) => string
 }
 
@@ -148,6 +147,10 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
+                            const annotation = chart.data.getAnnotationForKey(
+                                series.key
+                            )
+
                             // It sometimes happens that data is missing for some years for a particular
                             // entity. If the user hovers over these years, we want to show a "No data"
                             // notice. However, we only want to show this notice when we are in the middle
@@ -171,6 +174,7 @@ export class LineChart extends React.Component<{
                             const isBlur =
                                 this.seriesIsBlur(series) || value === undefined
                             const textColor = isBlur ? "#ddd" : "#333"
+                            const annotationColor = isBlur ? "#ddd" : "#bbb"
                             const circleColor = isBlur
                                 ? BLUR_COLOR
                                 : series.color
@@ -196,6 +200,16 @@ export class LineChart extends React.Component<{
                                             }}
                                         />{" "}
                                         {chart.data.getLabelForKey(series.key)}
+                                        {annotation && (
+                                            <span
+                                                className="tooltipAnnotation"
+                                                style={{
+                                                    color: annotationColor
+                                                }}
+                                            >
+                                                {annotation}
+                                            </span>
+                                        )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {!value

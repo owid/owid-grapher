@@ -108,7 +108,7 @@ export class HeightedLegend {
                 ? new TextWrap({
                       text: item.annotation,
                       maxWidth: maxTextWidth,
-                      fontSize: fontSize * 0.7
+                      fontSize: fontSize * 0.9
                   })
                 : undefined
             const textWrap = new TextWrap({
@@ -176,7 +176,7 @@ class PlacedMarkComponent extends React.Component<{
         const markerXMid = markerX1 + step + mark.level * step
         const lineColor = isFocus ? "#999" : "#eee"
         const textColor = isFocus ? mark.mark.item.color : "#ddd"
-        const annotationColor = isFocus ? "#999" : "#ddd"
+        const annotationColor = isFocus ? "#333" : "#ddd"
         return (
             <g
                 className="legendMark"
@@ -211,7 +211,11 @@ class PlacedMarkComponent extends React.Component<{
                     mark.mark.annotationTextWrap.render(
                         needsLines ? markerX2 + MARKER_MARGIN : markerX1,
                         mark.bounds.y + mark.mark.textWrap.height,
-                        { fill: annotationColor, className: "textAnnotation" }
+                        {
+                            fill: annotationColor,
+                            className: "textAnnotation",
+                            style: { fontWeight: "lighter" }
+                        }
                     )}
             </g>
         )

@@ -484,7 +484,6 @@ export class ChartData {
     }
 
     getAnnotationForKey(key: EntityDimensionKey): string {
-        console.log(this.lookupKey(key))
         return this.lookupKey(key).annotation || ""
     }
 
