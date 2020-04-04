@@ -1129,6 +1129,38 @@ api.delete("/datasets/:datasetId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
+api.post("/datasets/:datasetId/charts", async (req: Request, res: Response) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    if (req.body.republish) {
+        await db.transaction(async t => {
+            await t.execute(
+                `
+            UPDATE charts
+            SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
+            WHERE id IN (
+                SELECT DISTINCT chart_dimensions.chartId
+                FROM chart_dimensions
+                JOIN variables ON variables.id = chart_dimensions.variableId
+                WHERE variables.datasetId = ?
+            )
+            `,
+                [datasetId]
+            )
+        })
+    }
+
+    await triggerStaticBuild(
+        res.locals.user,
+        `Republishing all charts in dataset ${dataset.name} (${dataset.id})`
+    )
+
+    return { success: true }
+})
+
 // Get a list of redirects that map old slugs to charts
 api.get("/redirects.json", async (req: Request, res: Response) => {
     const redirects = await db.query(`

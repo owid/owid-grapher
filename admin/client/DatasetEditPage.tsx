@@ -429,6 +429,23 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         }
     }
 
+    async republishCharts() {
+        const { dataset } = this.props
+        if (
+            !window.confirm(
+                `Are you sure you want to republish all charts in ${dataset.name}?`
+            )
+        ) {
+            return
+        }
+
+        await this.context.admin.requestJSON(
+            `/api/datasets/${dataset.id}/charts`,
+            { republish: true },
+            "POST"
+        )
+    }
+
     @computed get gitHistoryUrl() {
         return `https://github.com/${
             this.context.admin.settings.GITHUB_USERNAME
@@ -644,6 +661,12 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     )}
                 </section>
                 <section>
+                    <button
+                        className="btn btn-primary float-right"
+                        onClick={() => this.republishCharts()}
+                    >
+                        Republish all charts
+                    </button>
                     <h3>Charts</h3>
                     <ChartList charts={dataset.charts} />
                 </section>
