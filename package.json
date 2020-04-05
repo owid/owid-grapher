@@ -142,7 +142,7 @@
         "md5": "^2.2.1",
         "mini-create-react-context": "^0.3.2",
         "minimatch": "^3.0.4",
-        "minimist": "^1.2.0",
+        "minimist": "^1.2.3",
         "mkdirp": "^0.5.1",
         "mobx": "^5.13.0",
         "mobx-formatters": "^1.0.2",
