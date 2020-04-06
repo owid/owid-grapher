@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7979580a906503dc843229877ba2ebc3",
+    "content-hash": "d4f9e8a9eb792f9e0e68ed2f44bbb38b",
     "packages": [
         {
             "name": "composer/installers",
@@ -652,16 +652,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.7.1",
+            "version": "v0.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "7fb5c594bac45079cf95e14540930382c3c2b2c6"
+                "reference": "c1ca15bdaec085fed0a881af2053f6aca92a3efa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/7fb5c594bac45079cf95e14540930382c3c2b2c6",
-                "reference": "7fb5c594bac45079cf95e14540930382c3c2b2c6",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/c1ca15bdaec085fed0a881af2053f6aca92a3efa",
+                "reference": "c1ca15bdaec085fed0a881af2053f6aca92a3efa",
                 "shasum": ""
             },
             "require": {
@@ -717,10 +717,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.7.1",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.8.1",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2020-03-18T19:09:54+00:00"
+            "time": "2020-04-03T16:45:08+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -760,15 +760,15 @@
         },
         {
             "name": "wpackagist-plugin/broken-link-checker",
-            "version": "1.11.11",
+            "version": "1.11.12",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/broken-link-checker/",
-                "reference": "tags/1.11.11"
+                "reference": "tags/1.11.12"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.11.zip"
+                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.12.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -958,15 +958,15 @@
         },
         {
             "name": "wpackagist-plugin/tablepress",
-            "version": "1.10",
+            "version": "1.11",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/tablepress/",
-                "reference": "tags/1.10"
+                "reference": "tags/1.11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/tablepress.1.10.zip"
+                "url": "https://downloads.wordpress.org/plugin/tablepress.1.11.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
