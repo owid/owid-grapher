@@ -14,7 +14,7 @@ import {
     formatValue
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
@@ -65,29 +65,32 @@ export class LineChartTransform implements IChartTransform {
         let chartData: LineChartSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<DataKey, LineChartSeries>()
+            const seriesByKey = new Map<EntityDimensionKey, LineChartSeries>()
 
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
                 const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
-                let series = seriesByKey.get(datakey)
+                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
+                let series = seriesByKey.get(entityDimensionKey)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[datakey]) continue
+                if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Can't have values <= 0 on log scale
                 if (value <= 0 && yAxis.scaleType === "log") continue
 
                 if (!series) {
                     series = {
                         values: [],
-                        key: datakey,
+                        key: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
                         color: "#000" // tmp
                     }
-                    seriesByKey.set(datakey, series)
+                    seriesByKey.set(entityDimensionKey, series)
                 }
 
                 series.values.push({ x: year, y: value, time: year })

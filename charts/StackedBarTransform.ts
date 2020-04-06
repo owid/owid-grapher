@@ -18,7 +18,7 @@ import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
 import { IChartTransform } from "./IChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Colorizer, Colorable } from "./Colorizer"
 
 // Responsible for translating chart configuration into the form
@@ -185,17 +185,20 @@ export class StackedBarTransform implements IChartTransform {
         let groupedData: StackedBarSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<DataKey, StackedBarSeries>()
+            const seriesByKey = new Map<EntityDimensionKey, StackedBarSeries>()
 
             for (let i = 0; i <= dimension.years.length; i += 1) {
                 const year = dimension.years[i]
                 const entity = dimension.entities[i]
                 const value = +dimension.values[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
-                let series = seriesByKey.get(datakey)
+                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
+                let series = seriesByKey.get(entityDimensionKey)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[datakey]) continue
+                if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Must be numeric
                 if (isNaN(value)) continue
                 // Stacked bar chart can't go negative!
@@ -205,12 +208,12 @@ export class StackedBarTransform implements IChartTransform {
 
                 if (!series) {
                     series = {
-                        key: datakey,
-                        label: chart.data.formatKey(datakey),
+                        key: entityDimensionKey,
+                        label: chart.data.getLabelForKey(entityDimensionKey),
                         values: [],
                         color: "#fff" // Temp
                     }
-                    seriesByKey.set(datakey, series)
+                    seriesByKey.set(entityDimensionKey, series)
                 }
                 series.values.push({
                     x: year,
@@ -276,7 +279,7 @@ export class StackedBarTransform implements IChartTransform {
                 return that.colorKeys
             },
             get labelFormat() {
-                return (key: string) => that.chart.data.formatKey(key)
+                return (key: string) => that.chart.data.getLabelForKey(key)
             },
             invert: true
         })

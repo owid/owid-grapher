@@ -40,6 +40,7 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
+    @observable entityAnnotationsMap: string = ""
     @observable display: VariableDisplaySettings = new VariableDisplaySettings()
 
     constructor(json: any) {
@@ -208,6 +209,15 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     label="Description"
                                     textarea
                                     disabled={isBulkImport}
+                                />
+                                <BindString
+                                    field="entityAnnotationsMap"
+                                    placeholder="Example:&#10;Japan:people tested&#10;France:units unclear"
+                                    store={newVariable.display}
+                                    label="Entity annotations"
+                                    textarea
+                                    disabled={isBulkImport}
+                                    helpText="Additional text to show next to entity labels."
                                 />
                             </section>
                             <input

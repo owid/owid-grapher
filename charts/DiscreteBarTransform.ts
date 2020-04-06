@@ -93,7 +93,10 @@ export class DiscreteBarTransform implements IChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
+                const datakey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
 
                 if (
                     year < targetYear - tolerance ||
@@ -115,7 +118,7 @@ export class DiscreteBarTransform implements IChartTransform {
                     key: datakey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.formatKey(datakey),
+                    label: chart.data.getLabelForKey(datakey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -193,7 +196,10 @@ export class DiscreteBarTransform implements IChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
+                const datakey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
 
                 if (!selectedKeysByKey[datakey]) continue
 
@@ -201,7 +207,7 @@ export class DiscreteBarTransform implements IChartTransform {
                     key: datakey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.formatKey(datakey),
+                    label: chart.data.getLabelForKey(datakey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }

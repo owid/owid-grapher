@@ -18,11 +18,11 @@ import {
 } from "./Util"
 import { computed, toJS } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
 import { DimensionWithData } from "./DimensionWithData"
 
-export interface DataKeyInfo {
+export interface EntityDimensionInfo {
     entity: string
     entityId: number
     dimension: DimensionWithData
@@ -30,6 +30,7 @@ export interface DataKeyInfo {
     key: string
     fullLabel: string
     label: string
+    annotation?: string
     shortCode: string
 }
 
@@ -81,7 +82,7 @@ export class ChartData {
         )
     }
 
-    @computed get defaultTitle(): string {
+    @computed private get defaultTitle(): string {
         if (this.chart.isScatter)
             return this.axisDimensions.map(d => d.displayName).join(" vs. ")
         else if (
@@ -192,7 +193,7 @@ export class ChartData {
         return text.trim()
     }
 
-    @computed get defaultSlug(): string {
+    @computed private get defaultSlug(): string {
         return slugify(this.title)
     }
 
@@ -206,7 +207,7 @@ export class ChartData {
         return url
     }
 
-    @computed get defaultSourcesLine(): string {
+    @computed private get defaultSourcesLine(): string {
         let sourceNames = this.sources.map(source => source.name)
 
         // Shorten automatic source names for certain major sources
@@ -237,7 +238,7 @@ export class ChartData {
         )
     }
 
-    @computed get isSingleVariable(): boolean {
+    @computed private get isSingleVariable(): boolean {
         return this.primaryDimensions.length === 1
     }
 
@@ -249,7 +250,10 @@ export class ChartData {
     }
 
     // Make a unique string key for an entity on a variable
-    keyFor(entity: string, dimensionIndex: number): DataKey {
+    makeEntityDimensionKey(
+        entity: string,
+        dimensionIndex: number
+    ): EntityDimensionKey {
         return `${entity}_${dimensionIndex}`
     }
 
@@ -257,7 +261,10 @@ export class ChartData {
         return keyBy(this.filledDimensions, "property")
     }
 
-    @computed get selectionData(): Array<{ key: DataKey; color?: Color }> {
+    @computed private get selectionData(): Array<{
+        key: EntityDimensionKey
+        color?: Color
+    }> {
         const { chart, primaryDimensions } = this
         let validSelections = chart.props.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
@@ -290,7 +297,7 @@ export class ChartData {
 
         return map(validSelections, sel => {
             return {
-                key: this.keyFor(
+                key: this.makeEntityDimensionKey(
                     chart.entityMetaById[sel.entityId].name,
                     sel.index
                 ),
@@ -299,7 +306,7 @@ export class ChartData {
         })
     }
 
-    selectKey(key: DataKey) {
+    selectKey(key: EntityDimensionKey) {
         this.selectedKeys = this.selectedKeys.concat([key])
     }
 
@@ -311,7 +318,7 @@ export class ChartData {
         return keyColors
     }
 
-    setKeyColor(datakey: DataKey, color: Color | undefined) {
+    setKeyColor(datakey: EntityDimensionKey, color: Color | undefined) {
         const meta = this.lookupKey(datakey)
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => {
@@ -349,12 +356,12 @@ export class ChartData {
         this.chart.props.selectedData = selectedData
     }
 
-    @computed get selectedKeys(): DataKey[] {
+    @computed get selectedKeys(): EntityDimensionKey[] {
         return this.selectionData.map(d => d.key)
     }
 
     // Map keys back to their components for storage
-    set selectedKeys(keys: DataKey[]) {
+    set selectedKeys(keys: EntityDimensionKey[]) {
         const { chart } = this
         if (!this.isReady) return
 
@@ -369,12 +376,15 @@ export class ChartData {
         chart.props.selectedData = selection
     }
 
-    @computed get selectedKeysByKey(): { [key: string]: DataKey } {
+    @computed get selectedKeysByKey(): { [key: string]: EntityDimensionKey } {
         return keyBy(this.selectedKeys)
     }
 
     // Calculate the available datakeys and their associated info
-    @computed get keyData(): Map<DataKey, DataKeyInfo> {
+    @computed get entityDimensionMap(): Map<
+        EntityDimensionKey,
+        EntityDimensionInfo
+    > {
         if (!this.isReady) return new Map()
         const {
             chart,
@@ -384,36 +394,42 @@ export class ChartData {
         } = this
 
         const keyData = new Map()
-        each(primaryDimensions, (dim, index) => {
-            const { variable } = dim
-            each(variable.entitiesUniq, entity => {
-                const entityMeta = chart.entityMetaByKey[entity]
-                const key = this.keyFor(entity, index)
+        primaryDimensions.forEach((dimension, dimensionIndex) => {
+            const annotationMap = dimension.variable.annotationMap
+            dimension.variable.entitiesUniq.forEach(entityName => {
+                const entityMeta = chart.entityMetaByKey[entityName]
+                const entityDimensionKey = this.makeEntityDimensionKey(
+                    entityName,
+                    dimensionIndex
+                )
 
                 // Full label completely represents the data in the key and is used in the editor
-                const fullLabel = `${entity} - ${dim.displayName}`
+                const fullLabel = `${entityName} - ${dimension.displayName}`
 
                 // The output label however is context-dependent
                 let label = fullLabel
                 if (isSingleVariable) {
-                    label = entity
+                    label = entityName
                 } else if (isSingleEntity) {
-                    label = `${dim.displayName}`
+                    label = `${dimension.displayName}`
                 }
 
-                keyData.set(key, {
-                    key: key,
+                const annotationKey = entityName
+
+                keyData.set(entityDimensionKey, {
+                    key: entityDimensionKey,
                     entityId: entityMeta.id,
-                    entity: entity,
-                    dimension: dim,
-                    index: index,
-                    fullLabel: fullLabel,
-                    label: label,
+                    entity: entityName,
+                    annotation: annotationMap.get(annotationKey),
+                    dimension,
+                    index: dimensionIndex,
+                    fullLabel,
+                    label,
                     shortCode:
                         primaryDimensions.length > 1 &&
                         chart.addCountryMode !== "change-country"
                             ? `${entityMeta.code || entityMeta.name}-${
-                                  dim.index
+                                  dimension.index
                               }`
                             : entityMeta.code || entityMeta.name
                 })
@@ -438,18 +454,18 @@ export class ChartData {
         )
     }
 
-    @computed.struct get availableKeys(): DataKey[] {
-        return sortBy([...Array.from(this.keyData.keys())])
+    @computed.struct get availableKeys(): EntityDimensionKey[] {
+        return sortBy([...Array.from(this.entityDimensionMap.keys())])
     }
 
-    @computed.struct get remainingKeys(): DataKey[] {
+    @computed.struct get remainingKeys(): EntityDimensionKey[] {
         const { availableKeys, selectedKeys } = this
         return without(availableKeys, ...selectedKeys)
     }
 
-    @computed get availableKeysByEntity(): Map<string, DataKey[]> {
+    @computed get availableKeysByEntity(): Map<string, EntityDimensionKey[]> {
         const keysByEntity = new Map()
-        this.keyData.forEach((info, key) => {
+        this.entityDimensionMap.forEach((info, key) => {
             const keys = keysByEntity.get(info.entity) || []
             keys.push(key)
             keysByEntity.set(info.entity, keys)
@@ -457,17 +473,21 @@ export class ChartData {
         return keysByEntity
     }
 
-    lookupKey(key: DataKey) {
-        const keyDatum = this.keyData.get(key)
+    lookupKey(key: EntityDimensionKey) {
+        const keyDatum = this.entityDimensionMap.get(key)
         if (keyDatum !== undefined) return keyDatum
         else throw new Error(`Unknown data key: ${key}`)
     }
 
-    formatKey(key: DataKey): string {
+    getLabelForKey(key: EntityDimensionKey): string {
         return this.lookupKey(key).label
     }
 
-    toggleKey(key: DataKey) {
+    getAnnotationForKey(key: EntityDimensionKey): string {
+        return this.lookupKey(key).annotation || ""
+    }
+
+    toggleKey(key: EntityDimensionKey) {
         if (includes(this.selectedKeys, key)) {
             this.selectedKeys = this.selectedKeys.filter(k => k !== key)
         } else {

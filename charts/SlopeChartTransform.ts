@@ -195,7 +195,10 @@ export class SlopeChartTransform implements IChartTransform {
                 })
             }
 
-            const key = chart.data.keyFor(entity, yDimension.index)
+            const key = chart.data.makeEntityDimensionKey(
+                entity,
+                yDimension.index
+            )
             return {
                 key: key,
                 label: entityKey[entity].name,

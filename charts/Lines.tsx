@@ -7,7 +7,7 @@ import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
 import { getRelativeMouse, makeSafeForCSS, pointsToPath } from "./Util"
 import { Bounds } from "./Bounds"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 import { AxisBox } from "./AxisBox"
 
 export interface LinesProps {
@@ -15,7 +15,7 @@ export interface LinesProps {
     xScale: AxisScale
     yScale: AxisScale
     data: LineChartSeries[]
-    focusKeys: DataKey[]
+    focusKeys: EntityDimensionKey[]
     onHover: (hoverX: number | undefined) => void
 }
 

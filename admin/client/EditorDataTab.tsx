@@ -3,7 +3,7 @@ import { clone, map } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/ChartConfig"
-import { DataKey } from "charts/DataKey"
+import { EntityDimensionKey } from "charts/EntityDimensionKey"
 import {
     EditableList,
     EditableListItem,
@@ -19,7 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface DataKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
-    datakey: DataKey
+    datakey: EntityDimensionKey
 }
 
 @observer
@@ -43,7 +43,7 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
     render() {
         const { props, color } = this
         const { chart, datakey, ...rest } = props
-        const meta = chart.data.keyData.get(datakey)
+        const meta = chart.data.entityDimensionMap.get(datakey)
 
         return (
             <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
@@ -64,13 +64,13 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
 @observer
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
-    @observable.ref dragKey?: DataKey
+    @observable.ref dragKey?: EntityDimensionKey
 
     @action.bound onAddKey(key: string) {
         this.props.chart.data.selectKey(key)
     }
 
-    @action.bound onStartDrag(key: DataKey) {
+    @action.bound onStartDrag(key: EntityDimensionKey) {
         this.dragKey = key
 
         const onDrag = action(() => {
@@ -81,7 +81,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
         window.addEventListener("mouseup", onDrag)
     }
 
-    @action.bound onMouseEnter(targetKey: DataKey) {
+    @action.bound onMouseEnter(targetKey: EntityDimensionKey) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
         const selectedKeys = clone(this.props.chart.data.selectedKeys)

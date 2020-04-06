@@ -4,7 +4,7 @@ import { computed, action, observable } from "mobx"
 
 import { uniqBy, isTouchDevice } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { DataKeyInfo } from "./ChartData"
+import { EntityDimensionInfo } from "./ChartData"
 import { ChartView } from "./ChartView"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
@@ -27,7 +27,7 @@ export class DataSelectorMulti extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableData(): DataKeyInfo[] {
+    @computed get availableData(): EntityDimensionInfo[] {
         const { chart } = this.props
 
         const selectableKeys = chart.activeTransform.selectableKeys
@@ -41,11 +41,11 @@ export class DataSelectorMulti extends React.Component<{
         return this.availableData.filter(d => this.isSelectedKey(d.key))
     }
 
-    @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
+    @computed get fuzzy(): FuzzySearch<EntityDimensionInfo> {
         return new FuzzySearch(this.availableData, "label")
     }
 
-    @computed get searchResults(): DataKeyInfo[] {
+    @computed get searchResults(): EntityDimensionInfo[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.availableData
@@ -196,7 +196,7 @@ export class DataSelectorSingle extends React.Component<{
 
     @computed get availableItems() {
         const availableItems: { id: number; label: string }[] = []
-        this.props.chart.data.keyData.forEach(meta => {
+        this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
                 label: meta.entity
