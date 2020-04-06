@@ -244,6 +244,15 @@ class VariableEditRow extends React.Component<{
                                 helpText="Any further useful information about this variable"
                                 textarea
                             />
+                            <BindString
+                                field="entityAnnotationsMap"
+                                placeholder="Example:&#10;Japan:people tested&#10;France:units unclear"
+                                store={newVariable.display}
+                                label="Entity annotations"
+                                textarea
+                                disabled={isBulkImport}
+                                helpText="Additional text to show next to entity labels."
+                            />
                         </section>
                         <input
                             type="submit"
