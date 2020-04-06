@@ -246,12 +246,12 @@ class VariableEditRow extends React.Component<{
                             />
                             <BindString
                                 field="entityAnnotationsMap"
-                                placeholder="Example:&#10;Japan:people tested&#10;France:units unclear"
+                                placeholder="Entity: note"
                                 store={newVariable.display}
                                 label="Entity annotations"
                                 textarea
                                 disabled={isBulkImport}
-                                helpText="Additional text to show next to entity labels."
+                                helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                             />
                         </section>
                         <input
