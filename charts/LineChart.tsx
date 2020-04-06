@@ -174,7 +174,7 @@ export class LineChart extends React.Component<{
                             const isBlur =
                                 this.seriesIsBlur(series) || value === undefined
                             const textColor = isBlur ? "#ddd" : "#333"
-                            const annotationColor = isBlur ? "#ddd" : "#bbb"
+                            const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
                                 ? BLUR_COLOR
                                 : series.color
