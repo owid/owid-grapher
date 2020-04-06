@@ -61,6 +61,7 @@ import range from "lodash/range"
 import findIndex from "lodash/findIndex"
 import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
+import memoize from "lodash/memoize"
 
 export {
     isEqual,
@@ -123,7 +124,8 @@ export {
     range,
     findIndex,
     fromPairs,
-    mapKeys
+    mapKeys,
+    memoize
 }
 
 import moment = require("moment")
