@@ -212,10 +212,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 />
                                 <BindString
                                     field="entityAnnotationsMap"
+                                    placeholder="Example:&#10;Japan:people tested&#10;France:units unclear"
                                     store={newVariable.display}
-                                    label="Entity Annotations"
+                                    label="Entity annotations"
                                     textarea
                                     disabled={isBulkImport}
+                                    helpText="Additional text to show next to entity labels."
                                 />
                             </section>
                             <input
