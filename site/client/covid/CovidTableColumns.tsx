@@ -1,5 +1,6 @@
 import * as React from "react"
-import { scaleThreshold, interpolateLab, scaleLinear, ScaleLinear } from "d3"
+import { scaleThreshold, scaleLinear, ScaleLinear } from "d3-scale"
+import { interpolateLab } from "d3-interpolate"
 import classnames from "classnames"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
