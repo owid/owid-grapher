@@ -1,5 +1,5 @@
 import { maxBy } from "charts/Util"
-import { utcFormat } from "d3"
+import { utcFormat } from "d3-time-format"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
 import { dateDiffInDays, formatValue } from "charts/Util"

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { scaleLinear } from "d3"
+import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
 import { max, keyBy } from "charts/Util"

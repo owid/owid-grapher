@@ -1,4 +1,4 @@
-import { csvParse } from "d3"
+import { csvParse } from "d3-dsv"
 import moment from "moment"
 
 import { CovidSeries } from "./CovidTypes"
