@@ -207,6 +207,7 @@ export class LineChart extends React.Component<{
                                                     color: annotationColor
                                                 }}
                                             >
+                                                {" "}
                                                 {annotation}
                                             </span>
                                         )}
