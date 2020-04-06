@@ -67,8 +67,9 @@ export class Variable {
         if (!this.display.entityAnnotationsMap) return map
         const delimiter = ":"
         this.display.entityAnnotationsMap.split("\n").forEach(line => {
-            const words = line.split(delimiter)
-            const key = words.shift()
+            const [key, ...words] = line
+                .split(delimiter)
+                .map(word => word.trim())
             map.set(key, words.join(delimiter))
         })
         return map
