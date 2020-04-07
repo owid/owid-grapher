@@ -102,12 +102,13 @@ export class HeightedLegend {
     @computed.struct get marks(): HeightedLegendMark[] {
         const { fontSize, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
+        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.items.map(item => {
             const annotationTextWrap = item.annotation
                 ? new TextWrap({
                       text: item.annotation,
-                      maxWidth: maxTextWidth,
+                      maxWidth: maxAnnotationWidth,
                       fontSize: fontSize * 0.9
                   })
                 : undefined
