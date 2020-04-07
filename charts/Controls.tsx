@@ -321,6 +321,8 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
                     checked={supported ? chart.stackedArea.isRelative : false}
                     onChange={this.onToggle}
                     disabled={!supported}
+                    data-track-click
+                    data-track-note="chart-abs-rel-toggle"
                 />{" "}
                 {label}
             </label>
@@ -796,7 +798,12 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div className="extraControls">
                 {chart.data.canAddData && !hasAddButton && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-click
+                        data-track-note="chart-select-entities"
+                    >
                         {chart.isScatter || chart.isSlopeChart ? (
                             <span className="SelectEntitiesButton">
                                 <FontAwesomeIcon icon={faPencilAlt} />
@@ -812,7 +819,12 @@ export class ControlsFooterView extends React.Component<{
                 )}
 
                 {chart.data.canChangeEntity && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-click
+                        data-track-note="chart-change-entity"
+                    >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                         {chart.entityType}
                     </button>
