@@ -120,7 +120,12 @@ export class HeightedLegend {
                 item,
                 textWrap,
                 annotationTextWrap,
-                width: leftPadding + textWrap.width,
+                width:
+                    leftPadding +
+                    Math.max(
+                        textWrap.width,
+                        annotationTextWrap ? annotationTextWrap.width : 0
+                    ),
                 height:
                     textWrap.height +
                     (annotationTextWrap ? annotationTextWrap.height : 0)
