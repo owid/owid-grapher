@@ -229,7 +229,6 @@ export class FeedbackPrompt extends React.Component {
                 ) : (
                     <button
                         className="prompt"
-                        data-track-click
                         data-track-note="page-open-feedback"
                         onClick={this.toggleOpen}
                     >

@@ -128,11 +128,7 @@ export class Header extends React.Component<{
             <React.Fragment>
                 <div className="wrapper site-navigation-bar">
                     <div className="site-logo">
-                        <a
-                            href="/"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/" data-track-note="header-navigation">
                             Our World
                             <br /> in Data
                         </a>
@@ -181,7 +177,6 @@ export class Header extends React.Component<{
                                     <li>
                                         <a
                                             href="/blog"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Latest
@@ -190,7 +185,6 @@ export class Header extends React.Component<{
                                     <li>
                                         <a
                                             href="/about"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             About
@@ -199,7 +193,6 @@ export class Header extends React.Component<{
                                     <li>
                                         <a
                                             href="/donate"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Donate
@@ -212,17 +205,15 @@ export class Header extends React.Component<{
                                     <li>
                                         <a
                                             href="/charts"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             All charts
                                         </a>
                                     </li>
-                                    {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
+                                    {/* <li><a href="/teaching" data-track-note="header-navigation">Teaching Hub</a></li> */}
                                     <li>
                                         <a
                                             href="https://sdg-tracker.org"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Sustainable Development Goals
@@ -256,21 +247,18 @@ export class Header extends React.Component<{
                     <div className="mobile-site-navigation">
                         <button
                             onClick={this.onToggleSearch}
-                            data-track-click
                             data-track-note="mobile-search-button"
                         >
                             <FontAwesomeIcon icon={faSearch} />
                         </button>
                         <button
                             onClick={this.onToggleNewsletterSubscription}
-                            data-track-click
                             data-track-note="mobile-newsletter-button"
                         >
                             <FontAwesomeIcon icon={faEnvelopeOpenText} />
                         </button>
                         <button
                             onClick={this.onToggleCategories}
-                            data-track-click
                             data-track-note="mobile-hamburger-button"
                         >
                             <FontAwesomeIcon icon={faBars} />
@@ -310,7 +298,6 @@ const renderEntry = (entry: EntryMeta): JSX.Element => {
             <a
                 href={`/${entry.slug}`}
                 className="item"
-                data-track-click
                 data-track-note="header-navigation"
             >
                 <span className="label">{entry.title}</span>
@@ -418,7 +405,6 @@ export class DesktopTopicsMenu extends React.Component<{
                                 href="http://sdg-tracker.org"
                                 className="item"
                                 data-submenu-id
-                                data-track-click
                                 data-track-note="header-navigation"
                             >
                                 <span className="label">
@@ -429,7 +415,7 @@ export class DesktopTopicsMenu extends React.Component<{
                                 </span>
                             </a>
                             {/* An extra "Index" menu item, for when we have the Index page. */}
-                            {/* <a href="/index" className="item" data-track-click data-track-note="header-navigation">
+                            {/* <a href="/index" className="item" data-track-note="header-navigation">
                         <span className="label">Index of all topics</span>
                         <span className="icon">
                             <FontAwesomeIcon icon={faExternalLinkAlt} />
@@ -508,56 +494,35 @@ export class MobileTopicsMenu extends React.Component<{
                         </li>
                     ))}
                     <li className="end-link">
-                        <a
-                            href="/charts"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/charts" data-track-note="header-navigation">
                             Charts
                         </a>
                     </li>
                     <li className="end-link">
-                        <a
-                            href="/teaching"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/teaching" data-track-note="header-navigation">
                             Teaching Hub
                         </a>
                     </li>
                     <li className="end-link">
                         <a
                             href="https://sdg-tracker.org"
-                            data-track-click
                             data-track-note="header-navigation"
                         >
                             Sustainable Development Goals Tracker
                         </a>
                     </li>
                     <li className="end-link">
-                        <a
-                            href="/blog"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/blog" data-track-note="header-navigation">
                             Latest
                         </a>
                     </li>
                     <li className="end-link">
-                        <a
-                            href="/about"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/about" data-track-note="header-navigation">
                             About
                         </a>
                     </li>
                     <li className="end-link">
-                        <a
-                            href="/donate"
-                            data-track-click
-                            data-track-note="header-navigation"
-                        >
+                        <a href="/donate" data-track-note="header-navigation">
                             Donate
                         </a>
                     </li>

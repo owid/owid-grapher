@@ -64,7 +64,7 @@ document.addEventListener("click", async ev => {
     const targetElement = ev.target as HTMLElement
     const trackedElement = getParent(
         targetElement,
-        (el: HTMLElement) => el.getAttribute("data-track-click") !== null
+        (el: HTMLElement) => el.getAttribute("data-track-note") !== null
     )
     if (trackedElement) {
         // Note that browsers will cancel all pending requests once a user

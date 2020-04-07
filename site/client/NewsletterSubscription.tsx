@@ -28,7 +28,6 @@ export const NewsletterSubscription = () => {
             <button
                 aria-label={isOpen ? closeText : subscribeText}
                 className="prompt"
-                data-track-click
                 data-track-note={
                     isOpen
                         ? "dialog-close-newsletter"

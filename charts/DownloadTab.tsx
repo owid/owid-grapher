@@ -187,7 +187,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 key="png"
                 href={pngDownloadUrl}
                 download={baseFilename + ".png"}
-                data-track-click
                 data-track-note="chart-download-png"
                 onClick={this.onPNGDownload}
             >
@@ -206,7 +205,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 key="svg"
                 href={svgDownloadUrl}
                 download={baseFilename + ".svg"}
-                data-track-click
                 data-track-note="chart-download-svg"
                 onClick={this.onSVGDownload}
             >

@@ -321,7 +321,6 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
                     checked={supported ? chart.stackedArea.isRelative : false}
                     onChange={this.onToggle}
                     disabled={!supported}
-                    data-track-click
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
                 {label}
@@ -614,7 +613,6 @@ export class AddEntityButton extends React.Component<{
             <button
                 className="addDataButton clickable"
                 onClick={onClick}
-                data-track-click
                 data-track-note="chart-add-entity"
                 style={buttonStyle}
             >
@@ -726,7 +724,6 @@ export class ControlsFooterView extends React.Component<{
                                     onClick={() => (chart.tab = tabName)}
                                 >
                                     <a
-                                        data-track-click
                                         data-track-note={
                                             "chart-click-" + tabName
                                         }
@@ -742,7 +739,6 @@ export class ControlsFooterView extends React.Component<{
                             "tab clickable icon" +
                             (chart.tab === "download" ? " active" : "")
                         }
-                        data-track-click
                         data-track-note="chart-click-download"
                         onClick={() => (chart.tab = "download")}
                         title="Download as .png or .svg"
@@ -755,7 +751,6 @@ export class ControlsFooterView extends React.Component<{
                         <a
                             title="Share"
                             onClick={this.onShareMenu}
-                            data-track-click
                             data-track-note="chart-click-share"
                         >
                             <FontAwesomeIcon icon={faShareAlt} />
@@ -766,7 +761,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Settings"
                                 onClick={this.onSettingsMenu}
-                                data-track-click
                                 data-track-note="chart-click-settings"
                             >
                                 <FontAwesomeIcon icon={faCog} />
@@ -778,7 +772,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Open chart in new tab"
                                 href={chart.url.canonicalUrl}
-                                data-track-click
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -801,7 +794,6 @@ export class ControlsFooterView extends React.Component<{
                     <button
                         type="button"
                         onClick={this.onDataSelect}
-                        data-track-click
                         data-track-note="chart-select-entities"
                     >
                         {chart.isScatter || chart.isSlopeChart ? (
@@ -822,7 +814,6 @@ export class ControlsFooterView extends React.Component<{
                     <button
                         type="button"
                         onClick={this.onDataSelect}
-                        data-track-click
                         data-track-note="chart-change-entity"
                     >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
