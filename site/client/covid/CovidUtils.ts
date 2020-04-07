@@ -29,7 +29,9 @@ export function formatInt(
     defaultValue: string = "",
     options: TickFormattingOptions = {}
 ): string {
-    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
+    return n === undefined || isNaN(n)
+        ? defaultValue
+        : formatValue(n, { autoPrefix: false, ...options })
 }
 
 export const defaultTimeFormat = utcFormat("%B %e")
