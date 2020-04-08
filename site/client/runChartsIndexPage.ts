@@ -47,10 +47,10 @@ class ChartFilter {
             ".chartsSearchInput"
         ) as HTMLInputElement
         this.sections = Array.from(
-            document.querySelectorAll(".ChartsIndexPage main section")
+            document.querySelectorAll(".ChartsIndexPage main .content section")
         ) as HTMLDivElement[]
         const lis = Array.from(
-            document.querySelectorAll(".ChartsIndexPage main li")
+            document.querySelectorAll(".ChartsIndexPage main .content li")
         ) as HTMLLIElement[]
         this.chartItems = lis.map(li => ({
             title: (li.textContent as string).replace(/₂/g, "2"),
@@ -87,7 +87,7 @@ class ChartFilter {
             null,
             document.title,
             window.location.pathname +
-                (this.query ? `#search=${encodeHashSafe(this.query)}` : "")
+                (this.query ? `?search=${encodeHashSafe(this.query)}` : "")
         )
 
         if (!this.query) {
@@ -138,7 +138,7 @@ class ChartFilter {
 
         autorun(() => this.render())
 
-        const m = window.location.hash.match(/search=(.+)/)
+        const m = window.location.search.match(/search=(.+)/)
         if (m) {
             this.searchInput.value = decodeHashSafe(m[1])
         }

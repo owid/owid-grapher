@@ -4,6 +4,8 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import * as _ from "lodash"
+import { TableOfContents } from "site/client/TableOfContents"
+import { slugify } from "charts/Util"
 
 export interface ChartIndexItem {
     id: number
@@ -40,6 +42,15 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
         tag.charts = _.sortBy(tag.charts, c => c.title.trim())
     }
 
+    const pageTitle = "Charts"
+    const tocEntries = allTags.map(t => {
+        return {
+            isSubheading: true,
+            slug: slugify(t.name),
+            text: t.name
+        }
+    })
+
     return (
         <html>
             <Head
@@ -50,34 +61,61 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
             <body className="ChartsIndexPage">
                 <SiteHeader />
                 <main>
-                    <header className="chartsHeader">
-                        <input
-                            type="search"
-                            className="chartsSearchInput"
-                            placeholder="Filter interactive charts by title"
-                            autoFocus
-                        />
-                    </header>
-                    {allTags.map(t => (
-                        <section key={t.id}>
-                            <h2>{t.name}</h2>
-                            <ul>
-                                {t.charts.map(c => (
-                                    <li key={c.id}>
-                                        <a href={`/grapher/${c.slug}`}>
-                                            {c.title}{" "}
-                                            {c.variantName
-                                                ? `(${c.variantName})`
-                                                : undefined}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    ))}
+                    <div className="page with-sidebar">
+                        <div className="content-wrapper">
+                            <div>
+                                <TableOfContents
+                                    headings={tocEntries}
+                                    pageTitle={pageTitle}
+                                />
+                            </div>
+                            <div className="offset-content">
+                                <div className="content">
+                                    <header className="chartsHeader">
+                                        <input
+                                            type="search"
+                                            className="chartsSearchInput"
+                                            placeholder="Filter interactive charts by title"
+                                            autoFocus
+                                        />
+                                    </header>
+                                    {allTags.map(t => (
+                                        <section key={t.id}>
+                                            <h2 id={slugify(t.name)}>
+                                                {t.name}
+                                            </h2>
+                                            <ul>
+                                                {t.charts.map(c => (
+                                                    <li key={c.id}>
+                                                        <a
+                                                            href={`/grapher/${c.slug}`}
+                                                        >
+                                                            {c.title}{" "}
+                                                            {c.variantName
+                                                                ? `(${c.variantName})`
+                                                                : undefined}
+                                                        </a>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </section>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
                 <SiteFooter />
-                <script>{`window.runChartsIndexPage()`}</script>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        window.runChartsIndexPage()
+                        runTableOfContents(${JSON.stringify({
+                            headings: tocEntries,
+                            pageTitle
+                        })})`
+                    }}
+                />
             </body>
         </html>
     )
