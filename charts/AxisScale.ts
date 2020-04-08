@@ -55,11 +55,11 @@ export class AxisScale {
         this.hideGridlines = hideGridlines
     }
 
-    @computed get d3_scaleConstructor(): any {
+    @computed private get d3_scaleConstructor(): any {
         return this.scaleType === "log" ? scaleLog : scaleLinear
     }
 
-    @computed get d3_scale():
+    @computed private get d3_scale():
         | ScaleLinear<number, number>
         | ScaleLogarithmic<number, number> {
         return this.d3_scaleConstructor()

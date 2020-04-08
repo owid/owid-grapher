@@ -194,6 +194,7 @@ export class ChartConfigProps {
     @observable.ref entityType?: string = undefined
     @observable.ref entityTypePlural?: string = undefined
     @observable.ref hideTimeline?: true = undefined
+    @observable.ref zoomToSelection?: true = undefined
 
     // Always show year in labels for bar charts
     @observable.ref showYearLabels?: boolean = undefined

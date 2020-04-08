@@ -261,6 +261,10 @@ export class ChartData {
         return keyBy(this.filledDimensions, "property")
     }
 
+    @computed get hasSelection() {
+        return this.chart.props.selectedData.length > 0
+    }
+
     @computed private get selectionData(): Array<{
         key: EntityDimensionKey
         color?: Color
