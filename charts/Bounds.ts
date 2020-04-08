@@ -350,7 +350,7 @@ export class Bounds {
 
     // Calculate squared distance between a given point and the closest border of the bounds
     // If the point is within the bounds, returns 0
-    distanceToPointSq(p: Vector2) {
+    private distanceToPointSq(p: Vector2) {
         if (this.contains(p)) return 0
 
         const cx = Math.max(Math.min(p.x, this.x + this.width), this.x)

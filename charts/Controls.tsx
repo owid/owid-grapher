@@ -3,7 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
 
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
@@ -322,6 +322,32 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
                     onChange={this.onToggle}
                     disabled={!supported}
                     data-track-note="chart-abs-rel-toggle"
+                />{" "}
+                {label}
+            </label>
+        )
+    }
+}
+
+@observer
+class ZoomToggle extends React.Component<{
+    chart: ChartConfigProps
+}> {
+    @action.bound onToggle() {
+        this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
+            ? undefined
+            : true
+    }
+
+    render() {
+        const label = "Zoom to selection"
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.props.chart.zoomToSelection}
+                    onChange={this.onToggle}
+                    data-track-note="chart-zoom-to-selection"
                 />{" "}
                 {label}
             </label>
@@ -833,6 +859,10 @@ export class ControlsFooterView extends React.Component<{
                 {chart.isScatter && chart.scatter.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}
+                {chart.isScatter && chart.data.hasSelection && (
+                    <ZoomToggle chart={chart.props}></ZoomToggle>
+                )}
+
                 {chart.isLineChart && chart.lineChart.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}
