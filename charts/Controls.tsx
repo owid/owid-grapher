@@ -132,6 +132,21 @@ class ShareMenu extends React.Component<{
         }
     }
 
+    @action.bound async onNavigatorShare() {
+        if (this.canonicalUrl && navigator.share) {
+            const shareData = {
+                title: this.title,
+                url: this.canonicalUrl
+            }
+
+            try {
+                await navigator.share(shareData)
+            } catch (err) {
+                console.error("couldn't share using navigator.share", err)
+            }
+        }
+    }
+
     @computed get twitterHref(): string {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
@@ -181,6 +196,15 @@ class ShareMenu extends React.Component<{
                 >
                     <FontAwesomeIcon icon={faCode} /> Embed
                 </a>
+                {"share" in navigator && (
+                    <a
+                        className="btn"
+                        title="Share this visualization with an app on your device"
+                        onClick={this.onNavigatorShare}
+                    >
+                        <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
+                    </a>
+                )}
                 {editUrl && (
                     <a
                         className="btn"

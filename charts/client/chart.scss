@@ -498,29 +498,23 @@ figure[data-grapher-src]:empty:after,
     }
 
     .ShareMenu .btn {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 1em 1.5em;
-        padding-right: 3em;
         text-align: left;
         color: #333;
         text-decoration: none;
     }
 
-    .ShareMenu .btn > i {
-        background-color: #333;
-        color: white;
-        text-align: center;
+    .ShareMenu .btn > svg {
         font-size: 1em;
-        width: 1.8em;
-        height: 1.8em;
-        line-height: 1.8em;
-        margin-right: 2px;
-        border-radius: 2px;
+        width: 1.5em;
+        height: 1.5em;
+        margin-right: 8px;
         position: relative;
     }
 
     .ShareMenu .btn:hover {
-        text-decoration: none;
         background-color: #eee;
     }
 
