@@ -122,22 +122,32 @@ export const EntriesForYearPage = (props: {
             <body className="EntriesByYearPage">
                 <SiteHeader />
                 <main>
-                    {years.map(year => (
-                        <section>
-                            <h2>{year}</h2>
-                            <ul>
-                                {entriesByYear[year].map(entry => (
-                                    <li key={entry.slug}>
-                                        <a
-                                            href={`${BAKED_BASE_URL}/${entry.slug}`}
-                                        >
-                                            {entry.title}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    ))}
+                    <div className="page">
+                        <div className="content-wrapper">
+                            <div className="offset-content">
+                                <div className="content">
+                                    {years.map(year => (
+                                        <section>
+                                            <h2>{year}</h2>
+                                            <ul>
+                                                {entriesByYear[year].map(
+                                                    entry => (
+                                                        <li key={entry.slug}>
+                                                            <a
+                                                                href={`${BAKED_BASE_URL}/${entry.slug}`}
+                                                            >
+                                                                {entry.title}
+                                                            </a>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </section>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
                 <SiteFooter hideDonate={true} />
             </body>
