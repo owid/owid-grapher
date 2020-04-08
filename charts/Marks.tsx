@@ -19,7 +19,7 @@ export class Triangle extends React.Component<TriangleProps> {
         const x = cx - r,
             y = cy - r
         const points = [
-            [x, y + 4 * 2],
+            [x, y + r * 2],
             [x + (r * 2) / 2, y],
             [x + r * 2, y + r * 2]
         ]
