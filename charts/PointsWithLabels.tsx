@@ -110,6 +110,27 @@ interface ScatterLabel {
     isEnd?: boolean
 }
 
+const HaloStyle: React.CSSProperties = {
+    fill: "#fff",
+    stroke: "#fff",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    strokeWidth: ".2em"
+}
+
+const getElementWithHalo = (element: React.ReactElement) => {
+    const halo = React.cloneElement(element, {
+        key: `${element.props.key}Halo`,
+        style: HaloStyle
+    })
+    return (
+        <React.Fragment>
+            {halo}
+            {element}
+        </React.Fragment>
+    )
+}
+
 // When there's only a single point in a group (e.g. single year mode)
 @observer
 class ScatterGroupSingle extends React.Component<{
@@ -688,7 +709,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.renderData.filter(group => !!group.isForeground)
     }
 
-    renderBackgroundGroups() {
+    private renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected, hideLines } = this
 
         return hideLines
@@ -703,17 +724,19 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
               ))
     }
 
-    renderBackgroundLabels() {
+    private renderBackgroundLabels() {
         const { backgroundGroups, isLayerMode } = this
+
         return (
             <g
                 className="backgroundLabels"
                 fill={!isLayerMode ? "#333" : "#aaa"}
             >
                 {backgroundGroups.map(series => {
-                    return series.allLabels.map(
-                        l =>
-                            !l.isHidden && (
+                    return series.allLabels
+                        .filter(l => !l.isHidden)
+                        .map(l =>
+                            getElementWithHalo(
                                 <text
                                     key={series.displayKey + "-endLabel"}
                                     x={l.bounds.x.toFixed(2)}
@@ -725,7 +748,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                     {l.text}
                                 </text>
                             )
-                    )
+                        )
                 })}
             </g>
         )
@@ -735,7 +758,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return guid()
     }
 
-    renderForegroundGroups() {
+    private renderForegroundGroups() {
         const {
             foregroundGroups,
             isSubtleForeground,
@@ -822,12 +845,13 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
-    renderForegroundLabels() {
+    private renderForegroundLabels() {
         const { foregroundGroups, labelFontFamily } = this
         return foregroundGroups.map(series => {
-            return series.allLabels.map(
-                (l, i) =>
-                    !l.isHidden && (
+            return series.allLabels
+                .filter(l => !l.isHidden)
+                .map((l, i) =>
+                    getElementWithHalo(
                         <text
                             key={`${series.displayKey}-label-${i}`}
                             x={l.bounds.x.toFixed(2)}
@@ -839,7 +863,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             {l.text}
                         </text>
                     )
-            )
+                )
         })
     }
 
