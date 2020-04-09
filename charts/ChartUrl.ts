@@ -5,11 +5,21 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-
-import { isNumber, includes, filter, uniq, toString, isFinite } from "./Util"
 import { computed, when, runInAction, toJS } from "mobx"
+
+import { BAKED_GRAPHER_URL } from "settings"
+
+import {
+    isNumber,
+    includes,
+    filter,
+    uniq,
+    toString,
+    isFinite,
+    defaultTo,
+    parseIntOrUndefined
+} from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo } from "./Util"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
     queryParamsToStr,
@@ -17,7 +27,6 @@ import {
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
-import { BAKED_GRAPHER_URL } from "settings"
 import { ObservableUrl } from "./UrlBinding"
 
 export interface ChartQueryParams {
@@ -226,9 +235,13 @@ export class ChartUrl implements ObservableUrl {
 
         const time = params.time
         if (time !== undefined) {
-            const m = time.match(/^(\-?\d+)\.\.(\-?\d+)$/)
-            if (m) {
-                chart.timeDomain = [parseInt(m[1]), parseInt(m[2])]
+            // We want to support unbounded time parameters, so that time=2015.. extends from 2015
+            // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
+            // time=.. extends from the earliest to latest available year.
+            const isRange = /^(\-?\d+)?\.\.(\-?\d+)?$/.test(time)
+            if (isRange) {
+                const [start, end] = time.split("..").map(parseIntOrUndefined)
+                chart.timeDomain = [start, end]
             } else {
                 chart.timeDomain = [parseInt(time), parseInt(time)]
             }

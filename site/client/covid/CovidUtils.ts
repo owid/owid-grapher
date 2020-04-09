@@ -1,5 +1,5 @@
-import { maxBy } from "lodash"
-import { utcFormat } from "d3"
+import { maxBy } from "charts/Util"
+import { utcFormat } from "d3-time-format"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
 import { dateDiffInDays, formatValue } from "charts/Util"
@@ -18,18 +18,14 @@ export function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
-export function parseIntOrUndefined(s: string | undefined) {
-    if (s === undefined) return undefined
-    const value = parseInt(s)
-    return isNaN(value) ? undefined : value
-}
-
 export function formatInt(
     n: number | undefined,
     defaultValue: string = "",
     options: TickFormattingOptions = {}
 ): string {
-    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
+    return n === undefined || isNaN(n)
+        ? defaultValue
+        : formatValue(n, { autoPrefix: false, ...options })
 }
 
 export const defaultTimeFormat = utcFormat("%B %e")

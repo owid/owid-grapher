@@ -3,7 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
 
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
@@ -132,6 +132,21 @@ class ShareMenu extends React.Component<{
         }
     }
 
+    @action.bound async onNavigatorShare() {
+        if (this.canonicalUrl && navigator.share) {
+            const shareData = {
+                title: this.title,
+                url: this.canonicalUrl
+            }
+
+            try {
+                await navigator.share(shareData)
+            } catch (err) {
+                console.error("couldn't share using navigator.share", err)
+            }
+        }
+    }
+
     @computed get twitterHref(): string {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
@@ -181,6 +196,15 @@ class ShareMenu extends React.Component<{
                 >
                     <FontAwesomeIcon icon={faCode} /> Embed
                 </a>
+                {"share" in navigator && (
+                    <a
+                        className="btn"
+                        title="Share this visualization with an app on your device"
+                        onClick={this.onNavigatorShare}
+                    >
+                        <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
+                    </a>
+                )}
                 {editUrl && (
                     <a
                         className="btn"
@@ -321,6 +345,33 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
                     checked={supported ? chart.stackedArea.isRelative : false}
                     onChange={this.onToggle}
                     disabled={!supported}
+                    data-track-note="chart-abs-rel-toggle"
+                />{" "}
+                {label}
+            </label>
+        )
+    }
+}
+
+@observer
+class ZoomToggle extends React.Component<{
+    chart: ChartConfigProps
+}> {
+    @action.bound onToggle() {
+        this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
+            ? undefined
+            : true
+    }
+
+    render() {
+        const label = "Zoom to selection"
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.props.chart.zoomToSelection}
+                    onChange={this.onToggle}
+                    data-track-note="chart-zoom-to-selection"
                 />{" "}
                 {label}
             </label>
@@ -612,7 +663,6 @@ export class AddEntityButton extends React.Component<{
             <button
                 className="addDataButton clickable"
                 onClick={onClick}
-                data-track-click
                 data-track-note="chart-add-entity"
                 style={buttonStyle}
             >
@@ -724,7 +774,6 @@ export class ControlsFooterView extends React.Component<{
                                     onClick={() => (chart.tab = tabName)}
                                 >
                                     <a
-                                        data-track-click
                                         data-track-note={
                                             "chart-click-" + tabName
                                         }
@@ -740,7 +789,6 @@ export class ControlsFooterView extends React.Component<{
                             "tab clickable icon" +
                             (chart.tab === "download" ? " active" : "")
                         }
-                        data-track-click
                         data-track-note="chart-click-download"
                         onClick={() => (chart.tab = "download")}
                         title="Download as .png or .svg"
@@ -753,7 +801,6 @@ export class ControlsFooterView extends React.Component<{
                         <a
                             title="Share"
                             onClick={this.onShareMenu}
-                            data-track-click
                             data-track-note="chart-click-share"
                         >
                             <FontAwesomeIcon icon={faShareAlt} />
@@ -764,7 +811,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Settings"
                                 onClick={this.onSettingsMenu}
-                                data-track-click
                                 data-track-note="chart-click-settings"
                             >
                                 <FontAwesomeIcon icon={faCog} />
@@ -776,7 +822,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Open chart in new tab"
                                 href={chart.url.canonicalUrl}
-                                data-track-click
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -796,7 +841,11 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div className="extraControls">
                 {chart.data.canAddData && !hasAddButton && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-select-entities"
+                    >
                         {chart.isScatter || chart.isSlopeChart ? (
                             <span className="SelectEntitiesButton">
                                 <FontAwesomeIcon icon={faPencilAlt} />
@@ -812,7 +861,11 @@ export class ControlsFooterView extends React.Component<{
                 )}
 
                 {chart.data.canChangeEntity && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-change-entity"
+                    >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                         {chart.entityType}
                     </button>
@@ -830,6 +883,10 @@ export class ControlsFooterView extends React.Component<{
                 {chart.isScatter && chart.scatter.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}
+                {chart.isScatter && chart.data.hasSelection && (
+                    <ZoomToggle chart={chart.props}></ZoomToggle>
+                )}
+
                 {chart.isLineChart && chart.lineChart.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}

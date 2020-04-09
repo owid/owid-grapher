@@ -105,7 +105,6 @@ export class DataTab extends React.Component<{
                         href={csvDataUri}
                         download={csvFilename}
                         className="btn btn-primary"
-                        data-track-click
                         data-track-note="chart-download-csv"
                         onClick={this.onDownload}
                     >

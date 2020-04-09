@@ -9,7 +9,6 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         entry: {
-            charts: "./charts/client/charts.entry.ts",
             admin: "./admin/client/admin.entry.ts",
             owid: "./site/client/owid.entry.ts"
         },

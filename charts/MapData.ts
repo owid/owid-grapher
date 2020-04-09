@@ -1,6 +1,5 @@
 import { computed, autorun, runInAction, reaction, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
-import * as _ from "lodash"
 
 import { ChartConfig } from "./ChartConfig"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
@@ -521,7 +520,7 @@ export class MapData {
         if (targetYear === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = map
-        const entities = _.keys(this.knownMapEntities)
+        const entities = Object.keys(this.knownMapEntities)
 
         const result: { [key: string]: MapDataValue } = {}
 

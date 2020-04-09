@@ -55,7 +55,6 @@ export const SiteHeader = () => {
                                     <li>
                                         <a
                                             href="/blog"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Latest
@@ -64,7 +63,6 @@ export const SiteHeader = () => {
                                     <li>
                                         <a
                                             href="/about"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             About
@@ -73,7 +71,6 @@ export const SiteHeader = () => {
                                     <li>
                                         <a
                                             href="/donate"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Donate
@@ -86,17 +83,15 @@ export const SiteHeader = () => {
                                     <li>
                                         <a
                                             href="/charts"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             All charts
                                         </a>
                                     </li>
-                                    {/* <li><a href="/teaching" data-track-click data-track-note="header-navigation">Teaching Hub</a></li> */}
+                                    {/* <li><a href="/teaching"  data-track-note="header-navigation">Teaching Hub</a></li> */}
                                     <li>
                                         <a
                                             href="https://sdg-tracker.org"
-                                            data-track-click
                                             data-track-note="header-navigation"
                                         >
                                             Sustainable Development Goals
@@ -128,22 +123,13 @@ export const SiteHeader = () => {
                         </a>
                     </div>
                     <div className="mobile-site-navigation">
-                        <button
-                            data-track-click
-                            data-track-note="mobile-search-button"
-                        >
+                        <button data-track-note="mobile-search-button">
                             <FontAwesomeIcon icon={faSearch} />
                         </button>
-                        <button
-                            data-track-click
-                            data-track-note="mobile-newsletter-button"
-                        >
+                        <button data-track-note="mobile-newsletter-button">
                             <FontAwesomeIcon icon={faEnvelopeOpenText} />
                         </button>
-                        <button
-                            data-track-click
-                            data-track-note="mobile-hamburger-button"
-                        >
+                        <button data-track-note="mobile-hamburger-button">
                             <FontAwesomeIcon icon={faBars} />
                         </button>
                     </div>

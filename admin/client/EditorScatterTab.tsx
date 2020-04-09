@@ -52,7 +52,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     }
 
     @computed get excludedEntityChoices(): string[] {
-        return this.props.chart.scatter.entitiesToShow
+        return this.props.chart.scatter.getEntitiesToShow()
     }
 
     @action.bound onExcludeEntity(entity: string) {

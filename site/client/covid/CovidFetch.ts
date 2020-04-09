@@ -1,12 +1,17 @@
-import { csvParse } from "d3"
+import { csvParse } from "d3-dsv"
 import moment from "moment"
 
-import { CovidSeries } from "./CovidTypes"
-import { fetchText, retryPromise } from "charts/Util"
-import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
-import { parseIntOrUndefined } from "./CovidUtils"
+import {
+    fetchText,
+    retryPromise,
+    memoize,
+    parseIntOrUndefined
+} from "charts/Util"
 
-export async function fetchECDCData(): Promise<CovidSeries> {
+import { CovidSeries } from "./CovidTypes"
+import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
+
+async function _fetchECDCData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(ECDC_DATA_URL))
     const rows: CovidSeries = csvParse(responseText).map(row => {
         return {
@@ -20,6 +25,10 @@ export async function fetchECDCData(): Promise<CovidSeries> {
     })
     return rows
 }
+
+// We want to memoize (cache) the return value of that fetch, so we don't need to load
+// the file multiple times if we request the data more than once
+export const fetchECDCData = memoize(_fetchECDCData)
 
 //      'Entity string'
 //      'OWID country'

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import * as topojson from "topojson"
+import * as topojson from "topojson-client"
 
 import { identity, sortBy, guid, getRelativeMouse } from "./Util"
 import { Bounds } from "./Bounds"

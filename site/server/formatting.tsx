@@ -150,20 +150,26 @@ export async function formatWordpressPost(
     // Related charts
     // Mimicking SSR output of additional information block from PHP
     if (post.relatedCharts && post.relatedCharts.length !== 0) {
-        const $firstHeading = $(
-            "body > h2:first-of-type, body > h3:first-of-type"
-        ).first()
-        $firstHeading.before(`
-            <block type="additional-information">
-                <content>
-                    <h3>All our charts on ${post.title}</h3>
-                    ${ReactDOMServer.renderToStaticMarkup(
-                        <div>
-                            <RelatedCharts charts={post.relatedCharts} />
-                        </div>
-                    )}
-                </content>
-            </block>`)
+        const allCharts = `
+        <block type="additional-information">
+            <content>
+                <h3>All our charts on ${post.title}</h3>
+                ${ReactDOMServer.renderToStaticMarkup(
+                    <div>
+                        <RelatedCharts charts={post.relatedCharts} />
+                    </div>
+                )}
+            </content>
+        </block>
+        `
+        const $summary = $(".wp-block-owid-summary")
+        if ($summary.length !== 0) {
+            $summary.after(allCharts)
+        } else {
+            $("body > h2:first-of-type, body > h3:first-of-type")
+                .first()
+                .before(allCharts)
+        }
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client

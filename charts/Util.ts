@@ -1,64 +1,68 @@
-import {
-    isEqual,
-    map,
-    sortBy,
-    orderBy,
-    each,
-    keys,
-    entries,
-    trim,
-    isNumber,
-    filter,
-    extend,
-    isEmpty,
-    isFinite,
-    some,
-    every,
-    min,
-    max,
-    minBy,
-    maxBy,
-    compact,
-    uniq,
-    cloneDeep,
-    sum,
-    sumBy,
-    find,
-    identity,
-    union,
-    debounce,
-    includes,
-    toString,
-    isString,
-    keyBy,
-    values,
-    flatten,
-    groupBy,
-    reverse,
-    clone,
-    reduce,
-    noop,
-    floor,
-    ceil,
-    round,
-    toArray,
-    throttle,
-    has,
-    intersection,
-    uniqWith,
-    without,
-    uniqBy,
-    capitalize,
-    sample,
-    sampleSize,
-    pick,
-    omit,
-    difference,
-    sortedUniq,
-    zip,
-    partition,
-    range
-} from "lodash"
+// We're importing every item on its own to enable webpack tree shaking
+import isEqual from "lodash/isEqual"
+import map from "lodash/map"
+import sortBy from "lodash/sortBy"
+import orderBy from "lodash/orderBy"
+import each from "lodash/each"
+import keys from "lodash/keys"
+import entries from "lodash/entries"
+import trim from "lodash/trim"
+import isNumber from "lodash/isNumber"
+import filter from "lodash/filter"
+import extend from "lodash/extend"
+import isEmpty from "lodash/isEmpty"
+import isFinite from "lodash/isFinite"
+import some from "lodash/some"
+import every from "lodash/every"
+import min from "lodash/min"
+import max from "lodash/max"
+import minBy from "lodash/minBy"
+import maxBy from "lodash/maxBy"
+import compact from "lodash/compact"
+import uniq from "lodash/uniq"
+import cloneDeep from "lodash/cloneDeep"
+import sum from "lodash/sum"
+import sumBy from "lodash/sumBy"
+import find from "lodash/find"
+import identity from "lodash/identity"
+import union from "lodash/union"
+import debounce from "lodash/debounce"
+import includes from "lodash/includes"
+import toString from "lodash/toString"
+import isString from "lodash/isString"
+import keyBy from "lodash/keyBy"
+import values from "lodash/values"
+import flatten from "lodash/flatten"
+import groupBy from "lodash/groupBy"
+import reverse from "lodash/reverse"
+import clone from "lodash/clone"
+import reduce from "lodash/reduce"
+import noop from "lodash/noop"
+import floor from "lodash/floor"
+import ceil from "lodash/ceil"
+import round from "lodash/round"
+import toArray from "lodash/toArray"
+import throttle from "lodash/throttle"
+import has from "lodash/has"
+import intersection from "lodash/intersection"
+import uniqWith from "lodash/uniqWith"
+import without from "lodash/without"
+import uniqBy from "lodash/uniqBy"
+import capitalize from "lodash/capitalize"
+import sample from "lodash/sample"
+import sampleSize from "lodash/sampleSize"
+import pick from "lodash/pick"
+import omit from "lodash/omit"
+import difference from "lodash/difference"
+import sortedUniq from "lodash/sortedUniq"
+import zip from "lodash/zip"
+import partition from "lodash/partition"
+import range from "lodash/range"
+import findIndex from "lodash/findIndex"
+import fromPairs from "lodash/fromPairs"
+import mapKeys from "lodash/mapKeys"
+import memoize from "lodash/memoize"
+
 export {
     isEqual,
     map,
@@ -117,7 +121,11 @@ export {
     sortedUniq,
     zip,
     partition,
-    range
+    range,
+    findIndex,
+    fromPairs,
+    mapKeys,
+    memoize
 }
 
 import moment = require("moment")
@@ -635,4 +643,10 @@ export async function retryPromise<T>(
         }
     }
     throw lastError
+}
+
+export function parseIntOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseInt(s)
+    return isNaN(value) ? undefined : value
 }

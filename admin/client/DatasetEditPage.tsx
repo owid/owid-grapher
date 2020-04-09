@@ -244,6 +244,15 @@ class VariableEditRow extends React.Component<{
                                 helpText="Any further useful information about this variable"
                                 textarea
                             />
+                            <BindString
+                                field="entityAnnotationsMap"
+                                placeholder="Entity: note"
+                                store={newVariable.display}
+                                label="Entity annotations"
+                                textarea
+                                disabled={isBulkImport}
+                                helpText="Additional text to show next to entity labels. Each note should be in a separate line."
+                            />
                         </section>
                         <input
                             type="submit"
@@ -427,6 +436,23 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         if (json.success) {
             this.isDeleted = true
         }
+    }
+
+    async republishCharts() {
+        const { dataset } = this.props
+        if (
+            !window.confirm(
+                `Are you sure you want to republish all charts in ${dataset.name}?`
+            )
+        ) {
+            return
+        }
+
+        await this.context.admin.requestJSON(
+            `/api/datasets/${dataset.id}/charts`,
+            { republish: true },
+            "POST"
+        )
     }
 
     @computed get gitHistoryUrl() {
@@ -644,6 +670,12 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     )}
                 </section>
                 <section>
+                    <button
+                        className="btn btn-primary float-right"
+                        onClick={() => this.republishCharts()}
+                    >
+                        Republish all charts
+                    </button>
                     <h3>Charts</h3>
                     <ChartList charts={dataset.charts} />
                 </section>

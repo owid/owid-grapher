@@ -21,6 +21,7 @@ export class VariableDisplaySettings {
     @observable tolerance?: number = undefined
     @observable yearIsDay?: boolean = undefined
     @observable zeroDay?: string = undefined
+    @observable entityAnnotationsMap?: string = undefined
 }
 
 export class Variable {
@@ -59,6 +60,19 @@ export class Variable {
                 }
             }
         }
+    }
+
+    @computed get annotationMap() {
+        const map = new Map()
+        if (!this.display.entityAnnotationsMap) return map
+        const delimiter = ":"
+        this.display.entityAnnotationsMap.split("\n").forEach(line => {
+            const [key, ...words] = line
+                .split(delimiter)
+                .map(word => word.trim())
+            map.set(key, words.join(delimiter))
+        })
+        return map
     }
 
     @computed get hasNumericValues(): boolean {

@@ -28,7 +28,6 @@ export const SiteFooter = ({
                                 <a
                                     href="/donate"
                                     className="owid-button donate-button"
-                                    data-track-click
                                     data-track-note="donate-footer"
                                 >
                                     <span className="label">Donate now</span>
@@ -49,7 +48,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/about"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         About
@@ -58,7 +56,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/about#contact"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Contact
@@ -67,7 +64,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/feedback"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Feedback
@@ -76,7 +72,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/jobs"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Jobs
@@ -85,7 +80,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/supporters"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Supporters
@@ -94,7 +88,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/about/how-to-use-our-world-in-data"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         How to use
@@ -103,7 +96,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/donate"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Donate
@@ -112,7 +104,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/privacy-policy"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Privacy policy
@@ -125,7 +116,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/blog"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Latest publications
@@ -134,7 +124,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/charts"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         All charts
@@ -145,7 +134,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="https://twitter.com/OurWorldInData"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Twitter
@@ -154,7 +142,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="https://www.facebook.com/OurWorldinData"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         Facebook
@@ -163,7 +150,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="https://github.com/owid"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         GitHub
@@ -172,7 +158,6 @@ export const SiteFooter = ({
                                 <li>
                                     <a
                                         href="/feed"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         RSS Feed
@@ -185,7 +170,6 @@ export const SiteFooter = ({
                                 <a
                                     href="https://www.oxfordmartin.ox.ac.uk/research/programmes/global-development"
                                     className="partner-logo"
-                                    data-track-click
                                     data-track-note="footer-navigation"
                                 >
                                     <img
@@ -196,7 +180,6 @@ export const SiteFooter = ({
                                 <a
                                     href="/owid-at-ycombinator"
                                     className="partner-logo"
-                                    data-track-click
                                     data-track-note="footer-navigation"
                                 >
                                     <img
@@ -228,7 +211,6 @@ export const SiteFooter = ({
                                     <a
                                         href="https://global-change-data-lab.org/"
                                         className="partner-logo gcdl-logo"
-                                        data-track-click
                                         data-track-note="footer-navigation"
                                     >
                                         <img
