@@ -3,23 +3,9 @@
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
 
-import { DataTable, ClosestYearNotice } from "../DataTable"
-import { ChartConfig, ChartConfigProps } from "../ChartConfig"
-import * as fixtures from "test/fixtures"
+import { setupChart } from "test/utils"
 
-function setupChart(
-    id: number,
-    varId: number,
-    configOverrides?: Partial<ChartConfigProps>
-) {
-    const props = new ChartConfigProps({
-        ...fixtures.readChart(id),
-        ...configOverrides
-    })
-    const chart = new ChartConfig(props)
-    chart.receiveData(fixtures.readVariable(varId))
-    return chart
-}
+import { DataTable, ClosestYearNotice } from "../DataTable"
 
 describe(DataTable, () => {
     let view: ShallowWrapper
