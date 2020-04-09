@@ -33,6 +33,7 @@ import { getRelativeMouse, makeSafeForCSS, intersection } from "./Util"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Marks"
 import { select } from "d3-selection"
+import { getElementWithHalo } from "./Halos"
 
 export interface ScatterSeries {
     color: string
@@ -108,27 +109,6 @@ interface ScatterLabel {
     isStart?: boolean
     isMid?: boolean
     isEnd?: boolean
-}
-
-const HaloStyle: React.CSSProperties = {
-    fill: "#fff",
-    stroke: "#fff",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    strokeWidth: ".2em"
-}
-
-const getElementWithHalo = (element: React.ReactElement) => {
-    const halo = React.cloneElement(element, {
-        key: `${element.props.key}Halo`,
-        style: HaloStyle
-    })
-    return (
-        <React.Fragment>
-            {halo}
-            {element}
-        </React.Fragment>
-    )
 }
 
 // When there's only a single point in a group (e.g. single year mode)
