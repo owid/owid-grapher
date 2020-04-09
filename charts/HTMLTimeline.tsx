@@ -286,12 +286,6 @@ export class Timeline extends React.Component<TimelineProps> {
         e.preventDefault()
     }
 
-    @action.bound onDoubleClick(e: any) {
-        const inputYear = this.getInputYearFromMouse(e)
-        this.startYearInput = inputYear
-        this.endYearInput = inputYear
-    }
-
     queuedAnimationFrame?: number
 
     @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
