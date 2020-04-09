@@ -48,6 +48,11 @@ describe(ChartUrl, () => {
                 name: "unbounded (both)",
                 query: "..",
                 param: [undefined, undefined]
+            },
+            {
+                name: "negative years",
+                query: "-500..-1",
+                param: [-500, -1]
             }
         ]
 
