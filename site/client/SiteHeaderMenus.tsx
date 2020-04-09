@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
-import { find } from "charts/Util"
+import { find, flatMap } from "charts/Util"
 import { bind } from "decko"
 
 import { BAKED_BASE_URL } from "settings"
@@ -462,9 +462,30 @@ export class MobileTopicsMenu extends React.Component<{
                         <h2>Topics</h2>
                     </li>
                     {categories.map(category => (
-                        <li key={category.slug} className="category">
+                        <li
+                            key={category.slug}
+                            className={`category ${
+                                activeCategory === category ? "expanded" : ""
+                            }`}
+                        >
                             <a onClick={() => this.toggleCategory(category)}>
-                                <span className="label">{category.name}</span>
+                                <span className="label-wrapper">
+                                    <span className="label">
+                                        {category.name}
+                                    </span>
+                                    <span className="entries-muted">
+                                        {[
+                                            ...category.entries,
+                                            ...flatMap(
+                                                category.subcategories,
+                                                subcategory =>
+                                                    subcategory.entries
+                                            )
+                                        ]
+                                            .map(entry => entry.title)
+                                            .join(", ")}
+                                    </span>
+                                </span>
                                 <span className="icon">
                                     <FontAwesomeIcon
                                         icon={

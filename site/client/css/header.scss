@@ -502,8 +502,33 @@
         display: block;
         text-align: center;
 
+        .label-wrapper {
+            display: flex;
+            align-items: baseline;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .entries-muted {
+            color: lightgray;
+            font-size: 0.7em;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex-basis: 0;
+            flex-grow: 1;
+            margin-left: 0.5rem;
+            margin-right: 0.25rem;
+        }
+
         &:hover {
             background-color: $primary-color-100;
+        }
+    }
+
+    li.expanded a {
+        .entries-muted {
+            display: none;
         }
     }
 
