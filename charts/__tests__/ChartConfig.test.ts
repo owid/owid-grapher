@@ -1,14 +1,6 @@
 #! /usr/bin/env jest
 
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
-
-function createConfig(props: Partial<ChartConfigProps>) {
-    const config = new ChartConfig(new ChartConfigProps(props))
-    // ensureValidConfig() is only run on non-node environments, so we have
-    // to manually trigger it.
-    config.ensureValidConfig()
-    return config
-}
+import { createConfig } from "test/utils"
 
 describe("ChartConfig", () => {
     it("allows single-dimensional explorer charts", () => {
@@ -46,7 +38,7 @@ describe("ChartConfig", () => {
     })
 
     it("can be loaded with tabular data", () => {
-        const props = new ChartConfigProps({
+        const config = createConfig({
             id: 1,
             map: {
                 projection: "World",
@@ -115,8 +107,6 @@ describe("ChartConfig", () => {
             addCountryMode: "add-country",
             hideRelativeToggle: true
         })
-
-        const config = new ChartConfig(props)
 
         expect(config.variablesById[1]).toBeTruthy()
     })
