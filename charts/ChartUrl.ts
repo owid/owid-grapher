@@ -15,7 +15,6 @@ import {
     filter,
     uniq,
     toString,
-    isFinite,
     defaultTo,
     parseIntOrUndefined
 } from "./Util"
@@ -144,12 +143,11 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChart } = this
 
         const { minTime, maxTime } = chart.props
-        // console.log(origChart.minTime, origChart.maxTime, minTime, maxTime)
         if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
-            if (isFinite(minTime) && isFinite(maxTime) && minTime !== maxTime) {
-                return `${minTime}..${maxTime}`
+            if (minTime !== maxTime || minTime === undefined) {
+                return `${minTime ?? ""}..${maxTime ?? ""}`
             } else if (isNumber(minTime)) {
-                return toString(minTime)
+                return `${minTime}`
             } else {
                 return undefined
             }
@@ -243,7 +241,8 @@ export class ChartUrl implements ObservableUrl {
                 const [start, end] = time.split("..").map(parseIntOrUndefined)
                 chart.timeDomain = [start, end]
             } else {
-                chart.timeDomain = [parseInt(time), parseInt(time)]
+                const t = parseIntOrUndefined(time)
+                chart.timeDomain = [t, t]
             }
         }
 
