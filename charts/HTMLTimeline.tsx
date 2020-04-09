@@ -20,6 +20,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 const UNBOUNDED = undefined
 
+const MIN_YEAR = 1990
+const MAX_YEAR = new Date().getFullYear()
+
 function isUnbounded(year: number | undefined) {
     return year === undefined || !isFinite(year)
 }
@@ -62,23 +65,17 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @computed get startYearRawOrDefault(): number {
-        return min([this.startYearRaw, this.endYearRaw]) ?? 1990
+        return min([this.startYearRaw, this.endYearRaw]) ?? MIN_YEAR
     }
 
     @computed get endYearRawOrDefault(): number {
-        return (
-            max([this.startYearRaw, this.endYearRaw]) ??
-            new Date().getFullYear()
-        )
+        return max([this.startYearRaw, this.endYearRaw]) ?? MAX_YEAR
     }
 
     constructor(props: TimelineProps) {
         super(props)
 
         if (this.props.years.length === 0) {
-            // Lots of stuff in this class assumes the years array is non-empty,
-            // see e.g. minYear, maxYear, targetStartYear, targetEndYear. Should
-            // deal with this more gracefully -@jasoncrawford 2019-12-17
             console.warn("invoking HTMLTimeline with empty years array")
         }
     }
@@ -99,15 +96,11 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @computed get minYear(): number {
-        // This cast is necessary because `years` might be empty. Should deal
-        // with an empty years array more gracefully -@jasoncrawford 2019-12-17
-        return first(this.props.years) as number
+        return first(this.props.years) ?? MIN_YEAR
     }
 
     @computed get maxYear(): number {
-        // This cast is necessary because `years` might be empty. Should deal
-        // with an empty years array more gracefully -@jasoncrawford 2019-12-17
-        return last(this.props.years) as number
+        return last(this.props.years) ?? MAX_YEAR
     }
 
     getBoundedYear(inputYear: number): number {
@@ -115,7 +108,7 @@ export class Timeline extends React.Component<TimelineProps> {
         return Math.min(maxYear, Math.max(minYear, inputYear))
     }
 
-    getClosestYear(inputYear: number): number {
+    getClosestYear(inputYear: number): number | undefined {
         const { years } = this
         return sortBy(years, year => Math.abs(year - inputYear))[0]
     }
