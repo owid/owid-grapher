@@ -114,7 +114,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     // Closest year to the input start year
     // e.g. 1954 => 1955
-    @computed get roundedStartYear(): number {
+    @computed get validStartYear(): number {
         const { years, startYear } = this
         return sortBy(years, year => Math.abs(year - startYear))[0]
     }
@@ -137,7 +137,7 @@ export class Timeline extends React.Component<TimelineProps> {
         )
     }
 
-    @computed get roundedEndYear(): number {
+    @computed get validEndYear(): number {
         const { years, endYear } = this
         return sortBy(years, year => Math.abs(year - endYear))[0]
     }
@@ -353,13 +353,13 @@ export class Timeline extends React.Component<TimelineProps> {
                 const {
                     isPlaying,
                     isDragging,
-                    roundedStartYear,
-                    roundedEndYear
+                    validStartYear,
+                    validEndYear
                 } = this
                 if (!isPlaying && !isDragging) {
                     action(() => {
-                        this.startYearInput = roundedStartYear
-                        this.endYearInput = roundedEndYear
+                        this.startYearInput = validStartYear
+                        this.endYearInput = validEndYear
                     })()
                 }
             })
