@@ -105,7 +105,7 @@ export class MapConfig {
         return new MapData(this.chart)
     }
 
-    set targetYear(value: number) {
+    set targetYear(value: number | undefined) {
         this.props.targetYear = value
     }
 

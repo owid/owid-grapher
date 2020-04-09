@@ -43,10 +43,7 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get isSingleYear(): boolean {
-        return (
-            this.chart.timeDomain[0] !== undefined &&
-            this.chart.timeDomain[0] === this.chart.timeDomain[1]
-        )
+        return this.startYear === this.endYear
     }
 
     @computed get colorScheme(): ColorScheme {

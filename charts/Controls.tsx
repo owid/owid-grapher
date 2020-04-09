@@ -384,7 +384,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMapTargetChange({
         targetStartYear
     }: {
-        targetStartYear: number
+        targetStartYear: number | undefined
     }) {
         this.props.chart.map.targetYear = targetStartYear
     }
@@ -393,8 +393,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number
-        targetEndYear: number
+        targetStartYear: number | undefined
+        targetEndYear: number | undefined
     }) {
         this.props.chart.timeDomain = [targetStartYear, targetEndYear]
     }
@@ -442,8 +442,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.scatter.startYear}
-                    endYear={chart.scatter.endYear}
+                    startYear={chart.props.minTime}
+                    endYear={chart.props.maxTime}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
@@ -455,8 +455,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.lineChart.startYear}
-                    endYear={chart.lineChart.endYear}
+                    startYear={chart.props.minTime}
+                    endYear={chart.props.maxTime}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     singleYearPlay={true}
@@ -469,8 +469,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.slopeChart.startYear}
-                    endYear={chart.slopeChart.endYear}
+                    startYear={chart.props.minTime}
+                    endYear={chart.props.maxTime}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     disablePlay={true}
@@ -483,8 +483,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.lineChart.startYear}
-                    endYear={chart.lineChart.endYear}
+                    startYear={chart.props.minTime}
+                    endYear={chart.props.maxTime}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
