@@ -644,3 +644,9 @@ export async function retryPromise<T>(
     }
     throw lastError
 }
+
+export function parseIntOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseInt(s)
+    return isNaN(value) ? undefined : value
+}

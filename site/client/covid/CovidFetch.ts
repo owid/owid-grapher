@@ -1,10 +1,15 @@
 import { csvParse } from "d3-dsv"
 import moment from "moment"
 
+import {
+    fetchText,
+    retryPromise,
+    memoize,
+    parseIntOrUndefined
+} from "charts/Util"
+
 import { CovidSeries } from "./CovidTypes"
-import { fetchText, retryPromise, memoize } from "charts/Util"
 import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
-import { parseIntOrUndefined } from "./CovidUtils"
 
 async function _fetchECDCData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(ECDC_DATA_URL))
