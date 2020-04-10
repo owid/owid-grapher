@@ -5,7 +5,7 @@ const HaloStyle: React.CSSProperties = {
     stroke: "#fff",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    strokeWidth: ".2em"
+    strokeWidth: ".25em"
 }
 
 export const getElementWithHalo = (element: React.ReactElement) => {
