@@ -109,6 +109,14 @@ describe(ChartUrl, () => {
             expect(start).toEqual(0)
             expect(end).toEqual(5)
         })
+
+        it("doesn't include URL param if it's identical to original config", () => {
+            const chart = createConfig({
+                minTime: 0,
+                maxTime: 75
+            })
+            expect(chart.url.params.time).toEqual(undefined)
+        })
     })
 
     describe("year parameter", () => {
