@@ -117,6 +117,14 @@ describe(ChartUrl, () => {
             })
             expect(chart.url.params.time).toEqual(undefined)
         })
+
+        it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
+            const chart = createConfig({
+                minTime: undefined,
+                maxTime: 75
+            })
+            expect(chart.url.params.time).toEqual(undefined)
+        })
     })
 
     describe("year parameter", () => {

@@ -140,8 +140,11 @@ export class ChartUrl implements ObservableUrl {
     @computed get timeParam(): string | undefined {
         const { chart, origChart } = this
 
-        const [minTime, maxTime] = chart.timeDomain
-        if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
+        if (
+            chart.props.minTime !== origChart.minTime ||
+            chart.props.maxTime !== origChart.maxTime
+        ) {
+            const [minTime, maxTime] = chart.timeDomain
             if (minTime === maxTime) return formatTimeBound(minTime)
             // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
             // because minTime <= maxTime and because the === case is addressed above.
