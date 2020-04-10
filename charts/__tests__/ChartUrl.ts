@@ -1,13 +1,18 @@
 #! /usr/bin/env yarn jest
 
+import { ChartConfigProps } from "charts/ChartConfig"
+import { Time } from "charts/TimeBounds"
 import { createConfig } from "test/utils"
 
 import { ChartUrl, ChartQueryParams } from "../ChartUrl"
 
-type TimeDomain = [number | undefined, number | undefined]
+type TimeDomain = [Time, Time]
 
-function fromQueryParams(params: ChartQueryParams) {
-    const chart = createConfig()
+function fromQueryParams(
+    params: ChartQueryParams,
+    props?: Partial<ChartConfigProps>
+) {
+    const chart = createConfig(props)
     chart.url.populateFromQueryParams(params)
     return chart
 }
@@ -24,30 +29,33 @@ describe(ChartUrl, () => {
             name: string
             query: string
             param: TimeDomain
-            irreversible?: boolean
         }[] = [
             { name: "single year", query: "1500", param: [1500, 1500] },
             {
-                name: "empty string",
-                query: "",
-                param: [undefined, undefined],
-                irreversible: true
+                name: "single year latest",
+                query: "latest",
+                param: [Infinity, Infinity]
+            },
+            {
+                name: "single year earliest",
+                query: "earliest",
+                param: [-Infinity, -Infinity]
             },
             { name: "two years", query: "2000..2005", param: [2000, 2005] },
             {
                 name: "right unbounded",
                 query: "2000..",
-                param: [2000, undefined]
+                param: [2000, Infinity]
             },
             {
                 name: "left unbounded",
                 query: "..2005",
-                param: [undefined, 2005]
+                param: [-Infinity, 2005]
             },
             {
                 name: "unbounded (both)",
                 query: "..",
-                param: [undefined, undefined]
+                param: [-Infinity, Infinity]
             },
             {
                 name: "negative years",
@@ -63,12 +71,20 @@ describe(ChartUrl, () => {
                 expect(start).toEqual(test.param[0])
                 expect(end).toEqual(test.param[1])
             })
-            if (!test.irreversible) {
-                it(`encode ${test.name}`, () => {
-                    const params = toQueryParams(test.param)
-                    expect(params.time).toEqual(test.query)
-                })
-            }
+            it(`encode ${test.name}`, () => {
+                const params = toQueryParams(test.param)
+                expect(params.time).toEqual(test.query)
+            })
         }
+
+        it("empty string doesn't change timeline", () => {
+            const chart = fromQueryParams(
+                { time: "" },
+                { minTime: 0, maxTime: 5 }
+            )
+            const [start, end] = chart.timeDomain
+            expect(start).toEqual(0)
+            expect(end).toEqual(5)
+        })
     })
 })

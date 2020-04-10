@@ -9,15 +9,7 @@ import { computed, when, runInAction, toJS } from "mobx"
 
 import { BAKED_GRAPHER_URL } from "settings"
 
-import {
-    isNumber,
-    includes,
-    filter,
-    uniq,
-    toString,
-    defaultTo,
-    parseIntOrUndefined
-} from "./Util"
+import { includes, filter, uniq, toString, defaultTo } from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
@@ -27,6 +19,12 @@ import {
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
 import { ObservableUrl } from "./UrlBinding"
+import {
+    formatTimeBound,
+    isUnbounded,
+    parseTimeBound,
+    TimeBoundValue
+} from "./TimeBounds"
 
 export interface ChartQueryParams {
     tab?: string
@@ -142,15 +140,16 @@ export class ChartUrl implements ObservableUrl {
     @computed get timeParam(): string | undefined {
         const { chart, origChart } = this
 
-        const { minTime, maxTime } = chart.props
+        const [minTime, maxTime] = chart.timeDomain
         if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
-            if (minTime !== maxTime || minTime === undefined) {
-                return `${minTime ?? ""}..${maxTime ?? ""}`
-            } else if (isNumber(minTime)) {
-                return `${minTime}`
-            } else {
-                return undefined
-            }
+            if (minTime === maxTime) return formatTimeBound(minTime)
+            // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
+            // because minTime <= maxTime and because the === case is addressed above.
+            // So the direction of the unbounded is unambiguous, and we can format it as an empty
+            // string.
+            const start = isUnbounded(minTime) ? "" : formatTimeBound(minTime)
+            const end = isUnbounded(maxTime) ? "" : formatTimeBound(maxTime)
+            return `${start}..${end}`
         } else {
             return undefined
         }
@@ -232,16 +231,19 @@ export class ChartUrl implements ObservableUrl {
         }
 
         const time = params.time
-        if (time !== undefined) {
+        if (time) {
             // We want to support unbounded time parameters, so that time=2015.. extends from 2015
             // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
             // time=.. extends from the earliest to latest available year.
             const isRange = /^(\-?\d+)?\.\.(\-?\d+)?$/.test(time)
             if (isRange) {
-                const [start, end] = time.split("..").map(parseIntOrUndefined)
-                chart.timeDomain = [start, end]
+                const [start, end] = time.split("..")
+                chart.timeDomain = [
+                    parseTimeBound(start, TimeBoundValue.unboundedLeft),
+                    parseTimeBound(end, TimeBoundValue.unboundedRight)
+                ]
             } else {
-                const t = parseIntOrUndefined(time)
+                const t = parseTimeBound(time, TimeBoundValue.unboundedRight)
                 chart.timeDomain = [t, t]
             }
         }
