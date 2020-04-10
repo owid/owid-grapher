@@ -254,7 +254,7 @@ export class StackedArea extends React.Component<{
         const that = this
         return new HeightedLegend({
             get maxWidth() {
-                return 150
+                return Math.min(150, that.bounds.width / 3)
             },
             get fontSize() {
                 return that.chart.baseFontSize
