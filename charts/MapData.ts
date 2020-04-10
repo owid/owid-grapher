@@ -283,8 +283,10 @@ export class MapData {
     @computed get timelineYears(): Time[] {
         const { mappableData } = this
         return sortedUniq(
-            mappableData.years.filter(
-                (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
+            sortBy(
+                mappableData.years.filter(
+                    (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
+                )
             )
         )
     }

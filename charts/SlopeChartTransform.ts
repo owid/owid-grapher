@@ -1,5 +1,5 @@
 import { computed } from "mobx"
-import { some, union, find, isEmpty, sortedUniq, sortBy } from "./Util"
+import { some, find, isEmpty, sortedUniq, sortBy, flatten } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
@@ -48,8 +48,8 @@ export class SlopeChartTransform extends ChartTransform {
     @computed get timelineYears(): Time[] {
         return sortedUniq(
             sortBy(
-                union(
-                    ...this.chart.data.axisDimensions.map(
+                flatten(
+                    this.chart.data.axisDimensions.map(
                         d => d.variable.yearsUniq
                     )
                 )
