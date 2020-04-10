@@ -1285,13 +1285,13 @@ export const ColorSchemes = (() => {
         "Continents",
         [
             [
-                "#5675c1", // Africa
-                "#aec7e8", // Antarctica
-                "#d14e5b", // Asia
-                "#ec8e00", // Europe
-                "#4d824b", // North America
-                "#a652ba", // Oceania
-                "#69c487", // South America
+                "#EF943A", // Africa
+                "#AEC7E8", // Antarctica
+                "#2D8587", // Asia
+                "#4C5C78", // Europe
+                "#E04E4B", // North America
+                "#662C68", // Oceania
+                "#932834", // South America
                 "#ff7f0e",
                 "#1f77b4",
                 "#ffbb78",
