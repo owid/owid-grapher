@@ -99,7 +99,7 @@ export const ChartPage = (props: {
                                     Read the article
                                 </a>
                             </div>
-                            {relatedCharts && (
+                            {relatedCharts && relatedCharts.length !== 0 && (
                                 <>
                                     <h3>Charts</h3>
                                     <ul>
