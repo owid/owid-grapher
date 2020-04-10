@@ -83,7 +83,6 @@ export class Timeline extends React.Component<TimelineProps> {
     componentDidUpdate() {
         const { isPlaying, isDragging } = this
         if (!isPlaying && !isDragging) {
-            console.log("componentDidUpdate")
             runInAction(() => {
                 this.startYearRaw = this.props.startYear
                 this.endYearRaw = this.props.endYear
@@ -332,7 +331,6 @@ export class Timeline extends React.Component<TimelineProps> {
 
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
-        console.log("componentDidMount")
         runInAction(() => {
             this.startYearRaw = this.props.startYear
             this.endYearRaw = this.props.endYear
@@ -365,10 +363,6 @@ export class Timeline extends React.Component<TimelineProps> {
             autorun(
                 () => {
                     if (this.props.onTargetChange) {
-                        console.log("onTargetChange", {
-                            targetStartYear: this.startYearRound,
-                            targetEndYear: this.endYearRound
-                        })
                         this.props.onTargetChange({
                             targetStartYear: this.startYearRound,
                             targetEndYear: this.endYearRound
@@ -381,7 +375,6 @@ export class Timeline extends React.Component<TimelineProps> {
                 // If we're not playing or dragging, lock the input to the closest year (no interpolation)
                 const { isPlaying, isDragging } = this
                 if (!isPlaying && !isDragging) {
-                    console.log("autorun")
                     action(() => {
                         this.startYearRaw = this.startYearRound
                         this.endYearRaw = this.endYearRound
