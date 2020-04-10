@@ -343,7 +343,8 @@ export function lastOfNonEmptyArray<T>(arr: T[]): T {
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(
     numValues: number[],
-    scaleType: "linear" | "log"
+    scaleType: "linear" | "log",
+    maxValueMultiplierForPadding = 1
 ): [number, number] {
     const filterValues =
         scaleType === "log" ? numValues.filter(v => v > 0) : numValues
@@ -356,7 +357,7 @@ export function domainExtent(
         isFinite(maxValue)
     ) {
         if (minValue !== maxValue) {
-            return [minValue, maxValue]
+            return [minValue, maxValue * maxValueMultiplierForPadding]
         } else {
             // Only one value, make up a reasonable default
             return scaleType === "log"

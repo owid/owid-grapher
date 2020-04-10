@@ -394,7 +394,8 @@ export class ScatterTransform implements IChartTransform {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.x),
-                this.xScaleType
+                this.xScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
@@ -428,7 +429,8 @@ export class ScatterTransform implements IChartTransform {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.y),
-                this.yScaleType
+                this.yScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
