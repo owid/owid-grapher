@@ -624,7 +624,7 @@ export class ScatterTransform implements IChartTransform {
             })
 
             // Use most recent size and color values
-            const lastPoint = last(group.values)
+            // const lastPoint = last(group.values)
 
             if (group && group.values.length) {
                 const keyColor = keyColors[datakey]

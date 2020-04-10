@@ -294,22 +294,3 @@ export class LineChartTransform implements IChartTransform {
         return groupedData.filter(g => g.values.length > 0)
     }
 }
-
-function cagrY(indexValue: LineChartValue, targetValue: LineChartValue) {
-    if (targetValue.time - indexValue.time === 0) return 0
-    else {
-        const frac = targetValue.y / indexValue.y
-        if (frac < 0)
-            return (
-                -(
-                    Math.pow(-frac, 1 / (targetValue.time - indexValue.time)) -
-                    1
-                ) * 100
-            )
-        else
-            return (
-                (Math.pow(frac, 1 / (targetValue.time - indexValue.time)) - 1) *
-                100
-            )
-    }
-}
