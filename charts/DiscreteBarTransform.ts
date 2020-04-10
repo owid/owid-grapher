@@ -4,27 +4,21 @@ import {
     isEmpty,
     sortBy,
     orderBy,
-    max,
     values,
     flatten,
-    uniq
+    uniq,
+    sortedUniq
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
-import { IChartTransform } from "./IChartTransform"
+import { ChartTransform } from "./ChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
 import { ColorSchemes } from "./ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class DiscreteBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class DiscreteBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -41,16 +35,14 @@ export class DiscreteBarTransform implements IChartTransform {
         return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (this.primaryDimensions.length === 0) return 1900
-
-        const yearsUniq = flatten(
-            this.primaryDimensions.map(dim => dim.variable.yearsUniq)
+    @computed get timelineYears(): Time[] {
+        return sortedUniq(
+            sortBy(
+                flatten(
+                    this.primaryDimensions.map(dim => dim.variable.yearsUniq)
+                )
+            )
         )
-        if (maxYear !== undefined)
-            return sortBy(yearsUniq, year => Math.abs(year - maxYear))[0]
-        else return max(yearsUniq) as number
     }
 
     @computed get hasTimeline(): boolean {

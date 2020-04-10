@@ -7,29 +7,21 @@ import {
     cloneDeep,
     find,
     sortBy,
-    min,
     max,
     defaultTo,
-    findClosest,
     uniq
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
-import { IChartTransform } from "./IChartTransform"
+import { ChartTransform } from "./ChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class StackedBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class StackedBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -56,56 +48,12 @@ export class StackedBarTransform implements IChartTransform {
         )
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (!this.primaryDimension) return 1900
-
-        const { variable } = this.primaryDimension
-        if (maxYear !== undefined)
-            return sortBy(variable.yearsUniq, year =>
-                Math.abs(year - maxYear)
-            )[0]
-        else return max(variable.yearsUniq) as number
-    }
-
-    @computed get timelineYears(): number[] {
+    @computed get timelineYears(): Time[] {
         if (this.primaryDimension === undefined) return []
         return this.primaryDimension.yearsUniq
     }
 
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(
-            this.chart.timeDomain[0],
-            this.minTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, minYear),
-            this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(
-            this.chart.timeDomain[1],
-            this.maxTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, maxYear),
-            this.maxTimelineYear
-        )
-    }
-
     @computed get barValueFormat(): (datum: StackedBarValue) => string {
-        const { primaryDimension, targetYear } = this
-
         return (datum: StackedBarValue) => {
             return datum.y.toString()
         }

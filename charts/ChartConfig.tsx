@@ -45,12 +45,20 @@ import { ChartView } from "./ChartView"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { Bounds } from "./Bounds"
-import { IChartTransform } from "./IChartTransform"
+import { IChartTransform } from "./ChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL } from "settings"
+import {
+    minTimeFromJSON,
+    maxTimeFromJSON,
+    minTimeToJSON,
+    maxTimeToJSON,
+    TimeBound,
+    Time
+} from "./TimeBounds"
 
 declare const App: any
 declare const window: any
@@ -172,11 +180,11 @@ export class ChartConfigProps {
     @observable.ref owidDataset?: OwidDataset = undefined
 
     @observable.ref selectedData: EntitySelection[] = []
-    @observable.ref minTime?: number = undefined
-    @observable.ref maxTime?: number = undefined
+    @observable.ref minTime?: TimeBound = undefined
+    @observable.ref maxTime?: TimeBound = undefined
 
-    @observable.ref timelineMinTime?: number = undefined
-    @observable.ref timelineMaxTime?: number = undefined
+    @observable.ref timelineMinTime?: Time = undefined
+    @observable.ref timelineMaxTime?: Time = undefined
 
     @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?:
@@ -486,16 +494,17 @@ export class ChartConfig {
         }
     }
 
-    @computed get timeDomain(): [number | undefined, number | undefined] {
+    @computed get timeDomain(): [TimeBound, TimeBound] {
         return [
-            defaultTo(this.props.minTime, undefined),
-            defaultTo(this.props.maxTime, undefined)
+            // Handle `undefined` values in minTime/maxTime
+            minTimeFromJSON(this.props.minTime),
+            maxTimeFromJSON(this.props.maxTime)
         ]
     }
 
-    set timeDomain(value: [number | undefined, number | undefined]) {
-        this.props.minTime = defaultTo(value[0], undefined)
-        this.props.maxTime = defaultTo(value[1], undefined)
+    set timeDomain(value: [TimeBound, TimeBound]) {
+        this.props.minTime = value[0]
+        this.props.maxTime = value[1]
     }
 
     @computed get xAxis() {
@@ -567,7 +576,15 @@ export class ChartConfig {
         if (json.isAutoSlug && App.isEditor && !json.isPublished)
             this.props.slug = undefined
 
-        this.props.map = new MapConfigProps(json.map)
+        // JSON doesn't support Infinity, so we use strings instead.
+        this.props.minTime = minTimeFromJSON(json.minTime)
+        this.props.maxTime = maxTimeFromJSON(json.maxTime)
+
+        this.props.map = new MapConfigProps({
+            ...json.map,
+            targetYear: maxTimeFromJSON(json.map.targetYear)
+        })
+
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
 
@@ -576,7 +593,7 @@ export class ChartConfig {
         )
     }
 
-    @computed.struct get json() {
+    @computed.struct get json(): Readonly<any> {
         const json: any = toJS(this.props)
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -592,6 +609,14 @@ export class ChartConfig {
 
         json.data = {
             availableEntities: this.data.availableEntities
+        }
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        json.minTime = minTimeToJSON(this.props.minTime)
+        json.maxTime = maxTimeToJSON(this.props.maxTime)
+
+        if (this.props.map) {
+            json.map.targetYear = maxTimeToJSON(this.props.map.targetYear)
         }
 
         return json

@@ -4,6 +4,7 @@ import { ChartConfig } from "./ChartConfig"
 import { MapData } from "./MapData"
 import { defaultTo } from "./Util"
 import { Color } from "./Color"
+import { TimeBound, TimeBoundValue } from "./TimeBounds"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -105,7 +106,11 @@ export class MapConfig {
         return new MapData(this.chart)
     }
 
-    set targetYear(value: number | undefined) {
+    @computed get targetYear(): TimeBound {
+        return this.props.targetYear ?? TimeBoundValue.unboundedRight
+    }
+
+    set targetYear(value: TimeBound) {
         this.props.targetYear = value
     }
 

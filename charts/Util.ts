@@ -378,13 +378,6 @@ export function slugify(s: string) {
     return trim(s).replace(/ +/g, "-")
 }
 
-export function findClosest(
-    numValues: number[],
-    targetValue: number
-): number | undefined {
-    return sortBy(numValues, value => Math.abs(value - targetValue))[0]
-}
-
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let n = 0

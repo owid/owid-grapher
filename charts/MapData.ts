@@ -12,8 +12,6 @@ import { MapTopology } from "./MapTopology"
 import {
     defaultTo,
     isString,
-    last,
-    findClosest,
     findClosestYear,
     round,
     toArray,
@@ -28,6 +26,7 @@ import {
     isNumber,
     sortBy
 } from "./Util"
+import { Time, getTimeFromTimes } from "./TimeBounds"
 
 export interface MapDataValue {
     entity: string
@@ -281,7 +280,7 @@ export class MapData {
     }
 
     // All available years with data for the map
-    @computed get timelineYears(): number[] {
+    @computed get timelineYears(): Time[] {
         const { mappableData } = this
         return sortedUniq(
             mappableData.years.filter(
@@ -294,16 +293,8 @@ export class MapData {
         return !this.map.props.hideTimeline && this.timelineYears.length > 1
     }
 
-    @computed get targetYear(): number | undefined {
-        const targetYear = defaultTo(
-            this.map.props.targetYear,
-            last(this.timelineYears)
-        )
-        if (targetYear === undefined) return undefined
-        return defaultTo(
-            findClosest(this.timelineYears, targetYear),
-            last(this.timelineYears)
-        )
+    @computed get targetYear(): Time {
+        return getTimeFromTimes(this.timelineYears, this.map.targetYear, 2000)
     }
 
     @computed get legendTitle(): string {

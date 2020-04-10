@@ -1,4 +1,3 @@
-import { ChartConfig } from "./ChartConfig"
 import {
     some,
     isEmpty,
@@ -20,22 +19,18 @@ import {
     formatYear
 } from "./Util"
 import { computed } from "mobx"
-import { defaultTo, defaultWith, first, last } from "./Util"
+import { defaultTo, first, last } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent, findClosest } from "./Util"
-import { IChartTransform } from "./IChartTransform"
+import { formatValue, domainExtent } from "./Util"
+import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
-export class ScatterTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class ScatterTransform extends ChartTransform {
     @computed get colorKeys(): string[] {
         const { colorDimension } = this
         return colorDimension ? colorDimension.variable.categoricalValues : []
@@ -337,19 +332,8 @@ export class ScatterTransform implements IChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get timelineYears(): number[] {
+    @computed get timelineYears(): Time[] {
         return sortedUniq(sortBy(this.allPoints.map(point => point.year)))
-    }
-
-    @computed private get minTimelineYear(): number {
-        return defaultTo(this.timelineYears[0], -Infinity)
-    }
-
-    @computed private get maxTimelineYear(): number {
-        return defaultTo(
-            this.timelineYears[this.timelineYears.length - 1],
-            Infinity
-        )
     }
 
     @computed get hasTimeline(): boolean {
@@ -357,30 +341,6 @@ export class ScatterTransform implements IChartTransform {
             this.minTimelineYear !== this.maxTimelineYear &&
             !this.chart.props.hideTimeline
         )
-    }
-
-    // The first year of the timeline selection
-    @computed get startYear(): number {
-        const minYear = this.chart.timeDomain[0]
-
-        if (minYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, minYear),
-                () => this.minTimelineYear
-            )
-        else return this.maxTimelineYear
-    }
-
-    // The end year of the timeline selection
-    @computed get endYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-
-        if (maxYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, maxYear),
-                () => this.maxTimelineYear
-            )
-        else return this.maxTimelineYear
     }
 
     @computed private get currentValues(): ScatterValue[] {
