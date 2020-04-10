@@ -37,7 +37,7 @@ export class MapConfigProps {
     @observable.ref legendDescription?: string = undefined
     @observable.ref binStepSize?: number = undefined
 
-    constructor(json?: any) {
+    constructor(json?: Partial<MapConfigProps>) {
         if (json !== undefined) {
             for (const key in this) {
                 if (key in json) {
@@ -52,7 +52,7 @@ export class MapConfig {
     chart: ChartConfig
 
     get props() {
-        return this.chart.props.map as MapConfigProps
+        return this.chart.props.map
     }
 
     @computed get variableId() {

@@ -234,7 +234,7 @@ export class ChartConfigProps {
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable excludedEntities?: number[] = undefined
 
-    @observable map?: MapConfigProps = undefined
+    @observable map: MapConfigProps = new MapConfigProps()
 
     data?: { availableEntities: string[] } = undefined
 }
@@ -580,10 +580,12 @@ export class ChartConfig {
         this.props.minTime = minTimeFromJSON(json.minTime)
         this.props.maxTime = maxTimeFromJSON(json.maxTime)
 
-        this.props.map = new MapConfigProps({
-            ...json.map,
-            targetYear: maxTimeFromJSON(json.map.targetYear)
-        })
+        if (json.map) {
+            this.props.map = new MapConfigProps({
+                ...json.map,
+                targetYear: maxTimeFromJSON(json.map.targetYear)
+            })
+        }
 
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
