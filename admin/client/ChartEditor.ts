@@ -6,7 +6,6 @@
  */
 
 import { observable, computed, runInAction, when } from "mobx"
-import { extend } from "charts/Util"
 import { ChartConfig } from "charts/ChartConfig"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
@@ -198,7 +197,7 @@ export class ChartEditor {
     async saveAsNewChart() {
         const { currentChartJson } = this
 
-        const chartJson = extend({}, currentChartJson)
+        const chartJson = { ...currentChartJson }
         delete chartJson.id
         delete chartJson.isPublished
 
