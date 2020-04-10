@@ -103,6 +103,7 @@ interface ScatterRenderSeries {
 interface ScatterLabel {
     text: string
     fontSize: number
+    fontWeight: number
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean
@@ -396,6 +397,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return {
             text: firstValue.label,
             fontSize: fontSize,
+            fontWeight: 400,
             bounds: bounds,
             series: series,
             isStart: true
@@ -417,6 +419,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 ? 8
                 : 9
             : 7
+        const fontWeight = 400
         const { labelFontFamily } = this
 
         return series.values.slice(1, -1).map((v, i) => {
@@ -447,6 +450,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 x: pos.x,
                 y: pos.y,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 fontFamily: labelFontFamily
             })
             if (pos.x < v.position.x)
@@ -467,6 +471,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             return {
                 text: v.label,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 bounds: bounds,
                 series: series,
                 isMid: true
@@ -491,6 +496,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 : 7
             : lastValue.fontSize *
               (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+        const fontWeight = series.isForeground ? 700 : 400
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -528,6 +534,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     ? lastValue.label
                     : series.text,
             fontSize: fontSize,
+            fontWeight: fontWeight,
             bounds: labelBounds,
             series: series,
             isEnd: true
@@ -724,6 +731,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                         2
                                     )}
                                     fontSize={l.fontSize.toFixed(2)}
+                                    fontWeight={l.fontWeight}
                                 >
                                     {l.text}
                                 </text>
@@ -839,6 +847,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             fontSize={l.fontSize}
                             fontFamily={labelFontFamily}
                             fill="#333"
+                            fontWeight={l.fontWeight}
                         >
                             {l.text}
                         </text>
