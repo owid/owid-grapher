@@ -595,9 +595,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 if (lowerPriorityLabel.isHidden) continue
 
                 if (
-                    higherPriorityLabel.bounds.intersects(
-                        lowerPriorityLabel.bounds
-                    )
+                    higherPriorityLabel.bounds
+                        .pad(-5)
+                        .intersects(lowerPriorityLabel.bounds)
                 ) {
                     lowerPriorityLabel.isHidden = true
                 }
