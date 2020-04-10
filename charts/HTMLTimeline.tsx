@@ -1,6 +1,6 @@
-import { select } from "d3-selection"
-import { first, last, sortBy, min, max } from "./Util"
 import * as React from "react"
+import { select } from "d3-selection"
+import { first, last, findClosestYear } from "./Util"
 import { Bounds } from "./Bounds"
 import { getRelativeMouse } from "./Util"
 import { Analytics } from "site/client/Analytics"
@@ -18,25 +18,29 @@ import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-const UNBOUNDED = undefined
+import {
+    isUnbounded,
+    TimeBoundValue,
+    TimeBound,
+    Time,
+    isUnboundedLeft,
+    isUnboundedRight,
+    getBoundFromTimeRange
+} from "./TimeBounds"
 
-const MIN_YEAR = 1990
-const MAX_YEAR = new Date().getFullYear()
-
-function isUnbounded(year: number | undefined) {
-    return year === undefined || !isFinite(year)
-}
+const DEFAULT_MIN_YEAR = 1900
+const DEFAULT_MAX_YEAR = 2000
 
 interface TimelineProps {
     years: number[]
-    startYear: number | undefined
-    endYear: number | undefined
+    startYear: TimeBound
+    endYear: TimeBound
     onTargetChange: ({
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number | undefined
-        targetEndYear: number | undefined
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
     }) => void
     onStartDrag?: () => void
     onStopDrag?: () => void
@@ -54,9 +58,6 @@ export class Timeline extends React.Component<TimelineProps> {
 
     disposers!: IReactionDisposer[]
 
-    @observable startYearRaw: number | undefined
-    @observable endYearRaw: number | undefined
-
     @observable isPlaying: boolean = false
     @observable dragTarget?: string
 
@@ -64,12 +65,18 @@ export class Timeline extends React.Component<TimelineProps> {
         return !!this.dragTarget
     }
 
-    @computed get startYearRawOrDefault(): number {
-        return min([this.startYearRaw, this.endYearRaw]) ?? MIN_YEAR
+    // Used for storing the state of the timeline.
+    // They are not suitable for direct access because start can be greater than end.
+    // Use `startYear` and `endYear` if the correct order of bounds is needed.
+    @observable startYearRaw: TimeBound = TimeBoundValue.unboundedLeft
+    @observable endYearRaw: TimeBound = TimeBoundValue.unboundedRight
+
+    @computed get startYear(): TimeBound {
+        return Math.min(this.startYearRaw, this.endYearRaw)
     }
 
-    @computed get endYearRawOrDefault(): number {
-        return max([this.startYearRaw, this.endYearRaw]) ?? MAX_YEAR
+    @computed get endYear(): TimeBound {
+        return Math.max(this.startYearRaw, this.endYearRaw)
     }
 
     constructor(props: TimelineProps) {
@@ -90,49 +97,52 @@ export class Timeline extends React.Component<TimelineProps> {
         }
     }
 
-    @computed get years(): number[] {
+    @computed get years(): Time[] {
         return this.props.years
     }
 
-    @computed get minYear(): number {
-        return first(this.props.years) ?? MIN_YEAR
+    @computed get minYear(): Time {
+        return first(this.props.years) ?? DEFAULT_MIN_YEAR
     }
 
-    @computed get maxYear(): number {
-        return last(this.props.years) ?? MAX_YEAR
+    @computed get maxYear(): Time {
+        return last(this.props.years) ?? DEFAULT_MAX_YEAR
     }
 
-    getBoundedYear(inputYear: number): number {
+    @computed get timeDomain(): [Time, Time] {
+        return [this.minYear, this.maxYear]
+    }
+
+    getClampedYear(inputYear: Time): Time {
         const { minYear, maxYear } = this
         return Math.min(maxYear, Math.max(minYear, inputYear))
     }
 
-    getClosestYear(inputYear: number): number | undefined {
-        const { years } = this
-        return sortBy(years, year => Math.abs(year - inputYear))[0]
+    getYearUI(bound: TimeBound): Time {
+        if (isUnboundedLeft(bound)) return this.minYear
+        if (isUnboundedRight(bound)) return this.maxYear
+        return bound
     }
 
-    @computed get startYearUI(): number {
-        if (this.startYearRaw === UNBOUNDED) {
-            return this.props.singleYearMode ? this.maxYear : this.minYear
-        }
-        return this.startYearRawOrDefault
+    getYearRound(bound: TimeBound, defaultValue: TimeBound): TimeBound {
+        if (isUnbounded(bound)) return bound
+        return findClosestYear(this.years, bound) ?? defaultValue
     }
 
-    @computed get startYearRound(): number | undefined {
-        if (isUnbounded(this.startYearRaw)) return this.startYearRaw
-        return this.getClosestYear(this.startYearRawOrDefault)
+    @computed get startYearUI(): Time {
+        return this.getYearUI(this.startYear)
     }
 
-    @computed get endYearUI(): number {
-        return this.endYearRaw === UNBOUNDED
-            ? this.maxYear
-            : this.endYearRawOrDefault
+    @computed get startYearRound(): TimeBound {
+        return this.getYearRound(this.startYear, TimeBoundValue.unboundedLeft)
     }
 
-    @computed get endYearRound(): number | undefined {
-        if (isUnbounded(this.endYearRaw)) return this.endYearRaw
-        return this.getClosestYear(this.endYearRawOrDefault)
+    @computed get endYearUI(): Time {
+        return this.getYearUI(this.endYear)
+    }
+
+    @computed get endYearRound(): TimeBound {
+        return this.getYearRound(this.endYear, TimeBoundValue.unboundedRight)
     }
 
     animRequest?: number
@@ -207,63 +217,50 @@ export class Timeline extends React.Component<TimelineProps> {
 
     dragOffsets = [0, 0]
 
-    @action.bound onStartYearChange(inputYear: number) {
-        // `undefined` in start years is interpreted differently across charts, so we can't have it
-        // unbounded yet.
-        // E.g. in a line chart where the timeline is collapsed to a single year, therefore showing
-        // a barchart, an unbounded start is interpreted as minimum (unbounded to the left).
-        // But in a map, and unbounded start is interpreted as a maximum (unbounded to the right).
-        this.startYearRaw = inputYear
+    @action.bound onStartYearChange(inputYear: Time) {
+        this.startYearRaw = getBoundFromTimeRange(this.timeDomain, inputYear)
     }
 
     @action.bound onEndYearChange(inputYear: number) {
-        this.endYearRaw = inputYear >= this.maxYear ? UNBOUNDED : inputYear
+        this.endYearRaw = getBoundFromTimeRange(this.timeDomain, inputYear)
     }
 
     @action.bound onSingleYearChange(inputYear: number) {
-        // This method is only called when `singleYearMode` is `true` which is so far only map charts.
-        // We can assume that maps will handle the unbounded start consistently.
-        const year = inputYear >= this.maxYear ? UNBOUNDED : inputYear
+        const year = getBoundFromTimeRange(this.timeDomain, inputYear)
         this.startYearRaw = year
         this.endYearRaw = year
     }
 
     @action.bound onRangeYearChange([startYear, endYear]: [number, number]) {
-        this.startYearRaw = startYear
-        // We dont want a scenario where startYear == maxYear and endYear is unbounded, because it
-        // creates inconsistencies – e.g. a bar chart with that configuration will turn into a line
-        // chart if data beyond maxTime becomes available (after a data update, or config update).
-        this.endYearRaw =
-            endYear >= this.maxYear && startYear < this.maxYear
-                ? UNBOUNDED
-                : endYear
+        this.startYearRaw = getBoundFromTimeRange(this.timeDomain, startYear)
+        this.endYearRaw = getBoundFromTimeRange(this.timeDomain, endYear)
     }
 
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
 
-        const boundedYear = this.getBoundedYear(inputYear)
+        const clampedYear = this.getClampedYear(inputYear)
 
         if (
             props.singleYearMode ||
             (this.isPlaying && this.props.singleYearPlay)
         ) {
-            this.onSingleYearChange(boundedYear)
+            this.onSingleYearChange(clampedYear)
         } else if (dragTarget === "start") {
-            this.onStartYearChange(boundedYear)
+            this.onStartYearChange(clampedYear)
         } else if (dragTarget === "end") {
-            this.onEndYearChange(boundedYear)
+            this.onEndYearChange(clampedYear)
         } else if (dragTarget === "both") {
             let startYear = this.dragOffsets[0] + inputYear
             let endYear = this.dragOffsets[1] + inputYear
 
             if (startYear < minYear) {
                 startYear = minYear
-                endYear = this.getBoundedYear(
+                endYear = this.getClampedYear(
                     minYear + (this.dragOffsets[1] - this.dragOffsets[0])
                 )
             } else if (endYear > maxYear) {
-                startYear = this.getBoundedYear(
+                startYear = this.getClampedYear(
                     maxYear + (this.dragOffsets[0] - this.dragOffsets[1])
                 )
                 endYear = maxYear
@@ -345,7 +342,6 @@ export class Timeline extends React.Component<TimelineProps> {
         this.disposers = [
             autorun(() => {
                 const { isPlaying } = this
-
                 if (isPlaying) this.onStartPlaying()
                 else this.onStopPlaying()
             }),
@@ -375,10 +371,16 @@ export class Timeline extends React.Component<TimelineProps> {
                 // If we're not playing or dragging, lock the input to the closest year (no interpolation)
                 const { isPlaying, isDragging } = this
                 if (!isPlaying && !isDragging) {
-                    action(() => {
-                        this.startYearRaw = this.startYearRound
-                        this.endYearRaw = this.endYearRound
-                    })()
+                    runInAction(() => {
+                        // NOTE: This needs to be an atomic assignment.
+                        // As start/end values can flip while dragging one handle past another, we
+                        // have logic to flip start/end on the fly. But when they get reassigned, to
+                        // avoid the unintentional flip, it needs to be done atomically.
+                        ;[this.startYearRaw, this.endYearRaw] = [
+                            this.startYearRound,
+                            this.endYearRound
+                        ]
+                    })
                 }
             })
         ]
