@@ -131,7 +131,7 @@ class ScatterGroupSingle extends React.Component<{
             !group.isFocus && isConnected ? 1 + value.size / 16 : value.size
         const cx = value.position.x.toFixed(2)
         const cy = value.position.y.toFixed(2)
-        const stroke = isLabelled ? (isLayerMode ? "#999" : "#333") : "#fff"
+        const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
 
         return (
             <g key={group.displayKey} className={group.displayKey}>
@@ -151,7 +151,7 @@ class ScatterGroupSingle extends React.Component<{
                     fill={color}
                     opacity={0.8}
                     stroke={stroke}
-                    strokeWidth={0.7}
+                    strokeWidth={0.5}
                 />
             </g>
         )
