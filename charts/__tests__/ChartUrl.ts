@@ -1,13 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { ChartConfigProps } from "charts/ChartConfig"
-import { Time, TimeBoundValue, TimeBound } from "charts/TimeBounds"
+import { TimeBoundValue, TimeBound, TimeBounds } from "charts/TimeBounds"
 import { createConfig } from "test/utils"
 
 import { ChartUrl, ChartQueryParams } from "../ChartUrl"
 import { MapConfigProps } from "charts/MapConfig"
-
-type TimeDomain = [Time, Time]
 
 function fromQueryParams(
     params: ChartQueryParams,
@@ -33,7 +31,7 @@ describe(ChartUrl, () => {
         const tests: {
             name: string
             query: string
-            param: TimeDomain
+            param: TimeBounds
         }[] = [
             { name: "single year", query: "1500", param: [1500, 1500] },
             {

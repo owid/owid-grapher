@@ -57,7 +57,8 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     TimeBound,
-    Time
+    Time,
+    TimeBounds
 } from "./TimeBounds"
 
 declare const App: any
@@ -494,7 +495,7 @@ export class ChartConfig {
         }
     }
 
-    @computed get timeDomain(): [TimeBound, TimeBound] {
+    @computed get timeDomain(): TimeBounds {
         return [
             // Handle `undefined` values in minTime/maxTime
             minTimeFromJSON(this.props.minTime),
@@ -502,7 +503,7 @@ export class ChartConfig {
         ]
     }
 
-    set timeDomain(value: [TimeBound, TimeBound]) {
+    set timeDomain(value: TimeBounds) {
         this.props.minTime = value[0]
         this.props.maxTime = value[1]
     }

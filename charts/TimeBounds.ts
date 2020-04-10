@@ -11,6 +11,8 @@ export type Time = number
  */
 export type TimeBound = number
 
+export type TimeBounds = [TimeBound, TimeBound]
+
 /**
  * The two special TimeBound values: unbounded left & unbounded right.
  */
