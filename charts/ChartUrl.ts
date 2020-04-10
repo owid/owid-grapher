@@ -9,7 +9,7 @@ import { computed, when, runInAction, toJS } from "mobx"
 
 import { BAKED_GRAPHER_URL } from "settings"
 
-import { includes, filter, uniq, toString, defaultTo } from "./Util"
+import { includes, filter, uniq, defaultTo } from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import {
@@ -127,11 +127,11 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChart } = this
 
         if (
-            chart.props.map &&
+            chart.map &&
             origChart.map &&
-            chart.props.map.targetYear !== origChart.map.targetYear
+            chart.map.targetYear !== origChart.map.targetYear
         ) {
-            return toString(chart.props.map.targetYear)
+            return formatTimeBound(chart.map.targetYear)
         } else {
             return undefined
         }
@@ -257,8 +257,11 @@ export class ChartUrl implements ObservableUrl {
         // Map stuff below
 
         if (chart.props.map) {
-            const year = parseInt(params.year || "")
-            if (!isNaN(year)) {
+            if (params.year) {
+                const year = parseTimeBound(
+                    params.year,
+                    TimeBoundValue.unboundedRight
+                )
                 chart.props.map.targetYear = year
             }
 
