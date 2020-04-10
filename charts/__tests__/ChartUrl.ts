@@ -1,10 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { ChartConfigProps } from "charts/ChartConfig"
-import { Time } from "charts/TimeBounds"
+import { Time, TimeBoundValue, TimeBound } from "charts/TimeBounds"
 import { createConfig } from "test/utils"
 
 import { ChartUrl, ChartQueryParams } from "../ChartUrl"
+import { MapConfigProps } from "charts/MapConfig"
 
 type TimeDomain = [Time, Time]
 
@@ -17,9 +18,13 @@ function fromQueryParams(
     return chart
 }
 
-function toQueryParams(domain: TimeDomain) {
-    const chart = createConfig({ minTime: -5000, maxTime: 5000 })
-    chart.timeDomain = domain
+function toQueryParams(props?: Partial<ChartConfigProps>) {
+    const chart = createConfig({
+        minTime: -5000,
+        maxTime: 5000,
+        map: new MapConfigProps({ targetYear: 5000 })
+    })
+    chart.update(props)
     return chart.url.params
 }
 
@@ -32,30 +37,45 @@ describe(ChartUrl, () => {
         }[] = [
             { name: "single year", query: "1500", param: [1500, 1500] },
             {
+                name: "single year negative",
+                query: "-1500",
+                param: [-1500, -1500]
+            },
+            { name: "single year zero", query: "0", param: [0, 0] },
+            {
                 name: "single year latest",
                 query: "latest",
-                param: [Infinity, Infinity]
+                param: [
+                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.unboundedRight
+                ]
             },
             {
                 name: "single year earliest",
                 query: "earliest",
-                param: [-Infinity, -Infinity]
+                param: [
+                    TimeBoundValue.unboundedLeft,
+                    TimeBoundValue.unboundedLeft
+                ]
             },
             { name: "two years", query: "2000..2005", param: [2000, 2005] },
             {
                 name: "right unbounded",
                 query: "2000..",
-                param: [2000, Infinity]
+                param: [2000, TimeBoundValue.unboundedRight]
             },
             {
                 name: "left unbounded",
                 query: "..2005",
-                param: [-Infinity, 2005]
+                param: [TimeBoundValue.unboundedLeft, 2005]
             },
             {
                 name: "unbounded (both)",
                 query: "..",
-                param: [-Infinity, Infinity]
+                param: [
+                    TimeBoundValue.unboundedLeft,
+                    TimeBoundValue.unboundedRight
+                ]
             },
             {
                 name: "negative years",
@@ -72,12 +92,15 @@ describe(ChartUrl, () => {
                 expect(end).toEqual(test.param[1])
             })
             it(`encode ${test.name}`, () => {
-                const params = toQueryParams(test.param)
+                const params = toQueryParams({
+                    minTime: test.param[0],
+                    maxTime: test.param[1]
+                })
                 expect(params.time).toEqual(test.query)
             })
         }
 
-        it("empty string doesn't change timeline", () => {
+        it("empty string doesn't change time", () => {
             const chart = fromQueryParams(
                 { time: "" },
                 { minTime: 0, maxTime: 5 }
@@ -85,6 +108,53 @@ describe(ChartUrl, () => {
             const [start, end] = chart.timeDomain
             expect(start).toEqual(0)
             expect(end).toEqual(5)
+        })
+    })
+
+    describe("year parameter", () => {
+        const tests: {
+            name: string
+            query: string
+            param: TimeBound
+        }[] = [
+            { name: "single year", query: "1500", param: 1500 },
+            {
+                name: "single year negative",
+                query: "-1500",
+                param: -1500
+            },
+            { name: "single year zero", query: "0", param: 0 },
+            {
+                name: "single year latest",
+                query: "latest",
+                param: TimeBoundValue.unboundedRight
+            },
+            {
+                name: "single year earliest",
+                query: "earliest",
+                param: TimeBoundValue.unboundedLeft
+            }
+        ]
+
+        for (const test of tests) {
+            it(`parse ${test.name}`, () => {
+                const chart = fromQueryParams({ year: test.query })
+                expect(chart.map.targetYear).toEqual(test.param)
+            })
+            it(`encode ${test.name}`, () => {
+                const params = toQueryParams({
+                    map: new MapConfigProps({ targetYear: test.param })
+                })
+                expect(params.year).toEqual(test.query)
+            })
+        }
+
+        it("empty string doesn't change time", () => {
+            const chart = fromQueryParams(
+                { year: "" },
+                { map: new MapConfigProps({ targetYear: 2015 }) }
+            )
+            expect(chart.map.targetYear).toEqual(2015)
         })
     })
 })
