@@ -477,6 +477,7 @@ export async function getRelatedCharts(
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
         WHERE post_tags.post_id=${postId}
+        ORDER BY title ASC
     `)
 }
 
