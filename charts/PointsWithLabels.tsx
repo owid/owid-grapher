@@ -33,6 +33,7 @@ import { getRelativeMouse, makeSafeForCSS, intersection } from "./Util"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Marks"
 import { select } from "d3-selection"
+import { getElementWithHalo } from "./Halos"
 
 export interface ScatterSeries {
     color: string
@@ -102,6 +103,7 @@ interface ScatterRenderSeries {
 interface ScatterLabel {
     text: string
     fontSize: number
+    fontWeight: number
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean
@@ -395,6 +397,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return {
             text: firstValue.label,
             fontSize: fontSize,
+            fontWeight: 400,
             bounds: bounds,
             series: series,
             isStart: true
@@ -416,6 +419,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 ? 8
                 : 9
             : 7
+        const fontWeight = 400
         const { labelFontFamily } = this
 
         return series.values.slice(1, -1).map((v, i) => {
@@ -446,6 +450,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 x: pos.x,
                 y: pos.y,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 fontFamily: labelFontFamily
             })
             if (pos.x < v.position.x)
@@ -466,6 +471,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             return {
                 text: v.label,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 bounds: bounds,
                 series: series,
                 isMid: true
@@ -490,6 +496,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 : 7
             : lastValue.fontSize *
               (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+        const fontWeight = series.isForeground ? 700 : 400
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -527,6 +534,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     ? lastValue.label
                     : series.text,
             fontSize: fontSize,
+            fontWeight: fontWeight,
             bounds: labelBounds,
             series: series,
             isEnd: true
@@ -587,9 +595,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 if (lowerPriorityLabel.isHidden) continue
 
                 if (
-                    higherPriorityLabel.bounds.intersects(
-                        lowerPriorityLabel.bounds
-                    )
+                    higherPriorityLabel.bounds
+                        .pad(-5)
+                        .intersects(lowerPriorityLabel.bounds)
                 ) {
                     lowerPriorityLabel.isHidden = true
                 }
@@ -688,7 +696,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.renderData.filter(group => !!group.isForeground)
     }
 
-    renderBackgroundGroups() {
+    private renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected, hideLines } = this
 
         return hideLines
@@ -703,17 +711,19 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
               ))
     }
 
-    renderBackgroundLabels() {
+    private renderBackgroundLabels() {
         const { backgroundGroups, isLayerMode } = this
+
         return (
             <g
                 className="backgroundLabels"
                 fill={!isLayerMode ? "#333" : "#aaa"}
             >
                 {backgroundGroups.map(series => {
-                    return series.allLabels.map(
-                        l =>
-                            !l.isHidden && (
+                    return series.allLabels
+                        .filter(l => !l.isHidden)
+                        .map(l =>
+                            getElementWithHalo(
                                 <text
                                     key={series.displayKey + "-endLabel"}
                                     x={l.bounds.x.toFixed(2)}
@@ -721,11 +731,13 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                         2
                                     )}
                                     fontSize={l.fontSize.toFixed(2)}
+                                    fontWeight={l.fontWeight}
+                                    fill={isLayerMode ? "#aaa" : l.series.color}
                                 >
                                     {l.text}
                                 </text>
                             )
-                    )
+                        )
                 })}
             </g>
         )
@@ -735,7 +747,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return guid()
     }
 
-    renderForegroundGroups() {
+    private renderForegroundGroups() {
         const {
             foregroundGroups,
             isSubtleForeground,
@@ -822,24 +834,26 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
-    renderForegroundLabels() {
+    private renderForegroundLabels() {
         const { foregroundGroups, labelFontFamily } = this
         return foregroundGroups.map(series => {
-            return series.allLabels.map(
-                (l, i) =>
-                    !l.isHidden && (
+            return series.allLabels
+                .filter(l => !l.isHidden)
+                .map((l, i) =>
+                    getElementWithHalo(
                         <text
                             key={`${series.displayKey}-label-${i}`}
                             x={l.bounds.x.toFixed(2)}
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}
                             fontFamily={labelFontFamily}
-                            fill="#333"
+                            fontWeight={l.fontWeight}
+                            fill={l.series.color}
                         >
                             {l.text}
                         </text>
                     )
-            )
+                )
         })
     }
 
