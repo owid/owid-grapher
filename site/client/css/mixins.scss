@@ -26,6 +26,8 @@
     padding-bottom: 1rem;
     @include wrapper-spacing-sm;
     @include md-up {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
         @include wrapper-spacing-md;
     }
 }

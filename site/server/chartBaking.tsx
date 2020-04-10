@@ -8,6 +8,7 @@ import { renderToHtmlPage } from "site/server/siteBaking"
 import { getVariableData } from "db/model/Variable"
 import { Post } from "db/model/Post"
 import { urlToSlug } from "charts/Util"
+import { getRelatedCharts } from "db/wpdb"
 
 export async function chartDataJson(variableIds: number[]) {
     return await getVariableData(variableIds)
@@ -16,7 +17,10 @@ export async function chartDataJson(variableIds: number[]) {
 export async function chartPageFromConfig(chart: ChartConfigProps) {
     const postSlug = urlToSlug(chart.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
-    return renderToHtmlPage(<ChartPage chart={chart} post={post} />)
+    const relatedCharts = post ? await getRelatedCharts(post.id) : undefined
+    return renderToHtmlPage(
+        <ChartPage chart={chart} post={post} relatedCharts={relatedCharts} />
+    )
 }
 
 export async function chartPageFromSlug(slug: string) {
