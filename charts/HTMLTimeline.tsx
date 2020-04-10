@@ -124,7 +124,7 @@ export class Timeline extends React.Component<TimelineProps> {
         return bound
     }
 
-    getYearRound(bound: TimeBound, defaultValue: TimeBound): TimeBound {
+    getClosest(bound: TimeBound, defaultValue: TimeBound): TimeBound {
         if (isUnbounded(bound)) return bound
         return findClosestYear(this.years, bound) ?? defaultValue
     }
@@ -133,16 +133,16 @@ export class Timeline extends React.Component<TimelineProps> {
         return this.getYearUI(this.startYear)
     }
 
-    @computed get startYearRound(): TimeBound {
-        return this.getYearRound(this.startYear, TimeBoundValue.unboundedLeft)
+    @computed get startYearClosest(): TimeBound {
+        return this.getClosest(this.startYear, TimeBoundValue.unboundedLeft)
     }
 
     @computed get endYearUI(): Time {
         return this.getYearUI(this.endYear)
     }
 
-    @computed get endYearRound(): TimeBound {
-        return this.getYearRound(this.endYear, TimeBoundValue.unboundedRight)
+    @computed get endYearClosest(): TimeBound {
+        return this.getClosest(this.endYear, TimeBoundValue.unboundedRight)
     }
 
     animRequest?: number
@@ -360,8 +360,8 @@ export class Timeline extends React.Component<TimelineProps> {
                 () => {
                     if (this.props.onTargetChange) {
                         this.props.onTargetChange({
-                            targetStartYear: this.startYearRound,
-                            targetEndYear: this.endYearRound
+                            targetStartYear: this.startYearClosest,
+                            targetEndYear: this.endYearClosest
                         })
                     }
                 },
@@ -377,8 +377,8 @@ export class Timeline extends React.Component<TimelineProps> {
                         // have logic to flip start/end on the fly. But when they get reassigned, to
                         // avoid the unintentional flip, it needs to be done atomically.
                         ;[this.startYearRaw, this.endYearRaw] = [
-                            this.startYearRound,
-                            this.endYearRound
+                            this.startYearClosest,
+                            this.endYearClosest
                         ]
                     })
                 }

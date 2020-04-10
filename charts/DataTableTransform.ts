@@ -9,7 +9,7 @@ import {
 import { ChartConfig } from "./ChartConfig"
 import { DimensionWithData } from "./DimensionWithData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { getTimeFromTimeRange, Time } from "./TimeBounds"
+import { getTimeWithinTimeRange, Time } from "./TimeBounds"
 
 // Target year modes
 
@@ -163,13 +163,13 @@ export class DataTableTransform {
         const [startYear, endYear] = this.chart.timeDomain
         const timeRange: [Time, Time] = [this.minYear, this.maxYear]
         if (this.chart.tab === "map") {
-            return [getTimeFromTimeRange(timeRange, mapTarget)]
+            return [getTimeWithinTimeRange(timeRange, mapTarget)]
         } else if (startYear === endYear) {
-            return [getTimeFromTimeRange(timeRange, startYear)]
+            return [getTimeWithinTimeRange(timeRange, startYear)]
         } else {
             return [
-                getTimeFromTimeRange(timeRange, startYear),
-                getTimeFromTimeRange(timeRange, endYear)
+                getTimeWithinTimeRange(timeRange, startYear),
+                getTimeWithinTimeRange(timeRange, endYear)
             ]
         }
     }

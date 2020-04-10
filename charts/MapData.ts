@@ -26,7 +26,7 @@ import {
     isNumber,
     sortBy
 } from "./Util"
-import { Time, getTimeFromTimes } from "./TimeBounds"
+import { Time, getClosestTime } from "./TimeBounds"
 
 export interface MapDataValue {
     entity: string
@@ -296,7 +296,7 @@ export class MapData {
     }
 
     @computed get targetYear(): Time {
-        return getTimeFromTimes(this.timelineYears, this.map.targetYear, 2000)
+        return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }
 
     @computed get legendTitle(): string {

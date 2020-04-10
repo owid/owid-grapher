@@ -6,7 +6,7 @@ import {
     Time,
     isUnboundedLeft,
     isUnboundedRight,
-    getTimeFromTimes
+    getClosestTime
 } from "./TimeBounds"
 import { defaultTo, first, last } from "./Util"
 import { ChartConfig } from "./ChartConfig"
@@ -60,11 +60,7 @@ export abstract class ChartTransform implements IChartTransform {
         } else if (isUnboundedRight(minYear)) {
             return this.maxTimelineYear
         }
-        return getTimeFromTimes(
-            this.timelineYears,
-            minYear,
-            this.minTimelineYear
-        )
+        return getClosestTime(this.timelineYears, minYear, this.minTimelineYear)
     }
 
     /**
@@ -79,11 +75,7 @@ export abstract class ChartTransform implements IChartTransform {
         } else if (isUnboundedRight(maxYear)) {
             return this.maxTimelineYear
         }
-        return getTimeFromTimes(
-            this.timelineYears,
-            maxYear,
-            this.maxTimelineYear
-        )
+        return getClosestTime(this.timelineYears, maxYear, this.maxTimelineYear)
     }
 
     /**

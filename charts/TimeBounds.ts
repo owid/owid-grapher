@@ -104,7 +104,7 @@ export function maxTimeFromJSON(
 export const minTimeToJSON = toJSON
 export const maxTimeToJSON = toJSON
 
-export function getTimeFromTimeRange(
+export function getTimeWithinTimeRange(
     [minTime, maxTime]: [Time, Time],
     bound: TimeBound
 ): Time {
@@ -113,7 +113,7 @@ export function getTimeFromTimeRange(
     return Math.min(maxTime, Math.max(minTime, bound))
 }
 
-export function getTimeFromTimes(
+export function getClosestTime(
     times: Time[],
     bound: TimeBound,
     defaultValue: Time
