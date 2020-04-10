@@ -732,6 +732,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                     )}
                                     fontSize={l.fontSize.toFixed(2)}
                                     fontWeight={l.fontWeight}
+                                    fill={l.series.color}
                                 >
                                     {l.text}
                                 </text>
@@ -846,8 +847,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}
                             fontFamily={labelFontFamily}
-                            fill="#333"
                             fontWeight={l.fontWeight}
+                            fill={l.series.color}
                         >
                             {l.text}
                         </text>
