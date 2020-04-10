@@ -193,28 +193,26 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 
         return (
             <Section name="Timeline selection">
-                {!chart.isScatter && (
-                    <FieldsRow>
-                        {features.timeDomain && (
-                            <NumberField
-                                label="Selection start"
-                                value={chart.props.minTime}
-                                onValue={debounce(this.onMinTime)}
-                                allowNegative
-                            />
-                        )}
+                <FieldsRow>
+                    {features.timeDomain && (
                         <NumberField
-                            label={
-                                features.timeDomain
-                                    ? "Selection end"
-                                    : "Selected year"
-                            }
-                            value={chart.props.maxTime}
-                            onValue={debounce(this.onMaxTime)}
+                            label="Selection start"
+                            value={chart.props.minTime}
+                            onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
-                    </FieldsRow>
-                )}
+                    )}
+                    <NumberField
+                        label={
+                            features.timeDomain
+                                ? "Selection end"
+                                : "Selected year"
+                        }
+                        value={chart.props.maxTime}
+                        onValue={debounce(this.onMaxTime)}
+                        allowNegative
+                    />
+                </FieldsRow>
                 {features.timelineRange && (
                     <FieldsRow>
                         <NumberField
