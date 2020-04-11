@@ -21,12 +21,12 @@ import {
     extend,
     each,
     find,
-    sortedUniq,
     keyBy,
     isNumber,
     sortBy
 } from "./Util"
 import { Time, getClosestTime } from "./TimeBounds"
+import { ChartTransform } from "./ChartTransform"
 
 export interface MapDataValue {
     entity: string
@@ -131,12 +131,15 @@ export class CategoricalBin {
 
 export type MapLegendBin = NumericBin | CategoricalBin
 
-export class MapData {
-    chart: ChartConfig
+export class MapData extends ChartTransform {
     constructor(chart: ChartConfig) {
-        this.chart = chart
+        super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()
+    }
+
+    @computed get isValidConfig() {
+        return !!this.chart.data.primaryVariable
     }
 
     ensureValidConfig() {
@@ -280,14 +283,10 @@ export class MapData {
     }
 
     // All available years with data for the map
-    @computed get timelineYears(): Time[] {
+    @computed get availableYears(): Time[] {
         const { mappableData } = this
-        return sortedUniq(
-            sortBy(
-                mappableData.years.filter(
-                    (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
-                )
-            )
+        return mappableData.years.filter(
+            (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
         )
     }
 
@@ -295,6 +294,8 @@ export class MapData {
         return !this.map.props.hideTimeline && this.timelineYears.length > 1
     }
 
+    // Overrides the default ChartTransform#targetYear method because the map stores the target year
+    // separately in the config.
     @computed get targetYear(): Time {
         return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }

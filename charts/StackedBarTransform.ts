@@ -48,7 +48,7 @@ export class StackedBarTransform extends ChartTransform {
         )
     }
 
-    @computed get timelineYears(): Time[] {
+    @computed get availableYears(): Time[] {
         if (this.primaryDimension === undefined) return []
         return this.primaryDimension.yearsUniq
     }

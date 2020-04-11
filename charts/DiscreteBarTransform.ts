@@ -1,14 +1,5 @@
 import { computed } from "mobx"
-import {
-    some,
-    isEmpty,
-    sortBy,
-    orderBy,
-    values,
-    flatten,
-    uniq,
-    sortedUniq
-} from "./Util"
+import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "./ChartTransform"
 import { DimensionWithData } from "./DimensionWithData"
@@ -35,13 +26,9 @@ export class DiscreteBarTransform extends ChartTransform {
         return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
-    @computed get timelineYears(): Time[] {
-        return sortedUniq(
-            sortBy(
-                flatten(
-                    this.primaryDimensions.map(dim => dim.variable.yearsUniq)
-                )
-            )
+    @computed get availableYears(): Time[] {
+        return flatten(
+            this.primaryDimensions.map(dim => dim.variable.yearsUniq)
         )
     }
 

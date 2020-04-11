@@ -7,7 +7,6 @@ import {
     sortBy,
     identity,
     cloneDeep,
-    sortedUniq,
     clone,
     defaultTo,
     formatValue
@@ -106,10 +105,10 @@ export class LineChartTransform extends ChartTransform {
         return chartData
     }
 
-    @computed get timelineYears(): Time[] {
+    @computed get availableYears(): Time[] {
         const allYears: Time[] = []
         this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-        return sortedUniq(sortBy(allYears))
+        return allYears
     }
 
     @computed get predomainData() {

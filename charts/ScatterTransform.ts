@@ -11,7 +11,6 @@ import {
     map,
     includes,
     sortedFindClosestIndex,
-    sortedUniq,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
     uniq,
@@ -332,8 +331,8 @@ export class ScatterTransform extends ChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get timelineYears(): Time[] {
-        return sortedUniq(sortBy(this.allPoints.map(point => point.year)))
+    @computed get availableYears(): Time[] {
+        return this.allPoints.map(point => point.year)
     }
 
     @computed get hasTimeline(): boolean {

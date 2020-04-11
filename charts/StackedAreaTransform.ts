@@ -168,9 +168,9 @@ export class StackedAreaTransform extends ChartTransform {
         return groupedData
     }
 
-    @computed get timelineYears(): Time[] {
+    @computed get availableYears(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return sortedUniq(sortBy(this.groupedData[0].values.map(v => v.x)))
+        return this.groupedData[0].values.map(v => v.x)
     }
 
     @computed get canToggleRelative(): boolean {

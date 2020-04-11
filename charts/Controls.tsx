@@ -408,22 +408,11 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.useTimelineDomains = false
     }
 
-    boundedYears(years: number[]) {
-        const chartProps = this.props.chart.props
-        const min = chartProps.timelineMinTime
-        const max = chartProps.timelineMaxTime
-        return years.filter(year => {
-            if (min !== undefined && year < min) return false
-            if (max !== undefined && year > max) return false
-            return true
-        })
-    }
-
     render() {
         const { chart } = this.props
         if (chart.props.tab === "map") {
             const { map } = chart
-            const years = this.boundedYears(map.data.timelineYears)
+            const years = map.data.timelineYears
             if (years.length === 0) {
                 return null
             }
@@ -437,7 +426,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
-            const years = this.boundedYears(chart.scatter.timelineYears)
+            const years = chart.scatter.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -450,7 +439,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isLineChart) {
-            const years = this.boundedYears(chart.lineChart.timelineYears)
+            const years = chart.lineChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -464,7 +453,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isSlopeChart) {
-            const years = this.boundedYears(chart.slopeChart.timelineYears)
+            const years = chart.slopeChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -478,7 +467,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else {
-            const years = this.boundedYears(chart.lineChart.timelineYears)
+            const years = chart.lineChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
