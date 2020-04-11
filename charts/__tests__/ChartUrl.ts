@@ -2,7 +2,7 @@
 
 import { ChartConfigProps } from "charts/ChartConfig"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/TimeBounds"
-import { createConfig } from "test/utils"
+import { createConfig, setupChart } from "test/utils"
 
 import { ChartUrl, ChartQueryParams } from "../ChartUrl"
 import { MapConfigProps } from "charts/MapConfig"
@@ -28,147 +28,305 @@ function toQueryParams(props?: Partial<ChartConfigProps>) {
 
 describe(ChartUrl, () => {
     describe("time parameter", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBounds
-        }[] = [
-            { name: "single year", query: "1500", param: [1500, 1500] },
-            {
-                name: "single year negative",
-                query: "-1500",
-                param: [-1500, -1500]
-            },
-            { name: "single year zero", query: "0", param: [0, 0] },
-            {
-                name: "single year latest",
-                query: "latest",
-                param: [
-                    TimeBoundValue.unboundedRight,
-                    TimeBoundValue.unboundedRight
-                ]
-            },
-            {
-                name: "single year earliest",
-                query: "earliest",
-                param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedLeft
-                ]
-            },
-            { name: "two years", query: "2000..2005", param: [2000, 2005] },
-            {
-                name: "right unbounded",
-                query: "2000..",
-                param: [2000, TimeBoundValue.unboundedRight]
-            },
-            {
-                name: "left unbounded",
-                query: "..2005",
-                param: [TimeBoundValue.unboundedLeft, 2005]
-            },
-            {
-                name: "unbounded (both)",
-                query: "..",
-                param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedRight
-                ]
-            },
-            {
-                name: "negative years",
-                query: "-500..-1",
-                param: [-500, -1]
-            }
-        ]
+        describe("with years", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBounds
+            }[] = [
+                { name: "single year", query: "1500", param: [1500, 1500] },
+                {
+                    name: "single year negative",
+                    query: "-1500",
+                    param: [-1500, -1500]
+                },
+                { name: "single year zero", query: "0", param: [0, 0] },
+                {
+                    name: "single year latest",
+                    query: "latest",
+                    param: [
+                        TimeBoundValue.unboundedRight,
+                        TimeBoundValue.unboundedRight
+                    ]
+                },
+                {
+                    name: "single year earliest",
+                    query: "earliest",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedLeft
+                    ]
+                },
+                { name: "two years", query: "2000..2005", param: [2000, 2005] },
+                {
+                    name: "right unbounded",
+                    query: "2000..",
+                    param: [2000, TimeBoundValue.unboundedRight]
+                },
+                {
+                    name: "left unbounded",
+                    query: "..2005",
+                    param: [TimeBoundValue.unboundedLeft, 2005]
+                },
+                {
+                    name: "unbounded (both)",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedRight
+                    ]
+                },
+                {
+                    name: "negative years",
+                    query: "-500..-1",
+                    param: [-500, -1]
+                }
+            ]
 
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const chart = fromQueryParams({ time: test.query })
-                const [start, end] = chart.timeDomain
-                expect(start).toEqual(test.param[0])
-                expect(end).toEqual(test.param[1])
-            })
-            it(`encode ${test.name}`, () => {
-                const params = toQueryParams({
-                    minTime: test.param[0],
-                    maxTime: test.param[1]
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const chart = fromQueryParams({ time: test.query })
+                    const [start, end] = chart.timeDomain
+                    expect(start).toEqual(test.param[0])
+                    expect(end).toEqual(test.param[1])
                 })
-                expect(params.time).toEqual(test.query)
-            })
-        }
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        minTime: test.param[0],
+                        maxTime: test.param[1]
+                    })
+                    expect(params.time).toEqual(test.query)
+                })
+            }
 
-        it("empty string doesn't change time", () => {
-            const chart = fromQueryParams(
-                { time: "" },
-                { minTime: 0, maxTime: 5 }
-            )
-            const [start, end] = chart.timeDomain
-            expect(start).toEqual(0)
-            expect(end).toEqual(5)
+            it("empty string doesn't change time", () => {
+                const chart = fromQueryParams(
+                    { time: "" },
+                    { minTime: 0, maxTime: 5 }
+                )
+                const [start, end] = chart.timeDomain
+                expect(start).toEqual(0)
+                expect(end).toEqual(5)
+            })
+
+            it("doesn't include URL param if it's identical to original config", () => {
+                const chart = createConfig({
+                    minTime: 0,
+                    maxTime: 75
+                })
+                expect(chart.url.params.time).toEqual(undefined)
+            })
+
+            it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
+                const chart = createConfig({
+                    minTime: undefined,
+                    maxTime: 75
+                })
+                expect(chart.url.params.time).toEqual(undefined)
+            })
         })
 
-        it("doesn't include URL param if it's identical to original config", () => {
-            const chart = createConfig({
-                minTime: 0,
-                maxTime: 75
-            })
-            expect(chart.url.params.time).toEqual(undefined)
-        })
+        describe("with days", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBounds
+                irreversible?: boolean
+            }[] = [
+                {
+                    name: "single day (date)",
+                    query: "2020-01-22",
+                    param: [1, 1]
+                },
+                {
+                    name: "single day negative (date)",
+                    query: "2020-01-01",
+                    param: [-20, -20]
+                },
+                {
+                    name: "single day zero (date)",
+                    query: "2020-01-21",
+                    param: [0, 0]
+                },
+                {
+                    name: "single day latest",
+                    query: "latest",
+                    param: [
+                        TimeBoundValue.unboundedRight,
+                        TimeBoundValue.unboundedRight
+                    ]
+                },
+                {
+                    name: "single day earliest",
+                    query: "earliest",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedLeft
+                    ]
+                },
+                {
+                    name: "two days",
+                    query: "2020-01-01..2020-02-01",
+                    param: [-20, 11]
+                },
+                {
+                    name: "right unbounded (date)",
+                    query: "2020-01-01..",
+                    param: [-20, TimeBoundValue.unboundedRight]
+                },
+                {
+                    name: "left unbounded (date)",
+                    query: "..2020-01-01",
+                    param: [TimeBoundValue.unboundedLeft, -20]
+                },
+                {
+                    name: "both unbounded",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedRight
+                    ]
+                },
+                {
+                    name: "single day (number)",
+                    query: "5",
+                    param: [5, 5],
+                    irreversible: true
+                },
+                {
+                    name: "range (number)",
+                    query: "-5..5",
+                    param: [-5, 5],
+                    irreversible: true
+                },
+                {
+                    name: "unbounded range (number)",
+                    query: "-500..",
+                    param: [-500, TimeBoundValue.unboundedRight],
+                    irreversible: true
+                }
+            ]
 
-        it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
-            const chart = createConfig({
-                minTime: undefined,
-                maxTime: 75
-            })
-            expect(chart.url.params.time).toEqual(undefined)
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const chart = setupChart(4066, 142708)
+                    chart.url.populateFromQueryParams({ time: test.query })
+                    const [start, end] = chart.timeDomain
+                    expect(start).toEqual(test.param[0])
+                    expect(end).toEqual(test.param[1])
+                })
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const chart = setupChart(4066, 142708)
+                        chart.update({
+                            minTime: test.param[0],
+                            maxTime: test.param[1]
+                        })
+                        const params = chart.url.params
+                        expect(params.time).toEqual(test.query)
+                    })
+                }
+            }
         })
     })
 
     describe("year parameter", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBound
-        }[] = [
-            { name: "single year", query: "1500", param: 1500 },
-            {
-                name: "single year negative",
-                query: "-1500",
-                param: -1500
-            },
-            { name: "single year zero", query: "0", param: 0 },
-            {
-                name: "single year latest",
-                query: "latest",
-                param: TimeBoundValue.unboundedRight
-            },
-            {
-                name: "single year earliest",
-                query: "earliest",
-                param: TimeBoundValue.unboundedLeft
-            }
-        ]
+        describe("with years", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBound
+            }[] = [
+                { name: "single year", query: "1500", param: 1500 },
+                {
+                    name: "single year negative",
+                    query: "-1500",
+                    param: -1500
+                },
+                { name: "single year zero", query: "0", param: 0 },
+                {
+                    name: "single year latest",
+                    query: "latest",
+                    param: TimeBoundValue.unboundedRight
+                },
+                {
+                    name: "single year earliest",
+                    query: "earliest",
+                    param: TimeBoundValue.unboundedLeft
+                }
+            ]
 
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const chart = fromQueryParams({ year: test.query })
-                expect(chart.map.targetYear).toEqual(test.param)
-            })
-            it(`encode ${test.name}`, () => {
-                const params = toQueryParams({
-                    map: new MapConfigProps({ targetYear: test.param })
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const chart = fromQueryParams({ year: test.query })
+                    expect(chart.map.targetYear).toEqual(test.param)
                 })
-                expect(params.year).toEqual(test.query)
-            })
-        }
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        map: new MapConfigProps({ targetYear: test.param })
+                    })
+                    expect(params.year).toEqual(test.query)
+                })
+            }
 
-        it("empty string doesn't change time", () => {
-            const chart = fromQueryParams(
-                { year: "" },
-                { map: new MapConfigProps({ targetYear: 2015 }) }
-            )
-            expect(chart.map.targetYear).toEqual(2015)
+            it("empty string doesn't change time", () => {
+                const chart = fromQueryParams(
+                    { year: "" },
+                    { map: new MapConfigProps({ targetYear: 2015 }) }
+                )
+                expect(chart.map.targetYear).toEqual(2015)
+            })
+        })
+
+        describe("with days", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBound
+                irreversible?: boolean
+            }[] = [
+                { name: "single day", query: "2020-01-30", param: 9 },
+                {
+                    name: "single day negative",
+                    query: "2020-01-01",
+                    param: -20
+                },
+                { name: "single day zero", query: "2020-01-21", param: 0 },
+                {
+                    name: "single day latest",
+                    query: "latest",
+                    param: TimeBoundValue.unboundedRight
+                },
+                {
+                    name: "single day earliest",
+                    query: "earliest",
+                    param: TimeBoundValue.unboundedLeft
+                },
+                {
+                    name: "single day (number)",
+                    query: "0",
+                    param: 0,
+                    irreversible: true
+                }
+            ]
+
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const chart = setupChart(4066, 142708)
+                    chart.url.populateFromQueryParams({ year: test.query })
+                    expect(chart.map.targetYear).toEqual(test.param)
+                })
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const chart = setupChart(4066, 142708)
+                        chart.update({
+                            map: new MapConfigProps({ targetYear: test.param })
+                        })
+                        const params = chart.url.params
+                        expect(params.year).toEqual(test.query)
+                    })
+                }
+            }
         })
     })
 })
