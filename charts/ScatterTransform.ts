@@ -323,13 +323,6 @@ export class ScatterTransform extends ChartTransform {
         return this.allPoints.map(point => point.year)
     }
 
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
     @computed private get currentValues(): ScatterValue[] {
         const currentValues: ScatterValue[] = []
         this.currentData.forEach(group => currentValues.push(...group.values))

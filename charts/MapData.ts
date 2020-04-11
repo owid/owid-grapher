@@ -290,10 +290,6 @@ export class MapData extends ChartTransform {
         )
     }
 
-    @computed get hasTimeline(): boolean {
-        return !this.map.props.hideTimeline && this.timelineYears.length > 1
-    }
-
     // Overrides the default ChartTransform#targetYear method because the map stores the target year
     // separately in the config.
     @computed get targetYear(): Time {

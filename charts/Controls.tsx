@@ -516,7 +516,7 @@ export class Controls {
         )
             return true
         else if (chart.tab === "chart" && chart.isLineChart)
-            return !chart.props.hideTimeline
+            return chart.lineChart.hasTimeline
         else if (chart.tab === "chart" && chart.isSlopeChart)
             return chart.slopeChart.hasTimeline
         else return false

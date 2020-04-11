@@ -52,11 +52,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            this.timelineYears.length > 2 &&
-            !this.chart.props.hideTimeline
-        )
+        return super.hasTimeline && this.timelineYears.length > 2
     }
 
     @computed.struct get xDomain(): [number, number] {

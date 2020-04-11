@@ -95,6 +95,10 @@ export abstract class ChartTransform implements IChartTransform {
         return getClosestTime(this.timelineYears, maxYear, this.maxTimelineYear)
     }
 
+    @computed get hasTimeline(): boolean {
+        return this.timelineYears.length > 1 && !this.chart.props.hideTimeline
+    }
+
     /**
      * Whether the plotted data only contains a single year.
      */

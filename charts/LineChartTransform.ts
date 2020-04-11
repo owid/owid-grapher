@@ -220,13 +220,6 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
     @computed get isRelativeMode(): boolean {
         return this.chart.props.stackMode === "relative"
     }
