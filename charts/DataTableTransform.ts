@@ -150,11 +150,11 @@ export class DataTableTransform {
     }
 
     @computed get minYear(): Time {
-        return this.chart.data.minYear ?? 1900
+        return this.chart.data.minYear
     }
 
     @computed get maxYear(): Time {
-        return this.chart.data.maxYear ?? 2000
+        return this.chart.data.maxYear
     }
 
     // TODO move this logic to chart

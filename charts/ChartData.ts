@@ -103,7 +103,7 @@ export class ChartData {
     }
 
     // XXX refactor into the transforms
-    @computed get minYear(): number | undefined {
+    @computed get minYear(): number {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
@@ -112,16 +112,10 @@ export class ChartData {
             return chart.scatter.startYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
-        else if (
-            chart.isLineChart &&
-            chart.lineChart.isSingleYear &&
-            !chart.discreteBar.failMessage
-        )
-            return chart.lineChart.startYear
-        else return undefined
+        else return chart.lineChart.startYear
     }
 
-    @computed get maxYear(): number | undefined {
+    @computed get maxYear(): number {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
@@ -130,13 +124,7 @@ export class ChartData {
             return chart.scatter.endYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
-        else if (
-            chart.isLineChart &&
-            chart.lineChart.isSingleYear &&
-            !chart.discreteBar.failMessage
-        )
-            return chart.lineChart.endYear
-        else return undefined
+        else return chart.lineChart.endYear
     }
 
     @computed get currentTitle(): string {
