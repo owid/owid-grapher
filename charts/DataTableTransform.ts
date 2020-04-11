@@ -9,6 +9,7 @@ import {
 import { ChartConfig } from "./ChartConfig"
 import { DimensionWithData } from "./DimensionWithData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { getTimeWithinTimeRange, Time } from "./TimeBounds"
 
 // Target year modes
 
@@ -148,17 +149,28 @@ export class DataTableTransform {
         return TargetYearMode.point
     }
 
+    @computed get minYear(): Time {
+        return this.chart.data.minYear ?? 1900
+    }
+
+    @computed get maxYear(): Time {
+        return this.chart.data.maxYear ?? 2000
+    }
+
     // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
-        const mapTarget = this.chart.map.props.targetYear
-        const { timeDomain } = this.chart
-        if (this.chart.tab === "map" && mapTarget !== undefined) {
-            return [mapTarget]
-        } else if (timeDomain[0] !== undefined && timeDomain[1] !== undefined) {
-            if (timeDomain[0] === timeDomain[1]) return [timeDomain[0]]
-            else return [timeDomain[0], timeDomain[1]]
+        const mapTarget = this.chart.map.targetYear
+        const [startYear, endYear] = this.chart.timeDomain
+        const timeRange: [Time, Time] = [this.minYear, this.maxYear]
+        if (this.chart.tab === "map") {
+            return [getTimeWithinTimeRange(timeRange, mapTarget)]
+        } else if (startYear === endYear) {
+            return [getTimeWithinTimeRange(timeRange, startYear)]
         } else {
-            return [new Date().getFullYear()]
+            return [
+                getTimeWithinTimeRange(timeRange, startYear),
+                getTimeWithinTimeRange(timeRange, endYear)
+            ]
         }
     }
 

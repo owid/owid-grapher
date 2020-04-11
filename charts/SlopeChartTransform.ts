@@ -1,21 +1,14 @@
-import { some, union, min, max, find, isEmpty } from "./Util"
 import { computed } from "mobx"
-import { ChartConfig } from "./ChartConfig"
-import { defaultTo, defaultWith, findClosest } from "./Util"
+import { some, find, isEmpty, sortedUniq, sortBy, flatten } from "./Util"
 import { DimensionWithData } from "./DimensionWithData"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
-import { IChartTransform } from "./IChartTransform"
+import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export class SlopeChartTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class SlopeChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return this.chart.dimensions.some(d => d.property === "y")
     }
@@ -52,18 +45,16 @@ export class SlopeChartTransform implements IChartTransform {
         return this.colors.colorables
     }
 
-    @computed get timelineYears(): number[] {
-        return union(
-            ...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
+    @computed get timelineYears(): Time[] {
+        return sortedUniq(
+            sortBy(
+                flatten(
+                    this.chart.data.axisDimensions.map(
+                        d => d.variable.yearsUniq
+                    )
+                )
+            )
         )
-    }
-
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
     }
 
     @computed get hasTimeline(): boolean {
@@ -71,28 +62,6 @@ export class SlopeChartTransform implements IChartTransform {
             this.minTimelineYear !== this.maxTimelineYear &&
             this.timelineYears.length > 2 &&
             !this.chart.props.hideTimeline
-        )
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultWith(
-            this.chart.timeDomain[0],
-            () => this.minTimelineYear
-        )
-        return defaultWith(
-            findClosest(this.timelineYears, minYear),
-            () => this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultWith(
-            this.chart.timeDomain[1],
-            () => this.maxTimelineYear
-        )
-        return defaultWith(
-            findClosest(this.timelineYears, maxYear),
-            () => this.maxTimelineYear
         )
     }
 

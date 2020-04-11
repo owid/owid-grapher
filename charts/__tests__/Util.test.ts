@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import * as timezoneMock from "timezone-mock"
 
@@ -10,10 +10,6 @@ import {
     retryPromise
 } from "../Util"
 
-function iteratorFromArray<T>(array: T[]): Iterable<T> {
-    return array[Symbol.iterator]()
-}
-
 describe(findClosestYear, () => {
     describe("without tolerance", () => {
         describe("array", () => {
@@ -23,17 +19,6 @@ describe(findClosestYear, () => {
             })
             it("returns undefined", () => {
                 const years = [2010, 2015, 2017]
-                expect(findClosestYear(years, 2014, 0)).toEqual(undefined)
-            })
-        })
-
-        describe("iterator", () => {
-            it("returns the correct year", () => {
-                const years = iteratorFromArray([2010, 2015, 2017])
-                expect(findClosestYear(years, 2015, 0)).toEqual(2015)
-            })
-            it("returns undefined", () => {
-                const years = iteratorFromArray([2010, 2015, 2017])
                 expect(findClosestYear(years, 2014, 0)).toEqual(undefined)
             })
         })

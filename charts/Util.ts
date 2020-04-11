@@ -136,6 +136,7 @@ import parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 
 export type SVGElement = any
 export type VNode = any
@@ -378,13 +379,6 @@ export function slugify(s: string) {
     return trim(s).replace(/ +/g, "-")
 }
 
-export function findClosest(
-    numValues: number[],
-    targetValue: number
-): number | undefined {
-    return sortBy(numValues, value => Math.abs(value - targetValue))[0]
-}
-
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let n = 0
@@ -521,10 +515,12 @@ export function stripHTML(html: string): string {
 }
 
 export function findClosestYear(
-    years: number[] | Iterable<number>,
+    years: number[],
     targetYear: number,
     tolerance?: number
 ): number | undefined {
+    if (isUnboundedLeft(targetYear)) return min(years)
+    if (isUnboundedRight(targetYear)) return max(years)
     let closest: number | undefined
     for (const year of years) {
         const currentYearDist = Math.abs(year - targetYear)

@@ -14,6 +14,7 @@ import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "./Tooltip"
+import { TimeBound } from "./TimeBounds"
 
 export interface ScatterSeries {
     color: string
@@ -584,8 +585,8 @@ export class TimeScatter extends React.Component<{
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number
-        targetEndYear: number
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
     }) {
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }

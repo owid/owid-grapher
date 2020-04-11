@@ -4,6 +4,7 @@
 import { observable } from "mobx"
 import { extend } from "./Util"
 import { VariableDisplaySettings } from "./Variable"
+import { Time } from "./TimeBounds"
 
 export class ChartDimension {
     @observable property!: string
@@ -19,7 +20,7 @@ export class ChartDimension {
     }
 
     // XXX move this somewhere else, it's only used for scatter x override
-    @observable targetYear?: number = undefined
+    @observable targetYear?: Time = undefined
 
     // If enabled, dimension settings will be saved onto variable as defaults
     // for future charts
