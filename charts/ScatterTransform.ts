@@ -15,7 +15,8 @@ import {
     lastOfNonEmptyArray,
     uniq,
     compact,
-    formatYear
+    formatYear,
+    flatten
 } from "./Util"
 import { computed } from "mobx"
 import { defaultTo, first, last } from "./Util"
@@ -324,9 +325,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get currentValues(): ScatterValue[] {
-        const currentValues: ScatterValue[] = []
-        this.currentData.forEach(group => currentValues.push(...group.values))
-        return currentValues
+        return flatten(this.currentData.map(g => g.values))
     }
 
     // domains across the entire timeline

@@ -11,7 +11,8 @@ import {
     identity,
     sortedUniq,
     formatValue,
-    defaultTo
+    defaultTo,
+    flatten
 } from "./Util"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
@@ -236,9 +237,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get allStackedValues(): StackedAreaValue[] {
-        const allValues: StackedAreaValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.stackedData.map(series => series.values))
     }
 
     @computed get yDomainDefault(): [number, number] {

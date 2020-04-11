@@ -9,7 +9,8 @@ import {
     cloneDeep,
     clone,
     defaultTo,
-    formatValue
+    formatValue,
+    flatten
 } from "./Util"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
@@ -106,9 +107,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        const allYears: Time[] = []
-        this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-        return allYears
+        return flatten(this.initialData.map(g => g.values.map(d => d.x)))
     }
 
     @computed get predomainData() {
@@ -138,15 +137,11 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get allValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.predomainData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.predomainData.map(series => series.values))
     }
 
     @computed get filteredValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.groupedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.groupedData.map(series => series.values))
     }
 
     @computed get xDomain(): [number, number] {

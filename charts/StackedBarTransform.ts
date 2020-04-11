@@ -9,7 +9,8 @@ import {
     sortBy,
     max,
     defaultTo,
-    uniq
+    uniq,
+    flatten
 } from "./Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
@@ -117,9 +118,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
-        const allValues: StackedBarValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.stackedData.map(series => series.values))
     }
 
     @computed get xValues(): number[] {
