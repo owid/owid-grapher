@@ -112,14 +112,6 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.focusBracket = null
     }
 
-    @computed get hasTimeline(): boolean {
-        return (
-            !this.context.chart.map.props.hideTimeline &&
-            this.props.years.length > 1 &&
-            !this.context.chartView.isExport
-        )
-    }
-
     @computed get mapLegend(): MapLegend {
         const that = this
         return new MapLegend({
