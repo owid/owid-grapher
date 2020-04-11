@@ -505,18 +505,15 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.tab === "map" && chart.map.data.hasTimeline) return true
-        else if (
-            chart.tab === "chart" &&
-            (chart.isTimeScatter || chart.isScatter) &&
-            chart.scatter.hasTimeline
-        )
-            return true
-        else if (chart.tab === "chart" && chart.isLineChart)
-            return chart.lineChart.hasTimeline
-        else if (chart.tab === "chart" && chart.isSlopeChart)
-            return chart.slopeChart.hasTimeline
-        else return false
+        if (chart.tab === "map") {
+            return chart.map.data.hasTimeline
+        } else if (chart.tab === "chart") {
+            if (chart.isScatter || chart.isTimeScatter)
+                return chart.scatter.hasTimeline
+            if (chart.isLineChart) return chart.lineChart.hasTimeline
+            if (chart.isSlopeChart) return chart.slopeChart.hasTimeline
+        }
+        return false
     }
 
     @computed get hasInlineControls(): boolean {
