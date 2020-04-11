@@ -66,7 +66,6 @@ import {
     Time,
     TimeBounds
 } from "./TimeBounds"
-import { EPOCH_DATE } from "settings"
 
 declare const App: any
 declare const window: any
