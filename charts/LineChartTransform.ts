@@ -225,7 +225,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get canToggleRelative(): boolean {
-        return this.hasTimeline && !this.chart.props.hideRelativeToggle
+        return !this.chart.props.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains
