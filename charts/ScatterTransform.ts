@@ -197,18 +197,6 @@ export class ScatterTransform extends ChartTransform {
         }*/
     }
 
-    /*@computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }*/
-
-    /*@computed get hasTimeline(): boolean {
-        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
-    }*/
-
     @computed get compareEndPointsOnly(): boolean {
         return !!this.chart.props.compareEndPointsOnly
     }
