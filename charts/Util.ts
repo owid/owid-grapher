@@ -214,14 +214,18 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
-export function formatDay(dayAsYear: number): string {
+export function formatDay(
+    dayAsYear: number,
+    options?: { format?: string }
+): string {
+    const format = defaultTo(options?.format, "MMM D, YYYY")
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
     return moment
         .utc(EPOCH_DATE)
         .add(dayAsYear, "days")
-        .format("MMM D, YYYY")
+        .format(format)
 }
 
 export function formatYear(year: number): string {
