@@ -11,8 +11,8 @@ export function createConfig(props?: Partial<ChartConfigProps>) {
 }
 
 export function setupChart(
-    id: 677 | 792,
-    varId: 3512 | 104402,
+    id: 677 | 792 | 4066,
+    varId: 3512 | 104402 | 142708,
     configOverrides?: Partial<ChartConfigProps>
 ) {
     const props = new ChartConfigProps({
