@@ -67,7 +67,12 @@ export class Variable {
     }
 
     @computed get years(): number[] {
-        if (this.display.yearIsDay && this.display.zeroDay !== undefined) {
+        // Only shift years if the variable zeroDay is different from EPOCH_DATE
+        if (
+            this.display.yearIsDay &&
+            this.display.zeroDay !== undefined &&
+            this.display.zeroDay !== EPOCH_DATE
+        ) {
             const diff = diffDateISOStringInDays(
                 this.display.zeroDay,
                 EPOCH_DATE
