@@ -443,16 +443,14 @@ export class EditorCustomizeTab extends React.Component<{
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>
-                            {features.relativeModeToggle && (
-                                <Toggle
-                                    label={`Hide relative toggle`}
-                                    value={!!chart.props.hideRelativeToggle}
-                                    onValue={value =>
-                                        (chart.props.hideRelativeToggle =
-                                            value || false)
-                                    }
-                                />
-                            )}
+                            <Toggle
+                                label={`Hide relative toggle`}
+                                value={!!chart.props.hideRelativeToggle}
+                                onValue={value =>
+                                    (chart.props.hideRelativeToggle =
+                                        value || false)
+                                }
+                            />
                         </FieldsRow>
                     </Section>
                 )}
