@@ -79,9 +79,9 @@ html.iframe .ChartPage {
 
     main figure[data-grapher-src] {
         height: 100vh;
-        min-height: none;
+        min-height: auto;
         max-height: none;
-        min-width: none;
+        min-width: auto;
         max-width: none;
     }
 
