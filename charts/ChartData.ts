@@ -163,7 +163,8 @@ export class ChartData {
             !chart.props.hideTitleAnnotation ||
             (this.chart.isLineChart &&
                 this.chart.lineChart.isSingleYear &&
-                this.chart.lineChart.hasTimeline)
+                this.chart.lineChart.hasTimeline) ||
+            (this.chart.primaryTab === "map" && this.chart.map.data.hasTimeline)
         ) {
             const { minYear, maxYear } = this
             if (minYear !== undefined) {
