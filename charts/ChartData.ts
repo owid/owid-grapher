@@ -231,13 +231,6 @@ export class ChartData {
         return this.primaryDimensions.length === 1
     }
 
-    @computed get isShowingTimeline(): boolean {
-        return !!(
-            this.chart.primaryTab === "map" ||
-            (this.chart.isScatter && this.chart.scatter.hasTimeline)
-        )
-    }
-
     // Make a unique string key for an entity on a variable
     makeEntityDimensionKey(
         entity: string,
