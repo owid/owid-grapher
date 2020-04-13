@@ -218,7 +218,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}
                 />
-                <ControlsOverlay id="add-country">
+                <ControlsOverlay id="projection-chooser">
                     <ProjectionChooser
                         bounds={projectionChooserBounds}
                         value={projection}
