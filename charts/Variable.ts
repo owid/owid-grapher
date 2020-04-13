@@ -55,6 +55,8 @@ export class Variable {
     constructor(json: any) {
         for (const key in this) {
             if (key === "rawYears") {
+                // If the dataset is using `yearIsDay`, we need to normalize days to a single epoch.
+                // See `years` property below.
                 this.rawYears = json.years
             } else if (key in json) {
                 if (key === "display") {
@@ -73,6 +75,10 @@ export class Variable {
             this.display.zeroDay !== undefined &&
             this.display.zeroDay !== EPOCH_DATE
         ) {
+            // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
+            // days since the specified `zeroDay`, which can be different for different variables.
+            // In order to correctly join variables with different `zeroDay`s in a single chart, we
+            // normalize all days to be in reference to a single epoch date.
             const diff = diffDateISOStringInDays(
                 this.display.zeroDay,
                 EPOCH_DATE
