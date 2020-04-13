@@ -12,6 +12,7 @@ import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import * as fixtures from "test/fixtures"
+import { ChartListItemVariant } from "../ChartListItemVariant"
 
 describe(ChartPage, () => {
     let chart: ChartConfigProps
@@ -56,8 +57,7 @@ describe(ChartPage, () => {
         })
 
         it("renders a related content block", () => {
-            const selector = ".related-research-data li"
-            expect(view.find(selector)).toHaveLength(2)
+            expect(view.find(ChartListItemVariant)).toHaveLength(2)
         })
 
         it("renders a site footer", () => {
