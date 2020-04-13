@@ -65,7 +65,7 @@ export class SiteBaker {
                 country =>
                     `/detect-country.js /detect-country.js?${
                         country.code
-                    } 301 Country=${country.iso3166.toLowerCase()}`
+                    } 301 Country=${country.iso3166!.toLowerCase()}`
             )
     }
 
