@@ -53,7 +53,7 @@ class ChartFilter {
             document.querySelectorAll(".ChartsIndexPage main li")
         ) as HTMLLIElement[]
         this.chartItems = lis.map(li => ({
-            title: (li.textContent as string).replace(/₂/g, "2"),
+            title: (li.children[0].textContent as string).replace(/₂/g, "2"),
             li: li,
             ul: li.closest("ul") as HTMLUListElement
         }))
