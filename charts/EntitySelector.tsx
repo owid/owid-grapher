@@ -188,6 +188,7 @@ class EntitySelectorMulti extends React.Component<{
 @observer
 class EntitySelectorSingle extends React.Component<{
     chart: ChartConfig
+    isMobile: boolean
     onDismiss: () => void
 }> {
     @observable searchInput?: string
