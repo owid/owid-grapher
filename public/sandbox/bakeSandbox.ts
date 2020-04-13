@@ -1,10 +1,12 @@
 #!/usr/bin/env ts-node
 
 import * as fs from "fs-extra"
-import * as http from "http"
 
 const bakeSandbox = async (outputPath: string) => {
-    console.log(`Baking sandbox to ${outputPath}`)
+    outputPath = outputPath.replace(/\/$/, "") + "/"
+    console.log(
+        `Baking sandbox to "${outputPath}". Be sure to run 'yarn build' first to build needed bundles.`
+    )
 
     const assets = `http://localhost:8090/css/commons.css
 http://localhost:8090/css/owid.css
@@ -16,9 +18,12 @@ http://localhost:8090/js/commons.js`.split("\n")
     assets.forEach(url => {
         const parts = url.split("/")
         const filename = parts[parts.length - 1]
+        const extension = filename.split(".").pop()
+        fs.copy(
+            `${__dirname}/../../dist/webpack/${extension}/${filename}`,
+            outputPath + filename
+        )
         indexPage = indexPage.replace(url, filename)
-        const stream = fs.createWriteStream(outputPath + filename)
-        http.get(url, response => response.pipe(stream))
     })
     fs.writeFileSync(outputPath + "index.html", indexPage, "utf8")
     fs.writeFileSync(
@@ -28,4 +33,6 @@ http://localhost:8090/js/commons.js`.split("\n")
     )
 }
 
-bakeSandbox(process.argv[2])
+const destination = process.argv[2]
+if (!destination) throw new Error("No destination folder provided")
+bakeSandbox(destination)
