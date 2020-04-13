@@ -23,6 +23,10 @@ import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
+import { ControlsOverlay, ProjectionChooser } from "./Controls"
+
+const PROJECTION_CHOOSER_WIDTH = 110
+const PROJECTION_CHOOSER_HEIGHT = 22
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -112,6 +116,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.focusBracket = null
     }
 
+    @action.bound onProjectionChange(value: string) {
+        this.context.chart.map.props.projection = value as any
+    }
+
     @computed get mapLegend(): MapLegend {
         const that = this
         return new MapLegend({
@@ -163,6 +171,16 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             })
     }
 
+    @computed get projectionChooserBounds() {
+        const { bounds } = this.props
+        return new Bounds(
+            bounds.width - PROJECTION_CHOOSER_WIDTH + 15 - 3,
+            5,
+            PROJECTION_CHOOSER_WIDTH,
+            PROJECTION_CHOOSER_HEIGHT
+        )
+    }
+
     render() {
         const {
             choroplethData,
@@ -178,7 +196,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             focusEntity,
             mapLegend,
             tooltipTarget,
-            tooltipDatum
+            tooltipDatum,
+            projectionChooserBounds
         } = this
 
         return (
@@ -199,6 +218,13 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}
                 />
+                <ControlsOverlay id="add-country">
+                    <ProjectionChooser
+                        bounds={projectionChooserBounds}
+                        value={projection}
+                        onChange={this.onProjectionChange}
+                    />
+                </ControlsOverlay>
                 {tooltipTarget && (
                     <Tooltip
                         key="mapTooltip"
