@@ -17,7 +17,7 @@ if (typeof global !== "undefined") {
 }
 
 @observer
-export class DataSelectorMulti extends React.Component<{
+class EntitySelectorMulti extends React.Component<{
     chart: ChartConfig
     chartView: ChartView
     onDismiss: () => void
@@ -27,7 +27,7 @@ export class DataSelectorMulti extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableData(): EntityDimensionInfo[] {
+    @computed get availableEntities(): EntityDimensionInfo[] {
         const { chart } = this.props
 
         const selectableKeys = chart.activeTransform.selectableKeys
@@ -37,18 +37,18 @@ export class DataSelectorMulti extends React.Component<{
         return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
     }
 
-    @computed get selectedData() {
-        return this.availableData.filter(d => this.isSelectedKey(d.key))
+    @computed get selectedEntities() {
+        return this.availableEntities.filter(d => this.isSelectedKey(d.key))
     }
 
     @computed get fuzzy(): FuzzySearch<EntityDimensionInfo> {
-        return new FuzzySearch(this.availableData, "label")
+        return new FuzzySearch(this.availableEntities, "label")
     }
 
     @computed get searchResults(): EntityDimensionInfo[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableData
+            : this.availableEntities
     }
 
     isSelectedKey(key: string): boolean {
@@ -89,11 +89,15 @@ export class DataSelectorMulti extends React.Component<{
 
     render() {
         const { chart } = this.props
-        const { selectedData, searchResults, searchInput } = this
+        const {
+            selectedEntities: selectedData,
+            searchResults,
+            searchInput
+        } = this
 
         return (
-            <div className="dataSelectorOverlay">
-                <div ref={this.base} className="DataSelectorMulti">
+            <div className="entitySelectorOverlay">
+                <div ref={this.base} className="EntitySelectorMulti">
                     <header className="wrapper">
                         <h2>
                             Choose data to show{" "}
@@ -184,7 +188,7 @@ export class DataSelectorMulti extends React.Component<{
 }
 
 @observer
-export class DataSelectorSingle extends React.Component<{
+class EntitySelectorSingle extends React.Component<{
     chart: ChartConfig
     chartView: ChartView
     onDismiss: () => void
@@ -194,7 +198,7 @@ export class DataSelectorSingle extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableItems() {
+    @computed get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
         this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
@@ -206,13 +210,13 @@ export class DataSelectorSingle extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: number; label: string }> {
-        return new FuzzySearch(this.availableItems, "label")
+        return new FuzzySearch(this.availableEntities, "label")
     }
 
     @computed get searchResults(): { id: number; label: string }[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableItems
+            : this.availableEntities
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -253,8 +257,8 @@ export class DataSelectorSingle extends React.Component<{
         const { searchResults, searchInput } = this
 
         return (
-            <div className="dataSelectorOverlay">
-                <div ref={this.base} className="DataSelectorSingle">
+            <div className="entitySelectorOverlay">
+                <div ref={this.base} className="EntitySelectorSingle">
                     <header className="wrapper">
                         <h2>
                             Choose data to show{" "}
@@ -297,16 +301,16 @@ export class DataSelectorSingle extends React.Component<{
 }
 
 @observer
-export class DataSelector extends React.Component<{
+export class EntitySelectorModal extends React.Component<{
     chart: ChartConfig
     chartView: ChartView
     onDismiss: () => void
 }> {
     render() {
-        const { chart } = this.props
-
-        if (chart.data.canChangeEntity)
-            return <DataSelectorSingle {...this.props} />
-        else return <DataSelectorMulti {...this.props} />
+        return this.props.chart.data.canChangeEntity ? (
+            <EntitySelectorSingle {...this.props} />
+        ) : (
+            <EntitySelectorMulti {...this.props} />
+        )
     }
 }

@@ -16,7 +16,7 @@ import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "./DownloadTab"
 import { VNode, throttle, isMobile, isTouchDevice } from "./Util"
 import { Bounds } from "./Bounds"
-import { DataSelector } from "./DataSelector"
+import { EntitySelectorModal } from "./EntitySelector"
 import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
@@ -317,8 +317,8 @@ export class ChartView extends React.Component<ChartViewProps> {
                 {this.popups}
                 <TooltipView />
                 {this.isSelectingData && (
-                    <DataSelector
-                        key="dataSelector"
+                    <EntitySelectorModal
+                        key="entitySelector"
                         chart={chart}
                         chartView={this}
                         onDismiss={action(() => (this.isSelectingData = false))}
