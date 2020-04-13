@@ -14,7 +14,13 @@ import { DataTab } from "./DataTab"
 import { MapTab } from "./MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "./DownloadTab"
-import { VNode, throttle, isMobile, isTouchDevice } from "./Util"
+import {
+    VNode,
+    throttle,
+    isMobile,
+    isTouchDevice,
+    getCountryCodeFromNetlifyRedirect
+} from "./Util"
 import { Bounds } from "./Bounds"
 import { DataSelector } from "./DataSelector"
 import { ChartViewContext } from "./ChartViewContext"
@@ -103,6 +109,11 @@ export class ChartView extends React.Component<ChartViewProps> {
         })
 
         return chartView
+    }
+
+    static async detectCountry() {
+        const countryIs = await getCountryCodeFromNetlifyRedirect()
+        console.log(countryIs)
     }
 
     @computed get chart() {
