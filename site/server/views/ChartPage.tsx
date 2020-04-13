@@ -103,22 +103,30 @@ export const ChartPage = (props: {
                                 <>
                                     <h3>Charts</h3>
                                     <ul>
-                                        {relatedCharts.map(chart => (
-                                            <li key={chart.slug}>
-                                                <a
-                                                    href={`/grapher/${chart.slug}`}
-                                                >
-                                                    {chart.title}
-                                                </a>
-                                                {chart.variantName ? (
-                                                    <span className="variantName">
-                                                        {chart.variantName}
-                                                    </span>
-                                                ) : (
-                                                    ""
-                                                )}
-                                            </li>
-                                        ))}
+                                        {relatedCharts
+                                            .filter(
+                                                chartItem =>
+                                                    chartItem.slug !==
+                                                    chart.slug
+                                            )
+                                            .map(chartItem => (
+                                                <li key={chartItem.slug}>
+                                                    <a
+                                                        href={`/grapher/${chartItem.slug}`}
+                                                    >
+                                                        {chartItem.title}
+                                                    </a>
+                                                    {chartItem.variantName ? (
+                                                        <span className="variantName">
+                                                            {
+                                                                chartItem.variantName
+                                                            }
+                                                        </span>
+                                                    ) : (
+                                                        ""
+                                                    )}
+                                                </li>
+                                            ))}
                                     </ul>
                                 </>
                             )}
