@@ -107,7 +107,9 @@ export class SiteBaker {
             "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
 
-        redirects.concat(SiteBaker.getCountryDetectionRedirects())
+        SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
+            redirects.push(redirect)
+        )
 
         // Redirects from Wordpress admin UI
         const rows = await wpdb.query(
