@@ -3,6 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
+import { ChartListItem } from "./ChartListItem"
 import * as _ from "lodash"
 
 export interface ChartIndexItem {
@@ -63,14 +64,7 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
                             <h2>{t.name}</h2>
                             <ul>
                                 {t.charts.map(c => (
-                                    <li key={c.id}>
-                                        <a href={`/grapher/${c.slug}`}>
-                                            {c.title}{" "}
-                                            {c.variantName
-                                                ? `(${c.variantName})`
-                                                : undefined}
-                                        </a>
-                                    </li>
+                                    <ChartListItem chart={c} />
                                 ))}
                             </ul>
                         </section>

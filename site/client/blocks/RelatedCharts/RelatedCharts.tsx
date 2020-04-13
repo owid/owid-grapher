@@ -45,9 +45,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                     <span className="variantName">
                                         {chart.variantName}
                                     </span>
-                                ) : (
-                                    ""
-                                )}
+                                ) : null}
                             </li>
                         ))}
                     </ul>
