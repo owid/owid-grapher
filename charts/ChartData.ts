@@ -10,7 +10,6 @@ import {
     sortBy,
     without,
     find,
-    extend,
     uniq,
     defaultTo,
     slugify,
@@ -20,12 +19,13 @@ import { computed, toJS } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { OwidSource } from "./owidData/OwidSource"
 
 export interface EntityDimensionInfo {
     entity: string
     entityId: number
-    dimension: DimensionWithData
+    dimension: ChartDimensionWithOwidVariable
     index: number
     key: string
     fullLabel: string
@@ -35,14 +35,8 @@ export interface EntityDimensionInfo {
 }
 
 export interface SourceWithDimension {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-    dimension: DimensionWithData
+    source: OwidSource
+    dimension: ChartDimensionWithOwidVariable
 }
 
 // This component computes useful information using both the chart configuration and the actual data
@@ -63,12 +57,12 @@ export class ChartData {
         )
     }
 
-    @computed.struct get filledDimensions(): DimensionWithData[] {
+    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
         if (!this.isReady) return []
 
         return map(this.chart.dimensions, (dim, i) => {
             const variable = this.chart.variablesById[dim.variableId]
-            return new DimensionWithData(i, dim, variable)
+            return new ChartDimensionWithOwidVariable(i, dim, variable)
         })
     }
 
@@ -197,7 +191,9 @@ export class ChartData {
     }
 
     @computed private get defaultSourcesLine(): string {
-        let sourceNames = this.sources.map(source => source.name)
+        let sourceNames = this.sourcesWithDimension.map(
+            source => source.source.name
+        )
 
         // Shorten automatic source names for certain major sources
         sourceNames = sourceNames.map(sourceName => {
@@ -239,7 +235,9 @@ export class ChartData {
         return `${entity}_${dimensionIndex}`
     }
 
-    @computed get dimensionsByField(): { [key: string]: DimensionWithData } {
+    @computed get dimensionsByField(): {
+        [key: string]: ChartDimensionWithOwidVariable
+    } {
         return keyBy(this.filledDimensions, "property")
     }
 
@@ -488,7 +486,7 @@ export class ChartData {
             : undefined
     }
 
-    @computed get sources(): SourceWithDimension[] {
+    @computed get sourcesWithDimension(): SourceWithDimension[] {
         const { filledDimensions } = this
 
         const sources: SourceWithDimension[] = []
@@ -499,7 +497,7 @@ export class ChartData {
                 variable.name !== "Countries Continents" &&
                 variable.name !== "Total population (Gapminder)"
             )
-                sources.push(extend({}, variable.source, { dimension: dim }))
+                sources.push({ source: variable.source, dimension: dim })
         })
         return sources
     }

@@ -2,7 +2,7 @@ import { computed } from "mobx"
 import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "./ChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ColorSchemes } from "./ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { Time } from "./TimeBounds"
@@ -22,7 +22,7 @@ export class DiscreteBarTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimensions(): DimensionWithData[] {
+    @computed get primaryDimensions(): ChartDimensionWithOwidVariable[] {
         return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
@@ -71,7 +71,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const datakey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -174,7 +174,7 @@ export class DiscreteBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const datakey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex

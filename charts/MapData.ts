@@ -6,7 +6,7 @@ import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
 import { entityNameForMap, formatYear } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapTopology } from "./MapTopology"
 
 import {
@@ -187,7 +187,7 @@ export class MapData extends ChartTransform {
         )
     }
 
-    @computed get dimension(): DimensionWithData | undefined {
+    @computed get dimension(): ChartDimensionWithOwidVariable | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.variableId === this.map.variableId
         )
@@ -236,7 +236,7 @@ export class MapData extends ChartTransform {
             const { knownMapEntities } = this
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const value = dimension.values[i]
 
                 if (knownMapEntities[entity]) {

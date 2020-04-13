@@ -17,7 +17,7 @@ import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { findIndex } from "./Util"
 import { Time } from "./TimeBounds"
 
@@ -57,7 +57,7 @@ export class LineChartTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -161,7 +161,9 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get yDimensionFirst(): DimensionWithData | undefined {
+    @computed get yDimensionFirst():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
 

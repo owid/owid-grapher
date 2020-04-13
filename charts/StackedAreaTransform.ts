@@ -55,7 +55,7 @@ export class StackedAreaTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = +dimension.values[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
