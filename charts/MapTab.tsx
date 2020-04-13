@@ -116,8 +116,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.focusBracket = null
     }
 
-    @action.bound onProjectionChange(value: string) {
-        this.context.chart.map.props.projection = value as any
+    @action.bound onProjectionChange(value: MapProjection) {
+        this.context.chart.map.props.projection = value
     }
 
     @computed get mapLegend(): MapLegend {

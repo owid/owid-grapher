@@ -28,6 +28,7 @@ import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
+import { MapProjection } from "./MapProjection"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -644,14 +645,14 @@ export class AddEntityButton extends React.Component<{
 
 interface ProjectionChooserEntry {
     label: string
-    value: string
+    value: MapProjection
 }
 
 @observer
 export class ProjectionChooser extends React.Component<{
     bounds: Bounds
     value: string
-    onChange: (value: string) => void
+    onChange: (value: MapProjection) => void
 }> {
     @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
         const selectedValue = (selected as ProjectionChooserEntry)?.value
