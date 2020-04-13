@@ -2,6 +2,7 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
+import Select, { ValueType, StylesConfig } from "react-select"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
@@ -26,6 +27,8 @@ import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { TimeBound } from "./TimeBounds"
+import { Bounds } from "./Bounds"
+import { MapProjection } from "./MapProjection"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -240,34 +243,13 @@ class SettingsMenu extends React.Component<{
         window.removeEventListener("click", this.onClickOutside)
     }
 
-    @action.bound onProjectionChange(e: React.FormEvent<HTMLSelectElement>) {
-        this.props.chart.map.props.projection = e.currentTarget.value as any
-    }
-
     render() {
-        const { chart } = this.props
-
         return (
             <div
                 className="SettingsMenu"
                 onClick={evt => evt.stopPropagation()}
             >
                 <h2>Settings</h2>
-                {chart.props.tab === "map" && (
-                    <div className="form-field">
-                        <label>World Region</label>
-                        <select
-                            value={chart.map.props.projection}
-                            onChange={this.onProjectionChange}
-                        >
-                            {worldRegions.map(region => (
-                                <option value={region}>
-                                    {labelsByRegion[region]}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
             </div>
         )
     }
@@ -529,7 +511,7 @@ export class Controls {
     }
 
     @computed get hasSettingsMenu(): boolean {
-        return this.props.chart.tab === "map"
+        return false
     }
 
     @computed get hasSpace(): boolean {
@@ -657,6 +639,92 @@ export class AddEntityButton extends React.Component<{
                 </span>
                 <span className="label">{label}</span>
             </button>
+        )
+    }
+}
+
+interface ProjectionChooserEntry {
+    label: string
+    value: MapProjection
+}
+
+@observer
+export class ProjectionChooser extends React.Component<{
+    bounds: Bounds
+    value: string
+    onChange: (value: MapProjection) => void
+}> {
+    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
+        const selectedValue = (selected as ProjectionChooserEntry)?.value
+        if (selectedValue) this.props.onChange(selectedValue)
+    }
+
+    @computed get options() {
+        return worldRegions.map(region => {
+            return {
+                value: region,
+                label: labelsByRegion[region]
+            }
+        })
+    }
+
+    @computed get selectStyles(): StylesConfig {
+        // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
+        const targetHeight = 22
+
+        return {
+            control: (base: React.CSSProperties) => ({
+                ...base,
+                minHeight: "initial"
+            }),
+            valueContainer: (base: React.CSSProperties) => ({
+                ...base,
+                height: `${targetHeight - 1 - 1}px`,
+                padding: "0 4px"
+            }),
+            clearIndicator: (base: React.CSSProperties) => ({
+                ...base,
+                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
+            }),
+            dropdownIndicator: (base: React.CSSProperties) => ({
+                ...base,
+                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
+            }),
+            option: (base: React.CSSProperties) => ({
+                ...base,
+                paddingTop: "5px",
+                paddingBottom: "5px"
+            }),
+            menu: (base: React.CSSProperties) => ({
+                ...base,
+                zIndex: 10000
+            })
+        }
+    }
+
+    render() {
+        const { bounds, value } = this.props
+
+        const style: React.CSSProperties = {
+            position: "absolute",
+            fontSize: "0.75rem",
+            ...bounds.toCSS()
+        }
+
+        return (
+            <div style={style}>
+                <Select
+                    options={this.options}
+                    onChange={this.onChange}
+                    value={this.options.find(opt => opt.value === value)}
+                    menuPlacement="bottom"
+                    components={{
+                        IndicatorSeparator: null
+                    }}
+                    styles={this.selectStyles}
+                    isSearchable={false}
+                />
+            </div>
         )
     }
 }
