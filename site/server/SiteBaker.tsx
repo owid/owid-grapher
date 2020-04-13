@@ -63,7 +63,7 @@ export class SiteBaker {
             .filter(country => country.iso3166 && country.code)
             .map(
                 country =>
-                    `/detect-country.js /detect-country.js?${
+                    `/detect-country-redirect /detect-country.js?${
                         country.code
                     } 302! Country=${country.iso3166!.toLowerCase()}`
             )
