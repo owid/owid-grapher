@@ -110,6 +110,13 @@ export const ChartPage = (props: {
                                                 >
                                                     {chart.title}
                                                 </a>
+                                                {chart.variantName ? (
+                                                    <span className="variantName">
+                                                        {chart.variantName}
+                                                    </span>
+                                                ) : (
+                                                    ""
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
