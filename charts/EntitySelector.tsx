@@ -5,7 +5,6 @@ import { computed, action, observable } from "mobx"
 import { uniqBy, isTouchDevice } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionInfo } from "./ChartData"
-import { ChartView } from "./ChartView"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -19,7 +18,6 @@ if (typeof global !== "undefined") {
 @observer
 class EntitySelectorMulti extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -190,7 +188,6 @@ class EntitySelectorMulti extends React.Component<{
 @observer
 class EntitySelectorSingle extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -234,7 +231,7 @@ class EntitySelectorSingle extends React.Component<{
             () => document.addEventListener("click", this.onClickOutside),
             1
         )
-        if (!this.props.chartView.isMobile) this.searchField.focus()
+        if (!this.props.isMobile) this.searchField.focus()
     }
 
     componentWillUnmount() {
@@ -303,7 +300,7 @@ class EntitySelectorSingle extends React.Component<{
 @observer
 export class EntitySelectorModal extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
+    isMobile: boolean
     onDismiss: () => void
 }> {
     render() {

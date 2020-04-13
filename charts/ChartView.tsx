@@ -320,7 +320,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                     <EntitySelectorModal
                         key="entitySelector"
                         chart={chart}
-                        chartView={this}
+                        isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
