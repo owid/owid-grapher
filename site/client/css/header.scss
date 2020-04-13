@@ -510,15 +510,16 @@
         }
 
         .entries-muted {
-            color: lightgray;
+            color: $primary-color-400;
             font-size: 0.7em;
+            font-weight: 400;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
             flex-basis: 0;
             flex-grow: 1;
             margin-left: 0.5rem;
-            margin-right: 0.25rem;
+            margin-right: 0.5rem;
         }
 
         &:hover {
