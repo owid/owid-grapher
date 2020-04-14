@@ -161,16 +161,12 @@ export class ChartData {
             (this.chart.primaryTab === "map" && this.chart.map.data.hasTimeline)
         ) {
             const { minYear, maxYear } = this
-            if (minYear !== undefined) {
-                const timeFrom = chart.formatYearFunction(minYear)
-                const timeTo = chart.formatYearFunction(
-                    maxYear !== undefined ? maxYear : minYear
-                )
-                const time =
-                    timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+            const timeFrom = chart.formatYearFunction(minYear)
+            const timeTo = chart.formatYearFunction(maxYear)
+            const time =
+                timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
-                text = text + ", " + time
-            }
+            text = text + ", " + time
         }
 
         return text.trim()
