@@ -38,16 +38,17 @@ export class ChartTab extends React.Component<{
     renderChart() {
         const { chart, chartView } = this.props
         const bounds = this.layout.innerBounds
-        if (!chart.data.isReady)
+
+        if (!chart.data.isReady) {
             return <a href={`${BAKED_GRAPHER_URL}/${chart.props.slug}`}>
                 <img
                     src={`${BAKED_GRAPHER_URL}/exports/${chart.props.slug}.svg`}
                     className="chartPreview"
                 />
             </a>
-        else if (chart.isSlopeChart)
+        } else if (chart.isSlopeChart) {
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
-        else if (chart.isScatter)
+        } else if (chart.isScatter) {
             return (
                 <ScatterPlot
                     bounds={bounds.padTop(20).padBottom(15)}
@@ -55,7 +56,7 @@ export class ChartTab extends React.Component<{
                     isStatic={chartView.isExport}
                 />
             )
-        else if (chart.isTimeScatter)
+        } else if (chart.isTimeScatter) {
             return (
                 <TimeScatter
                     bounds={bounds.padTop(20).padBottom(15)}
@@ -63,7 +64,7 @@ export class ChartTab extends React.Component<{
                     isStatic={chartView.isExport}
                 />
             )
-        else if (chart.isLineChart)
+        } else if (chart.isLineChart) {
             // Switch to bar chart if a single year is selected
             return chart.lineChart.isSingleYear ? (
                 <DiscreteBarChart
@@ -76,28 +77,30 @@ export class ChartTab extends React.Component<{
                         chart={chart}
                     />
                 )
-        else if (chart.isStackedArea)
+        } else if (chart.isStackedArea) {
             return (
                 <StackedArea
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
             )
-        else if (chart.isDiscreteBar)
+        } else if (chart.isDiscreteBar) {
             return (
                 <DiscreteBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
             )
-        else if (chart.isStackedBar)
+        } else if (chart.isStackedBar) {
             return (
                 <StackedBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
             )
-        else return null
+        } else {
+            return null
+        }
     }
 
     render() {
