@@ -8,7 +8,7 @@
         "module": "ES6",
         "moduleResolution": "node",
         "jsx": "react",
-        "target": "es5",
+        "target": "ES6",
         "experimentalDecorators": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
