@@ -18,6 +18,7 @@ import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { EPOCH_DATE } from "settings"
 
 interface VariablePageData {
     id: number
@@ -200,6 +201,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable.display}
                                         disabled={
                                             !newVariable.display.yearIsDay
+                                        }
+                                        placeholder={
+                                            newVariable.display.yearIsDay
+                                                ? EPOCH_DATE
+                                                : ""
                                         }
                                         helpText={`The day series starts on this date.`}
                                     />

@@ -32,6 +32,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { EPOCH_DATE } from "settings"
 
 class VariableEditable {
     @observable name: string = ""
@@ -236,6 +237,11 @@ class VariableEditRow extends React.Component<{
                                     field="zeroDay"
                                     store={newVariable.display}
                                     disabled={!newVariable.display.yearIsDay}
+                                    placeholder={
+                                        newVariable.display.yearIsDay
+                                            ? EPOCH_DATE
+                                            : ""
+                                    }
                                     helpText={`The day series starts on this date.`}
                                 />
                             </FieldsRow>
