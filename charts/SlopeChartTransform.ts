@@ -1,6 +1,6 @@
 import { computed } from "mobx"
-import { some, find, isEmpty, sortedUniq, sortBy, flatten } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { some, find, isEmpty, flatten } from "./Util"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
@@ -45,23 +45,9 @@ export class SlopeChartTransform extends ChartTransform {
         return this.colors.colorables
     }
 
-    @computed get timelineYears(): Time[] {
-        return sortedUniq(
-            sortBy(
-                flatten(
-                    this.chart.data.axisDimensions.map(
-                        d => d.variable.yearsUniq
-                    )
-                )
-            )
-        )
-    }
-
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            this.timelineYears.length > 2 &&
-            !this.chart.props.hideTimeline
+    @computed get availableYears(): Time[] {
+        return flatten(
+            this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
         )
     }
 
@@ -69,20 +55,24 @@ export class SlopeChartTransform extends ChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): DimensionWithData | undefined {
+    @computed.struct get sizeDim(): ChartDimensionWithOwidVariable | undefined {
         return find(
             this.chart.data.filledDimensions,
             d => d.property === "size"
         )
     }
 
-    @computed.struct get colorDimension(): DimensionWithData | undefined {
+    @computed.struct get colorDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
     }
 
-    @computed.struct get yDimension(): DimensionWithData | undefined {
+    @computed.struct get yDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
 

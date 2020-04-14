@@ -21,7 +21,8 @@ import {
     isEmpty,
     intersection,
     includes,
-    filter
+    filter,
+    flatten
 } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -336,9 +337,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get allValues(): SlopeChartValue[] {
-        const values: SlopeChartValue[] = []
-        this.props.data.forEach(g => values.push(...g.values))
-        return values
+        return flatten(this.props.data.map(g => g.values))
     }
 
     @computed get xDomainDefault(): [number, number] {

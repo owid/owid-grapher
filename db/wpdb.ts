@@ -470,9 +470,10 @@ export async function getRelatedCharts(
     postId: number
 ): Promise<RelatedChart[]> {
     return db.query(`
-        SELECT
+        SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.variantName" AS variantName
         FROM charts
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id

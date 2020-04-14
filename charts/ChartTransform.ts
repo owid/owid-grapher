@@ -8,7 +8,7 @@ import {
     isUnboundedRight,
     getClosestTime
 } from "./TimeBounds"
-import { defaultTo, first, last } from "./Util"
+import { defaultTo, first, last, sortedUniq, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 
 export interface IChartTransform {
@@ -34,11 +34,28 @@ export abstract class ChartTransform implements IChartTransform {
     abstract get isValidConfig(): boolean
 
     /**
+     * An array of all the years in the datapoints that can be plotted. Can contain duplicates and
+     * the years may not be sorted.
+     *
+     * Might be **empty** if the data hasn't been loaded yet.
+     */
+    abstract get availableYears(): Time[]
+
+    /**
      * A unique, sorted array of years that are possible to be selected on the timeline.
      *
      * Might be **empty** if the data hasn't been loaded yet.
      */
-    abstract get timelineYears(): Time[]
+    @computed get timelineYears(): Time[] {
+        const min = this.chart.props.timelineMinTime
+        const max = this.chart.props.timelineMaxTime
+        const filteredYears = this.availableYears.filter(year => {
+            if (min !== undefined && year < min) return false
+            if (max !== undefined && year > max) return false
+            return true
+        })
+        return sortedUniq(sortBy(filteredYears))
+    }
 
     @computed get minTimelineYear(): Time {
         return defaultTo(first(this.timelineYears), 1900)
@@ -76,6 +93,10 @@ export abstract class ChartTransform implements IChartTransform {
             return this.maxTimelineYear
         }
         return getClosestTime(this.timelineYears, maxYear, this.maxTimelineYear)
+    }
+
+    @computed get hasTimeline(): boolean {
+        return this.timelineYears.length > 1 && !this.chart.props.hideTimeline
     }
 
     /**

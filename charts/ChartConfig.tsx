@@ -29,15 +29,10 @@ import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { Variable } from "./Variable"
-import {
-    OwidDataset,
-    EntityMeta,
-    TabularDataset,
-    tabularDataToOwidDataset
-} from "./OwidDataset"
+import { OwidVariable } from "./owidData/OwidVariable"
+import { OwidVariableSet, EntityMeta } from "./owidData/OwidVariableSet"
 import { ChartData } from "./ChartData"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
 import { ChartUrl } from "./ChartUrl"
 import { StackedBarTransform } from "./StackedBarTransform"
@@ -78,7 +73,7 @@ export interface HighlightToggleConfig {
     paramStr: string
 }
 
-export interface EntitySelection {
+interface EntitySelection {
     entityId: number
     index: number // Which dimension the entity is from
     color?: Color
@@ -138,7 +133,7 @@ export class DimensionSlot {
         this.chart.props.dimensions = newDimensions
     }
 
-    @computed get dimensionsWithData(): DimensionWithData[] {
+    @computed get dimensionsWithData(): ChartDimensionWithOwidVariable[] {
         return this.chart.data.filledDimensions.filter(
             d => d.property === this.property
         )
@@ -182,9 +177,9 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
-    @observable.ref tabularData?: TabularDataset = undefined
+    // TODO: These 2 are currently in development. Do not save to DB.
     @observable.ref externalDataUrl?: string = undefined
-    @observable.ref owidDataset?: OwidDataset = undefined
+    @observable.ref owidDataset?: OwidVariableSet = undefined
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: TimeBound = undefined
@@ -260,7 +255,7 @@ export class ChartConfig {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @observable.ref variablesById: { [id: number]: Variable } = {}
+    @observable.ref variablesById: { [id: number]: OwidVariable } = {}
     @observable.ref entityMetaById: { [id: number]: EntityMeta } = {}
 
     @computed get availableEntities(): string[] {
@@ -268,11 +263,6 @@ export class ChartConfig {
     }
 
     @action.bound private async downloadData() {
-        if (this.props.tabularData) {
-            this.receiveData(tabularDataToOwidDataset(this.props.tabularData))
-            return
-        }
-
         if (this.props.externalDataUrl) {
             const json = await fetchJSON(this.props.externalDataUrl)
             this.receiveData(json)
@@ -300,12 +290,12 @@ export class ChartConfig {
         }
     }
 
-    @action.bound receiveData(json: OwidDataset) {
-        const variablesById: { [id: string]: Variable } = {}
+    @action.bound receiveData(json: OwidVariableSet) {
+        const variablesById: { [id: string]: OwidVariable } = {}
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
         for (const key in json.variables) {
-            const variable = new Variable(json.variables[key])
-            variable.entities = variable.entities.map(
+            const variable = new OwidVariable(json.variables[key])
+            variable.entityNames = variable.entities.map(
                 id => entityMetaById[id].name
             )
             variablesById[key] = variable
@@ -334,7 +324,7 @@ export class ChartConfig {
         return first(this.variables.filter(v => v.display.yearIsDay))
     }
 
-    @computed get variables(): Variable[] {
+    @computed get variables(): OwidVariable[] {
         return values(this.variablesById)
     }
 

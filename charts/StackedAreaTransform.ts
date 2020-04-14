@@ -11,7 +11,8 @@ import {
     identity,
     sortedUniq,
     formatValue,
-    defaultTo
+    defaultTo,
+    flatten
 } from "./Util"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
@@ -54,7 +55,7 @@ export class StackedAreaTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = +dimension.values[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -168,9 +169,9 @@ export class StackedAreaTransform extends ChartTransform {
         return groupedData
     }
 
-    @computed get timelineYears(): Time[] {
+    @computed get availableYears(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return sortedUniq(sortBy(this.groupedData[0].values.map(v => v.x)))
+        return this.groupedData[0].values.map(v => v.x)
     }
 
     @computed get canToggleRelative(): boolean {
@@ -236,9 +237,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get allStackedValues(): StackedAreaValue[] {
-        const allValues: StackedAreaValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.stackedData.map(series => series.values))
     }
 
     @computed get yDomainDefault(): [number, number] {

@@ -7,17 +7,17 @@ import {
     sortBy,
     identity,
     cloneDeep,
-    sortedUniq,
     clone,
     defaultTo,
-    formatValue
+    formatValue,
+    flatten
 } from "./Util"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { findIndex } from "./Util"
 import { Time } from "./TimeBounds"
 
@@ -57,7 +57,7 @@ export class LineChartTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -106,10 +106,8 @@ export class LineChartTransform extends ChartTransform {
         return chartData
     }
 
-    @computed get timelineYears(): Time[] {
-        const allYears: Time[] = []
-        this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-        return sortedUniq(sortBy(allYears))
+    @computed get availableYears(): Time[] {
+        return flatten(this.initialData.map(g => g.values.map(d => d.x)))
     }
 
     @computed get predomainData() {
@@ -139,15 +137,11 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get allValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.predomainData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.predomainData.map(series => series.values))
     }
 
     @computed get filteredValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.groupedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.groupedData.map(series => series.values))
     }
 
     @computed get xDomain(): [number, number] {
@@ -167,7 +161,9 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get yDimensionFirst(): DimensionWithData | undefined {
+    @computed get yDimensionFirst():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
 
@@ -221,19 +217,12 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
     @computed get isRelativeMode(): boolean {
         return this.chart.props.stackMode === "relative"
     }
 
     @computed get canToggleRelative(): boolean {
-        return this.hasTimeline && !this.chart.props.hideRelativeToggle
+        return !this.chart.props.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains

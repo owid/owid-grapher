@@ -77,8 +77,12 @@ html.iframe .ChartPage {
         min-height: inherit;
     }
 
-    figure {
+    main figure[data-grapher-src] {
         height: 100vh;
+        min-height: auto;
+        max-height: none;
+        min-width: auto;
+        max-width: none;
     }
 
     .site-header,

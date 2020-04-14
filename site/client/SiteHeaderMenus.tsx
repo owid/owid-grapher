@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
-import { find } from "charts/Util"
+import { find, flatten } from "charts/Util"
 import { bind } from "decko"
 
 import { BAKED_BASE_URL } from "settings"
@@ -306,6 +306,16 @@ const renderEntry = (entry: EntryMeta): JSX.Element => {
     )
 }
 
+const allEntries = (category: CategoryWithEntries): EntryMeta[] => {
+    // combine "direct" entries and those from subcategories
+    return [
+        ...category.entries,
+        ...flatten(
+            category.subcategories.map(subcategory => subcategory.entries)
+        )
+    ]
+}
+
 @observer
 export class DesktopTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
@@ -426,14 +436,8 @@ export class DesktopTopicsMenu extends React.Component<{
                 </div>
                 <ul className="submenu" ref={this.submenuRef}>
                     {activeCategory &&
-                        activeCategory.entries.map(entry => renderEntry(entry))}
-                    {activeCategory &&
-                        activeCategory.subcategories.map(
-                            subcategory =>
-                                subcategory.entries &&
-                                subcategory.entries.map(entry =>
-                                    renderEntry(entry)
-                                )
+                        allEntries(activeCategory).map(entry =>
+                            renderEntry(entry)
                         )}
                 </ul>
             </div>
@@ -462,9 +466,23 @@ export class MobileTopicsMenu extends React.Component<{
                         <h2>Topics</h2>
                     </li>
                     {categories.map(category => (
-                        <li key={category.slug} className="category">
+                        <li
+                            key={category.slug}
+                            className={`category ${
+                                activeCategory === category ? "expanded" : ""
+                            }`}
+                        >
                             <a onClick={() => this.toggleCategory(category)}>
-                                <span className="label">{category.name}</span>
+                                <span className="label-wrapper">
+                                    <span className="label">
+                                        {category.name}
+                                    </span>
+                                    <span className="entries-muted">
+                                        {allEntries(category)
+                                            .map(entry => entry.title)
+                                            .join(", ")}
+                                    </span>
+                                </span>
                                 <span className="icon">
                                     <FontAwesomeIcon
                                         icon={
@@ -478,15 +496,8 @@ export class MobileTopicsMenu extends React.Component<{
                             {activeCategory === category && (
                                 <div className="subcategory-menu">
                                     <ul>
-                                        {category.entries.map(entry =>
+                                        {allEntries(category).map(entry =>
                                             renderEntry(entry)
-                                        )}
-                                        {category.subcategories.map(
-                                            subcategory =>
-                                                subcategory.entries &&
-                                                subcategory.entries.map(entry =>
-                                                    renderEntry(entry)
-                                                )
                                         )}
                                     </ul>
                                 </div>

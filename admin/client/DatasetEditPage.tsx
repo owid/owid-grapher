@@ -14,7 +14,8 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 const timeago = require("timeago.js")()
 
-import { VariableDisplaySettings } from "charts/Variable"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
+import { OwidSource } from "charts/owidData/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
@@ -37,7 +38,8 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -279,23 +281,13 @@ class VariableEditRow extends React.Component<{
     }
 }
 
-interface SourceInfo {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-}
-
 interface VariableEditListItem {
     id: number
     name: string
     unit: string
     shortUnit: string
     description: string
-    display: VariableDisplaySettings
+    display: OwidVariableDisplaySettings
 }
 
 interface DatasetPageData {
@@ -317,7 +309,7 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableEditListItem[]
     charts: ChartListItem[]
-    source: SourceInfo
+    source: OwidSource
     zipFile?: { filename: string }
 }
 
@@ -326,7 +318,7 @@ class DatasetEditable {
     @observable description: string = ""
     @observable isPrivate: boolean = false
 
-    @observable source: SourceInfo = {
+    @observable source: OwidSource = {
         id: -1,
         name: "",
         dataPublishedBy: "",

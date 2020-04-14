@@ -38,6 +38,7 @@ export interface ChartQueryParams {
     tab?: string
     overlay?: string
     stackMode?: string
+    zoomToSelection?: string
     xScale?: string
     yScale?: string
     time?: string
@@ -114,6 +115,12 @@ export class ChartUrl implements ObservableUrl {
             chart.props.stackMode === origChart.stackMode
                 ? undefined
                 : chart.props.stackMode
+        params.zoomToSelection =
+            chart.props.zoomToSelection === origChart.zoomToSelection
+                ? undefined
+                : chart.props.zoomToSelection
+                ? "true"
+                : undefined
         params.endpointsOnly =
             chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly
                 ? undefined
@@ -250,6 +257,11 @@ export class ChartUrl implements ObservableUrl {
         chart.props.stackMode = defaultTo(
             params.stackMode,
             chart.props.stackMode
+        )
+
+        chart.props.zoomToSelection = defaultTo(
+            params.zoomToSelection === "true" ? true : undefined,
+            chart.props.zoomToSelection
         )
 
         // Axis scale mode

@@ -1,6 +1,11 @@
 import { uniq, values, entityNameForMap } from "./Util"
+import { MapProjection } from "./MapProjection"
 
-const worldRegionByEntity: { [key: string]: string } = {
+// The projections we currently offer are all world regions.
+// In the future this may change.
+export type WorldRegion = MapProjection
+
+const worldRegionByEntity: Record<string, WorldRegion> = {
     Abkhazia: "Asia",
     Afghanistan: "Asia",
     "Akrotiri and Dhekelia": "Asia",
@@ -284,17 +289,18 @@ const worldRegionByEntity: { [key: string]: string } = {
     "Åland Islands": "Europe"
 }
 
-export const worldRegionByMapEntity: { [key: string]: string } = {}
+export const worldRegionByMapEntity: { [key: string]: WorldRegion } = {}
 for (const entity in worldRegionByEntity) {
     worldRegionByMapEntity[entityNameForMap(entity)] =
         worldRegionByEntity[entity]
 }
 
-export const worldRegions = ["World"].concat(
-    uniq(values(worldRegionByMapEntity))
-)
+export const worldRegions: WorldRegion[] = [
+    "World",
+    ...uniq(values(worldRegionByMapEntity))
+]
 
-export const labelsByRegion: { [key: string]: string } = {
+export const labelsByRegion: Record<WorldRegion, string> = {
     World: "World",
     Africa: "Africa",
     NorthAmerica: "North America",

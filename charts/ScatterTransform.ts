@@ -11,16 +11,16 @@ import {
     map,
     includes,
     sortedFindClosestIndex,
-    sortedUniq,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
     uniq,
     compact,
-    formatYear
+    formatYear,
+    flatten
 } from "./Util"
 import { computed } from "mobx"
 import { defaultTo, first, last } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { formatValue, domainExtent } from "./Util"
@@ -78,13 +78,19 @@ export class ScatterTransform extends ChartTransform {
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed private get yDimension(): DimensionWithData | undefined {
+    @computed private get yDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
-    @computed private get xDimension(): DimensionWithData | undefined {
+    @computed private get xDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "x")
     }
-    @computed private get colorDimension(): DimensionWithData | undefined {
+    @computed private get colorDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
@@ -97,7 +103,8 @@ export class ScatterTransform extends ChartTransform {
     }
 
     set xOverrideYear(value: number | undefined) {
-        ;(this.xDimension as DimensionWithData).props.targetYear = value
+        ;(this
+            .xDimension as ChartDimensionWithOwidVariable).props.targetYear = value
     }
 
     // In relative mode, the timeline scatterplot calculates changes relative
@@ -198,18 +205,6 @@ export class ScatterTransform extends ChartTransform {
         }*/
     }
 
-    /*@computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }*/
-
-    /*@computed get hasTimeline(): boolean {
-        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
-    }*/
-
     @computed get compareEndPointsOnly(): boolean {
         return !!this.chart.props.compareEndPointsOnly
     }
@@ -243,7 +238,7 @@ export class ScatterTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = dimension.values[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
 
                 if (!validEntityLookup[entity]) continue
 
@@ -332,21 +327,12 @@ export class ScatterTransform extends ChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get timelineYears(): Time[] {
-        return sortedUniq(sortBy(this.allPoints.map(point => point.year)))
-    }
-
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
+    @computed get availableYears(): Time[] {
+        return this.allPoints.map(point => point.year)
     }
 
     @computed private get currentValues(): ScatterValue[] {
-        const currentValues: ScatterValue[] = []
-        this.currentData.forEach(group => currentValues.push(...group.values))
-        return currentValues
+        return flatten(this.currentData.map(g => g.values))
     }
 
     // domains across the entire timeline

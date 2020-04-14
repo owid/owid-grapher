@@ -7,7 +7,7 @@ import {
     getStartEndValues
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { getTimeWithinTimeRange, Time } from "./TimeBounds"
 
@@ -30,7 +30,7 @@ export enum SortOrder {
 // Dimensions
 
 export interface Dimension {
-    dimension: DimensionWithData
+    dimension: ChartDimensionWithOwidVariable
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
 }
@@ -175,7 +175,7 @@ export class DataTableTransform {
     }
 
     formatValue(
-        dimension: DimensionWithData,
+        dimension: ChartDimensionWithOwidVariable,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ): string | undefined {

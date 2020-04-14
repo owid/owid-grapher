@@ -1,4 +1,4 @@
-import { Variable } from "./Variable"
+import { OwidVariable } from "./owidData/OwidVariable"
 import { observable, computed } from "mobx"
 import {
     defaultTo,
@@ -13,10 +13,10 @@ import {
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 
-export class DimensionWithData {
+export class ChartDimensionWithOwidVariable {
     props: ChartDimension
     @observable.ref index: number
-    @observable.ref variable: Variable
+    @observable.ref variable: OwidVariable
 
     @computed get variableId(): number {
         return this.props.variableId
@@ -182,8 +182,8 @@ export class DimensionWithData {
         return this.variable.years
     }
 
-    get entities() {
-        return this.variable.entities
+    get entityNames() {
+        return this.variable.entityNames
     }
 
     @computed get valueByEntityAndYear(): Map<
@@ -195,7 +195,7 @@ export class DimensionWithData {
             Map<number, string | number>
         >()
         for (let i = 0; i < this.values.length; i++) {
-            const entity = this.entities[i]
+            const entity = this.entityNames[i]
             const year = this.years[i]
             const value = this.values[i]
 
@@ -209,7 +209,11 @@ export class DimensionWithData {
         return valueByEntityAndYear
     }
 
-    constructor(index: number, dimension: ChartDimension, variable: Variable) {
+    constructor(
+        index: number,
+        dimension: ChartDimension,
+        variable: OwidVariable
+    ) {
         this.index = index
         this.props = dimension
         this.variable = variable

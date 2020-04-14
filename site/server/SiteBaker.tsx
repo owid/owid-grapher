@@ -43,6 +43,7 @@ import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
+import { countries } from "utils/countries"
 
 // Static site generator using Wordpress
 
@@ -55,6 +56,17 @@ export class SiteBaker {
     grapherExports!: GrapherExports
     constructor(props: SiteBakerProps) {
         this.props = props
+    }
+
+    static getCountryDetectionRedirects() {
+        return countries
+            .filter(country => country.iso3166 && country.code)
+            .map(
+                country =>
+                    `/detect-country-redirect /detect-country.js?${
+                        country.code
+                    } 302! Country=${country.iso3166!.toLowerCase()}`
+            )
     }
 
     async bakeRedirects() {
@@ -96,6 +108,10 @@ export class SiteBaker {
 
             "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
+
+        SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
+            redirects.push(redirect)
+        )
 
         // Redirects from Wordpress admin UI
         const rows = await wpdb.query(

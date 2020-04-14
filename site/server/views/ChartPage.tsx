@@ -11,6 +11,7 @@ import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { ChartListItemVariant } from "./ChartListItemVariant"
 
 export const ChartPage = (props: {
     chart: ChartConfigProps
@@ -103,15 +104,18 @@ export const ChartPage = (props: {
                                 <>
                                     <h3>Charts</h3>
                                     <ul>
-                                        {relatedCharts.map(chart => (
-                                            <li key={chart.slug}>
-                                                <a
-                                                    href={`/grapher/${chart.slug}`}
-                                                >
-                                                    {chart.title}
-                                                </a>
-                                            </li>
-                                        ))}
+                                        {relatedCharts
+                                            .filter(
+                                                chartItem =>
+                                                    chartItem.slug !==
+                                                    chart.slug
+                                            )
+                                            .map(c => (
+                                                <ChartListItemVariant
+                                                    key={c.slug}
+                                                    chart={c}
+                                                />
+                                            ))}
                                     </ul>
                                 </>
                             )}

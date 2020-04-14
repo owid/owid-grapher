@@ -9,11 +9,12 @@ import {
     max,
     sortBy,
     diffDateISOStringInDays
-} from "./Util"
+} from "../Util"
 import { observable, computed } from "mobx"
 import { EPOCH_DATE } from "settings"
+import { OwidSource } from "./OwidSource"
 
-export class VariableDisplaySettings {
+export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
@@ -26,7 +27,7 @@ export class VariableDisplaySettings {
     @observable entityAnnotationsMap?: string = undefined
 }
 
-export class Variable {
+export class OwidVariable {
     @observable.ref id!: number
     @observable.ref name!: string
     @observable.ref description!: string
@@ -37,19 +38,13 @@ export class Variable {
 
     @observable.ref coverage?: string
 
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
-    @observable.struct source!: {
-        id: number
-        name: string
-        dataPublishedBy: string
-        dataPublisherSource: string
-        link: string
-        retrievedDate: string
-        additionalInfo: string
-    }
+    @observable.struct source!: OwidSource
     @observable.ref rawYears: number[] = []
-    @observable.ref entities: string[] = []
+    @observable.ref entityNames: string[] = []
+    @observable.ref entities: number[] = []
     @observable.ref values: (string | number)[] = []
 
     constructor(json: any) {
@@ -118,7 +113,7 @@ export class Variable {
     }
 
     @computed get entitiesUniq(): string[] {
-        return uniq(this.entities)
+        return uniq(this.entityNames)
     }
 
     @computed get yearsUniq(): number[] {

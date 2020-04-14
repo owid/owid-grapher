@@ -2,7 +2,7 @@ import * as fs from "fs"
 
 import { Indicator } from "charts/Indicator"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { OwidDataset } from "charts/OwidDataset"
+import { OwidVariableSet } from "charts/owidData/OwidVariableSet"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
@@ -14,7 +14,7 @@ function readObj(fixture: string) {
     return JSON.parse(readBuffer(fixture).toString())
 }
 
-export function readVariable(id: string | number): OwidDataset {
+export function readVariable(id: string | number): OwidVariableSet {
     return readObj(`variable-${id}`)
 }
 

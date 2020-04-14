@@ -488,6 +488,19 @@ export async function fetchText(url: string): Promise<string> {
     })
 }
 
+export async function getCountryCodeFromNetlifyRedirect(): Promise<
+    string | undefined
+> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", () => {
+            resolve(req.responseURL.split("?")[1])
+        })
+        req.open("GET", "/detect-country-redirect")
+        req.send()
+    })
+}
+
 export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()

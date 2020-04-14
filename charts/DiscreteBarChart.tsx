@@ -44,10 +44,6 @@ export class DiscreteBarChart extends React.Component<{
         return this.chart.discreteBar.failMessage
     }
 
-    @computed get hasTimeline() {
-        return this.chart.discreteBar.hasTimeline
-    }
-
     @computed get currentData() {
         return this.chart.discreteBar.currentData
     }

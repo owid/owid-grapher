@@ -3,7 +3,7 @@ import { Writable } from "stream"
 
 import * as db from "db/db"
 import { csvRow } from "utils/server/serverUtil"
-import { VariableDisplaySettings } from "charts/Variable"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 
 export namespace Variable {
     export interface Row {
@@ -12,7 +12,7 @@ export namespace Variable {
         unit: string
         description: string
         columnOrder: number
-        display: VariableDisplaySettings
+        display: OwidVariableDisplaySettings
     }
 
     export type Field = keyof Row
