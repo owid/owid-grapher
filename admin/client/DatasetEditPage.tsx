@@ -14,7 +14,8 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 const timeago = require("timeago.js")()
 
-import { VariableDisplaySettings } from "charts/Variable"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
+import { OwidSource } from "charts/owidData/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
@@ -31,13 +32,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { EPOCH_DATE } from "settings"
 
 class VariableEditable {
     @observable name: string = ""
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -234,6 +237,11 @@ class VariableEditRow extends React.Component<{
                                     field="zeroDay"
                                     store={newVariable.display}
                                     disabled={!newVariable.display.yearIsDay}
+                                    placeholder={
+                                        newVariable.display.yearIsDay
+                                            ? EPOCH_DATE
+                                            : ""
+                                    }
                                     helpText={`The day series starts on this date.`}
                                 />
                             </FieldsRow>
@@ -279,23 +287,13 @@ class VariableEditRow extends React.Component<{
     }
 }
 
-interface SourceInfo {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-}
-
 interface VariableEditListItem {
     id: number
     name: string
     unit: string
     shortUnit: string
     description: string
-    display: VariableDisplaySettings
+    display: OwidVariableDisplaySettings
 }
 
 interface DatasetPageData {
@@ -317,7 +315,7 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableEditListItem[]
     charts: ChartListItem[]
-    source: SourceInfo
+    source: OwidSource
     zipFile?: { filename: string }
 }
 
@@ -326,7 +324,7 @@ class DatasetEditable {
     @observable description: string = ""
     @observable isPrivate: boolean = false
 
-    @observable source: SourceInfo = {
+    @observable source: OwidSource = {
         id: -1,
         name: "",
         dataPublishedBy: "",

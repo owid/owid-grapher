@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import { ExploreModel } from "../ExploreModel"
 import { ChartType } from "../ChartType"

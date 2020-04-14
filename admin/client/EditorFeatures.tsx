@@ -69,7 +69,7 @@ export class EditorFeatures {
         return (
             this.chart.isStackedArea ||
             this.chart.isLineChart ||
-            (this.chart.isScatter && this.chart.scatter.hasTimeline)
+            this.chart.isScatter
         )
     }
 

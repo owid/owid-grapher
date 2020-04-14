@@ -44,17 +44,28 @@
 }
 
 .ChartPage main {
-    // See prominent-link.scss for base styles
-    .originReference {
+    .related-research-data {
+        @include block-spacing;
+        margin-top: $vertical-spacing;
+        background-color: $primary-color-100;
         max-width: 800px;
-        margin: $vertical-spacing auto 0;
-        font-size: 1.3rem;
-        text-align: center;
-        svg {
-            width: 0.7em;
+        & > :first-child {
+            margin-top: 0;
         }
-        a {
-            padding: $padding-x-sm;
+        .research {
+            font-size: 1.1rem;
+        }
+        svg {
+            margin-right: 0.5rem;
+        }
+        h3 {
+            margin-bottom: 0.5rem;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-left: 1rem;
         }
     }
 }
@@ -66,8 +77,12 @@ html.iframe .ChartPage {
         min-height: inherit;
     }
 
-    figure {
+    main figure[data-grapher-src] {
         height: 100vh;
+        min-height: auto;
+        max-height: none;
+        min-width: auto;
+        max-width: none;
     }
 
     .site-header,
@@ -75,7 +90,7 @@ html.iframe .ChartPage {
     .donate-footer,
     .cookie-notice,
     .site-footer,
-    .originReference {
+    .related-research-data {
         display: none;
     }
 }

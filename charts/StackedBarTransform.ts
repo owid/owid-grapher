@@ -7,29 +7,22 @@ import {
     cloneDeep,
     find,
     sortBy,
-    min,
     max,
     defaultTo,
-    findClosest,
-    uniq
+    uniq,
+    flatten
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartTransform } from "./ChartTransform"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class StackedBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class StackedBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -46,66 +39,24 @@ export class StackedBarTransform implements IChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimension(): DimensionWithData | undefined {
+    @computed get primaryDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
-    @computed get colorDimension(): DimensionWithData | undefined {
+    @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
         return find(
             this.chart.data.filledDimensions,
             d => d.property === "color"
         )
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (!this.primaryDimension) return 1900
-
-        const { variable } = this.primaryDimension
-        if (maxYear !== undefined)
-            return sortBy(variable.yearsUniq, year =>
-                Math.abs(year - maxYear)
-            )[0]
-        else return max(variable.yearsUniq) as number
-    }
-
-    @computed get timelineYears(): number[] {
+    @computed get availableYears(): Time[] {
         if (this.primaryDimension === undefined) return []
         return this.primaryDimension.yearsUniq
     }
 
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(
-            this.chart.timeDomain[0],
-            this.minTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, minYear),
-            this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(
-            this.chart.timeDomain[1],
-            this.maxTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, maxYear),
-            this.maxTimelineYear
-        )
-    }
-
     @computed get barValueFormat(): (datum: StackedBarValue) => string {
-        const { primaryDimension, targetYear } = this
-
         return (datum: StackedBarValue) => {
             return datum.y.toString()
         }
@@ -169,9 +120,7 @@ export class StackedBarTransform implements IChartTransform {
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
-        const allValues: StackedBarValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.stackedData.map(series => series.values))
     }
 
     @computed get xValues(): number[] {
@@ -189,7 +138,7 @@ export class StackedBarTransform implements IChartTransform {
 
             for (let i = 0; i <= dimension.years.length; i += 1) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const value = +dimension.values[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,

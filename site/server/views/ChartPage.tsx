@@ -1,6 +1,6 @@
 import { BAKED_GRAPHER_URL } from "settings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 
 import * as React from "react"
 import urljoin = require("url-join")
@@ -10,12 +10,15 @@ import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
 import { Post } from "db/model/Post"
+import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { ChartListItemVariant } from "./ChartListItemVariant"
 
 export const ChartPage = (props: {
     chart: ChartConfigProps
     post?: Post.Row
+    relatedCharts?: RelatedChart[]
 }) => {
-    const { chart, post } = props
+    const { chart, post, relatedCharts } = props
 
     const pageTitle = chart.title
     const pageDesc =
@@ -89,12 +92,33 @@ export const ChartPage = (props: {
                     ></figure>
 
                     {post && (
-                        <div className="originReference">
-                            <a href={`/${post.slug}`}>
-                                Here is all our research and data on{" "}
-                                <strong>{post.title}</strong>.
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </a>
+                        <div className="related-research-data">
+                            <h2>All our research and data on {post.title}</h2>
+                            <div className="research">
+                                <a href={`/${post.slug}`}>
+                                    <FontAwesomeIcon icon={faFileAlt} />
+                                    Read the article
+                                </a>
+                            </div>
+                            {relatedCharts && relatedCharts.length !== 0 && (
+                                <>
+                                    <h3>Charts</h3>
+                                    <ul>
+                                        {relatedCharts
+                                            .filter(
+                                                chartItem =>
+                                                    chartItem.slug !==
+                                                    chart.slug
+                                            )
+                                            .map(c => (
+                                                <ChartListItemVariant
+                                                    key={c.slug}
+                                                    chart={c}
+                                                />
+                                            ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
                     )}
                     <noscript id="fallback">

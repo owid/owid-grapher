@@ -30,6 +30,7 @@ import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
 import { first, last } from "./Util"
+import { TimeBound } from "./TimeBounds"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -58,8 +59,8 @@ export class ScatterPlot extends React.Component<{
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number
-        targetEndYear: number
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
     }) {
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }

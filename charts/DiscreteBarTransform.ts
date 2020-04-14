@@ -1,30 +1,15 @@
 import { computed } from "mobx"
-import {
-    some,
-    isEmpty,
-    sortBy,
-    orderBy,
-    max,
-    values,
-    flatten,
-    uniq
-} from "./Util"
-import { ChartConfig } from "./ChartConfig"
+import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartTransform } from "./ChartTransform"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ColorSchemes } from "./ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class DiscreteBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class DiscreteBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -37,20 +22,14 @@ export class DiscreteBarTransform implements IChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimensions(): DimensionWithData[] {
+    @computed get primaryDimensions(): ChartDimensionWithOwidVariable[] {
         return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (this.primaryDimensions.length === 0) return 1900
-
-        const yearsUniq = flatten(
+    @computed get availableYears(): Time[] {
+        return flatten(
             this.primaryDimensions.map(dim => dim.variable.yearsUniq)
         )
-        if (maxYear !== undefined)
-            return sortBy(yearsUniq, year => Math.abs(year - maxYear))[0]
-        else return max(yearsUniq) as number
     }
 
     @computed get hasTimeline(): boolean {
@@ -92,7 +71,7 @@ export class DiscreteBarTransform implements IChartTransform {
 
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const datakey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -195,7 +174,7 @@ export class DiscreteBarTransform implements IChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const datakey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex

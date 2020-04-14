@@ -7,11 +7,14 @@ import {
     sortedUniq,
     min,
     max,
-    sortBy
-} from "./Util"
+    sortBy,
+    diffDateISOStringInDays
+} from "../Util"
 import { observable, computed } from "mobx"
+import { EPOCH_DATE } from "settings"
+import { OwidSource } from "./OwidSource"
 
-export class VariableDisplaySettings {
+export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
@@ -24,7 +27,7 @@ export class VariableDisplaySettings {
     @observable entityAnnotationsMap?: string = undefined
 }
 
-export class Variable {
+export class OwidVariable {
     @observable.ref id!: number
     @observable.ref name!: string
     @observable.ref description!: string
@@ -35,24 +38,22 @@ export class Variable {
 
     @observable.ref coverage?: string
 
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
-    @observable.struct source!: {
-        id: number
-        name: string
-        dataPublishedBy: string
-        dataPublisherSource: string
-        link: string
-        retrievedDate: string
-        additionalInfo: string
-    }
-    @observable.ref years: number[] = []
-    @observable.ref entities: string[] = []
+    @observable.struct source!: OwidSource
+    @observable.ref rawYears: number[] = []
+    @observable.ref entityNames: string[] = []
+    @observable.ref entities: number[] = []
     @observable.ref values: (string | number)[] = []
 
     constructor(json: any) {
         for (const key in this) {
-            if (key in json) {
+            if (key === "rawYears") {
+                // If the dataset is using `yearIsDay`, we need to normalize days to a single epoch.
+                // See `years` property below.
+                this.rawYears = json.years
+            } else if (key in json) {
                 if (key === "display") {
                     extend(this.display, json.display)
                 } else {
@@ -60,6 +61,26 @@ export class Variable {
                 }
             }
         }
+    }
+
+    @computed get years(): number[] {
+        // Only shift years if the variable zeroDay is different from EPOCH_DATE
+        if (
+            this.display.yearIsDay &&
+            this.display.zeroDay !== undefined &&
+            this.display.zeroDay !== EPOCH_DATE
+        ) {
+            // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
+            // days since the specified `zeroDay`, which can be different for different variables.
+            // In order to correctly join variables with different `zeroDay`s in a single chart, we
+            // normalize all days to be in reference to a single epoch date.
+            const diff = diffDateISOStringInDays(
+                this.display.zeroDay,
+                EPOCH_DATE
+            )
+            return this.rawYears.map(y => y + diff)
+        }
+        return this.rawYears
     }
 
     @computed get annotationMap() {
@@ -92,7 +113,7 @@ export class Variable {
     }
 
     @computed get entitiesUniq(): string[] {
-        return uniq(this.entities)
+        return uniq(this.entityNames)
     }
 
     @computed get yearsUniq(): number[] {

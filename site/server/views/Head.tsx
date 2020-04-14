@@ -51,7 +51,7 @@ export const Head = (props: {
             <meta name="twitter:description" content={pageDesc} />
             <meta name="twitter:image" content={imageUrl} />
             <link
-                href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700"
+                href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
                 rel="stylesheet"
             />
             <link rel="stylesheet" href={webpack("commons.css", "site")} />

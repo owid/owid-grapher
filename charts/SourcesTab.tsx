@@ -4,11 +4,11 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
-import { SourceWithDimension } from "./ChartData"
 import * as Cookies from "js-cookie"
 import { ADMIN_BASE_URL } from "settings"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { SourceWithDimension } from "./ChartData"
 
 const linkifyHtml = require("linkifyjs/html")
 function linkify(s: string) {
@@ -19,16 +19,17 @@ export class SourcesTab extends React.Component<{
     bounds: Bounds
     chart: ChartConfig
 }> {
-    @computed get bounds() {
+    @computed private get bounds() {
         return this.props.bounds
     }
 
-    @computed get sources() {
-        return this.props.chart.data.sources
+    @computed private get sourcesWithDimensions() {
+        return this.props.chart.data.sourcesWithDimension
     }
 
-    renderSource(source: SourceWithDimension) {
-        const { dimension } = source
+    private renderSource(sourceWithDimension: SourceWithDimension) {
+        const source = sourceWithDimension.source
+        const dimension = sourceWithDimension.dimension
         const { variable } = dimension
 
         const editUrl = Cookies.get("isAdmin")
@@ -145,7 +146,9 @@ export class SourcesTab extends React.Component<{
                 <div>
                     <h2>Sources</h2>
                     <div>
-                        {this.sources.map(source => this.renderSource(source))}
+                        {this.sourcesWithDimensions.map(source =>
+                            this.renderSource(source)
+                        )}
                     </div>
                 </div>
             </div>

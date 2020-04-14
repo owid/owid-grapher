@@ -1,4 +1,3 @@
-import { ChartConfig } from "./ChartConfig"
 import {
     some,
     isEmpty,
@@ -12,30 +11,26 @@ import {
     map,
     includes,
     sortedFindClosestIndex,
-    sortedUniq,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
     uniq,
     compact,
-    formatYear
+    formatYear,
+    flatten
 } from "./Util"
 import { computed } from "mobx"
-import { defaultTo, defaultWith, first, last } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { defaultTo, first, last } from "./Util"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent, findClosest } from "./Util"
-import { IChartTransform } from "./IChartTransform"
+import { formatValue, domainExtent } from "./Util"
+import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
-export class ScatterTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class ScatterTransform extends ChartTransform {
     @computed get colorKeys(): string[] {
         const { colorDimension } = this
         return colorDimension ? colorDimension.variable.categoricalValues : []
@@ -83,13 +78,19 @@ export class ScatterTransform implements IChartTransform {
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed private get yDimension(): DimensionWithData | undefined {
+    @computed private get yDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
-    @computed private get xDimension(): DimensionWithData | undefined {
+    @computed private get xDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "x")
     }
-    @computed private get colorDimension(): DimensionWithData | undefined {
+    @computed private get colorDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
@@ -102,7 +103,8 @@ export class ScatterTransform implements IChartTransform {
     }
 
     set xOverrideYear(value: number | undefined) {
-        ;(this.xDimension as DimensionWithData).props.targetYear = value
+        ;(this
+            .xDimension as ChartDimensionWithOwidVariable).props.targetYear = value
     }
 
     // In relative mode, the timeline scatterplot calculates changes relative
@@ -203,18 +205,6 @@ export class ScatterTransform implements IChartTransform {
         }*/
     }
 
-    /*@computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }*/
-
-    /*@computed get hasTimeline(): boolean {
-        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
-    }*/
-
     @computed get compareEndPointsOnly(): boolean {
         return !!this.chart.props.compareEndPointsOnly
     }
@@ -248,7 +238,7 @@ export class ScatterTransform implements IChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = dimension.values[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
 
                 if (!validEntityLookup[entity]) continue
 
@@ -337,56 +327,12 @@ export class ScatterTransform implements IChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get timelineYears(): number[] {
-        return sortedUniq(sortBy(this.allPoints.map(point => point.year)))
-    }
-
-    @computed private get minTimelineYear(): number {
-        return defaultTo(this.timelineYears[0], -Infinity)
-    }
-
-    @computed private get maxTimelineYear(): number {
-        return defaultTo(
-            this.timelineYears[this.timelineYears.length - 1],
-            Infinity
-        )
-    }
-
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
-    // The first year of the timeline selection
-    @computed get startYear(): number {
-        const minYear = this.chart.timeDomain[0]
-
-        if (minYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, minYear),
-                () => this.minTimelineYear
-            )
-        else return this.maxTimelineYear
-    }
-
-    // The end year of the timeline selection
-    @computed get endYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-
-        if (maxYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, maxYear),
-                () => this.maxTimelineYear
-            )
-        else return this.maxTimelineYear
+    @computed get availableYears(): Time[] {
+        return this.allPoints.map(point => point.year)
     }
 
     @computed private get currentValues(): ScatterValue[] {
-        const currentValues: ScatterValue[] = []
-        this.currentData.forEach(group => currentValues.push(...group.values))
-        return currentValues
+        return flatten(this.currentData.map(g => g.values))
     }
 
     // domains across the entire timeline
@@ -394,7 +340,8 @@ export class ScatterTransform implements IChartTransform {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.x),
-                this.xScaleType
+                this.xScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
@@ -428,7 +375,8 @@ export class ScatterTransform implements IChartTransform {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.y),
-                this.yScaleType
+                this.yScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
@@ -624,7 +572,7 @@ export class ScatterTransform implements IChartTransform {
             })
 
             // Use most recent size and color values
-            const lastPoint = last(group.values)
+            // const lastPoint = last(group.values)
 
             if (group && group.values.length) {
                 const keyColor = keyColors[datakey]

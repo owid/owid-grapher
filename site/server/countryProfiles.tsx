@@ -8,7 +8,7 @@ import {
     CountryProfileIndicator,
     CountryProfilePage
 } from "./views/CountryProfilePage"
-import { DimensionWithData } from "charts/DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { Variable } from "db/model/Variable"
 import fs = require("fs-extra")
 import { SiteBaker } from "./SiteBaker"
@@ -186,7 +186,7 @@ export async function countryProfilePage(countrySlug: string) {
             const latestValue = values[0]
             const variable = variablesById[vid]
 
-            const dim = new DimensionWithData(
+            const dim = new ChartDimensionWithOwidVariable(
                 0,
                 c.dimensions[0],
                 variable as any

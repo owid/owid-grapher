@@ -18,12 +18,6 @@ export function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
-export function parseIntOrUndefined(s: string | undefined) {
-    if (s === undefined) return undefined
-    const value = parseInt(s)
-    return isNaN(value) ? undefined : value
-}
-
 export function formatInt(
     n: number | undefined,
     defaultValue: string = "",

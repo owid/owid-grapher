@@ -1231,18 +1231,18 @@ export const ColorSchemes = (() => {
                 "#3360a9",
                 "#ca2628",
                 "#34983f",
-                "#f6a324",
+                "#de8e15",
                 "#a652ba",
                 "#2a939b",
-                "#e6332e",
-                "#9ecc8a",
-                "#ffd53e",
+                // "#e6332e",
+                // "#9ecc8a", // temp fix: remove bright green, unreadable
+                // "#ffd53e", // temp fix: remove bright yellow, unreadable
                 "#b077b1",
-                "#7ec7ce",
+                // "#7ec7ce", // temp fix: remove bright blue, unreadable
                 "#e6332e",
                 "#6bb537",
                 "#f07f59",
-                "#ce8ebd",
+                // "#ce8ebd", // temp fix: remove bright purple, unreadable
                 "#5eb77e",
                 "#818282",
                 "#fceb8c",
@@ -1285,13 +1285,13 @@ export const ColorSchemes = (() => {
         "Continents",
         [
             [
-                "#5675c1", // Africa
-                "#aec7e8", // Antarctica
-                "#d14e5b", // Asia
-                "#ec8e00", // Europe
-                "#4d824b", // North America
-                "#a652ba", // Oceania
-                "#69c487", // South America
+                "#EF943A", // Africa
+                "#AEC7E8", // Antarctica
+                "#2D8587", // Asia
+                "#4C5C78", // Europe
+                "#E04E4B", // North America
+                "#662C68", // Oceania
+                "#932834", // South America
                 "#ff7f0e",
                 "#1f77b4",
                 "#ffbb78",

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { VariableDisplaySettings } from "charts/Variable"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 import ReactDOM = require("react-dom")
 import { clone } from "charts/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
@@ -13,7 +13,7 @@ interface Variable {
     unit: string
     shortUnit: string
     description: string
-    display: VariableDisplaySettings
+    display: OwidVariableDisplaySettings
 
     datasetId: number
     datasetName: string

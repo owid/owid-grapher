@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
