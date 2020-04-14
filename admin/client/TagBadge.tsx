@@ -1,10 +1,10 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { Tag } from "react-tag-autocomplete"
 
 import { Link } from "./Link"
 
-import { Tag } from "react-tag-autocomplete"
-export { Tag } from "react-tag-autocomplete"
+export { Tag }
 
 @observer
 export class TagBadge extends React.Component<{
