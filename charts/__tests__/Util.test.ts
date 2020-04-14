@@ -77,20 +77,34 @@ describe(formatDay, () => {
     describe("timezones", () => {
         it("formats date consistently in GMT", () => {
             timezoneMock.register("Europe/London")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
         })
 
         it("formats date consistently in US/Pacific", () => {
             timezoneMock.register("US/Pacific")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
         })
 
         it("formats date consistently in US/Pacific", () => {
             timezoneMock.register("Australia/Adelaide")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
+        })
+    })
+
+    describe("epoch", () => {
+        it("starts on Jan 21, 2020", () => {
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
+        })
+
+        it("handles increments", () => {
+            expect(formatDay(11)).toEqual("Feb 1, 2020")
+        })
+
+        it("handles decrements", () => {
+            expect(formatDay(-21)).toEqual("Dec 31, 2019")
         })
     })
 })

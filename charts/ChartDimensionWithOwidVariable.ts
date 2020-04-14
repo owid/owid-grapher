@@ -141,10 +141,8 @@ export class ChartDimensionWithOwidVariable {
     }
 
     @computed get formatYear(): (year: number) => string {
-        const { yearIsDay, zeroDay } = this.variable.display
-        return yearIsDay
-            ? (year: number) => formatDay(year, zeroDay)
-            : formatYear
+        const { yearIsDay } = this.variable.display
+        return yearIsDay ? (year: number) => formatDay(year) : formatYear
     }
 
     @computed get values() {
