@@ -72,11 +72,11 @@ export class ChartTab extends React.Component<{
                     chart={chart}
                 />
             ) : (
-                    <LineChart
-                        bounds={bounds.padTop(20).padBottom(15)}
-                        chart={chart}
-                    />
-                )
+                <LineChart
+                    bounds={bounds.padTop(20).padBottom(15)}
+                    chart={chart}
+                />
+            )
         } else if (chart.isStackedArea) {
             return (
                 <StackedArea
