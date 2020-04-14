@@ -5,6 +5,7 @@ import fuzzysort from "fuzzysort"
 import * as _ from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 import { SearchField, FieldsRow } from "./Forms"
 import { DatasetList, DatasetListItem } from "./DatasetList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -80,9 +81,8 @@ export class DatasetsIndexPage extends React.Component {
         const highlight = (text: string) => {
             if (this.searchInput) {
                 const html =
-                    fuzzysort.highlight(
-                        fuzzysort.single(this.searchInput, text)
-                    ) ?? text
+                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
+                    text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }

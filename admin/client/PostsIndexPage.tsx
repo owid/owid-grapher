@@ -5,6 +5,7 @@ import { format } from "timeago.js"
 import fuzzysort from "fuzzysort"
 import * as _ from "lodash"
 
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow, EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -139,9 +140,8 @@ export class PostsIndexPage extends React.Component {
         const highlight = (text: string) => {
             if (this.searchInput) {
                 const html =
-                    fuzzysort.highlight(
-                        fuzzysort.single(this.searchInput, text)
-                    ) ?? text
+                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
+                    text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }

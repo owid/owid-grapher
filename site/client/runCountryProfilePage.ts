@@ -2,6 +2,7 @@ import fuzzysort from "fuzzysort"
 import { keyBy } from "charts/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { Analytics } from "./Analytics"
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -118,7 +119,7 @@ class ChartFilter {
             } else {
                 c.li.style.display = ""
                 c.li.children[0].children[0].innerHTML =
-                    fuzzysort.highlight(res) ?? ""
+                    fuzzyHighlight(res) ?? ""
             }
         }
 
