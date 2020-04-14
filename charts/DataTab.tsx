@@ -24,11 +24,6 @@ export class DataTab extends React.Component<{
         const yearIsDayVar = chart.yearIsDayVar
         const dayIndexedCSV = yearIsDayVar ? true : false
 
-        // returns true if given dimension is year-based in a chart with day-based variable
-        const isFixedYearDimension = (dim: DimensionWithData) => {
-            return dayIndexedCSV && !dim.yearIsDayVar
-        }
-
         const dimensions = chart.data.filledDimensions.filter(
             d => d.property !== "color"
         )
@@ -47,7 +42,7 @@ export class DataTab extends React.Component<{
         const titleRow = ["Entity", "Code", dayIndexedCSV ? "Date" : "Year"]
 
         dimensions.forEach(dim => {
-            if (isFixedYearDimension(dim)) titleRow.push("Year")
+            if (this.isFixedYearDimension(dim)) titleRow.push("Year")
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
         rows.push(titleRow.join(","))
@@ -63,7 +58,7 @@ export class DataTab extends React.Component<{
                 let rowHasSomeValue = false
                 dimensions.forEach(dim => {
                     let value = null
-                    if (isFixedYearDimension(dim)) {
+                    if (this.isFixedYearDimension(dim)) {
                         const latestYearValue = dim.latestValueforEntity(entity)
                         if (latestYearValue) {
                             row.push(
@@ -130,5 +125,10 @@ export class DataTab extends React.Component<{
                 </div>
             </div>
         )
+    }
+
+    // returns true if given dimension is year-based in a chart with day-based variable
+    private isFixedYearDimension(dim: DimensionWithData) {
+        return this.props.chart.yearIsDayVar && !dim.yearIsDayVar
     }
 }
