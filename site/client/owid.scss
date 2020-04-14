@@ -626,15 +626,8 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .article-content > section {
     /* The CSS here is very precise so as not to interfere with any iframeless embeds */
 
-    > h2,
-    > h3,
-    .wp-block-columns h4,
-    .wp-block-columns h5 {
-        strong {
-            // Make sure accidental <strong> do not show visually.
-            // TODO: worth looking into a more permanent solution at the baker/formatting level.
-            font-weight: normal;
-        }
+    > p {
+        margin-bottom: 1em;
     }
 
     /* Major sections e.g. I. Empirical View */
