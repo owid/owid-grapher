@@ -61,10 +61,11 @@ import {
     Time,
     TimeBounds
 } from "./TimeBounds"
+import detectNode from "detect-node"
 
 declare const App: any
 declare const window: any
-const isNode: boolean = require("detect-node")
+const isNode: boolean = detectNode
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 

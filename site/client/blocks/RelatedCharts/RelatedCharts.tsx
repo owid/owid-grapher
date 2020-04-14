@@ -1,5 +1,5 @@
 import * as React from "react"
-import ReactDOM = require("react-dom")
+import ReactDOM from "react-dom"
 import { useState } from "react"
 
 export interface RelatedChart {

@@ -1,7 +1,7 @@
-import db = require("db/db")
+import * as db from "db/db"
 import { Chart } from "db/model/Chart"
 import { ChartConfig } from "charts/ChartConfig"
-import _ = require("lodash")
+import _ from "lodash"
 import { getVariableData } from "db/model/Variable"
 
 async function main() {

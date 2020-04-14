@@ -1,8 +1,8 @@
 import { keyBy } from "./Util"
-const fuzzysort = require("fuzzysort")
+import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
-    strings: string[]
+    strings: (Fuzzysort.Prepared | undefined)[]
     datamap: any
 
     constructor(data: T[], key: string) {
@@ -19,6 +19,6 @@ export class FuzzySearch<T> {
 
     highlight(input: string, target: string): string {
         const result = fuzzysort.single(input, target)
-        return result ? result.highlighted : target
+        return (result !== null && fuzzysort.highlight(result)) || target
     }
 }

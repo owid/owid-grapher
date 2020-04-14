@@ -1,7 +1,7 @@
 // Send error to slack webhook, code adapted from express-error-slack https://github.com/chunkai1312/express-error-slack/blob/master/src/sendErrorToSlack.js
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 import Slack = require("slack-node")
-import _ = require("lodash")
+import _ from "lodash"
 
 export namespace log {
     export async function sendErrorToSlack(err: any) {

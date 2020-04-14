@@ -14,7 +14,7 @@ import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { DimensionSlot } from "charts/ChartConfig"
 import { defaultTo } from "charts/Util"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
-const fuzzysort = require("fuzzysort")
+import fuzzysort from "fuzzysort"
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -27,7 +27,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
-    searchKey: string
+    searchKey?: Fuzzysort.Prepared
 }
 
 @observer
@@ -150,7 +150,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 const html =
                     fuzzysort.highlight(
                         fuzzysort.single(this.searchInput, text)
-                    ) || text
+                    ) ?? text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }
@@ -375,8 +375,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
             name: d.displayName,
             id: d.variableId,
-            datasetName: "",
-            searchKey: ""
+            datasetName: ""
         }))
     }
 

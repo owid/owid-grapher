@@ -1,6 +1,6 @@
 import express from "express"
 require("express-async-errors")
-const cookieParser = require("cookie-parser")
+import cookieParser from "cookie-parser"
 const expressErrorSlack = require("express-error-slack")
 import "reflect-metadata"
 import { AdminSPA } from "./AdminSPA"

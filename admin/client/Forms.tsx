@@ -868,12 +868,12 @@ export class Pagination extends React.Component<{
     }
 }
 
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 @observer
 export class Timeago extends React.Component<{ time: Date }> {
     render() {
-        return this.props.time ? timeago.format(this.props.time) : ""
+        return this.props.time ? format(this.props.time) : ""
     }
 }
 
@@ -881,7 +881,7 @@ import { TagBadge, Tag } from "./TagBadge"
 
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.
-const ReactTags = require("react-tag-autocomplete")
+import ReactTags from "react-tag-autocomplete"
 
 @observer
 class EditTags extends React.Component<{

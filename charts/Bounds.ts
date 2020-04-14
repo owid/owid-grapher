@@ -1,6 +1,6 @@
 import { extend } from "./Util"
 import { Vector2 } from "./Vector2"
-const pixelWidth = require("string-pixel-width")
+import pixelWidth from "string-pixel-width"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -92,7 +92,7 @@ export class Bounds {
         if (str === "") bounds = Bounds.empty()
         else {
             const width = pixelWidth(str, {
-                font: "Arial",
+                font: "arial",
                 size: fontSize,
                 bold: fontWeight >= 600
             })

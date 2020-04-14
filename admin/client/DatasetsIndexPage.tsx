@@ -1,8 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-const timeago = require("timeago.js")()
-const fuzzysort = require("fuzzysort")
+import fuzzysort from "fuzzysort"
 import * as _ from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
@@ -12,7 +11,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface Searchable {
     dataset: DatasetListItem
-    term: string
+    term?: Fuzzysort.Prepared
 }
 
 @observer
@@ -83,7 +82,7 @@ export class DatasetsIndexPage extends React.Component {
                 const html =
                     fuzzysort.highlight(
                         fuzzysort.single(this.searchInput, text)
-                    ) || text
+                    ) ?? text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }

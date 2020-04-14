@@ -1,5 +1,5 @@
 import { ChartConfig } from "./ChartConfig"
-import React = require("react")
+import React from "react"
 import { computed } from "mobx"
 import { Header, HeaderHTML } from "./Header"
 import { SourcesFooter, SourcesFooterHTML } from "./SourcesFooter"

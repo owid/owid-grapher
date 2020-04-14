@@ -1,7 +1,7 @@
 import { WEBPACK_OUTPUT_PATH } from "serverSettings"
 import { ENV, WEBPACK_DEV_URL, BAKED_BASE_URL } from "settings"
 import * as fs from "fs-extra"
-import urljoin = require("url-join")
+import urljoin from "url-join"
 import * as path from "path"
 
 let manifest: { [key: string]: string }

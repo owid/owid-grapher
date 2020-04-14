@@ -128,7 +128,7 @@ export {
     memoize
 }
 
-import moment = require("moment")
+import moment from "moment"
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
