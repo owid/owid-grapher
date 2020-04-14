@@ -125,33 +125,36 @@ export class ChartData {
         const { chart } = this
         let text = this.title
 
-        if (!chart.props.hideTitleAnnotation) {
-            if (
-                chart.props.tab === "chart" &&
-                chart.addCountryMode !== "add-country" &&
-                chart.data.selectedEntities.length === 1
-            ) {
-                const { selectedEntities } = chart.data
-                const entityStr = selectedEntities.join(", ")
-                if (entityStr.length > 0) {
-                    text = text + ", " + entityStr
-                }
+        if (
+            chart.primaryTab === "chart" &&
+            chart.addCountryMode !== "add-country" &&
+            chart.data.selectedEntities.length === 1 &&
+            (!chart.props.hideTitleAnnotation || this.canChangeEntity)
+        ) {
+            const { selectedEntities } = chart.data
+            const entityStr = selectedEntities.join(", ")
+            if (entityStr.length > 0) {
+                text = text + ", " + entityStr
             }
-
-            if (chart.isLineChart && chart.lineChart.isRelativeMode) {
-                text =
-                    "Change in " +
-                    (text.charAt(1).match(/[A-Z]/)
-                        ? text
-                        : text.charAt(0).toLowerCase() + text.slice(1))
-            }
-
-            // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
-            /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
-                const label = labelsByRegion[chart.map.props.projection]
-                text = text + ` in ${label}`
-            }*/
         }
+
+        if (
+            !chart.props.hideTitleAnnotation &&
+            chart.isLineChart &&
+            chart.lineChart.isRelativeMode
+        ) {
+            text =
+                "Change in " +
+                (text.charAt(1).match(/[A-Z]/)
+                    ? text
+                    : text.charAt(0).toLowerCase() + text.slice(1))
+        }
+
+        // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
+        /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
+            const label = labelsByRegion[chart.map.props.projection]
+            text = text + ` in ${label}`
+        }*/
 
         if (
             !chart.props.hideTitleAnnotation ||
