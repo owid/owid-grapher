@@ -73,17 +73,25 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.tooltipTarget = undefined
     }
 
-    // Determine if we can go to line chart by clicking on a map entity
-    @computed get isEntityClickable() {
-        return (
-            this.context.chart.hasChartTab &&
-            this.context.chart.isLineChart &&
-            !this.context.chartView.isMobile
+    // Determine if we can go to line chart by clicking on a given map entity
+    isEntityClickable(featureId: string | number | undefined) {
+        if (
+            !this.context.chart.hasChartTab ||
+            !this.context.chart.isLineChart ||
+            this.context.chartView.isMobile ||
+            featureId === undefined
         )
+            return false
+
+        const { chart } = this.context
+        const entity = this.props.mapToDataEntities[featureId]
+        const datakeys = chart.data.availableKeysByEntity.get(entity)
+
+        return datakeys && datakeys.length
     }
 
     @action.bound onClick(d: GeoFeature) {
-        if (!this.isEntityClickable) return
+        if (!this.isEntityClickable(d.id)) return
 
         const { chart } = this.context
         const entity = this.props.mapToDataEntities[d.id as string]
@@ -268,7 +276,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                 </div>
                             )}
                         </div>
-                        {this.isEntityClickable && (
+                        {this.isEntityClickable(tooltipTarget.featureId) && (
                             <div>
                                 <p
                                     style={{
