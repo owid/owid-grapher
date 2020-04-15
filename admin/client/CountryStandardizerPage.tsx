@@ -10,8 +10,8 @@ import {
 } from "mobx"
 import parse from "csv-parse"
 
-const unidecode = require("unidecode")
-const FuzzySet = require("fuzzyset")
+import unidecode from "unidecode"
+import FuzzySet from "fuzzyset"
 
 import { AdminLayout } from "./AdminLayout"
 import { SelectField, SelectGroupsField, SelectGroup } from "./Forms"

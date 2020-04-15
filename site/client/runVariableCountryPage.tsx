@@ -1,6 +1,6 @@
 import * as React from "react"
 import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
-import ReactDOM = require("react-dom")
+import ReactDOM from "react-dom"
 import { clone } from "charts/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"

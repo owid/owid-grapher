@@ -13,7 +13,7 @@ import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
 import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
-const urlSlug = require("url-slug")
+import urlSlug from "url-slug"
 
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"

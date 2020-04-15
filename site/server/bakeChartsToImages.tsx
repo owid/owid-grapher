@@ -4,7 +4,7 @@ import * as db from "db/db"
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
 import { optimizeSvg } from "./svgPngExport"
-const md5 = require("md5")
+import md5 from "md5"
 
 declare var global: any
 global.window = { location: { search: "" } }

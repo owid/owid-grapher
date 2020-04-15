@@ -1,5 +1,5 @@
-import React = require("react")
-import ReactDOM = require("react-dom")
+import React from "react"
+import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"

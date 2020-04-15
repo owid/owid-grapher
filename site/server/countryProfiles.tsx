@@ -1,16 +1,15 @@
-import db = require("db/db")
+import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
-import React = require("react")
+import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { ChartConfigProps } from "charts/ChartConfig"
-import _ = require("lodash")
+import _ from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage
 } from "./views/CountryProfilePage"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { Variable } from "db/model/Variable"
-import fs = require("fs-extra")
 import { SiteBaker } from "./SiteBaker"
 import { countries } from "utils/countries"
 

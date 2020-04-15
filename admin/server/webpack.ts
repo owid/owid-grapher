@@ -2,7 +2,7 @@ import { WEBPACK_OUTPUT_PATH } from "serverSettings"
 import { ENV, WEBPACK_DEV_URL } from "settings"
 import * as fs from "fs-extra"
 import * as path from "path"
-import urljoin = require("url-join")
+import urljoin from "url-join"
 
 export function webpack(assetName: string) {
     if (ENV === "production") {

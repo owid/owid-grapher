@@ -10,7 +10,7 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SourceWithDimension } from "./ChartData"
 
-const linkifyHtml = require("linkifyjs/html")
+import linkifyHtml from "linkifyjs/html"
 function linkify(s: string) {
     return linkifyHtml(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 }

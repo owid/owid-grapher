@@ -11,7 +11,7 @@ import {
     RadioGroup
 } from "./Forms"
 import { LogoOption } from "charts/Logos"
-const slugify = require("slugify")
+import slugify from "slugify"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
