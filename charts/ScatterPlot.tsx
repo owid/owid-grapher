@@ -31,6 +31,7 @@ import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
 import { first, last } from "./Util"
 import { TimeBound } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -39,7 +40,7 @@ export class ScatterPlot extends React.Component<{
     isStatic: boolean
 }> {
     // currently hovered individual series key
-    @observable hoverKey?: string
+    @observable hoverKey?: EntityDimensionKey
     // currently hovered legend color
     @observable hoverColor?: string
 
@@ -65,9 +66,9 @@ export class ScatterPlot extends React.Component<{
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }
 
-    @action.bound onSelectEntity(datakey: string) {
+    @action.bound onSelectEntity(key: EntityDimensionKey) {
         if (this.chart.addCountryMode !== "disabled")
-            this.chart.data.toggleKey(datakey)
+            this.chart.data.toggleKey(key)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -113,7 +114,7 @@ export class ScatterPlot extends React.Component<{
         const { transform } = this
         const keysToToggle = transform.currentData
             .filter(g => g.color === hoverColor)
-            .map(g => g.key)
+            .map(g => g.entityDimensionKey)
         const allKeysActive =
             intersection(keysToToggle, chart.data.selectedKeys).length ===
             keysToToggle.length
@@ -134,7 +135,7 @@ export class ScatterPlot extends React.Component<{
         return colorsInUse.filter(color => {
             const matchingKeys = transform.currentData
                 .filter(g => g.color === color)
-                .map(g => g.key)
+                .map(g => g.entityDimensionKey)
             return (
                 intersection(matchingKeys, chart.data.selectedKeys).length ===
                 matchingKeys.length
@@ -152,7 +153,7 @@ export class ScatterPlot extends React.Component<{
                 : uniq(
                       transform.currentData
                           .filter(g => g.color === hoverColor)
-                          .map(g => g.key)
+                          .map(g => g.entityDimensionKey)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -192,7 +193,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @action.bound onScatterMouseOver(series: ScatterSeries) {
-        this.hoverKey = series.key
+        this.hoverKey = series.entityDimensionKey
     }
 
     @action.bound onScatterMouseLeave() {
@@ -206,9 +207,13 @@ export class ScatterPlot extends React.Component<{
     @computed get tooltipSeries(): ScatterSeries | undefined {
         const { hoverKey, focusKeys, transform } = this
         if (hoverKey !== undefined)
-            return transform.currentData.find(g => g.key === hoverKey)
+            return transform.currentData.find(
+                g => g.entityDimensionKey === hoverKey
+            )
         else if (focusKeys && focusKeys.length === 1)
-            return transform.currentData.find(g => g.key === focusKeys[0])
+            return transform.currentData.find(
+                g => g.entityDimensionKey === focusKeys[0]
+            )
         else return undefined
     }
 
@@ -272,7 +277,9 @@ export class ScatterPlot extends React.Component<{
         else
             return uniq(
                 transform.currentData
-                    .filter(g => activeKeys.indexOf(g.key) !== -1)
+                    .filter(
+                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
+                    )
                     .map(g => g.color)
             )
     }

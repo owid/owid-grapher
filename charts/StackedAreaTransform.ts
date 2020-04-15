@@ -72,7 +72,7 @@ export class StackedAreaTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         values: [],
-                        key: entityDimensionKey,
+                        entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         color: "#fff" // tmp
                     }
@@ -139,7 +139,7 @@ export class StackedAreaTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            series => -selectedKeys.indexOf(series.key)
+            series => -selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         // Assign colors
@@ -148,7 +148,8 @@ export class StackedAreaTransform extends ChartTransform {
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
             series.color =
-                chart.data.keyColors[series.key] || colorScale(series.key)
+                chart.data.keyColors[series.entityDimensionKey] ||
+                colorScale(series.entityDimensionKey)
         })
 
         // In relative mode, transform data to be a percentage of the total for that year

@@ -52,7 +52,7 @@ export class SlopeChart extends React.Component<{
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
-        this.hoverKey = slopeProps.key
+        this.hoverKey = slopeProps.entityDimensionKey
     }
 
     @action.bound onSlopeMouseLeave() {
@@ -85,7 +85,7 @@ export class SlopeChart extends React.Component<{
         const { transform } = this
         const keysToToggle = transform.data
             .filter(g => g.color === hoverColor)
-            .map(g => g.key)
+            .map(g => g.entityDimensionKey)
         const allKeysActive =
             intersection(keysToToggle, chart.data.selectedKeys).length ===
             keysToToggle.length
@@ -106,7 +106,7 @@ export class SlopeChart extends React.Component<{
         return legendColors.filter(color => {
             const matchingKeys = transform.data
                 .filter(g => g.color === color)
-                .map(g => g.key)
+                .map(g => g.entityDimensionKey)
             return (
                 intersection(matchingKeys, chart.data.selectedKeys).length ===
                 matchingKeys.length
@@ -128,7 +128,7 @@ export class SlopeChart extends React.Component<{
                 : uniq(
                       transform.data
                           .filter(g => g.color === hoverColor)
-                          .map(g => g.key)
+                          .map(g => g.entityDimensionKey)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -147,7 +147,9 @@ export class SlopeChart extends React.Component<{
         else
             return uniq(
                 transform.data
-                    .filter(g => activeKeys.indexOf(g.key) !== -1)
+                    .filter(
+                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
+                    )
                     .map(g => g.color)
             )
     }

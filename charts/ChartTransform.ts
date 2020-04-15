@@ -10,12 +10,13 @@ import {
 } from "./TimeBounds"
 import { defaultTo, first, last, sortedUniq, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface IChartTransform {
     isValidConfig: boolean
     yAxis?: AxisSpec
     xAxis?: AxisSpec
-    selectableKeys?: string[]
+    selectableEntityDimensionKeys: EntityDimensionKey[]
     colorables?: Colorable[]
     minTimelineYear: Time
     maxTimelineYear: Time
@@ -40,6 +41,10 @@ export abstract class ChartTransform implements IChartTransform {
      * Might be **empty** if the data hasn't been loaded yet.
      */
     abstract get availableYears(): Time[]
+
+    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
+        return this.chart.data.availableKeys
+    }
 
     /**
      * A unique, sorted array of years that are possible to be selected on the timeline.

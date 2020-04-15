@@ -5,6 +5,7 @@ import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -116,14 +117,8 @@ export class SlopeChartTransform extends ChartTransform {
         return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
     }
 
-    @computed get selectableKeys(): string[] {
-        const { data } = this
-
-        const keyData: string[] = []
-        data.forEach(series => {
-            keyData.push(series.key)
-        })
-        return keyData
+    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
+        return this.data.map(series => series.entityDimensionKey)
     }
 
     @computed get data(): SlopeChartSeries[] {
@@ -154,14 +149,17 @@ export class SlopeChartTransform extends ChartTransform {
                 })
             }
 
-            const key = chart.data.makeEntityDimensionKey(
+            const entityDimensionKey = chart.data.makeEntityDimensionKey(
                 entity,
                 yDimension.index
             )
             return {
-                key: key,
+                entityDimensionKey,
                 label: entityKey[entity].name,
-                color: keyColors[key] || colorByEntity.get(entity) || "#ff7f0e",
+                color:
+                    keyColors[entityDimensionKey] ||
+                    colorByEntity.get(entity) ||
+                    "#ff7f0e",
                 size: sizeByEntity.get(entity) || 1,
                 values: slopeValues
             }

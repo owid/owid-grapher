@@ -157,7 +157,7 @@ export class StackedBarTransform extends ChartTransform {
 
                 if (!series) {
                     series = {
-                        key: entityDimensionKey,
+                        entityDimensionKey: entityDimensionKey,
                         label: chart.data.getLabelForKey(entityDimensionKey),
                         values: [],
                         color: "#fff" // Temp
@@ -205,14 +205,14 @@ export class StackedBarTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            series => -selectedKeys.indexOf(series.key)
+            series => -selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         return groupedData
     }
 
-    @computed get colorKeys(): string[] {
-        return uniq(this.groupedData.map(d => d.key)).reverse()
+    @computed private get colorEntityDimensionKeys(): string[] {
+        return uniq(this.groupedData.map(d => d.entityDimensionKey)).reverse()
     }
 
     @computed get colors(): Colorizer {
@@ -225,10 +225,11 @@ export class StackedBarTransform extends ChartTransform {
                 return "stackedAreaDefault"
             },
             get keys() {
-                return that.colorKeys
+                return that.colorEntityDimensionKeys
             },
             get labelFormat() {
-                return (key: string) => that.chart.data.getLabelForKey(key)
+                return (key: EntityDimensionKey) =>
+                    that.chart.data.getLabelForKey(key)
             },
             invert: true
         })
@@ -245,7 +246,7 @@ export class StackedBarTransform extends ChartTransform {
         const stackedData = cloneDeep(groupedData)
 
         for (const series of stackedData) {
-            series.color = this.colors.get(series.key)
+            series.color = this.colors.get(series.entityDimensionKey)
             series.values = series.values.filter(
                 v => v.x >= startYear && v.x <= endYear
             )

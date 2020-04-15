@@ -36,7 +36,7 @@ const MARKER_HORIZONTAL_SEGMENT = 5
 const ADD_BUTTON_HEIGHT = 30
 
 export interface HeightedLegendItem {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     label: string
     color: string
     yValue: number
@@ -150,8 +150,8 @@ export interface HeightedLegendComponentProps {
     yScale: AxisScale
     focusKeys: EntityDimensionKey[]
     areMarksClickable: boolean
-    onMouseOver?: (key: string) => void
-    onClick?: (key: string) => void
+    onMouseOver?: (key: EntityDimensionKey) => void
+    onClick?: (key: EntityDimensionKey) => void
     onMouseLeave?: () => void
 }
 
@@ -247,7 +247,7 @@ export class HeightedLegendComponent extends React.Component<
 
     @computed get isFocusMode() {
         return some(this.props.legend.marks, m =>
-            includes(this.props.focusKeys, m.item.key)
+            includes(this.props.focusKeys, m.item.entityDimensionKey)
         )
     }
 
@@ -403,7 +403,9 @@ export class HeightedLegendComponent extends React.Component<
         const { focusKeys } = this.props
         const { isFocusMode } = this
         return this.placedMarks.filter(m =>
-            isFocusMode ? !includes(focusKeys, m.mark.item.key) : m.isOverlap
+            isFocusMode
+                ? !includes(focusKeys, m.mark.item.entityDimensionKey)
+                : m.isOverlap
         )
     }
 
@@ -411,7 +413,9 @@ export class HeightedLegendComponent extends React.Component<
         const { focusKeys } = this.props
         const { isFocusMode } = this
         return this.placedMarks.filter(m =>
-            isFocusMode ? includes(focusKeys, m.mark.item.key) : !m.isOverlap
+            isFocusMode
+                ? includes(focusKeys, m.mark.item.entityDimensionKey)
+                : !m.isOverlap
         )
     }
 
@@ -430,12 +434,14 @@ export class HeightedLegendComponent extends React.Component<
     private renderBackground() {
         return this.backgroundMarks.map(mark => (
             <PlacedMarkComponent
-                key={mark.mark.item.key}
+                key={mark.mark.item.entityDimensionKey}
                 mark={mark}
                 legend={this.props.legend}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.mark.item.key)}
-                onClick={() => this.onClick(mark.mark.item.key)}
+                onMouseOver={() =>
+                    this.onMouseOver(mark.mark.item.entityDimensionKey)
+                }
+                onClick={() => this.onClick(mark.mark.item.entityDimensionKey)}
             />
         ))
     }
@@ -444,14 +450,18 @@ export class HeightedLegendComponent extends React.Component<
     private renderFocus() {
         return this.focusMarks.map(mark => (
             <PlacedMarkComponent
-                key={mark.mark.item.key}
+                key={mark.mark.item.entityDimensionKey}
                 mark={mark}
                 legend={this.props.legend}
                 isFocus={true}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.mark.item.key)}
-                onClick={() => this.onClick(mark.mark.item.key)}
-                onMouseLeave={() => this.onMouseLeave(mark.mark.item.key)}
+                onMouseOver={() =>
+                    this.onMouseOver(mark.mark.item.entityDimensionKey)
+                }
+                onClick={() => this.onClick(mark.mark.item.entityDimensionKey)}
+                onMouseLeave={() =>
+                    this.onMouseLeave(mark.mark.item.entityDimensionKey)
+                }
             />
         ))
     }

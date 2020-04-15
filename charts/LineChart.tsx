@@ -27,6 +27,7 @@ import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface LineChartValue {
     x: number
@@ -35,7 +36,7 @@ export interface LineChartValue {
 }
 
 export interface LineChartSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     color: string
     values: LineChartValue[]
     classed?: string
@@ -82,14 +83,18 @@ export class LineChart extends React.Component<{
         return toShow.map(series => {
             const lastValue = (last(series.values) as LineChartValue).y
             const annotation =
-                this.chart.data.getAnnotationForKey(series.key) || undefined
+                this.chart.data.getAnnotationForKey(
+                    series.entityDimensionKey
+                ) || undefined
             return {
                 color: series.color,
-                key: series.key,
+                entityDimensionKey: series.entityDimensionKey,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.chart.hideLegend
                     ? ""
-                    : `${this.chart.data.getLabelForKey(series.key)}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                    : `${this.chart.data.getLabelForKey(
+                          series.entityDimensionKey
+                      )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
                 annotation,
                 yValue: lastValue
             }
@@ -112,7 +117,10 @@ export class LineChart extends React.Component<{
     }
 
     seriesIsBlur(series: LineChartSeries) {
-        return this.isFocusMode && !this.focusKeys.includes(series.key)
+        return (
+            this.isFocusMode &&
+            !this.focusKeys.includes(series.entityDimensionKey)
+        )
     }
 
     @computed get tooltip(): JSX.Element | undefined {
@@ -148,7 +156,7 @@ export class LineChart extends React.Component<{
                             )
 
                             const annotation = chart.data.getAnnotationForKey(
-                                series.key
+                                series.entityDimensionKey
                             )
 
                             // It sometimes happens that data is missing for some years for a particular
@@ -180,7 +188,7 @@ export class LineChart extends React.Component<{
                                 : series.color
                             return (
                                 <tr
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -199,7 +207,9 @@ export class LineChart extends React.Component<{
                                                 marginRight: "2px"
                                             }}
                                         />{" "}
-                                        {chart.data.getLabelForKey(series.key)}
+                                        {chart.data.getLabelForKey(
+                                            series.entityDimensionKey
+                                        )}
                                         {annotation && (
                                             <span
                                                 className="tooltipAnnotation"
@@ -250,14 +260,14 @@ export class LineChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(datakey: string) {
+    @action.bound onLegendClick(key: EntityDimensionKey) {
         if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
         }
     }
 
-    @action.bound onLegendMouseOver(datakey: string) {
-        this.hoverKey = datakey
+    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+        this.hoverKey = key
     }
 
     @action.bound onLegendMouseLeave() {
@@ -377,7 +387,7 @@ export class LineChart extends React.Component<{
                             else
                                 return (
                                     <circle
-                                        key={series.key}
+                                        key={series.entityDimensionKey}
                                         cx={xScale.place(value.x)}
                                         cy={yScale.place(value.y)}
                                         r={4}
