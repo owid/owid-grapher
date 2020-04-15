@@ -234,10 +234,12 @@ export async function formatWordpressPost(
     // Any remaining iframes: ensure https embeds
     if (HTTPS_ONLY) {
         for (const iframe of $("iframe").toArray()) {
-            iframe.attribs["src"] = iframe.attribs["src"].replace(
-                "http://",
-                "https://"
-            )
+            if (iframe.attribs["src"]) {
+                iframe.attribs["src"] = iframe.attribs["src"].replace(
+                    "http://",
+                    "https://"
+                )
+            }
         }
     }
 
