@@ -8,14 +8,13 @@
     border-radius: 3px;
     @include block-shadow;
 
-    .icon {
+    & > .icon {
         margin-right: 0.5rem;
     }
 
     h4 {
-        margin: 0;
+        margin: 0 0 0.5rem;
         font-family: $sans-serif-font-stack;
-        text-transform: uppercase;
         font-size: 1.2rem;
     }
 
@@ -28,6 +27,10 @@
         }
         ul {
             padding-left: 20px;
+        }
+        a {
+            color: currentColor;
+            text-decoration: underline;
         }
     }
 }
