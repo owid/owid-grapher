@@ -255,6 +255,14 @@ export async function formatWordpressPost(
         $div.append($table)
     }
 
+    // Make sticky-right layout the default for columns
+    $(".wp-block-columns").each((_, columns) => {
+        const $columns = $(columns)
+        if (columns.attribs.class === "wp-block-columns") {
+            $columns.addClass("is-style-sticky-right")
+        }
+    })
+
     // Image processing
     // Assumptions:
     // - original images are not uploaded with a suffix "-[number]x[number]"
