@@ -164,9 +164,11 @@
     }
 
     @media (min-width: 30rem) {
+        /* autoprefixer grid: autoplace */
         display: grid;
         grid-gap: 1.5rem 1.25rem;
         grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(10, auto);
 
         li {
             margin-bottom: 0;
@@ -174,7 +176,9 @@
     }
 
     @include md-up {
+        /* autoprefixer grid: autoplace */
         grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(5, auto);
     }
 }
 
