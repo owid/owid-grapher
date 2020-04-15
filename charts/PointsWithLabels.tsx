@@ -730,8 +730,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         .filter(l => !l.isHidden)
                         .map(l =>
                             getElementWithHalo(
+                                series.displayKey + "-endLabel",
                                 <text
-                                    key={series.displayKey + "-endLabel"}
                                     x={l.bounds.x.toFixed(2)}
                                     y={(l.bounds.y + l.bounds.height).toFixed(
                                         2
@@ -847,8 +847,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 .filter(l => !l.isHidden)
                 .map((l, i) =>
                     getElementWithHalo(
+                        `${series.displayKey}-label-${i}`,
                         <text
-                            key={`${series.displayKey}-label-${i}`}
                             x={l.bounds.x.toFixed(2)}
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}
