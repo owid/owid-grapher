@@ -32,8 +32,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             CovidTableColumnKey.daysToDoubleCases
         ],
         defaultState: {
-            sortKey: CovidSortKey.totalCases,
-            sortOrder: SortOrder.desc,
+            sortKey: CovidSortKey.daysToDoubleCases,
+            sortOrder: SortOrder.asc,
             truncate: true
         },
         filter: d =>
@@ -76,8 +76,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             CovidTableColumnKey.daysToDoubleDeaths
         ],
         defaultState: {
-            sortKey: CovidSortKey.totalDeaths,
-            sortOrder: SortOrder.desc,
+            sortKey: CovidSortKey.daysToDoubleDeaths,
+            sortOrder: SortOrder.asc,
             truncate: true
         },
         filter: d =>
