@@ -40,12 +40,14 @@ export class ChartTab extends React.Component<{
         const bounds = this.layout.innerBounds
 
         if (!chart.data.isReady) {
-            return <a href={`${BAKED_GRAPHER_URL}/${chart.props.slug}`}>
-                <img
-                    src={`${BAKED_GRAPHER_URL}/exports/${chart.props.slug}.svg`}
-                    className="chartPreview"
-                />
-            </a>
+            return (
+                <a href={`${BAKED_GRAPHER_URL}/${chart.props.slug}`}>
+                    <img
+                        src={`${BAKED_GRAPHER_URL}/exports/${chart.props.slug}.svg`}
+                        className="chartPreview"
+                    />
+                </a>
+            )
         } else if (chart.isSlopeChart) {
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
         } else if (chart.isScatter) {
