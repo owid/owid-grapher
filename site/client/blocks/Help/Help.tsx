@@ -1,7 +1,7 @@
 import * as React from "react"
 import ReactDOMServer from "react-dom/server"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle"
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons/faLightbulb"
 
 const Help = ({
     title,
@@ -13,7 +13,7 @@ const Help = ({
     return (
         <div className="wp-block-help">
             <div className="icon">
-                <FontAwesomeIcon icon={faQuestionCircle} />
+                <FontAwesomeIcon icon={faLightbulb} />
             </div>
             <div>
                 {title ? <h4>{title}</h4> : null}

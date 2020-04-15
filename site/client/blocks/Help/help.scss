@@ -2,11 +2,11 @@
     display: flex;
     margin-bottom: 2rem;
     padding: 1rem;
-    border: 1px solid currentColor;
+    border: 1px solid $primary-color-200;
     font-size: 0.9rem;
     color: $bluish-grey-text-color;
     border-radius: 3px;
-    @include block-shadow;
+    background-color: $white;
 
     & > .icon {
         margin-right: 0.5rem;
