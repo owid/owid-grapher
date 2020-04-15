@@ -11,21 +11,25 @@ registerBlockType("owid/additional-information", AdditionalInformation);
 
 registerBlockStyle("core/columns", {
   name: "sticky-right",
-  label: "Sticky right"
+  label: "Sticky right",
+});
+registerBlockStyle("core/columns", {
+  name: "sticky-left",
+  label: "Sticky left",
 });
 
 registerBlockStyle("core/columns", {
   name: "merge-left",
-  label: "Merge left"
+  label: "Merge left",
 });
 registerBlockStyle("core/columns", {
   name: "side-by-side",
-  label: "Side by side"
+  label: "Side by side",
 });
 
 // Temporary fix https://github.com/WordPress/gutenberg/issues/9897#issuecomment-478362380
-const allowColumnStyle = createHigherOrderComponent(BlockEdit => {
-  return props => {
+const allowColumnStyle = createHigherOrderComponent((BlockEdit) => {
+  return (props) => {
     const { name, insertBlocksAfter = null } = props;
     return name === "core/columns" && insertBlocksAfter === null ? (
       <div />
