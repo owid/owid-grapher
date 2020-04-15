@@ -367,9 +367,9 @@ export async function formatWordpressPost(
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
         if (
-            $heading.closest(".wp-block-owid-prominent-link").length === 0 && // already wrapped in <a>
-            $heading.closest(".wp-block-owid-additional-information").length === // prioritize clean SSR of AdditionalInformation
-                0
+            !$heading.closest(".wp-block-owid-prominent-link").length && // already wrapped in <a>
+            !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
+            !$heading.closest(".wp-block-help").length
         ) {
             $heading.prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }

@@ -1,0 +1,33 @@
+.article-content > section .wp-block-columns .wp-block-help {
+    display: flex;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid currentColor;
+    font-size: 0.9rem;
+    color: $bluish-grey-text-color;
+    border-radius: 3px;
+    @include block-shadow;
+
+    .icon {
+        margin-right: 0.5rem;
+    }
+
+    h4 {
+        margin: 0;
+        font-family: $sans-serif-font-stack;
+        text-transform: uppercase;
+        font-size: 1.2rem;
+    }
+
+    .content {
+        & > *:first-child {
+            margin-top: 0;
+        }
+        & > *:last-child {
+            margin-bottom: 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+    }
+}
