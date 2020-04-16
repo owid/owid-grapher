@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice } from "./Util"
+import { uniqBy, isTouchDevice, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionInfo } from "./ChartData"
 import { FuzzySearch } from "./FuzzySearch"
@@ -43,9 +43,10 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     @computed get searchResults(): EntityDimensionInfo[] {
-        return this.searchInput
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
     isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
@@ -213,9 +214,10 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @computed get searchResults(): { id: number; label: string }[] {
-        return this.searchInput
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
