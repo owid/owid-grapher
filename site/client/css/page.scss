@@ -68,6 +68,24 @@
         }
     }
 
+    // Cite this research and other potential tools located at the top of entries
+    .tools {
+        display: flex;
+        margin-top: 3rem;
+        a {
+            margin-right: 1rem;
+            font-size: 0.8125rem;
+            color: $grey-text-color;
+            transition: all 0.2s;
+            &:hover {
+                color: $secondary-color;
+            }
+            svg {
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
     &.large-banner {
         background-color: $primary-color-100;
 
@@ -93,23 +111,6 @@
                 }
                 @include xlg-up {
                     font-size: 5rem;
-                }
-            }
-
-            // Cite this research and other potential tools located at the top of entries
-            .tools {
-                display: flex;
-                margin-top: 3rem;
-                .cite {
-                    font-size: 0.8125rem;
-                    color: $grey-text-color;
-                    transition: all 0.2s;
-                    &:hover {
-                        color: $secondary-color;
-                    }
-                    svg {
-                        margin-right: 0.5rem;
-                    }
                 }
             }
         }
