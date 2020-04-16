@@ -262,7 +262,6 @@ class Slope extends React.Component<SlopeProps> {
                     <Text
                         x={x2 + 8}
                         y={y2 - rightValueLabelBounds.height / 2}
-                        dominantBaseline="middle"
                         fontSize={labelFontSize}
                         fill={labelColor}
                         fontWeight={isFocused || isHovered ? "bold" : undefined}
