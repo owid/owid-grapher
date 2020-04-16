@@ -28,7 +28,7 @@ function sendFeedback(feedback: Feedback) {
 
         req.open(
             "POST",
-            `https://owid-feedback.netlify.com/.netlify/functions/hello`
+            `https://owid-feedback.netlify.app/.netlify/functions/hello`
         )
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
 
