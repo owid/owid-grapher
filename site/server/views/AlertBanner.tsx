@@ -5,8 +5,8 @@ export const AlertBanner = () => {
         <div className="alert-banner">
             <div className="content">
                 <div className="text">
-                    Our daily updated research and data on the coronavirus
-                    pandemic.
+                    <strong>Coronavirus pandemic</strong>: daily updated
+                    research and data.
                 </div>
                 <a href="/coronavirus">Read more</a>
             </div>
