@@ -30,7 +30,7 @@ function setup()
 		array(
 			'name'  => 'Bluish grey',
 			'slug'  => 'bluish-grey',
-			'color'	=> '#92a5bb',
+			'color'	=> '#6e87a2',
 		)
 	));
 	add_editor_style('editor-style.css');

@@ -4,7 +4,7 @@ import { createBlock } from "@wordpress/blocks";
 const blockStyle = {
   border: "1px dashed lightgrey",
   padding: "0 1rem",
-  color: "#92a5bb",
+  color: "#6e87a2",
 };
 
 const BLOCK_TEMPLATE = [
