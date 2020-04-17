@@ -115,10 +115,6 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return this.props.chart.url.canonicalUrl
     }
 
-    @observable isEmbedMenuActive: boolean = false
-
-    embedMenu: any
-
     @action.bound dismiss() {
         this.props.onDismiss()
     }
