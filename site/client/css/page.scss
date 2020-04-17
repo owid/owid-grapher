@@ -68,6 +68,11 @@
         }
     }
 
+    .last-updated {
+        margin-top: 2 * $vertical-spacing;
+        color: $grey-text-color;
+    }
+
     // Cite this research and other potential tools located at the top of entries
     .tools {
         display: flex;

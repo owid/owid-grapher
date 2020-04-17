@@ -127,6 +127,14 @@ export const LongFormPage = (props: {
                                     />
                                 )}
 
+                                {post.lastUpdated && (
+                                    <div
+                                        className="last-updated"
+                                        dangerouslySetInnerHTML={{
+                                            __html: post.lastUpdated
+                                        }}
+                                    />
+                                )}
                                 {(isPost || isEntry) && (
                                     <div className="tools">
                                         {(isPost || isEntry) && (
