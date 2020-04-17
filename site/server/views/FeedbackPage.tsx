@@ -1,4 +1,4 @@
-import React = require("react")
+import React from "react"
 import { Head } from "./Head"
 import { BAKED_BASE_URL } from "settings"
 import { SiteHeader } from "./SiteHeader"

@@ -1,16 +1,15 @@
-import db = require("db/db")
+import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
-import React = require("react")
+import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { ChartConfigProps } from "charts/ChartConfig"
-import _ = require("lodash")
+import _ from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage
 } from "./views/CountryProfilePage"
-import { DimensionWithData } from "charts/DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { Variable } from "db/model/Variable"
-import fs = require("fs-extra")
 import { SiteBaker } from "./SiteBaker"
 import { countries } from "utils/countries"
 
@@ -186,7 +185,7 @@ export async function countryProfilePage(countrySlug: string) {
             const latestValue = values[0]
             const variable = variablesById[vid]
 
-            const dim = new DimensionWithData(
+            const dim = new ChartDimensionWithOwidVariable(
                 0,
                 c.dimensions[0],
                 variable as any

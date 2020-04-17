@@ -12,12 +12,13 @@ import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
-import { VariableDisplaySettings } from "charts/Variable"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { EPOCH_DATE } from "settings"
 
 interface VariablePageData {
     id: number
@@ -25,7 +26,7 @@ interface VariablePageData {
     unit: string
     shortUnit: string
     description: string
-    display: VariableDisplaySettings
+    display: OwidVariableDisplaySettings
 
     datasetId: number
     datasetName: string
@@ -41,7 +42,8 @@ class VariableEditable {
     @observable shortUnit: string = ""
     @observable description: string = ""
     @observable entityAnnotationsMap: string = ""
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -199,6 +201,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable.display}
                                         disabled={
                                             !newVariable.display.yearIsDay
+                                        }
+                                        placeholder={
+                                            newVariable.display.yearIsDay
+                                                ? EPOCH_DATE
+                                                : ""
                                         }
                                         helpText={`The day series starts on this date.`}
                                     />

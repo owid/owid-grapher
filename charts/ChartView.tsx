@@ -14,9 +14,15 @@ import { DataTab } from "./DataTab"
 import { MapTab } from "./MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "./DownloadTab"
-import { VNode, throttle, isMobile, isTouchDevice } from "./Util"
+import {
+    VNode,
+    throttle,
+    isMobile,
+    isTouchDevice,
+    getCountryCodeFromNetlifyRedirect
+} from "./Util"
 import { Bounds } from "./Bounds"
-import { DataSelector } from "./DataSelector"
+import { EntitySelectorModal } from "./EntitySelectorModal"
 import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
@@ -103,6 +109,11 @@ export class ChartView extends React.Component<ChartViewProps> {
         })
 
         return chartView
+    }
+
+    static async detectCountry() {
+        const countryIs = await getCountryCodeFromNetlifyRedirect()
+        console.log(countryIs)
     }
 
     @computed get chart() {
@@ -317,10 +328,10 @@ export class ChartView extends React.Component<ChartViewProps> {
                 {this.popups}
                 <TooltipView />
                 {this.isSelectingData && (
-                    <DataSelector
-                        key="dataSelector"
+                    <EntitySelectorModal
+                        key="entitySelector"
                         chart={chart}
-                        chartView={this}
+                        isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}

@@ -6,7 +6,7 @@ import "./oldScripts.js"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-const SmoothScroll = require("smooth-scroll")
+import SmoothScroll from "smooth-scroll"
 
 import { Analytics } from "./Analytics"
 import { runChartsIndexPage } from "./runChartsIndexPage"

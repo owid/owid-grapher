@@ -7,6 +7,7 @@ import { AxisBox } from "./AxisBox"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "./Bounds"
 import { Vector2 } from "./Vector2"
+import { getElementWithHalo } from "./Halos"
 
 export interface ComparisonLineConfig {
     label?: string
@@ -111,25 +112,16 @@ export class ComparisonLine extends React.Component<{
                         }}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
-                        <textPath
-                            baselineShift="-0.2rem"
-                            href={`#path-${renderUid}`}
-                            startOffset="90%"
-                            style={{
-                                stroke: "white",
-                                strokeWidth: "0.3em"
-                            }}
-                            dy="-0.33em"
-                        >
-                            {placedLabel.text}
-                        </textPath>
-                        <textPath
-                            baselineShift="-0.2rem"
-                            href={`#path-${renderUid}`}
-                            startOffset="90%"
-                        >
-                            {placedLabel.text}
-                        </textPath>
+                        {getElementWithHalo(
+                            `path-${renderUid}`,
+                            <textPath
+                                baselineShift="-0.2rem"
+                                href={`#path-${renderUid}`}
+                                startOffset="90%"
+                            >
+                                {placedLabel.text}
+                            </textPath>
+                        )}
                     </text>
                 )}
             </g>

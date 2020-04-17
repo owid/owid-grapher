@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
@@ -8,24 +8,40 @@ import { SiteHeader } from "../SiteHeader"
 import { SiteFooter } from "../SiteFooter"
 import { extend } from "charts/Util"
 import { ChartConfigProps } from "charts/ChartConfig"
+import { Post } from "db/model/Post"
+import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import * as fixtures from "test/fixtures"
+import { ChartListItemVariant } from "../ChartListItemVariant"
 
 describe(ChartPage, () => {
     let chart: ChartConfigProps
+    let post: Post.Row
+    let relatedCharts: RelatedChart[]
 
     beforeAll(() => {
         chart = new ChartConfigProps()
-        extend(chart, fixtures.readChart(677))
+        extend(chart, fixtures.readChart(792))
+        post = fixtures.readPost(2681)
+        relatedCharts = fixtures.readChartsPost(2681)
     })
 
     describe("when the page is rendered", () => {
         let view: ShallowWrapper
 
-        beforeAll(() => (view = shallow(<ChartPage chart={chart} />)))
+        beforeAll(
+            () =>
+                (view = shallow(
+                    <ChartPage
+                        post={post}
+                        chart={chart}
+                        relatedCharts={relatedCharts}
+                    />
+                ))
+        )
 
         it("preloads the data", () => {
-            const path = "/grapher/data/variables/104402.json?v=7"
+            const path = "/grapher/data/variables/3512.json?v=5"
             const selector = `link[rel="preload"][href="${path}"]`
             expect(view.find(selector)).toHaveLength(1)
         })
@@ -36,8 +52,12 @@ describe(ChartPage, () => {
 
         it("renders a figure", () => {
             const selector =
-                'figure[data-grapher-src="/grapher/child-mortality-rate-ihme"]'
+                'figure[data-grapher-src="/grapher/share-of-children-with-a-weight-too-low-for-their-height-wasting"]'
             expect(view.find(selector)).toHaveLength(1)
+        })
+
+        it("renders a related content block", () => {
+            expect(view.find(ChartListItemVariant)).toHaveLength(2)
         })
 
         it("renders a site footer", () => {

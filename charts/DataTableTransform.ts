@@ -7,8 +7,9 @@ import {
     getStartEndValues
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { getTimeWithinTimeRange, Time } from "./TimeBounds"
 
 // Target year modes
 
@@ -29,7 +30,7 @@ export enum SortOrder {
 // Dimensions
 
 export interface Dimension {
-    dimension: DimensionWithData
+    dimension: ChartDimensionWithOwidVariable
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
 }
@@ -148,22 +149,33 @@ export class DataTableTransform {
         return TargetYearMode.point
     }
 
+    @computed get minYear(): Time {
+        return this.chart.data.minYear
+    }
+
+    @computed get maxYear(): Time {
+        return this.chart.data.maxYear
+    }
+
     // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
-        const mapTarget = this.chart.map.props.targetYear
-        const { timeDomain } = this.chart
-        if (this.chart.tab === "map" && mapTarget !== undefined) {
-            return [mapTarget]
-        } else if (timeDomain[0] !== undefined && timeDomain[1] !== undefined) {
-            if (timeDomain[0] === timeDomain[1]) return [timeDomain[0]]
-            else return [timeDomain[0], timeDomain[1]]
+        const mapTarget = this.chart.map.targetYear
+        const [startYear, endYear] = this.chart.timeDomain
+        const timeRange: [Time, Time] = [this.minYear, this.maxYear]
+        if (this.chart.tab === "map") {
+            return [getTimeWithinTimeRange(timeRange, mapTarget)]
+        } else if (startYear === endYear) {
+            return [getTimeWithinTimeRange(timeRange, startYear)]
         } else {
-            return [new Date().getFullYear()]
+            return [
+                getTimeWithinTimeRange(timeRange, startYear),
+                getTimeWithinTimeRange(timeRange, endYear)
+            ]
         }
     }
 
     formatValue(
-        dimension: DimensionWithData,
+        dimension: ChartDimensionWithOwidVariable,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ): string | undefined {

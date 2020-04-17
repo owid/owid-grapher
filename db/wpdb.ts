@@ -13,7 +13,7 @@ import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
 import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
-const urlSlug = require("url-slug")
+import urlSlug from "url-slug"
 
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
@@ -470,13 +470,16 @@ export async function getRelatedCharts(
     postId: number
 ): Promise<RelatedChart[]> {
     return db.query(`
-        SELECT
+        SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.variantName" AS variantName
         FROM charts
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
         WHERE post_tags.post_id=${postId}
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
     `)
 }
 

@@ -13,9 +13,10 @@ import { NoData } from "./NoData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "./Controls"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface DiscreteBarDatum {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     value: number
     year: number
     label: string
@@ -42,10 +43,6 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed get failMessage() {
         return this.chart.discreteBar.failMessage
-    }
-
-    @computed get hasTimeline() {
-        return this.chart.discreteBar.hasTimeline
     }
 
     @computed get currentData() {
@@ -298,7 +295,7 @@ export class DiscreteBarChart extends React.Component<{
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={d.key}
+                            key={d.entityDimensionKey}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}

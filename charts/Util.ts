@@ -128,7 +128,7 @@ export {
     memoize
 }
 
-import moment = require("moment")
+import moment from "moment"
 import { format } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
@@ -136,6 +136,8 @@ import parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
+import { EPOCH_DATE } from "settings"
 
 export type SVGElement = any
 export type VNode = any
@@ -212,14 +214,18 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
-export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
+export function formatDay(
+    dayAsYear: number,
+    options?: { format?: string }
+): string {
+    const format = defaultTo(options?.format, "MMM D, YYYY")
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
     return moment
-        .utc(zeroDay)
+        .utc(EPOCH_DATE)
         .add(dayAsYear, "days")
-        .format("MMM D, YYYY")
+        .format(format)
 }
 
 export function formatYear(year: number): string {
@@ -343,7 +349,8 @@ export function lastOfNonEmptyArray<T>(arr: T[]): T {
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(
     numValues: number[],
-    scaleType: "linear" | "log"
+    scaleType: "linear" | "log",
+    maxValueMultiplierForPadding = 1
 ): [number, number] {
     const filterValues =
         scaleType === "log" ? numValues.filter(v => v > 0) : numValues
@@ -356,7 +363,7 @@ export function domainExtent(
         isFinite(maxValue)
     ) {
         if (minValue !== maxValue) {
-            return [minValue, maxValue]
+            return [minValue, maxValue * maxValueMultiplierForPadding]
         } else {
             // Only one value, make up a reasonable default
             return scaleType === "log"
@@ -375,13 +382,6 @@ export function slugify(s: string) {
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
     return trim(s).replace(/ +/g, "-")
-}
-
-export function findClosest(
-    numValues: number[],
-    targetValue: number
-): number | undefined {
-    return sortBy(numValues, value => Math.abs(value - targetValue))[0]
 }
 
 // Unique number for this execution context
@@ -488,6 +488,19 @@ export async function fetchText(url: string): Promise<string> {
     })
 }
 
+export async function getCountryCodeFromNetlifyRedirect(): Promise<
+    string | undefined
+> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", () => {
+            resolve(req.responseURL.split("?")[1])
+        })
+        req.open("GET", "/detect-country-redirect")
+        req.send()
+    })
+}
+
 export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
@@ -520,10 +533,12 @@ export function stripHTML(html: string): string {
 }
 
 export function findClosestYear(
-    years: number[] | Iterable<number>,
+    years: number[],
     targetYear: number,
     tolerance?: number
 ): number | undefined {
+    if (isUnboundedLeft(targetYear)) return min(years)
+    if (isUnboundedRight(targetYear)) return max(years)
     let closest: number | undefined
     for (const year of years) {
         const currentYearDist = Math.abs(year - targetYear)
@@ -621,6 +636,10 @@ export function dateDiffInDays(a: Date, b: Date) {
     const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
     const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
     return Math.floor((utca - utcb) / MS_PER_DAY)
+}
+
+export function diffDateISOStringInDays(a: string, b: string): number {
+    return moment.utc(a).diff(moment.utc(b), "days")
 }
 
 export function addDays(date: Date, days: number): Date {

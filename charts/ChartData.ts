@@ -10,7 +10,6 @@ import {
     sortBy,
     without,
     find,
-    extend,
     uniq,
     defaultTo,
     slugify,
@@ -20,14 +19,15 @@ import { computed, toJS } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { OwidSource } from "./owidData/OwidSource"
 
 export interface EntityDimensionInfo {
     entity: string
     entityId: number
-    dimension: DimensionWithData
+    dimension: ChartDimensionWithOwidVariable
     index: number
-    key: string
+    entityDimensionKey: EntityDimensionKey
     fullLabel: string
     label: string
     annotation?: string
@@ -35,14 +35,8 @@ export interface EntityDimensionInfo {
 }
 
 export interface SourceWithDimension {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-    dimension: DimensionWithData
+    source: OwidSource
+    dimension: ChartDimensionWithOwidVariable
 }
 
 // This component computes useful information using both the chart configuration and the actual data
@@ -63,12 +57,12 @@ export class ChartData {
         )
     }
 
-    @computed.struct get filledDimensions(): DimensionWithData[] {
+    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
         if (!this.isReady) return []
 
         return map(this.chart.dimensions, (dim, i) => {
             const variable = this.chart.variablesById[dim.variableId]
-            return new DimensionWithData(i, dim, variable)
+            return new ChartDimensionWithOwidVariable(i, dim, variable)
         })
     }
 
@@ -103,7 +97,7 @@ export class ChartData {
     }
 
     // XXX refactor into the transforms
-    @computed get minYear(): number | undefined {
+    @computed get minYear(): number {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
@@ -112,16 +106,10 @@ export class ChartData {
             return chart.scatter.startYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
-        else if (
-            chart.isLineChart &&
-            chart.lineChart.isSingleYear &&
-            !chart.discreteBar.failMessage
-        )
-            return chart.lineChart.startYear
-        else return undefined
+        else return chart.lineChart.startYear
     }
 
-    @computed get maxYear(): number | undefined {
+    @computed get maxYear(): number {
         const { chart } = this
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
@@ -130,64 +118,58 @@ export class ChartData {
             return chart.scatter.endYear
         else if (chart.isDiscreteBar && !chart.discreteBar.failMessage)
             return chart.discreteBar.targetYear
-        else if (
-            chart.isLineChart &&
-            chart.lineChart.isSingleYear &&
-            !chart.discreteBar.failMessage
-        )
-            return chart.lineChart.endYear
-        else return undefined
+        else return chart.lineChart.endYear
     }
 
     @computed get currentTitle(): string {
         const { chart } = this
         let text = this.title
 
-        if (!chart.props.hideTitleAnnotation) {
-            if (
-                chart.props.tab === "chart" &&
-                chart.addCountryMode !== "add-country" &&
-                chart.data.selectedEntities.length === 1
-            ) {
-                const { selectedEntities } = chart.data
-                const entityStr = selectedEntities.join(", ")
-                if (entityStr.length > 0) {
-                    text = text + ", " + entityStr
-                }
+        if (
+            chart.primaryTab === "chart" &&
+            chart.addCountryMode !== "add-country" &&
+            chart.data.selectedEntities.length === 1 &&
+            (!chart.props.hideTitleAnnotation || this.canChangeEntity)
+        ) {
+            const { selectedEntities } = chart.data
+            const entityStr = selectedEntities.join(", ")
+            if (entityStr.length > 0) {
+                text = text + ", " + entityStr
             }
-
-            if (chart.isLineChart && chart.lineChart.isRelativeMode) {
-                text =
-                    "Change in " +
-                    (text.charAt(1).match(/[A-Z]/)
-                        ? text
-                        : text.charAt(0).toLowerCase() + text.slice(1))
-            }
-
-            // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
-            /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
-                const label = labelsByRegion[chart.map.props.projection]
-                text = text + ` in ${label}`
-            }*/
         }
+
+        if (
+            !chart.props.hideTitleAnnotation &&
+            chart.isLineChart &&
+            chart.lineChart.isRelativeMode
+        ) {
+            text =
+                "Change in " +
+                (text.charAt(1).match(/[A-Z]/)
+                    ? text
+                    : text.charAt(0).toLowerCase() + text.slice(1))
+        }
+
+        // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
+        /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
+            const label = labelsByRegion[chart.map.props.projection]
+            text = text + ` in ${label}`
+        }*/
 
         if (
             !chart.props.hideTitleAnnotation ||
             (this.chart.isLineChart &&
                 this.chart.lineChart.isSingleYear &&
-                this.chart.lineChart.hasTimeline)
+                this.chart.lineChart.hasTimeline) ||
+            (this.chart.primaryTab === "map" && this.chart.map.data.hasTimeline)
         ) {
             const { minYear, maxYear } = this
-            if (minYear !== undefined) {
-                const timeFrom = chart.formatYearFunction(minYear)
-                const timeTo = chart.formatYearFunction(
-                    maxYear !== undefined ? maxYear : minYear
-                )
-                const time =
-                    timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+            const timeFrom = chart.formatYearFunction(minYear)
+            const timeTo = chart.formatYearFunction(maxYear)
+            const time =
+                timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
-                text = text + ", " + time
-            }
+            text = text + ", " + time
         }
 
         return text.trim()
@@ -208,7 +190,9 @@ export class ChartData {
     }
 
     @computed private get defaultSourcesLine(): string {
-        let sourceNames = this.sources.map(source => source.name)
+        let sourceNames = this.sourcesWithDimension.map(
+            source => source.source.name
+        )
 
         // Shorten automatic source names for certain major sources
         sourceNames = sourceNames.map(sourceName => {
@@ -242,13 +226,6 @@ export class ChartData {
         return this.primaryDimensions.length === 1
     }
 
-    @computed get isShowingTimeline(): boolean {
-        return !!(
-            this.chart.primaryTab === "map" ||
-            (this.chart.isScatter && this.chart.scatter.hasTimeline)
-        )
-    }
-
     // Make a unique string key for an entity on a variable
     makeEntityDimensionKey(
         entity: string,
@@ -257,7 +234,9 @@ export class ChartData {
         return `${entity}_${dimensionIndex}`
     }
 
-    @computed get dimensionsByField(): { [key: string]: DimensionWithData } {
+    @computed get dimensionsByField(): {
+        [key: string]: ChartDimensionWithOwidVariable
+    } {
         return keyBy(this.filledDimensions, "property")
     }
 
@@ -266,7 +245,7 @@ export class ChartData {
     }
 
     @computed private get selectionData(): Array<{
-        key: EntityDimensionKey
+        entityDimensionKey: EntityDimensionKey
         color?: Color
     }> {
         const { chart, primaryDimensions } = this
@@ -301,7 +280,7 @@ export class ChartData {
 
         return map(validSelections, sel => {
             return {
-                key: this.makeEntityDimensionKey(
+                entityDimensionKey: this.makeEntityDimensionKey(
                     chart.entityMetaById[sel.entityId].name,
                     sel.index
                 ),
@@ -310,20 +289,24 @@ export class ChartData {
         })
     }
 
-    selectKey(key: EntityDimensionKey) {
+    selectEntityDimensionKey(key: EntityDimensionKey) {
         this.selectedKeys = this.selectedKeys.concat([key])
     }
 
-    @computed.struct get keyColors(): { [datakey: string]: Color | undefined } {
-        const keyColors: { [datakey: string]: Color | undefined } = {}
+    @computed.struct get keyColors(): {
+        [entityDimensionKey: string]: Color | undefined
+    } {
+        const keyColors: {
+            [entityDimensionKey: string]: Color | undefined
+        } = {}
         this.selectionData.forEach(d => {
-            if (d.color) keyColors[d.key] = d.color
+            if (d.color) keyColors[d.entityDimensionKey] = d.color
         })
         return keyColors
     }
 
-    setKeyColor(datakey: EntityDimensionKey, color: Color | undefined) {
-        const meta = this.lookupKey(datakey)
+    setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
+        const meta = this.lookupKey(key)
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => {
             if (d.entityId === meta.entityId && d.index === meta.index) {
@@ -354,14 +337,14 @@ export class ChartData {
             : this.availableEntities
     }
 
-    switchEntity(entityId: number) {
+    setSelectedEntity(entityId: number) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
     }
 
     @computed get selectedKeys(): EntityDimensionKey[] {
-        return this.selectionData.map(d => d.key)
+        return this.selectionData.map(d => d.entityDimensionKey)
     }
 
     // Map keys back to their components for storage
@@ -369,22 +352,24 @@ export class ChartData {
         const { chart } = this
         if (!this.isReady) return
 
-        const selection = map(keys, datakey => {
-            const { entity, index } = this.lookupKey(datakey)
+        const selection = map(keys, key => {
+            const { entity, index } = this.lookupKey(key)
             return {
                 entityId: chart.entityMetaByKey[entity].id,
                 index: index,
-                color: this.keyColors[datakey]
+                color: this.keyColors[key]
             }
         })
         chart.props.selectedData = selection
     }
 
-    @computed get selectedKeysByKey(): { [key: string]: EntityDimensionKey } {
+    @computed get selectedKeysByKey(): {
+        [entityDimensionKey: string]: EntityDimensionKey
+    } {
         return keyBy(this.selectedKeys)
     }
 
-    // Calculate the available datakeys and their associated info
+    // Calculate the available entityDimensionKeys and their associated info
     @computed get entityDimensionMap(): Map<
         EntityDimensionKey,
         EntityDimensionInfo
@@ -397,7 +382,7 @@ export class ChartData {
             primaryDimensions
         } = this
 
-        const keyData = new Map()
+        const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
             const annotationMap = dimension.variable.annotationMap
             dimension.variable.entitiesUniq.forEach(entityName => {
@@ -421,7 +406,7 @@ export class ChartData {
                 const annotationKey = entityName
 
                 keyData.set(entityDimensionKey, {
-                    key: entityDimensionKey,
+                    entityDimensionKey,
                     entityId: entityMeta.id,
                     entity: entityName,
                     annotation: annotationMap.get(annotationKey),
@@ -506,7 +491,7 @@ export class ChartData {
             : undefined
     }
 
-    @computed get sources(): SourceWithDimension[] {
+    @computed get sourcesWithDimension(): SourceWithDimension[] {
         const { filledDimensions } = this
 
         const sources: SourceWithDimension[] = []
@@ -517,7 +502,7 @@ export class ChartData {
                 variable.name !== "Countries Continents" &&
                 variable.name !== "Total population (Gapminder)"
             )
-                sources.push(extend({}, variable.source, { dimension: dim }))
+                sources.push({ source: variable.source, dimension: dim })
         })
         return sources
     }

@@ -1,5 +1,5 @@
-import React = require("react")
-import ReactDOM = require("react-dom")
+import React from "react"
+import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
@@ -28,7 +28,7 @@ function sendFeedback(feedback: Feedback) {
 
         req.open(
             "POST",
-            `https://owid-feedback.netlify.com/.netlify/functions/hello`
+            `https://owid-feedback.netlify.app/.netlify/functions/hello`
         )
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
 

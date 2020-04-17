@@ -193,28 +193,26 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 
         return (
             <Section name="Timeline selection">
-                {!chart.isScatter && (
-                    <FieldsRow>
-                        {features.timeDomain && (
-                            <NumberField
-                                label="Selection start"
-                                value={chart.props.minTime}
-                                onValue={debounce(this.onMinTime)}
-                                allowNegative
-                            />
-                        )}
+                <FieldsRow>
+                    {features.timeDomain && (
                         <NumberField
-                            label={
-                                features.timeDomain
-                                    ? "Selection end"
-                                    : "Selected year"
-                            }
-                            value={chart.props.maxTime}
-                            onValue={debounce(this.onMaxTime)}
+                            label="Selection start"
+                            value={chart.props.minTime}
+                            onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
-                    </FieldsRow>
-                )}
+                    )}
+                    <NumberField
+                        label={
+                            features.timeDomain
+                                ? "Selection end"
+                                : "Selected year"
+                        }
+                        value={chart.props.maxTime}
+                        onValue={debounce(this.onMaxTime)}
+                        allowNegative
+                    />
+                </FieldsRow>
                 {features.timelineRange && (
                     <FieldsRow>
                         <NumberField
@@ -445,16 +443,14 @@ export class EditorCustomizeTab extends React.Component<{
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>
-                            {features.relativeModeToggle && (
-                                <Toggle
-                                    label={`Hide relative toggle`}
-                                    value={!!chart.props.hideRelativeToggle}
-                                    onValue={value =>
-                                        (chart.props.hideRelativeToggle =
-                                            value || false)
-                                    }
-                                />
-                            )}
+                            <Toggle
+                                label={`Hide relative toggle`}
+                                value={!!chart.props.hideRelativeToggle}
+                                onValue={value =>
+                                    (chart.props.hideRelativeToggle =
+                                        value || false)
+                                }
+                            />
                         </FieldsRow>
                     </Section>
                 )}

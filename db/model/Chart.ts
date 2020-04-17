@@ -49,9 +49,13 @@ export class Chart extends BaseEntity {
         const redirects = await db.query(
             `SELECT chart_id, slug FROM chart_slug_redirects`
         )
-        const rows = await db.query(
-            `SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts`
-        )
+        const rows = await db.query(`
+            SELECT
+                id,
+                JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug
+            FROM charts
+            WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE
+        `)
 
         const slugToId: { [slug: string]: number } = {}
         for (const row of redirects) {

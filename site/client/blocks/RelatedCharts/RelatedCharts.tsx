@@ -1,10 +1,11 @@
 import * as React from "react"
-import ReactDOM = require("react-dom")
+import ReactDOM from "react-dom"
 import { useState } from "react"
 
 export interface RelatedChart {
     title: string
     slug: string
+    variantName?: string | null
 }
 
 const RELATED_CHARTS_CLASS_NAME = "related-charts"
@@ -40,6 +41,11 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 >
                                     {chart.title}
                                 </a>
+                                {chart.variantName ? (
+                                    <span className="variantName">
+                                        {chart.variantName}
+                                    </span>
+                                ) : null}
                             </li>
                         ))}
                     </ul>

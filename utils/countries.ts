@@ -2,149 +2,183 @@ export interface Country {
     name: string
     code: string
     slug: string
+    iso3166?: string
     variantNames?: string[]
 }
 
-export const countries = [
+interface FilterableCountry extends Country {
+    filter?: true
+}
+
+const allCountries: FilterableCountry[] = [
     {
         name: "Aruba",
         code: "ABW",
-        slug: "aruba"
+        slug: "aruba",
+        iso3166: "AW"
     },
     {
         name: "Afghanistan",
         code: "AFG",
-        slug: "afghanistan"
+        slug: "afghanistan",
+        iso3166: "AF"
     },
     {
         name: "Angola",
         code: "AGO",
-        slug: "angola"
+        slug: "angola",
+        iso3166: "AO"
     },
     {
         name: "Anguilla",
         code: "AIA",
-        slug: "anguilla"
+        slug: "anguilla",
+        iso3166: "AI"
     },
-    // {
-    //     "name": "Åland Islands",
-    //     "code": "ALA",
-    //     "slug": "aland-islands"
-    // },
+    {
+        name: "Åland Islands",
+        code: "ALA",
+        slug: "aland-islands",
+        filter: true
+    },
     {
         name: "Albania",
         code: "ALB",
-        slug: "albania"
+        slug: "albania",
+        iso3166: "AL"
     },
     {
         name: "Andorra",
         code: "AND",
-        slug: "andorra"
+        slug: "andorra",
+        iso3166: "AD"
     },
-    // {
-    //     "name": "Netherlands Antilles",
-    //     "code": "ANT",
-    //     "slug": "netherlands-antilles"
-    // },
+    {
+        name: "Netherlands Antilles",
+        code: "ANT",
+        slug: "netherlands-antilles",
+        filter: true
+    },
     {
         name: "United Arab Emirates",
         code: "ARE",
-        slug: "united-arab-emirates"
+        slug: "united-arab-emirates",
+        iso3166: "AE"
     },
     {
         name: "Argentina",
         code: "ARG",
-        slug: "argentina"
+        slug: "argentina",
+        iso3166: "AR"
     },
     {
         name: "Armenia",
         code: "ARM",
-        slug: "armenia"
+        slug: "armenia",
+        iso3166: "AM"
     },
     {
         name: "American Samoa",
         code: "ASM",
-        slug: "american-samoa"
+        slug: "american-samoa",
+        iso3166: "AS"
     },
     {
         name: "Antarctica",
         code: "ATA",
-        slug: "antarctica"
+        slug: "antarctica",
+        iso3166: "AQ"
     },
-    // {
-    //     "name": "French Southern Territories",
-    //     "code": "ATF",
-    //     "slug": "french-southern-territories"
-    // },
+    {
+        name: "French Southern Territories",
+        code: "ATF",
+        slug: "french-southern-territories",
+        filter: true,
+        iso3166: "TF"
+    },
     {
         name: "Antigua and Barbuda",
         code: "ATG",
-        slug: "antigua-and-barbuda"
+        slug: "antigua-and-barbuda",
+        iso3166: "AG"
     },
     {
         name: "Australia",
         code: "AUS",
-        slug: "australia"
+        slug: "australia",
+        iso3166: "AU"
     },
     {
         name: "Austria",
         code: "AUT",
-        slug: "austria"
+        slug: "austria",
+        iso3166: "AT"
     },
     {
         name: "Azerbaijan",
         code: "AZE",
-        slug: "azerbaijan"
+        slug: "azerbaijan",
+        iso3166: "AZ"
     },
     {
         name: "Burundi",
         code: "BDI",
-        slug: "burundi"
+        slug: "burundi",
+        iso3166: "BI"
     },
     {
         name: "Belgium",
         code: "BEL",
-        slug: "belgium"
+        slug: "belgium",
+        iso3166: "BE"
     },
     {
         name: "Benin",
         code: "BEN",
-        slug: "benin"
+        slug: "benin",
+        iso3166: "BJ"
     },
-    // {
-    //     "name": "Bonaire Sint Eustatius and Saba",
-    //     "code": "BES",
-    //     "slug": "bonaire-sint-eustatius-and-saba"
-    // },
+    {
+        name: "Bonaire Sint Eustatius and Saba",
+        code: "BES",
+        slug: "bonaire-sint-eustatius-and-saba",
+        filter: true
+    },
     {
         name: "Burkina Faso",
         code: "BFA",
-        slug: "burkina-faso"
+        slug: "burkina-faso",
+        iso3166: "BF"
     },
     {
         name: "Bangladesh",
         code: "BGD",
-        slug: "bangladesh"
+        slug: "bangladesh",
+        iso3166: "BD"
     },
     {
         name: "Bulgaria",
         code: "BGR",
-        slug: "bulgaria"
+        slug: "bulgaria",
+        iso3166: "BG"
     },
     {
         name: "Bahrain",
         code: "BHR",
-        slug: "bahrain"
+        slug: "bahrain",
+        iso3166: "BH"
     },
     {
         name: "Bahamas",
         code: "BHS",
-        slug: "bahamas"
+        slug: "bahamas",
+        iso3166: "BS"
     },
     {
         name: "Bosnia and Herzegovina",
         code: "BIH",
-        slug: "bosnia-and-herzegovina"
+        slug: "bosnia-and-herzegovina",
+        iso3166: "BA"
     },
     {
         name: "Saint Barthélemy",
@@ -154,32 +188,38 @@ export const countries = [
     {
         name: "Belarus",
         code: "BLR",
-        slug: "belarus"
+        slug: "belarus",
+        iso3166: "BY"
     },
     {
         name: "Belize",
         code: "BLZ",
-        slug: "belize"
+        slug: "belize",
+        iso3166: "BZ"
     },
     {
         name: "Bermuda",
         code: "BMU",
-        slug: "bermuda"
+        slug: "bermuda",
+        iso3166: "BM"
     },
     {
         name: "Bolivia",
         code: "BOL",
-        slug: "bolivia"
+        slug: "bolivia",
+        iso3166: "BO"
     },
     {
         name: "Brazil",
         code: "BRA",
-        slug: "brazil"
+        slug: "brazil",
+        iso3166: "BR"
     },
     {
         name: "Barbados",
         code: "BRB",
-        slug: "barbados"
+        slug: "barbados",
+        iso3166: "BB"
     },
     {
         name: "Brunei",
@@ -189,57 +229,69 @@ export const countries = [
     {
         name: "Bhutan",
         code: "BTN",
-        slug: "bhutan"
+        slug: "bhutan",
+        iso3166: "BT"
     },
-    // {
-    //     "name": "Bouvet Island",
-    //     "code": "BVT",
-    //     "slug": "bouvet-island"
-    // },
+    {
+        name: "Bouvet Island",
+        code: "BVT",
+        slug: "bouvet-island",
+        filter: true,
+        iso3166: "BV"
+    },
     {
         name: "Botswana",
         code: "BWA",
-        slug: "botswana"
+        slug: "botswana",
+        iso3166: "BW"
     },
     {
         name: "Central African Republic",
         code: "CAF",
-        slug: "central-african-republic"
+        slug: "central-african-republic",
+        iso3166: "CF"
     },
     {
         name: "Canada",
         code: "CAN",
-        slug: "canada"
+        slug: "canada",
+        iso3166: "CA"
     },
-    // {
-    //     "name": "Cocos Islands",
-    //     "code": "CCK",
-    //     "slug": "cocos-islands"
-    // },
+    {
+        name: "Cocos Islands",
+        code: "CCK",
+        slug: "cocos-islands",
+        filter: true
+    },
     {
         name: "Switzerland",
         code: "CHE",
-        slug: "switzerland"
+        slug: "switzerland",
+        iso3166: "CH"
     },
     {
         name: "Chile",
         code: "CHL",
-        slug: "chile"
+        slug: "chile",
+        iso3166: "CL"
     },
     {
         name: "China",
         code: "CHN",
-        slug: "china"
+        slug: "china",
+        iso3166: "CN"
     },
     {
         name: "Cote d'Ivoire",
         code: "CIV",
-        slug: "cote-divoire"
+        slug: "cote-divoire",
+        iso3166: "CI"
     },
     {
         name: "Cameroon",
         code: "CMR",
-        slug: "cameroon"
+        slug: "cameroon",
+        iso3166: "CM"
     },
     {
         name: "Democratic Republic of Congo",
@@ -249,137 +301,167 @@ export const countries = [
     {
         name: "Congo",
         code: "COG",
-        slug: "congo"
+        slug: "congo",
+        iso3166: "CG"
     },
-    // {
-    //     "name": "Cook Islands",
-    //     "code": "COK",
-    //     "slug": "cook-islands"
-    // },
+    {
+        name: "Cook Islands",
+        code: "COK",
+        slug: "cook-islands",
+        filter: true,
+        iso3166: "CK"
+    },
     {
         name: "Colombia",
         code: "COL",
-        slug: "colombia"
+        slug: "colombia",
+        iso3166: "CO"
     },
     {
         name: "Comoros",
         code: "COM",
-        slug: "comoros"
+        slug: "comoros",
+        iso3166: "KM"
     },
     {
         name: "Cape Verde",
         code: "CPV",
-        slug: "cape-verde"
+        slug: "cape-verde",
+        iso3166: "CV"
     },
     {
         name: "Costa Rica",
         code: "CRI",
-        slug: "costa-rica"
+        slug: "costa-rica",
+        iso3166: "CR"
     },
     {
         name: "Cuba",
         code: "CUB",
-        slug: "cuba"
+        slug: "cuba",
+        iso3166: "CU"
     },
-    // {
-    //     "name": "Curacao",
-    //     "code": "CUW",
-    //     "slug": "curacao"
-    // },
+    {
+        name: "Curacao",
+        code: "CUW",
+        slug: "curacao",
+        filter: true,
+        iso3166: "CW"
+    },
     {
         name: "Christmas Island",
         code: "CXR",
-        slug: "christmas-island"
+        slug: "christmas-island",
+        iso3166: "CX"
     },
     {
         name: "Cayman Islands",
         code: "CYM",
-        slug: "cayman-islands"
+        slug: "cayman-islands",
+        iso3166: "KY"
     },
     {
         name: "Cyprus",
         code: "CYP",
-        slug: "cyprus"
+        slug: "cyprus",
+        iso3166: "CY"
     },
     {
         name: "Czech Republic",
         code: "CZE",
-        slug: "czech-republic"
+        slug: "czech-republic",
+        iso3166: "CZ"
     },
     {
         name: "Germany",
         code: "DEU",
-        slug: "germany"
+        slug: "germany",
+        iso3166: "DE"
     },
     {
         name: "Djibouti",
         code: "DJI",
-        slug: "djibouti"
+        slug: "djibouti",
+        iso3166: "DJ"
     },
     {
         name: "Dominica",
         code: "DMA",
-        slug: "dominica"
+        slug: "dominica",
+        iso3166: "DM"
     },
     {
         name: "Denmark",
         code: "DNK",
-        slug: "denmark"
+        slug: "denmark",
+        iso3166: "DK"
     },
     {
         name: "Dominican Republic",
         code: "DOM",
-        slug: "dominican-republic"
+        slug: "dominican-republic",
+        iso3166: "DO"
     },
     {
         name: "Algeria",
         code: "DZA",
-        slug: "algeria"
+        slug: "algeria",
+        iso3166: "DZ"
     },
     {
         name: "Ecuador",
         code: "ECU",
-        slug: "ecuador"
+        slug: "ecuador",
+        iso3166: "EC"
     },
     {
         name: "Egypt",
         code: "EGY",
-        slug: "egypt"
+        slug: "egypt",
+        iso3166: "EG"
     },
     {
         name: "Eritrea",
         code: "ERI",
-        slug: "eritrea"
+        slug: "eritrea",
+        iso3166: "ER"
     },
-    // {
-    //     "name": "Western Sahara",
-    //     "code": "ESH",
-    //     "slug": "western-sahara"
-    // },
+    {
+        name: "Western Sahara",
+        code: "ESH",
+        slug: "western-sahara",
+        filter: true,
+        iso3166: "EH"
+    },
     {
         name: "Spain",
         code: "ESP",
-        slug: "spain"
+        slug: "spain",
+        iso3166: "ES"
     },
     {
         name: "Estonia",
         code: "EST",
-        slug: "estonia"
+        slug: "estonia",
+        iso3166: "EE"
     },
     {
         name: "Ethiopia",
         code: "ETH",
-        slug: "ethiopia"
+        slug: "ethiopia",
+        iso3166: "ET"
     },
     {
         name: "Finland",
         code: "FIN",
-        slug: "finland"
+        slug: "finland",
+        iso3166: "FI"
     },
     {
         name: "Fiji",
         code: "FJI",
-        slug: "fiji"
+        slug: "fiji",
+        iso3166: "FJ"
     },
     {
         name: "Falkland Islands",
@@ -389,7 +471,8 @@ export const countries = [
     {
         name: "France",
         code: "FRA",
-        slug: "france"
+        slug: "france",
+        iso3166: "FR"
     },
     {
         name: "Faeroe Islands",
@@ -404,148 +487,181 @@ export const countries = [
     {
         name: "Gabon",
         code: "GAB",
-        slug: "gabon"
+        slug: "gabon",
+        iso3166: "GA"
     },
     {
         name: "United Kingdom",
         code: "GBR",
         slug: "united-kingdom",
-        variantNames: ["UK"]
+        variantNames: ["UK"],
+        iso3166: "GB"
     },
     {
         name: "Georgia",
         code: "GEO",
-        slug: "georgia"
+        slug: "georgia",
+        iso3166: "GE"
     },
-    // {
-    //     "name": "Guernsey",
-    //     "code": "GGY",
-    //     "slug": "guernsey"
-    // },
+    {
+        name: "Guernsey",
+        code: "GGY",
+        slug: "guernsey",
+        filter: true,
+        iso3166: "GG"
+    },
     {
         name: "Ghana",
         code: "GHA",
-        slug: "ghana"
+        slug: "ghana",
+        iso3166: "GH"
     },
     {
         name: "Gibraltar",
         code: "GIB",
-        slug: "gibraltar"
+        slug: "gibraltar",
+        iso3166: "GI"
     },
     {
         name: "Guinea",
         code: "GIN",
-        slug: "guinea"
+        slug: "guinea",
+        iso3166: "GN"
     },
-    // {
-    //     "name": "Guadeloupe",
-    //     "code": "GLP",
-    //     "slug": "guadeloupe"
-    // },
+    {
+        name: "Guadeloupe",
+        code: "GLP",
+        slug: "guadeloupe",
+        filter: true,
+        iso3166: "GP"
+    },
     {
         name: "Gambia",
         code: "GMB",
-        slug: "gambia"
+        slug: "gambia",
+        iso3166: "GM"
     },
     {
         name: "Guinea-Bissau",
         code: "GNB",
-        slug: "guinea-bissau"
+        slug: "guinea-bissau",
+        iso3166: "GW"
     },
     {
         name: "Equatorial Guinea",
         code: "GNQ",
-        slug: "equatorial-guinea"
+        slug: "equatorial-guinea",
+        iso3166: "GQ"
     },
     {
         name: "Greece",
         code: "GRC",
-        slug: "greece"
+        slug: "greece",
+        iso3166: "GR"
     },
     {
         name: "Grenada",
         code: "GRD",
-        slug: "grenada"
+        slug: "grenada",
+        iso3166: "GD"
     },
     {
         name: "Greenland",
         code: "GRL",
-        slug: "greenland"
+        slug: "greenland",
+        iso3166: "GL"
     },
     {
         name: "Guatemala",
         code: "GTM",
-        slug: "guatemala"
+        slug: "guatemala",
+        iso3166: "GT"
     },
     {
         name: "French Guiana",
         code: "GUF",
-        slug: "french-guiana"
+        slug: "french-guiana",
+        iso3166: "GF"
     },
     {
         name: "Guam",
         code: "GUM",
-        slug: "guam"
+        slug: "guam",
+        iso3166: "GU"
     },
     {
         name: "Guyana",
         code: "GUY",
-        slug: "guyana"
+        slug: "guyana",
+        iso3166: "GY"
     },
     {
         name: "Hong Kong",
         code: "HKG",
-        slug: "hong-kong"
+        slug: "hong-kong",
+        iso3166: "HK"
     },
-    // {
-    //     "name": "Heard Island and McDonald Islands",
-    //     "code": "HMD",
-    //     "slug": "heard-island-and-mcdonald-islands"
-    // },
+    {
+        name: "Heard Island and McDonald Islands",
+        code: "HMD",
+        slug: "heard-island-and-mcdonald-islands",
+        filter: true,
+        iso3166: "HM"
+    },
     {
         name: "Honduras",
         code: "HND",
-        slug: "honduras"
+        slug: "honduras",
+        iso3166: "HN"
     },
     {
         name: "Croatia",
         code: "HRV",
-        slug: "croatia"
+        slug: "croatia",
+        iso3166: "HR"
     },
     {
         name: "Haiti",
         code: "HTI",
-        slug: "haiti"
+        slug: "haiti",
+        iso3166: "HT"
     },
     {
         name: "Hungary",
         code: "HUN",
-        slug: "hungary"
+        slug: "hungary",
+        iso3166: "HU"
     },
     {
         name: "Indonesia",
         code: "IDN",
-        slug: "indonesia"
+        slug: "indonesia",
+        iso3166: "ID"
     },
     {
         name: "Isle of Man",
         code: "IMN",
-        slug: "isle-of-man"
+        slug: "isle-of-man",
+        iso3166: "IM"
     },
     {
         name: "India",
         code: "IND",
-        slug: "india"
+        slug: "india",
+        iso3166: "IN"
     },
-    // {
-    //     "name": "British Indian Ocean Territory",
-    //     "code": "IOT",
-    //     "slug": "british-indian-ocean-territory"
-    // },
+    {
+        name: "British Indian Ocean Territory",
+        code: "IOT",
+        slug: "british-indian-ocean-territory",
+        filter: true,
+        iso3166: "IO"
+    },
     {
         name: "Ireland",
         code: "IRL",
-        slug: "ireland"
+        slug: "ireland",
+        iso3166: "IE"
     },
     {
         name: "Iran",
@@ -555,72 +671,86 @@ export const countries = [
     {
         name: "Iraq",
         code: "IRQ",
-        slug: "iraq"
+        slug: "iraq",
+        iso3166: "IQ"
     },
     {
         name: "Iceland",
         code: "ISL",
-        slug: "iceland"
+        slug: "iceland",
+        iso3166: "IS"
     },
     {
         name: "Israel",
         code: "ISR",
-        slug: "israel"
+        slug: "israel",
+        iso3166: "IL"
     },
     {
         name: "Italy",
         code: "ITA",
-        slug: "italy"
+        slug: "italy",
+        iso3166: "IT"
     },
     {
         name: "Jamaica",
         code: "JAM",
-        slug: "jamaica"
+        slug: "jamaica",
+        iso3166: "JM"
     },
     {
         name: "Jersey",
         code: "JEY",
-        slug: "jersey"
+        slug: "jersey",
+        iso3166: "JE"
     },
     {
         name: "Jordan",
         code: "JOR",
-        slug: "jordan"
+        slug: "jordan",
+        iso3166: "JO"
     },
     {
         name: "Japan",
         code: "JPN",
-        slug: "japan"
+        slug: "japan",
+        iso3166: "JP"
     },
     {
         name: "Kazakhstan",
         code: "KAZ",
-        slug: "kazakhstan"
+        slug: "kazakhstan",
+        iso3166: "KZ"
     },
     {
         name: "Kenya",
         code: "KEN",
-        slug: "kenya"
+        slug: "kenya",
+        iso3166: "KE"
     },
     {
         name: "Kyrgyzstan",
         code: "KGZ",
-        slug: "kyrgyzstan"
+        slug: "kyrgyzstan",
+        iso3166: "KG"
     },
     {
         name: "Cambodia",
         code: "KHM",
-        slug: "cambodia"
+        slug: "cambodia",
+        iso3166: "KH"
     },
     {
         name: "Kiribati",
         code: "KIR",
-        slug: "kiribati"
+        slug: "kiribati",
+        iso3166: "KI"
     },
     {
         name: "Saint Kitts and Nevis",
         code: "KNA",
-        slug: "saint-kitts-and-nevis"
+        slug: "saint-kitts-and-nevis",
+        iso3166: "KN"
     },
     {
         name: "South Korea",
@@ -630,7 +760,8 @@ export const countries = [
     {
         name: "Kuwait",
         code: "KWT",
-        slug: "kuwait"
+        slug: "kuwait",
+        iso3166: "KW"
     },
     {
         name: "Laos",
@@ -640,12 +771,14 @@ export const countries = [
     {
         name: "Lebanon",
         code: "LBN",
-        slug: "lebanon"
+        slug: "lebanon",
+        iso3166: "LB"
     },
     {
         name: "Liberia",
         code: "LBR",
-        slug: "liberia"
+        slug: "liberia",
+        iso3166: "LR"
     },
     {
         name: "Libya",
@@ -655,57 +788,68 @@ export const countries = [
     {
         name: "Saint Lucia",
         code: "LCA",
-        slug: "saint-lucia"
+        slug: "saint-lucia",
+        iso3166: "LC"
     },
     {
         name: "Liechtenstein",
         code: "LIE",
-        slug: "liechtenstein"
+        slug: "liechtenstein",
+        iso3166: "LI"
     },
     {
         name: "Sri Lanka",
         code: "LKA",
-        slug: "sri-lanka"
+        slug: "sri-lanka",
+        iso3166: "LK"
     },
     {
         name: "Lesotho",
         code: "LSO",
-        slug: "lesotho"
+        slug: "lesotho",
+        iso3166: "LS"
     },
     {
         name: "Lithuania",
         code: "LTU",
-        slug: "lithuania"
+        slug: "lithuania",
+        iso3166: "LT"
     },
     {
         name: "Luxembourg",
         code: "LUX",
-        slug: "luxembourg"
+        slug: "luxembourg",
+        iso3166: "LU"
     },
     {
         name: "Latvia",
         code: "LVA",
-        slug: "latvia"
+        slug: "latvia",
+        iso3166: "LV"
     },
     {
         name: "Macao",
         code: "MAC",
-        slug: "macao"
+        slug: "macao",
+        iso3166: "MO"
     },
-    // {
-    //     "name": "Saint Martin (French part)",
-    //     "code": "MAF",
-    //     "slug": "saint-martin-french-part"
-    // },
+    {
+        name: "Saint Martin (French part)",
+        code: "MAF",
+        slug: "saint-martin-french-part",
+        filter: true
+    },
     {
         name: "Morocco",
         code: "MAR",
-        slug: "morocco"
+        slug: "morocco",
+        iso3166: "MA"
     },
     {
         name: "Monaco",
         code: "MCO",
-        slug: "monaco"
+        slug: "monaco",
+        iso3166: "MC"
     },
     {
         name: "Moldova",
@@ -715,207 +859,249 @@ export const countries = [
     {
         name: "Madagascar",
         code: "MDG",
-        slug: "madagascar"
+        slug: "madagascar",
+        iso3166: "MG"
     },
     {
         name: "Maldives",
         code: "MDV",
-        slug: "maldives"
+        slug: "maldives",
+        iso3166: "MV"
     },
     {
         name: "Mexico",
         code: "MEX",
-        slug: "mexico"
+        slug: "mexico",
+        iso3166: "MX"
     },
     {
         name: "Marshall Islands",
         code: "MHL",
-        slug: "marshall-islands"
+        slug: "marshall-islands",
+        iso3166: "MH"
     },
     {
         name: "Macedonia",
         code: "MKD",
-        slug: "macedonia"
+        slug: "macedonia",
+        iso3166: "MK"
     },
     {
         name: "Mali",
         code: "MLI",
-        slug: "mali"
+        slug: "mali",
+        iso3166: "ML"
     },
     {
         name: "Malta",
         code: "MLT",
-        slug: "malta"
+        slug: "malta",
+        iso3166: "MT"
     },
     {
         name: "Myanmar",
         code: "MMR",
-        slug: "myanmar"
+        slug: "myanmar",
+        iso3166: "MM"
     },
     {
         name: "Montenegro",
         code: "MNE",
-        slug: "montenegro"
+        slug: "montenegro",
+        iso3166: "ME"
     },
     {
         name: "Mongolia",
         code: "MNG",
-        slug: "mongolia"
+        slug: "mongolia",
+        iso3166: "MN"
     },
     {
         name: "Northern Mariana Islands",
         code: "MNP",
-        slug: "northern-mariana-islands"
+        slug: "northern-mariana-islands",
+        iso3166: "MP"
     },
     {
         name: "Mozambique",
         code: "MOZ",
-        slug: "mozambique"
+        slug: "mozambique",
+        iso3166: "MZ"
     },
     {
         name: "Mauritania",
         code: "MRT",
-        slug: "mauritania"
+        slug: "mauritania",
+        iso3166: "MR"
     },
-    // {
-    //     "name": "Montserrat",
-    //     "code": "MSR",
-    //     "slug": "montserrat"
-    // },
+    {
+        name: "Montserrat",
+        code: "MSR",
+        slug: "montserrat",
+        filter: true,
+        iso3166: "MS"
+    },
     {
         name: "Martinique",
         code: "MTQ",
-        slug: "martinique"
+        slug: "martinique",
+        iso3166: "MQ"
     },
     {
         name: "Mauritius",
         code: "MUS",
-        slug: "mauritius"
+        slug: "mauritius",
+        iso3166: "MU"
     },
     {
         name: "Malawi",
         code: "MWI",
-        slug: "malawi"
+        slug: "malawi",
+        iso3166: "MW"
     },
     {
         name: "Malaysia",
         code: "MYS",
-        slug: "malaysia"
+        slug: "malaysia",
+        iso3166: "MY"
     },
     {
         name: "Mayotte",
         code: "MYT",
-        slug: "mayotte"
+        slug: "mayotte",
+        iso3166: "YT"
     },
     {
         name: "Namibia",
         code: "NAM",
-        slug: "namibia"
+        slug: "namibia",
+        iso3166: "NA"
     },
     {
         name: "New Caledonia",
         code: "NCL",
-        slug: "new-caledonia"
+        slug: "new-caledonia",
+        iso3166: "NC"
     },
     {
         name: "Niger",
         code: "NER",
-        slug: "niger"
+        slug: "niger",
+        iso3166: "NE"
     },
     {
         name: "Norfolk Island",
         code: "NFK",
-        slug: "norfolk-island"
+        slug: "norfolk-island",
+        iso3166: "NF"
     },
     {
         name: "Nigeria",
         code: "NGA",
-        slug: "nigeria"
+        slug: "nigeria",
+        iso3166: "NG"
     },
     {
         name: "Nicaragua",
         code: "NIC",
-        slug: "nicaragua"
+        slug: "nicaragua",
+        iso3166: "NI"
     },
     {
         name: "Niue",
         code: "NIU",
-        slug: "niue"
+        slug: "niue",
+        iso3166: "NU"
     },
     {
         name: "Netherlands",
         code: "NLD",
-        slug: "netherlands"
+        slug: "netherlands",
+        iso3166: "NL"
     },
     {
         name: "Norway",
         code: "NOR",
-        slug: "norway"
+        slug: "norway",
+        iso3166: "NO"
     },
     {
         name: "Nepal",
         code: "NPL",
-        slug: "nepal"
+        slug: "nepal",
+        iso3166: "NP"
     },
     {
         name: "Nauru",
         code: "NRU",
-        slug: "nauru"
+        slug: "nauru",
+        iso3166: "NR"
     },
     {
         name: "New Zealand",
         code: "NZL",
-        slug: "new-zealand"
+        slug: "new-zealand",
+        iso3166: "NZ"
     },
     {
         name: "Oman",
         code: "OMN",
-        slug: "oman"
+        slug: "oman",
+        iso3166: "OM"
     },
     {
         name: "Pakistan",
         code: "PAK",
-        slug: "pakistan"
+        slug: "pakistan",
+        iso3166: "PK"
     },
     {
         name: "Panama",
         code: "PAN",
-        slug: "panama"
+        slug: "panama",
+        iso3166: "PA"
     },
     {
         name: "Pitcairn",
         code: "PCN",
-        slug: "pitcairn"
+        slug: "pitcairn",
+        iso3166: "PN"
     },
     {
         name: "Peru",
         code: "PER",
-        slug: "peru"
+        slug: "peru",
+        iso3166: "PE"
     },
     {
         name: "Philippines",
         code: "PHL",
-        slug: "philippines"
+        slug: "philippines",
+        iso3166: "PH"
     },
     {
         name: "Palau",
         code: "PLW",
-        slug: "palau"
+        slug: "palau",
+        iso3166: "PW"
     },
     {
         name: "Papua New Guinea",
         code: "PNG",
-        slug: "papua-new-guinea"
+        slug: "papua-new-guinea",
+        iso3166: "PG"
     },
     {
         name: "Poland",
         code: "POL",
-        slug: "poland"
+        slug: "poland",
+        iso3166: "PL"
     },
     {
         name: "Puerto Rico",
         code: "PRI",
-        slug: "puerto-rico"
+        slug: "puerto-rico",
+        iso3166: "PR"
     },
     {
         name: "North Korea",
@@ -925,12 +1111,14 @@ export const countries = [
     {
         name: "Portugal",
         code: "PRT",
-        slug: "portugal"
+        slug: "portugal",
+        iso3166: "PT"
     },
     {
         name: "Paraguay",
         code: "PRY",
-        slug: "paraguay"
+        slug: "paraguay",
+        iso3166: "PY"
     },
     {
         name: "Palestine",
@@ -940,22 +1128,26 @@ export const countries = [
     {
         name: "French Polynesia",
         code: "PYF",
-        slug: "french-polynesia"
+        slug: "french-polynesia",
+        iso3166: "PF"
     },
     {
         name: "Qatar",
         code: "QAT",
-        slug: "qatar"
+        slug: "qatar",
+        iso3166: "QA"
     },
     {
         name: "Reunion",
         code: "REU",
-        slug: "reunion"
+        slug: "reunion",
+        iso3166: "RE"
     },
     {
         name: "Romania",
         code: "ROU",
-        slug: "romania"
+        slug: "romania",
+        iso3166: "RO"
     },
     {
         name: "Russia",
@@ -965,117 +1157,143 @@ export const countries = [
     {
         name: "Rwanda",
         code: "RWA",
-        slug: "rwanda"
+        slug: "rwanda",
+        iso3166: "RW"
     },
     {
         name: "Saudi Arabia",
         code: "SAU",
-        slug: "saudi-arabia"
+        slug: "saudi-arabia",
+        iso3166: "SA"
     },
     {
         name: "Sudan",
         code: "SDN",
-        slug: "sudan"
+        slug: "sudan",
+        iso3166: "SD"
     },
     {
         name: "Senegal",
         code: "SEN",
-        slug: "senegal"
+        slug: "senegal",
+        iso3166: "SN"
     },
     {
         name: "Singapore",
         code: "SGP",
-        slug: "singapore"
+        slug: "singapore",
+        iso3166: "SG"
     },
-    // {
-    //     "name": "South Georgia and the South Sandwich Islands",
-    //     "code": "SGS",
-    //     "slug": "south-georgia-and-the-south-sandwich-islands"
-    // },
-    // {
-    //     "name": "Saint Helena",
-    //     "code": "SHN",
-    //     "slug": "saint-helena"
-    // },
-    // {
-    //     "name": "Svalbard and Jan Mayen",
-    //     "code": "SJM",
-    //     "slug": "svalbard-and-jan-mayen"
-    // },
+    {
+        name: "South Georgia and the South Sandwich Islands",
+        code: "SGS",
+        slug: "south-georgia-and-the-south-sandwich-islands",
+        filter: true,
+        iso3166: "GS"
+    },
+    {
+        name: "Saint Helena",
+        code: "SHN",
+        slug: "saint-helena",
+        filter: true,
+        iso3166: "SH"
+    },
+    {
+        name: "Svalbard and Jan Mayen",
+        code: "SJM",
+        slug: "svalbard-and-jan-mayen",
+        filter: true,
+        iso3166: "SJ"
+    },
     {
         name: "Solomon Islands",
         code: "SLB",
-        slug: "solomon-islands"
+        slug: "solomon-islands",
+        iso3166: "SB"
     },
     {
         name: "Sierra Leone",
         code: "SLE",
-        slug: "sierra-leone"
+        slug: "sierra-leone",
+        iso3166: "SL"
     },
     {
         name: "El Salvador",
         code: "SLV",
-        slug: "el-salvador"
+        slug: "el-salvador",
+        iso3166: "SV"
     },
     {
         name: "San Marino",
         code: "SMR",
-        slug: "san-marino"
+        slug: "san-marino",
+        iso3166: "SM"
     },
     {
         name: "Somalia",
         code: "SOM",
-        slug: "somalia"
+        slug: "somalia",
+        iso3166: "SO"
     },
     {
         name: "Saint Pierre and Miquelon",
         code: "SPM",
-        slug: "saint-pierre-and-miquelon"
+        slug: "saint-pierre-and-miquelon",
+        iso3166: "PM"
     },
     {
         name: "Serbia",
         code: "SRB",
-        slug: "serbia"
+        slug: "serbia",
+        iso3166: "RS"
     },
     {
         name: "South Sudan",
         code: "SSD",
-        slug: "south-sudan"
+        slug: "south-sudan",
+        iso3166: "SS"
     },
     {
         name: "Sao Tome and Principe",
         code: "STP",
-        slug: "sao-tome-and-principe"
+        slug: "sao-tome-and-principe",
+        iso3166: "ST"
     },
     {
         name: "Suriname",
         code: "SUR",
-        slug: "suriname"
+        slug: "suriname",
+        iso3166: "SR"
     },
     {
         name: "Slovakia",
         code: "SVK",
-        slug: "slovakia"
+        slug: "slovakia",
+        iso3166: "SK"
     },
     {
         name: "Slovenia",
         code: "SVN",
-        slug: "slovenia"
+        slug: "slovenia",
+        iso3166: "SI"
     },
     {
         name: "Sweden",
         code: "SWE",
-        slug: "sweden"
+        slug: "sweden",
+        iso3166: "SE"
     },
     {
         name: "Swaziland",
         code: "SWZ",
-        slug: "swaziland"
+        slug: "swaziland",
+        iso3166: "SZ"
     },
     {
         name: "Seychelles",
         code: "SYC",
-        slug: "seychelles"
+        slug: "seychelles",
+        iso3166: "SC"
     },
     {
         name: "Syria",
@@ -1085,37 +1303,44 @@ export const countries = [
     {
         name: "Turks and Caicos Islands",
         code: "TCA",
-        slug: "turks-and-caicos-islands"
+        slug: "turks-and-caicos-islands",
+        iso3166: "TC"
     },
     {
         name: "Chad",
         code: "TCD",
-        slug: "chad"
+        slug: "chad",
+        iso3166: "TD"
     },
     {
         name: "Togo",
         code: "TGO",
-        slug: "togo"
+        slug: "togo",
+        iso3166: "TG"
     },
     {
         name: "Thailand",
         code: "THA",
-        slug: "thailand"
+        slug: "thailand",
+        iso3166: "TH"
     },
     {
         name: "Tajikistan",
         code: "TJK",
-        slug: "tajikistan"
+        slug: "tajikistan",
+        iso3166: "TJ"
     },
     {
         name: "Tokelau",
         code: "TKL",
-        slug: "tokelau"
+        slug: "tokelau",
+        iso3166: "TK"
     },
     {
         name: "Turkmenistan",
         code: "TKM",
-        slug: "turkmenistan"
+        slug: "turkmenistan",
+        iso3166: "TM"
     },
     {
         name: "Timor",
@@ -1125,32 +1350,38 @@ export const countries = [
     {
         name: "Tonga",
         code: "TON",
-        slug: "tonga"
+        slug: "tonga",
+        iso3166: "TO"
     },
     {
         name: "Trinidad and Tobago",
         code: "TTO",
-        slug: "trinidad-and-tobago"
+        slug: "trinidad-and-tobago",
+        iso3166: "TT"
     },
     {
         name: "Tunisia",
         code: "TUN",
-        slug: "tunisia"
+        slug: "tunisia",
+        iso3166: "TN"
     },
     {
         name: "Turkey",
         code: "TUR",
-        slug: "turkey"
+        slug: "turkey",
+        iso3166: "TR"
     },
     {
         name: "Tuvalu",
         code: "TUV",
-        slug: "tuvalu"
+        slug: "tuvalu",
+        iso3166: "TV"
     },
     {
         name: "Taiwan",
         code: "TWN",
-        slug: "taiwan"
+        slug: "taiwan",
+        iso3166: "TW"
     },
     {
         name: "Tanzania",
@@ -1160,33 +1391,40 @@ export const countries = [
     {
         name: "Uganda",
         code: "UGA",
-        slug: "uganda"
+        slug: "uganda",
+        iso3166: "UG"
     },
     {
         name: "Ukraine",
         code: "UKR",
-        slug: "ukraine"
+        slug: "ukraine",
+        iso3166: "UA"
     },
-    // {
-    //     "name": "United States Minor Outlying Islands",
-    //     "code": "UMI",
-    //     "slug": "united-states-minor-outlying-islands"
-    // },
+    {
+        name: "United States Minor Outlying Islands",
+        code: "UMI",
+        slug: "united-states-minor-outlying-islands",
+        filter: true,
+        iso3166: "UM"
+    },
     {
         name: "Uruguay",
         code: "URY",
-        slug: "uruguay"
+        slug: "uruguay",
+        iso3166: "UY"
     },
     {
         name: "United States",
         code: "USA",
         slug: "united-states",
-        variantNames: ["US", "USA"]
+        variantNames: ["US", "USA"],
+        iso3166: "US"
     },
     {
         name: "Uzbekistan",
         code: "UZB",
-        slug: "uzbekistan"
+        slug: "uzbekistan",
+        iso3166: "UZ"
     },
     {
         name: "Vatican",
@@ -1196,12 +1434,14 @@ export const countries = [
     {
         name: "Saint Vincent and the Grenadines",
         code: "VCT",
-        slug: "saint-vincent-and-the-grenadines"
+        slug: "saint-vincent-and-the-grenadines",
+        iso3166: "VC"
     },
     {
         name: "Venezuela",
         code: "VEN",
-        slug: "venezuela"
+        slug: "venezuela",
+        iso3166: "VE"
     },
     {
         name: "British Virgin Islands",
@@ -1216,41 +1456,54 @@ export const countries = [
     {
         name: "Vietnam",
         code: "VNM",
-        slug: "vietnam"
+        slug: "vietnam",
+        iso3166: "VN"
     },
     {
         name: "Vanuatu",
         code: "VUT",
-        slug: "vanuatu"
+        slug: "vanuatu",
+        iso3166: "VU"
     },
-    // {
-    //     "name": "Wallis and Futuna",
-    //     "code": "WLF",
-    //     "slug": "wallis-and-futuna"
-    // },
+    {
+        name: "Wallis and Futuna",
+        code: "WLF",
+        slug: "wallis-and-futuna",
+        filter: true,
+        iso3166: "WF"
+    },
     {
         name: "Samoa",
         code: "WSM",
-        slug: "samoa"
+        slug: "samoa",
+        iso3166: "WS"
     },
     {
         name: "Yemen",
         code: "YEM",
-        slug: "yemen"
+        slug: "yemen",
+        iso3166: "YE"
     },
     {
         name: "South Africa",
         code: "ZAF",
-        slug: "south-africa"
+        slug: "south-africa",
+        iso3166: "ZA"
     },
     {
         name: "Zambia",
         code: "ZMB",
-        slug: "zambia"
+        slug: "zambia",
+        iso3166: "ZM"
     },
     {
         name: "Zimbabwe",
         code: "ZWE",
-        slug: "zimbabwe"
+        slug: "zimbabwe",
+        iso3166: "ZW"
     }
-] as Country[]
+]
+
+export const countries: Country[] = allCountries.filter(
+    country => !country.filter
+)

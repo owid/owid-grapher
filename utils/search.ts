@@ -1,6 +1,6 @@
 import { flatten } from "charts/Util"
 
-const chunk = require("chunk-text")
+import chunk from "chunk-text"
 
 export function chunkWords(text: string, maxChunkLength: number): string[] {
     return chunk(text, maxChunkLength)

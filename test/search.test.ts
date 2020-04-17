@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import { chunkParagraphs } from "utils/search"
 import { htmlToPlaintext } from "utils/htmlToString"

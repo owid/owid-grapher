@@ -1,21 +1,15 @@
-import { some, union, min, max, find, isEmpty } from "./Util"
 import { computed } from "mobx"
-import { ChartConfig } from "./ChartConfig"
-import { defaultTo, defaultWith, findClosest } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { some, find, isEmpty, flatten } from "./Util"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
-import { IChartTransform } from "./IChartTransform"
+import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export class SlopeChartTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class SlopeChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return this.chart.dimensions.some(d => d.property === "y")
     }
@@ -52,47 +46,9 @@ export class SlopeChartTransform implements IChartTransform {
         return this.colors.colorables
     }
 
-    @computed get timelineYears(): number[] {
-        return union(
-            ...this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
-        )
-    }
-
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            this.timelineYears.length > 2 &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultWith(
-            this.chart.timeDomain[0],
-            () => this.minTimelineYear
-        )
-        return defaultWith(
-            findClosest(this.timelineYears, minYear),
-            () => this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultWith(
-            this.chart.timeDomain[1],
-            () => this.maxTimelineYear
-        )
-        return defaultWith(
-            findClosest(this.timelineYears, maxYear),
-            () => this.maxTimelineYear
+    @computed get availableYears(): Time[] {
+        return flatten(
+            this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
         )
     }
 
@@ -100,20 +56,24 @@ export class SlopeChartTransform implements IChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): DimensionWithData | undefined {
+    @computed.struct get sizeDim(): ChartDimensionWithOwidVariable | undefined {
         return find(
             this.chart.data.filledDimensions,
             d => d.property === "size"
         )
     }
 
-    @computed.struct get colorDimension(): DimensionWithData | undefined {
+    @computed.struct get colorDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
     }
 
-    @computed.struct get yDimension(): DimensionWithData | undefined {
+    @computed.struct get yDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
 
@@ -157,14 +117,8 @@ export class SlopeChartTransform implements IChartTransform {
         return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
     }
 
-    @computed get selectableKeys(): string[] {
-        const { data } = this
-
-        const keyData: string[] = []
-        data.forEach(series => {
-            keyData.push(series.key)
-        })
-        return keyData
+    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
+        return this.data.map(series => series.entityDimensionKey)
     }
 
     @computed get data(): SlopeChartSeries[] {
@@ -195,14 +149,17 @@ export class SlopeChartTransform implements IChartTransform {
                 })
             }
 
-            const key = chart.data.makeEntityDimensionKey(
+            const entityDimensionKey = chart.data.makeEntityDimensionKey(
                 entity,
                 yDimension.index
             )
             return {
-                key: key,
+                entityDimensionKey,
                 label: entityKey[entity].name,
-                color: keyColors[key] || colorByEntity.get(entity) || "#ff7f0e",
+                color:
+                    keyColors[entityDimensionKey] ||
+                    colorByEntity.get(entity) ||
+                    "#ff7f0e",
                 size: sizeByEntity.get(entity) || 1,
                 values: slopeValues
             }

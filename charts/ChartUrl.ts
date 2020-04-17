@@ -7,17 +7,15 @@
  */
 import { computed, when, runInAction, toJS } from "mobx"
 
-import { BAKED_GRAPHER_URL } from "settings"
+import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
 import {
-    isNumber,
     includes,
     filter,
     uniq,
-    toString,
-    isFinite,
     defaultTo,
-    parseIntOrUndefined
+    formatDay,
+    diffDateISOStringInDays
 } from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
@@ -28,11 +26,19 @@ import {
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
 import { ObservableUrl } from "./UrlBinding"
+import {
+    formatTimeBound,
+    isUnbounded,
+    TimeBoundValue,
+    TimeBound,
+    parseTimeBound
+} from "./TimeBounds"
 
 export interface ChartQueryParams {
     tab?: string
     overlay?: string
     stackMode?: string
+    zoomToSelection?: string
     xScale?: string
     yScale?: string
     time?: string
@@ -44,6 +50,24 @@ export interface ChartQueryParams {
 }
 
 declare const App: any
+
+const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
+const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
+
+function formatTimeURIComponent(time: TimeBound, isDate: boolean): string {
+    if (isUnbounded(time)) return formatTimeBound(time)
+    return isDate ? formatDay(time, { format: "YYYY-MM-DD" }) : `${time}`
+}
+
+function parseTimeURIComponent(
+    param: string,
+    defaultValue: TimeBound
+): TimeBound {
+    if (reISODate.test(param)) {
+        return diffDateISOStringInDays(param, EPOCH_DATE)
+    }
+    return parseTimeBound(param, defaultValue)
+}
 
 export class ChartUrl implements ObservableUrl {
     chart: ChartConfig
@@ -91,6 +115,12 @@ export class ChartUrl implements ObservableUrl {
             chart.props.stackMode === origChart.stackMode
                 ? undefined
                 : chart.props.stackMode
+        params.zoomToSelection =
+            chart.props.zoomToSelection === origChart.zoomToSelection
+                ? undefined
+                : chart.props.zoomToSelection
+                ? "true"
+                : undefined
         params.endpointsOnly =
             chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly
                 ? undefined
@@ -130,11 +160,14 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChart } = this
 
         if (
-            chart.props.map &&
+            chart.map &&
             origChart.map &&
-            chart.props.map.targetYear !== origChart.map.targetYear
+            chart.map.targetYear !== origChart.map.targetYear
         ) {
-            return toString(chart.props.map.targetYear)
+            return formatTimeURIComponent(
+                chart.map.targetYear,
+                !!chart.yearIsDayVar
+            )
         } else {
             return undefined
         }
@@ -143,16 +176,24 @@ export class ChartUrl implements ObservableUrl {
     @computed get timeParam(): string | undefined {
         const { chart, origChart } = this
 
-        const { minTime, maxTime } = chart.props
-        // console.log(origChart.minTime, origChart.maxTime, minTime, maxTime)
-        if (minTime !== origChart.minTime || maxTime !== origChart.maxTime) {
-            if (isFinite(minTime) && isFinite(maxTime) && minTime !== maxTime) {
-                return `${minTime}..${maxTime}`
-            } else if (isNumber(minTime)) {
-                return toString(minTime)
-            } else {
-                return undefined
-            }
+        if (
+            chart.props.minTime !== origChart.minTime ||
+            chart.props.maxTime !== origChart.maxTime
+        ) {
+            const [minTime, maxTime] = chart.timeDomain
+            if (minTime === maxTime)
+                return formatTimeURIComponent(minTime, !!chart.yearIsDayVar)
+            // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
+            // because minTime <= maxTime and because the === case is addressed above.
+            // So the direction of the unbounded is unambiguous, and we can format it as an empty
+            // string.
+            const start = isUnbounded(minTime)
+                ? ""
+                : formatTimeURIComponent(minTime, !!chart.yearIsDayVar)
+            const end = isUnbounded(maxTime)
+                ? ""
+                : formatTimeURIComponent(maxTime, !!chart.yearIsDayVar)
+            return `${start}..${end}`
         } else {
             return undefined
         }
@@ -218,6 +259,11 @@ export class ChartUrl implements ObservableUrl {
             chart.props.stackMode
         )
 
+        chart.props.zoomToSelection = defaultTo(
+            params.zoomToSelection === "true" ? true : undefined,
+            chart.props.zoomToSelection
+        )
+
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
@@ -234,16 +280,29 @@ export class ChartUrl implements ObservableUrl {
         }
 
         const time = params.time
-        if (time !== undefined) {
+        if (time) {
             // We want to support unbounded time parameters, so that time=2015.. extends from 2015
             // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
             // time=.. extends from the earliest to latest available year.
-            const isRange = /^(\-?\d+)?\.\.(\-?\d+)?$/.test(time)
-            if (isRange) {
-                const [start, end] = time.split("..").map(parseIntOrUndefined)
-                chart.timeDomain = [start, end]
+            const reIntComponent = new RegExp("\\-?\\d+")
+            const reIntRange = new RegExp(
+                `^(${reIntComponent.source})?\\.\\.(${reIntComponent.source})?$`
+            )
+            const reDateRange = new RegExp(
+                `^(${reISODateComponent.source})?\\.\\.(${reISODateComponent.source})?$`
+            )
+            if (reIntRange.test(time) || reDateRange.test(time)) {
+                const [start, end] = time.split("..")
+                chart.timeDomain = [
+                    parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
+                    parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
+                ]
             } else {
-                chart.timeDomain = [parseInt(time), parseInt(time)]
+                const t = parseTimeURIComponent(
+                    time,
+                    TimeBoundValue.unboundedRight
+                )
+                chart.timeDomain = [t, t]
             }
         }
 
@@ -256,8 +315,11 @@ export class ChartUrl implements ObservableUrl {
         // Map stuff below
 
         if (chart.props.map) {
-            const year = parseInt(params.year || "")
-            if (!isNaN(year)) {
+            if (params.year) {
+                const year = parseTimeURIComponent(
+                    params.year,
+                    TimeBoundValue.unboundedRight
+                )
                 chart.props.map.targetYear = year
             }
 
@@ -285,13 +347,13 @@ export class ChartUrl implements ObservableUrl {
                                     entityMeta.code === entityCodes[0] ||
                                     entityMeta.name === entityCodes[0]
                                 )
-                                    chart.data.switchEntity(entityMeta.id)
+                                    chart.data.setSelectedEntity(entityMeta.id)
                             })
                         } else {
                             chart.data.selectedKeys = filter(
                                 chart.data.availableKeys,
-                                datakey => {
-                                    const meta = chart.data.lookupKey(datakey)
+                                key => {
+                                    const meta = chart.data.lookupKey(key)
                                     const entityMeta =
                                         chart.entityMetaByKey[meta.entity]
                                     return (

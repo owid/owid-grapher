@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { DimensionWithData } from "charts/DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { ChartEditor } from "./ChartEditor"
 import {
     Toggle,
@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
 export class DimensionCard extends React.Component<{
-    dimension: DimensionWithData
+    dimension: ChartDimensionWithOwidVariable
     editor: ChartEditor
     onEdit?: () => void
     onRemove?: () => void

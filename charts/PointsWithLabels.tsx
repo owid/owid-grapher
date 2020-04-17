@@ -33,10 +33,12 @@ import { getRelativeMouse, makeSafeForCSS, intersection } from "./Util"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Marks"
 import { select } from "d3-selection"
+import { getElementWithHalo } from "./Halos"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface ScatterSeries {
     color: string
-    key: string
+    entityDimensionKey: EntityDimensionKey
     label: string
     size: number
     values: ScatterValue[]
@@ -83,7 +85,7 @@ interface ScatterRenderValue {
 }
 
 interface ScatterRenderSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     displayKey: string
     color: string
     size: number
@@ -102,6 +104,7 @@ interface ScatterRenderSeries {
 interface ScatterLabel {
     text: string
     fontSize: number
+    fontWeight: number
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean
@@ -129,7 +132,7 @@ class ScatterGroupSingle extends React.Component<{
             !group.isFocus && isConnected ? 1 + value.size / 16 : value.size
         const cx = value.position.x.toFixed(2)
         const cy = value.position.y.toFixed(2)
-        const stroke = isLabelled ? (isLayerMode ? "#999" : "#333") : "#fff"
+        const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
 
         return (
             <g key={group.displayKey} className={group.displayKey}>
@@ -149,7 +152,7 @@ class ScatterGroupSingle extends React.Component<{
                     fill={color}
                     opacity={0.8}
                     stroke={stroke}
-                    strokeWidth={0.7}
+                    strokeWidth={0.5}
                 />
             </g>
         )
@@ -239,7 +242,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map(g => g.key)
+            this.data.map(g => g.entityDimensionKey)
         )
     }
 
@@ -326,9 +329,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 })
 
                 return {
-                    key: d.key,
-                    displayKey: "key-" + makeSafeForCSS(d.key),
-                    color: d.color || defaultColorScale(d.key),
+                    entityDimensionKey: d.entityDimensionKey,
+                    displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
+                    color: d.color || defaultColorScale(d.entityDimensionKey),
                     size: (last(values) as any).size,
                     values: values,
                     text: d.label,
@@ -395,6 +398,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return {
             text: firstValue.label,
             fontSize: fontSize,
+            fontWeight: 400,
             bounds: bounds,
             series: series,
             isStart: true
@@ -416,6 +420,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 ? 8
                 : 9
             : 7
+        const fontWeight = 400
         const { labelFontFamily } = this
 
         return series.values.slice(1, -1).map((v, i) => {
@@ -446,6 +451,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 x: pos.x,
                 y: pos.y,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 fontFamily: labelFontFamily
             })
             if (pos.x < v.position.x)
@@ -466,6 +472,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             return {
                 text: v.label,
                 fontSize: fontSize,
+                fontWeight: fontWeight,
                 bounds: bounds,
                 series: series,
                 isMid: true
@@ -490,6 +497,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 : 7
             : lastValue.fontSize *
               (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+        const fontWeight = series.isForeground ? 700 : 400
 
         let offsetVector = Vector2.up
         if (series.values.length > 1) {
@@ -527,6 +535,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     ? lastValue.label
                     : series.text,
             fontSize: fontSize,
+            fontWeight: fontWeight,
             bounds: labelBounds,
             series: series,
             isEnd: true
@@ -540,8 +549,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         )
 
         for (const series of renderData) {
-            series.isHover = this.hoverKeys.includes(series.key)
-            series.isFocus = this.focusKeys.includes(series.key)
+            series.isHover = this.hoverKeys.includes(series.entityDimensionKey)
+            series.isFocus = this.focusKeys.includes(series.entityDimensionKey)
             series.isForeground = series.isHover || series.isFocus
             if (series.isHover) series.size += 1
         }
@@ -587,9 +596,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 if (lowerPriorityLabel.isHidden) continue
 
                 if (
-                    higherPriorityLabel.bounds.intersects(
-                        lowerPriorityLabel.bounds
-                    )
+                    higherPriorityLabel.bounds
+                        .pad(-5)
+                        .intersects(lowerPriorityLabel.bounds)
                 ) {
                     lowerPriorityLabel.isHidden = true
                 }
@@ -670,7 +679,12 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 this.hoverKey = null*/
 
             if (closestSeries && this.props.onMouseOver) {
-                const datum = find(this.data, d => d.key === closestSeries.key)
+                const datum = find(
+                    this.data,
+                    d =>
+                        d.entityDimensionKey ===
+                        closestSeries.entityDimensionKey
+                )
                 if (datum) this.props.onMouseOver(datum)
             }
         })
@@ -688,14 +702,14 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.renderData.filter(group => !!group.isForeground)
     }
 
-    renderBackgroundGroups() {
+    private renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode, isConnected, hideLines } = this
 
         return hideLines
             ? []
             : backgroundGroups.map(group => (
                   <ScatterBackgroundLine
-                      key={group.key}
+                      key={group.entityDimensionKey}
                       group={group}
                       isLayerMode={isLayerMode}
                       isConnected={isConnected}
@@ -703,29 +717,33 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
               ))
     }
 
-    renderBackgroundLabels() {
+    private renderBackgroundLabels() {
         const { backgroundGroups, isLayerMode } = this
+
         return (
             <g
                 className="backgroundLabels"
                 fill={!isLayerMode ? "#333" : "#aaa"}
             >
                 {backgroundGroups.map(series => {
-                    return series.allLabels.map(
-                        l =>
-                            !l.isHidden && (
+                    return series.allLabels
+                        .filter(l => !l.isHidden)
+                        .map(l =>
+                            getElementWithHalo(
+                                series.displayKey + "-endLabel",
                                 <text
-                                    key={series.displayKey + "-endLabel"}
                                     x={l.bounds.x.toFixed(2)}
                                     y={(l.bounds.y + l.bounds.height).toFixed(
                                         2
                                     )}
                                     fontSize={l.fontSize.toFixed(2)}
+                                    fontWeight={l.fontWeight}
+                                    fill={isLayerMode ? "#aaa" : l.series.color}
                                 >
                                     {l.text}
                                 </text>
                             )
-                    )
+                        )
                 })}
             </g>
         )
@@ -735,7 +753,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return guid()
     }
 
-    renderForegroundGroups() {
+    private renderForegroundGroups() {
         const {
             foregroundGroups,
             isSubtleForeground,
@@ -822,24 +840,26 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
-    renderForegroundLabels() {
+    private renderForegroundLabels() {
         const { foregroundGroups, labelFontFamily } = this
         return foregroundGroups.map(series => {
-            return series.allLabels.map(
-                (l, i) =>
-                    !l.isHidden && (
+            return series.allLabels
+                .filter(l => !l.isHidden)
+                .map((l, i) =>
+                    getElementWithHalo(
+                        `${series.displayKey}-label-${i}`,
                         <text
-                            key={`${series.displayKey}-label-${i}`}
                             x={l.bounds.x.toFixed(2)}
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}
                             fontFamily={labelFontFamily}
-                            fill="#333"
+                            fontWeight={l.fontWeight}
+                            fill={l.series.color}
                         >
                             {l.text}
                         </text>
                     )
-            )
+                )
         })
     }
 

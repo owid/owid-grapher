@@ -7,29 +7,23 @@ import {
     sortBy,
     identity,
     cloneDeep,
-    sortedUniq,
     clone,
     defaultTo,
-    findClosest,
-    formatValue
+    formatValue,
+    flatten
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartTransform } from "./ChartTransform"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { findIndex } from "./Util"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
-export class LineChartTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class LineChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return this.chart.dimensions.some(d => d.property === "y")
     }
@@ -40,13 +34,6 @@ export class LineChartTransform implements IChartTransform {
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
         else return undefined
-    }
-
-    @computed get isSingleYear(): boolean {
-        return (
-            this.chart.timeDomain[0] !== undefined &&
-            this.chart.timeDomain[0] === this.chart.timeDomain[1]
-        )
     }
 
     @computed get colorScheme(): ColorScheme {
@@ -70,7 +57,7 @@ export class LineChartTransform implements IChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
                     entity,
                     dimIndex
@@ -85,7 +72,7 @@ export class LineChartTransform implements IChartTransform {
                 if (!series) {
                     series = {
                         values: [],
-                        key: entityDimensionKey,
+                        entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
                         color: "#000" // tmp
@@ -108,51 +95,20 @@ export class LineChartTransform implements IChartTransform {
         const colors = this.colorScheme.getColors(chartData.length)
         if (this.chart.props.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
-            series.color = chart.data.keyColors[series.key] || colors[i]
+            series.color =
+                chart.data.keyColors[series.entityDimensionKey] || colors[i]
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
         chartData = sortBy(chartData, series =>
-            selectedKeys.indexOf(series.key)
+            selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         return chartData
     }
 
-    @computed get timelineYears(): number[] {
-        const allYears: number[] = []
-        this.initialData.forEach(g => allYears.push(...g.values.map(d => d.x)))
-        return sortedUniq(sortBy(allYears))
-    }
-
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(
-            this.chart.timeDomain[0],
-            this.minTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, minYear),
-            this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(
-            this.chart.timeDomain[1],
-            this.maxTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, maxYear),
-            this.maxTimelineYear
-        )
+    @computed get availableYears(): Time[] {
+        return flatten(this.initialData.map(g => g.values.map(d => d.x)))
     }
 
     @computed get predomainData() {
@@ -182,15 +138,11 @@ export class LineChartTransform implements IChartTransform {
     }
 
     @computed get allValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.predomainData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.predomainData.map(series => series.values))
     }
 
     @computed get filteredValues(): LineChartValue[] {
-        const allValues: LineChartValue[] = []
-        this.groupedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.groupedData.map(series => series.values))
     }
 
     @computed get xDomain(): [number, number] {
@@ -210,7 +162,9 @@ export class LineChartTransform implements IChartTransform {
         }
     }
 
-    @computed get yDimensionFirst(): DimensionWithData | undefined {
+    @computed get yDimensionFirst():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
 
@@ -264,19 +218,12 @@ export class LineChartTransform implements IChartTransform {
         }
     }
 
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
     @computed get isRelativeMode(): boolean {
         return this.chart.props.stackMode === "relative"
     }
 
     @computed get canToggleRelative(): boolean {
-        return this.hasTimeline && !this.chart.props.hideRelativeToggle
+        return !this.chart.props.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains
@@ -295,24 +242,5 @@ export class LineChartTransform implements IChartTransform {
         }
 
         return groupedData.filter(g => g.values.length > 0)
-    }
-}
-
-function cagrY(indexValue: LineChartValue, targetValue: LineChartValue) {
-    if (targetValue.time - indexValue.time === 0) return 0
-    else {
-        const frac = targetValue.y / indexValue.y
-        if (frac < 0)
-            return (
-                -(
-                    Math.pow(-frac, 1 / (targetValue.time - indexValue.time)) -
-                    1
-                ) * 100
-            )
-        else
-            return (
-                (Math.pow(frac, 1 / (targetValue.time - indexValue.time)) - 1) *
-                100
-            )
     }
 }

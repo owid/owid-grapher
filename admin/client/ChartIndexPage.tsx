@@ -1,17 +1,18 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-const fuzzysort = require("fuzzysort")
+import fuzzysort from "fuzzysort"
 
 import { TextField } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { uniq } from "charts/Util"
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 interface Searchable {
     chart: ChartListItem
-    term: string
+    term?: Fuzzysort.Prepared
 }
 
 @observer
@@ -71,9 +72,8 @@ export class ChartIndexPage extends React.Component {
         const highlight = (text: string) => {
             if (this.searchInput) {
                 const html =
-                    fuzzysort.highlight(
-                        fuzzysort.single(this.searchInput, text)
-                    ) || text
+                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
+                    text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }

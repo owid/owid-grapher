@@ -3,7 +3,7 @@
 import "charts/client/chart.scss"
 
 // Enable mobx-formatters
-const Mobx = require("mobx")
+import * as Mobx from "mobx"
 const mobxFormatters = require("mobx-formatters").default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 import { Link } from "./Link"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -40,7 +40,7 @@ class VariableRow extends React.Component<{
                 </td>
                 {variable.uploadedAt && (
                     <td>
-                        {timeago.format(variable.uploadedAt)} by{" "}
+                        {format(variable.uploadedAt)} by{" "}
                         {variable.uploadedBy
                             ? variable.uploadedBy
                             : "Bulk import"}

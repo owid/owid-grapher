@@ -3,7 +3,7 @@ import * as db from "db/db"
 import { Post } from "db/model/Post"
 import { decodeHTML } from "entities"
 import { Tag } from "db/model/Tag"
-import _ = require("lodash")
+import _ from "lodash"
 
 async function main() {
     try {

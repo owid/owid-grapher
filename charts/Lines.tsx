@@ -20,7 +20,7 @@ export interface LinesProps {
 }
 
 interface LineRenderSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     displayKey: string
     color: string
     values: Vector2[]
@@ -32,12 +32,6 @@ export interface HoverTarget {
     pos: Vector2
     series: LineChartSeries
     value: LineChartValue
-}
-
-// Metadata reflection hack - Mispy
-declare const global: any
-if (typeof global !== "undefined") {
-    global.MouseEvent = {}
 }
 
 @observer
@@ -53,8 +47,8 @@ export class Lines extends React.Component<LinesProps> {
         const { data, xScale, yScale, focusKeys } = this.props
         return map(data, series => {
             return {
-                key: series.key,
-                displayKey: `key-${makeSafeForCSS(series.key)}`,
+                entityDimensionKey: series.entityDimensionKey,
+                displayKey: `key-${makeSafeForCSS(series.entityDimensionKey)}`,
                 color: series.color,
                 values: series.values.map(v => {
                     return new Vector2(
@@ -62,7 +56,9 @@ export class Lines extends React.Component<LinesProps> {
                         Math.round(yScale.place(v.y))
                     )
                 }),
-                isFocus: !focusKeys.length || includes(focusKeys, series.key),
+                isFocus:
+                    !focusKeys.length ||
+                    includes(focusKeys, series.entityDimensionKey),
                 isProjection: series.isProjection
             }
         })
@@ -95,9 +91,8 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @action.bound onMouseMove(ev: MouseEvent) {
-        // const {axisBox, data} = this.props
-        const { axisBox, xScale, yScale } = this.props
+    @action.bound onCursorMove(ev: MouseEvent | TouchEvent) {
+        const { axisBox, xScale } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
@@ -110,6 +105,10 @@ export class Lines extends React.Component<LinesProps> {
         }
 
         this.props.onHover(hoverX)
+    }
+
+    @action.bound onCursorLeave(ev: MouseEvent | TouchEvent) {
+        this.props.onHover(undefined)
     }
 
     @computed get bounds() {
@@ -162,7 +161,7 @@ export class Lines extends React.Component<LinesProps> {
         return this.backgroundGroups.map(series => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path
-                    key={series.key + "-line"}
+                    key={series.entityDimensionKey + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
@@ -180,14 +179,25 @@ export class Lines extends React.Component<LinesProps> {
         const base = this.base.current as SVGGElement
         this.container = base.closest("svg") as SVGElement
 
-        this.container.addEventListener("mousemove", this.onMouseMove)
-        this.container.addEventListener("mouseleave", this.onMouseMove)
+        this.container.addEventListener("mousemove", this.onCursorMove)
+        this.container.addEventListener("mouseleave", this.onCursorLeave)
+        this.container.addEventListener("touchstart", this.onCursorMove)
+        this.container.addEventListener("touchmove", this.onCursorMove)
+        this.container.addEventListener("touchend", this.onCursorLeave)
+        this.container.addEventListener("touchcancel", this.onCursorLeave)
     }
 
     componentWillUnmount() {
         if (this.container) {
-            this.container.removeEventListener("mousemove", this.onMouseMove)
-            this.container.removeEventListener("mouseleave", this.onMouseMove)
+            this.container.removeEventListener("mousemove", this.onCursorMove)
+            this.container.removeEventListener("mouseleave", this.onCursorLeave)
+            this.container.removeEventListener("touchstart", this.onCursorMove)
+            this.container.removeEventListener("touchmove", this.onCursorMove)
+            this.container.removeEventListener("touchend", this.onCursorLeave)
+            this.container.removeEventListener(
+                "touchcancel",
+                this.onCursorLeave
+            )
         }
     }
 
