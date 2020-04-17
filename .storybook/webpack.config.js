@@ -1,6 +1,6 @@
 const path = require("path")
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
-const ExtractTextPlugin = require("extract-text-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 module.exports = ({ config, mode }) => {
     config.module.rules = config.module.rules.concat([
@@ -14,14 +14,18 @@ module.exports = ({ config, mode }) => {
             }
         },
         {
-            test: /\.scss$/,
-            loader: ExtractTextPlugin.extract({
-                fallback: "style-loader",
-                use: [
-                    "css-loader?modules&importLoaders=1&localIdentName=[local]",
-                    "sass-loader"
-                ]
-            })
+            test: /\.s?css$/,
+            use: [
+                MiniCssExtractPlugin.loader,
+                "css-loader",
+                "postcss-loader",
+                {
+                    loader: "sass-loader",
+                    options: {
+                        outputStyle: "expanded" // Needed so autoprefixer comments are included
+                    }
+                }
+            ]
         }
     ])
     config.resolve.plugins = [
@@ -31,7 +35,7 @@ module.exports = ({ config, mode }) => {
     ]
     config.resolve.extensions.push(".ts", ".tsx")
     config.plugins = config.plugins.concat([
-        new ExtractTextPlugin("css/[name].css")
+        new MiniCssExtractPlugin("css/[name].css")
     ])
     return config
 }
