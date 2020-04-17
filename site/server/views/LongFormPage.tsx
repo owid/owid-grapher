@@ -142,7 +142,8 @@ export const LongFormPage = (props: {
                                                 <FontAwesomeIcon
                                                     icon={faCreativeCommons}
                                                 />
-                                                Reuse our work freely
+                                                Reuse our work{" "}
+                                                <strong>freely</strong>
                                             </a>
                                         )}
                                         {isEntry && (
