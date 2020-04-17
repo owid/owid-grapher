@@ -102,6 +102,7 @@ export class ChartLayoutView extends React.Component<{
                 style={this.svgStyle as any}
                 width={layout.svgWidth}
                 height={layout.svgHeight}
+                viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
             >
                 {layout.header.render(paddedBounds.x, paddedBounds.y)}
                 {this.props.children}
@@ -132,6 +133,7 @@ export class ChartLayoutView extends React.Component<{
                         style={this.svgStyle as any}
                         width={layout.svgWidth}
                         height={layout.svgHeight}
+                        viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
                     >
                         {this.props.children}
                     </svg>

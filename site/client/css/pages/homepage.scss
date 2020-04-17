@@ -615,8 +615,10 @@
         }
 
         @include md-up {
+            /* autoprefixer grid: autoplace */
             display: grid;
             grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, auto);
             grid-gap: 0.5rem;
 
             .entry-item-container {

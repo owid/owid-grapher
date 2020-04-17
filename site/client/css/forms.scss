@@ -284,6 +284,7 @@ $checkbox-check-height: 4px;
     @extend %inline-spacing;
 
     flex: 0;
+    flex-basis: auto;
     background-color: $primary-color;
     border-color: $primary-color;
     display: inline-block;

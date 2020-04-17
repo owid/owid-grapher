@@ -1,8 +1,11 @@
 const path = require("path")
-const ExtractTextPlugin = require("extract-text-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ManifestPlugin = require("webpack-manifest-plugin")
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 const Dotenv = require("dotenv-webpack")
+
+const TerserJSPlugin = require("terser-webpack-plugin")
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
@@ -21,7 +24,9 @@ module.exports = (env, argv) => {
                         minChunks: 2
                     }
                 }
-            }
+            },
+            minimize: isProduction,
+            minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()]
         },
         output: {
             path: path.join(__dirname, "dist/webpack"),
@@ -44,37 +49,18 @@ module.exports = (env, argv) => {
                     }
                 },
                 {
-                    test: /\.css$/,
-                    loader: ExtractTextPlugin.extract({
-                        fallback: "style-loader",
-                        use: [
-                            {
-                                loader: "css-loader",
-                                options: {
-                                    modules: true,
-                                    importLoaders: 1,
-                                    localIdentName: "[local]"
-                                }
+                    test: /\.s?css$/,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        "css-loader",
+                        "postcss-loader",
+                        {
+                            loader: "sass-loader",
+                            options: {
+                                outputStyle: "expanded" // Needed so autoprefixer comments are included
                             }
-                        ]
-                    })
-                },
-                {
-                    test: /\.scss$/,
-                    loader: ExtractTextPlugin.extract({
-                        fallback: "style-loader",
-                        use: [
-                            {
-                                loader: "css-loader",
-                                options: {
-                                    modules: true,
-                                    importLoaders: 1,
-                                    localIdentName: "[local]"
-                                }
-                            },
-                            "sass-loader"
-                        ]
-                    })
+                        }
+                    ]
                 },
                 {
                     test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
@@ -90,8 +76,7 @@ module.exports = (env, argv) => {
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new ExtractTextPlugin("css/[name].css"),
-            //new ExtractTextPlugin(isProduction ? 'css/[name].bundle.[hash].css' : 'css/[name].css'),
+            new MiniCssExtractPlugin({ filename: "css/[name].css" }),
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
