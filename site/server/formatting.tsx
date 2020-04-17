@@ -35,6 +35,7 @@ export interface FormattedPost {
     title: string
     date: Date
     modifiedDate: Date
+    lastUpdated: string | null
     authors: string[]
     info: string | null
     html: string
@@ -149,7 +150,11 @@ export async function formatWordpressPost(
 
     // Related charts
     // Mimicking SSR output of additional information block from PHP
-    if (post.relatedCharts && post.relatedCharts.length !== 0) {
+    if (
+        post.slug !== "coronavirus" &&
+        post.relatedCharts &&
+        post.relatedCharts.length !== 0
+    ) {
         const allCharts = `
         <block type="additional-information">
             <content>
@@ -176,9 +181,20 @@ export async function formatWordpressPost(
     renderBlocks($)
 
     // Extract blog info content
+    let info = null
     const $info = $(".blog-info")
-    const info = $info.html()
-    $info.remove()
+    if ($info.length) {
+        info = $info.html()
+        $info.remove()
+    }
+
+    // Extract blog info content
+    let lastUpdated = null
+    const $lastUpdated = $(".wp-block-last-updated")
+    if ($lastUpdated.length) {
+        lastUpdated = $lastUpdated.html()
+        $lastUpdated.remove()
+    }
 
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"
@@ -515,6 +531,7 @@ export async function formatWordpressPost(
         title: post.title,
         date: post.date,
         modifiedDate: post.modifiedDate,
+        lastUpdated: lastUpdated,
         authors: post.authors,
         info: info,
         html: `${style}${$("body").html()}` as string,
@@ -598,6 +615,7 @@ export async function formatPost(
             title: post.title,
             date: post.date,
             modifiedDate: post.modifiedDate,
+            lastUpdated: null, // Assumption: "last updated" blocks are only added to formatted content
             authors: post.authors,
             info: null, // Assumption: info blocks are only added to formatted content
             html: html,
