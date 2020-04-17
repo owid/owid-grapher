@@ -10,12 +10,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 
-// Metadata reflection hack - Mispy
-declare const global: any
-if (typeof global !== "undefined") {
-    global.MouseEvent = {}
-}
-
 @observer
 class EntitySelectorMulti extends React.Component<{
     chart: ChartConfig
