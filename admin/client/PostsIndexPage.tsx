@@ -1,10 +1,11 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-const timeago = require("timeago.js")()
-const fuzzysort = require("fuzzysort")
+import { format } from "timeago.js"
+import fuzzysort from "fuzzysort"
 import * as _ from "lodash"
 
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow, EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -23,7 +24,7 @@ interface PostIndexMeta {
 
 interface Searchable {
     post: PostIndexMeta
-    term: string
+    term?: Fuzzysort.Prepared
 }
 
 @observer
@@ -67,7 +68,7 @@ class PostRow extends React.Component<{
                         onSave={this.onSaveTags}
                     />
                 </td>
-                <td>{timeago.format(post.updatedAt)}</td>
+                <td>{format(post.updatedAt)}</td>
                 <td>
                     <a
                         href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}
@@ -139,9 +140,8 @@ export class PostsIndexPage extends React.Component {
         const highlight = (text: string) => {
             if (this.searchInput) {
                 const html =
-                    fuzzysort.highlight(
-                        fuzzysort.single(this.searchInput, text)
-                    ) || text
+                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
+                    text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }

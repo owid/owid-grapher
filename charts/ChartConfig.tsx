@@ -64,7 +64,10 @@ import {
 
 declare const App: any
 declare const window: any
-const isNode: boolean = require("detect-node")
+
+// That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
+const isNode: boolean =
+    Object.prototype.toString.call(global.process) === "[object process]"
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 

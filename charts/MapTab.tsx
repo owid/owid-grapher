@@ -87,11 +87,11 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
         const { chart } = this.context
         const entity = this.props.mapToDataEntities[d.id as string]
-        const datakeys = chart.data.availableKeysByEntity.get(entity)
+        const keys = chart.data.availableKeysByEntity.get(entity)
 
-        if (datakeys && datakeys.length) {
+        if (keys && keys.length) {
             chart.tab = "chart"
-            chart.data.selectedKeys = datakeys
+            chart.data.selectedKeys = keys
         }
     }
 

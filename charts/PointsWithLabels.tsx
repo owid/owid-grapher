@@ -34,10 +34,11 @@ import { Vector2 } from "./Vector2"
 import { Triangle } from "./Marks"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface ScatterSeries {
     color: string
-    key: string
+    entityDimensionKey: EntityDimensionKey
     label: string
     size: number
     values: ScatterValue[]
@@ -84,7 +85,7 @@ interface ScatterRenderValue {
 }
 
 interface ScatterRenderSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     displayKey: string
     color: string
     size: number
@@ -241,7 +242,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map(g => g.key)
+            this.data.map(g => g.entityDimensionKey)
         )
     }
 
@@ -328,9 +329,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 })
 
                 return {
-                    key: d.key,
-                    displayKey: "key-" + makeSafeForCSS(d.key),
-                    color: d.color || defaultColorScale(d.key),
+                    entityDimensionKey: d.entityDimensionKey,
+                    displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
+                    color: d.color || defaultColorScale(d.entityDimensionKey),
                     size: (last(values) as any).size,
                     values: values,
                     text: d.label,
@@ -548,8 +549,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         )
 
         for (const series of renderData) {
-            series.isHover = this.hoverKeys.includes(series.key)
-            series.isFocus = this.focusKeys.includes(series.key)
+            series.isHover = this.hoverKeys.includes(series.entityDimensionKey)
+            series.isFocus = this.focusKeys.includes(series.entityDimensionKey)
             series.isForeground = series.isHover || series.isFocus
             if (series.isHover) series.size += 1
         }
@@ -678,7 +679,12 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 this.hoverKey = null*/
 
             if (closestSeries && this.props.onMouseOver) {
-                const datum = find(this.data, d => d.key === closestSeries.key)
+                const datum = find(
+                    this.data,
+                    d =>
+                        d.entityDimensionKey ===
+                        closestSeries.entityDimensionKey
+                )
                 if (datum) this.props.onMouseOver(datum)
             }
         })
@@ -703,7 +709,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             ? []
             : backgroundGroups.map(group => (
                   <ScatterBackgroundLine
-                      key={group.key}
+                      key={group.entityDimensionKey}
                       group={group}
                       isLayerMode={isLayerMode}
                       isConnected={isConnected}
@@ -724,8 +730,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         .filter(l => !l.isHidden)
                         .map(l =>
                             getElementWithHalo(
+                                series.displayKey + "-endLabel",
                                 <text
-                                    key={series.displayKey + "-endLabel"}
                                     x={l.bounds.x.toFixed(2)}
                                     y={(l.bounds.y + l.bounds.height).toFixed(
                                         2
@@ -841,8 +847,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 .filter(l => !l.isHidden)
                 .map((l, i) =>
                     getElementWithHalo(
+                        `${series.displayKey}-label-${i}`,
                         <text
-                            key={`${series.displayKey}-label-${i}`}
                             x={l.bounds.x.toFixed(2)}
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}

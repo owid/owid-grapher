@@ -8,13 +8,15 @@ const HaloStyle: React.CSSProperties = {
     strokeWidth: ".25em"
 }
 
-export const getElementWithHalo = (element: React.ReactElement) => {
+export const getElementWithHalo = (
+    key: string,
+    element: React.ReactElement
+) => {
     const halo = React.cloneElement(element, {
-        key: `${element.props.key}Halo`,
         style: HaloStyle
     })
     return (
-        <React.Fragment>
+        <React.Fragment key={key}>
             {halo}
             {element}
         </React.Fragment>

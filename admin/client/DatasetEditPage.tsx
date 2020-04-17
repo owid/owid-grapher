@@ -12,7 +12,7 @@ import {
 import * as _ from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 import { OwidSource } from "charts/owidData/OwidSource"
@@ -334,7 +334,7 @@ class DatasetEditable {
         additionalInfo: ""
     }
 
-    @observable tags: { id: number; name: string }[] = []
+    @observable tags: Tag[] = []
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
@@ -357,8 +357,7 @@ class DatasetTagEditor extends React.Component<{
     }
 
     render() {
-        const { newDataset, availableTags, isBulkImport } = this.props
-        const tagsByParent = _.groupBy(availableTags, c => c.parentName)
+        const { newDataset, availableTags } = this.props
 
         return (
             <div className="form-group">
@@ -506,7 +505,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <section>
                     <h1>{dataset.name}</h1>
                     <p>
-                        Uploaded {timeago.format(dataset.dataEditedAt)} by{" "}
+                        Uploaded {format(dataset.dataEditedAt)} by{" "}
                         {dataset.dataEditedByUserName}
                     </p>
                     <Link

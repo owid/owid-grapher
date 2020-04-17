@@ -22,7 +22,7 @@ import {
     getCountryCodeFromNetlifyRedirect
 } from "./Util"
 import { Bounds } from "./Bounds"
-import { EntitySelectorModal } from "./EntitySelector"
+import { EntitySelectorModal } from "./EntitySelectorModal"
 import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"

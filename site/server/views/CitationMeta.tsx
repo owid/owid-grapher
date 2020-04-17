@@ -1,5 +1,5 @@
 import * as React from "react"
-import moment = require("moment")
+import moment from "moment"
 
 export const CitationMeta = (props: {
     id: number

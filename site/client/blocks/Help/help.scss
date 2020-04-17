@@ -1,0 +1,44 @@
+body.is-not-chart-interactive
+    .article-content
+    > section
+    .wp-block-columns
+    .wp-block-help {
+    display: none;
+}
+
+.article-content > section .wp-block-columns .wp-block-help {
+    display: flex;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid $primary-color-300;
+    font-size: 0.9rem;
+    color: $bluish-grey-text-color;
+    border-radius: 3px;
+    background-color: $white;
+
+    & > .icon {
+        margin-right: 0.5rem;
+    }
+
+    h4 {
+        margin: 0 0 0.5rem;
+        font-family: $sans-serif-font-stack;
+        font-size: 1.2rem;
+    }
+
+    .content {
+        & > *:first-child {
+            margin-top: 0;
+        }
+        & > *:last-child {
+            margin-bottom: 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        a {
+            color: currentColor;
+            text-decoration: underline;
+        }
+    }
+}

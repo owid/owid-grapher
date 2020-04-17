@@ -72,7 +72,7 @@ export class LineChartTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         values: [],
-                        key: entityDimensionKey,
+                        entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
                         color: "#000" // tmp
@@ -95,12 +95,13 @@ export class LineChartTransform extends ChartTransform {
         const colors = this.colorScheme.getColors(chartData.length)
         if (this.chart.props.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
-            series.color = chart.data.keyColors[series.key] || colors[i]
+            series.color =
+                chart.data.keyColors[series.entityDimensionKey] || colors[i]
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
         chartData = sortBy(chartData, series =>
-            selectedKeys.indexOf(series.key)
+            selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         return chartData

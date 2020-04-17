@@ -1,1 +1,1 @@
-declare module "d3-geo-projection/src/robinson"
+declare module "d3-geo-projection"

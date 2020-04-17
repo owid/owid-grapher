@@ -29,7 +29,7 @@ export interface StackedAreaValue {
 }
 
 export interface StackedAreaSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     color: string
     values: StackedAreaValue[]
     classed?: string
@@ -81,7 +81,7 @@ export class Areas extends React.Component<AreasProps> {
     seriesIsBlur(series: StackedAreaSeries) {
         return (
             this.props.focusKeys.length > 0 &&
-            !this.props.focusKeys.includes(series.key)
+            !this.props.focusKeys.includes(series.entityDimensionKey)
         )
     }
 
@@ -102,8 +102,10 @@ export class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.key) + "-area"}
-                    key={series.key + "-area"}
+                    className={
+                        makeSafeForCSS(series.entityDimensionKey) + "-area"
+                    }
+                    key={series.entityDimensionKey + "-area"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
@@ -126,8 +128,10 @@ export class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.key) + "-border"}
-                    key={series.key + "-border"}
+                    className={
+                        makeSafeForCSS(series.entityDimensionKey) + "-border"
+                    }
+                    key={series.entityDimensionKey + "-border"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     stroke={rgb(
@@ -175,7 +179,7 @@ export class Areas extends React.Component<AreasProps> {
                         {data.map(series => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     cx={xScale.place(
                                         series.values[hoverIndex].x
                                     )}
@@ -240,8 +244,8 @@ export class StackedArea extends React.Component<{
         const items = transform.stackedData
             .map((d, i) => ({
                 color: d.color,
-                key: d.key,
-                label: this.chart.data.getLabelForKey(d.key),
+                entityDimensionKey: d.entityDimensionKey,
+                label: this.chart.data.getLabelForKey(d.entityDimensionKey),
                 yValue: midpoints[i]
             }))
             .reverse()
@@ -282,14 +286,14 @@ export class StackedArea extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(datakey: string) {
+    @action.bound onLegendClick(key: EntityDimensionKey) {
         if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
         }
     }
 
-    @action.bound onLegendMouseOver(datakey: string) {
-        this.hoverKey = datakey
+    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+        this.hoverKey = key
     }
 
     @action.bound onLegendMouseLeave() {
@@ -305,7 +309,10 @@ export class StackedArea extends React.Component<{
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
-        return this.focusKeys.length > 0 && !this.focusKeys.includes(series.key)
+        return (
+            this.focusKeys.length > 0 &&
+            !this.focusKeys.includes(series.entityDimensionKey)
+        )
     }
 
     @computed get tooltip(): JSX.Element | undefined {
@@ -354,7 +361,7 @@ export class StackedArea extends React.Component<{
                                 : series.color
                             return (
                                 <tr
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -369,7 +376,9 @@ export class StackedArea extends React.Component<{
                                                 backgroundColor: blockColor
                                             }}
                                         />{" "}
-                                        {chart.data.getLabelForKey(series.key)}
+                                        {chart.data.getLabelForKey(
+                                            series.entityDimensionKey
+                                        )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {value.isFake

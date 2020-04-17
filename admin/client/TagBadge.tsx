@@ -1,12 +1,10 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { Tag } from "react-tag-autocomplete"
 
 import { Link } from "./Link"
 
-export interface Tag {
-    id: number
-    name: string
-}
+export { Tag }
 
 @observer
 export class TagBadge extends React.Component<{

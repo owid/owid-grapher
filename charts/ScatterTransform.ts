@@ -27,6 +27,7 @@ import { formatValue, domainExtent } from "./Util"
 import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -136,14 +137,8 @@ export class ScatterTransform extends ChartTransform {
         return intersection(yEntities, xEntities)
     }
 
-    @computed get selectableKeys(): string[] {
-        const { currentData } = this
-
-        const keyData: string[] = []
-        currentData.forEach(series => {
-            keyData.push(series.key)
-        })
-        return keyData
+    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
+        return this.currentData.map(series => series.entityDimensionKey)
     }
 
     @computed get excludedEntities(): string[] {
@@ -554,12 +549,15 @@ export class ScatterTransform extends ChartTransform {
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndYear().forEach((dataByYear, entity) => {
-            // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
-            const datakey = chart.data.makeEntityDimensionKey(entity, 0)
+            // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
+            const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                entity,
+                0
+            )
 
             const group = {
-                key: datakey,
-                label: chart.data.getLabelForKey(datakey),
+                entityDimensionKey,
+                label: chart.data.getLabelForKey(entityDimensionKey),
                 color: "#ffcb1f", // Default color
                 size: 0,
                 values: []
@@ -575,7 +573,7 @@ export class ScatterTransform extends ChartTransform {
             // const lastPoint = last(group.values)
 
             if (group && group.values.length) {
-                const keyColor = keyColors[datakey]
+                const keyColor = keyColors[entityDimensionKey]
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else {

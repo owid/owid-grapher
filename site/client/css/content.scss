@@ -181,33 +181,31 @@
 
         .wp-block-column {
             &:first-child {
-                // set flex-shrink on text column to accomodate grapher
-                // resizing "slower" than it should during resizes
-                flex: 1 1 $text-min-content-width;
                 margin-right: $padding-x-md / 2;
-                max-width: $text-max-content-width;
-
-                > *:first-child {
-                    margin-top: $vertical-spacing;
-                }
             }
             &:last-child {
-                flex: 1 0 $graph-min-content-width;
                 margin-left: $padding-x-md / 2;
-                max-width: $graph-max-content-width;
-                > *:first-child {
-                    margin-top: $vertical-spacing;
-                    padding-top: 0;
-                }
             }
         }
 
         &.is-style-sticky-right {
             .wp-block-column {
+                &:first-child {
+                    @include text-column;
+                }
                 &:last-child {
-                    top: 0;
-                    position: sticky;
-                    position: -webkit-sticky;
+                    @include media-column;
+                }
+            }
+        }
+
+        &.is-style-sticky-left {
+            .wp-block-column {
+                &:first-child {
+                    @include media-column;
+                }
+                &:last-child {
+                    @include text-column;
                 }
             }
         }

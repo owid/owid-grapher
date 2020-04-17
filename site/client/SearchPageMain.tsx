@@ -1,5 +1,5 @@
-import ReactDOM = require("react-dom")
-import React = require("react")
+import ReactDOM from "react-dom"
+import React from "react"
 import { getWindowQueryParams, decodeQueryParam } from "utils/client/url"
 import { siteSearch, SiteSearchResults } from "site/siteSearch"
 import { SearchResults } from "site/client/SearchResults"

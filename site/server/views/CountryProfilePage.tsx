@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import urljoin = require("url-join")
+import urljoin from "url-join"
 
 export interface CountryProfileIndicator {
     name: string

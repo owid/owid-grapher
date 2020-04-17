@@ -1,4 +1,4 @@
-import ReactDOM = require("react-dom")
+import ReactDOM from "react-dom"
 import * as React from "react"
 import * as Cookies from "js-cookie"
 import classnames from "classnames"

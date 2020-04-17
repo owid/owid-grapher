@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor"
 import { Section } from "./Forms"
 import { computed, action } from "mobx"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 @observer
 export class LogRenderer extends React.Component<{
@@ -19,11 +19,11 @@ export class LogRenderer extends React.Component<{
         const { log } = this.props
 
         const user = log.userName || log.userId.toString()
-        return `Saved ${timeago.format(log.createdAt)} by ${user}`
+        return `Saved ${format(log.createdAt)} by ${user}`
     }
 
     @computed get timestamp() {
-        return timeago.format(this.props.log.createdAt)
+        return format(this.props.log.createdAt)
     }
 
     render() {

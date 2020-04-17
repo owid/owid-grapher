@@ -1,12 +1,12 @@
-import React = require("react")
+import React from "react"
+import moment from "moment"
+import _ from "lodash"
 
 import { Post } from "db/model/Post"
 import { Head } from "./Head"
 import { BAKED_BASE_URL } from "settings"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import moment = require("moment")
-import _ = require("lodash")
 import { TableOfContents } from "site/client/TableOfContents"
 
 type Entry = Pick<Post.Row, "title" | "slug" | "published_at">

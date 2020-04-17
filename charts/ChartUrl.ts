@@ -347,13 +347,13 @@ export class ChartUrl implements ObservableUrl {
                                     entityMeta.code === entityCodes[0] ||
                                     entityMeta.name === entityCodes[0]
                                 )
-                                    chart.data.switchEntity(entityMeta.id)
+                                    chart.data.setSelectedEntity(entityMeta.id)
                             })
                         } else {
                             chart.data.selectedKeys = filter(
                                 chart.data.availableKeys,
-                                datakey => {
-                                    const meta = chart.data.lookupKey(datakey)
+                                key => {
+                                    const meta = chart.data.lookupKey(key)
                                     const entityMeta =
                                         chart.entityMetaByKey[meta.entity]
                                     return (

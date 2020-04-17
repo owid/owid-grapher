@@ -6,7 +6,7 @@ import {
 } from "site/siteSearch"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
-import React = require("react")
+import React from "react"
 import { EmbedChart } from "./EmbedChart"
 import { BAKED_GRAPHER_URL } from "settings"
 import { uniq, capitalize } from "charts/Util"

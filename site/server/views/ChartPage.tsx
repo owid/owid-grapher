@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 
 import * as React from "react"
-import urljoin = require("url-join")
+import urljoin from "url-join"
 import * as _ from "lodash"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { SiteHeader } from "./SiteHeader"

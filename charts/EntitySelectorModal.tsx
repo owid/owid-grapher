@@ -2,12 +2,13 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice } from "./Util"
+import { uniqBy, isTouchDevice, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionInfo } from "./ChartData"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Metadata reflection hack - Mispy
 declare const global: any
@@ -26,17 +27,15 @@ class EntitySelectorMulti extends React.Component<{
     dismissable: boolean = true
 
     @computed get availableEntities(): EntityDimensionInfo[] {
-        const { chart } = this.props
-
-        const selectableKeys = chart.activeTransform.selectableKeys
-        if (selectableKeys !== undefined) {
-            return selectableKeys.map(key => chart.data.lookupKey(key))
-        }
-        return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
+        return this.props.chart.activeTransform.selectableEntityDimensionKeys.map(
+            key => this.props.chart.data.lookupKey(key)
+        )
     }
 
     @computed get selectedEntities() {
-        return this.availableEntities.filter(d => this.isSelectedKey(d.key))
+        return this.availableEntities.filter(d =>
+            this.isSelectedKey(d.entityDimensionKey)
+        )
     }
 
     @computed get fuzzy(): FuzzySearch<EntityDimensionInfo> {
@@ -44,13 +43,14 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     @computed get searchResults(): EntityDimensionInfo[] {
-        return this.searchInput
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
-    isSelectedKey(key: string): boolean {
-        return !!this.props.chart.data.selectedKeysByKey[key]
+    isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
+        return !!this.props.chart.data.selectedKeysByKey[entityDimensionKey]
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -76,7 +76,9 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.chart.data.toggleKey(this.searchResults[0].key)
+            this.props.chart.data.toggleKey(
+                this.searchResults[0].entityDimensionKey
+            )
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
@@ -121,16 +123,16 @@ class EntitySelectorMulti extends React.Component<{
                             <ul>
                                 {searchResults.map(d => {
                                     return (
-                                        <li key={d.key}>
+                                        <li key={d.entityDimensionKey}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
                                                     checked={this.isSelectedKey(
-                                                        d.key
+                                                        d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
                                                         chart.data.toggleKey(
-                                                            d.key
+                                                            d.entityDimensionKey
                                                         )
                                                     }
                                                 />{" "}
@@ -145,16 +147,16 @@ class EntitySelectorMulti extends React.Component<{
                             <ul>
                                 {selectedData.map(d => {
                                     return (
-                                        <li key={d.key}>
+                                        <li key={d.entityDimensionKey}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
                                                     checked={this.isSelectedKey(
-                                                        d.key
+                                                        d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
                                                         chart.data.toggleKey(
-                                                            d.key
+                                                            d.entityDimensionKey
                                                         )
                                                     }
                                                 />{" "}
@@ -212,9 +214,10 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @computed get searchResults(): { id: number; label: string }[] {
-        return this.searchInput
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -247,7 +250,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.data.switchEntity(entityId)
+        this.props.chart.data.setSelectedEntity(entityId)
         this.props.onDismiss()
     }
 
