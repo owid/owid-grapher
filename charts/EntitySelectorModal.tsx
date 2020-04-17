@@ -2,18 +2,17 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice } from "./Util"
+import { uniqBy, isTouchDevice, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { DataKeyInfo } from "./ChartData"
-import { ChartView } from "./ChartView"
+import { EntityDimensionInfo } from "./ChartData"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 @observer
-export class DataSelectorMulti extends React.Component<{
+class EntitySelectorMulti extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -21,32 +20,31 @@ export class DataSelectorMulti extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableData(): DataKeyInfo[] {
-        const { chart } = this.props
-
-        const selectableKeys = chart.activeTransform.selectableKeys
-        if (selectableKeys !== undefined) {
-            return selectableKeys.map(key => chart.data.lookupKey(key))
-        }
-        return chart.data.availableKeys.map(key => chart.data.lookupKey(key))
+    @computed get availableEntities(): EntityDimensionInfo[] {
+        return this.props.chart.activeTransform.selectableEntityDimensionKeys.map(
+            key => this.props.chart.data.lookupKey(key)
+        )
     }
 
-    @computed get selectedData() {
-        return this.availableData.filter(d => this.isSelectedKey(d.key))
+    @computed get selectedEntities() {
+        return this.availableEntities.filter(d =>
+            this.isSelectedKey(d.entityDimensionKey)
+        )
     }
 
-    @computed get fuzzy(): FuzzySearch<DataKeyInfo> {
-        return new FuzzySearch(this.availableData, "label")
+    @computed get fuzzy(): FuzzySearch<EntityDimensionInfo> {
+        return new FuzzySearch(this.availableEntities, "label")
     }
 
-    @computed get searchResults(): DataKeyInfo[] {
-        return this.searchInput
+    @computed get searchResults(): EntityDimensionInfo[] {
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableData
+            : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
-    isSelectedKey(key: string): boolean {
-        return !!this.props.chart.data.selectedKeysByKey[key]
+    isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
+        return !!this.props.chart.data.selectedKeysByKey[entityDimensionKey]
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -72,7 +70,9 @@ export class DataSelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.chart.data.toggleKey(this.searchResults[0].key)
+            this.props.chart.data.toggleKey(
+                this.searchResults[0].entityDimensionKey
+            )
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
@@ -83,11 +83,15 @@ export class DataSelectorMulti extends React.Component<{
 
     render() {
         const { chart } = this.props
-        const { selectedData, searchResults, searchInput } = this
+        const {
+            selectedEntities: selectedData,
+            searchResults,
+            searchInput
+        } = this
 
         return (
-            <div className="dataSelectorOverlay">
-                <div ref={this.base} className="DataSelectorMulti">
+            <div className="entitySelectorOverlay">
+                <div ref={this.base} className="EntitySelectorMulti">
                     <header className="wrapper">
                         <h2>
                             Choose data to show{" "}
@@ -113,16 +117,16 @@ export class DataSelectorMulti extends React.Component<{
                             <ul>
                                 {searchResults.map(d => {
                                     return (
-                                        <li key={d.key}>
+                                        <li key={d.entityDimensionKey}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
                                                     checked={this.isSelectedKey(
-                                                        d.key
+                                                        d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
                                                         chart.data.toggleKey(
-                                                            d.key
+                                                            d.entityDimensionKey
                                                         )
                                                     }
                                                 />{" "}
@@ -137,16 +141,16 @@ export class DataSelectorMulti extends React.Component<{
                             <ul>
                                 {selectedData.map(d => {
                                     return (
-                                        <li key={d.key}>
+                                        <li key={d.entityDimensionKey}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
                                                     checked={this.isSelectedKey(
-                                                        d.key
+                                                        d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
                                                         chart.data.toggleKey(
-                                                            d.key
+                                                            d.entityDimensionKey
                                                         )
                                                     }
                                                 />{" "}
@@ -178,9 +182,9 @@ export class DataSelectorMulti extends React.Component<{
 }
 
 @observer
-export class DataSelectorSingle extends React.Component<{
+class EntitySelectorSingle extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
+    isMobile: boolean
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -188,9 +192,9 @@ export class DataSelectorSingle extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableItems() {
+    @computed get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
-        this.props.chart.data.keyData.forEach(meta => {
+        this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
                 label: meta.entity
@@ -200,13 +204,14 @@ export class DataSelectorSingle extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: number; label: string }> {
-        return new FuzzySearch(this.availableItems, "label")
+        return new FuzzySearch(this.availableEntities, "label")
     }
 
     @computed get searchResults(): { id: number; label: string }[] {
-        return this.searchInput
+        const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableItems
+            : this.availableEntities
+        return sortBy(results, result => result.label)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -224,7 +229,7 @@ export class DataSelectorSingle extends React.Component<{
             () => document.addEventListener("click", this.onClickOutside),
             1
         )
-        if (!this.props.chartView.isMobile) this.searchField.focus()
+        if (!this.props.isMobile) this.searchField.focus()
     }
 
     componentWillUnmount() {
@@ -239,7 +244,7 @@ export class DataSelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.data.switchEntity(entityId)
+        this.props.chart.data.setSelectedEntity(entityId)
         this.props.onDismiss()
     }
 
@@ -247,8 +252,8 @@ export class DataSelectorSingle extends React.Component<{
         const { searchResults, searchInput } = this
 
         return (
-            <div className="dataSelectorOverlay">
-                <div ref={this.base} className="DataSelectorSingle">
+            <div className="entitySelectorOverlay">
+                <div ref={this.base} className="EntitySelectorSingle">
                     <header className="wrapper">
                         <h2>
                             Choose data to show{" "}
@@ -291,16 +296,16 @@ export class DataSelectorSingle extends React.Component<{
 }
 
 @observer
-export class DataSelector extends React.Component<{
+export class EntitySelectorModal extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
+    isMobile: boolean
     onDismiss: () => void
 }> {
     render() {
-        const { chart } = this.props
-
-        if (chart.data.canChangeEntity)
-            return <DataSelectorSingle {...this.props} />
-        else return <DataSelectorMulti {...this.props} />
+        return this.props.chart.data.canChangeEntity ? (
+            <EntitySelectorSingle {...this.props} />
+        ) : (
+            <EntitySelectorMulti {...this.props} />
+        )
     }
 }

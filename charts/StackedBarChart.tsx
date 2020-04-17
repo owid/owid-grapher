@@ -18,6 +18,7 @@ import {
     ScatterColorLegendView
 } from "./ScatterColorLegend"
 import { Tooltip } from "./Tooltip"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface StackedBarValue {
     x: number
@@ -28,7 +29,7 @@ export interface StackedBarValue {
 }
 
 export interface StackedBarSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     label: string
     values: StackedBarValue[]
     color: string
@@ -196,7 +197,7 @@ export class StackedBarChart extends React.Component<{
                 : uniq(
                       transform.stackedData
                           .filter(g => g.color === hoverColor)
-                          .map(g => g.key)
+                          .map(g => g.entityDimensionKey)
                   )
 
         return hoverKeys
@@ -213,7 +214,9 @@ export class StackedBarChart extends React.Component<{
         else
             colors = uniq(
                 transform.stackedData
-                    .filter(g => activeKeys.indexOf(g.key) !== -1)
+                    .filter(
+                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
+                    )
                     .map(g => g.color)
             )
         return colors
@@ -474,7 +477,7 @@ export class StackedBarChart extends React.Component<{
                     {stackedData.map(series => {
                         const isLegendHovered: boolean = includes(
                             this.hoverKeys,
-                            series.key
+                            series.entityDimensionKey
                         )
                         const opacity =
                             isLegendHovered || this.hoverKeys.length === 0
@@ -483,9 +486,10 @@ export class StackedBarChart extends React.Component<{
 
                         return (
                             <g
-                                key={series.key}
+                                key={series.entityDimensionKey}
                                 className={
-                                    makeSafeForCSS(series.key) + "-segments"
+                                    makeSafeForCSS(series.entityDimensionKey) +
+                                    "-segments"
                                 }
                             >
                                 {series.values.map(bar => {

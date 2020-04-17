@@ -7,14 +7,18 @@ import { Bounds } from "./Bounds"
 import { AxisBox } from "./AxisBox"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
 import { getRelativeMouse, makeSafeForCSS } from "./Util"
-import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
+import {
+    HeightedLegend,
+    HeightedLegendItem,
+    HeightedLegendComponent
+} from "./HeightedLegend"
 import { NoData } from "./NoData"
 import { Tooltip } from "./Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { DataKey } from "./DataKey"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface StackedAreaValue {
     x: number
@@ -25,7 +29,7 @@ export interface StackedAreaValue {
 }
 
 export interface StackedAreaSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     color: string
     values: StackedAreaValue[]
     classed?: string
@@ -35,7 +39,7 @@ export interface StackedAreaSeries {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     axisBox: AxisBox
     data: StackedAreaSeries[]
-    focusKeys: DataKey[]
+    focusKeys: EntityDimensionKey[]
     onHover: (hoverIndex: number | undefined) => void
 }
 
@@ -47,7 +51,9 @@ export class Areas extends React.Component<AreasProps> {
 
     @observable hoverIndex?: number
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound onCursorMove(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ) {
         const { axisBox, data } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
@@ -65,10 +71,17 @@ export class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
+    @action.bound onCursorLeave(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ) {
+        this.hoverIndex = undefined
+        this.props.onHover(this.hoverIndex)
+    }
+
     seriesIsBlur(series: StackedAreaSeries) {
         return (
             this.props.focusKeys.length > 0 &&
-            !this.props.focusKeys.includes(series.key)
+            !this.props.focusKeys.includes(series.entityDimensionKey)
         )
     }
 
@@ -89,8 +102,10 @@ export class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.key) + "-area"}
-                    key={series.key + "-area"}
+                    className={
+                        makeSafeForCSS(series.entityDimensionKey) + "-area"
+                    }
+                    key={series.entityDimensionKey + "-area"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
@@ -113,8 +128,10 @@ export class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.key) + "-border"}
-                    key={series.key + "-border"}
+                    className={
+                        makeSafeForCSS(series.entityDimensionKey) + "-border"
+                    }
+                    key={series.entityDimensionKey + "-border"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     stroke={rgb(
@@ -140,8 +157,12 @@ export class Areas extends React.Component<AreasProps> {
             <g
                 ref={this.base}
                 className="Areas"
-                onMouseMove={this.onMouseMove}
-                onMouseLeave={this.onMouseMove}
+                onMouseMove={this.onCursorMove}
+                onMouseLeave={this.onCursorLeave}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
             >
                 <rect
                     x={xScale.range[0]}
@@ -158,7 +179,7 @@ export class Areas extends React.Component<AreasProps> {
                         {data.map(series => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     cx={xScale.place(
                                         series.values[hoverIndex].x
                                     )}
@@ -218,26 +239,26 @@ export class StackedArea extends React.Component<{
         })
     }
 
-    @computed get legendItems() {
+    @computed get legendItems(): HeightedLegendItem[] {
         const { transform, midpoints } = this
         const items = transform.stackedData
             .map((d, i) => ({
                 color: d.color,
-                key: d.key,
-                label: this.chart.data.formatKey(d.key),
+                entityDimensionKey: d.entityDimensionKey,
+                label: this.chart.data.getLabelForKey(d.entityDimensionKey),
                 yValue: midpoints[i]
             }))
             .reverse()
         return items
     }
 
-    @computed get legend(): HeightedLegend | undefined {
+    @computed private get legend(): HeightedLegend | undefined {
         if (this.chart.hideLegend) return undefined
 
         const that = this
         return new HeightedLegend({
             get maxWidth() {
-                return 150
+                return Math.min(150, that.bounds.width / 3)
             },
             get fontSize() {
                 return that.chart.baseFontSize
@@ -265,14 +286,14 @@ export class StackedArea extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(datakey: string) {
+    @action.bound onLegendClick(key: EntityDimensionKey) {
         if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
         }
     }
 
-    @action.bound onLegendMouseOver(datakey: string) {
-        this.hoverKey = datakey
+    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+        this.hoverKey = key
     }
 
     @action.bound onLegendMouseLeave() {
@@ -288,7 +309,10 @@ export class StackedArea extends React.Component<{
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
-        return this.focusKeys.length > 0 && !this.focusKeys.includes(series.key)
+        return (
+            this.focusKeys.length > 0 &&
+            !this.focusKeys.includes(series.entityDimensionKey)
+        )
     }
 
     @computed get tooltip(): JSX.Element | undefined {
@@ -337,7 +361,7 @@ export class StackedArea extends React.Component<{
                                 : series.color
                             return (
                                 <tr
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -352,7 +376,9 @@ export class StackedArea extends React.Component<{
                                                 backgroundColor: blockColor
                                             }}
                                         />{" "}
-                                        {chart.data.formatKey(series.key)}
+                                        {chart.data.getLabelForKey(
+                                            series.entityDimensionKey
+                                        )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {value.isFake
@@ -453,7 +479,7 @@ export class StackedArea extends React.Component<{
                 <StandardAxisBoxView axisBox={axisBox} chart={chart} />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {legend && (
-                        <HeightedLegendView
+                        <HeightedLegendComponent
                             legend={legend}
                             x={bounds.right - legend.width}
                             yScale={axisBox.yScale}
@@ -461,7 +487,7 @@ export class StackedArea extends React.Component<{
                             onClick={this.onLegendClick}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
-                            clickableMarks={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.data.canAddData}
                         />
                     )}
                     <Areas

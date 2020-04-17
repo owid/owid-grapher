@@ -14,17 +14,19 @@ import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import { Vector2 } from "./Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "./Tooltip"
+import { TimeBound } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
-export interface ScatterSeries {
+interface ScatterSeries {
     color: string
-    key: string
+    entityDimensionKey: EntityDimensionKey
     label: string
     size: number
     values: ScatterValue[]
     isAutoColor?: true
 }
 
-export interface ScatterValue {
+interface ScatterValue {
     x: number
     y: number
     size: number
@@ -61,7 +63,7 @@ interface ScatterRenderPoint {
 }
 
 interface ScatterRenderSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     displayKey: string
     color: string
     points: ScatterRenderPoint[]
@@ -189,8 +191,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
 
         return {
-            key: d.key,
-            displayKey: "key-" + makeSafeForCSS(d.key),
+            entityDimensionKey: d.entityDimensionKey,
+            displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
             color: d.color,
             points: points,
             text: d.label,
@@ -584,8 +586,8 @@ export class TimeScatter extends React.Component<{
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number
-        targetEndYear: number
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
     }) {
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }

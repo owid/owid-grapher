@@ -10,13 +10,15 @@ import {
     WORDPRESS_API_USER
 } from "serverSettings"
 import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
-import * as Knex from "knex"
+import * as db from "db/db"
+import Knex from "knex"
 import fetch from "node-fetch"
-const urlSlug = require("url-slug")
+import urlSlug from "url-slug"
 
 import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
+import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -464,6 +466,23 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     return revisions[0]
 }
 
+export async function getRelatedCharts(
+    postId: number
+): Promise<RelatedChart[]> {
+    return db.query(`
+        SELECT DISTINCT
+            charts.config->>"$.slug" AS slug,
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.variantName" AS variantName
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
+        WHERE post_tags.post_id=${postId}
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+    `)
+}
+
 export interface FullPost {
     id: number
     type: "post" | "page"
@@ -477,9 +496,13 @@ export interface FullPost {
     excerpt?: string
     imageUrl?: string
     postId?: number
+    relatedCharts?: RelatedChart[]
 }
 
-export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
+export async function getFullPost(
+    postApi: any,
+    excludeContent?: boolean
+): Promise<FullPost> {
     return {
         id: postApi.id,
         postId: postApi.postId, // for previews, the `id` is the revision ID, this field stores the original post ID
@@ -497,20 +520,23 @@ export function getFullPost(postApi: any, excludeContent?: boolean): FullPost {
         excerpt: decodeHTML(postApi.excerpt.rendered),
         imageUrl:
             BAKED_BASE_URL +
-            defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg")
+            defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg"),
+        relatedCharts: await getRelatedCharts(postApi.id)
     }
 }
 
-let cachedPosts: FullPost[] | undefined
+let cachedPosts: Promise<FullPost[]> | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
 
     // TODO: do not get post content in the first place
     const posts = await getPosts(["post"])
 
-    cachedPosts = posts.map(post => {
-        return getFullPost(post, true)
-    })
+    cachedPosts = Promise.all(
+        posts.map(post => {
+            return getFullPost(post, true)
+        })
+    )
 
     return cachedPosts
 }

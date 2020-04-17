@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as _ from "lodash"
-import { groupBy, each, isString, sortBy } from "charts/Util"
+import { groupBy, each, isString, sortBy, defaultTo } from "charts/Util"
 import {
     computed,
     action,
@@ -12,9 +12,9 @@ import {
 import { observer } from "mobx-react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { DimensionSlot } from "charts/ChartConfig"
-import { defaultTo } from "charts/Util"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
-const fuzzysort = require("fuzzysort")
+import fuzzysort from "fuzzysort"
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -27,7 +27,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
-    searchKey: string
+    searchKey?: Fuzzysort.Prepared
 }
 
 @observer
@@ -148,9 +148,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const highlight = (text: string) => {
             if (this.searchInput) {
                 const html =
-                    fuzzysort.highlight(
-                        fuzzysort.single(this.searchInput, text)
-                    ) || text
+                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
+                    text
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
         }
@@ -375,8 +374,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
             name: d.displayName,
             id: d.variableId,
-            datasetName: "",
-            searchKey: ""
+            datasetName: ""
         }))
     }
 

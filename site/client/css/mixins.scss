@@ -26,7 +26,32 @@
     padding-bottom: 1rem;
     @include wrapper-spacing-sm;
     @include md-up {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
         @include wrapper-spacing-md;
+    }
+}
+
+@mixin text-column {
+    // set flex-shrink on text column to accomodate grapher
+    // resizing "slower" than it should during resizes
+    flex: 1 1 $text-min-content-width;
+    max-width: $text-max-content-width;
+
+    > *:first-child {
+        margin-top: $vertical-spacing;
+    }
+}
+
+@mixin media-column {
+    flex: 1 0 $graph-min-content-width;
+    max-width: $graph-max-content-width;
+    top: 0;
+    position: sticky;
+
+    > *:first-child {
+        margin-top: $vertical-spacing;
+        padding-top: 0;
     }
 }
 
@@ -162,9 +187,11 @@
     }
 
     @media (min-width: 30rem) {
+        /* autoprefixer grid: autoplace */
         display: grid;
         grid-gap: 1.5rem 1.25rem;
         grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(10, auto);
 
         li {
             margin-bottom: 0;
@@ -172,7 +199,9 @@
     }
 
     @include md-up {
+        /* autoprefixer grid: autoplace */
         grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(5, auto);
     }
 }
 

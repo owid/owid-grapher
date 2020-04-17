@@ -3,12 +3,13 @@
 
 import { observable } from "mobx"
 import { extend } from "./Util"
-import { VariableDisplaySettings } from "./VariableData"
+import { Time } from "./TimeBounds"
+import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
 
 export class ChartDimension {
     @observable property!: string
     @observable variableId!: number
-    @observable display: VariableDisplaySettings = {
+    @observable display: OwidVariableDisplaySettings = {
         name: undefined,
         unit: undefined,
         shortUnit: undefined,
@@ -19,7 +20,7 @@ export class ChartDimension {
     }
 
     // XXX move this somewhere else, it's only used for scatter x override
-    @observable targetYear?: number = undefined
+    @observable targetYear?: Time = undefined
 
     // If enabled, dimension settings will be saved onto variable as defaults
     // for future charts

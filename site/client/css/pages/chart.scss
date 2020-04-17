@@ -4,11 +4,37 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin: 0;
+    margin: 0 auto;
     width: 100%;
+
+    // Defined in chart.authorWidth & chart.authorHeight (the landscape values)
+    $author-width: 680px;
+    $author-height: 480px;
+    $ideal-ratio: $author-width / $author-height;
+
+    $max-width: 1250px; // The rough max-width across all pages on the site
+    $max-height: $max-width / $ideal-ratio;
+
+    // On small viewports always use the full available height.
+    // We only leave space for the mobile header and fill the rest.
     height: calc(100vh - #{$mobile-header-height});
+
     @include md-up {
-        height: calc(100vh - 225px);
+        // On larger viewports, we want to leave more space at the bottom to make the entry link
+        // more visible. It doesn't need to be fully visible, just enough to pop out to the user.
+        height: calc(100vh - 175px);
+    }
+
+    // At this point, the ratio-preserving sizing kicks in, so we want to mirror that in the CSS
+    // to avoid using unnecessary space.
+    @media (min-width: $author-width) {
+        // We no longer use the full height
+        max-height: #{1 / $ideal-ratio * 100}vw;
+    }
+
+    @media (min-width: $max-width) {
+        max-width: $max-width;
+        max-height: $max-height;
     }
 }
 
@@ -18,17 +44,28 @@
 }
 
 .ChartPage main {
-    // See prominent-link.scss for base styles
-    .originReference {
+    .related-research-data {
+        @include block-spacing;
+        margin-top: $vertical-spacing;
+        background-color: $primary-color-100;
         max-width: 800px;
-        margin: $vertical-spacing auto 0;
-        font-size: 1.3rem;
-        text-align: center;
-        svg {
-            width: 0.7em;
+        & > :first-child {
+            margin-top: 0;
         }
-        a {
-            padding: $padding-x-sm;
+        .research {
+            font-size: 1.1rem;
+        }
+        svg {
+            margin-right: 0.5rem;
+        }
+        h3 {
+            margin-bottom: 0.5rem;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-left: 1rem;
         }
     }
 }
@@ -40,27 +77,20 @@ html.iframe .ChartPage {
         min-height: inherit;
     }
 
-    figure {
+    main figure[data-grapher-src] {
         height: 100vh;
+        min-height: auto;
+        max-height: none;
+        min-width: auto;
+        max-width: none;
     }
 
-    .site-header {
-        display: none;
-    }
-
-    .donate-footer {
-        display: none;
-    }
-
-    .cookie-notice {
-        display: none;
-    }
-
-    .site-footer {
-        display: none;
-    }
-
-    .originReference {
+    .site-header,
+    .alert-banner,
+    .donate-footer,
+    .cookie-notice,
+    .site-footer,
+    .related-research-data {
         display: none;
     }
 }

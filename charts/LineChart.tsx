@@ -17,12 +17,17 @@ import { Bounds } from "./Bounds"
 import { AxisBox } from "./AxisBox"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
 import { Lines } from "./Lines"
-import { HeightedLegend, HeightedLegendView } from "./HeightedLegend"
+import {
+    HeightedLegend,
+    HeightedLegendItem,
+    HeightedLegendComponent
+} from "./HeightedLegend"
 import { ComparisonLine } from "./ComparisonLine"
 import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface LineChartValue {
     x: number
@@ -31,7 +36,7 @@ export interface LineChartValue {
 }
 
 export interface LineChartSeries {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     color: string
     values: LineChartValue[]
     classed?: string
@@ -68,23 +73,29 @@ export class LineChart extends React.Component<{
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get legendItems() {
+    @computed private get legendItems(): HeightedLegendItem[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.transform.groupedData
         if (toShow.some(g => !!g.isProjection))
             toShow = this.transform.groupedData.filter(g => g.isProjection)
 
-        return toShow.map(d => {
-            const lastValue = (last(d.values) as LineChartValue).y
-
+        return toShow.map(series => {
+            const lastValue = (last(series.values) as LineChartValue).y
+            const annotation =
+                this.chart.data.getAnnotationForKey(
+                    series.entityDimensionKey
+                ) || undefined
             return {
-                color: d.color,
-                key: d.key,
+                color: series.color,
+                entityDimensionKey: series.entityDimensionKey,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.chart.hideLegend
                     ? ""
-                    : `${this.chart.data.formatKey(d.key)}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                    : `${this.chart.data.getLabelForKey(
+                          series.entityDimensionKey
+                      )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
+                annotation,
                 yValue: lastValue
             }
         })
@@ -106,7 +117,10 @@ export class LineChart extends React.Component<{
     }
 
     seriesIsBlur(series: LineChartSeries) {
-        return this.isFocusMode && !this.focusKeys.includes(series.key)
+        return (
+            this.isFocusMode &&
+            !this.focusKeys.includes(series.entityDimensionKey)
+        )
     }
 
     @computed get tooltip(): JSX.Element | undefined {
@@ -141,6 +155,10 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
+                            const annotation = chart.data.getAnnotationForKey(
+                                series.entityDimensionKey
+                            )
+
                             // It sometimes happens that data is missing for some years for a particular
                             // entity. If the user hovers over these years, we want to show a "No data"
                             // notice. However, we only want to show this notice when we are in the middle
@@ -164,12 +182,13 @@ export class LineChart extends React.Component<{
                             const isBlur =
                                 this.seriesIsBlur(series) || value === undefined
                             const textColor = isBlur ? "#ddd" : "#333"
+                            const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
                                 ? BLUR_COLOR
                                 : series.color
                             return (
                                 <tr
-                                    key={series.key}
+                                    key={series.entityDimensionKey}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -188,7 +207,20 @@ export class LineChart extends React.Component<{
                                                 marginRight: "2px"
                                             }}
                                         />{" "}
-                                        {chart.data.formatKey(series.key)}
+                                        {chart.data.getLabelForKey(
+                                            series.entityDimensionKey
+                                        )}
+                                        {annotation && (
+                                            <span
+                                                className="tooltipAnnotation"
+                                                style={{
+                                                    color: annotationColor
+                                                }}
+                                            >
+                                                {" "}
+                                                {annotation}
+                                            </span>
+                                        )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {!value
@@ -228,14 +260,14 @@ export class LineChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(datakey: string) {
+    @action.bound onLegendClick(key: EntityDimensionKey) {
         if (this.chart.data.canAddData) {
             this.context.chartView.isSelectingData = true
         }
     }
 
-    @action.bound onLegendMouseOver(datakey: string) {
-        this.hoverKey = datakey
+    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+        this.hoverKey = key
     }
 
     @action.bound onLegendMouseLeave() {
@@ -324,13 +356,13 @@ export class LineChart extends React.Component<{
                             />
                         ))}
                     {legend && (
-                        <HeightedLegendView
+                        <HeightedLegendComponent
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
                             yScale={axisBox.yScale}
                             onClick={this.onLegendClick}
-                            clickableMarks={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.data.canAddData}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
                         />
@@ -355,7 +387,7 @@ export class LineChart extends React.Component<{
                             else
                                 return (
                                     <circle
-                                        key={series.key}
+                                        key={series.entityDimensionKey}
                                         cx={xScale.place(value.x)}
                                         cy={yScale.place(value.y)}
                                         r={4}

@@ -2,7 +2,7 @@
 
 import * as db from "db/db"
 import * as fs from "fs-extra"
-import * as parseArgs from "minimist"
+import parseArgs from "minimist"
 
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
 import { exec } from "utils/server/serverUtil"

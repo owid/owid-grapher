@@ -1,13 +1,38 @@
-import { extend, map, filter, includes, uniqWith, isEqual, first } from "./Util"
-import { observable, computed, action, autorun, toJS, runInAction } from "mobx"
+import {
+    extend,
+    map,
+    filter,
+    includes,
+    uniqWith,
+    isEqual,
+    first,
+    defaultTo,
+    formatDay,
+    formatYear,
+    uniq,
+    values,
+    keyBy,
+    fetchJSON,
+    each,
+    keys
+} from "./Util"
+import {
+    observable,
+    computed,
+    action,
+    autorun,
+    toJS,
+    runInAction,
+    reaction
+} from "mobx"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { defaultTo, formatDay, formatYear } from "./Util"
-import { VariableData, DataForChart } from "./VariableData"
+import { OwidVariable } from "./owidData/OwidVariable"
+import { OwidVariableSet, EntityMeta } from "./owidData/OwidVariableSet"
 import { ChartData } from "./ChartData"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
 import { ChartUrl } from "./ChartUrl"
 import { StackedBarTransform } from "./StackedBarTransform"
@@ -21,15 +46,28 @@ import { ChartView } from "./ChartView"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { Bounds } from "./Bounds"
-import { IChartTransform } from "./IChartTransform"
+import { IChartTransform } from "./ChartTransform"
 import { ChartDimension } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
+import { BAKED_GRAPHER_URL } from "settings"
+import {
+    minTimeFromJSON,
+    maxTimeFromJSON,
+    minTimeToJSON,
+    maxTimeToJSON,
+    TimeBound,
+    Time,
+    TimeBounds
+} from "./TimeBounds"
 
 declare const App: any
 declare const window: any
-const isNode: boolean = require("detect-node")
+
+// That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
+const isNode: boolean =
+    Object.prototype.toString.call(global.process) === "[object process]"
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
@@ -38,7 +76,7 @@ export interface HighlightToggleConfig {
     paramStr: string
 }
 
-export interface EntitySelection {
+interface EntitySelection {
     entityId: number
     index: number // Which dimension the entity is from
     color?: Color
@@ -98,7 +136,7 @@ export class DimensionSlot {
         this.chart.props.dimensions = newDimensions
     }
 
-    @computed get dimensionsWithData(): DimensionWithData[] {
+    @computed get dimensionsWithData(): ChartDimensionWithOwidVariable[] {
         return this.chart.data.filledDimensions.filter(
             d => d.property === this.property
         )
@@ -142,12 +180,16 @@ export class ChartConfigProps {
     @observable.ref xAxis: AxisConfigProps = new AxisConfigProps()
     @observable.ref yAxis: AxisConfigProps = new AxisConfigProps()
 
-    @observable.ref selectedData: EntitySelection[] = []
-    @observable.ref minTime?: number = undefined
-    @observable.ref maxTime?: number = undefined
+    // TODO: These 2 are currently in development. Do not save to DB.
+    @observable.ref externalDataUrl?: string = undefined
+    @observable.ref owidDataset?: OwidVariableSet = undefined
 
-    @observable.ref timelineMinTime?: number = undefined
-    @observable.ref timelineMaxTime?: number = undefined
+    @observable.ref selectedData: EntitySelection[] = []
+    @observable.ref minTime?: TimeBound = undefined
+    @observable.ref maxTime?: TimeBound = undefined
+
+    @observable.ref timelineMinTime?: Time = undefined
+    @observable.ref timelineMaxTime?: Time = undefined
 
     @observable.ref dimensions: ChartDimension[] = []
     @observable.ref addCountryMode?:
@@ -163,7 +205,9 @@ export class ChartConfigProps {
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle?: boolean = true
     @observable.ref entityType?: string = undefined
+    @observable.ref entityTypePlural?: string = undefined
     @observable.ref hideTimeline?: true = undefined
+    @observable.ref zoomToSelection?: true = undefined
 
     // Always show year in labels for bar charts
     @observable.ref showYearLabels?: boolean = undefined
@@ -195,7 +239,7 @@ export class ChartConfigProps {
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable excludedEntities?: number[] = undefined
 
-    @observable map?: MapConfigProps = undefined
+    @observable map: MapConfigProps = new MapConfigProps()
 
     data?: { availableEntities: string[] } = undefined
 }
@@ -214,6 +258,60 @@ export class ChartConfig {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
+    @observable.ref variablesById: { [id: number]: OwidVariable } = {}
+    @observable.ref entityMetaById: { [id: number]: EntityMeta } = {}
+
+    @computed get availableEntities(): string[] {
+        return keys(this.entityMetaByKey)
+    }
+
+    @action.bound private async downloadData() {
+        if (this.props.externalDataUrl) {
+            const json = await fetchJSON(this.props.externalDataUrl)
+            this.receiveData(json)
+            return
+        }
+
+        if (this.props.owidDataset) {
+            this.receiveData(this.props.owidDataset)
+            return
+        }
+
+        if (this.variableIds.length === 0 || this.isNode) {
+            // No data to download
+            return
+        }
+
+        if (window.admin) {
+            const json = await window.admin.getJSON(
+                `/api/data/variables/${this.dataFileName}`
+            )
+            this.receiveData(json)
+        } else {
+            const json = await fetchJSON(this.dataUrl)
+            this.receiveData(json)
+        }
+    }
+
+    @action.bound receiveData(json: OwidVariableSet) {
+        const variablesById: { [id: string]: OwidVariable } = {}
+        const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
+        for (const key in json.variables) {
+            const variable = new OwidVariable(json.variables[key])
+            variable.entityNames = variable.entities.map(
+                id => entityMetaById[id].name
+            )
+            variablesById[key] = variable
+        }
+        each(entityMetaById, (e, id) => (e.id = +id))
+        this.variablesById = variablesById
+        this.entityMetaById = entityMetaById
+    }
+
+    @computed get entityMetaByKey() {
+        return keyBy(this.entityMetaById, "name")
+    }
+
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
         if (this.isMediaCard) return 24
@@ -225,17 +323,19 @@ export class ChartConfig {
         this.setBaseFontSize = val
     }
 
-    @computed get formatYearFunction() {
-        const yearIsDayVar = first(
-            this.vardata.variables.filter(v => v.display.yearIsDay)
-        )
-
-        return yearIsDayVar
-            ? (day: number) => formatDay(day, yearIsDayVar.display.zeroDay)
-            : formatYear
+    @computed get yearIsDayVar() {
+        return first(this.variables.filter(v => v.display.yearIsDay))
     }
 
-    vardata: VariableData
+    @computed get variables(): OwidVariable[] {
+        return values(this.variablesById)
+    }
+
+    @computed get formatYearFunction() {
+        const yearIsDayVar = this.yearIsDayVar
+        return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
+    }
+
     data: ChartData
     url: ChartUrl
 
@@ -243,12 +343,26 @@ export class ChartConfig {
         return window.self !== window.top
     }
 
-    get isEditor(): boolean {
-        return App.isEditor
+    private get isEditor(): boolean {
+        return typeof App !== "undefined" && App.isEditor
     }
 
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isLocalExport
+    }
+
+    @computed.struct private get variableIds() {
+        return uniq(this.dimensions.map(d => d.variableId))
+    }
+
+    @computed get dataFileName(): string {
+        return `${this.variableIds.join("+")}.json?v=${
+            this.isEditor ? undefined : this.cacheTag
+        }`
+    }
+
+    @computed get dataUrl(): string {
+        return `${BAKED_GRAPHER_URL}/data/variables/${this.dataFileName}`
     }
 
     @computed get hasOWIDLogo(): boolean {
@@ -279,7 +393,9 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
-        this.vardata = new VariableData(this)
+        reaction(() => this.variableIds, this.downloadData, {
+            fireImmediately: true
+        })
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
 
@@ -359,6 +475,10 @@ export class ChartConfig {
         return defaultTo(this.props.entityType, "country")
     }
 
+    @computed get entityTypePlural() {
+        return defaultTo(this.props.entityTypePlural, "countries")
+    }
+
     @computed get tab() {
         return this.props.overlay ? this.props.overlay : this.props.tab
     }
@@ -372,16 +492,17 @@ export class ChartConfig {
         }
     }
 
-    @computed get timeDomain(): [number | undefined, number | undefined] {
+    @computed get timeDomain(): TimeBounds {
         return [
-            defaultTo(this.props.minTime, undefined),
-            defaultTo(this.props.maxTime, undefined)
+            // Handle `undefined` values in minTime/maxTime
+            minTimeFromJSON(this.props.minTime),
+            maxTimeFromJSON(this.props.maxTime)
         ]
     }
 
-    set timeDomain(value: [number | undefined, number | undefined]) {
-        this.props.minTime = defaultTo(value[0], undefined)
-        this.props.maxTime = defaultTo(value[1], undefined)
+    set timeDomain(value: TimeBounds) {
+        this.props.minTime = value[0]
+        this.props.maxTime = value[1]
     }
 
     @computed get xAxis() {
@@ -453,7 +574,17 @@ export class ChartConfig {
         if (json.isAutoSlug && App.isEditor && !json.isPublished)
             this.props.slug = undefined
 
-        this.props.map = new MapConfigProps(json.map)
+        // JSON doesn't support Infinity, so we use strings instead.
+        this.props.minTime = minTimeFromJSON(json.minTime)
+        this.props.maxTime = maxTimeFromJSON(json.maxTime)
+
+        if (json.map) {
+            this.props.map = new MapConfigProps({
+                ...json.map,
+                targetYear: maxTimeFromJSON(json.map.targetYear)
+            })
+        }
+
         extend(this.props.xAxis, json["xAxis"])
         extend(this.props.yAxis, json["yAxis"])
 
@@ -462,9 +593,7 @@ export class ChartConfig {
         )
     }
 
-    @computed.struct get json() {
-        const { props } = this
-
+    @computed.struct get json(): Readonly<any> {
         const json: any = toJS(this.props)
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -480,6 +609,14 @@ export class ChartConfig {
 
         json.data = {
             availableEntities: this.data.availableEntities
+        }
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        json.minTime = minTimeToJSON(this.props.minTime)
+        json.maxTime = maxTimeToJSON(this.props.maxTime)
+
+        if (this.props.map) {
+            json.map.targetYear = maxTimeToJSON(this.props.map.targetYear)
         }
 
         return json
@@ -559,9 +696,5 @@ export class ChartConfig {
 
     @computed get isExplorable(): boolean {
         return this.props.isExplorable
-    }
-
-    receiveData(data: DataForChart) {
-        this.vardata.receiveData(data)
     }
 }

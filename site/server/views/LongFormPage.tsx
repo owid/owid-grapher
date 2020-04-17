@@ -267,6 +267,7 @@ export const LongFormPage = (props: {
                             headings: post.tocHeadings,
                             pageTitle
                         })})
+                        runRelatedCharts(${JSON.stringify(post.relatedCharts)})
                         `
                     }}
                 />

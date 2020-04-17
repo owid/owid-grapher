@@ -1,11 +1,10 @@
 import * as _ from "lodash"
-import * as parseUrl from "url-parse"
+import parseUrl from "url-parse"
 import * as db from "db/db"
-import * as parseArgs from "minimist"
-const argv = parseArgs(process.argv.slice(2))
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
-const md5 = require("md5")
+import { optimizeSvg } from "./svgPngExport"
+import md5 from "md5"
 
 declare var global: any
 global.window = { location: { search: "" } }
@@ -36,7 +35,11 @@ async function getChartsBySlug() {
     return chartsBySlug
 }
 
-export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
+export async function bakeChartsToImages(
+    chartUrls: string[],
+    outDir: string,
+    optimizeSvgs = false
+) {
     await fs.mkdirp(outDir)
     const chartsBySlug = await getChartsBySlug()
 
@@ -60,8 +63,12 @@ export async function bakeChartsToImages(chartUrls: string[], outDir: string) {
                     chart.dimensions.map(d => d.variableId)
                 )
                 const vardata = await getVariableData(variableIds)
-                chart.vardata.receiveData(vardata)
-                fs.writeFile(outPath, chart.staticSVG)
+                chart.receiveData(vardata)
+
+                let svgCode = chart.staticSVG
+                if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+
+                fs.writeFile(outPath, svgCode)
             }
         }
     }

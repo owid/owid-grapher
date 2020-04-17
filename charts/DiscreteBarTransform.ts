@@ -1,30 +1,15 @@
 import { computed } from "mobx"
-import {
-    some,
-    isEmpty,
-    sortBy,
-    orderBy,
-    max,
-    values,
-    flatten,
-    uniq
-} from "./Util"
-import { ChartConfig } from "./ChartConfig"
+import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartTransform } from "./ChartTransform"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ColorSchemes } from "./ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class DiscreteBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class DiscreteBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -37,20 +22,14 @@ export class DiscreteBarTransform implements IChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimensions(): DimensionWithData[] {
+    @computed get primaryDimensions(): ChartDimensionWithOwidVariable[] {
         return this.chart.data.filledDimensions.filter(d => d.property === "y")
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (this.primaryDimensions.length === 0) return 1900
-
-        const yearsUniq = flatten(
+    @computed get availableYears(): Time[] {
+        return flatten(
             this.primaryDimensions.map(dim => dim.variable.yearsUniq)
         )
-        if (maxYear !== undefined)
-            return sortBy(yearsUniq, year => Math.abs(year - maxYear))[0]
-        else return max(yearsUniq) as number
     }
 
     @computed get hasTimeline(): boolean {
@@ -85,24 +64,30 @@ export class DiscreteBarTransform implements IChartTransform {
     @computed get currentData(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
         const { filledDimensions, selectedKeysByKey } = chart.data
-        const dataByKey: { [key: string]: DiscreteBarDatum } = {}
+        const dataByEntityDimensionKey: {
+            [entityDimensionKey: string]: DiscreteBarDatum
+        } = {}
 
         filledDimensions.forEach((dimension, dimIndex) => {
             const { tolerance } = dimension
 
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
+                const entity = dimension.entityNames[i]
+                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
 
                 if (
                     year < targetYear - tolerance ||
                     year > targetYear + tolerance ||
-                    !selectedKeysByKey[datakey]
+                    !selectedKeysByKey[entityDimensionKey]
                 )
                     continue
 
-                const currentDatum = dataByKey[datakey]
+                const currentDatum =
+                    dataByEntityDimensionKey[entityDimensionKey]
                 // Make sure we use the closest value to the target year within tolerance (preferring later)
                 if (
                     currentDatum &&
@@ -112,28 +97,29 @@ export class DiscreteBarTransform implements IChartTransform {
                     continue
 
                 const datum = {
-                    key: datakey,
+                    entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.formatKey(datakey),
+                    label: chart.data.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
 
-                dataByKey[datakey] = datum
+                dataByEntityDimensionKey[entityDimensionKey] = datum
             }
         })
 
         if (this.chart.isLineChart) {
             // If derived from line chart, use line chart colors
-            for (const key in dataByKey) {
+            for (const key in dataByEntityDimensionKey) {
                 const lineSeries = this.chart.lineChart.predomainData.find(
-                    series => series.key === key
+                    series => series.entityDimensionKey === key
                 )
-                if (lineSeries) dataByKey[key].color = lineSeries.color
+                if (lineSeries)
+                    dataByEntityDimensionKey[key].color = lineSeries.color
             }
         } else {
-            const data = sortBy(values(dataByKey), d => d.value)
+            const data = sortBy(values(dataByEntityDimensionKey), d => d.value)
             const colorScheme = chart.baseColorScheme
                 ? ColorSchemes[chart.baseColorScheme]
                 : undefined
@@ -148,23 +134,28 @@ export class DiscreteBarTransform implements IChartTransform {
 
             data.forEach(d => {
                 d.color =
-                    chart.data.keyColors[d.key] ||
+                    chart.data.keyColors[d.entityDimensionKey] ||
                     colorByValue.get(d.value) ||
                     d.color
             })
         }
 
-        if (this.isLogScale) this._filterDataForLogScaleInPlace(dataByKey)
+        if (this.isLogScale)
+            this._filterDataForLogScaleInPlace(dataByEntityDimensionKey)
 
-        return orderBy(values(dataByKey), ["value", "key"], ["desc", "asc"])
+        return orderBy(
+            values(dataByEntityDimensionKey),
+            ["value", "key"],
+            ["desc", "asc"]
+        )
     }
 
-    private _filterDataForLogScaleInPlace(dataByKey: {
-        [key: string]: DiscreteBarDatum
+    private _filterDataForLogScaleInPlace(dataByEntityDimensionKey: {
+        [entityDimensionKey: string]: DiscreteBarDatum
     }) {
-        Object.keys(dataByKey).forEach(key => {
-            const datum = dataByKey[key]
-            if (datum.value === 0) delete dataByKey[key]
+        Object.keys(dataByEntityDimensionKey).forEach(key => {
+            const datum = dataByEntityDimensionKey[key]
+            if (datum.value === 0) delete dataByEntityDimensionKey[key]
         })
     }
 
@@ -192,16 +183,19 @@ export class DiscreteBarTransform implements IChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
+                const entity = dimension.entityNames[i]
+                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
 
-                if (!selectedKeysByKey[datakey]) continue
+                if (!selectedKeysByKey[entityDimensionKey]) continue
 
                 const datum = {
-                    key: datakey,
+                    entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.formatKey(datakey),
+                    label: chart.data.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -227,7 +221,7 @@ export class DiscreteBarTransform implements IChartTransform {
 
         data.forEach(d => {
             d.color =
-                chart.data.keyColors[d.key] ||
+                chart.data.keyColors[d.entityDimensionKey] ||
                 colorByValue.get(d.value) ||
                 d.color
         })

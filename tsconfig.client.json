@@ -5,17 +5,18 @@
         "allowJs": false,
         "outDir": "./dist/",
         "sourceMap": true,
-        "module": "commonjs",
+        "module": "ES6",
         "moduleResolution": "node",
         "jsx": "react",
-        "target": "es5",
+        "target": "ES6",
         "experimentalDecorators": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es7", "esnext.asynciterable"],
         "baseUrl": ".",
         "plugins": [],
-        "keyofStringsOnly": true
+        "keyofStringsOnly": true,
+        "esModuleInterop": true
     },
     "exclude": ["node_modules", "bakedSite"]
 }

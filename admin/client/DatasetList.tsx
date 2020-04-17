@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 import * as _ from "lodash"
 import { bind } from "decko"
 
@@ -76,7 +76,7 @@ class DatasetRow extends React.Component<{
                     />
                 </td>
                 <td>
-                    {timeago.format(dataset.dataEditedAt)} by{" "}
+                    {format(dataset.dataEditedAt)} by{" "}
                     {highlight(dataset.dataEditedByUserName)}
                 </td>
             </tr>

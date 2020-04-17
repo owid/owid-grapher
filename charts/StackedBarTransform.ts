@@ -7,29 +7,22 @@ import {
     cloneDeep,
     find,
     sortBy,
-    min,
     max,
     defaultTo,
-    findClosest,
-    uniq
+    uniq,
+    flatten
 } from "./Util"
-import { ChartConfig } from "./ChartConfig"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
-import { IChartTransform } from "./IChartTransform"
-import { DimensionWithData } from "./DimensionWithData"
-import { DataKey } from "./DataKey"
+import { ChartTransform } from "./ChartTransform"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
-export class StackedBarTransform implements IChartTransform {
-    chart: ChartConfig
-
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class StackedBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return some(this.chart.dimensions, d => d.property === "y")
     }
@@ -46,66 +39,24 @@ export class StackedBarTransform implements IChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimension(): DimensionWithData | undefined {
+    @computed get primaryDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return find(this.chart.data.filledDimensions, d => d.property === "y")
     }
-    @computed get colorDimension(): DimensionWithData | undefined {
+    @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
         return find(
             this.chart.data.filledDimensions,
             d => d.property === "color"
         )
     }
 
-    @computed get targetYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-        if (!this.primaryDimension) return 1900
-
-        const { variable } = this.primaryDimension
-        if (maxYear !== undefined)
-            return sortBy(variable.yearsUniq, year =>
-                Math.abs(year - maxYear)
-            )[0]
-        else return max(variable.yearsUniq) as number
-    }
-
-    @computed get timelineYears(): number[] {
+    @computed get availableYears(): Time[] {
         if (this.primaryDimension === undefined) return []
         return this.primaryDimension.yearsUniq
     }
 
-    @computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }
-
-    @computed get startYear(): number {
-        const minYear = defaultTo(
-            this.chart.timeDomain[0],
-            this.minTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, minYear),
-            this.minTimelineYear
-        )
-    }
-
-    @computed get endYear(): number {
-        const maxYear = defaultTo(
-            this.chart.timeDomain[1],
-            this.maxTimelineYear
-        )
-        return defaultTo(
-            findClosest(this.timelineYears, maxYear),
-            this.maxTimelineYear
-        )
-    }
-
     @computed get barValueFormat(): (datum: StackedBarValue) => string {
-        const { primaryDimension, targetYear } = this
-
         return (datum: StackedBarValue) => {
             return datum.y.toString()
         }
@@ -169,9 +120,7 @@ export class StackedBarTransform implements IChartTransform {
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
-        const allValues: StackedBarValue[] = []
-        this.stackedData.forEach(series => allValues.push(...series.values))
-        return allValues
+        return flatten(this.stackedData.map(series => series.values))
     }
 
     @computed get xValues(): number[] {
@@ -185,17 +134,20 @@ export class StackedBarTransform implements IChartTransform {
         let groupedData: StackedBarSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<DataKey, StackedBarSeries>()
+            const seriesByKey = new Map<EntityDimensionKey, StackedBarSeries>()
 
             for (let i = 0; i <= dimension.years.length; i += 1) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const value = +dimension.values[i]
-                const datakey = chart.data.keyFor(entity, dimIndex)
-                let series = seriesByKey.get(datakey)
+                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                    entity,
+                    dimIndex
+                )
+                let series = seriesByKey.get(entityDimensionKey)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[datakey]) continue
+                if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Must be numeric
                 if (isNaN(value)) continue
                 // Stacked bar chart can't go negative!
@@ -205,12 +157,12 @@ export class StackedBarTransform implements IChartTransform {
 
                 if (!series) {
                     series = {
-                        key: datakey,
-                        label: chart.data.formatKey(datakey),
+                        entityDimensionKey: entityDimensionKey,
+                        label: chart.data.getLabelForKey(entityDimensionKey),
                         values: [],
                         color: "#fff" // Temp
                     }
-                    seriesByKey.set(datakey, series)
+                    seriesByKey.set(entityDimensionKey, series)
                 }
                 series.values.push({
                     x: year,
@@ -253,14 +205,14 @@ export class StackedBarTransform implements IChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            series => -selectedKeys.indexOf(series.key)
+            series => -selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         return groupedData
     }
 
-    @computed get colorKeys(): string[] {
-        return uniq(this.groupedData.map(d => d.key)).reverse()
+    @computed private get colorEntityDimensionKeys(): string[] {
+        return uniq(this.groupedData.map(d => d.entityDimensionKey)).reverse()
     }
 
     @computed get colors(): Colorizer {
@@ -273,10 +225,11 @@ export class StackedBarTransform implements IChartTransform {
                 return "stackedAreaDefault"
             },
             get keys() {
-                return that.colorKeys
+                return that.colorEntityDimensionKeys
             },
             get labelFormat() {
-                return (key: string) => that.chart.data.formatKey(key)
+                return (key: EntityDimensionKey) =>
+                    that.chart.data.getLabelForKey(key)
             },
             invert: true
         })
@@ -293,7 +246,7 @@ export class StackedBarTransform implements IChartTransform {
         const stackedData = cloneDeep(groupedData)
 
         for (const series of stackedData) {
-            series.color = this.colors.get(series.key)
+            series.color = this.colors.get(series.entityDimensionKey)
             series.values = series.values.filter(
                 v => v.x >= startYear && v.x <= endYear
             )

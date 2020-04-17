@@ -1,11 +1,11 @@
 import * as glob from "glob"
-import * as parseUrl from "url-parse"
+import parseUrl from "url-parse"
 const exec = require("child-process-promise").exec
 import * as path from "path"
 import * as _ from "lodash"
-import * as md5 from "md5"
+import md5 from "md5"
 
-import { BAKED_BASE_URL } from "settings"
+import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings"
 import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
 import { bakeChartsToImages } from "site/server/bakeChartsToImages"
@@ -89,7 +89,11 @@ export async function bakeGrapherUrls(urls: string[]) {
     }
 
     if (toBake.length > 0) {
-        await bakeChartsToImages(toBake, `${BAKED_SITE_DIR}/exports`)
+        await bakeChartsToImages(
+            toBake,
+            `${BAKED_SITE_DIR}/exports`,
+            OPTIMIZE_SVG_EXPORTS
+        )
     }
 }
 

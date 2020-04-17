@@ -1,7 +1,8 @@
-const fuzzysort = require("fuzzysort")
-import * as _ from "lodash"
+import fuzzysort from "fuzzysort"
+import { keyBy } from "charts/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { Analytics } from "./Analytics"
+import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -24,22 +25,22 @@ class ChartFilter {
     searchInput: HTMLInputElement
     chartItems: ChartItem[] = []
     chartItemsByTitle: { [key: string]: ChartItem } = {}
-    strings: string[]
+    strings: (Fuzzysort.Prepared | undefined)[]
     results: any[] = []
     sections: HTMLDivElement[] = []
 
     @observable query: string = ""
 
-    @computed get searchStrings(): string[] {
+    @computed get searchStrings(): (Fuzzysort.Prepared | undefined)[] {
         return this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 
-    @computed get searchResults(): SearchResult[] {
+    @computed get searchResults(): Fuzzysort.Results {
         return fuzzysort.go(this.query, this.searchStrings, { threshold: -150 })
     }
 
-    @computed get resultsByTitle(): { [key: string]: SearchResult } {
-        return _.keyBy(this.searchResults, "target")
+    @computed get resultsByTitle(): { [key: string]: Fuzzysort.Result } {
+        return keyBy(this.searchResults, "target")
     }
 
     constructor() {
@@ -60,12 +61,12 @@ class ChartFilter {
             li: li,
             ul: li.closest("ul") as HTMLUListElement
         }))
-        this.chartItemsByTitle = _.keyBy(this.chartItems, "title")
+        this.chartItemsByTitle = keyBy(this.chartItems, "title")
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 
     @action.bound logSearchQuery() {
-        Analytics.logEvent("Charts Page Filter", { query: this.query })
+        Analytics.logChartsPageSearchQuery(this.query)
     }
 
     timeout?: NodeJS.Timeout
@@ -117,9 +118,8 @@ class ChartFilter {
                 c.li.style.display = "none"
             } else {
                 c.li.style.display = ""
-                c.li.children[0].children[0].innerHTML = fuzzysort.highlight(
-                    res
-                )
+                c.li.children[0].children[0].innerHTML =
+                    fuzzyHighlight(res) ?? ""
             }
         }
 

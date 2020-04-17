@@ -16,7 +16,9 @@
         "lib": ["dom", "es7", "esnext.asynciterable"],
         "baseUrl": ".",
         "plugins": [],
-        "keyofStringsOnly": true
+        "keyofStringsOnly": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true
     },
     "exclude": ["node_modules", "bakedSite"]
 }

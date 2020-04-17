@@ -1,8 +1,9 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor"
+import { Section } from "./Forms"
 import { computed, action } from "mobx"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 @observer
 export class LogRenderer extends React.Component<{
@@ -18,11 +19,11 @@ export class LogRenderer extends React.Component<{
         const { log } = this.props
 
         const user = log.userName || log.userId.toString()
-        return `Saved ${timeago.format(log.createdAt)} by ${user}`
+        return `Saved ${format(log.createdAt)} by ${user}`
     }
 
     @computed get timestamp() {
-        return timeago.format(this.props.log.createdAt)
+        return format(this.props.log.createdAt)
     }
 
     render() {
@@ -54,6 +55,12 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
+        // Avoid modifying the original JSON object
+        // Due to mobx memoizing computed values, the JSON can be mutated.
+        const chartConfigObject = {
+            ...this.props.editor.currentChartJson,
+            externalDataUrl: this.props.editor.chart.dataUrl
+        }
         return (
             <div>
                 {this.logs.map((log, i) => (
@@ -64,6 +71,14 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                         ></LogRenderer>
                     </ul>
                 ))}
+                <Section name="Debug Version">
+                    <textarea
+                        rows={7}
+                        readOnly
+                        className="form-control"
+                        value={JSON.stringify(chartConfigObject, undefined, 2)}
+                    />
+                </Section>
             </div>
         )
     }

@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio"
-const urlSlug = require("url-slug")
+import urlSlug from "url-slug"
 import * as _ from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
@@ -10,14 +10,19 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
-
-const mjAPI = require("mathjax-node")
+import {
+    RelatedCharts,
+    RelatedChart
+} from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { initMathJax } from "./MathJax"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
     <path fill="currentColor" d="M448,344.59v96a40.36,40.36,0,0,1-1.06,9.16l-32,136A40,40,0,0,1,376,616.59H168a40,40,0,0,1-32.35-16.47l-128-176a40,40,0,0,1,64.7-47.06L104,420.58v-276a40,40,0,0,1,80,0v200h8v-40a40,40,0,1,1,80,0v40h8v-24a40,40,0,1,1,80,0v24h8a40,40,0,1,1,80,0Zm-256,80h-8v96h8Zm88,0h-8v96h8Zm88,0h-8v96h8Z" transform="translate(0 -0.41)"/>
     <path fill="currentColor" opacity="0.6" d="M239.76,234.78A27.5,27.5,0,0,1,217,192a87.76,87.76,0,1,0-145.9,0A27.5,27.5,0,1,1,25.37,222.6,142.17,142.17,0,0,1,1.24,143.17C1.24,64.45,65.28.41,144,.41s142.76,64,142.76,142.76a142.17,142.17,0,0,1-24.13,79.43A27.47,27.47,0,0,1,239.76,234.78Z" transform="translate(0 -0.41)"/>
 </svg>`
+
+const formatMathJax = initMathJax()
 
 export interface Reference {}
 
@@ -38,14 +43,8 @@ export interface FormattedPost {
     excerpt: string
     imageUrl?: string
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    relatedCharts?: RelatedChart[]
 }
-
-mjAPI.config({
-    MathJax: {
-        // traditional MathJax configuration
-    }
-})
-mjAPI.start()
 
 function extractLatex(html: string): [string, string[]] {
     const latexBlocks: string[] = []
@@ -67,17 +66,13 @@ async function formatLatex(
 ): Promise<string> {
     if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
+    // return early so we don't do unnecessary work for sites without latex
+    if (!latexBlocks.length) return html
+
     const compiled: string[] = []
     for (const latex of latexBlocks) {
         try {
-            const result = await mjAPI.typeset({
-                useFontCache: false,
-                useGlobalCache: false,
-                math: latex,
-                format: "TeX",
-                svg: true
-            })
-            compiled.push(result.svg.replace("<svg", `<svg class="latex"`))
+            compiled.push(formatMathJax(latex))
         } catch (err) {
             compiled.push(
                 `${latex} (Could not format equation due to MathJax error)`
@@ -139,7 +134,43 @@ export async function formatWordpressPost(
     // No need for wordpress urls
     html = html.replace(new RegExp("/app/uploads", "g"), "/uploads")
 
+    // Give "Add country" text (and variations) the appearance of "+ Add Country" chart control
+    html = html.replace(
+        /(\+ )?[a|A]dd [c|C]ountry/g,
+        `<span class="add-country">
+            <span class="icon">
+                <svg width="16" height="16"><path d="M3,8 h10 m-5,-5 v10"></path></svg>
+            </span>
+            Add country
+        </span>`
+    )
+
     const $ = cheerio.load(html)
+
+    // Related charts
+    // Mimicking SSR output of additional information block from PHP
+    if (post.relatedCharts && post.relatedCharts.length !== 0) {
+        const allCharts = `
+        <block type="additional-information">
+            <content>
+                <h3>All our charts on ${post.title}</h3>
+                ${ReactDOMServer.renderToStaticMarkup(
+                    <div>
+                        <RelatedCharts charts={post.relatedCharts} />
+                    </div>
+                )}
+            </content>
+        </block>
+        `
+        const $summary = $(".wp-block-owid-summary")
+        if ($summary.length !== 0) {
+            $summary.after(allCharts)
+        } else {
+            $("body > h2:first-of-type, body > h3:first-of-type")
+                .first()
+                .before(allCharts)
+        }
+    }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks($)
@@ -160,7 +191,8 @@ export async function formatWordpressPost(
             const src = el.attribs["src"]
             const chart = grapherExports.get(src)
             if (chart) {
-                const output = `<figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
+                const output = `
+                <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
                         <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" /></div>
                         <div class="interactionNotice">
@@ -168,7 +200,7 @@ export async function formatWordpressPost(
                             <span class="label">Click to open interactive version</span>
                         </div>
                     </a>
-                </div>`
+                </figure>`
                 if (el.parent.tagName === "p") {
                     // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
                     // so we are lifting the <figure> out.
@@ -202,10 +234,12 @@ export async function formatWordpressPost(
     // Any remaining iframes: ensure https embeds
     if (HTTPS_ONLY) {
         for (const iframe of $("iframe").toArray()) {
-            iframe.attribs["src"] = iframe.attribs["src"].replace(
-                "http://",
-                "https://"
-            )
+            if (iframe.attribs["src"]) {
+                iframe.attribs["src"] = iframe.attribs["src"].replace(
+                    "http://",
+                    "https://"
+                )
+            }
         }
     }
 
@@ -222,6 +256,14 @@ export async function formatWordpressPost(
         $table.after($div)
         $div.append($table)
     }
+
+    // Make sticky-right layout the default for columns
+    $(".wp-block-columns").each((_, columns) => {
+        const $columns = $(columns)
+        if (columns.attribs.class === "wp-block-columns") {
+            $columns.addClass("is-style-sticky-right")
+        }
+    })
 
     // Image processing
     // Assumptions:
@@ -327,9 +369,9 @@ export async function formatWordpressPost(
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
         if (
-            $heading.closest(".wp-block-owid-prominent-link").length === 0 && // already wrapped in <a>
-            $heading.closest(".wp-block-owid-additional-information").length === // prioritize clean SSR of AdditionalInformation
-                0
+            !$heading.closest(".wp-block-owid-prominent-link").length && // already wrapped in <a>
+            !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
+            !$heading.closest(".wp-block-help").length
         ) {
             $heading.prepend(`<a class="deep-link" href="#${slug}"></a>`)
         }
@@ -484,7 +526,8 @@ export async function formatWordpressPost(
                 .first()
                 .text(),
         imageUrl: post.imageUrl,
-        tocHeadings: tocHeadings
+        tocHeadings: tocHeadings,
+        relatedCharts: post.relatedCharts
     }
 }
 
@@ -562,7 +605,8 @@ export async function formatPost(
             references: [],
             excerpt: post.excerpt || "",
             imageUrl: post.imageUrl,
-            tocHeadings: []
+            tocHeadings: [],
+            relatedCharts: post.relatedCharts
         }
     } else {
         // Override formattingOptions if specified in the post (as an HTML comment)

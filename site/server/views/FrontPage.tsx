@@ -14,7 +14,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { splitOnLastWord } from "utils/server/serverUtil"
 import { NewsletterSubscriptionForm } from "site/client/NewsletterSubscription"
-import { CovidBanner } from "./CovidBanner"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -44,7 +43,6 @@ export const FrontPage = (props: {
                 key={entry.slug}
                 href={`/${entry.slug}`}
                 className={`entry-item-container ${categorySlug}-color`}
-                data-track-click
                 data-track-note="homepage-entries"
             >
                 <div className="entry-item">
@@ -96,7 +94,6 @@ export const FrontPage = (props: {
                             href="#entries"
                             className="see-all"
                             data-smooth-scroll
-                            data-track-click
                             data-track-note="homepage-scroll"
                         >
                             Scroll to all our articles
@@ -122,7 +119,6 @@ export const FrontPage = (props: {
                                         <a
                                             href="/about/coverage#coverage"
                                             className="coverage-link"
-                                            data-track-click
                                             data-track-note="homepage-trust"
                                         >
                                             <img
@@ -145,7 +141,6 @@ export const FrontPage = (props: {
                                         <a
                                             href="/about/coverage#teaching"
                                             className="coverage-link"
-                                            data-track-click
                                             data-track-note="homepage-trust"
                                         >
                                             <img
@@ -211,7 +206,7 @@ export const FrontPage = (props: {
                         <div className="owid-row owid-spacing--1">
                             <div className="owid-col owid-col--lg-auto">
                                 <div className="list">
-                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -219,7 +214,7 @@ export const FrontPage = (props: {
                                             CO₂ and other Greenhouse Gas Emissions
                                         </div>
                                     </a>
-                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -227,7 +222,7 @@ export const FrontPage = (props: {
                                             The short history of global living conditions
                                         </div>
                                     </a>
-                                    <a href="/literacy" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/literacy" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -235,7 +230,7 @@ export const FrontPage = (props: {
                                             Literacy
                                         </div>
                                     </a>
-                                    <a href="/world-population-growth" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/world-population-growth" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -243,7 +238,7 @@ export const FrontPage = (props: {
                                             World Population Growth
                                         </div>
                                     </a>
-                                    <a href="/life-expectancy" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/life-expectancy" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -251,7 +246,7 @@ export const FrontPage = (props: {
                                             Life expectancy
                                         </div>
                                     </a>
-                                    <a href="/why-do-women-live-longer-than-men" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/why-do-women-live-longer-than-men" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -263,7 +258,7 @@ export const FrontPage = (props: {
                             </div>
                             <div className="owid-col owid-col--lg-auto">
                                 <div className="list">
-                                    <a href="/hunger-and-undernourishment" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/hunger-and-undernourishment" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -271,7 +266,7 @@ export const FrontPage = (props: {
                                             Hunger and undernourishment
                                         </div>
                                     </a>
-                                    <a href="/income-inequality" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/income-inequality" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -279,7 +274,7 @@ export const FrontPage = (props: {
                                             Income inequality
                                         </div>
                                     </a>
-                                    <a href="/faq-on-plastics" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/faq-on-plastics" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -287,7 +282,7 @@ export const FrontPage = (props: {
                                             FAQs on plastics pollution
                                         </div>
                                     </a>
-                                    <a href="/global-rise-of-education" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/global-rise-of-education" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faBook} />
                                         </div>
@@ -295,7 +290,7 @@ export const FrontPage = (props: {
                                             Global rise of education
                                         </div>
                                     </a>
-                                    <a href="/much-better-awful-can-be-better" className="list-item" data-track-click data-track-note="homepage-popular">
+                                    <a href="/much-better-awful-can-be-better" className="list-item" data-track-note="homepage-popular">
                                         <div className="icon">
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
@@ -318,13 +313,11 @@ export const FrontPage = (props: {
                                     <div className="header">
                                         <h2>Latest publications</h2>
                                     </div>
-                                    <CovidBanner />
                                     <ul>
                                         {posts.slice(0, 8).map(post => (
                                             <li key={post.slug}>
                                                 <a
                                                     href={`/${post.path}`}
-                                                    data-track-click
                                                     data-track-note="homepage-explainer"
                                                 >
                                                     <div className="thumbnail">
@@ -349,7 +342,6 @@ export const FrontPage = (props: {
                                     <div className="see-all">
                                         <a
                                             href="/blog"
-                                            data-track-click
                                             data-track-note="homepage-see-all-explainers"
                                         >
                                             <div className="label">
@@ -393,7 +385,6 @@ export const FrontPage = (props: {
                                                 title="Twitter"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                data-track-click
                                                 data-track-note="homepage-follow-us"
                                             >
                                                 <div className="icon">
@@ -411,7 +402,6 @@ export const FrontPage = (props: {
                                                 title="Facebook"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                data-track-click
                                                 data-track-note="homepage-follow-us"
                                             >
                                                 <div className="icon">
@@ -428,7 +418,6 @@ export const FrontPage = (props: {
                                                 className="list-item"
                                                 title="RSS"
                                                 target="_blank"
-                                                data-track-click
                                                 data-track-note="homepage-follow-us"
                                             >
                                                 <div className="icon">
@@ -454,7 +443,6 @@ export const FrontPage = (props: {
                             <a
                                 href="https://sdg-tracker.org"
                                 className="list-item"
-                                data-track-click
                                 data-track-note="homepage-projects"
                             >
                                 <div className="icon-left">
@@ -479,7 +467,6 @@ export const FrontPage = (props: {
                             <a
                                 href="/teaching"
                                 className="list-item"
-                                data-track-click
                                 data-track-note="homepage-projects"
                             >
                                 <div className="icon-left">

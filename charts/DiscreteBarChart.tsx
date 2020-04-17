@@ -13,9 +13,10 @@ import { NoData } from "./NoData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "./Controls"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 export interface DiscreteBarDatum {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     value: number
     year: number
     label: string
@@ -42,10 +43,6 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed get failMessage() {
         return this.chart.discreteBar.failMessage
-    }
-
-    @computed get hasTimeline() {
-        return this.chart.discreteBar.hasTimeline
     }
 
     @computed get currentData() {
@@ -127,6 +124,10 @@ export class DiscreteBarChart extends React.Component<{
         }
     }
 
+    @computed get x0(): number {
+        return this.isLogScale ? 1 : 0
+    }
+
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
         const allValues = (this.chart.useTimelineDomains
@@ -134,7 +135,7 @@ export class DiscreteBarChart extends React.Component<{
             : this.currentData
         ).map(d => d.value)
 
-        const minStart = this.isLogScale ? 1 : 0
+        const minStart = this.x0
         return [
             Math.min(minStart, min(allValues) as number),
             Math.max(minStart, max(allValues) as number)
@@ -203,12 +204,13 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed get barPlacements() {
         const { currentData, xScale } = this
-        const xMin = this.xDomainDefault[0]
         return currentData.map(d => {
             const isNegative = d.value < 0
-            const barX = isNegative ? xScale.place(d.value) : xScale.place(xMin)
+            const barX = isNegative
+                ? xScale.place(d.value)
+                : xScale.place(this.x0)
             const barWidth = isNegative
-                ? xScale.place(xMin) - barX
+                ? xScale.place(this.x0) - barX
                 : xScale.place(d.value) - barX
 
             return { x: barX, width: barWidth }
@@ -249,7 +251,6 @@ export class DiscreteBarChart extends React.Component<{
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2
-        const xMin = this.xDomainDefault[0]
 
         const onScaleTypeChange = (scaleType: ScaleType) => {
             this.chart.yAxis.scaleType = scaleType
@@ -284,9 +285,9 @@ export class DiscreteBarChart extends React.Component<{
                     const isNegative = d.value < 0
                     const barX = isNegative
                         ? xScale.place(d.value)
-                        : xScale.place(xMin)
+                        : xScale.place(this.x0)
                     const barWidth = isNegative
-                        ? xScale.place(xMin) - barX
+                        ? xScale.place(this.x0) - barX
                         : xScale.place(d.value) - barX
 
                     // Using transforms for positioning to enable better (subpixel) transitions
@@ -294,7 +295,7 @@ export class DiscreteBarChart extends React.Component<{
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={d.key}
+                            key={d.entityDimensionKey}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}

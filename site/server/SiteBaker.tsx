@@ -11,7 +11,7 @@ import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
-const { BLOG_POSTS_PER_PAGE } = settings
+const { BLOG_POSTS_PER_PAGE, OPTIMIZE_SVG_EXPORTS } = settings
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -42,7 +42,8 @@ import { getVariableData } from "db/model/Variable"
 import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
-import { chartPage } from "./chartBaking"
+import { chartPageFromConfig } from "./chartBaking"
+import { countries } from "utils/countries"
 
 // Static site generator using Wordpress
 
@@ -55,6 +56,17 @@ export class SiteBaker {
     grapherExports!: GrapherExports
     constructor(props: SiteBakerProps) {
         this.props = props
+    }
+
+    static getCountryDetectionRedirects() {
+        return countries
+            .filter(country => country.iso3166 && country.code)
+            .map(
+                country =>
+                    `/detect-country-redirect /detect-country.js?${
+                        country.code
+                    } 302! Country=${country.iso3166!.toLowerCase()}`
+            )
     }
 
     async bakeRedirects() {
@@ -96,6 +108,10 @@ export class SiteBaker {
 
             "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
+
+        SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
+            redirects.push(redirect)
+        )
 
         // Redirects from Wordpress admin UI
         const rows = await wpdb.query(
@@ -192,7 +208,7 @@ export class SiteBaker {
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = wpdb.getFullPost(postApi)
+            const post = await wpdb.getFullPost(postApi)
             // blog: handled separately
             // isPostEmbedded: post displayed in the entry only (not on its own
             // page), skipping.
@@ -366,7 +382,7 @@ export class SiteBaker {
 
     async bakeChartPage(chart: ChartConfigProps) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
-        await fs.writeFile(outPath, await chartPage(chart.slug as string))
+        await fs.writeFile(outPath, await chartPageFromConfig(chart))
         this.stage(outPath)
     }
 
@@ -385,6 +401,9 @@ export class SiteBaker {
             if (err.code !== "ENOENT") console.error(err)
         }
 
+        // Always bake the html for every chart; it's cheap to do so
+        await this.bakeChartPage(chart)
+
         const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
@@ -395,9 +414,6 @@ export class SiteBaker {
         if (!isSameVersion || !fs.existsSync(vardataPath)) {
             await this.bakeVariableData(variableIds, vardataPath)
         }
-
-        // Always bake the html for every chart; it's cheap to do so
-        await this.bakeChartPage(chart)
 
         try {
             await fs.mkdirp(`${BAKED_SITE_DIR}/grapher/exports/`)
@@ -414,7 +430,8 @@ export class SiteBaker {
                 await bakeImageExports(
                     `${BAKED_SITE_DIR}/grapher/exports`,
                     chart,
-                    vardata
+                    vardata,
+                    OPTIMIZE_SVG_EXPORTS
                 )
                 this.stage(svgPath)
                 this.stage(pngPath)

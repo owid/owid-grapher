@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { includes, sample, sampleSize } from "charts/Util"
 import { DimensionSlot } from "charts/ChartConfig"
 import { ChartTypeDefs, ChartTypeType } from "charts/ChartType"
-import { DimensionWithData } from "charts/DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { ChartDimension } from "charts/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -37,7 +37,7 @@ class DimensionSlotView extends React.Component<{
         this.updateDefaults()
     }
 
-    @action.bound onRemoveDimension(dim: DimensionWithData) {
+    @action.bound onRemoveDimension(dim: ChartDimensionWithOwidVariable) {
         this.props.slot.dimensions = this.props.slot.dimensions.filter(
             d => d.variableId !== dim.variableId
         )

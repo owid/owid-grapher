@@ -1,63 +1,68 @@
-import {
-    isEqual,
-    map,
-    sortBy,
-    orderBy,
-    each,
-    keys,
-    entries,
-    trim,
-    isNumber,
-    filter,
-    extend,
-    isEmpty,
-    isFinite,
-    some,
-    every,
-    min,
-    max,
-    minBy,
-    maxBy,
-    compact,
-    uniq,
-    cloneDeep,
-    sum,
-    sumBy,
-    find,
-    identity,
-    union,
-    debounce,
-    includes,
-    toString,
-    isString,
-    keyBy,
-    values,
-    flatten,
-    groupBy,
-    reverse,
-    clone,
-    reduce,
-    noop,
-    floor,
-    ceil,
-    round,
-    toArray,
-    throttle,
-    has,
-    intersection,
-    uniqWith,
-    without,
-    uniqBy,
-    capitalize,
-    sample,
-    sampleSize,
-    pick,
-    omit,
-    difference,
-    sortedUniq,
-    zip,
-    partition
-} from "lodash"
+// We're importing every item on its own to enable webpack tree shaking
+import isEqual from "lodash/isEqual"
+import map from "lodash/map"
+import sortBy from "lodash/sortBy"
+import orderBy from "lodash/orderBy"
+import each from "lodash/each"
+import keys from "lodash/keys"
+import entries from "lodash/entries"
+import trim from "lodash/trim"
+import isNumber from "lodash/isNumber"
+import filter from "lodash/filter"
+import extend from "lodash/extend"
+import isEmpty from "lodash/isEmpty"
+import isFinite from "lodash/isFinite"
+import some from "lodash/some"
+import every from "lodash/every"
+import min from "lodash/min"
+import max from "lodash/max"
+import minBy from "lodash/minBy"
+import maxBy from "lodash/maxBy"
+import compact from "lodash/compact"
+import uniq from "lodash/uniq"
+import cloneDeep from "lodash/cloneDeep"
+import sum from "lodash/sum"
+import sumBy from "lodash/sumBy"
+import find from "lodash/find"
+import identity from "lodash/identity"
+import union from "lodash/union"
+import debounce from "lodash/debounce"
+import includes from "lodash/includes"
+import toString from "lodash/toString"
+import isString from "lodash/isString"
+import keyBy from "lodash/keyBy"
+import values from "lodash/values"
+import flatten from "lodash/flatten"
+import groupBy from "lodash/groupBy"
+import reverse from "lodash/reverse"
+import clone from "lodash/clone"
+import reduce from "lodash/reduce"
+import noop from "lodash/noop"
+import floor from "lodash/floor"
+import ceil from "lodash/ceil"
+import round from "lodash/round"
+import toArray from "lodash/toArray"
+import throttle from "lodash/throttle"
+import has from "lodash/has"
+import intersection from "lodash/intersection"
+import uniqWith from "lodash/uniqWith"
+import without from "lodash/without"
+import uniqBy from "lodash/uniqBy"
+import capitalize from "lodash/capitalize"
+import sample from "lodash/sample"
+import sampleSize from "lodash/sampleSize"
+import pick from "lodash/pick"
+import omit from "lodash/omit"
+import difference from "lodash/difference"
+import sortedUniq from "lodash/sortedUniq"
+import zip from "lodash/zip"
+import partition from "lodash/partition"
+import range from "lodash/range"
+import findIndex from "lodash/findIndex"
+import fromPairs from "lodash/fromPairs"
+import mapKeys from "lodash/mapKeys"
+import memoize from "lodash/memoize"
+
 export {
     isEqual,
     map,
@@ -115,17 +120,24 @@ export {
     difference,
     sortedUniq,
     zip,
-    partition
+    partition,
+    range,
+    findIndex,
+    fromPairs,
+    mapKeys,
+    memoize
 }
 
-import moment = require("moment")
+import moment from "moment"
 import { format } from "d3-format"
 import { extent } from "d3-array"
-import * as striptags from "striptags"
-import * as parseUrl from "url-parse"
+import striptags from "striptags"
+import parseUrl from "url-parse"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
+import { EPOCH_DATE } from "settings"
 
 export type SVGElement = any
 export type VNode = any
@@ -202,14 +214,18 @@ export function entityNameForMap(name: string) {
     return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
 }
 
-export function formatDay(dayAsYear: number, zeroDay = "2000-01-01"): string {
+export function formatDay(
+    dayAsYear: number,
+    options?: { format?: string }
+): string {
+    const format = defaultTo(options?.format, "MMM D, YYYY")
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
     return moment
-        .utc(zeroDay)
+        .utc(EPOCH_DATE)
         .add(dayAsYear, "days")
-        .format("MMM D, YYYY")
+        .format(format)
 }
 
 export function formatYear(year: number): string {
@@ -333,7 +349,8 @@ export function lastOfNonEmptyArray<T>(arr: T[]): T {
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(
     numValues: number[],
-    scaleType: "linear" | "log"
+    scaleType: "linear" | "log",
+    maxValueMultiplierForPadding = 1
 ): [number, number] {
     const filterValues =
         scaleType === "log" ? numValues.filter(v => v > 0) : numValues
@@ -346,7 +363,7 @@ export function domainExtent(
         isFinite(maxValue)
     ) {
         if (minValue !== maxValue) {
-            return [minValue, maxValue]
+            return [minValue, maxValue * maxValueMultiplierForPadding]
         } else {
             // Only one value, make up a reasonable default
             return scaleType === "log"
@@ -365,13 +382,6 @@ export function slugify(s: string) {
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
     return trim(s).replace(/ +/g, "-")
-}
-
-export function findClosest(
-    numValues: number[],
-    targetValue: number
-): number | undefined {
-    return sortBy(numValues, value => Math.abs(value - targetValue))[0]
 }
 
 // Unique number for this execution context
@@ -478,6 +488,19 @@ export async function fetchText(url: string): Promise<string> {
     })
 }
 
+export async function getCountryCodeFromNetlifyRedirect(): Promise<
+    string | undefined
+> {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", () => {
+            resolve(req.responseURL.split("?")[1])
+        })
+        req.open("GET", "/detect-country-redirect")
+        req.send()
+    })
+}
+
 export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
@@ -510,10 +533,12 @@ export function stripHTML(html: string): string {
 }
 
 export function findClosestYear(
-    years: number[] | Iterable<number>,
+    years: number[],
     targetYear: number,
     tolerance?: number
 ): number | undefined {
+    if (isUnboundedLeft(targetYear)) return min(years)
+    if (isUnboundedRight(targetYear)) return max(years)
     let closest: number | undefined
     for (const year of years) {
         const currentYearDist = Math.abs(year - targetYear)
@@ -613,8 +638,34 @@ export function dateDiffInDays(a: Date, b: Date) {
     return Math.floor((utca - utcb) / MS_PER_DAY)
 }
 
+export function diffDateISOStringInDays(a: string, b: string): number {
+    return moment.utc(a).diff(moment.utc(b), "days")
+}
+
 export function addDays(date: Date, days: number): Date {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
     return newDate
+}
+
+export async function retryPromise<T>(
+    promiseGetter: () => Promise<T>,
+    maxRetries: number = 3
+) {
+    let retried = 0
+    let lastError
+    while (retried++ < maxRetries) {
+        try {
+            return await promiseGetter()
+        } catch (error) {
+            lastError = error
+        }
+    }
+    throw lastError
+}
+
+export function parseIntOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseInt(s)
+    return isNaN(value) ? undefined : value
 }

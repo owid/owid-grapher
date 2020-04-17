@@ -1,7 +1,7 @@
-import db = require("db/db")
+import * as db from "db/db"
 import { Chart } from "db/model/Chart"
 import { ChartConfig } from "charts/ChartConfig"
-import _ = require("lodash")
+import _ from "lodash"
 import { getVariableData } from "db/model/Variable"
 
 async function main() {
@@ -13,7 +13,7 @@ async function main() {
         chart.isLocalExport = true
         const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
         const vardata = await getVariableData(variableIds)
-        chart.vardata.receiveData(vardata)
+        chart.receiveData(vardata)
 
         c.config.data = chart.data.json
         console.log(c.id)

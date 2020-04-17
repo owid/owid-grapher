@@ -93,6 +93,11 @@ export class TestIndexPage extends React.Component {
                                 Embed Variants
                             </Link>
                         </li>
+                        <li>
+                            <Link native to="/test/chartFeatureUsage.json">
+                                Download JSON Report
+                            </Link>
+                        </li>
                     </ul>
                 </main>
             </AdminLayout>

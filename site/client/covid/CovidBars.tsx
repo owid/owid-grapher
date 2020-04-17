@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { scaleLinear } from "d3"
+import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
 import { max, keyBy } from "charts/Util"
@@ -37,7 +37,7 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
                 .filter(d => d !== undefined) as number[]
         )
         return scaleLinear()
-            .domain([0, maxY !== undefined ? maxY : 1])
+            .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
             .range([0, 1])
     }
 

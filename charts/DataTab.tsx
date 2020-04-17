@@ -20,7 +20,6 @@ export class DataTab extends React.Component<{
     // Here's where the actual CSV is made
     @computed get csvBlob() {
         const { chart } = this.props
-        const { vardata } = chart
 
         const dimensions = chart.data.filledDimensions.filter(
             d => d.property !== "color"
@@ -34,7 +33,12 @@ export class DataTab extends React.Component<{
 
         const rows: string[] = []
 
-        const titleRow = ["Entity", "Code", "Year"]
+        const titleRow = [
+            "Entity",
+            "Code",
+            chart.yearIsDayVar ? "Date" : "Year"
+        ]
+
         dimensions.forEach(dim => {
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
@@ -42,10 +46,10 @@ export class DataTab extends React.Component<{
 
         entitiesUniq.forEach(entity => {
             yearsUniq.forEach(year => {
-                const row = [
+                const row: (string | number)[] = [
                     entity,
-                    vardata.entityMetaByKey[entity].code || "",
-                    year
+                    chart.entityMetaByKey[entity].code || "",
+                    chart.formatYearFunction(year)
                 ]
 
                 let rowHasSomeValue = false
@@ -101,7 +105,6 @@ export class DataTab extends React.Component<{
                         href={csvDataUri}
                         download={csvFilename}
                         className="btn btn-primary"
-                        data-track-click
                         data-track-note="chart-download-csv"
                         onClick={this.onDownload}
                     >

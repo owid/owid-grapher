@@ -6,7 +6,7 @@ import {
     GeoProjection
 } from "d3-geo"
 import { computed } from "mobx"
-const { geoRobinson, geoPatterson } = require("d3-geo-projection")
+import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
 class MapProjectionsKlass {
     [key: string]: GeoPath<any, any>

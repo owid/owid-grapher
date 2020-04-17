@@ -8,5 +8,5 @@ export function runNotFoundPage() {
             /[\-_\+|]/g,
             " "
         )
-    Analytics.logEvent("NOT_FOUND", { href: window.location.href })
+    Analytics.logPageNotFound(window.location.href)
 }

@@ -12,12 +12,13 @@ import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
-import { VariableDisplaySettings } from "charts/VariableData"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { EPOCH_DATE } from "settings"
 
 interface VariablePageData {
     id: number
@@ -25,7 +26,7 @@ interface VariablePageData {
     unit: string
     shortUnit: string
     description: string
-    display: VariableDisplaySettings
+    display: OwidVariableDisplaySettings
 
     datasetId: number
     datasetName: string
@@ -40,7 +41,9 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display: VariableDisplaySettings = new VariableDisplaySettings()
+    @observable entityAnnotationsMap: string = ""
+    @observable
+    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -199,6 +202,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         disabled={
                                             !newVariable.display.yearIsDay
                                         }
+                                        placeholder={
+                                            newVariable.display.yearIsDay
+                                                ? EPOCH_DATE
+                                                : ""
+                                        }
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
@@ -208,6 +216,15 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     label="Description"
                                     textarea
                                     disabled={isBulkImport}
+                                />
+                                <BindString
+                                    field="entityAnnotationsMap"
+                                    placeholder="Entity: note"
+                                    store={newVariable.display}
+                                    label="Entity annotations"
+                                    textarea
+                                    disabled={isBulkImport}
+                                    helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                                 />
                             </section>
                             <input

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import * as parseUrl from "url-parse"
+import parseUrl from "url-parse"
 
 import { TextWrap } from "./TextWrap"
 import { ChartConfig } from "./ChartConfig"
@@ -71,7 +71,7 @@ export class SourcesFooter {
         }
     }
 
-    @computed get licenseSvg(): string {
+    @computed private get licenseSvg(): string {
         const { finalUrl, finalUrlText } = this
         if (finalUrlText) {
             let licenseSvg = `*data-entry* • ${this.ccSvg}`
@@ -117,7 +117,7 @@ export class SourcesFooter {
             maxWidth: maxWidth * 3,
             fontSize: fontSize,
             text: licenseSvg,
-            raw: true
+            rawHtml: true
         })
     }
 

@@ -1,20 +1,17 @@
 import { computed, autorun, runInAction, reaction, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
-import * as _ from "lodash"
 
 import { ChartConfig } from "./ChartConfig"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
-import { entityNameForMap } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { entityNameForMap, formatYear } from "./Util"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapTopology } from "./MapTopology"
 
 import {
     defaultTo,
     isString,
-    last,
-    findClosest,
     findClosestYear,
     round,
     toArray,
@@ -24,11 +21,12 @@ import {
     extend,
     each,
     find,
-    sortedUniq,
     keyBy,
     isNumber,
     sortBy
 } from "./Util"
+import { Time, getClosestTime } from "./TimeBounds"
+import { ChartTransform } from "./ChartTransform"
 
 export interface MapDataValue {
     entity: string
@@ -133,12 +131,15 @@ export class CategoricalBin {
 
 export type MapLegendBin = NumericBin | CategoricalBin
 
-export class MapData {
-    chart: ChartConfig
+export class MapData extends ChartTransform {
     constructor(chart: ChartConfig) {
-        this.chart = chart
+        super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()
+    }
+
+    @computed get isValidConfig() {
+        return !!this.chart.data.primaryVariable
     }
 
     ensureValidConfig() {
@@ -148,7 +149,7 @@ export class MapData {
         autorun(() => {
             const hasVariable =
                 chart.map.variableId &&
-                chart.vardata.variablesById[chart.map.variableId]
+                chart.variablesById[chart.map.variableId]
             if (!hasVariable && chart.data.primaryVariable) {
                 const variableId = chart.data.primaryVariable.id
                 runInAction(() => (chart.map.props.variableId = variableId))
@@ -176,20 +177,17 @@ export class MapData {
     @computed get map() {
         return this.chart.map
     }
-    @computed get vardata() {
-        return this.chart.vardata
-    }
 
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
-        const { map, vardata } = this
+        const { map } = this
         return (
             map.variableId !== undefined &&
-            !!vardata.variablesById[map.variableId]
+            !!this.chart.variablesById[map.variableId]
         )
     }
 
-    @computed get dimension(): DimensionWithData | undefined {
+    @computed get dimension(): ChartDimensionWithOwidVariable | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.variableId === this.map.variableId
         )
@@ -238,7 +236,7 @@ export class MapData {
             const { knownMapEntities } = this
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
                 const value = dimension.values[i]
 
                 if (knownMapEntities[entity]) {
@@ -285,29 +283,17 @@ export class MapData {
     }
 
     // All available years with data for the map
-    @computed get timelineYears(): number[] {
+    @computed get availableYears(): Time[] {
         const { mappableData } = this
-        return sortedUniq(
-            mappableData.years.filter(
-                (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
-            )
+        return mappableData.years.filter(
+            (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
         )
     }
 
-    @computed get hasTimeline(): boolean {
-        return !this.map.props.hideTimeline && this.timelineYears.length > 1
-    }
-
-    @computed get targetYear(): number | undefined {
-        const targetYear = defaultTo(
-            this.map.props.targetYear,
-            last(this.timelineYears)
-        )
-        if (targetYear === undefined) return undefined
-        return defaultTo(
-            findClosest(this.timelineYears, targetYear),
-            last(this.timelineYears)
-        )
+    // Overrides the default ChartTransform#targetYear method because the map stores the target year
+    // separately in the config.
+    @computed get targetYear(): Time {
+        return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }
 
     @computed get legendTitle(): string {
@@ -524,7 +510,7 @@ export class MapData {
         if (targetYear === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = map
-        const entities = _.keys(this.knownMapEntities)
+        const entities = Object.keys(this.knownMapEntities)
 
         const result: { [key: string]: MapDataValue } = {}
 
@@ -567,5 +553,9 @@ export class MapData {
                   else return formatValueLong(d)
               }
             : () => ""
+    }
+
+    @computed get formatYear(): (year: number) => string {
+        return this.dimension ? this.dimension.formatYear : formatYear
     }
 }

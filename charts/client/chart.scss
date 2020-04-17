@@ -11,7 +11,7 @@ $zindex-ControlsFooter: 2;
 $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
 $zindex-Tooltip: 20;
-$zindex-DataSelector: 30;
+$zindex-EntitySelector: 30;
 $zindex-IndicatorDropdown: 50;
 
 figure[data-grapher-src]:empty,
@@ -59,6 +59,7 @@ figure[data-grapher-src]:empty:after,
     display: inline-block;
     border-bottom: none;
     border-radius: 2px;
+    text-align: left;
 
     line-height: 1em;
 
@@ -266,7 +267,7 @@ figure[data-grapher-src]:empty:after,
         .extraControls button {
             margin: 0;
             font-size: 1em;
-            color: #666;
+            color: $controls-color;
         }
 
         nav.tabs ul {
@@ -498,29 +499,23 @@ figure[data-grapher-src]:empty:after,
     }
 
     .ShareMenu .btn {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 1em 1.5em;
-        padding-right: 3em;
         text-align: left;
         color: #333;
         text-decoration: none;
     }
 
-    .ShareMenu .btn > i {
-        background-color: #333;
-        color: white;
-        text-align: center;
+    .ShareMenu .btn > svg {
         font-size: 1em;
-        width: 1.8em;
-        height: 1.8em;
-        line-height: 1.8em;
-        margin-right: 2px;
-        border-radius: 2px;
+        width: 1.5em;
+        height: 1.5em;
+        margin-right: 8px;
         position: relative;
     }
 
     .ShareMenu .btn:hover {
-        text-decoration: none;
         background-color: #eee;
     }
 
@@ -600,7 +595,7 @@ figure[data-grapher-src]:empty:after,
         opacity: 0.7;
     }
 
-    .dataSelectorOverlay {
+    .entitySelectorOverlay {
         position: absolute;
         top: 0;
         right: 0;
@@ -609,9 +604,9 @@ figure[data-grapher-src]:empty:after,
         background-color: rgba(0, 0, 0, 0.08);
     }
 
-    .DataSelectorSingle,
-    .DataSelectorMulti {
-        z-index: $zindex-DataSelector;
+    .EntitySelectorSingle,
+    .EntitySelectorMulti {
+        z-index: $zindex-EntitySelector;
         background: rgba(255, 255, 255, 0.94);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.2);
         overflow-y: scroll;
@@ -653,7 +648,7 @@ figure[data-grapher-src]:empty:after,
         }
     }
 
-    .DataSelectorSingle {
+    .EntitySelectorSingle {
         ul {
             margin: 0;
             padding: 0;
@@ -680,7 +675,7 @@ figure[data-grapher-src]:empty:after,
         }
     }
 
-    .DataSelectorMulti {
+    .EntitySelectorMulti {
         .entities {
             display: flex;
             justify-content: space-between;
@@ -782,7 +777,7 @@ figure[data-grapher-src]:empty:after,
     }
 }
 
-.chart.portrait .DataSelectorMulti {
+.chart.portrait .EntitySelectorMulti {
     .selectedData {
         min-width: 50%;
     }
@@ -823,6 +818,40 @@ figure[data-grapher-src]:empty:after,
     }
 }
 
+@keyframes bounceIn {
+    from,
+    20%,
+    40%,
+    60%,
+    80%,
+    to {
+        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+
+    0% {
+        transform: scale3d(8, 8, 8);
+        opacity: 0;
+    }
+
+    40% {
+        transform: scale3d(0.8, 0.8, 0.8);
+        opacity: 1;
+    }
+
+    60% {
+        transform: scale3d(1.25, 1.25, 1.25);
+    }
+
+    80% {
+        transform: scale3d(0.97, 0.97, 0.97);
+    }
+
+    to {
+        transform: scale3d(1, 1, 1);
+        opacity: 1;
+    }
+}
+
 .ControlsOverlay .addDataButton {
     font-size: 0.8em;
     font-weight: 700;
@@ -837,6 +866,10 @@ figure[data-grapher-src]:empty:after,
     padding-right: 6px;
     margin-left: -25px;
     outline: none;
+
+    animation: appear 500ms cubic-bezier(0, 0, 0.4, 1) 1s;
+    animation-iteration-count: initial;
+    animation-fill-mode: backwards;
 
     .icon {
         display: inline-block;
@@ -868,12 +901,23 @@ figure[data-grapher-src]:empty:after,
             height: 16px;
             background-color: $controls-color;
             border-radius: 100%;
-            transition: transform 1s cubic-bezier(0, 0, 0.4, 1);
+            transition: transform 200ms cubic-bezier(0, 0, 0.4, 1);
+
+            animation: bounceIn 750ms cubic-bezier(0, 0, 0.4, 1) 1s;
+            animation-iteration-count: initial;
         }
     }
 
     &:hover .icon::before {
-        transform: scale(1.2) !important;
+        transform: scale(1.25) !important;
+    }
+}
+
+.SelectEntitiesButton {
+    color: $controls-color;
+
+    svg {
+        margin-right: 3px;
     }
 }
 

@@ -1,5 +1,5 @@
-import { maxBy } from "lodash"
-import { utcFormat } from "d3"
+import { maxBy } from "charts/Util"
+import { utcFormat } from "d3-time-format"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
 import { dateDiffInDays, formatValue } from "charts/Util"
@@ -18,18 +18,14 @@ export function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
-export function parseIntOrUndefined(s: string | undefined) {
-    if (s === undefined) return undefined
-    const value = parseInt(s)
-    return isNaN(value) ? undefined : value
-}
-
 export function formatInt(
     n: number | undefined,
     defaultValue: string = "",
     options: TickFormattingOptions = {}
 ): string {
-    return n === undefined || isNaN(n) ? defaultValue : formatValue(n, options)
+    return n === undefined || isNaN(n)
+        ? defaultValue
+        : formatValue(n, { autoPrefix: false, ...options })
 }
 
 export const defaultTimeFormat = utcFormat("%B %e")
@@ -77,10 +73,18 @@ export function getDoublingRange(
 
 export const sortAccessors: Record<CovidSortKey, CovidSortAccessor> = {
     location: (d: CovidCountryDatum) => d.location,
-    totalCases: (d: CovidCountryDatum) => d.latest?.total_cases,
-    newCases: (d: CovidCountryDatum) => d.latest?.new_cases,
-    totalDeaths: (d: CovidCountryDatum) => d.latest?.total_deaths,
-    newDeaths: (d: CovidCountryDatum) => d.latest?.new_deaths,
-    daysToDoubleCases: (d: CovidCountryDatum) => d.caseDoublingRange?.length,
-    daysToDoubleDeaths: (d: CovidCountryDatum) => d.deathDoublingRange?.length
+    totalCases: (d: CovidCountryDatum) => d.latest?.totalCases,
+    newCases: (d: CovidCountryDatum) => d.latest?.newCases,
+    totalDeaths: (d: CovidCountryDatum) => d.latest?.totalDeaths,
+    newDeaths: (d: CovidCountryDatum) => d.latest?.newDeaths,
+    daysToDoubleCases: (d: CovidCountryDatum) =>
+        d.caseDoublingRange
+            ? d.caseDoublingRange.length - d.caseDoublingRange.ratio * 1e-4
+            : undefined,
+    daysToDoubleDeaths: (d: CovidCountryDatum) =>
+        d.deathDoublingRange
+            ? d.deathDoublingRange.length - d.deathDoublingRange.ratio * 1e-4
+            : undefined,
+    totalTests: (d: CovidCountryDatum) => d.latestWithTests?.tests?.totalTests,
+    testDate: (d: CovidCountryDatum) => d.latestWithTests?.date
 }

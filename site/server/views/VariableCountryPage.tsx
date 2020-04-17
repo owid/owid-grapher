@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { VariableDisplaySettings } from "charts/VariableData"
+import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
 import { defaultTo } from "charts/Util"
 
 export interface VariableCountryPageProps {
@@ -17,7 +17,7 @@ export interface VariableCountryPageProps {
         unit: string
         shortUnit: string
         description: string
-        display: VariableDisplaySettings
+        display: OwidVariableDisplaySettings
 
         datasetId: number
         datasetName: string

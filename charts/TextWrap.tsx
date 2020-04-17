@@ -10,7 +10,7 @@ export interface TextWrapProps {
     maxWidth: number
     lineHeight?: number
     fontSize: FontSize
-    raw?: true
+    rawHtml?: true
 }
 
 interface WrapLine {
@@ -60,7 +60,7 @@ export class TextWrap {
             const nextLine = line.concat([word])
 
             // Strip HTML if a raw string is passed
-            const text = this.props.raw
+            const text = this.props.rawHtml
                 ? stripHTML(nextLine.join(" "))
                 : nextLine.join(" ")
 
@@ -126,25 +126,22 @@ export class TextWrap {
 
         return (
             <React.Fragment>
-                {lines.map((line, i) => {
-                    if (props.raw)
-                        return (
-                            <React.Fragment key={i}>
-                                <span
-                                    dangerouslySetInnerHTML={{
-                                        __html: line.text
-                                    }}
-                                />
-                                <br />
-                            </React.Fragment>
-                        )
-                    else
-                        return (
-                            <React.Fragment key={i}>
-                                {line.text}
-                                <br />
-                            </React.Fragment>
-                        )
+                {lines.map((line, index) => {
+                    const content = props.rawHtml ? (
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: line.text
+                            }}
+                        />
+                    ) : (
+                        line.text
+                    )
+                    return (
+                        <React.Fragment key={index}>
+                            {content}
+                            <br />
+                        </React.Fragment>
+                    )
                 })}
             </React.Fragment>
         )
@@ -165,7 +162,7 @@ export class TextWrap {
                 {...options}
             >
                 {lines.map((line, i) => {
-                    if (props.raw)
+                    if (props.rawHtml)
                         return (
                             <tspan
                                 key={i}

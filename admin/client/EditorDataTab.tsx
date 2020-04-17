@@ -3,7 +3,7 @@ import { clone, map } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/ChartConfig"
-import { DataKey } from "charts/DataKey"
+import { EntityDimensionKey } from "charts/EntityDimensionKey"
 import {
     EditableList,
     EditableListItem,
@@ -17,42 +17,48 @@ import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-interface DataKeyItemProps extends EditableListItemProps {
+interface EntityDimensionKeyItemProps extends EditableListItemProps {
     chart: ChartConfig
-    datakey: DataKey
+    entityDimensionKey: EntityDimensionKey
 }
 
 @observer
-class DataKeyItem extends React.Component<DataKeyItemProps> {
+class EntityDimensionKeyItem extends React.Component<
+    EntityDimensionKeyItemProps
+> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get color() {
-        return this.props.chart.data.keyColors[this.props.datakey]
+        return this.props.chart.data.keyColors[this.props.entityDimensionKey]
     }
 
     @action.bound onColor(color: string | undefined) {
-        this.props.chart.data.setKeyColor(this.props.datakey, color)
+        this.props.chart.data.setKeyColor(this.props.entityDimensionKey, color)
     }
 
     @action.bound onRemove() {
         this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(
-            e => e !== this.props.datakey
+            e => e !== this.props.entityDimensionKey
         )
     }
 
     render() {
         const { props, color } = this
-        const { chart, datakey, ...rest } = props
-        const meta = chart.data.keyData.get(datakey)
+        const { chart, entityDimensionKey, ...rest } = props
+        const meta = chart.data.entityDimensionMap.get(entityDimensionKey)
 
         return (
-            <EditableListItem className="DataKeyItem" key={datakey} {...rest}>
+            <EditableListItem
+                className="EntityDimensionKeyItem"
+                key={entityDimensionKey}
+                {...rest}
+            >
                 <div>
                     <div>
                         <FontAwesomeIcon icon={faArrowsAltV} />
                     </div>
                     <ColorBox color={color} onColor={this.onColor} />
-                    {meta ? meta.fullLabel : datakey}
+                    {meta ? meta.fullLabel : entityDimensionKey}
                 </div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
@@ -64,13 +70,13 @@ class DataKeyItem extends React.Component<DataKeyItemProps> {
 
 @observer
 class KeysSection extends React.Component<{ chart: ChartConfig }> {
-    @observable.ref dragKey?: DataKey
+    @observable.ref dragKey?: EntityDimensionKey
 
-    @action.bound onAddKey(key: string) {
-        this.props.chart.data.selectKey(key)
+    @action.bound onAddKey(key: EntityDimensionKey) {
+        this.props.chart.data.selectEntityDimensionKey(key)
     }
 
-    @action.bound onStartDrag(key: DataKey) {
+    @action.bound onStartDrag(key: EntityDimensionKey) {
         this.dragKey = key
 
         const onDrag = action(() => {
@@ -81,7 +87,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
         window.addEventListener("mouseup", onDrag)
     }
 
-    @action.bound onMouseEnter(targetKey: DataKey) {
+    @action.bound onMouseEnter(targetKey: EntityDimensionKey) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
         const selectedKeys = clone(this.props.chart.data.selectedKeys)
@@ -109,13 +115,13 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
                     optionLabels={["Select data"].concat(keyLabels)}
                 />
                 <EditableList>
-                    {map(selectedKeys, datakey => (
-                        <DataKeyItem
-                            key={datakey}
+                    {map(selectedKeys, key => (
+                        <EntityDimensionKeyItem
+                            key={key}
                             chart={chart}
-                            datakey={datakey}
-                            onMouseDown={() => this.onStartDrag(datakey)}
-                            onMouseEnter={() => this.onMouseEnter(datakey)}
+                            entityDimensionKey={key}
+                            onMouseDown={() => this.onStartDrag(key)}
+                            onMouseEnter={() => this.onMouseEnter(key)}
                         />
                     ))}
                 </EditableList>

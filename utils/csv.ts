@@ -1,4 +1,4 @@
-import * as parse from "csv-parse"
+import parse from "csv-parse"
 import { ReadStream } from "fs"
 
 export async function parseCSV(csv: string): Promise<string[][]> {

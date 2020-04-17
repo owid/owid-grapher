@@ -2,8 +2,9 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
+import Select, { ValueType, StylesConfig } from "react-select"
 
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { HighlightToggleConfig } from "./ChartConfig"
@@ -20,11 +21,14 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { TimeBound } from "./TimeBounds"
+import { Bounds } from "./Bounds"
+import { MapProjection } from "./MapProjection"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -132,6 +136,21 @@ class ShareMenu extends React.Component<{
         }
     }
 
+    @action.bound async onNavigatorShare() {
+        if (this.canonicalUrl && navigator.share) {
+            const shareData = {
+                title: this.title,
+                url: this.canonicalUrl
+            }
+
+            try {
+                await navigator.share(shareData)
+            } catch (err) {
+                console.error("couldn't share using navigator.share", err)
+            }
+        }
+    }
+
     @computed get twitterHref(): string {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
@@ -181,6 +200,15 @@ class ShareMenu extends React.Component<{
                 >
                     <FontAwesomeIcon icon={faCode} /> Embed
                 </a>
+                {"share" in navigator && (
+                    <a
+                        className="btn"
+                        title="Share this visualization with an app on your device"
+                        onClick={this.onNavigatorShare}
+                    >
+                        <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
+                    </a>
+                )}
                 {editUrl && (
                     <a
                         className="btn"
@@ -215,34 +243,13 @@ class SettingsMenu extends React.Component<{
         window.removeEventListener("click", this.onClickOutside)
     }
 
-    @action.bound onProjectionChange(e: React.FormEvent<HTMLSelectElement>) {
-        this.props.chart.map.props.projection = e.currentTarget.value as any
-    }
-
     render() {
-        const { chart } = this.props
-
         return (
             <div
                 className="SettingsMenu"
                 onClick={evt => evt.stopPropagation()}
             >
                 <h2>Settings</h2>
-                {chart.props.tab === "map" && (
-                    <div className="form-field">
-                        <label>World Region</label>
-                        <select
-                            value={chart.map.props.projection}
-                            onChange={this.onProjectionChange}
-                        >
-                            {worldRegions.map(region => (
-                                <option value={region}>
-                                    {labelsByRegion[region]}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
             </div>
         )
     }
@@ -312,15 +319,39 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
             label = "Average annual change"
         else if (chart.isLineChart) label = "Relative change"
 
-        const supported = !(chart.isLineChart && chart.lineChart.isSingleYear)
-
         return (
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={supported ? chart.stackedArea.isRelative : false}
+                    checked={chart.stackedArea.isRelative}
                     onChange={this.onToggle}
-                    disabled={!supported}
+                    data-track-note="chart-abs-rel-toggle"
+                />{" "}
+                {label}
+            </label>
+        )
+    }
+}
+
+@observer
+class ZoomToggle extends React.Component<{
+    chart: ChartConfigProps
+}> {
+    @action.bound onToggle() {
+        this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
+            ? undefined
+            : true
+    }
+
+    render() {
+        const label = "Zoom to selection"
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.props.chart.zoomToSelection}
+                    onChange={this.onToggle}
+                    data-track-note="chart-zoom-to-selection"
                 />{" "}
                 {label}
             </label>
@@ -333,7 +364,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMapTargetChange({
         targetStartYear
     }: {
-        targetStartYear: number
+        targetStartYear: TimeBound
     }) {
         this.props.chart.map.targetYear = targetStartYear
     }
@@ -342,8 +373,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         targetStartYear,
         targetEndYear
     }: {
-        targetStartYear: number
-        targetEndYear: number
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
     }) {
         this.props.chart.timeDomain = [targetStartYear, targetEndYear]
     }
@@ -356,23 +387,12 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         this.props.chart.useTimelineDomains = false
     }
 
-    boundedYears(years: number[]) {
-        const chartProps = this.props.chart.props
-        const min = chartProps.timelineMinTime
-        const max = chartProps.timelineMaxTime
-        return years.filter(year => {
-            if (min !== undefined && year < min) return false
-            if (max !== undefined && year > max) return false
-            return true
-        })
-    }
-
     render() {
         const { chart } = this.props
         if (chart.props.tab === "map") {
             const { map } = chart
-            const years = this.boundedYears(map.data.timelineYears)
-            if (years.length === 0 || map.data.targetYear === undefined) {
+            const years = map.data.timelineYears
+            if (years.length === 0) {
                 return null
             }
             return (
@@ -385,55 +405,55 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
-            const years = this.boundedYears(chart.scatter.timelineYears)
+            const years = chart.scatter.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.scatter.startYear}
-                    endYear={chart.scatter.endYear}
+                    startYear={chart.timeDomain[0]}
+                    endYear={chart.timeDomain[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
             )
         } else if (chart.isLineChart) {
-            const years = this.boundedYears(chart.lineChart.timelineYears)
+            const years = chart.lineChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.lineChart.startYear}
-                    endYear={chart.lineChart.endYear}
+                    startYear={chart.timeDomain[0]}
+                    endYear={chart.timeDomain[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     singleYearPlay={true}
                 />
             )
         } else if (chart.isSlopeChart) {
-            const years = this.boundedYears(chart.slopeChart.timelineYears)
+            const years = chart.slopeChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.slopeChart.startYear}
-                    endYear={chart.slopeChart.endYear}
+                    startYear={chart.timeDomain[0]}
+                    endYear={chart.timeDomain[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     disablePlay={true}
                 />
             )
         } else {
-            const years = this.boundedYears(chart.lineChart.timelineYears)
+            const years = chart.lineChart.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.lineChart.startYear}
-                    endYear={chart.lineChart.endYear}
+                    startYear={chart.timeDomain[0]}
+                    endYear={chart.timeDomain[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
@@ -467,18 +487,15 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.tab === "map" && chart.map.data.hasTimeline) return true
-        else if (
-            chart.tab === "chart" &&
-            (chart.isTimeScatter || chart.isScatter) &&
-            chart.scatter.hasTimeline
-        )
-            return true
-        else if (chart.tab === "chart" && chart.isLineChart)
-            return !chart.props.hideTimeline
-        else if (chart.tab === "chart" && chart.isSlopeChart)
-            return chart.slopeChart.hasTimeline
-        else return false
+        if (chart.tab === "map") {
+            return chart.map.data.hasTimeline
+        } else if (chart.tab === "chart") {
+            if (chart.isScatter || chart.isTimeScatter)
+                return chart.scatter.hasTimeline
+            if (chart.isLineChart) return chart.lineChart.hasTimeline
+            if (chart.isSlopeChart) return chart.slopeChart.hasTimeline
+        }
+        return false
     }
 
     @computed get hasInlineControls(): boolean {
@@ -494,7 +511,7 @@ export class Controls {
     }
 
     @computed get hasSettingsMenu(): boolean {
-        return this.props.chart.tab === "map"
+        return false
     }
 
     @computed get hasSpace(): boolean {
@@ -612,6 +629,7 @@ export class AddEntityButton extends React.Component<{
             <button
                 className="addDataButton clickable"
                 onClick={onClick}
+                data-track-note="chart-add-entity"
                 style={buttonStyle}
             >
                 <span className="icon">
@@ -621,6 +639,92 @@ export class AddEntityButton extends React.Component<{
                 </span>
                 <span className="label">{label}</span>
             </button>
+        )
+    }
+}
+
+interface ProjectionChooserEntry {
+    label: string
+    value: MapProjection
+}
+
+@observer
+export class ProjectionChooser extends React.Component<{
+    bounds: Bounds
+    value: string
+    onChange: (value: MapProjection) => void
+}> {
+    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
+        const selectedValue = (selected as ProjectionChooserEntry)?.value
+        if (selectedValue) this.props.onChange(selectedValue)
+    }
+
+    @computed get options() {
+        return worldRegions.map(region => {
+            return {
+                value: region,
+                label: labelsByRegion[region]
+            }
+        })
+    }
+
+    @computed get selectStyles(): StylesConfig {
+        // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
+        const targetHeight = 22
+
+        return {
+            control: (base: React.CSSProperties) => ({
+                ...base,
+                minHeight: "initial"
+            }),
+            valueContainer: (base: React.CSSProperties) => ({
+                ...base,
+                height: `${targetHeight - 1 - 1}px`,
+                padding: "0 4px"
+            }),
+            clearIndicator: (base: React.CSSProperties) => ({
+                ...base,
+                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
+            }),
+            dropdownIndicator: (base: React.CSSProperties) => ({
+                ...base,
+                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
+            }),
+            option: (base: React.CSSProperties) => ({
+                ...base,
+                paddingTop: "5px",
+                paddingBottom: "5px"
+            }),
+            menu: (base: React.CSSProperties) => ({
+                ...base,
+                zIndex: 10000
+            })
+        }
+    }
+
+    render() {
+        const { bounds, value } = this.props
+
+        const style: React.CSSProperties = {
+            position: "absolute",
+            fontSize: "0.75rem",
+            ...bounds.toCSS()
+        }
+
+        return (
+            <div style={style}>
+                <Select
+                    options={this.options}
+                    onChange={this.onChange}
+                    value={this.options.find(opt => opt.value === value)}
+                    menuPlacement="bottom"
+                    components={{
+                        IndicatorSeparator: null
+                    }}
+                    styles={this.selectStyles}
+                    isSearchable={false}
+                />
+            </div>
         )
     }
 }
@@ -722,7 +826,6 @@ export class ControlsFooterView extends React.Component<{
                                     onClick={() => (chart.tab = tabName)}
                                 >
                                     <a
-                                        data-track-click
                                         data-track-note={
                                             "chart-click-" + tabName
                                         }
@@ -738,7 +841,6 @@ export class ControlsFooterView extends React.Component<{
                             "tab clickable icon" +
                             (chart.tab === "download" ? " active" : "")
                         }
-                        data-track-click
                         data-track-note="chart-click-download"
                         onClick={() => (chart.tab = "download")}
                         title="Download as .png or .svg"
@@ -751,7 +853,6 @@ export class ControlsFooterView extends React.Component<{
                         <a
                             title="Share"
                             onClick={this.onShareMenu}
-                            data-track-click
                             data-track-note="chart-click-share"
                         >
                             <FontAwesomeIcon icon={faShareAlt} />
@@ -762,7 +863,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Settings"
                                 onClick={this.onSettingsMenu}
-                                data-track-click
                                 data-track-note="chart-click-settings"
                             >
                                 <FontAwesomeIcon icon={faCog} />
@@ -774,7 +874,6 @@ export class ControlsFooterView extends React.Component<{
                             <a
                                 title="Open chart in new tab"
                                 href={chart.url.canonicalUrl}
-                                data-track-click
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -794,10 +893,15 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div className="extraControls">
                 {chart.data.canAddData && !hasAddButton && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-select-entities"
+                    >
                         {chart.isScatter || chart.isSlopeChart ? (
-                            <span>
-                                <FontAwesomeIcon icon={faSearch} /> Search
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                                {`Select ${chart.entityTypePlural}`}
                             </span>
                         ) : (
                             <span>
@@ -809,7 +913,11 @@ export class ControlsFooterView extends React.Component<{
                 )}
 
                 {chart.data.canChangeEntity && (
-                    <button type="button" onClick={this.onDataSelect}>
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-change-entity"
+                    >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                         {chart.entityType}
                     </button>
@@ -827,6 +935,10 @@ export class ControlsFooterView extends React.Component<{
                 {chart.isScatter && chart.scatter.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}
+                {chart.isScatter && chart.data.hasSelection && (
+                    <ZoomToggle chart={chart.props}></ZoomToggle>
+                )}
+
                 {chart.isLineChart && chart.lineChart.canToggleRelative && (
                     <AbsRelToggle chart={chart} />
                 )}

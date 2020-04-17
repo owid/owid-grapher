@@ -281,9 +281,16 @@ async function saveChart(
             }
         }
 
-        // Bump chart version, very important for cachebusting
-        if (existingConfig) newConfig.version = existingConfig.version + 1
-        else newConfig.version = 1
+        if (existingConfig) {
+            // Bump chart version, very important for cachebusting
+            newConfig.version = existingConfig.version + 1
+        } else if (newConfig.version) {
+            // If a chart is republished, we want to keep incrementing the old version number,
+            // otherwise it can lead to clients receiving cached versions of the old data.
+            newConfig.version += 1
+        } else {
+            newConfig.version = 1
+        }
 
         // Execute the actual database update or creation
         const now = new Date()
@@ -1118,6 +1125,38 @@ api.delete("/datasets/:datasetId", async (req: Request, res: Response) => {
         log.error(err)
         // Continue
     }
+
+    return { success: true }
+})
+
+api.post("/datasets/:datasetId/charts", async (req: Request, res: Response) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await Dataset.findOne({ id: datasetId })
+    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    if (req.body.republish) {
+        await db.transaction(async t => {
+            await t.execute(
+                `
+            UPDATE charts
+            SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
+            WHERE id IN (
+                SELECT DISTINCT chart_dimensions.chartId
+                FROM chart_dimensions
+                JOIN variables ON variables.id = chart_dimensions.variableId
+                WHERE variables.datasetId = ?
+            )
+            `,
+                [datasetId]
+            )
+        })
+    }
+
+    await triggerStaticBuild(
+        res.locals.user,
+        `Republishing all charts in dataset ${dataset.name} (${dataset.id})`
+    )
 
     return { success: true }
 })

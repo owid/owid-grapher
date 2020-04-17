@@ -1,7 +1,7 @@
-import ReactDOM = require("react-dom")
+import ReactDOM from "react-dom"
 import * as React from "react"
 import * as Cookies from "js-cookie"
-import * as classnames from "classnames"
+import classnames from "classnames"
 import { observable, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

@@ -21,7 +21,8 @@ import {
     isEmpty,
     intersection,
     includes,
-    filter
+    filter,
+    flatten
 } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -34,6 +35,7 @@ import { TextWrap } from "./TextWrap"
 import { NoData } from "./NoData"
 import { ScaleSelector } from "./ScaleSelector"
 import { getRelativeMouse, domainExtent } from "./Util"
+import { EntityDimensionKey } from "charts/EntityDimensionKey"
 
 export interface SlopeChartValue {
     x: number
@@ -42,7 +44,7 @@ export interface SlopeChartValue {
 
 export interface SlopeChartSeries {
     label: string
-    key: string
+    entityDimensionKey: EntityDimensionKey
     color: string
     size: number
     values: SlopeChartValue[]
@@ -134,7 +136,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 }
 
 export interface SlopeProps {
-    key: string
+    entityDimensionKey: EntityDimensionKey
     isLayerMode: boolean
     x1: number
     y1: number
@@ -260,7 +262,6 @@ class Slope extends React.Component<SlopeProps> {
                     <Text
                         x={x2 + 8}
                         y={y2 - rightValueLabelBounds.height / 2}
-                        dominantBaseline="middle"
                         fontSize={labelFontSize}
                         fill={labelColor}
                         fontWeight={isFocused || isHovered ? "bold" : undefined}
@@ -314,14 +315,14 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map(g => g.key)
+            this.data.map(g => g.entityDimensionKey)
         )
     }
 
     @computed get hoverKeys(): string[] {
         return intersection(
             this.props.hoverKeys || [],
-            this.data.map(g => g.key)
+            this.data.map(g => g.entityDimensionKey)
         )
     }
 
@@ -336,9 +337,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get allValues(): SlopeChartValue[] {
-        const values: SlopeChartValue[] = []
-        this.props.data.forEach(g => values.push(...g.values))
-        return values
+        return flatten(this.props.data.map(g => g.values))
     }
 
     @computed get xDomainDefault(): [number, number] {
@@ -469,7 +468,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 leftLabel: leftLabel,
                 rightLabel: rightLabel,
                 labelFontSize: fontSize,
-                key: series.key,
+                entityDimensionKey: series.entityDimensionKey,
                 isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
@@ -536,8 +535,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         slopeData = slopeData.map(slope => {
             return extend({}, slope, {
-                isFocused: includes(focusKeys, slope.key),
-                isHovered: includes(hoverKeys, slope.key)
+                isFocused: includes(focusKeys, slope.entityDimensionKey),
+                isHovered: includes(hoverKeys, slope.entityDimensionKey)
             })
         })
 
@@ -661,7 +660,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const { backgroundGroups, isLayerMode } = this
 
         return backgroundGroups.map(slope => (
-            <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} />
+            <Slope
+                key={slope.entityDimensionKey}
+                isLayerMode={isLayerMode}
+                {...slope}
+            />
         ))
     }
 
@@ -669,7 +672,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const { foregroundGroups, isLayerMode } = this
 
         return foregroundGroups.map(slope => (
-            <Slope key={slope.key} isLayerMode={isLayerMode} {...slope} />
+            <Slope
+                key={slope.entityDimensionKey}
+                isLayerMode={isLayerMode}
+                {...slope}
+            />
         ))
     }
 

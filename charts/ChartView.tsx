@@ -14,9 +14,15 @@ import { DataTab } from "./DataTab"
 import { MapTab } from "./MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "./DownloadTab"
-import { VNode, throttle, isMobile, isTouchDevice } from "./Util"
+import {
+    VNode,
+    throttle,
+    isMobile,
+    isTouchDevice,
+    getCountryCodeFromNetlifyRedirect
+} from "./Util"
 import { Bounds } from "./Bounds"
-import { DataSelector } from "./DataSelector"
+import { EntitySelectorModal } from "./EntitySelectorModal"
 import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
@@ -105,6 +111,11 @@ export class ChartView extends React.Component<ChartViewProps> {
         return chartView
     }
 
+    static async detectCountry() {
+        const countryIs = await getCountryCodeFromNetlifyRedirect()
+        console.log(countryIs)
+    }
+
     @computed get chart() {
         return this.props.chart
     }
@@ -140,10 +151,10 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     @computed get authorWidth() {
-        return this.isPortrait ? 400 : 850
+        return this.isPortrait ? 400 : 680
     }
     @computed get authorHeight() {
-        return this.isPortrait ? 640 : 600
+        return this.isPortrait ? 640 : 480
     }
 
     // If the available space is very small, we use all of the space given to us
@@ -170,13 +181,13 @@ export class ChartView extends React.Component<ChartViewProps> {
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed get paddedWidth(): number {
         return this.isPortrait
-            ? this.containerBounds.width * 0.9
-            : this.containerBounds.width * 0.9
+            ? this.containerBounds.width * 0.95
+            : this.containerBounds.width * 0.95
     }
     @computed get paddedHeight(): number {
         return this.isPortrait
-            ? this.containerBounds.height * 0.9
-            : this.containerBounds.height * 0.9
+            ? this.containerBounds.height * 0.95
+            : this.containerBounds.height * 0.95
     }
     @computed get scaleToFitIdeal(): number {
         return Math.min(
@@ -317,10 +328,10 @@ export class ChartView extends React.Component<ChartViewProps> {
                 {this.popups}
                 <TooltipView />
                 {this.isSelectingData && (
-                    <DataSelector
-                        key="dataSelector"
+                    <EntitySelectorModal
+                        key="entitySelector"
                         chart={chart}
-                        chartView={this}
+                        isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
@@ -448,6 +459,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidCatch(error: any, info: any) {
         this.hasError = true
-        Analytics.logEvent("CHART_ERROR", { error, info })
+        Analytics.logChartError(error, info)
     }
 }

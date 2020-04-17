@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 
 import { AdminLayout } from "./AdminLayout"
 import { BindString, NumericSelectField, FieldsRow } from "./Forms"
@@ -123,7 +123,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 />
                 <section>
                     <h1>Tag: {tag.name}</h1>
-                    <p>Last updated {timeago.format(tag.updatedAt)}</p>
+                    <p>Last updated {format(tag.updatedAt)}</p>
                 </section>
                 <section>
                     <form
@@ -145,7 +145,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                     label="Parent Category"
                                     value={newtag.parentId || -1}
                                     options={[-1].concat(
-                                        tag.possibleParents.map(p => p.id)
+                                        tag.possibleParents.map(
+                                            p => p.id as number
+                                        )
                                     )}
                                     optionLabels={["None"].concat(
                                         tag.possibleParents.map(p => p.name)

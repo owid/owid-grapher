@@ -1,4 +1,11 @@
 /*******************************************************************************
+ * Links
+ */
+.article-content a {
+    @include owid-link;
+}
+
+/*******************************************************************************
  * Figures, images
  */
 
@@ -174,33 +181,31 @@
 
         .wp-block-column {
             &:first-child {
-                // set flex-shrink on text column to accomodate grapher
-                // resizing "slower" than it should during resizes
-                flex: 1 1 $text-min-content-width;
                 margin-right: $padding-x-md / 2;
-                max-width: $text-max-content-width;
-
-                > *:first-child {
-                    margin-top: $vertical-spacing;
-                }
             }
             &:last-child {
-                flex: 1 0 $graph-min-content-width;
                 margin-left: $padding-x-md / 2;
-                max-width: $graph-max-content-width;
-                > *:first-child {
-                    margin-top: $vertical-spacing;
-                    padding-top: 0;
-                }
             }
         }
 
         &.is-style-sticky-right {
             .wp-block-column {
+                &:first-child {
+                    @include text-column;
+                }
                 &:last-child {
-                    top: 0;
-                    position: sticky;
-                    position: -webkit-sticky;
+                    @include media-column;
+                }
+            }
+        }
+
+        &.is-style-sticky-left {
+            .wp-block-column {
+                &:first-child {
+                    @include media-column;
+                }
+                &:last-child {
+                    @include text-column;
                 }
             }
         }
@@ -265,4 +270,52 @@
             text-transform: uppercase;
         }
     }
+}
+
+.article-content {
+    span.add-country {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: $controls-color;
+
+        .icon {
+            position: relative;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 3px;
+            vertical-align: text-bottom;
+
+            svg {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            path {
+                stroke: #fff;
+                stroke-width: 2px;
+            }
+
+            &::before {
+                display: block;
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 16px;
+                height: 16px;
+                background-color: $controls-color;
+                border-radius: 50%;
+            }
+        }
+    }
+}
+
+/*******************************************************************************
+ * Code blocks
+ */
+
+code {
+    white-space: pre-wrap; // make sure long code lines do not overflow
 }

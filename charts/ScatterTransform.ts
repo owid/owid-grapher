@@ -1,4 +1,3 @@
-import { ChartConfig } from "./ChartConfig"
 import {
     some,
     isEmpty,
@@ -12,29 +11,27 @@ import {
     map,
     includes,
     sortedFindClosestIndex,
-    sortedUniq,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
     uniq,
-    compact
+    compact,
+    formatYear,
+    flatten
 } from "./Util"
 import { computed } from "mobx"
-import { defaultTo, defaultWith, first, last } from "./Util"
-import { DimensionWithData } from "./DimensionWithData"
+import { defaultTo, first, last } from "./Util"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent, findClosest } from "./Util"
-import { IChartTransform } from "./IChartTransform"
+import { formatValue, domainExtent } from "./Util"
+import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
+import { Time } from "./TimeBounds"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
-export class ScatterTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
-        this.chart = chart
-    }
-
+export class ScatterTransform extends ChartTransform {
     @computed get colorKeys(): string[] {
         const { colorDimension } = this
         return colorDimension ? colorDimension.variable.categoricalValues : []
@@ -82,22 +79,22 @@ export class ScatterTransform implements IChartTransform {
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed get yDimension(): DimensionWithData | undefined {
+    @computed private get yDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "y")
     }
-    @computed get xDimension(): DimensionWithData | undefined {
+    @computed private get xDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "x")
     }
-    @computed get colorDimension(): DimensionWithData | undefined {
+    @computed private get colorDimension():
+        | ChartDimensionWithOwidVariable
+        | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
-    }
-    @computed get axisDimensions(): DimensionWithData[] {
-        const dimensions = []
-        if (this.yDimension) dimensions.push(this.yDimension)
-        if (this.xDimension) dimensions.push(this.xDimension)
-        return dimensions
     }
 
     // Possible to override the x axis dimension to target a special year
@@ -107,7 +104,8 @@ export class ScatterTransform implements IChartTransform {
     }
 
     set xOverrideYear(value: number | undefined) {
-        ;(this.xDimension as DimensionWithData).props.targetYear = value
+        ;(this
+            .xDimension as ChartDimensionWithOwidVariable).props.targetYear = value
     }
 
     // In relative mode, the timeline scatterplot calculates changes relative
@@ -126,10 +124,10 @@ export class ScatterTransform implements IChartTransform {
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
-    @computed get hideBackgroundEntities(): boolean {
+    @computed private get hideBackgroundEntities(): boolean {
         return this.chart.addCountryMode === "disabled"
     }
-    @computed get possibleEntities(): string[] {
+    @computed private get possibleEntities(): string[] {
         const yEntities = this.yDimension
             ? this.yDimension.variable.entitiesUniq
             : []
@@ -139,28 +137,24 @@ export class ScatterTransform implements IChartTransform {
         return intersection(yEntities, xEntities)
     }
 
-    @computed get selectableKeys(): string[] {
-        const { currentData } = this
-
-        const keyData: string[] = []
-        currentData.forEach(series => {
-            keyData.push(series.key)
-        })
-        return keyData
+    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
+        return this.currentData.map(series => series.entityDimensionKey)
     }
 
     @computed get excludedEntities(): string[] {
         const entityIds = this.chart.props.excludedEntities || []
         return entityIds
             .map(id => {
-                const meta = this.chart.vardata.entityMetaById[id]
+                const meta = this.chart.entityMetaById[id]
                 return meta && meta.name
             })
             .filter(d => d)
     }
 
-    @computed get entitiesToShow(): string[] {
-        let entities = this.hideBackgroundEntities
+    getEntitiesToShow(
+        filterBackgroundEntities = this.hideBackgroundEntities
+    ): string[] {
+        let entities = filterBackgroundEntities
             ? this.chart.data.selectedEntities
             : this.possibleEntities
 
@@ -181,7 +175,7 @@ export class ScatterTransform implements IChartTransform {
     // The years for which there MAY be data on the scatterplot
     // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that year
     // e.g. https://ourworldindata.org/grapher/life-expectancy-years-vs-real-gdp-per-capita-2011us
-    @computed get possibleDataYears(): number[] {
+    @computed private get possibleDataYears(): number[] {
         const yDimensionYears = this.yDimension ? this.yDimension.yearsUniq : []
         const xDimensionYears = this.xDimension ? this.xDimension.yearsUniq : []
 
@@ -190,7 +184,7 @@ export class ScatterTransform implements IChartTransform {
     }
 
     // The years for which we intend to calculate output data
-    @computed get yearsToCalculate(): number[] {
+    @computed private get yearsToCalculate(): number[] {
         return this.possibleDataYears
 
         // XXX: Causes issues here https://ourworldindata.org/grapher/fish-consumption-vs-gdp-per-capita
@@ -206,18 +200,6 @@ export class ScatterTransform implements IChartTransform {
         }*/
     }
 
-    /*@computed get minTimelineYear(): number {
-        return defaultTo(min(this.timelineYears), 1900)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(max(this.timelineYears), 2000)
-    }*/
-
-    /*@computed get hasTimeline(): boolean {
-        return this.minTimelineYear !== this.maxTimelineYear && !this.chart.props.hideTimeline
-    }*/
-
     @computed get compareEndPointsOnly(): boolean {
         return !!this.chart.props.compareEndPointsOnly
     }
@@ -228,17 +210,10 @@ export class ScatterTransform implements IChartTransform {
 
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
-    @computed get dataByEntityAndYear(): Map<
-        string,
-        Map<number, ScatterValue>
-    > {
-        const {
-            chart,
-            yearsToCalculate,
-            colors,
-            entitiesToShow,
-            xOverrideYear
-        } = this
+    private getDataByEntityAndYear(
+        entitiesToShow = this.getEntitiesToShow()
+    ): Map<string, Map<number, ScatterValue>> {
+        const { chart, yearsToCalculate, colors, xOverrideYear } = this
         const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
@@ -258,7 +233,7 @@ export class ScatterTransform implements IChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = dimension.values[i]
-                const entity = dimension.entities[i]
+                const entity = dimension.entityNames[i]
 
                 if (!validEntityLookup[entity]) continue
 
@@ -336,9 +311,9 @@ export class ScatterTransform implements IChartTransform {
         return dataByEntityAndYear
     }
 
-    @computed get allPoints(): ScatterValue[] {
+    @computed private get allPoints(): ScatterValue[] {
         const allPoints: ScatterValue[] = []
-        this.dataByEntityAndYear.forEach(dataByYear => {
+        this.getDataByEntityAndYear().forEach(dataByYear => {
             dataByYear.forEach(point => {
                 allPoints.push(point)
             })
@@ -347,71 +322,28 @@ export class ScatterTransform implements IChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get timelineYears(): number[] {
-        return sortedUniq(sortBy(this.allPoints.map(point => point.year)))
+    @computed get availableYears(): Time[] {
+        return this.allPoints.map(point => point.year)
     }
 
-    @computed get minTimelineYear(): number {
-        return defaultTo(this.timelineYears[0], -Infinity)
-    }
-
-    @computed get maxTimelineYear(): number {
-        return defaultTo(
-            this.timelineYears[this.timelineYears.length - 1],
-            Infinity
-        )
-    }
-
-    @computed get hasTimeline(): boolean {
-        return (
-            this.minTimelineYear !== this.maxTimelineYear &&
-            !this.chart.props.hideTimeline
-        )
-    }
-
-    // The first year of the timeline selection
-    @computed get startYear(): number {
-        const minYear = this.chart.timeDomain[0]
-
-        if (minYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, minYear),
-                () => this.minTimelineYear
-            )
-        else return this.maxTimelineYear
-    }
-
-    // The end year of the timeline selection
-    @computed get endYear(): number {
-        const maxYear = this.chart.timeDomain[1]
-
-        if (maxYear !== undefined)
-            return defaultWith(
-                findClosest(this.timelineYears, maxYear),
-                () => this.maxTimelineYear
-            )
-        else return this.maxTimelineYear
-    }
-
-    @computed get currentValues(): ScatterValue[] {
-        const currentValues: ScatterValue[] = []
-        this.currentData.forEach(group => currentValues.push(...group.values))
-        return currentValues
+    @computed private get currentValues(): ScatterValue[] {
+        return flatten(this.currentData.map(g => g.values))
     }
 
     // domains across the entire timeline
-    @computed get xDomainDefault(): [number, number] {
+    @computed private get xDomainDefault(): [number, number] {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
-                this.currentValues.map(d => d.x),
-                this.xScaleType
+                this.pointsForAxisDomains.map(d => d.x),
+                this.xScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
-            this.dataByEntityAndYear.forEach(dataByYear => {
+            this.getDataByEntityAndYear().forEach(dataByYear => {
                 const values = Array.from(dataByYear.values()).filter(
                     v => v.x !== 0 && v.y !== 0
                 )
@@ -434,18 +366,19 @@ export class ScatterTransform implements IChartTransform {
         }
     }
 
-    @computed get yDomainDefault(): [number, number] {
+    @computed private get yDomainDefault(): [number, number] {
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
-                this.currentValues.map(d => d.y),
-                this.yScaleType
+                this.pointsForAxisDomains.map(d => d.y),
+                this.yScaleType,
+                this.chart.props.zoomToSelection ? 1.1 : 1
             )
         }
 
         if (this.isRelativeMode) {
             let minChange = 0
             let maxChange = 0
-            this.dataByEntityAndYear.forEach(dataByYear => {
+            this.getDataByEntityAndYear().forEach(dataByYear => {
                 const values = Array.from(dataByYear.values()).filter(
                     v => v.x !== 0 && v.y !== 0
                 )
@@ -468,6 +401,20 @@ export class ScatterTransform implements IChartTransform {
         }
     }
 
+    @computed private get pointsForAxisDomains() {
+        if (!this.chart.data.hasSelection || !this.chart.props.zoomToSelection)
+            return this.currentValues
+        const allPoints: ScatterValue[] = []
+        this.getDataByEntityAndYear(this.getEntitiesToShow(true)).forEach(
+            dataByYear => {
+                dataByYear.forEach(point => {
+                    allPoints.push(point)
+                })
+            }
+        )
+        return allPoints
+    }
+
     @computed get sizeDomain(): [number, number] {
         const sizeValues: number[] = []
         this.allPoints.forEach(g => g.size && sizeValues.push(g.size))
@@ -475,11 +422,11 @@ export class ScatterTransform implements IChartTransform {
         else return domainExtent(sizeValues, "linear")
     }
 
-    @computed get yScaleType() {
+    @computed private get yScaleType() {
         return this.isRelativeMode ? "linear" : this.chart.yAxis.scaleType
     }
 
-    @computed get yAxisLabelBase(): string | undefined {
+    @computed private get yAxisLabelBase(): string | undefined {
         return this.yDimension && this.yDimension.displayName
     }
 
@@ -518,11 +465,11 @@ export class ScatterTransform implements IChartTransform {
         ) as AxisSpec
     }
 
-    @computed get xScaleType(): "linear" | "log" {
+    @computed private get xScaleType(): "linear" | "log" {
         return this.isRelativeMode ? "linear" : this.chart.xAxis.scaleType
     }
 
-    @computed get xAxisLabelBase(): string | undefined {
+    @computed private get xAxisLabelBase(): string | undefined {
         const xDimName = this.xDimension && this.xDimension.displayName
         if (this.xOverrideYear !== undefined)
             return `${xDimName} in ${this.xOverrideYear}`
@@ -576,12 +523,19 @@ export class ScatterTransform implements IChartTransform {
             : this.xDimension.formatValueLong
     }
 
+    @computed get yFormatYear(): (year: number) => string {
+        return this.yDimension ? this.yDimension.formatYear : formatYear
+    }
+
+    @computed get xFormatYear(): (year: number) => string {
+        return this.xDimension ? this.xDimension.formatYear : formatYear
+    }
+
     @computed get currentData(): ScatterSeries[] {
         if (!this.chart.data.isReady) return []
 
         const {
             chart,
-            dataByEntityAndYear,
             startYear,
             endYear,
             xScaleType,
@@ -594,13 +548,16 @@ export class ScatterTransform implements IChartTransform {
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
-        dataByEntityAndYear.forEach((dataByYear, entity) => {
-            // Since scatterplots interrelate two variables via entity overlap, their datakeys are solely entity-based
-            const datakey = chart.data.keyFor(entity, 0)
+        this.getDataByEntityAndYear().forEach((dataByYear, entity) => {
+            // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
+            const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                entity,
+                0
+            )
 
             const group = {
-                key: datakey,
-                label: chart.data.formatKey(datakey),
+                entityDimensionKey,
+                label: chart.data.getLabelForKey(entityDimensionKey),
                 color: "#ffcb1f", // Default color
                 size: 0,
                 values: []
@@ -613,10 +570,10 @@ export class ScatterTransform implements IChartTransform {
             })
 
             // Use most recent size and color values
-            const lastPoint = last(group.values)
+            // const lastPoint = last(group.values)
 
             if (group && group.values.length) {
-                const keyColor = keyColors[datakey]
+                const keyColor = keyColors[entityDimensionKey]
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else {

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction, observable } from "mobx"
-const timeago = require("timeago.js")()
+import { format } from "timeago.js"
 import * as _ from "lodash"
 
 import { Link } from "./Link"
@@ -124,13 +124,13 @@ class ChartRow extends React.Component<{
                     />
                 </td>
                 <td>
-                    {chart.publishedAt && timeago.format(chart.publishedAt)}
+                    {chart.publishedAt && format(chart.publishedAt)}
                     {chart.publishedBy && (
                         <span> by {highlight(chart.publishedBy)}</span>
                     )}
                 </td>
                 <td>
-                    {timeago.format(chart.lastEditedAt)} by{" "}
+                    {format(chart.lastEditedAt)} by{" "}
                     {highlight(chart.lastEditedBy)}
                 </td>
                 <td>

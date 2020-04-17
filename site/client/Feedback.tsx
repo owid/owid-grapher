@@ -1,11 +1,12 @@
-import React = require("react")
-import ReactDOM = require("react-dom")
+import React from "react"
+import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { observable, action, toJS } from "mobx"
 import classnames from "classnames"
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 
 function sendFeedback(feedback: Feedback) {
     return new Promise((resolve, reject) => {
@@ -27,7 +28,7 @@ function sendFeedback(feedback: Feedback) {
 
         req.open(
             "POST",
-            `https://owid-feedback.netlify.com/.netlify/functions/hello`
+            `https://owid-feedback.netlify.app/.netlify/functions/hello`
         )
         req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
 
@@ -39,10 +40,16 @@ class Feedback {
     @observable name: string = ""
     @observable email: string = ""
     @observable message: string = ""
+
+    @action.bound clear() {
+        this.name = ""
+        this.email = ""
+        this.message = ""
+    }
 }
 
 @observer
-export class FeedbackForm extends React.Component {
+export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
     feedback: Feedback = new Feedback()
     @observable loading: boolean = false
     @observable done: boolean = false
@@ -51,6 +58,7 @@ export class FeedbackForm extends React.Component {
     async submit() {
         try {
             await sendFeedback(this.feedback)
+            this.feedback.clear()
             this.done = true
         } catch (err) {
             this.error = err
@@ -79,27 +87,45 @@ export class FeedbackForm extends React.Component {
         this.feedback.message = e.currentTarget.value
     }
 
-    render() {
-        const { loading } = this
-        return (
-            <form
-                className={classnames("FeedbackForm", {
-                    loading: this.loading
-                })}
-                onSubmit={this.onSubmit}
-            >
-                <div className="header">Leave us feedback</div>
-                <div className="formBody">
-                    <div className="formSection">
-                        <div className="notice">
-                            <p className="title">We welcome your feedback.</p>
-                            <p>
-                                In the current situation we read and consider
-                                all feedback, but can not promise to reply to
-                                all.
-                            </p>
-                        </div>
+    @action.bound onClose() {
+        if (this.props.onClose) {
+            this.props.onClose()
+        }
+        // Clear the form after closing, in case the user has a 2nd message to send later.
+        this.done = false
+    }
+
+    renderBody() {
+        const { loading, done } = this
+        if (done) {
+            return (
+                <div className="doneMessage">
+                    <div className="icon">
+                        <FontAwesomeIcon icon={faPaperPlane} />
                     </div>
+                    <div className="message">
+                        <h3>Thank you for your feedback</h3>
+                        <p>
+                            We read all feedback, but due to a high volume of
+                            messages we are not able to reply to all.
+                        </p>
+                    </div>
+                    <div className="actions">
+                        <button onClick={this.onClose}>Close</button>
+                    </div>
+                </div>
+            )
+        }
+        return (
+            <React.Fragment>
+                <div className="header">Leave us feedback</div>
+                <div className="notice">
+                    <p>
+                        We read and consider all feedback, but due to a high
+                        volume of messages we are not able to reply to all.
+                    </p>
+                </div>
+                <div className="formBody">
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
                         <input
@@ -147,6 +173,19 @@ export class FeedbackForm extends React.Component {
                         Send message
                     </button>
                 </div>
+            </React.Fragment>
+        )
+    }
+
+    render() {
+        return (
+            <form
+                className={classnames("FeedbackForm", {
+                    loading: this.loading
+                })}
+                onSubmit={this.onSubmit}
+            >
+                {this.renderBody()}
             </form>
         )
     }
@@ -160,8 +199,12 @@ export class FeedbackPrompt extends React.Component {
         this.isOpen = !this.isOpen
     }
 
-    @action.bound onClickOutside() {
+    @action.bound onClose() {
         this.isOpen = false
+    }
+
+    @action.bound onClickOutside() {
+        this.onClose()
     }
 
     render() {
@@ -171,17 +214,14 @@ export class FeedbackPrompt extends React.Component {
                     this.isOpen ? " active" : ""
                 }`}
             >
-                {this.isOpen && (
-                    <>
-                        <div
-                            className="overlay"
-                            onClick={this.onClickOutside}
-                        />
-                        <div className="box">
-                            <FeedbackForm />
-                        </div>
-                    </>
-                )}
+                {/* We are keeping the form always rendered to avoid wiping all contents
+                when a user accidentally closes the form */}
+                <div style={{ display: this.isOpen ? "block" : "none" }}>
+                    <div className="overlay" onClick={this.onClickOutside} />
+                    <div className="box">
+                        <FeedbackForm onClose={this.onClose} />
+                    </div>
+                </div>
                 {this.isOpen ? (
                     <button className="prompt" onClick={this.toggleOpen}>
                         <FontAwesomeIcon icon={faTimes} /> Close
@@ -189,7 +229,6 @@ export class FeedbackPrompt extends React.Component {
                 ) : (
                     <button
                         className="prompt"
-                        data-track-click
                         data-track-note="page-open-feedback"
                         onClick={this.toggleOpen}
                     >

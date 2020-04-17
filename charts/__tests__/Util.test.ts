@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import * as timezoneMock from "timezone-mock"
 
@@ -6,12 +6,9 @@ import {
     findClosestYear,
     getStartEndValues,
     DataValue,
-    formatDay
+    formatDay,
+    retryPromise
 } from "../Util"
-
-function iteratorFromArray<T>(array: T[]): Iterable<T> {
-    return array[Symbol.iterator]()
-}
 
 describe(findClosestYear, () => {
     describe("without tolerance", () => {
@@ -22,17 +19,6 @@ describe(findClosestYear, () => {
             })
             it("returns undefined", () => {
                 const years = [2010, 2015, 2017]
-                expect(findClosestYear(years, 2014, 0)).toEqual(undefined)
-            })
-        })
-
-        describe("iterator", () => {
-            it("returns the correct year", () => {
-                const years = iteratorFromArray([2010, 2015, 2017])
-                expect(findClosestYear(years, 2015, 0)).toEqual(2015)
-            })
-            it("returns undefined", () => {
-                const years = iteratorFromArray([2010, 2015, 2017])
                 expect(findClosestYear(years, 2014, 0)).toEqual(undefined)
             })
         })
@@ -91,20 +77,59 @@ describe(formatDay, () => {
     describe("timezones", () => {
         it("formats date consistently in GMT", () => {
             timezoneMock.register("Europe/London")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
         })
 
         it("formats date consistently in US/Pacific", () => {
             timezoneMock.register("US/Pacific")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
         })
 
         it("formats date consistently in US/Pacific", () => {
             timezoneMock.register("Australia/Adelaide")
-            expect(formatDay(0, "2020-01-01")).toEqual("Jan 1, 2020")
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
             timezoneMock.unregister()
         })
+    })
+
+    describe("epoch", () => {
+        it("starts on Jan 21, 2020", () => {
+            expect(formatDay(0)).toEqual("Jan 21, 2020")
+        })
+
+        it("handles increments", () => {
+            expect(formatDay(11)).toEqual("Feb 1, 2020")
+        })
+
+        it("handles decrements", () => {
+            expect(formatDay(-21)).toEqual("Dec 31, 2019")
+        })
+    })
+})
+
+describe(retryPromise, () => {
+    function resolveAfterNthRetry(nth: number, message: string = "success") {
+        let retried = 0
+        return () =>
+            new Promise((resolve, reject) =>
+                retried++ >= nth ? resolve(message) : reject()
+            )
+    }
+
+    it("resolves when promise succeeds first-time", async () => {
+        const promiseGetter = resolveAfterNthRetry(0, "success")
+        expect(retryPromise(promiseGetter, 1)).resolves.toEqual("success")
+    })
+
+    it("resolves when promise succeeds before retry limit", async () => {
+        const promiseGetter = resolveAfterNthRetry(2, "success")
+        expect(retryPromise(promiseGetter, 3)).resolves.toEqual("success")
+    })
+
+    it("rejects when promise doesn't succeed within retry limit", async () => {
+        const promiseGetter = resolveAfterNthRetry(3, "success")
+        expect(retryPromise(promiseGetter, 3)).rejects.toBeUndefined()
     })
 })

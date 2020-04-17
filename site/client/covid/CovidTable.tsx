@@ -1,8 +1,13 @@
 import * as React from "react"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { csvParse } from "d3"
 import classnames from "classnames"
+import { scaleLinear } from "d3-scale"
+import { schemeCategory10 } from "d3-scale-chromatic"
+import { fromPairs, uniq } from "charts/Util"
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
 
 import {
     throttle,
@@ -13,12 +18,11 @@ import {
     orderBy,
     partition,
     max,
-    fetchText,
     addDays,
     extend
 } from "charts/Util"
 
-import { DATA_URL, DEFAULT_SORT_ORDER } from "./CovidConstants"
+import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 
 import {
     CovidSortKey,
@@ -29,24 +33,23 @@ import {
     CovidCountryDatum
 } from "./CovidTypes"
 
-import {
-    parseIntOrUndefined,
-    getDoublingRange,
-    sortAccessors,
-    inverseSortOrder
-} from "./CovidUtils"
+import { getDoublingRange, sortAccessors, inverseSortOrder } from "./CovidUtils"
 
 import { CovidTableRow } from "./CovidTableRow"
 import {
     CovidTableColumnKey,
     CovidTableHeaderSpec,
-    columns
+    columns,
+    CovidTableCellSpec
 } from "./CovidTableColumns"
+import { fetchECDCData } from "./CovidFetch"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
     @observable.ref sortOrder: SortOrder = SortOrder.desc
     @observable.ref isMobile: boolean = false
+    @observable.ref truncate: boolean = false
+    @observable.ref truncateLength: number = 12
 
     constructor(state: Partial<CovidTableState>) {
         extend(this, state)
@@ -58,8 +61,10 @@ export interface CovidTableProps {
     mobileColumns: CovidTableColumnKey[]
     defaultState: Partial<CovidTableState>
     filter: (datum: CovidCountryDatum) => any
+    loadData: () => Promise<CovidSeries>
     preloadData?: CovidSeries
-    note?: JSX.Element | string
+    extraRow?: (props: CovidTableCellSpec) => JSX.Element | undefined
+    footer?: JSX.Element
 }
 
 @observer
@@ -68,6 +73,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         columns: [],
         mobileColumns: [],
         filter: d => d,
+        loadData: fetchECDCData,
         defaultState: {}
     }
 
@@ -104,18 +110,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
     async loadData() {
         this.isLoading = true
         try {
-            const responseText = await fetchText(DATA_URL)
-            const rows: CovidSeries = csvParse(responseText).map(row => {
-                return {
-                    date: new Date(row.date as string),
-                    location: row.location as string,
-                    total_cases: parseIntOrUndefined(row.total_cases),
-                    total_deaths: parseIntOrUndefined(row.total_deaths),
-                    new_cases: parseIntOrUndefined(row.new_cases),
-                    new_deaths: parseIntOrUndefined(row.new_deaths)
-                }
-            })
-            this.data = rows
+            this.data = await this.props.loadData()
             this.isLoaded = true
             this.error = undefined
         } catch (error) {
@@ -137,13 +132,17 @@ export class CovidTable extends React.Component<CovidTableProps> {
                         location: location,
                         series: sortedSeries,
                         latest: maxBy(series, d => d.date),
+                        latestWithTests: maxBy(
+                            series.filter(d => d.tests),
+                            d => d.date
+                        ),
                         caseDoublingRange: getDoublingRange(
                             sortedSeries,
-                            d => d.total_cases
+                            d => d.totalCases
                         ),
                         deathDoublingRange: getDoublingRange(
                             sortedSeries,
-                            d => d.total_deaths
+                            d => d.totalDeaths
                         )
                     }
                 }
@@ -152,8 +151,8 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return []
     }
 
-    @computed get renderData() {
-        const { sortKey, sortOrder } = this.tableState
+    @computed get rowData() {
+        const { sortKey, sortOrder, truncate, truncateLength } = this.tableState
         const accessor = sortAccessors[sortKey]
         const sortedSeries = orderBy(
             this.countrySeries,
@@ -168,12 +167,32 @@ export class CovidTable extends React.Component<CovidTableProps> {
             },
             sortOrder
         )
-        const [shown, hidden] = partition(sortedSeries, this.props.filter)
-        return { shown, hidden }
+        const [rest, hidden]: CovidCountrySeries[] = partition(
+            sortedSeries,
+            this.props.filter
+        )
+
+        let [shown, truncated]: CovidCountrySeries[] = [rest, []]
+        if (truncate) {
+            ;[shown, truncated] = [
+                rest.slice(0, truncateLength),
+                rest.slice(truncateLength)
+            ]
+        }
+
+        return {
+            shown,
+            truncated,
+            hidden
+        }
+    }
+
+    @computed get isTruncated() {
+        return this.rowData.truncated.length > 0
     }
 
     @computed get dateRange(): DateRange {
-        const difference = 13 // inclusive, so 14 days technically
+        const difference = this.tableState.isMobile ? 13 : 20 // inclusive, so 21 days technically
         if (this.data !== undefined && this.data.length > 0) {
             const maxDate = max(this.data.map(d => d.date)) as Date
             const minDate = addDays(maxDate, -difference)
@@ -184,6 +203,13 @@ export class CovidTable extends React.Component<CovidTableProps> {
 
     @computed get lastUpdated(): Date | undefined {
         return this.dateRange[1]
+    }
+
+    @computed get totalTestsBarScale() {
+        const maxTests = max(this.data?.map(d => d.tests?.totalTests))
+        return scaleLinear()
+            .domain([0, maxTests ?? 1])
+            .range([0, 1])
     }
 
     @computed get columns(): CovidTableColumnKey[] {
@@ -212,10 +238,23 @@ export class CovidTable extends React.Component<CovidTableProps> {
         }
     }
 
+    @computed get countryColors(): Record<string, string> {
+        const locations = uniq((this.data || []).map(d => d.location))
+        const colors = schemeCategory10
+        return fromPairs(
+            locations.map((l, i) => [l, colors[i % colors.length]])
+        )
+    }
+
+    @action.bound onShowMore() {
+        this.tableState.truncate = false
+    }
+
     render() {
         if (this.isLoading) {
             return null
         }
+
         if (this.error) {
             return (
                 <div className="covid-error">
@@ -223,50 +262,63 @@ export class CovidTable extends React.Component<CovidTableProps> {
                 </div>
             )
         }
+
         return (
             <div
                 className={classnames("covid-table-container", {
                     "covid-table-mobile": this.tableState.isMobile
                 })}
             >
-                <table className="covid-table">
-                    <thead>
-                        <tr>
-                            {this.columns.map(key => (
-                                <React.Fragment key={key}>
-                                    {columns[key].header(this.headerCellProps)}
-                                </React.Fragment>
+                <div
+                    className={classnames("covid-table-wrapper", {
+                        truncated: this.isTruncated
+                    })}
+                >
+                    <table className="covid-table">
+                        <thead>
+                            <tr>
+                                {this.columns.map(key => (
+                                    <React.Fragment key={key}>
+                                        {columns[key].header(
+                                            this.headerCellProps
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.rowData.shown.map(datum => (
+                                <CovidTableRow
+                                    key={datum.id}
+                                    datum={datum}
+                                    columns={this.columns}
+                                    transform={{
+                                        dateRange: this.dateRange,
+                                        totalTestsBarScale: this
+                                            .totalTestsBarScale,
+                                        countryColors: this.countryColors
+                                    }}
+                                    extraRow={this.props.extraRow}
+                                    state={this.tableState}
+                                />
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.renderData.shown.map(datum => (
-                            <CovidTableRow
-                                columns={this.columns}
-                                key={datum.id}
-                                datum={datum}
-                                dateRange={this.dateRange}
-                                state={this.tableState}
-                            />
-                        ))}
-                    </tbody>
-                </table>
-                <div className="covid-table-note">
-                    {this.props.note && (
-                        <p className="tiny">{this.props.note}</p>
+                        </tbody>
+                    </table>
+                    {this.isTruncated && (
+                        <div className="show-more" onClick={this.onShowMore}>
+                            <button className="button">
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={faAngleDoubleDown} />
+                                </span>
+                                Show more
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={faAngleDoubleDown} />
+                                </span>
+                            </button>
+                        </div>
                     )}
-                    <p>
-                        Data source:{" "}
-                        <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
-                            ECDC
-                        </a>
-                        . Download the{" "}
-                        <a href="https://ourworldindata.org/coronavirus-source-data">
-                            full dataset
-                        </a>
-                        .
-                    </p>
                 </div>
+                <div className="covid-table-footer">{this.props.footer}</div>
             </div>
         )
     }

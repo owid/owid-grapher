@@ -71,7 +71,14 @@ export const PUBLIC_TAG_PARENT_IDS: number[] = [
     1510
 ]
 
+export const EPOCH_DATE = "2020-01-21"
+
 // Feature flag for explorable charts
 export const EXPLORER: boolean = process.env.EXPLORER
     ? parseBool(process.env.EXPLORER)
+    : false
+
+// Settings for optimizations that are applied in the baking step
+export const OPTIMIZE_SVG_EXPORTS = process.env.OPTIMIZE_SVG_EXPORTS
+    ? parseBool(process.env.OPTIMIZE_SVG_EXPORTS)
     : false

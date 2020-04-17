@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import { TextWrap } from "../TextWrap"
 import { Bounds } from "../Bounds"
@@ -16,7 +16,7 @@ describe(TextWrap, () => {
                 maxWidth: Infinity,
                 fontSize: FONT_SIZE,
                 text,
-                raw
+                rawHtml: raw
             })
             return textwrap.width
         }

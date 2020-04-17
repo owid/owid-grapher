@@ -66,22 +66,18 @@ We do this for convenience so we can run `mysql` commands without providing a pa
 
 Daily exports from the live OWID database are published here and can be used for testing:
 
-| File                                                                            | Description                                                 | Size   |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz)   | Table structure and metadata, everything except data_values | ~5 MB  |
-| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations            | >100MB |
+| File                                                                            | Description                                                   | Size (compressed) |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------- |
+| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz)   | Table structure and metadata, everything except `data_values` | ~15 MB            |
+| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations              | >200MB            |
 
-This sequence of commands will create a database, then download and import all OWID charts and their data:
+This script will create a database, then download and import all OWID charts and their data (might take a while!):
 
 ```bash
-mysql -e "CREATE DATABASE owid;"
-curl -Lo /tmp/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
-gunzip < /tmp/owid_metadata.sql.gz | mysql -D owid
-curl -Lo /tmp/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-gunzip < /tmp/owid_chartdata.sql.gz | mysql -D owid
+./scripts/downloadAndCreateDatabase.sh
 ```
 
-Since the full data_values table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
+Since the full `data_values` table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
 
 ### Inspecting the database
 
@@ -94,6 +90,8 @@ We also have [**a rough sketch of the schema**](https://user-images.githubuserco
 `cp .env.example .env` and populate `.env` with your database details.
 
 Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+
+This development server will rebuild and live-reload the site upon changes, so you can just make changes to the code, save the file and see the result in the browser right away.
 
 ## Migrations
 

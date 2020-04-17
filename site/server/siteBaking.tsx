@@ -142,7 +142,7 @@ export async function renderMenuJson() {
 }
 
 async function renderPage(postApi: object) {
-    const post = wpdb.getFullPost(postApi)
+    const post = await wpdb.getFullPost(postApi)
     const entries = await wpdb.getEntriesByCategory()
 
     const $ = cheerio.load(post.content)
@@ -212,8 +212,8 @@ export async function renderNotFoundPage() {
 
 export async function makeAtomFeed() {
     const postsApi = await wpdb.getPosts(["post"], 10)
-    const posts: wpdb.FullPost[] = postsApi.map(postApi =>
-        wpdb.getFullPost(postApi, true)
+    const posts: wpdb.FullPost[] = await Promise.all(
+        postsApi.map(postApi => wpdb.getFullPost(postApi, true))
     )
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>

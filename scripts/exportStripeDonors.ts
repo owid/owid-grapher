@@ -1,23 +1,29 @@
-import * as Stripe from "stripe"
+import Stripe from "stripe"
 import { groupBy, sum } from "lodash"
 
 import { STRIPE_SECRET_KEY } from "serverSettings"
 import { csvRow } from "utils/server/serverUtil"
 
-const stripe = new Stripe(STRIPE_SECRET_KEY)
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+    apiVersion: "2020-03-02"
+})
 
-interface CustomerWithCharges extends Stripe.customers.ICustomer {
-    charges: Stripe.charges.ICharge[]
+interface CustomerWithPaymentIntents extends Stripe.Customer {
+    paymentIntents: Stripe.PaymentIntent[]
 }
 
-async function getAll(
-    getter: ({ limit, starting_after }: any) => Promise<Stripe.IList<any>>
-): Promise<any[]> {
+interface StripeObject {
+    id: string
+}
+
+async function getAll<T extends StripeObject>(
+    getter: ({ limit, starting_after }: any) => Stripe.ApiListPromise<T>
+): Promise<T[]> {
     const result = []
     let firstRun = true
     let startingAfter
     while (firstRun || startingAfter) {
-        const response: Stripe.IList<any> = await getter({
+        const response: Stripe.ApiList<T> = await getter({
             limit: 100,
             starting_after: startingAfter
         })
@@ -31,44 +37,53 @@ async function getAll(
     return result
 }
 
-const getAllCharges = () => getAll(stripe.charges.list.bind(stripe.charges))
+const getAllPaymentIntents = () =>
+    getAll<Stripe.PaymentIntent>(
+        stripe.paymentIntents.list.bind(stripe.paymentIntents)
+    )
 const getAllCustomers = () =>
-    getAll(stripe.customers.list.bind(stripe.customers))
+    getAll<Stripe.Customer>(stripe.customers.list.bind(stripe.customers))
 
-async function getCustomersWithCharges(): Promise<CustomerWithCharges[]> {
-    const [charges, customers] = await Promise.all([
-        getAllCharges(),
+async function getCustomersWithPaymentIntents(): Promise<
+    CustomerWithPaymentIntents[]
+> {
+    const [paymentIntents, customers] = await Promise.all([
+        getAllPaymentIntents(),
         getAllCustomers()
     ])
-    const successfulCharges = charges.filter(
-        charge => charge.paid && !charge.refunded
+    const successfulPaymentIntents = paymentIntents.filter(
+        paymentIntent => paymentIntent.status === "succeeded"
     )
-    const chargesByCustomerId = groupBy(successfulCharges, "customer")
+    const paymentIntentsByCustomerId = groupBy(
+        successfulPaymentIntents,
+        "customer"
+    )
     return customers
         .map(customer => {
-            const customerWithCharge: CustomerWithCharges = {
+            const customerWithPaymentIntent: CustomerWithPaymentIntents = {
                 ...customer,
-                charges: chargesByCustomerId[customer.id] || []
+                paymentIntents: paymentIntentsByCustomerId[customer.id] || []
             }
-            return customerWithCharge
+            return customerWithPaymentIntent
         })
-        .filter(customer => customer.charges.length > 0)
+        .filter(customer => customer.paymentIntents.length > 0)
 }
 
 async function getDonors() {
-    const customers = await getCustomersWithCharges()
+    const customers = await getCustomersWithPaymentIntents()
     return customers.map(customer => {
         const metadata =
-            (customer.charges[0] && customer.charges[0].metadata) ||
-            (customer.subscriptions.data[0] &&
+            (customer.paymentIntents[0] &&
+                customer.paymentIntents[0].metadata) ||
+            (customer.subscriptions?.data[0] &&
                 customer.subscriptions.data[0].metadata)
         return {
             email: customer.email,
             name: metadata && metadata.name,
             showOnList: metadata && metadata.showOnList,
-            isMonthly: customer.subscriptions.data.length > 0,
+            isMonthly: !!customer.subscriptions?.data.length,
             created: new Date(customer.created * 1000).toISOString(),
-            total: sum(customer.charges.map(charge => charge.amount)) / 100
+            total: sum(customer.paymentIntents.map(pi => pi.amount)) / 100
         }
     })
 }
