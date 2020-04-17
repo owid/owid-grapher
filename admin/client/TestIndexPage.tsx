@@ -84,6 +84,17 @@ export class TestIndexPage extends React.Component {
                                 Stacked Bar
                             </Link>
                         </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/embeds?logLinear=true"
+                            >
+                                All charts with log scale switches
+                            </Link>
+                        </li>
+
                         <li>
                             <Link
                                 native

@@ -149,6 +149,13 @@ testPages.get("/embeds", async (req, res) => {
         }
     }
 
+    if (req.query.logLinear) {
+        query = query.andWhere(
+            `config->'$.yAxis.canChangeScaleType' IS TRUE OR config->>'$.xAxis.canChangeScaleType' IS TRUE`
+        )
+        tab = "chart"
+    }
+
     if (tab) {
         if (tab === "map") {
             query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
