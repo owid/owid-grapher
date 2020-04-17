@@ -150,7 +150,11 @@ export async function formatWordpressPost(
 
     // Related charts
     // Mimicking SSR output of additional information block from PHP
-    if (post.relatedCharts && post.relatedCharts.length !== 0) {
+    if (
+        post.slug !== "coronavirus" &&
+        post.relatedCharts &&
+        post.relatedCharts.length !== 0
+    ) {
         const allCharts = `
         <block type="additional-information">
             <content>
