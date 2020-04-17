@@ -61,6 +61,18 @@ export class Bounds {
         return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
     }
 
+    static getRightShiftForMiddleAlignedTextIfNeeded(
+        label: string,
+        fontSize: number,
+        xPosition: number
+    ) {
+        const bounds = Bounds.forText(label, {
+            fontSize
+        })
+        const overflow = xPosition - Math.ceil(bounds.width / 2)
+        return overflow < 0 ? Math.abs(overflow) : 0
+    }
+
     static empty(): Bounds {
         return new Bounds(0, 0, 0, 0)
     }
