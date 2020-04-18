@@ -1,6 +1,5 @@
 import * as glob from "glob"
 import parseUrl from "url-parse"
-const exec = require("child-process-promise").exec
 import * as path from "path"
 import * as _ from "lodash"
 import md5 from "md5"
