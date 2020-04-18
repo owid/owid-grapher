@@ -11,8 +11,8 @@ export function createConfig(props?: Partial<ChartConfigProps>) {
 }
 
 export function setupChart(
-    id: 677 | 792 | 4066,
-    varId: 3512 | 104402 | 142708,
+    id: number,
+    varIds: number[],
     configOverrides?: Partial<ChartConfigProps>
 ) {
     const props = new ChartConfigProps({
@@ -20,6 +20,8 @@ export function setupChart(
         ...configOverrides
     })
     const chart = new ChartConfig(props)
-    chart.receiveData(fixtures.readVariable(varId))
+    varIds.forEach(varId => {
+        chart.receiveData(fixtures.readVariable(varId))
+    })
     return chart
 }

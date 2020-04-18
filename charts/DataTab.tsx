@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DimensionWithData } from "./DimensionWithData"
+import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 
 // Client-side data export from chart
 @observer
@@ -128,7 +128,7 @@ export class DataTab extends React.Component<{
     }
 
     // returns true if given dimension is year-based in a chart with day-based variable
-    private isFixedYearDimension(dim: DimensionWithData) {
+    private isFixedYearDimension(dim: ChartDimensionWithOwidVariable) {
         return this.props.chart.yearIsDayVar && !dim.yearIsDayVar
     }
 }
