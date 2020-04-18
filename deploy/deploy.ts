@@ -41,11 +41,12 @@ async function defaultCommitMessage(): Promise<string> {
 
     // In the deploy.sh script, we write the current git rev to 'public/head.txt'
     // and want to include it in the deploy commit message
-    await fs
-        .readFile("public/head.txt")
-        .then(sha => {
-            message += `\nowid/owid-grapher@${sha}`
-        })
-        .catch(err => log.warn(err))
+    try {
+        const sha = await fs.readFile("public/head.txt", "utf8")
+        message += `\nowid/owid-grapher@${sha}`
+    } catch (err) {
+        log.warn(err)
+    }
+
     return message
 }
