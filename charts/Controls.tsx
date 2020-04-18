@@ -3,6 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
 import Select, { ValueType, StylesConfig } from "react-select"
+import copy from "copy-to-clipboard"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
@@ -15,6 +16,7 @@ import { ADMIN_BASE_URL, ENV } from "settings"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -73,13 +75,27 @@ class EmbedMenu extends React.Component<{
     }
 }
 
-@observer
-class ShareMenu extends React.Component<{
+interface ShareMenuProps {
     chart: ChartConfig
     chartView: any
     onDismiss: () => void
-}> {
+}
+
+interface ShareMenuState {
+    copied: boolean
+}
+
+@observer
+class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     dismissable = true
+
+    constructor(props: ShareMenuProps) {
+        super(props)
+
+        this.state = {
+            copied: false
+        }
+    }
 
     @computed get title(): string {
         return this.props.chart.data.currentTitle
@@ -98,10 +114,6 @@ class ShareMenu extends React.Component<{
     @computed get canonicalUrl(): string | undefined {
         return this.props.chart.url.canonicalUrl
     }
-
-    @observable isEmbedMenuActive: boolean = false
-
-    embedMenu: any
 
     @action.bound dismiss() {
         this.props.onDismiss()
@@ -148,6 +160,12 @@ class ShareMenu extends React.Component<{
             } catch (err) {
                 console.error("couldn't share using navigator.share", err)
             }
+        }
+    }
+
+    @action.bound onCopy() {
+        if (this.canonicalUrl) {
+            if (copy(this.canonicalUrl)) this.setState({ copied: true })
         }
     }
 
@@ -209,6 +227,14 @@ class ShareMenu extends React.Component<{
                         <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
                     </a>
                 )}
+                <a
+                    className="btn"
+                    title="Copy link to clipboard"
+                    onClick={this.onCopy}
+                >
+                    <FontAwesomeIcon icon={faCopy} />
+                    {this.state.copied ? "Copied!" : "Copy link"}
+                </a>
                 {editUrl && (
                     <a
                         className="btn"
