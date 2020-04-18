@@ -199,6 +199,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     className="btn"
                     target="_blank"
                     title="Tweet a link"
+                    data-track-note="chart-share-twitter"
                     href={twitterHref}
                 >
                     <FontAwesomeIcon icon={faTwitter} /> Twitter
@@ -207,6 +208,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     className="btn"
                     target="_blank"
                     title="Share on Facebook"
+                    data-track-note="chart-share-facebook"
                     href={facebookHref}
                 >
                     <FontAwesomeIcon icon={faFacebook} /> Facebook
@@ -214,6 +216,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 <a
                     className="btn"
                     title="Embed this visualization in another HTML document"
+                    data-track-note="chart-share-embed"
                     onClick={this.onEmbed}
                 >
                     <FontAwesomeIcon icon={faCode} /> Embed
@@ -222,6 +225,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <a
                         className="btn"
                         title="Share this visualization with an app on your device"
+                        data-track-note="chart-share-navigator"
                         onClick={this.onNavigatorShare}
                     >
                         <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
@@ -230,6 +234,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 <a
                     className="btn"
                     title="Copy link to clipboard"
+                    data-track-note="chart-share-copylink"
                     onClick={this.onCopy}
                 >
                     <FontAwesomeIcon icon={faCopy} />
