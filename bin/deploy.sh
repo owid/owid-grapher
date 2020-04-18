@@ -43,6 +43,9 @@ then
   # Run pre-deploy checks
   yarn testcheck
 
+  # Write the current commit SHA to public/head.txt so we always know which commit is deployed
+  git rev-parse HEAD > public/head.txt
+
   # Ensure tmp/ directory exists
   ssh $HOST mkdir -p $ROOT/tmp
 
