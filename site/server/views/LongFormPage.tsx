@@ -211,7 +211,8 @@ export const LongFormPage = (props: {
                                                 {(isPost || isEntry) && (
                                                     <>
                                                         <h3 id="licence">
-                                                            Licence
+                                                            Reuse our work
+                                                            freely
                                                         </h3>
                                                         <p>
                                                             You can use all of
