@@ -602,6 +602,7 @@ export async function formatPost(
     // Standardize urls
     html = html
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
     // No formatting applied, plain source HTML returned
