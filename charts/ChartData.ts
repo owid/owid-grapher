@@ -337,7 +337,7 @@ export class ChartData {
             : this.availableEntities
     }
 
-    setSelectedEntity(entityId: number) {
+    @action.bound setSelectedEntity(entityId: number) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
@@ -365,6 +365,10 @@ export class ChartData {
                 )
             })
         }
+    }
+
+    @action.bound setSelectedEntitiesDefault() {
+        this.chart.props.selectedData = this.chart.origChartProps.selectedData
     }
 
     @computed get selectedKeys(): EntityDimensionKey[] {
@@ -486,7 +490,7 @@ export class ChartData {
         return keysByEntity
     }
 
-    lookupKey(key: EntityDimensionKey) {
+    lookupKey(key: EntityDimensionKey): EntityDimensionInfo {
         const keyDatum = this.entityDimensionMap.get(key)
         if (keyDatum !== undefined) return keyDatum
         else throw new Error(`Unknown data key: ${key}`)

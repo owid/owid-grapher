@@ -1,16 +1,20 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType, components, OptionProps } from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
-import { countries, Country } from "utils/countries"
+import { countries } from "utils/countries"
 import { isMultiSelect, sortBy } from "charts/Util"
+import {
+    GlobalEntitySelection,
+    GlobalEntitySelectionEntity
+} from "../GlobalEntitySelection"
 
-const Option = (props: OptionProps<Country>) => {
+const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
         <div>
             <components.Option {...props}>
@@ -21,36 +25,51 @@ const Option = (props: OptionProps<Country>) => {
     )
 }
 
-@observer
-class Control extends React.Component {
-    // Set some defaults temporarily
-    @observable private selectedCountries: Country[] = countries.filter(
-        c => c.code === "GBR" || c.code === "MKD"
-    )
+interface ControlProps {
+    globalEntitySelection: GlobalEntitySelection
+}
 
-    @computed private get allCountries(): Country[] {
+@observer
+class Control extends React.Component<ControlProps> {
+    @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
+        return this.props.globalEntitySelection.selectedEntities
+    }
+
+    @computed private get allCountries(): GlobalEntitySelectionEntity[] {
         return sortBy(countries, country => country.name)
     }
 
-    private getOptionValue(country: Country) {
+    @action.bound setSelectedCountries(
+        countries: GlobalEntitySelectionEntity[]
+    ) {
+        this.props.globalEntitySelection.selectedEntities = countries
+    }
+
+    private getOptionValue(country: GlobalEntitySelectionEntity) {
         return country.code
     }
 
-    private getOptionLabel(country: Country) {
+    private getOptionLabel(country: GlobalEntitySelectionEntity) {
         return country.name
     }
 
-    @action.bound private onChange(countries: ValueType<Country>) {
+    @action.bound private onChange(
+        countries: ValueType<GlobalEntitySelectionEntity>
+    ) {
         if (countries == null) return
         if (!isMultiSelect(countries)) {
             countries = [countries]
         }
-        this.selectedCountries = Array.from(countries)
+        this.setSelectedCountries(Array.from(countries))
     }
 
-    @action.bound private onRemove(countryToRemove: Country) {
-        this.selectedCountries = this.selectedCountries.filter(
-            country => country !== countryToRemove
+    @action.bound private onRemove(
+        countryToRemove: GlobalEntitySelectionEntity
+    ) {
+        this.setSelectedCountries(
+            this.selectedCountries.filter(
+                country => country !== countryToRemove
+            )
         )
     }
 
@@ -99,10 +118,15 @@ class Control extends React.Component {
     }
 }
 
-export function runFloatingEntitySelect() {
+export function runFloatingEntitySelect(
+    globalEntitySelection: GlobalEntitySelection
+) {
     const element = document.querySelector("*[data-floating-entity-control]")
     if (element) {
         element.classList.add("floating-entity-control-container")
-        ReactDOM.render(<Control />, element)
+        ReactDOM.render(
+            <Control globalEntitySelection={globalEntitySelection} />,
+            element
+        )
     }
 }

@@ -243,9 +243,9 @@ export const SiteFooter = ({
                 runSiteTools();
                 runCookieNotice();
                 runCovid();
-                runFloatingEntitySelect();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
+                    runFloatingEntitySelect(Grapher.globalEntitySelection);
                 }
             `
                     }}

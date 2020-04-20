@@ -64,6 +64,10 @@ import {
     Time,
     TimeBounds
 } from "./TimeBounds"
+import {
+    GlobalEntitySelection,
+    subscribeChartToGlobalEntitySelection
+} from "site/client/GlobalEntitySelection"
 
 declare const App: any
 declare const window: any
@@ -397,6 +401,7 @@ export class ChartConfig {
             isEmbed?: boolean
             isMediaCard?: boolean
             queryStr?: string
+            globalEntitySelection?: GlobalEntitySelection
         } = {}
     ) {
         this.isEmbed = !!options.isEmbed
@@ -422,6 +427,15 @@ export class ChartConfig {
 
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
+
+        if (options.globalEntitySelection) {
+            this.disposers.push(
+                subscribeChartToGlobalEntitySelection(
+                    this,
+                    options.globalEntitySelection
+                )
+            )
+        }
 
         if (!this.isNode) this.ensureValidConfig()
     }

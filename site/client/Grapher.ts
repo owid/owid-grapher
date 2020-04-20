@@ -1,6 +1,7 @@
 import { ChartView } from "charts/ChartView"
 import { throttle, isMobile } from "charts/Util"
 import { CLASS_NAME as ADDITONAL_INFORMATION_CLASS_NAME } from "site/client/blocks/AdditionalInformation/AdditionalInformation"
+import { GlobalEntitySelection } from "./GlobalEntitySelection"
 
 interface LoadableFigure {
     configUrl: string
@@ -25,7 +26,12 @@ export function shouldProgressiveEmbed() {
 
 export class MultiEmbedder {
     figuresToLoad: LoadableFigure[] = []
-    constructor(container: HTMLElement | Document = document) {
+    globalEntitySelection?: GlobalEntitySelection
+    constructor(
+        container: HTMLElement | Document = document,
+        globalEntitySelection?: GlobalEntitySelection
+    ) {
+        this.globalEntitySelection = globalEntitySelection
         const figures = Array.from(
             container.querySelectorAll("*[data-grapher-src]")
         ).filter(figure =>
@@ -87,7 +93,8 @@ export class MultiEmbedder {
                         isEmbed:
                             figure.element.parentNode !== document.body ||
                             undefined,
-                        queryStr: figure.queryStr
+                        queryStr: figure.queryStr,
+                        globalEntitySelection: this.globalEntitySelection
                     })
                 }
             }
@@ -97,10 +104,12 @@ export class MultiEmbedder {
 
 // Global entry point for initializing charts
 export class Grapher {
+    static globalEntitySelection: GlobalEntitySelection
     // Look for all <figure data-grapher-src="..."> elements in the document and turn them
     // into iframeless embeds
     static embedder: MultiEmbedder
     static embedAll() {
-        this.embedder = new MultiEmbedder()
+        this.globalEntitySelection = new GlobalEntitySelection()
+        this.embedder = new MultiEmbedder(undefined, this.globalEntitySelection)
     }
 }
