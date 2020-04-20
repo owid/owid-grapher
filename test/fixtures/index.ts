@@ -18,6 +18,10 @@ export function readVariable(id: string | number): OwidVariableSet {
     return readObj(`variable-${id}`)
 }
 
+export function readVariableSet(ids: string[] | number[]): OwidVariableSet {
+    return readObj(`variableset-${ids.join("-")}`)
+}
+
 export function readChart(id: string | number): ChartConfigProps {
     return readObj(`chart-${id}`)
 }
