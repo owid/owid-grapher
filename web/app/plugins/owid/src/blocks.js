@@ -44,3 +44,8 @@ const allowColumnStyle = createHigherOrderComponent((BlockEdit) => {
 }, "allowColumnStyle");
 
 addFilter("editor.BlockEdit", "owid/blocks/columns", allowColumnStyle);
+
+registerBlockStyle("owid/prominent-link", {
+  name: "thin",
+  label: "Thin",
+});

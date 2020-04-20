@@ -2,14 +2,15 @@ import {
   InnerBlocks,
   RichText,
   URLInput,
-  InspectorControls
+  InspectorControls,
 } from "@wordpress/block-editor";
 import { createBlock } from "@wordpress/blocks";
+import { Panel, PanelBody, PanelRow } from "@wordpress/components";
 import MediaContainer from "../MediaContainer/MediaContainer";
 
 const blockStyle = {
   border: "1px dashed lightgrey",
-  padding: "1rem"
+  padding: "1rem",
 };
 
 const ProminentLink = {
@@ -17,24 +18,24 @@ const ProminentLink = {
   icon: "admin-links",
   category: "formatting",
   supports: {
-    html: false
+    html: false,
   },
   attributes: {
     title: {
-      type: "string"
+      type: "string",
     },
     linkUrl: {
-      type: "string"
+      type: "string",
     },
     mediaId: {
-      type: "integer"
+      type: "integer",
     },
     mediaUrl: {
-      type: "string"
+      type: "string",
     },
     mediaAlt: {
-      type: "string"
-    }
+      type: "string",
+    },
   },
   transforms: {
     from: [
@@ -43,29 +44,34 @@ const ProminentLink = {
         blocks: ["core/paragraph"],
         transform: ({ content }) => {
           return createBlock("owid/prominent-link", {}, [
-            createBlock("core/paragraph", { content })
+            createBlock("core/paragraph", { content }),
           ]);
-        }
-      }
-    ]
+        },
+      },
+    ],
   },
   edit: ({
     attributes: { title, linkUrl, mediaId, mediaUrl, mediaAlt },
-    setAttributes
+    setAttributes,
   }) => {
     return (
       <>
         <InspectorControls>
-          <URLInput
-            value={linkUrl}
-            onChange={(linkUrl, post) => setAttributes({ linkUrl })}
-          />
+          <PanelBody title="Link" initialOpen={true}>
+            <PanelRow>
+              <URLInput
+                label="URL"
+                value={linkUrl}
+                onChange={(linkUrl, post) => setAttributes({ linkUrl })}
+              />
+            </PanelRow>
+          </PanelBody>
         </InspectorControls>
         <div style={blockStyle}>
           <RichText
             tagName="h3"
             value={title}
-            onChange={newTitle => {
+            onChange={(newTitle) => {
               setAttributes({ title: newTitle });
             }}
             placeholder="Write heading..."
@@ -73,14 +79,14 @@ const ProminentLink = {
           <div style={{ display: "flex" }}>
             <div style={{ flex: "1 0 40%", marginRight: "1rem" }}>
               <MediaContainer
-                onSelectMedia={media => {
+                onSelectMedia={(media) => {
                   // Try the "large" size URL, falling back to the "full" size URL below.
                   // const src = get( media, [ 'sizes', 'large', 'url' ] ) || get( media, [ 'media_details', 'sizes', 'large', 'source_url' ] );
                   setAttributes({
                     mediaId: media.id,
                     // mediaUrl: src || media.url,
                     mediaUrl: media.url,
-                    mediaAlt: media.alt
+                    mediaAlt: media.alt,
                   });
                 }}
                 mediaId={mediaId}
@@ -96,9 +102,9 @@ const ProminentLink = {
       </>
     );
   },
-  save: props => {
+  save: (props) => {
     return <InnerBlocks.Content />;
-  }
+  },
 };
 
 export default ProminentLink;
