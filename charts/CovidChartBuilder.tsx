@@ -12,6 +12,7 @@ import { OwidVariable } from "./owidData/OwidVariable"
 import { uniqBy } from "lodash"
 import { dateDiffInDays } from "charts/Util"
 import moment from "moment"
+import { ChartDimension } from "./ChartDimension"
 
 @observer
 class CountryPicker extends React.Component<{
@@ -240,6 +241,8 @@ const variablePartials: { [name: string]: Partial<OwidVariable> } = {
 
 declare type RowAccessor = (row: ParsedCovidRow) => number
 
+// Rolling average
+
 const buildVariable = (
     name: MetricKind,
     countryMap: Map<any, any>,
@@ -247,11 +250,12 @@ const buildVariable = (
     rowFn: RowAccessor,
     perCapita?: number
 ): OwidVariable => {
-    const years = data.map(row => dateToYear(row.date))
-    let values = data.map(rowFn)
-    const entities = data.map(row => countryMap.get(row.location))
+    const filtered = data.filter(rowFn)
+    const years = filtered.map(row => dateToYear(row.date))
+    let values = filtered.map(rowFn)
+    const entities = filtered.map(row => countryMap.get(row.location))
     if (perCapita)
-        values = data.map((row, index) => {
+        values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
             const value = rowFn(row)
             return perCapita * (value / pop)
@@ -653,7 +657,9 @@ export class CovidChartBuilder extends React.Component<{
 
     // Todo: if someone selects "Align with the first N deaths", then we should switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
-        return "LineChart" || "ScatterPlot"
+        return this.props.params.timeline === "normal"
+            ? "LineChart"
+            : "ScatterPlot"
     }
 
     // We are computing variables clientside so they don't have a variable index. The variable index is used by Chart
@@ -690,9 +696,35 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.type = this.chartType
         chartProps.owidDataset = this.theVariables
         chartProps.selectedData = this.selectedData
-        chartProps.dimensions[0].variableId = this.yVariableIndex
+        chartProps.dimensions = this.dimensions
         chartProps.map.variableId = this.yVariableIndex
         chartProps.data!.availableEntities = this.availableEntities
+    }
+
+    @computed get dimensions(): ChartDimension[] {
+        if (this.chartType === "LineChart")
+            return [
+                {
+                    property: "y",
+                    variableId: this.yVariableIndex,
+                    display: {}
+                }
+            ]
+
+        return [
+            {
+                property: "y",
+                variableId: this.yVariableIndex,
+                display: {}
+            },
+            {
+                property: "x",
+                variableId: 142590,
+                display: {
+                    name: "Days since the 5th total confirmed death"
+                }
+            }
+        ]
     }
 
     @observable.ref chart = new ChartConfig({
@@ -713,13 +745,7 @@ export class CovidChartBuilder extends React.Component<{
         },
         owidDataset: this.theVariables,
         selectedData: this.selectedData,
-        dimensions: [
-            {
-                property: "y",
-                variableId: this.yVariableIndex,
-                display: {}
-            }
-        ],
+        dimensions: this.dimensions,
         addCountryMode: "disabled",
         stackMode: "absolute",
         hideRelativeToggle: true,
