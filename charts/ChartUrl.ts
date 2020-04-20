@@ -48,8 +48,6 @@ export interface ChartQueryParams {
     endpointsOnly?: string
 }
 
-declare const App: any
-
 const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
 const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
 
