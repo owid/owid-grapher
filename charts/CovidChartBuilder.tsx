@@ -9,7 +9,7 @@ import { csv } from "d3-fetch"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { OwidVariable } from "./owidData/OwidVariable"
-import { uniqBy } from "lodash-es"
+import { uniqBy } from "lodash"
 import { dateDiffInDays } from "charts/Util"
 import moment from "moment"
 
