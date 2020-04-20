@@ -1,6 +1,8 @@
 .site-header {
     background-color: $primary-color;
     border-bottom: $mobile-header-border-height solid $secondary-color;
+    position: relative;
+    z-index: $zindex-site-header;
 }
 
 .site-logo a {

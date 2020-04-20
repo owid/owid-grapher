@@ -531,6 +531,16 @@ export async function formatWordpressPost(
     const style =
         $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
 
+    // Render floating country selection component
+    $("*[data-entity-select]").each((_, el) => {
+        const $el = $(el)
+        const $section = $el.closest("section")
+
+        $el.remove()
+
+        $("<div data-floating-entity-control />").insertAfter($section)
+    })
+
     return {
         id: post.id,
         postId: post.postId,

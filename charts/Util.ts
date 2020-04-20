@@ -62,6 +62,7 @@ import findIndex from "lodash/findIndex"
 import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
 import memoize from "lodash/memoize"
+import isArray from "lodash/isArray"
 
 export {
     isEqual,
@@ -133,6 +134,7 @@ import { format } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
+import { ValueType, OptionsType } from "react-select"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -668,4 +670,8 @@ export function parseIntOrUndefined(s: string | undefined) {
     if (s === undefined) return undefined
     const value = parseInt(s)
     return isNaN(value) ? undefined : value
+}
+
+export function isMultiSelect<T>(value: ValueType<T>): value is OptionsType<T> {
+    return isArray(value)
 }
