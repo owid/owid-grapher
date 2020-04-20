@@ -436,6 +436,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentWillUnmount() {
         window.removeEventListener("scroll", this.checkVisibility)
+        this.chart.dispose()
     }
 
     componentDidUpdate() {
