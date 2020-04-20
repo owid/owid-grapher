@@ -5,7 +5,7 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-import { computed, when, runInAction, toJS } from "mobx"
+import { computed, when, runInAction } from "mobx"
 
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
@@ -18,7 +18,7 @@ import {
     diffDateISOStringInDays
 } from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartConfig } from "./ChartConfig"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -71,58 +71,52 @@ function parseTimeURIComponent(
 
 export class ChartUrl implements ObservableUrl {
     chart: ChartConfig
-    origChartProps: ChartConfigProps
     chartQueryStr: string = "?"
     mapQueryStr: string = "?"
     debounceMode: boolean = false
 
     constructor(chart: ChartConfig, queryStr?: string) {
         this.chart = chart
-        this.origChartProps = toJS(chart.props)
 
         if (queryStr !== undefined) {
             this.populateFromQueryParams(strToQueryParams(queryStr))
         }
     }
 
-    @computed get origChart() {
-        if (typeof App !== "undefined" && App.isEditor) {
-            // In the editor, the current chart state is always the "original" state
-            return toJS(this.chart.props)
-        } else {
-            return this.origChartProps
-        }
+    @computed get origChartProps() {
+        return this.chart.origChartProps
     }
 
     // Autocomputed url params to reflect difference between current chart state
     // and original config state
     @computed.struct get params(): QueryParams {
         const params: ChartQueryParams = {}
-        const { chart, origChart } = this
+        const { chart, origChartProps } = this
 
         params.tab =
-            chart.props.tab === origChart.tab ? undefined : chart.props.tab
-        //params.overlay = chart.props.overlay === origChart.overlay ? undefined : chart.props.overlay
+            chart.props.tab === origChartProps.tab ? undefined : chart.props.tab
+        //params.overlay = chart.props.overlay === origChartProps.overlay ? undefined : chart.props.overlay
         params.xScale =
-            chart.props.xAxis.scaleType === origChart.xAxis.scaleType
+            chart.props.xAxis.scaleType === origChartProps.xAxis.scaleType
                 ? undefined
                 : chart.xAxis.scaleType
         params.yScale =
-            chart.props.yAxis.scaleType === origChart.yAxis.scaleType
+            chart.props.yAxis.scaleType === origChartProps.yAxis.scaleType
                 ? undefined
                 : chart.yAxis.scaleType
         params.stackMode =
-            chart.props.stackMode === origChart.stackMode
+            chart.props.stackMode === origChartProps.stackMode
                 ? undefined
                 : chart.props.stackMode
         params.zoomToSelection =
-            chart.props.zoomToSelection === origChart.zoomToSelection
+            chart.props.zoomToSelection === origChartProps.zoomToSelection
                 ? undefined
                 : chart.props.zoomToSelection
                 ? "true"
                 : undefined
         params.endpointsOnly =
-            chart.props.compareEndPointsOnly === origChart.compareEndPointsOnly
+            chart.props.compareEndPointsOnly ===
+            origChartProps.compareEndPointsOnly
                 ? undefined
                 : chart.props.compareEndPointsOnly
                 ? "1"
@@ -133,8 +127,8 @@ export class ChartUrl implements ObservableUrl {
 
         if (
             chart.props.map &&
-            origChart.map &&
-            chart.props.map.projection !== origChart.map.projection
+            origChartProps.map &&
+            chart.props.map.projection !== origChartProps.map.projection
         )
             params.region = chart.props.map.projection
 
@@ -157,12 +151,12 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get yearParam(): string | undefined {
-        const { chart, origChart } = this
+        const { chart, origChartProps } = this
 
         if (
             chart.map &&
-            origChart.map &&
-            chart.map.targetYear !== origChart.map.targetYear
+            origChartProps.map &&
+            chart.map.targetYear !== origChartProps.map.targetYear
         ) {
             return formatTimeURIComponent(
                 chart.map.targetYear,
@@ -174,11 +168,11 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get timeParam(): string | undefined {
-        const { chart, origChart } = this
+        const { chart, origChartProps } = this
 
         if (
-            chart.props.minTime !== origChart.minTime ||
-            chart.props.maxTime !== origChart.maxTime
+            chart.props.minTime !== origChartProps.minTime ||
+            chart.props.maxTime !== origChartProps.maxTime
         ) {
             const [minTime, maxTime] = chart.timeDomain
             if (minTime === maxTime)
@@ -200,11 +194,11 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get countryParam(): string | undefined {
-        const { chart, origChart } = this
+        const { chart, origChartProps } = this
         if (
             chart.data.isReady &&
             JSON.stringify(chart.props.selectedData) !==
-                JSON.stringify(origChart.selectedData)
+                JSON.stringify(origChartProps.selectedData)
         ) {
             return uniq(
                 chart.data.selectedKeys

@@ -249,6 +249,16 @@ export class ChartConfigProps {
 export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
+    origChartPropsRaw: ChartConfigProps
+    @computed get origChartProps(): ChartConfigProps {
+        if (typeof App !== "undefined" && App.isEditor) {
+            // In the editor, the current chart state is always the "original" state
+            return toJS(this.props)
+        } else {
+            return this.origChartPropsRaw
+        }
+    }
+
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
@@ -393,6 +403,8 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
+        this.origChartPropsRaw = toJS(this.props)
+
         reaction(() => this.variableIds, this.downloadData, {
             fireImmediately: true
         })
