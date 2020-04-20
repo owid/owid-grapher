@@ -28,7 +28,7 @@ export class DataTab extends React.Component<{
             d => d.property !== "color"
         )
         const uniqueEntitiesAcrossDimensions =
-            chart.uniqueEntitiesAcrossDimensions
+            chart.sortedUniqueEntitiesAcrossDimensions
 
         // only get days if chart has a day-indexed variable, else get years across dimensions
         const indexingYears = sortBy(
@@ -59,7 +59,9 @@ export class DataTab extends React.Component<{
                 dimensions.forEach(dim => {
                     let value = null
                     if (this.isFixedYearDimension(dim)) {
-                        const latestYearValue = dim.latestValueforEntity(entity)
+                        const latestYearValue = dim.yearAndValueOfLatestValueforEntity(
+                            entity
+                        )
                         if (latestYearValue) {
                             row.push(
                                 dim.formatYear(first(latestYearValue) as number)

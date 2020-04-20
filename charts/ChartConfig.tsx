@@ -355,8 +355,7 @@ export class ChartConfig {
         return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
     }
 
-    // returns entities sorted
-    @computed get uniqueEntitiesAcrossDimensions() {
+    @computed get sortedUniqueEntitiesAcrossDimensions() {
         return sortBy(
             uniq(flatten(this.data.filledDimensions.map(d => d.entitiesUniq)))
         )

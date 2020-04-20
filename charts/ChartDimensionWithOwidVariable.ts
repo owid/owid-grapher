@@ -191,10 +191,7 @@ export class ChartDimensionWithOwidVariable {
         return this.variable.entityNames
     }
 
-    /*  returns [year of latest value, latest value] for a given entity and variable
-        returns null if no value found
-     */
-    latestValueforEntity(entity: string) {
+    yearAndValueOfLatestValueforEntity(entity: string) {
         const valueByYear = this.valueByEntityAndYear.get(entity)
         return valueByYear ? last(Array.from(valueByYear)) ?? null : null
     }
