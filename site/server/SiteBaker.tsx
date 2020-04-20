@@ -238,6 +238,7 @@ export class SiteBaker {
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
+                    !path.startsWith("covid-chart-builder") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
