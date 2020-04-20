@@ -55,7 +55,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                                         updated with new content.
                                     </p>
                                     {years.map(year => (
-                                        <section>
+                                        <section key={year}>
                                             <h2 id={year}>
                                                 <a
                                                     href={`${BAKED_BASE_URL}/entries-by-year/${year}`}
