@@ -29,7 +29,6 @@ export function subscribeChartToGlobalEntitySelection(
     chart: ChartConfig,
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {
-    console.log("subscribeChartToGlobalEntitySelection", arguments)
     return reaction(
         () => chart.data.isReady && globalSelection.selectedEntities,
         () => {
