@@ -9,10 +9,11 @@ import { csv } from "d3-fetch"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { OwidVariable } from "./owidData/OwidVariable"
-import { uniqBy } from "lodash"
+import { uniqBy, sortBy } from "lodash"
 import { dateDiffInDays } from "charts/Util"
 import moment from "moment"
 import { ChartDimension } from "./ChartDimension"
+import { FuzzySearch } from "./FuzzySearch"
 
 @observer
 class CountryPicker extends React.Component<{
@@ -26,24 +27,56 @@ class CountryPicker extends React.Component<{
         )
     }
 
+    @computed get fuzzy(): FuzzySearch<CountryOption> {
+        return new FuzzySearch(this.options, "name")
+    }
+
+    @computed get searchResults(): CountryOption[] {
+        const results = this.searchInput
+            ? this.fuzzy.search(this.searchInput)
+            : this.options
+        return sortBy(results, result => result.name)
+    }
+
+    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}
+
     @computed get options() {
         return this.props.chartBuilder.countryOptions
     }
 
+    @observable searchInput?: string
+    searchField!: HTMLInputElement
+
     render() {
-        return this.options.map((option, index) => (
-            <div key={index}>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={option.selected}
-                        onChange={this.onChange}
-                        value={option.code}
-                    />
-                    {option.name}
-                </label>
+        return (
+            <div>
+                <input
+                    type="search"
+                    placeholder="Search..."
+                    value={this.searchInput}
+                    onInput={e => (this.searchInput = e.currentTarget.value)}
+                    onKeyDown={this.onSearchKeyDown}
+                    ref={e => (this.searchField = e as HTMLInputElement)}
+                />
+                <div onClick={this.props.chartBuilder.clearSelectionCommand}>
+                    X Clear selection
+                </div>
+
+                {this.searchResults.map((option, index) => (
+                    <div key={index}>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={option.selected}
+                                onChange={this.onChange}
+                                value={option.code}
+                            />
+                            {option.name}
+                        </label>
+                    </div>
+                ))}
             </div>
-        ))
+        )
     }
 }
 
@@ -329,6 +362,11 @@ export class CovidChartBuilder extends React.Component<{
 
     @action.bound setDeathsMetricCommand(value: DeathsMetricOption) {
         this.props.params.deathsMetric = value
+        this.updateChart()
+    }
+
+    @action.bound clearSelectionCommand() {
+        this.props.params.selectedCountryCodes.clear()
         this.updateChart()
     }
 

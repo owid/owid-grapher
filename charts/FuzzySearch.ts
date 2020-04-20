@@ -11,7 +11,6 @@ export class FuzzySearch<T> {
     }
 
     search(input: string): T[] {
-        console.log(fuzzysort.go(input, this.strings))
         return fuzzysort
             .go(input, this.strings)
             .map((result: any) => this.datamap[result.target])
