@@ -26,7 +26,8 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderExplorableIndicatorsJson
+    renderExplorableIndicatorsJson,
+    renderCovidChartBuilderPage
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -302,6 +303,10 @@ export class SiteBaker {
                 await renderExplorableIndicatorsJson()
             )
         }
+        await this.stageWrite(
+            `${BAKED_SITE_DIR}/covid-chart-builder.html`,
+            await renderCovidChartBuilderPage()
+        )
     }
 
     // Pages that are expected by google scholar for indexing

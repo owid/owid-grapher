@@ -1,0 +1,32 @@
+.CovidChartBuilder {
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1250px;
+
+    .CovidChartBuilderSideBar {
+        width: 250px;
+        max-height: 600px;
+        overflow-y: scroll;
+    }
+
+    .CovidChartBuilderMainBar {
+        width: calc(100% - 250px);
+
+        .CovidChartBuilderTopBar {
+            width: 100%;
+        }
+
+        .CovidChartBuilderFigure {
+            width: 100%;
+        }
+    }
+
+    .CovidChartBuilderRadio {
+        float: left;
+        height: 100px;
+        margin: 3px;
+        padding: 3px;
+        background: white;
+    }
+}
