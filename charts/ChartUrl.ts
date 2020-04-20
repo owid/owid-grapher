@@ -11,7 +11,6 @@ import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
 import {
     includes,
-    filter,
     uniq,
     defaultTo,
     formatDay,
@@ -333,34 +332,7 @@ export class ChartUrl implements ObservableUrl {
                         const entityCodes = country
                             .split("+")
                             .map(decodeURIComponent)
-
-                        if (chart.data.canChangeEntity) {
-                            chart.data.availableEntities.forEach(entity => {
-                                const entityMeta = chart.entityMetaByKey[entity]
-                                if (
-                                    entityMeta.code === entityCodes[0] ||
-                                    entityMeta.name === entityCodes[0]
-                                )
-                                    chart.data.setSelectedEntity(entityMeta.id)
-                            })
-                        } else {
-                            chart.data.selectedKeys = filter(
-                                chart.data.availableKeys,
-                                key => {
-                                    const meta = chart.data.lookupKey(key)
-                                    const entityMeta =
-                                        chart.entityMetaByKey[meta.entity]
-                                    return (
-                                        includes(entityCodes, meta.shortCode) ||
-                                        includes(
-                                            entityCodes,
-                                            entityMeta.code
-                                        ) ||
-                                        includes(entityCodes, entityMeta.name)
-                                    )
-                                }
-                            )
-                        }
+                        this.chart.data.setSelectedEntitiesByCode(entityCodes)
                     }
                 })
             }

@@ -15,7 +15,7 @@ import {
     slugify,
     lastOfNonEmptyArray
 } from "./Util"
-import { computed, toJS } from "mobx"
+import { computed, toJS, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
@@ -341,6 +341,30 @@ export class ChartData {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
+    }
+
+    @action.bound setSelectedEntitiesByCode(entityCodes: string[]) {
+        if (this.canChangeEntity) {
+            this.availableEntities.forEach(entity => {
+                const entityMeta = this.chart.entityMetaByKey[entity]
+                if (
+                    entityMeta.code === entityCodes[0] ||
+                    entityMeta.name === entityCodes[0]
+                ) {
+                    this.setSelectedEntity(entityMeta.id)
+                }
+            })
+        } else {
+            this.selectedKeys = this.availableKeys.filter(key => {
+                const meta = this.lookupKey(key)
+                const entityMeta = this.chart.entityMetaByKey[meta.entity]
+                return (
+                    includes(entityCodes, meta.shortCode) ||
+                    includes(entityCodes, entityMeta.code) ||
+                    includes(entityCodes, entityMeta.name)
+                )
+            })
+        }
     }
 
     @computed get selectedKeys(): EntityDimensionKey[] {
