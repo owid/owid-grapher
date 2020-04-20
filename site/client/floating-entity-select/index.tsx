@@ -24,7 +24,7 @@ const Option = (props: OptionProps<Country>) => {
 @observer
 class Control extends React.Component {
     // Set some defaults temporarily
-    @observable.ref private selectedCountries: Country[] = countries.filter(
+    @observable private selectedCountries: Country[] = countries.filter(
         c => c.code === "GBR" || c.code === "MKD"
     )
 
