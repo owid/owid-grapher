@@ -81,7 +81,7 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get origChartProps() {
-        return this.chart.origChartProps
+        return this.chart.origProps
     }
 
     // Autocomputed url params to reflect difference between current chart state

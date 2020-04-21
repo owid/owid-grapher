@@ -368,7 +368,7 @@ export class ChartData {
     }
 
     @action.bound setSelectedEntitiesDefault() {
-        this.chart.props.selectedData = this.chart.origChartProps.selectedData
+        this.chart.props.selectedData = this.chart.origProps.selectedData
     }
 
     @computed get selectedKeys(): EntityDimensionKey[] {

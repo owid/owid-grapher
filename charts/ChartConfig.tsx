@@ -256,13 +256,13 @@ export class ChartConfigProps {
 export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
-    origChartPropsRaw: ChartConfigProps
-    @computed get origChartProps(): ChartConfigProps {
+    origPropsRaw: ChartConfigProps
+    @computed get origProps(): ChartConfigProps {
         if (typeof App !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.props)
         } else {
-            return this.origChartPropsRaw
+            return this.origPropsRaw
         }
     }
 
@@ -417,7 +417,7 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
-        this.origChartPropsRaw = toJS(this.props)
+        this.origPropsRaw = toJS(this.props)
 
         this.disposers.push(
             reaction(() => this.variableIds, this.downloadData, {
