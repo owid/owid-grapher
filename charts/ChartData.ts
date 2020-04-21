@@ -367,7 +367,7 @@ export class ChartData {
         }
     }
 
-    @action.bound setSelectedEntitiesDefault() {
+    @action.bound resetSelectedEntities() {
         this.chart.props.selectedData = this.chart.origProps.selectedData
     }
 

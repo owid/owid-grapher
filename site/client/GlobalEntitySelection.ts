@@ -44,7 +44,7 @@ export function subscribeChartToGlobalEntitySelection(
                     selectedEntities.map(entity => entity.code)
                 )
             } else {
-                chart.data.setSelectedEntitiesDefault()
+                chart.data.resetSelectedEntities()
             }
         },
         { fireImmediately: true }
