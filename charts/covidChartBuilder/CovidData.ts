@@ -35,6 +35,38 @@ export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     return rawData.map(parseRow)
 }
 
+export const daysSinceVariable = (
+    data: ParsedCovidRow[],
+    countryMap: Map<any, any>
+) => {
+    const rows = data.filter(row => row.total_deaths >= 5)
+    let currentCountry = ""
+    let firstCountryDate = ""
+    const dataWeNeed = rows.map(row => {
+        if (row.location !== currentCountry) {
+            currentCountry = row.location
+            firstCountryDate = row.date
+        }
+        return {
+            year: dateToYear(row.date),
+            entity: countryMap.get(row.location),
+            value: dateDiffInDays(
+                moment.utc(row.date).toDate(),
+                moment.utc(firstCountryDate).toDate()
+            )
+        }
+    })
+
+    const variable: Partial<OwidVariable> = {
+        ...variablePartials.days_since_five,
+        years: dataWeNeed.map(row => row.year),
+        entities: dataWeNeed.map(row => row.entity),
+        values: dataWeNeed.map(row => row.value)
+    }
+
+    return variable as OwidVariable
+}
+
 // Rolling average
 
 export const buildCovidVariable = (

@@ -27,7 +27,12 @@ import {
 import { RadioOption, CovidRadioControl } from "./CovidRadioControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
-import { fetchAndParseData, RowAccessor, buildCovidVariable } from "./CovidData"
+import {
+    fetchAndParseData,
+    RowAccessor,
+    buildCovidVariable,
+    daysSinceVariable
+} from "./CovidData"
 
 @observer
 export class CovidChartBuilder extends React.Component<{
@@ -56,6 +61,12 @@ export class CovidChartBuilder extends React.Component<{
         return this.buildVariable("cases", row => row.new_cases)
     }
 
+    @computed private get testsVariable(): OwidVariable {
+        if (this.props.params.totalFreq)
+            return this.buildVariable("tests", row => row.total_tests)
+        return this.buildVariable("tests", row => row.new_tests)
+    }
+
     buildVariable(name: MetricKind, rowFn: RowAccessor) {
         const perCapita =
             this.props.params.count === "total"
@@ -70,12 +81,6 @@ export class CovidChartBuilder extends React.Component<{
             rowFn,
             perCapita
         )
-    }
-
-    @computed private get testsVariable(): OwidVariable {
-        if (this.props.params.totalFreq)
-            return this.buildVariable("tests", row => row.total_tests)
-        return this.buildVariable("tests", row => row.new_tests)
     }
 
     @action.bound setDeathsMetricCommand(value: DeathsMetricOption) {
@@ -379,6 +384,11 @@ export class CovidChartBuilder extends React.Component<{
         if (this.props.params.casesMetric)
             variableSet.variables[variableId] = this.casesVariable
 
+        variableSet.variables[99999] = daysSinceVariable(
+            this.props.data,
+            this.countryMap
+        )
+
         return variableSet
     }
 
@@ -487,7 +497,7 @@ export class CovidChartBuilder extends React.Component<{
             },
             {
                 property: "x",
-                variableId: 142590,
+                variableId: 99999,
                 display: {
                     name: "Days since the 5th total confirmed death"
                 }
