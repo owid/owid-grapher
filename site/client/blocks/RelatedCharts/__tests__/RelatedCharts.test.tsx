@@ -1,3 +1,5 @@
+#! /usr/bin/env yarn jest
+
 import * as React from "react"
 import { mount } from "enzyme"
 import { RelatedCharts } from "../RelatedCharts"
@@ -34,10 +36,14 @@ it("renders active chart links and loads respective chart on click", () => {
 
     wrapper.find("a").forEach((link, idx) => {
         link.simulate("click")
-        expect(wrapper.find("iframe")).toHaveLength(1)
+        expect(wrapper.find("figure")).toHaveLength(1)
         expect(
-            wrapper.find(`iframe[src="/grapher/${charts[idx].slug}"]`)
+            wrapper.find(
+                `figure[data-grapher-src="/grapher/${charts[idx].slug}"]`
+            )
         ).toHaveLength(1)
+        // should have forced re-render by changing the `key`
+        expect(wrapper.find("figure").key()).toEqual(charts[idx].slug)
     })
 
     expect(
