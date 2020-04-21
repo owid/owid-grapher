@@ -1,3 +1,5 @@
+$controls-color: #3f9eff;
+
 .CovidChartBuilder {
     display: flex;
     margin: 0 auto;
@@ -7,10 +9,30 @@
     .CovidChartBuilderSideBar {
         width: 250px;
         max-height: 600px;
+        padding-right: 10px;
+
+        .CountrySearch {
+            padding: 5px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 100%;
+        }
 
         .CountrySearchResults {
             height: 500px;
             overflow-y: scroll;
+
+            .CountryOption {
+                display: block;
+                background: white;
+                padding: 10px;
+                margin-bottom: 5px;
+
+                input {
+                    margin-right: 8px;
+                }
+            }
         }
     }
 
@@ -24,6 +46,10 @@
         .CovidChartBuilderFigure {
             width: 100%;
         }
+    }
+
+    .ClearSelectionButton {
+        color: $controls-color;
     }
 
     .CovidChartBuilderRadio {

@@ -26,7 +26,11 @@ export class CountryPicker extends React.Component<{
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.options
-        return sortBy(results, result => result.name)
+        return sortBy(
+            results,
+            result => !result.selected,
+            result => result.name
+        )
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}
@@ -42,8 +46,9 @@ export class CountryPicker extends React.Component<{
         return (
             <div>
                 <input
+                    className="CountrySearch"
                     type="search"
-                    placeholder="Search..."
+                    placeholder="Add a country"
                     value={this.searchInput}
                     onInput={e => (this.searchInput = e.currentTarget.value)}
                     onKeyDown={this.onSearchKeyDown}
@@ -51,22 +56,21 @@ export class CountryPicker extends React.Component<{
                 />
                 <div className="CountrySearchResults">
                     {this.searchResults.map((option, index) => (
-                        <div key={index}>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={option.selected}
-                                    onChange={this.onChange}
-                                    value={option.code}
-                                />
-                                {option.name}
-                            </label>
-                        </div>
+                        <label className="CountryOption" key={index}>
+                            <input
+                                type="checkbox"
+                                checked={option.selected}
+                                onChange={this.onChange}
+                                value={option.code}
+                            />
+                            {option.name}
+                        </label>
                     ))}
                 </div>
 
                 <div className="CountrySelectionControls">
                     <div
+                        className="ClearSelectionButton"
                         onClick={this.props.chartBuilder.clearSelectionCommand}
                     >
                         X Clear selection
