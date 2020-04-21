@@ -26,7 +26,7 @@ export const LongFormPage = (props: {
 
     const pageTitle = post.title
     const pageTitleSEO = `${post.title}${
-        post.subtitle ? ` ${post.subtitle}` : ""
+        post.subtitle ? ` - ${post.subtitle}` : ""
     }`
     const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
