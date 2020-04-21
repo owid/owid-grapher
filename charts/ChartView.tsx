@@ -2,7 +2,6 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observable, computed, action, autorun } from "mobx"
 import { observer } from "mobx-react"
-import { select } from "d3-selection"
 import "d3-transition"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
@@ -244,7 +243,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     @observable hasBeenVisible: boolean = false
     @observable hasError: boolean = false
-    @observable hasFadedIn: boolean = false
 
     @computed get classNames(): string {
         const classNames = [
@@ -419,20 +417,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     @action.bound onUpdate() {
         // handler always runs on resize and resets the base font size
         this.setBaseFontSize()
-        if (
-            this.chart.data.isReady &&
-            this.hasBeenVisible &&
-            !this.hasFadedIn
-        ) {
-            select(this.base.current!)
-                .selectAll(".chart > *")
-                .style("opacity", 0)
-                .transition()
-                .style("opacity", null)
-            this.hasFadedIn = true
-        } else {
-            this.checkVisibility()
-        }
+        this.checkVisibility()
     }
 
     // Binds chart properties to global window title and URL. This should only
