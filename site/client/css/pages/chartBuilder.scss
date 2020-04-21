@@ -7,7 +7,11 @@
     .CovidChartBuilderSideBar {
         width: 250px;
         max-height: 600px;
-        overflow-y: scroll;
+
+        .CountrySearchResults {
+            height: 500px;
+            overflow-y: scroll;
+        }
     }
 
     .CovidChartBuilderMainBar {
