@@ -151,6 +151,7 @@ class MultiEmbedder {
                 "scroll",
                 this.loadVisibleFiguresThrottled
             )
+            this.watchingScroll = false
         }
         return this
     }
