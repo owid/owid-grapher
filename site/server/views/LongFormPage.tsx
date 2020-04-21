@@ -111,7 +111,12 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
-                                <h1 className="entry-title">{post.title}</h1>
+                                <h1 className="entry-title">
+                                    <span>{post.title}</span>
+                                    {post.subtitle && (
+                                        <span>{post.subtitle}</span>
+                                    )}
+                                </h1>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
                                         <a href="/team">by {authorsText}</a>

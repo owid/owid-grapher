@@ -33,11 +33,12 @@ export interface FormattedPost {
     slug: string
     path: string
     title: string
+    subtitle?: string | null
     date: Date
     modifiedDate: Date
-    lastUpdated: string | null
+    lastUpdated?: string | null
     authors: string[]
-    info: string | null
+    info?: string | null
     html: string
     footnotes: string[]
     references: Reference[]
@@ -188,12 +189,20 @@ export async function formatWordpressPost(
         $info.remove()
     }
 
-    // Extract blog info content
-    let lastUpdated = null
+    // Extract last updated
+    let lastUpdated
     const $lastUpdated = $(".wp-block-last-updated")
     if ($lastUpdated.length) {
         lastUpdated = $lastUpdated.html()
         $lastUpdated.remove()
+    }
+
+    // Extract page subtitle
+    let pageSubtitle
+    const $pageSubtitle = $(".wp-block-page-subtitle")
+    if ($pageSubtitle.length) {
+        pageSubtitle = $pageSubtitle.text()
+        $pageSubtitle.remove()
     }
 
     // Replace grapher iframes with static previews
@@ -529,6 +538,7 @@ export async function formatWordpressPost(
         slug: post.slug,
         path: post.path,
         title: post.title,
+        subtitle: pageSubtitle,
         date: post.date,
         modifiedDate: post.modifiedDate,
         lastUpdated: lastUpdated,
@@ -616,9 +626,7 @@ export async function formatPost(
             title: post.title,
             date: post.date,
             modifiedDate: post.modifiedDate,
-            lastUpdated: null, // Assumption: "last updated" blocks are only added to formatted content
             authors: post.authors,
-            info: null, // Assumption: info blocks are only added to formatted content
             html: html,
             footnotes: [],
             references: [],
