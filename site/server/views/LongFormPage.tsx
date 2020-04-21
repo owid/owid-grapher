@@ -25,6 +25,9 @@ export const LongFormPage = (props: {
     const { entries, post, formattingOptions } = props
 
     const pageTitle = post.title
+    const pageTitleSEO = `${post.title}${
+        post.subtitle ? ` ${post.subtitle}` : ""
+    }`
     const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
     const publishedYear = post.modifiedDate.getFullYear()
@@ -80,7 +83,7 @@ export const LongFormPage = (props: {
     return (
         <html>
             <Head
-                pageTitle={pageTitle}
+                pageTitle={pageTitleSEO}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={post.imageUrl}
