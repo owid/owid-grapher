@@ -1,7 +1,7 @@
 import { bind } from "decko"
 
 import { ChartView } from "charts/ChartView"
-import { throttle, isMobile } from "charts/Util"
+import { throttle, isMobile, fetchText } from "charts/Util"
 import { GlobalEntitySelection } from "./GlobalEntitySelection"
 
 interface LoadableFigure {
@@ -122,12 +122,10 @@ class MultiEmbedder {
                     }
                     this.addFigure(figure)
 
-                    fetch(configUrl)
-                        .then(data => data.text())
-                        .then(html => {
-                            figure.jsonConfig = readConfigFromHTML(html)
-                            this.loadVisibleFiguresThrottled()
-                        })
+                    fetchText(configUrl).then(html => {
+                        figure.jsonConfig = readConfigFromHTML(html)
+                        this.loadVisibleFiguresThrottled()
+                    })
                 }
             }
         }
