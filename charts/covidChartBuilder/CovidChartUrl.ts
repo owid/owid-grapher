@@ -7,14 +7,14 @@ import { extend } from "../Util"
 import { CountOption, TimelineOption, SmoothingOption } from "./CovidTypes"
 
 export class CovidQueryParams {
-    @observable.ref testsMetric: boolean = false
-    @observable.ref deathsMetric: boolean = true
-    @observable.ref casesMetric: boolean = false
-    @observable.ref totalFreq: boolean = true
-    @observable.ref dailyFreq: boolean = false
-    @observable.ref count: CountOption = "total"
-    @observable.ref timeline: TimelineOption = "normal"
-    @observable.ref smoothing: SmoothingOption = "normal"
+    @observable testsMetric: boolean = false
+    @observable deathsMetric: boolean = true
+    @observable casesMetric: boolean = false
+    @observable totalFreq: boolean = true
+    @observable dailyFreq: boolean = false
+    @observable count: CountOption = "total"
+    @observable timeline: TimelineOption = "normal"
+    @observable smoothing: SmoothingOption = "normal"
     @observable selectedCountryCodes: Set<string> = new Set(["CAN"])
 
     constructor(queryString: string) {
@@ -38,6 +38,7 @@ export class CovidQueryParams {
         params.casesMetric = this.casesMetric ? true : undefined
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
+        params.count = this.count
 
         if (this.selectedCountryCodes.values.length)
             params.selectedCountryCodes = Array.from(

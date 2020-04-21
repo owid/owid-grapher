@@ -456,8 +456,8 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.map.variableId = this.yVariableIndex
         chartProps.data!.availableEntities = this.availableEntities
 
-        this.chart.url.externalBaseUrl = "covid-chart-builder"
-        this.chart.url.externallyProvidedParams = this.props.params.toParams
+        // this.chart.url.externalBaseUrl = "covid-chart-builder"
+        // this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
     componentDidMount() {
