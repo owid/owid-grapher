@@ -5,6 +5,7 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
+import { flatten } from "lodash"
 
 // Todo: cleanup
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
@@ -78,14 +79,38 @@ export const daysSinceVariable = (
     return variable as OwidVariable
 }
 
-// Rolling average
+const computeRollingAverage = (numbers: number[], windowSize: number) => {
+    const result: number[] = []
+
+    for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
+        const leftEdge = valueIndex - windowSize
+        const start = leftEdge >= 0 ? leftEdge : 0
+        const end = valueIndex + windowSize + 1
+
+        let count = 0
+        let sum = 0
+        for (
+            let windowIndex = start;
+            windowIndex < end && windowIndex < numbers.length;
+            windowIndex++
+        ) {
+            sum += numbers[windowIndex]
+            count++
+        }
+
+        result[valueIndex] = sum / count
+    }
+
+    return result
+}
 
 export const buildCovidVariable = (
     name: MetricKind,
     countryMap: Map<any, any>,
     data: ParsedCovidRow[],
     rowFn: RowAccessor,
-    perCapita?: number
+    perCapita?: number,
+    rollingAverage?: number
 ): OwidVariable => {
     const filtered = data.filter(rowFn)
     const years = filtered.map(row => dateToYear(row.date))
@@ -97,6 +122,22 @@ export const buildCovidVariable = (
             const value = rowFn(row)
             return perCapita * (value / pop)
         })
+
+    if (rollingAverage) {
+        const averages = []
+        let currentEntity = entities[0]
+        let currentValues = []
+        for (let i = 0; i < entities.length; i++) {
+            const entity = entities[i]
+            if (currentEntity !== entity) {
+                averages.push(computeRollingAverage(currentValues, 3))
+                currentValues = []
+                currentEntity = entity
+            }
+            currentValues.push(values[i])
+        }
+        values = flatten(averages)
+    }
 
     const variable: Partial<OwidVariable> = {
         ...variablePartials[name],

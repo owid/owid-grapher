@@ -81,7 +81,8 @@ export class CovidChartBuilder extends React.Component<{
             this.countryMap,
             this.props.data,
             rowFn,
-            perCapita
+            perCapita,
+            this.props.params.smoothing === "threeDayRollingAverage" ? 3 : 0
         )
     }
 
@@ -92,6 +93,14 @@ export class CovidChartBuilder extends React.Component<{
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()
+        this.updateChart()
+    }
+
+    // todo: perf
+    @action.bound selectAllCommand() {
+        this.countryOptions.forEach(country => {
+            this.toggleSelectedCountryCommand(country.code, true)
+        })
         this.updateChart()
     }
 
@@ -271,8 +280,11 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
-    @action.bound toggleSelectedCountryCommand(code: string, value: boolean) {
-        if (this.props.params.selectedCountryCodes.has(code))
+    @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
+        if (value) this.props.params.selectedCountryCodes.add(code)
+        else if (value === false)
+            this.props.params.selectedCountryCodes.delete(code)
+        else if (this.props.params.selectedCountryCodes.has(code))
             this.props.params.selectedCountryCodes.delete(code)
         else this.props.params.selectedCountryCodes.add(code)
         this.updateChart()
@@ -459,6 +471,7 @@ export class CovidChartBuilder extends React.Component<{
 
         if (params.dailyFreq) baseVar += 3
         if (params.count === "perCapita") baseVar += 7
+        if (params.smoothing === "threeDayRollingAverage") baseVar += 11
 
         return baseVar
     }
