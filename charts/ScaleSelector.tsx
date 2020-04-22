@@ -52,6 +52,16 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         this.props.onChange(scaleTypeOptions[nextScaleTypeIndex])
     }
 
+    private componentWidth = 45
+
+    private getLeftShiftIfNeeded(xPosition: number) {
+        const maxWidth = this.context.chartView.tabBounds.width
+        const overflow = maxWidth - (xPosition + this.componentWidth)
+        let shiftLeft = 0
+        if (overflow < 0) shiftLeft = Math.abs(overflow)
+        return shiftLeft
+    }
+
     render() {
         const { x, y, onClick, scaleType } = this
 
@@ -64,7 +74,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         }
         return (
             <text
-                x={x}
+                x={x - this.getLeftShiftIfNeeded(x)}
                 y={y}
                 onClick={onClick}
                 style={style as any}

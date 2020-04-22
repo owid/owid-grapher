@@ -150,18 +150,31 @@ export class HorizontalAxisView extends React.Component<{
                     )}
                 {tickMarks}
                 {ticks.map((tick, i) => {
-                    return (
+                    const label = scale.tickFormat(tick)
+                    const rawXPosition = scale.place(tick)
+                    // Ensure the first label does not exceed the chart viewing area
+                    const xPosition =
+                        i === 0
+                            ? Bounds.getRightShiftForMiddleAlignedTextIfNeeded(
+                                  label,
+                                  axis.tickFontSize,
+                                  rawXPosition
+                              ) + rawXPosition
+                            : rawXPosition
+                    const element = (
                         <text
                             key={i}
-                            x={scale.place(tick)}
+                            x={xPosition}
                             y={bounds.bottom - labelOffset}
                             fill={textColor}
                             textAnchor="middle"
                             fontSize={axis.tickFontSize}
                         >
-                            {scale.tickFormat(tick)}
+                            {label}
                         </text>
                     )
+
+                    return element
                 })}
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
                     <ScaleSelector

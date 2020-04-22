@@ -18,3 +18,4 @@ datasetsExport
 .queue
 .pending
 coverage/
+public/head.txt

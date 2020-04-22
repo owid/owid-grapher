@@ -14,6 +14,7 @@ import { CategoryWithEntries } from "db/wpdb"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "site/client/TableOfContents"
 
 export const LongFormPage = (props: {
@@ -24,6 +25,9 @@ export const LongFormPage = (props: {
     const { entries, post, formattingOptions } = props
 
     const pageTitle = post.title
+    const pageTitleSEO = `${post.title}${
+        post.subtitle ? ` - ${post.subtitle}` : ""
+    }`
     const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
     const publishedYear = post.modifiedDate.getFullYear()
@@ -51,6 +55,11 @@ export const LongFormPage = (props: {
                 isSubheading: false
             })
         }
+        post.tocHeadings.push({
+            text: "Licence",
+            slug: "licence",
+            isSubheading: false
+        })
         if (isEntry) {
             post.tocHeadings.push({
                 text: "Citation",
@@ -74,7 +83,7 @@ export const LongFormPage = (props: {
     return (
         <html>
             <Head
-                pageTitle={pageTitle}
+                pageTitle={pageTitleSEO}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={post.imageUrl}
@@ -105,7 +114,12 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
-                                <h1 className="entry-title">{post.title}</h1>
+                                <h1 className="entry-title">
+                                    <span>{post.title}</span>
+                                    {post.subtitle && (
+                                        <span>{post.subtitle}</span>
+                                    )}
+                                </h1>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
                                         <a href="/team">by {authorsText}</a>
@@ -120,12 +134,34 @@ export const LongFormPage = (props: {
                                         }}
                                     />
                                 )}
-                                {isEntry && (
+
+                                {post.lastUpdated && (
+                                    <div
+                                        className="last-updated"
+                                        dangerouslySetInnerHTML={{
+                                            __html: post.lastUpdated
+                                        }}
+                                    />
+                                )}
+                                {(isPost || isEntry) && (
                                     <div className="tools">
-                                        <a href="#citation" className="cite">
-                                            <FontAwesomeIcon icon={faBook} />
-                                            Cite this research
-                                        </a>
+                                        {(isPost || isEntry) && (
+                                            <a href="#licence">
+                                                <FontAwesomeIcon
+                                                    icon={faCreativeCommons}
+                                                />
+                                                Reuse our work{" "}
+                                                <strong>freely</strong>
+                                            </a>
+                                        )}
+                                        {isEntry && (
+                                            <a href="#citation">
+                                                <FontAwesomeIcon
+                                                    icon={faBook}
+                                                />
+                                                Cite this research
+                                            </a>
+                                        )}
                                     </div>
                                 )}
                             </header>
@@ -180,7 +216,38 @@ export const LongFormPage = (props: {
                                                 ) : (
                                                     undefined
                                                 )}
-
+                                                {(isPost || isEntry) && (
+                                                    <>
+                                                        <h3 id="licence">
+                                                            Reuse our work
+                                                            freely
+                                                        </h3>
+                                                        <p>
+                                                            You can use all of
+                                                            what you find here
+                                                            for your own
+                                                            research or writing.
+                                                            We{" "}
+                                                            <a href="/how-to-use-our-world-in-data#how-is-our-work-copyrighted">
+                                                                license all
+                                                                charts under{" "}
+                                                                <em>
+                                                                    Creative
+                                                                    Commons BY
+                                                                </em>
+                                                                .
+                                                            </a>
+                                                        </p>
+                                                        <p>
+                                                            All of{" "}
+                                                            <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
+                                                                our charts can
+                                                                be embedded
+                                                            </a>{" "}
+                                                            in any site.
+                                                        </p>
+                                                    </>
+                                                )}
                                                 {isEntry && (
                                                     <React.Fragment>
                                                         <h3 id="citation">

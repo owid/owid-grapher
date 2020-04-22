@@ -33,10 +33,12 @@ export interface FormattedPost {
     slug: string
     path: string
     title: string
+    subtitle?: string | null
     date: Date
     modifiedDate: Date
+    lastUpdated?: string | null
     authors: string[]
-    info: string | null
+    info?: string | null
     html: string
     footnotes: string[]
     references: Reference[]
@@ -149,7 +151,11 @@ export async function formatWordpressPost(
 
     // Related charts
     // Mimicking SSR output of additional information block from PHP
-    if (post.relatedCharts && post.relatedCharts.length !== 0) {
+    if (
+        post.slug !== "coronavirus" &&
+        post.relatedCharts &&
+        post.relatedCharts.length !== 0
+    ) {
         const allCharts = `
         <block type="additional-information">
             <content>
@@ -176,9 +182,28 @@ export async function formatWordpressPost(
     renderBlocks($)
 
     // Extract blog info content
+    let info = null
     const $info = $(".blog-info")
-    const info = $info.html()
-    $info.remove()
+    if ($info.length) {
+        info = $info.html()
+        $info.remove()
+    }
+
+    // Extract last updated
+    let lastUpdated
+    const $lastUpdated = $(".wp-block-last-updated")
+    if ($lastUpdated.length) {
+        lastUpdated = $lastUpdated.html()
+        $lastUpdated.remove()
+    }
+
+    // Extract page subtitle
+    let pageSubtitle
+    const $pageSubtitle = $(".wp-block-page-subtitle")
+    if ($pageSubtitle.length) {
+        pageSubtitle = $pageSubtitle.text()
+        $pageSubtitle.remove()
+    }
 
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"
@@ -513,8 +538,10 @@ export async function formatWordpressPost(
         slug: post.slug,
         path: post.path,
         title: post.title,
+        subtitle: pageSubtitle,
         date: post.date,
         modifiedDate: post.modifiedDate,
+        lastUpdated: lastUpdated,
         authors: post.authors,
         info: info,
         html: `${style}${$("body").html()}` as string,
@@ -585,6 +612,7 @@ export async function formatPost(
     // Standardize urls
     html = html
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
     // No formatting applied, plain source HTML returned
@@ -599,7 +627,6 @@ export async function formatPost(
             date: post.date,
             modifiedDate: post.modifiedDate,
             authors: post.authors,
-            info: null, // Assumption: info blocks are only added to formatted content
             html: html,
             footnotes: [],
             references: [],

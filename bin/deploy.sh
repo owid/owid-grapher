@@ -6,6 +6,10 @@ if [ "$1" == "staging" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
   NAME="staging"
+elif [ "$1" == "hans" ]; then
+  HOST="owid@165.22.127.239"
+  ROOT="/home/owid"
+  NAME="hans"
 elif [ "$1" == "explorer" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
@@ -40,8 +44,15 @@ then
   FINAL_TARGET="$ROOT/$NAME"
   FINAL_DATA="$ROOT/$NAME-data"
 
+  GIT_EMAIL="$(git config user.email)"
+  GIT_NAME="$(git config user.name)"
+  GIT_HEAD="$(git rev-parse HEAD)"
+
   # Run pre-deploy checks
   yarn testcheck
+
+  # Write the current commit SHA to public/head.txt so we always know which commit is deployed
+  echo $GIT_HEAD > public/head.txt
 
   # Ensure tmp/ directory exists
   ssh $HOST mkdir -p $ROOT/tmp
@@ -86,7 +97,7 @@ then
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  yarn tsn scripts/bakeSite.ts
+  yarn tsn scripts/bakeSite.ts "$GIT_EMAIL" "$GIT_NAME"
 
   # Restart the deploy queue
   pm2 start $NAME-deploy-queue

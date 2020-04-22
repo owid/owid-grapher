@@ -725,22 +725,6 @@ hr {
     margin-bottom: 0;
 }
 
-/* The style of horizontal lines in the data sources section of every entry */
-hr.datasources-hr {
-    color: lightgrey;
-    border-top: none;
-    border-left: none;
-    border-right: 1px;
-    border-right-style: solid;
-    padding-bottom: 8px;
-    border-bottom: 1px;
-    border-bottom-style: solid;
-    margin-bottom: 0;
-    position: relative;
-    top: -40px;
-    padding-top: 20px;
-}
-
 .article-footer {
     font-size: 0.8em;
     line-height: 1.7em;

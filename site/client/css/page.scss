@@ -38,8 +38,11 @@
     }
 
     h1 {
+        display: flex;
+        flex-direction: column-reverse;
         margin-top: $vertical-spacing;
         margin-bottom: $vertical-spacing * 2;
+        font-size: 2.5rem;
         font-family: $serif-font-stack;
         font-weight: 400;
         line-height: 1.2;
@@ -68,6 +71,32 @@
         }
     }
 
+    .last-updated {
+        margin-top: 2 * $vertical-spacing;
+        color: $grey-text-color;
+    }
+
+    // Cite this research and other potential tools located at the top of entries
+    .tools {
+        display: flex;
+        margin-top: 3rem;
+        a {
+            margin-right: 1rem;
+            font-size: 0.8125rem;
+            color: $grey-text-color;
+            transition: all 0.2s;
+            &:hover {
+                color: $secondary-color;
+            }
+            svg {
+                margin-right: 0.5rem;
+            }
+        }
+        strong {
+            text-decoration: underline;
+        }
+    }
+
     &.large-banner {
         background-color: $primary-color-100;
 
@@ -84,32 +113,39 @@
             }
 
             h1 {
-                @include md-up {
-                    font-size: 3rem;
+                @mixin subtitle($base-font-size) {
+                    span:nth-child(2) {
+                        margin-bottom: -($font-size / 10);
+                        font-size: $font-size * 40 / 100;
+                    }
                 }
 
+                span {
+                    display: block;
+                    &:nth-child(2) {
+                        font-family: $sans-serif-font-stack;
+                        font-weight: lighter;
+                    }
+                }
+
+                $font-size: 2.5rem;
+                font-size: $font-size;
+                @include subtitle($font-size);
+
+                @include md-up {
+                    $font-size: 3rem;
+                    font-size: $font-size;
+                    @include subtitle($font-size);
+                }
                 @include lg-up {
-                    font-size: 4rem;
+                    $font-size: 4rem;
+                    font-size: $font-size;
+                    @include subtitle($font-size);
                 }
                 @include xlg-up {
-                    font-size: 5rem;
-                }
-            }
-
-            // Cite this research and other potential tools located at the top of entries
-            .tools {
-                display: flex;
-                margin-top: 3rem;
-                .cite {
-                    font-size: 0.8125rem;
-                    color: $grey-text-color;
-                    transition: all 0.2s;
-                    &:hover {
-                        color: $secondary-color;
-                    }
-                    svg {
-                        margin-right: 0.5rem;
-                    }
+                    $font-size: 5rem;
+                    font-size: $font-size;
+                    @include subtitle($font-size);
                 }
             }
         }
