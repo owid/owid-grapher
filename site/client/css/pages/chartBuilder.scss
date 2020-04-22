@@ -40,7 +40,9 @@ $controls-color: #3f9eff;
         width: calc(100% - 250px);
 
         .CovidChartBuilderTopBar {
-            width: 100%;
+            width: 800px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .CovidChartBuilderFigure {
@@ -53,10 +55,14 @@ $controls-color: #3f9eff;
     }
 
     .CovidChartBuilderRadio {
-        float: left;
-        height: 100px;
+        height: 80px;
         margin: 3px;
-        padding: 3px;
+        padding: 7px;
+        font-size: 14px;
         background: white;
+
+        input {
+            margin-right: 5px;
+        }
     }
 }
