@@ -2,7 +2,10 @@ import { bind } from "decko"
 
 import { ChartView } from "charts/ChartView"
 import { throttle, isMobile, fetchText } from "charts/Util"
-import { GlobalEntitySelection } from "./GlobalEntitySelection"
+import {
+    GlobalEntitySelection,
+    pageContainsGlobalEntityControl
+} from "./GlobalEntitySelection"
 
 interface LoadableFigure {
     configUrl: string
@@ -22,7 +25,11 @@ export function readConfigFromHTML(html: string): any {
 // loading a bunch of inline interactive charts
 export function shouldProgressiveEmbed() {
     // 680px is also used in CSS – keep it in sync if you change this
-    return !isMobile() || window.screen.width > 680
+    return (
+        !isMobile() ||
+        window.screen.width > 680 ||
+        pageContainsGlobalEntityControl()
+    )
 }
 
 /** Private class – use `Grapher` to access functionality. */

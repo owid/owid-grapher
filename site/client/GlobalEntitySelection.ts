@@ -15,7 +15,6 @@ export enum GlobalEntitySelectionStates {
 
 export type GlobalEntitySelectionEntity = Country
 
-// How to send signal to chart to reset its overrides?
 export class GlobalEntitySelection {
     @observable state: GlobalEntitySelectionStates =
         GlobalEntitySelectionStates.override
@@ -49,4 +48,8 @@ export function subscribeChartToGlobalEntitySelection(
         },
         { fireImmediately: true }
     )
+}
+
+export function pageContainsGlobalEntityControl() {
+    return document.querySelector("[data-floating-entity-control]") !== null
 }
