@@ -14,7 +14,8 @@ function sendFeedback(feedback: Feedback) {
         const req = new XMLHttpRequest()
 
         json.message =
-            feedback.message + `\n\n-----\nCurrent URL: ${window.location.href}`
+            feedback.message +
+            `\n\n-----\nCurrent URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}`
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
