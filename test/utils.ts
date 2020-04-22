@@ -16,17 +16,17 @@ export function setupChart(
     varIds: number[],
     configOverrides?: Partial<ChartConfigProps>
 ) {
-    const props = new ChartConfigProps({
-        ...fixtures.readChart(id),
-        ...configOverrides
-    })
-    const chart = new ChartConfig(props)
-
     const variableSet =
         varIds.length > 1
             ? fixtures.readVariableSet(varIds)
             : fixtures.readVariable(first(varIds) as number)
 
-    chart.receiveData(variableSet)
+    const props = new ChartConfigProps({
+        ...fixtures.readChart(id),
+        ...configOverrides,
+        owidDataset: variableSet
+    })
+
+    const chart = new ChartConfig(props)
     return chart
 }
