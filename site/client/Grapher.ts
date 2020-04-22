@@ -89,7 +89,12 @@ class MultiEmbedder {
         200
     )
 
-    // Check for figures which are available to load and load them
+    /**
+     * A trigger to load any interactive charts that have become visible.
+     *
+     * You can use this method when a hidden chart (display:none) becomes visible. The embedder
+     * otherwise automatically loads interactive charts when they approach the viewport.
+     */
     @bind public loadVisibleFigures() {
         this.figures.forEach(figure => {
             if (
@@ -102,6 +107,11 @@ class MultiEmbedder {
         })
     }
 
+    /**
+     * Make the embedder aware of new <figure> elements that are injected into the DOM.
+     *
+     * Use this when you programmatically create/replace charts.
+     */
     @bind public addFiguresFromDOM(
         container: HTMLElement | Document = document
     ) {
@@ -179,31 +189,25 @@ export class Grapher {
         }
     }
 
+    public static get globalEntitySelection(): GlobalEntitySelection {
+        return this.getInstance().globalEntitySelection
+    }
+
+    public static get embedder(): MultiEmbedder {
+        return this.getInstance().embedder
+    }
+
     /**
      * Finds all <figure data-grapher-src="..."> elements in the document and loads the iframeless
      * interactive charts when the user's viewport approaches them. Sets up a scroll event listener.
+     *
+     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughlybefore making
+     * any changes.
      */
     public static embedAll() {
-        this.getInstance().embedAll()
-    }
-
-    /**
-     * A trigger to load any interactive charts that have become visible.
-     *
-     * You can use this method when a hidden chart (display:none) becomes visible. The embedder
-     * otherwise automatically loads interactive charts when they approach the viewport.
-     */
-    public static loadVisibleFigures() {
-        this.getInstance().loadVisibleFigures()
-    }
-
-    /**
-     * Make the embedder aware of new <figure> elements that are injected into the DOM.
-     *
-     * Use this when you programmatically create/replace charts.
-     */
-    public static addFiguresFromDOM(container: HTMLElement) {
-        this.getInstance().addFiguresFromDOM(container)
+        this.getInstance()
+            .embedder.addFiguresFromDOM()
+            .watchScroll()
     }
 }
 
@@ -222,17 +226,5 @@ class GrapherSingleton {
         this.embedder = new MultiEmbedder({
             globalEntitySelection: this.globalEntitySelection
         })
-    }
-
-    public embedAll() {
-        this.embedder.addFiguresFromDOM().watchScroll()
-    }
-
-    public loadVisibleFigures() {
-        this.embedder.loadVisibleFigures()
-    }
-
-    public addFiguresFromDOM(container: HTMLElement) {
-        this.embedder.addFiguresFromDOM(container)
     }
 }

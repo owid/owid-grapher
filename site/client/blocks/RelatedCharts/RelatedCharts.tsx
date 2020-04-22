@@ -18,7 +18,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     useEffect(() => {
         if (refChartContainer.current) {
             // Track newly injected <figure> elements in embedder
-            Grapher.addFiguresFromDOM(refChartContainer.current)
+            Grapher.embedder.addFiguresFromDOM(refChartContainer.current)
         }
     }, [currentChart])
 
