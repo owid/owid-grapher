@@ -31,8 +31,10 @@ import {
     fetchAndParseData,
     RowAccessor,
     buildCovidVariable,
-    daysSinceVariable
+    daysSinceVariable,
+    continentsVariable
 } from "./CovidData"
+import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 
 @observer
 export class CovidChartBuilder extends React.Component<{
@@ -315,7 +317,9 @@ export class CovidChartBuilder extends React.Component<{
                     country.iso_code
                 ),
                 slug: country.location,
-                code: country.iso_code
+                code: country.iso_code,
+                continent:
+                    labelsByRegion[worldRegionByMapEntity[country.location]]
             }
         })
     }
@@ -369,6 +373,7 @@ export class CovidChartBuilder extends React.Component<{
         })
     }
 
+    // Todo: can I just keep of these in?
     @computed get theVariables(): OwidVariableSet {
         const variableId = this.yVariableIndex.toString()
         const variableSet: OwidVariableSet = {
@@ -389,8 +394,15 @@ export class CovidChartBuilder extends React.Component<{
             this.countryMap
         )
 
+        variableSet.variables[this.continentsVariableId] = continentsVariable(
+            this.countryOptions
+        )
+
         return variableSet
     }
+
+    // Todo: cleanup
+    private continentsVariableId = 77777
 
     @computed get countryMap() {
         const map = new Map()
@@ -501,6 +513,11 @@ export class CovidChartBuilder extends React.Component<{
                 display: {
                     name: "Days since the 5th total confirmed death"
                 }
+            },
+            {
+                property: "color",
+                variableId: this.continentsVariableId,
+                display: {}
             }
         ]
     }

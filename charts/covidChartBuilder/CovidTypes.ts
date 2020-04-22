@@ -35,4 +35,5 @@ export interface CountryOption {
     slug: countrySlug
     selected: boolean
     code: string
+    continent: string
 }

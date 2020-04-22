@@ -1,6 +1,6 @@
 import { dateDiffInDays } from "charts/Util"
 import moment from "moment"
-import { ParsedCovidRow, MetricKind } from "./CovidTypes"
+import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
@@ -33,6 +33,17 @@ const csvPath = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const rawData = await csv(csvPath)
     return rawData.map(parseRow)
+}
+
+export const continentsVariable = (countryOptions: CountryOption[]) => {
+    const variable: Partial<OwidVariable> = {
+        ...variablePartials.days_since_five,
+        years: countryOptions.map(country => 2020),
+        entities: countryOptions.map((country, index) => index),
+        values: countryOptions.map(country => country.continent)
+    }
+
+    return variable as OwidVariable
 }
 
 export const daysSinceVariable = (
