@@ -390,7 +390,7 @@ export class CovidChartBuilder extends React.Component<{
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
             return {
                 index: 0,
-                entityId: countryCodeMap.get(code)
+                entityId: countryCodeMap.get(code)!
             }
         })
     }
@@ -505,7 +505,10 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.map.variableId = this.yVariableIndices[0]
         chartProps.data!.availableEntities = this.availableEntities
 
-        if (this.addCountryMode === "change-country") {
+        if (
+            this.addCountryMode === "change-country" &&
+            this.firstSelectedCountryName
+        ) {
             const keys = this.chart.data.availableKeysByEntity.get(
                 this.firstSelectedCountryName
             )
