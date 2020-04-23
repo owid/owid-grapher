@@ -34,19 +34,36 @@ function render($attributes, $content)
     $linkEnd = '</a>';
   }
 
-  $block = <<<EOD
-	<div class="$classes">
-		$linkStart
-			$title
-			<div class="content-wrapper">
-				$figure
-				<div class="content">
-					$content
-				</div>
-			</div>
-		$linkEnd
-	</div>
-EOD;
+  $block = null;
+  if ($style === STYLE_THIN) {
+    $block = <<<EOD
+      <div class="$classes">
+        $linkStart
+          $figure
+          <div class="content-wrapper">
+            <div class="content">
+              $content
+            </div>
+            $title
+          </div>
+        $linkEnd
+      </div>
+    EOD;
+  } else {
+    $block = <<<EOD
+      <div class="$classes">
+        $linkStart
+          $title
+          <div class="content-wrapper">
+            $figure
+            <div class="content">
+              $content
+            </div>
+          </div>
+        $linkEnd
+      </div>
+    EOD;
+  }
 
   return $block;
 }
