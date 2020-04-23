@@ -1,20 +1,22 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { computed, action } from "mobx"
+import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
-import Select, { ValueType, components, OptionProps } from "react-select"
+import Select, { ValueType, components, OptionProps, Props } from "react-select"
+import classnames from "classnames"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { countries } from "utils/countries"
-import { isMultiSelect, sortBy } from "charts/Util"
+import { isMultiSelect, throttle, noop, orderBy } from "charts/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
 import { bindUrlToWindow } from "charts/UrlBinding"
 import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
+import { bind } from "decko"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -27,6 +29,68 @@ const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     )
 }
 
+const EntitySelect = (props: Props<GlobalEntitySelectionEntity>) => (
+    <Select
+        components={{
+            IndicatorSeparator: null,
+            Option
+        }}
+        menuPlacement="bottom"
+        isClearable={false}
+        isMulti={true}
+        backspaceRemovesValue={false}
+        blurInputOnSelect={false}
+        closeMenuOnSelect={false}
+        controlShouldRenderValue={false}
+        hideSelectedOptions={false}
+        placeholder="Add a country to all charts..."
+        styles={{ placeholder: base => ({ ...base, whiteSpace: "nowrap" }) }}
+        {...props}
+    />
+)
+
+function SelectedItems<T>(props: {
+    selectedItems: T[]
+    emptyLabel: string
+    getLabel: (item: T) => string
+    canRemove?: boolean
+    onRemove?: (item: T) => void
+}) {
+    const canRemove = (props.canRemove ?? true) && props.onRemove !== undefined
+    const onRemove = props.onRemove || noop
+    const isEmpty = props.selectedItems.length === 0
+    return (
+        <div className="selected-items-container">
+            {isEmpty ? (
+                <div className="empty">
+                    Select countries to show on all charts
+                </div>
+            ) : (
+                <div className="selected-items">
+                    {props.selectedItems.map(item => (
+                        <div
+                            key={props.getLabel(item)}
+                            className={classnames("selected-item", {
+                                removable: canRemove
+                            })}
+                        >
+                            <div className="label">{props.getLabel(item)}</div>
+                            {canRemove && (
+                                <div
+                                    className="remove-icon"
+                                    onClick={() => onRemove(item)}
+                                >
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
 export interface GlobalEntityControlProps {
     globalEntitySelection: GlobalEntitySelection
 }
@@ -35,12 +99,40 @@ export interface GlobalEntityControlProps {
 export class GlobalEntityControl extends React.Component<
     GlobalEntityControlProps
 > {
-    @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
-        return this.props.globalEntitySelection.selectedEntities
+    refContainer: React.RefObject<HTMLDivElement> = React.createRef()
+    disposers: IReactionDisposer[] = []
+
+    @observable isNarrow: boolean = true
+    @observable isOpen: boolean = false
+
+    @observable.ref allCountries: GlobalEntitySelectionEntity[] = countries
+
+    componentDidMount() {
+        this.onResize()
+        window.addEventListener("resize", this.onResizeThrottled)
+        this.disposers.push(
+            reaction(
+                () => this.isOpen,
+                () => this.sortAllCountries()
+            )
+        )
     }
 
-    @computed private get allCountries(): GlobalEntitySelectionEntity[] {
-        return sortBy(countries, country => country.name)
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.onResizeThrottled)
+        this.disposers.forEach(dispose => dispose())
+    }
+
+    private onResizeThrottled = throttle(this.onResize, 200)
+    @action.bound private onResize() {
+        const container = this.refContainer.current
+        if (container) {
+            this.isNarrow = container.offsetWidth <= 640
+        }
+    }
+
+    @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
+        return this.props.globalEntitySelection.selectedEntities
     }
 
     @action.bound setSelectedCountries(
@@ -49,12 +141,26 @@ export class GlobalEntityControl extends React.Component<
         this.props.globalEntitySelection.selectedEntities = countries
     }
 
+    @bind private isSelected(country: GlobalEntitySelectionEntity) {
+        return this.selectedCountries
+            .map(country => country.code)
+            .includes(country.code)
+    }
+
     private getOptionValue(country: GlobalEntitySelectionEntity) {
         return country.code
     }
 
     private getOptionLabel(country: GlobalEntitySelectionEntity) {
         return country.name
+    }
+
+    @action.bound private sortAllCountries() {
+        this.allCountries = orderBy(
+            this.allCountries,
+            [this.isSelected, country => country.name],
+            ["desc", "asc"]
+        )
     }
 
     @action.bound private onChange(
@@ -77,46 +183,105 @@ export class GlobalEntityControl extends React.Component<
         )
     }
 
-    render() {
+    @action.bound private onMenuOpen() {
+        this.isOpen = true
+    }
+
+    @action.bound private onMenuClose() {
+        this.isOpen = false
+    }
+
+    renderNarrow() {
         return (
-            <div className="global-entity-control">
+            <React.Fragment>
+                <div
+                    className={classnames("narrow-summary", {
+                        "narrow-summary-selected-items": !this.isOpen
+                    })}
+                >
+                    {this.isOpen ? (
+                        <EntitySelect
+                            options={this.allCountries}
+                            getOptionValue={this.getOptionValue}
+                            getOptionLabel={this.getOptionLabel}
+                            onChange={this.onChange}
+                            value={this.selectedCountries}
+                            menuIsOpen={this.isOpen}
+                            autoFocus={true}
+                        />
+                    ) : (
+                        <React.Fragment>
+                            {this.selectedCountries.length === 0
+                                ? "None selected"
+                                : this.selectedCountries
+                                      .map(country => (
+                                          <span
+                                              className="narrow-summary-selected-item"
+                                              key={country.code}
+                                          >
+                                              {country.name}
+                                          </span>
+                                      ))
+                                      .reduce(
+                                          (acc, item) =>
+                                              acc.length === 0
+                                                  ? [item]
+                                                  : [...acc, ", ", item],
+                                          [] as (JSX.Element | string)[]
+                                      )}
+                        </React.Fragment>
+                    )}
+                </div>
+                <div className="narrow-actions">
+                    {this.isOpen ? (
+                        <button className="button" onClick={this.onMenuClose}>
+                            Done
+                        </button>
+                    ) : (
+                        <button className="button" onClick={this.onMenuOpen}>
+                            {this.selectedCountries.length === 0
+                                ? "Select countries"
+                                : "Edit"}
+                        </button>
+                    )}
+                </div>
+            </React.Fragment>
+        )
+    }
+
+    renderWide() {
+        return (
+            <React.Fragment>
                 <div className="select-dropdown-container">
-                    <Select
+                    <EntitySelect
                         options={this.allCountries}
                         getOptionValue={this.getOptionValue}
                         getOptionLabel={this.getOptionLabel}
                         onChange={this.onChange}
                         value={this.selectedCountries}
-                        components={{
-                            IndicatorSeparator: null,
-                            Option
-                        }}
-                        menuPlacement="bottom"
-                        isClearable={false}
-                        isMulti={true}
-                        backspaceRemovesValue={false}
-                        blurInputOnSelect={false}
-                        closeMenuOnSelect={false}
-                        controlShouldRenderValue={false}
-                        hideSelectedOptions={false}
-                        placeholder="Add a country to all charts..."
+                        onMenuOpen={this.onMenuOpen}
+                        onMenuClose={this.onMenuClose}
                     />
                 </div>
-                <div className="selected-items-container">
-                    <div className="selected-items">
-                        {this.selectedCountries.map(country => (
-                            <div className="selected-item">
-                                <div className="label">{country.name}</div>
-                                <div
-                                    className="control-icon"
-                                    onClick={() => this.onRemove(country)}
-                                >
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <SelectedItems
+                    selectedItems={this.selectedCountries}
+                    getLabel={this.getOptionLabel}
+                    onRemove={this.onRemove}
+                />
+            </React.Fragment>
+        )
+    }
+
+    render() {
+        return (
+            <div
+                className={classnames("global-entity-control", {
+                    "is-narrow": this.isNarrow,
+                    "is-wide": !this.isNarrow
+                })}
+                ref={this.refContainer}
+            >
+                {this.isNarrow ? this.renderNarrow() : this.renderWide()}
             </div>
         )
     }

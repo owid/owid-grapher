@@ -6,7 +6,7 @@
 
 .global-entity-control {
     margin-top: 4rem;
-    padding: 0.75rem;
+    padding: 0.65rem;
     border-radius: 8px;
     background-color: #fff;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1), 0 8px 15px rgba(0, 0, 0, 0.08),
@@ -15,15 +15,18 @@
     display: flex;
     align-items: center;
 
+    &.is-narrow {
+        padding: 0.5rem;
+    }
+
     .select-dropdown-container {
         width: 15%;
         min-width: 16rem;
         max-width: 19rem;
+        margin-right: 0.75rem;
     }
 
     .selected-items-container {
-        margin-left: 0.75rem;
-        border-radius: 100px;
         flex: 1;
         overflow-y: auto;
         overflow-x: visible;
@@ -36,7 +39,7 @@
 
     .selected-item {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         border-radius: 100px;
         padding: 0;
         margin-right: 0.375rem;
@@ -56,13 +59,14 @@
 
         .label {
             font-weight: 700;
-            padding-left: 0.85rem;
-            padding-right: 0.3rem;
-            padding-top: 0.25rem;
-            padding-bottom: 0.25rem;
+            padding: 0.25rem 0.85rem;
         }
 
-        .control-icon {
+        &.removable .label {
+            padding-right: 0.3rem;
+        }
+
+        .remove-icon {
             flex: 0;
             font-size: 15px;
             display: flex;
@@ -76,5 +80,45 @@
                 opacity: 1;
             }
         }
+    }
+
+    .empty {
+        text-align: center;
+        color: $primary-color-400;
+    }
+
+    .narrow-summary {
+        flex: 1;
+    }
+
+    .narrow-summary-selected-items {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: rgba(0, 0, 0, 0.5);
+        padding-left: 0.5rem;
+    }
+
+    .narrow-summary-selected-item {
+        font-weight: 700;
+        color: #3360a9;
+    }
+
+    .narrow-actions {
+        flex: 0;
+        display: flex;
+        align-items: center;
+        margin-left: 0.5rem;
+        min-height: 38px; // match the height of the <Select>
+    }
+
+    .button {
+        border-radius: 100px;
+        background-color: #3360a9;
+        color: white;
+        font-weight: 700;
+        padding: 0.5rem 0.8rem;
+        border: none;
+        white-space: nowrap;
     }
 }
