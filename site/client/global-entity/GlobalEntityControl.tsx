@@ -18,6 +18,14 @@ import {
 } from "./GlobalEntitySelection"
 import { isMultiValue } from "utils/client/react-select"
 
+const allCountries = countries.concat([
+    {
+        name: "World",
+        code: "OWID_WRL",
+        slug: "world"
+    }
+])
+
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
         <div>
@@ -114,7 +122,8 @@ export class GlobalEntityControl extends React.Component<
     @observable isNarrow: boolean = true
     @observable isOpen: boolean = false
 
-    @observable.ref allCountries: GlobalEntitySelectionEntity[] = countries
+    @observable.ref
+    sortedCountries: GlobalEntitySelectionEntity[] = allCountries
 
     componentDidMount() {
         this.onResize()
@@ -165,8 +174,8 @@ export class GlobalEntityControl extends React.Component<
     }
 
     @action.bound private sortAllCountries() {
-        this.allCountries = orderBy(
-            this.allCountries,
+        this.sortedCountries = orderBy(
+            this.sortedCountries,
             [this.isSelected, country => country.name],
             ["desc", "asc"]
         )
@@ -210,7 +219,7 @@ export class GlobalEntityControl extends React.Component<
                 >
                     {this.isOpen ? (
                         <EntitySelect
-                            options={this.allCountries}
+                            options={this.sortedCountries}
                             getOptionValue={this.getOptionValue}
                             getOptionLabel={this.getOptionLabel}
                             onChange={this.onChange}
@@ -263,7 +272,7 @@ export class GlobalEntityControl extends React.Component<
             <React.Fragment>
                 <div className="select-dropdown-container">
                     <EntitySelect
-                        options={this.allCountries}
+                        options={this.sortedCountries}
                         getOptionValue={this.getOptionValue}
                         getOptionLabel={this.getOptionLabel}
                         onChange={this.onChange}
