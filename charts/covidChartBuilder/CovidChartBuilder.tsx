@@ -36,6 +36,7 @@ import {
 } from "./CovidData"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 
+// TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
 export class CovidChartBuilder extends React.Component<{
     data: ParsedCovidRow[]
@@ -356,9 +357,9 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get metricTitle() {
-        if (this.props.params.casesMetric) return "Cases"
-        if (this.props.params.deathsMetric) return "Deaths"
-        return "Tests"
+        if (this.props.params.casesMetric) return "cases"
+        if (this.props.params.deathsMetric) return "deaths"
+        return "tests"
     }
 
     @computed get smoothingTitle() {
@@ -372,7 +373,9 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get note() {
-        return "There are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found at ourworldindata.org/covid-testing."
+        if (this.props.params.testsMetric)
+            return "Note: For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found at the linked page."
+        return ""
     }
 
     @computed get selectedData() {
