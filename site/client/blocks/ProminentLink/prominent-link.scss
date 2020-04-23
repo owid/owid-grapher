@@ -1,5 +1,4 @@
 .article-content .wp-block-owid-prominent-link {
-    @include block-shadow;
     svg {
         width: 0.4em;
         height: 1em;
@@ -14,6 +13,7 @@
     transition: all 0.3s;
 
     &:hover {
+        @include block-shadow;
         background-color: $primary-color-200;
         border: 1px solid $primary-color;
         svg {
@@ -51,13 +51,8 @@
 
     &.is-style-thin {
         margin-bottom: $vertical-spacing;
-        a {
-            padding: 1rem;
-        }
-        .title {
-            margin-bottom: $vertical-spacing / 2;
-            font-weight: bold;
-            line-height: 1;
+        .content-wrapper {
+            margin: 1rem;
         }
         .content {
             font-size: 0.9rem;
@@ -70,20 +65,33 @@
                 margin-bottom: 0;
             }
         }
+        .title {
+            margin-top: $vertical-spacing / 2;
+            font-weight: bold;
+            line-height: 1;
+        }
 
-        &.with-image .content-wrapper {
+        &.with-image a {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            @include md-up {
+                align-items: center;
+            }
             figure {
-                flex: 0 0 60px;
-                margin: 0 1rem 0 0;
+                flex: 0 0 100px;
+                margin: 1rem 0 1rem 1rem;
+                @include md-up {
+                    flex: 0 0 120px;
+                    margin: 0;
+                }
                 img {
                     width: 100%;
                     margin: 0;
                     padding: 0;
+                    box-shadow: none;
                 }
             }
-            .content {
+            .content-wrapper {
                 flex: 1;
             }
         }
