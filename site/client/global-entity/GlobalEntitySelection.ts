@@ -3,6 +3,8 @@ import { observable, reaction, IReactionDisposer } from "mobx"
 import { Country, countries } from "utils/countries"
 import { ChartConfig } from "charts/ChartConfig"
 import { excludeUndefined } from "charts/Util"
+import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
+import { bindUrlToWindow } from "charts/UrlBinding"
 
 export enum GlobalEntitySelectionStates {
     // Possibly might need the `add` state in the future to
@@ -17,12 +19,13 @@ export enum GlobalEntitySelectionStates {
 export type GlobalEntitySelectionEntity = Country
 
 export class GlobalEntitySelection {
+    private url?: GlobalEntitySelectionUrl
+    private isBoundToWindow: boolean = false
+
     @observable state: GlobalEntitySelectionStates =
         GlobalEntitySelectionStates.override
     @observable
-    selectedEntities: GlobalEntitySelectionEntity[] = countries.filter(
-        c => c.code === "GBR" || c.code === "ITA"
-    )
+    selectedEntities: GlobalEntitySelectionEntity[] = []
 
     selectByCountryCodes(codes: string[]) {
         // We want to preserve the order, because order matters – the first entity is the "primary"
@@ -30,6 +33,14 @@ export class GlobalEntitySelection {
         this.selectedEntities = excludeUndefined(
             codes.map(code => countries.find(country => country.code === code))
         )
+    }
+
+    bindUrlParamsToWindow() {
+        if (!this.isBoundToWindow) {
+            this.url = new GlobalEntitySelectionUrl(this)
+            this.url.populateFromQueryStr(window.location.search)
+            bindUrlToWindow(this.url)
+        }
     }
 }
 

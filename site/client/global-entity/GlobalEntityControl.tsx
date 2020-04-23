@@ -4,6 +4,7 @@ import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType, components, OptionProps, Props } from "react-select"
 import classnames from "classnames"
+import { bind } from "decko"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
@@ -14,9 +15,6 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
-import { bindUrlToWindow } from "charts/UrlBinding"
-import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
-import { bind } from "decko"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -62,9 +60,7 @@ function SelectedItems<T>(props: {
     return (
         <div className="selected-items-container">
             {isEmpty ? (
-                <div className="empty">
-                    Select countries to show on all charts
-                </div>
+                <div className="empty">{props.emptyLabel}</div>
             ) : (
                 <div className="selected-items">
                     {props.selectedItems.map(item => (
@@ -267,6 +263,7 @@ export class GlobalEntityControl extends React.Component<
                     selectedItems={this.selectedCountries}
                     getLabel={this.getOptionLabel}
                     onRemove={this.onRemove}
+                    emptyLabel="Select countries to show on all charts"
                 />
             </React.Fragment>
         )
@@ -300,8 +297,6 @@ export function runGlobalEntityControl(
             element
         )
         // We only want to bind the URL if a global control element exists
-        const url = new GlobalEntitySelectionUrl(globalEntitySelection)
-        url.populateFromQueryStr(window.location.search)
-        bindUrlToWindow(url)
+        globalEntitySelection.bindUrlParamsToWindow()
     }
 }
