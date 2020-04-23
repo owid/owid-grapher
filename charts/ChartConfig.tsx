@@ -67,7 +67,7 @@ import {
 import {
     GlobalEntitySelection,
     subscribeChartToGlobalEntitySelection
-} from "site/client/GlobalEntitySelection"
+} from "site/client/global-entity/GlobalEntitySelection"
 
 declare const App: any
 declare const window: any

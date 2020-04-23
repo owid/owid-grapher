@@ -1,10 +1,10 @@
-.floating-entity-control-container {
+.global-entity-control-container {
     position: sticky;
     top: 5px;
-    z-index: $zindex-floating-entity-select;
+    z-index: $zindex-global-entity-select;
 }
 
-.floating-entity-control {
+.global-entity-control {
     margin-top: 4rem;
     padding: 0.75rem;
     border-radius: 8px;

@@ -51,5 +51,5 @@ export function subscribeChartToGlobalEntitySelection(
 }
 
 export function pageContainsGlobalEntityControl() {
-    return document.querySelector("[data-floating-entity-control]") !== null
+    return document.querySelector("[data-global-entity-control]") !== null
 }

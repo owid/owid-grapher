@@ -28,7 +28,7 @@ import { runRelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
-import { runFloatingEntityControl } from "./floating-entity-control/index"
+import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 
 declare var window: any
 window.Grapher = Grapher
@@ -50,7 +50,7 @@ window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
-window.runFloatingEntitySelect = runFloatingEntityControl
+window.runGlobalEntityControl = runGlobalEntityControl
 
 Analytics.logPageLoad()
 

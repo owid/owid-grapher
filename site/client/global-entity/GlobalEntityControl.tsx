@@ -1,4 +1,5 @@
 import * as React from "react"
+import * as ReactDOM from "react-dom"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType, components, OptionProps } from "react-select"
@@ -11,7 +12,7 @@ import { isMultiSelect, sortBy } from "charts/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
-} from "../GlobalEntitySelection"
+} from "./GlobalEntitySelection"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -24,13 +25,13 @@ const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     )
 }
 
-export interface FloatingEntityControlProps {
+export interface GlobalEntityControlProps {
     globalEntitySelection: GlobalEntitySelection
 }
 
 @observer
-export class FloatingEntityControl extends React.Component<
-    FloatingEntityControlProps
+export class GlobalEntityControl extends React.Component<
+    GlobalEntityControlProps
 > {
     @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
         return this.props.globalEntitySelection.selectedEntities
@@ -76,7 +77,7 @@ export class FloatingEntityControl extends React.Component<
 
     render() {
         return (
-            <div className="floating-entity-control">
+            <div className="global-entity-control">
                 <div className="select-dropdown-container">
                     <Select
                         options={this.allCountries}
@@ -115,6 +116,21 @@ export class FloatingEntityControl extends React.Component<
                     </div>
                 </div>
             </div>
+        )
+    }
+}
+
+export function runGlobalEntityControl(
+    globalEntitySelection: GlobalEntitySelection
+) {
+    const element = document.querySelector("*[data-global-entity-control]")
+    if (element) {
+        element.classList.add("global-entity-control-container")
+        ReactDOM.render(
+            <GlobalEntityControl
+                globalEntitySelection={globalEntitySelection}
+            />,
+            element
         )
     }
 }

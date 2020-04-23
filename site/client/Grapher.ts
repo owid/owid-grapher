@@ -5,7 +5,7 @@ import { throttle, isMobile, fetchText } from "charts/Util"
 import {
     GlobalEntitySelection,
     pageContainsGlobalEntityControl
-} from "./GlobalEntitySelection"
+} from "./global-entity/GlobalEntitySelection"
 
 interface LoadableFigure {
     configUrl: string

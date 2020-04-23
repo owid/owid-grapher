@@ -27,7 +27,7 @@ import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
 import * as urlBinding from "charts/UrlBinding"
-import { GlobalEntitySelection } from "site/client/GlobalEntitySelection"
+import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
 
 declare const window: any
 
