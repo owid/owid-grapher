@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+import * as ReactDOMServer from "react-dom/server"
 import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType, components, OptionProps, Props } from "react-select"
@@ -296,13 +297,32 @@ export class GlobalEntityControl extends React.Component<
     }
 }
 
+export function bakeGlobalEntityControl($: CheerioStatic) {
+    $("*[data-entity-select]").each((_, el) => {
+        const $el = $(el)
+        const $section = $el.closest("section")
+
+        // Remove the "marker" element and inject a new section.
+        // We need a separate section in order to make position:sticky work.
+        $el.remove()
+        const $container = $(
+            `<div data-global-entity-control class="global-entity-control-container" />`
+        )
+        const rendered = ReactDOMServer.renderToString(
+            <GlobalEntityControl
+                globalEntitySelection={new GlobalEntitySelection()}
+            />
+        )
+        $container.html(rendered).insertAfter($section)
+    })
+}
+
 export function runGlobalEntityControl(
     globalEntitySelection: GlobalEntitySelection
 ) {
     const element = document.querySelector("*[data-global-entity-control]")
     if (element) {
-        element.classList.add("global-entity-control-container")
-        ReactDOM.render(
+        ReactDOM.hydrate(
             <GlobalEntityControl
                 globalEntitySelection={globalEntitySelection}
             />,
