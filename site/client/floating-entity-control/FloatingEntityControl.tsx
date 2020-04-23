@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType, components, OptionProps } from "react-select"
@@ -25,12 +24,14 @@ const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     )
 }
 
-interface ControlProps {
+export interface FloatingEntityControlProps {
     globalEntitySelection: GlobalEntitySelection
 }
 
 @observer
-class Control extends React.Component<ControlProps> {
+export class FloatingEntityControl extends React.Component<
+    FloatingEntityControlProps
+> {
     @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
         return this.props.globalEntitySelection.selectedEntities
     }
@@ -114,19 +115,6 @@ class Control extends React.Component<ControlProps> {
                     </div>
                 </div>
             </div>
-        )
-    }
-}
-
-export function runFloatingEntitySelect(
-    globalEntitySelection: GlobalEntitySelection
-) {
-    const element = document.querySelector("*[data-floating-entity-control]")
-    if (element) {
-        element.classList.add("floating-entity-control-container")
-        ReactDOM.render(
-            <Control globalEntitySelection={globalEntitySelection} />,
-            element
         )
     }
 }
