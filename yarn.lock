@@ -2126,6 +2126,11 @@
   resolved "https://registry.yarnpkg.com/@types/algoliasearch/-/algoliasearch-3.30.12.tgz#3270ba642107f00cd743c29b8cae30c92a043dba"
   integrity sha512-IiJ4/GP3NEFWZkZhF5/cPxIZNzAitLdZnMpo5KlWLcNL567LHDHG2NOZLwXzRrTuxNa1zmqZJKEDWHnw8kp3Ng==
 
+"@types/amplitude-js@^5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@types/amplitude-js/-/amplitude-js-5.8.0.tgz#6e4047b0021e73246c00ae6119b47b28ac73859a"
+  integrity sha512-thNXK9K5SDOs21qbYgbRIofIgSV/8PVRmQ5fWD2BcRfat6XJVXRJ69b7P6roAHxMsy6ugd096SsWYjKork+GUA==
+
 "@types/babel__core@^7.1.0":
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.2.tgz#608c74f55928033fce18b99b213c16be4b3d114f"
@@ -2549,6 +2554,11 @@
     "@types/events" "*"
     "@types/minimatch" "*"
     "@types/node" "*"
+
+"@types/google.analytics@^0.0.40":
+  version "0.0.40"
+  resolved "https://registry.yarnpkg.com/@types/google.analytics/-/google.analytics-0.0.40.tgz#35526e9d78333423c430ade1c821ce54d0f0f850"
+  integrity sha512-R3HpnLkqmKxhUAf8kIVvDVGJqPtaaZlW4yowNwjOZUTmYUQEgHh8Nh5wkSXKMroNAuQM8gbXJHmNbbgA8tdb7Q==
 
 "@types/got@^8":
   version "8.3.5"

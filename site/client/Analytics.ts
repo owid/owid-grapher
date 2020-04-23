@@ -1,5 +1,3 @@
-declare var window: any
-
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
     hitType: string
@@ -79,7 +77,12 @@ export class Analytics {
         }
         if (window.ga) {
             const tracker = window.ga.getAll()[0]
-            if (tracker) tracker.send(event)
+            // @types/google.analytics seems to suggest this usage is invalid but we know Google
+            // Analytics logs these events correctly.
+            // I have avoided changing the implementation for now, but we should look into this as
+            // we use Google Analytics more.
+            // -@danielgavrilov 2020-04-23
+            if (tracker) tracker.send(event as any)
         }
     }
 }
