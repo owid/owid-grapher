@@ -130,7 +130,9 @@ export const buildCovidVariable = (
         for (let i = 0; i < entities.length; i++) {
             const entity = entities[i]
             if (currentEntity !== entity) {
-                averages.push(computeRollingAverage(currentValues, 3))
+                averages.push(
+                    computeRollingAverage(currentValues, rollingAverage)
+                )
                 currentValues = []
                 currentEntity = entity
             }

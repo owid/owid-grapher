@@ -14,7 +14,7 @@ export class CovidQueryParams {
     @observable dailyFreq: boolean = false
     @observable count: CountOption = "total"
     @observable timeline: TimelineOption = "normal"
-    @observable smoothing: SmoothingOption = "normal"
+    @observable smoothing: SmoothingOption = 0
     @observable selectedCountryCodes: Set<string> = new Set(["USA"])
 
     constructor(queryString: string) {
@@ -25,8 +25,9 @@ export class CovidQueryParams {
         if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
         if (params.count) this.count = params.count as CountOption
-        if (params.timeline) this.timeline = params.count as TimelineOption
-        if (params.smoothing) this.smoothing = params.count as SmoothingOption
+        if (params.timeline) this.timeline = params.timeline as TimelineOption
+        if (params.smoothing)
+            this.smoothing = parseInt(params.smoothing) as SmoothingOption
         if (params.country)
             this.selectedCountryCodes = new Set(params.country.split("+"))
     }

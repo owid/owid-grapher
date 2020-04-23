@@ -87,7 +87,7 @@ export class CovidChartBuilder extends React.Component<{
             this.props.data,
             rowFn,
             perCapita,
-            this.props.params.smoothing === "threeDayRollingAverage" ? 3 : 0
+            this.props.params.smoothing
         )
     }
 
@@ -257,17 +257,23 @@ export class CovidChartBuilder extends React.Component<{
         const options: InputOption[] = [
             {
                 label: "Normal",
-                checked: this.props.params.smoothing === "normal",
+                checked: this.props.params.smoothing === 0,
                 onChange: () => {
-                    this.setSmoothingCommand("normal")
+                    this.setSmoothingCommand(0)
                 }
             },
             {
                 label: "3 Day Rolling Average",
-                checked:
-                    this.props.params.smoothing === "threeDayRollingAverage",
+                checked: this.props.params.smoothing === 3,
                 onChange: () => {
-                    this.setSmoothingCommand("threeDayRollingAverage")
+                    this.setSmoothingCommand(3)
+                }
+            },
+            {
+                label: "7 Day Rolling Average",
+                checked: this.props.params.smoothing === 7,
+                onChange: () => {
+                    this.setSmoothingCommand(7)
                 }
             }
         ]
@@ -370,8 +376,8 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get smoothingTitle() {
-        if (this.props.params.smoothing === "threeDayRollingAverage")
-            return ", rolling 3-day average"
+        if (this.props.params.smoothing > 0)
+            return `, rolling ${this.props.params.smoothing}-day average`
         return ""
     }
 
@@ -457,7 +463,7 @@ export class CovidChartBuilder extends React.Component<{
             id *
             (params.dailyFreq ? 3 : 1) *
             (params.count === "perCapita" ? 5 : 1) *
-            (params.smoothing === "threeDayRollingAverage" ? 7 : 1)
+            (params.smoothing > 0 ? params.smoothing * 11 : 1)
 
         if (params.testsMetric) {
             const id = buildId(variablePartials.tests.id!)

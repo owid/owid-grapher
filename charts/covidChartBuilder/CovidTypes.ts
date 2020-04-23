@@ -1,5 +1,5 @@
 export declare type CountOption = "perCapita" | "total"
-export declare type SmoothingOption = "normal" | "threeDayRollingAverage"
+export declare type SmoothingOption = 0 | 3 | 7
 export declare type TimelineOption = "normal" | "alignFirstFiveDeaths"
 
 export declare type DailyFrequencyOption = boolean
