@@ -62,7 +62,6 @@ import findIndex from "lodash/findIndex"
 import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
 import memoize from "lodash/memoize"
-import isArray from "lodash/isArray"
 
 export {
     isEqual,
@@ -674,8 +673,4 @@ export function parseIntOrUndefined(s: string | undefined) {
     if (s === undefined) return undefined
     const value = parseInt(s)
     return isNaN(value) ? undefined : value
-}
-
-export function isMultiSelect<T>(value: ValueType<T>): value is OptionsType<T> {
-    return isArray(value)
 }

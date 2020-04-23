@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
-import Select, { ValueType, StylesConfig } from "react-select"
+import Select, { ValueType } from "react-select"
 import copy from "copy-to-clipboard"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
@@ -31,6 +31,7 @@ import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
+import { getStylesForTargetHeight } from "utils/client/react-select"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -699,40 +700,6 @@ export class ProjectionChooser extends React.Component<{
         })
     }
 
-    @computed get selectStyles(): StylesConfig {
-        // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
-        const targetHeight = 22
-
-        return {
-            control: (base: React.CSSProperties) => ({
-                ...base,
-                minHeight: "initial"
-            }),
-            valueContainer: (base: React.CSSProperties) => ({
-                ...base,
-                height: `${targetHeight - 1 - 1}px`,
-                padding: "0 4px"
-            }),
-            clearIndicator: (base: React.CSSProperties) => ({
-                ...base,
-                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
-            }),
-            dropdownIndicator: (base: React.CSSProperties) => ({
-                ...base,
-                padding: `${(targetHeight - 20 - 1 - 1) / 2}px`
-            }),
-            option: (base: React.CSSProperties) => ({
-                ...base,
-                paddingTop: "5px",
-                paddingBottom: "5px"
-            }),
-            menu: (base: React.CSSProperties) => ({
-                ...base,
-                zIndex: 10000
-            })
-        }
-    }
-
     render() {
         const { bounds, value } = this.props
 
@@ -752,7 +719,7 @@ export class ProjectionChooser extends React.Component<{
                     components={{
                         IndicatorSeparator: null
                     }}
-                    styles={this.selectStyles}
+                    styles={getStylesForTargetHeight(22)}
                     isSearchable={false}
                 />
             </div>

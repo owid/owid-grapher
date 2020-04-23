@@ -10,11 +10,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { countries } from "utils/countries"
-import { isMultiSelect, throttle, noop, orderBy } from "charts/Util"
+import { throttle, noop, orderBy } from "charts/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
+import {
+    isMultiValue,
+    getStylesForTargetHeight
+} from "utils/client/react-select"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -163,7 +167,7 @@ export class GlobalEntityControl extends React.Component<
         countries: ValueType<GlobalEntitySelectionEntity>
     ) {
         if (countries == null) return
-        if (!isMultiSelect(countries)) {
+        if (!isMultiValue(countries)) {
             countries = [countries]
         }
         this.setSelectedCountries(Array.from(countries))
