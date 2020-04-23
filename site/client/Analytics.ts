@@ -1,5 +1,6 @@
 import { ENV } from "settings"
 
+const DEBUG = false
 const IS_DEV = ENV === "development"
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
@@ -59,7 +60,7 @@ export class Analytics {
     }
 
     private static logToAmplitude(name: string, props?: any) {
-        if (IS_DEV) {
+        if (DEBUG && IS_DEV) {
             console.log("Analytics.logToAmplitude", name, props)
         }
         props = Object.assign(
@@ -83,7 +84,7 @@ export class Analytics {
         eventLabel?: string,
         eventValue?: number
     ) {
-        if (IS_DEV) {
+        if (DEBUG && IS_DEV) {
             console.log(
                 "Analytics.logToGA",
                 eventCategory,
