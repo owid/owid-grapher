@@ -52,16 +52,12 @@
         margin-top: 2px;
         margin-bottom: 2px;
 
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15),
-            inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-
         background-color: #3360a9;
         color: #fff;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
 
         .label {
             font-weight: 700;
-            padding: 0.25em 0.85em;
+            padding: 0.2em 0.8em;
         }
 
         &.removable .label {
