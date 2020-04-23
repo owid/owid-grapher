@@ -133,7 +133,6 @@ import { format } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
-import { ValueType, OptionsType } from "react-select"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
