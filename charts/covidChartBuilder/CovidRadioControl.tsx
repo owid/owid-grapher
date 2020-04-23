@@ -5,16 +5,19 @@ import { action } from "mobx"
 export interface RadioOption {
     label: string
     checked: boolean
-    onSelect: () => void
+    onChange: (checked: boolean) => void
 }
 
 @observer
 export class CovidRadioControl extends React.Component<{
     name: string
+    isCheckbox?: boolean
     options: RadioOption[]
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
-        this.props.options[parseInt(ev.currentTarget.value)].onSelect()
+        this.props.options[parseInt(ev.currentTarget.value)].onChange(
+            ev.currentTarget.checked
+        )
     }
 
     render() {
@@ -25,7 +28,9 @@ export class CovidRadioControl extends React.Component<{
                         <label>
                             <input
                                 onChange={this.onChange}
-                                type="radio"
+                                type={
+                                    this.props.isCheckbox ? "checkbox" : "radio"
+                                }
                                 name={this.props.name}
                                 checked={option.checked}
                                 value={index}

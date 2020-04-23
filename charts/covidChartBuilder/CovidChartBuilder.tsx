@@ -24,7 +24,10 @@ import {
     ParsedCovidRow,
     CountryOption
 } from "./CovidTypes"
-import { RadioOption, CovidRadioControl } from "./CovidRadioControl"
+import {
+    RadioOption as InputOption,
+    CovidRadioControl as CovidInputControl
+} from "./CovidRadioControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
@@ -35,6 +38,7 @@ import {
     continentsVariable
 } from "./CovidData"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
+import { variablePartials } from "./CovidVariablePartials"
 
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
@@ -141,126 +145,120 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     private get metricPicker() {
-        const options: RadioOption[] = [
+        const options: InputOption[] = [
             {
                 label: "Confirmed Deaths",
                 checked: this.props.params.deathsMetric,
-                onSelect: () => {
-                    this.setDeathsMetricCommand(true)
-                    this.setCasesMetricCommand(false)
-                    this.setTestsMetricCommand(false)
+                onChange: value => {
+                    this.setDeathsMetricCommand(value)
                 }
             },
             {
                 label: "Confirmed Cases",
                 checked: this.props.params.casesMetric,
-                onSelect: () => {
-                    this.setDeathsMetricCommand(false)
-                    this.setCasesMetricCommand(true)
-                    this.setTestsMetricCommand(false)
+                onChange: value => {
+                    this.setCasesMetricCommand(value)
                 }
             },
             {
                 label: "Tests",
                 checked: this.props.params.testsMetric,
-                onSelect: () => {
-                    this.setDeathsMetricCommand(false)
-                    this.setCasesMetricCommand(false)
-                    this.setTestsMetricCommand(true)
+                onChange: value => {
+                    this.setTestsMetricCommand(value)
                 }
             }
         ]
         return (
-            <CovidRadioControl
+            <CovidInputControl
                 name="metric"
                 options={options}
-            ></CovidRadioControl>
+                isCheckbox={true}
+            ></CovidInputControl>
         )
     }
 
     private get frequencyPicker() {
-        const options: RadioOption[] = [
+        const options: InputOption[] = [
             {
                 label: "Total",
                 checked: this.props.params.totalFreq,
-                onSelect: () => {
-                    this.setTotalFrequencyCommand(true)
-                    this.setDailyFrequencyCommand(false)
+                onChange: value => {
+                    this.setTotalFrequencyCommand(value)
                 }
             },
             {
                 label: "Daily",
                 checked: this.props.params.dailyFreq,
-                onSelect: () => {
-                    this.setTotalFrequencyCommand(false)
-                    this.setDailyFrequencyCommand(true)
+                onChange: value => {
+                    this.setDailyFrequencyCommand(value)
                 }
             }
         ]
         return (
-            <CovidRadioControl
+            <CovidInputControl
                 name="frequency"
                 options={options}
-            ></CovidRadioControl>
+                isCheckbox={true}
+            ></CovidInputControl>
         )
     }
 
     @computed private get countPicker() {
-        const options: RadioOption[] = [
+        const options: InputOption[] = [
             {
                 label: "Total counts",
                 checked: this.props.params.count === "total",
-                onSelect: () => {
+                onChange: () => {
                     this.setCountCommand("total")
                 }
             },
             {
                 label: "Per capita statistics",
                 checked: this.props.params.count === "perCapita",
-                onSelect: () => {
+                onChange: () => {
                     this.setCountCommand("perCapita")
                 }
             }
         ]
         return (
-            <CovidRadioControl
+            <CovidInputControl
                 name="count"
                 options={options}
-            ></CovidRadioControl>
+            ></CovidInputControl>
         )
     }
 
     private get timelinePicker() {
-        const options: RadioOption[] = [
+        const options: InputOption[] = [
             {
                 label: "Normal timeline",
                 checked: this.props.params.timeline === "normal",
-                onSelect: () => {
+                onChange: () => {
                     this.setTimelineCommand("normal")
                 }
             },
             {
                 label: "Align with the first 5 deaths",
                 checked: this.props.params.timeline === "alignFirstFiveDeaths",
-                onSelect: () => {
+                onChange: () => {
                     this.setTimelineCommand("alignFirstFiveDeaths")
                 }
             }
         ]
         return (
-            <CovidRadioControl
+            <CovidInputControl
                 name="timeline"
                 options={options}
-            ></CovidRadioControl>
+            ></CovidInputControl>
         )
     }
 
     private get smoothingPicker() {
-        const options: RadioOption[] = [
+        const options: InputOption[] = [
             {
                 label: "Normal",
                 checked: this.props.params.smoothing === "normal",
-                onSelect: () => {
+                onChange: () => {
                     this.setSmoothingCommand("normal")
                 }
             },
@@ -268,16 +266,16 @@ export class CovidChartBuilder extends React.Component<{
                 label: "3 Day Rolling Average",
                 checked:
                     this.props.params.smoothing === "threeDayRollingAverage",
-                onSelect: () => {
+                onChange: () => {
                     this.setSmoothingCommand("threeDayRollingAverage")
                 }
             }
         ]
         return (
-            <CovidRadioControl
+            <CovidInputControl
                 name="smoothing"
                 options={options}
-            ></CovidRadioControl>
+            ></CovidInputControl>
         )
     }
 
@@ -288,6 +286,9 @@ export class CovidChartBuilder extends React.Component<{
         else if (this.props.params.selectedCountryCodes.has(code))
             this.props.params.selectedCountryCodes.delete(code)
         else this.props.params.selectedCountryCodes.add(code)
+
+        // this.chart.data.setSelectedEntity(this.countryCodeMap.get(code))
+
         this.updateChart()
     }
 
@@ -357,9 +358,15 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get metricTitle() {
-        if (this.props.params.casesMetric) return "cases"
-        if (this.props.params.deathsMetric) return "deaths"
-        return "tests"
+        const metrics = []
+        if (this.props.params.deathsMetric) metrics.push("deaths")
+        if (this.props.params.casesMetric) metrics.push("cases")
+        if (this.props.params.testsMetric) metrics.push("tests")
+        return metrics.length === 3
+            ? "deaths, cases and tests"
+            : metrics.length === 2
+            ? `${metrics[0]} and ${metrics[1]}`
+            : metrics[0]
     }
 
     @computed get smoothingTitle() {
@@ -388,39 +395,8 @@ export class CovidChartBuilder extends React.Component<{
         })
     }
 
-    // Todo: can I just keep of these in?
-    @computed get theVariables(): OwidVariableSet {
-        const variableId = this.yVariableIndex.toString()
-        const variableSet: OwidVariableSet = {
-            variables: {},
-            entityKey: this.entityKey
-        }
-        if (this.props.params.testsMetric)
-            variableSet.variables[variableId] = this.testsVariable
-
-        if (this.props.params.deathsMetric)
-            variableSet.variables[variableId] = this.deathsVariable
-
-        if (this.props.params.casesMetric)
-            variableSet.variables[variableId] = this.casesVariable
-
-        variableSet.variables[99999] = daysSinceVariable(
-            this.props.data,
-            this.countryMap
-        )
-
-        variableSet.variables[this.continentsVariableId] = continentsVariable(
-            this.countryOptions
-        )
-
-        return variableSet
-    }
-
-    // Todo: cleanup
-    private continentsVariableId = 77777
-
     @computed get countryMap() {
-        const map = new Map()
+        const map = new Map<string, number>()
         this.countryOptions.forEach((country, index) => {
             map.set(country.name, index)
         })
@@ -428,11 +404,25 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get countryCodeMap() {
-        const map = new Map()
+        const map = new Map<string, number>()
         this.countryOptions.forEach((country, index) => {
             map.set(country.code, index)
         })
         return map
+    }
+
+    @computed get countryCodeToNameMap() {
+        const map = new Map<string, string>()
+        this.countryOptions.forEach((country, index) => {
+            map.set(country.code, country.name)
+        })
+        return map
+    }
+
+    @computed get firstSelectedCountryName() {
+        return this.countryCodeToNameMap.get(
+            Array.from(this.props.params.selectedCountryCodes)[0]
+        )
     }
 
     @computed get entityKey(): OwidEntityKey {
@@ -459,25 +449,46 @@ export class CovidChartBuilder extends React.Component<{
     // in a number of places, so we still need a unique one per variable. The way our system works, changing things like
     // frequency or per capita would be in effect creating a new variable. So we need to generate unique variable ids
     // for all of these combinations.
-    @computed get yVariableIndex(): number {
+    @computed get yVariableIndices(): number[] {
         const params = this.props.params
-        const variableMap = {
-            tests: 123,
-            cases: 456,
-            deaths: 789
+        const indices = []
+
+        const buildId = (id: number) =>
+            id *
+            (params.dailyFreq ? 3 : 1) *
+            (params.count === "perCapita" ? 5 : 1) *
+            (params.smoothing === "threeDayRollingAverage" ? 7 : 1)
+
+        if (params.testsMetric) {
+            const id = buildId(variablePartials.tests.id!)
+            indices.push(id)
+            this.owidVariableSet.variables[id] = this.testsVariable
         }
 
-        let baseVar = variableMap.tests
+        if (params.casesMetric) {
+            const id = buildId(variablePartials.cases.id!)
+            indices.push(id)
+            this.owidVariableSet.variables[id] = this.casesVariable
+        }
 
-        if (params.casesMetric) baseVar = variableMap.cases
-        if (params.deathsMetric) baseVar = variableMap.deaths
+        if (params.deathsMetric) {
+            const id = buildId(variablePartials.deaths.id!)
+            indices.push(id)
+            this.owidVariableSet.variables[id] = this.deathsVariable
+        }
 
-        if (params.dailyFreq) baseVar += 3
-        if (params.count === "perCapita") baseVar += 7
-        if (params.smoothing === "threeDayRollingAverage") baseVar += 11
-
-        return baseVar
+        return indices
     }
+
+    @observable.struct owidVariableSet: OwidVariableSet = {
+        variables: {
+            99999: daysSinceVariable(this.props.data, this.countryMap),
+            123: continentsVariable(this.countryOptions)
+        },
+        entityKey: this.entityKey
+    }
+
+    private continentsVariableId = variablePartials.continents.id!
 
     updateChart() {
         // We can't create a new chart object with every radio change because the Chart component itself
@@ -488,11 +499,24 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.title = this.title
         chartProps.note = this.note
         chartProps.type = this.chartType
-        chartProps.owidDataset = this.theVariables
-        chartProps.selectedData = this.selectedData
+        chartProps.owidDataset = this.owidVariableSet
+
         chartProps.dimensions = this.dimensions
-        chartProps.map.variableId = this.yVariableIndex
+        chartProps.map.variableId = this.yVariableIndices[0]
         chartProps.data!.availableEntities = this.availableEntities
+
+        if (this.addCountryMode === "change-country") {
+            const keys = this.chart.data.availableKeysByEntity.get(
+                this.firstSelectedCountryName
+            )
+            if (keys && keys.length) {
+                this.chart.data.selectedKeys = keys
+            }
+        } else {
+            chartProps.selectedData = this.selectedData
+        }
+
+        chartProps.addCountryMode = this.addCountryMode
 
         // this.chart.url.externalBaseUrl = "covid-chart-builder"
         // this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -500,6 +524,7 @@ export class CovidChartBuilder extends React.Component<{
 
     componentDidMount() {
         this.bindToWindow()
+        this.updateChart()
     }
 
     bindToWindow() {
@@ -509,18 +534,18 @@ export class CovidChartBuilder extends React.Component<{
 
     @computed get dimensions(): ChartDimension[] {
         if (this.chartType === "LineChart")
-            return [
-                {
+            return this.yVariableIndices.map(id => {
+                return {
                     property: "y",
-                    variableId: this.yVariableIndex,
+                    variableId: id,
                     display: {}
                 }
-            ]
+            })
 
         return [
             {
                 property: "y",
-                variableId: this.yVariableIndex,
+                variableId: this.yVariableIndices[0],
                 display: {}
             },
             {
@@ -536,6 +561,25 @@ export class CovidChartBuilder extends React.Component<{
                 display: {}
             }
         ]
+    }
+
+    @computed get areMultipleMetricsSelected() {
+        const params = this.props.params
+        return (
+            (params.casesMetric ? 1 : 0) +
+                (params.deathsMetric ? 1 : 0) +
+                (params.testsMetric ? 1 : 0) >
+            1
+        )
+    }
+
+    @computed get addCountryMode():
+        | "change-country"
+        | "add-country"
+        | "disabled" {
+        return this.areMultipleMetricsSelected
+            ? "change-country"
+            : "add-country"
     }
 
     @observable.ref chart = new ChartConfig(
@@ -556,10 +600,10 @@ export class CovidChartBuilder extends React.Component<{
                 scaleType: "linear",
                 canChangeScaleType: true
             },
-            owidDataset: this.theVariables,
+            owidDataset: this.owidVariableSet,
             selectedData: this.selectedData,
             dimensions: this.dimensions,
-            addCountryMode: "disabled",
+            addCountryMode: this.addCountryMode,
             stackMode: "absolute",
             hideRelativeToggle: true,
             hasChartTab: true,
@@ -567,7 +611,7 @@ export class CovidChartBuilder extends React.Component<{
             tab: "chart",
             isPublished: true,
             map: {
-                variableId: this.yVariableIndex,
+                variableId: this.yVariableIndices[0],
                 targetYear: 85,
                 colorSchemeValues: [],
                 colorSchemeLabels: [],

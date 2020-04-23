@@ -7,15 +7,15 @@ import { extend } from "../Util"
 import { CountOption, TimelineOption, SmoothingOption } from "./CovidTypes"
 
 export class CovidQueryParams {
-    @observable testsMetric: boolean = false
+    @observable testsMetric: boolean = true
     @observable deathsMetric: boolean = true
-    @observable casesMetric: boolean = false
+    @observable casesMetric: boolean = true
     @observable totalFreq: boolean = true
     @observable dailyFreq: boolean = false
     @observable count: CountOption = "total"
     @observable timeline: TimelineOption = "normal"
     @observable smoothing: SmoothingOption = "normal"
-    @observable selectedCountryCodes: Set<string> = new Set(["CAN"])
+    @observable selectedCountryCodes: Set<string> = new Set(["USA"])
 
     constructor(queryString: string) {
         const params = strToQueryParams(queryString)
