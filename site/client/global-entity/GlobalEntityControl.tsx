@@ -15,10 +15,7 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
-import {
-    isMultiValue,
-    getStylesForTargetHeight
-} from "utils/client/react-select"
+import { isMultiValue } from "utils/client/react-select"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -31,25 +28,36 @@ const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     )
 }
 
-const EntitySelect = (props: Props<GlobalEntitySelectionEntity>) => (
-    <Select
-        components={{
-            IndicatorSeparator: null,
-            Option
-        }}
-        menuPlacement="bottom"
-        isClearable={false}
-        isMulti={true}
-        backspaceRemovesValue={false}
-        blurInputOnSelect={false}
-        closeMenuOnSelect={false}
-        controlShouldRenderValue={false}
-        hideSelectedOptions={false}
-        placeholder="Add a country to all charts..."
-        styles={{ placeholder: base => ({ ...base, whiteSpace: "nowrap" }) }}
-        {...props}
-    />
-)
+const EntitySelect = (props: Props<GlobalEntitySelectionEntity>) => {
+    return (
+        <Select
+            components={{
+                IndicatorSeparator: null,
+                Option
+            }}
+            menuPlacement="bottom"
+            isClearable={false}
+            isMulti={true}
+            backspaceRemovesValue={false}
+            blurInputOnSelect={false}
+            closeMenuOnSelect={false}
+            controlShouldRenderValue={false}
+            hideSelectedOptions={false}
+            placeholder="Add a country to all charts..."
+            styles={{
+                placeholder: base => ({ ...base, whiteSpace: "nowrap" }),
+                valueContainer: base => ({
+                    ...base,
+                    paddingTop: 0,
+                    paddingBottom: 0
+                }),
+                control: base => ({ ...base, minHeight: "initial" }),
+                dropdownIndicator: base => ({ ...base, padding: "0 5px" })
+            }}
+            {...props}
+        />
+    )
+}
 
 function SelectedItems<T>(props: {
     selectedItems: T[]
