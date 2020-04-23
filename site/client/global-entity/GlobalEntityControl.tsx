@@ -13,6 +13,8 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
+import { bindUrlToWindow } from "charts/UrlBinding"
+import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
@@ -132,5 +134,9 @@ export function runGlobalEntityControl(
             />,
             element
         )
+        // We only want to bind the URL if a global control element exists
+        const url = new GlobalEntitySelectionUrl(globalEntitySelection)
+        url.populateFromQueryStr(window.location.search)
+        bindUrlToWindow(url)
     }
 }

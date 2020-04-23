@@ -2,6 +2,7 @@ import { observable, reaction, IReactionDisposer } from "mobx"
 
 import { Country, countries } from "utils/countries"
 import { ChartConfig } from "charts/ChartConfig"
+import { excludeUndefined } from "charts/Util"
 
 export enum GlobalEntitySelectionStates {
     // Possibly might need the `add` state in the future to
@@ -22,6 +23,14 @@ export class GlobalEntitySelection {
     selectedEntities: GlobalEntitySelectionEntity[] = countries.filter(
         c => c.code === "GBR" || c.code === "ITA"
     )
+
+    selectByCountryCodes(codes: string[]) {
+        // We want to preserve the order, because order matters – the first entity is the "primary"
+        // that is used on single-entity charts.
+        this.selectedEntities = excludeUndefined(
+            codes.map(code => countries.find(country => country.code === code))
+        )
+    }
 }
 
 export function subscribeChartToGlobalEntitySelection(
