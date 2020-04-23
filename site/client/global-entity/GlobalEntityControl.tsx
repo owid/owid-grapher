@@ -17,6 +17,7 @@ import {
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
 import { isMultiValue } from "utils/client/react-select"
+import { Analytics } from "../Analytics"
 
 const allCountries = countries.concat([
     {
@@ -182,13 +183,22 @@ export class GlobalEntityControl extends React.Component<
     }
 
     @action.bound private onChange(
-        countries: ValueType<GlobalEntitySelectionEntity>
+        newCountries: ValueType<GlobalEntitySelectionEntity>
     ) {
-        if (countries == null) return
-        if (!isMultiValue(countries)) {
-            countries = [countries]
-        }
-        this.setSelectedCountries(Array.from(countries))
+        if (newCountries == null) return
+
+        const countries: GlobalEntitySelectionEntity[] = isMultiValue(
+            newCountries
+        )
+            ? Array.from(newCountries)
+            : [newCountries]
+
+        this.setSelectedCountries(countries)
+
+        Analytics.logGlobalEntityControl(
+            "change",
+            countries.map(c => c.code).join(",")
+        )
     }
 
     @action.bound private onRemove(
@@ -207,6 +217,20 @@ export class GlobalEntityControl extends React.Component<
 
     @action.bound private onMenuClose() {
         this.isOpen = false
+    }
+
+    @action.bound private onButtonOpen(
+        event: React.MouseEvent<HTMLButtonElement>
+    ) {
+        Analytics.logGlobalEntityControl("open", event.currentTarget.innerText)
+        this.onMenuOpen()
+    }
+
+    @action.bound private onButtonClose(
+        event: React.MouseEvent<HTMLButtonElement>
+    ) {
+        Analytics.logGlobalEntityControl("close", event.currentTarget.innerText)
+        this.onMenuClose()
     }
 
     renderNarrow() {
@@ -252,11 +276,11 @@ export class GlobalEntityControl extends React.Component<
                 </div>
                 <div className="narrow-actions">
                     {this.isOpen ? (
-                        <button className="button" onClick={this.onMenuClose}>
+                        <button className="button" onClick={this.onButtonClose}>
                             Done
                         </button>
                     ) : (
-                        <button className="button" onClick={this.onMenuOpen}>
+                        <button className="button" onClick={this.onButtonOpen}>
                             {this.selectedCountries.length === 0
                                 ? "Select countries"
                                 : "Edit"}

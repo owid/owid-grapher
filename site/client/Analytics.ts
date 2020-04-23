@@ -33,6 +33,14 @@ export class Analytics {
         this.logToGA("ChartsPage", "Filter", query)
     }
 
+    static logGlobalEntityControl(
+        action: "open" | "change" | "close",
+        note?: string
+    ) {
+        this.logToAmplitude("GLOBAL_ENTITY_CONTROL", { action, note })
+        this.logToGA("GlobalEntityControl", action, note)
+    }
+
     static logSiteClick(text: string, href?: string, note?: string) {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,
