@@ -9,9 +9,8 @@
         "bakedSite": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.tslint": true
-    },
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+        "source.fixAll.eslint": true
+    }
 }

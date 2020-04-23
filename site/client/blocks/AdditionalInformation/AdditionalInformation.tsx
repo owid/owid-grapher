@@ -38,7 +38,6 @@ const AdditionalInformation = ({
 
     useEffect(() => {
         if (refContainer.current) {
-            // tslint:disable-next-line: no-unused-expression
             new MultiEmbedder(refContainer.current)
         }
         // Expands accordions for print media.

@@ -52,7 +52,6 @@ window.runCovid = runCovid
 
 Analytics.logPageLoad()
 
-// tslint:disable-next-line:no-unused-expression
 new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     speed: 600,
     durationMax: 800,
