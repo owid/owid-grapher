@@ -5,7 +5,7 @@ import { QueryParams, strToQueryParams } from "utils/client/url"
 import { GlobalEntitySelection } from "./GlobalEntitySelection"
 
 type GlobalEntitySelectionQueryParams = {
-    country: string
+    country?: string
 }
 
 export class GlobalEntitySelectionUrl implements ObservableUrl {
@@ -16,10 +16,13 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
     }
 
     @computed get params(): GlobalEntitySelectionQueryParams {
+        const params: GlobalEntitySelectionQueryParams = {}
         const entities = this.globalEntitySelection.selectedEntities
-        return {
-            country: entities.map(entity => entity.code).join("+")
+        // Do not add 'country' param unless at least one country is selected
+        if (entities.length > 0) {
+            params.country = entities.map(entity => entity.code).join("+")
         }
+        return params
     }
 
     @computed get debounceMode(): boolean {
