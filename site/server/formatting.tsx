@@ -377,6 +377,7 @@ export async function formatWordpressPost(
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
                 } else if (
+                    post.slug !== "coronavirus" &&
                     $heading.closest(".wp-block-owid-prominent-link").length ===
                         0 &&
                     $heading.closest(".wp-block-owid-additional-information")
