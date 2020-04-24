@@ -202,7 +202,12 @@ export class GlobalEntityControl extends React.Component<
         GlobalEntitySelectionEntity
     > {
         let optionGroups: GroupedOptionsType<GlobalEntitySelectionEntity> = []
-        if (this.localEntity) {
+        // We want to include the local country, but not if it's already selected, it adds
+        // unnecessary duplication.
+        if (
+            this.localEntity &&
+            !this.selectedEntities.includes(this.localEntity)
+        ) {
             optionGroups = optionGroups.concat([
                 {
                     label: "Suggestions",
