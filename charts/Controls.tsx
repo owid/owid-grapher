@@ -31,7 +31,8 @@ import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
-import { getStylesForTargetHeight } from "utils/client/react-select"
+import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
+import { first } from "charts/Util"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -687,7 +688,7 @@ export class ProjectionChooser extends React.Component<{
     onChange: (value: MapProjection) => void
 }> {
     @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
-        const selectedValue = (selected as ProjectionChooserEntry)?.value
+        const selectedValue = first(asArray(selected))?.value
         if (selectedValue) this.props.onChange(selectedValue)
     }
 

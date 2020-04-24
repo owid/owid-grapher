@@ -10,6 +10,8 @@ import {
 import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
 import { StoreEntry } from "./Store"
+import { asArray } from "utils/client/react-select"
+import { first } from "./Util"
 
 export interface IndicatorDropdownProps {
     placeholder: string
@@ -27,11 +29,8 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 
     @bind onChange(indicator: ValueType<Indicator>) {
-        // The onChange method can return an array of values (when multiple
-        // items can be selected) or a single value. Since we are certain that
-        // we are not using the multi-option select we can force the type to be
-        // a single value.
-        this.props.onChangeId((indicator as Indicator).id)
+        const value = first(asArray(indicator))?.id
+        if (value) this.props.onChangeId(value)
     }
 
     @bind async loadOptions(query: string): Promise<Indicator[]> {
