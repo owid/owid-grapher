@@ -15,7 +15,7 @@ function sendFeedback(feedback: Feedback) {
 
         json.message =
             feedback.message +
-            `\n\n-----\nCurrent URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}`
+            `\n\n-----\nCurrent URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
