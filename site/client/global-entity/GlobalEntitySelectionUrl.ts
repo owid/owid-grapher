@@ -2,7 +2,10 @@ import { computed } from "mobx"
 
 import { ObservableUrl } from "charts/UrlBinding"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { GlobalEntitySelection } from "./GlobalEntitySelection"
+import {
+    GlobalEntitySelection,
+    GlobalEntitySelectionModes
+} from "./GlobalEntitySelection"
 
 type GlobalEntitySelectionQueryParams = {
     country?: string
@@ -37,6 +40,8 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
     private populateFromQueryParams(params: QueryParams) {
         if (params.country) {
             const countryCodes = params.country.split("+")
+            this.globalEntitySelection.mode =
+                GlobalEntitySelectionModes.override
             this.globalEntitySelection.selectByCountryCodes(countryCodes)
         }
     }

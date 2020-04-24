@@ -56,14 +56,13 @@ export function subscribeChartToGlobalEntitySelection(
             globalSelection.selectedEntities
         ],
         () => {
+            if (!chart.data.canAddData && !chart.data.canChangeEntity) {
+                // Chart doesn't support changing entities - do nothing
+                return
+            }
+            const { mode, selectedEntities } = globalSelection
             // This implements "override" mode only!
-            if (globalSelection.mode === GlobalEntitySelectionModes.override) {
-                const { selectedEntities } = globalSelection
-                if (!chart.data.canAddData && !chart.data.canChangeEntity) {
-                    // Chart doesn't support changing entities - do nothing
-                    return
-                }
-
+            if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
                     chart.data.setSelectedEntitiesByCode(
                         selectedEntities.map(entity => entity.code)
