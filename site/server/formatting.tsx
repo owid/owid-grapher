@@ -221,7 +221,7 @@ export async function formatWordpressPost(
                 const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
-                        <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" /></div>
+                        <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" loading="lazy" /></div>
                         <div class="interactionNotice">
                             <span class="icon">${INTERACTIVE_ICON_SVG}</span>
                             <span class="label">Click to open interactive version</span>

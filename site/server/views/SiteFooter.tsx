@@ -175,6 +175,7 @@ export const SiteFooter = ({
                                     <img
                                         src={`${BAKED_BASE_URL}/oms-logo.svg`}
                                         alt="Oxford Martin School logo"
+                                        loading="lazy"
                                     />
                                 </a>
                                 <a
@@ -185,6 +186,7 @@ export const SiteFooter = ({
                                     <img
                                         src={`${BAKED_BASE_URL}/yc-logo.png`}
                                         alt="Y Combinator logo"
+                                        loading="lazy"
                                     />
                                 </a>
                             </div>
@@ -216,6 +218,7 @@ export const SiteFooter = ({
                                         <img
                                             src={`${BAKED_BASE_URL}/gcdl-logo-narrow.png`}
                                             alt="Global Change Data Lab logo"
+                                            loading="lazy"
                                         />
                                     </a>
                                     Our World In Data is a project of the{" "}
