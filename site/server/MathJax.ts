@@ -10,7 +10,7 @@ export function initMathJax() {
     RegisterHTMLHandler(adaptor)
 
     const tex = new TeX({ packages: AllPackages })
-    const svg = new SVG({ fontCache: "local" })
+    const svg = new SVG({ fontCache: "none" })
     const doc = mathjax.document("", {
         InputJax: tex,
         OutputJax: svg
