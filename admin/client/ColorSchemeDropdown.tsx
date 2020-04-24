@@ -5,6 +5,8 @@ import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 
+import { asArray } from "utils/client/react-select"
+
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
     gradient?: string
@@ -72,12 +74,8 @@ export class ColorSchemeDropdown extends React.Component<
     }
 
     @action.bound onChange(selected: ValueType<ColorSchemeOption>) {
-        // The onChange method can return an array of values (when multiple
-        // items can be selected) or a single value. Since we are certain that
-        // we are not using the multi-option select we can force the type to be
-        // a single value.
-
-        this.props.onChange(selected as ColorSchemeOption)
+        const value = asArray(selected)[0]
+        this.props.onChange(value)
     }
 
     @bind formatOptionLabel(option: ColorSchemeOption) {

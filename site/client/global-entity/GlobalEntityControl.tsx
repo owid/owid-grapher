@@ -26,7 +26,7 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
 } from "./GlobalEntitySelection"
-import { isMultiValue } from "utils/client/react-select"
+import { asArray } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
 
 const allEntities = sortBy(countries, c => c.name)
@@ -236,13 +236,9 @@ export class GlobalEntityControl extends React.Component<
     @action.bound private onChange(
         newEntities: ValueType<GlobalEntitySelectionEntity>
     ) {
-        if (newEntities == null) return
+        const entities: GlobalEntitySelectionEntity[] = asArray(newEntities)
 
-        const entities: GlobalEntitySelectionEntity[] = isMultiValue(
-            newEntities
-        )
-            ? Array.from(newEntities)
-            : [newEntities]
+        if (entities.length === 0) return
 
         this.setSelectedEntities(entities)
 

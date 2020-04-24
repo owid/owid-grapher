@@ -4,6 +4,12 @@ export function isMultiValue<T>(value: ValueType<T>): value is OptionsType<T> {
     return Array.isArray(value)
 }
 
+export function asArray<T>(value: ValueType<T>): T[] {
+    if (value == null) return []
+    else if (isMultiValue(value)) return Array.from(value)
+    else return [value]
+}
+
 export function getStylesForTargetHeight(targetHeight: number): StylesConfig {
     // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
     return {
