@@ -671,7 +671,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         font-size: 1.5rem;
         line-height: 1.4em;
         margin-top: 2.75rem;
-        margin-bottom: 1rem;
+        margin-bottom: $vertical-spacing;
 
         @include sm-only {
             font-size: 1.25rem;
@@ -680,18 +680,14 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     .wp-block-columns h5 {
         font-family: $serif-font-stack;
-        font-weight: 400;
+        font-weight: bold;
+        font-size: 1.2rem;
         line-height: 1.2;
-        margin: 0 0 20px;
-        padding-top: 10px;
-        border-top: 1px;
-        border-top-style: solid;
-        border-top-color: #d3d3d3;
-        padding-left: 15px;
-        border-left: 1px;
-        border-left-style: solid;
-        border-left-color: #d3d3d3;
-        font-size: 22px;
+        margin: 2 * $vertical-spacing 0 $vertical-spacing;
+
+        @include sm-only {
+            font-size: 1rem;
+        }
     }
 
     /* Image captions */
