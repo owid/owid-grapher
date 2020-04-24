@@ -129,7 +129,13 @@ export const TableOfContents = ({
                 }
             )
 
-            const contentHeadings = document.querySelectorAll("h2, h3")
+            let contentHeadings = null
+            // HACK
+            if (window.location.pathname === "/coronavirus") {
+                contentHeadings = document.querySelectorAll("h2")
+            } else {
+                contentHeadings = document.querySelectorAll("h2, h3")
+            }
             contentHeadings.forEach(contentHeading => {
                 observer.observe(contentHeading)
             })
