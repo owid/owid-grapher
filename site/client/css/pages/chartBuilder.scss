@@ -1,4 +1,6 @@
 $controls-color: #3f9eff;
+$sidebar-width: 200px;
+$ideal-ratio: 680/480;
 
 .CovidChartBuilder {
     display: flex;
@@ -7,7 +9,7 @@ $controls-color: #3f9eff;
     max-width: 1250px;
 
     .CovidChartBuilderSideBar {
-        width: 250px;
+        width: $sidebar-width;
         max-height: 600px;
         padding-right: 10px;
 
@@ -37,16 +39,14 @@ $controls-color: #3f9eff;
     }
 
     .CovidChartBuilderMainBar {
-        width: calc(100% - 250px);
+        width: calc(100% - $sidebar-width);
 
         .CovidChartBuilderTopBar {
-            width: 800px;
             display: flex;
             justify-content: space-between;
         }
 
         .CovidChartBuilderFigure {
-            width: 100%;
         }
     }
 

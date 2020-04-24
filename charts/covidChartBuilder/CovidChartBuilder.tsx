@@ -293,7 +293,7 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     render() {
-        const bounds = new Bounds(0, 0, 840, 600)
+        const bounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
 
         return (
             <div className="CovidChartBuilder">
