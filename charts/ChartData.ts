@@ -368,7 +368,7 @@ export class ChartData {
     }
 
     @action.bound resetSelectedEntities() {
-        this.chart.props.selectedData = this.chart.origProps.selectedData
+        this.chart.props.selectedData = this.chart.initialProps.selectedData
     }
 
     @computed get selectedEntityCodes(): string[] {
