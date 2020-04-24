@@ -6,30 +6,45 @@ $ideal-ratio: 680/480;
     display: flex;
     margin: 0 auto;
     width: 100%;
-    max-width: 1250px;
+    max-width: 1200px;
+    padding-top: 5px;
 
     .CovidChartBuilderSideBar {
         width: $sidebar-width;
-        max-height: 600px;
-        padding-right: 10px;
+        background: white;
+        margin-right: 10px;
+        border: 1px solid rgb(233, 233, 233);
+        border-radius: 5px;
 
         .CountrySearch {
             padding: 5px;
             margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 0;
+            border-bottom: 1px solid #ddd;
             width: 100%;
         }
 
+        .ClearSelectionButton {
+            color: $controls-color;
+            font-size: 13px;
+            line-height: 16px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
         .CountrySearchResults {
-            height: 500px;
+            height: 695px;
             overflow-y: scroll;
+
+            td {
+                border-bottom: 1px solid #eee;
+            }
 
             .CountryOption {
                 display: block;
                 padding: 10px;
                 font-size: 14px;
-                border-bottom: 1px solid #eee;
 
                 &.MissingTests {
                     opacity: 0.9;
@@ -48,14 +63,14 @@ $ideal-ratio: 680/480;
         .CovidChartBuilderTopBar {
             display: flex;
             justify-content: space-between;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid rgb(233, 233, 233);
         }
 
         .CovidChartBuilderFigure {
         }
-    }
-
-    .ClearSelectionButton {
-        color: $controls-color;
     }
 
     .CovidChartBuilderRadio {

@@ -90,7 +90,7 @@ export class CountryPicker extends React.Component<{
                         className="ClearSelectionButton"
                         onClick={this.props.chartBuilder.clearSelectionCommand}
                     >
-                        X Clear selection
+                        <strong>X</strong> Clear selection
                     </div>
                 </div>
             </div>
