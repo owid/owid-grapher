@@ -22,14 +22,16 @@ import {
     find,
     first,
     isEmpty,
-    guid
+    guid,
+    getRelativeMouse,
+    makeSafeForCSS,
+    intersection
 } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { NoData } from "./NoData"
 import { AxisScale } from "./AxisScale"
-import { getRelativeMouse, makeSafeForCSS, intersection } from "./Util"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Marks"
 import { select } from "d3-selection"

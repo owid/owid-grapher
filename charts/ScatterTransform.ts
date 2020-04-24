@@ -16,14 +16,17 @@ import {
     uniq,
     compact,
     formatYear,
-    flatten
+    flatten,
+    defaultTo,
+    first,
+    last,
+    formatValue,
+    domainExtent
 } from "./Util"
 import { computed } from "mobx"
-import { defaultTo, first, last } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent } from "./Util"
 import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"

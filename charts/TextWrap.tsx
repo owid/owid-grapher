@@ -1,7 +1,6 @@
-import { isEmpty, reduce, max, stripHTML } from "./Util"
+import { isEmpty, reduce, max, stripHTML, defaultTo } from "./Util"
 import { computed } from "mobx"
 import { FontSize } from "./FontSize"
-import { defaultTo } from "./Util"
 import { Bounds } from "./Bounds"
 import * as React from "react"
 

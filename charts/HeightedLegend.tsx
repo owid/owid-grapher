@@ -14,9 +14,9 @@ import {
     sortBy,
     sumBy,
     flatten,
-    sign
+    sign,
+    defaultTo
 } from "./Util"
-import { defaultTo } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "./TextWrap"

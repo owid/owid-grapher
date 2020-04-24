@@ -1,9 +1,19 @@
 import * as React from "react"
-import { min, max, map, each, last, sortBy, flatten, some, find } from "./Util"
+import {
+    min,
+    max,
+    map,
+    each,
+    last,
+    sortBy,
+    flatten,
+    some,
+    find,
+    getRelativeMouse
+} from "./Util"
 import { Bounds } from "./Bounds"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { getRelativeMouse } from "./Util"
 import {
     MapLegendBin,
     NumericBin,

@@ -18,7 +18,7 @@ import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
 import * as cheerio from "cheerio"
 import { JsonError } from "utils/server/serverUtil"
 import { Post } from "db/model/Post"
-import { BAKED_BASE_URL } from "settings"
+import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "settings"
 import {
     EntriesByYearPage,
     EntriesForYearPage
@@ -28,7 +28,6 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
-import { BLOG_POSTS_PER_PAGE } from "settings"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {

@@ -1,11 +1,22 @@
 import * as React from "react"
-import { map, flatten, some, includes, sortBy, filter, sum, guid } from "./Util"
+import {
+    map,
+    flatten,
+    some,
+    includes,
+    sortBy,
+    filter,
+    sum,
+    guid,
+    getRelativeMouse,
+    makeSafeForCSS,
+    pointsToPath
+} from "./Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
-import { getRelativeMouse, makeSafeForCSS, pointsToPath } from "./Util"
 import { Bounds } from "./Bounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { AxisBox } from "./AxisBox"

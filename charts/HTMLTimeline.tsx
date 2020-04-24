@@ -1,8 +1,7 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { first, last, findClosestYear } from "./Util"
+import { first, last, findClosestYear, getRelativeMouse } from "./Util"
 import { Bounds } from "./Bounds"
-import { getRelativeMouse } from "./Util"
 import { Analytics } from "site/client/Analytics"
 import {
     observable,
