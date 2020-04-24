@@ -304,7 +304,7 @@ export class CovidChartBuilder extends React.Component<{
                         toggleCountryCommand={this.toggleSelectedCountryCommand}
                     ></CountryPicker>
                 </div>
-                <div className="CovidChartBuilderMainBar">
+                <div className="CovidChartBuilderMain">
                     <div className="CovidChartBuilderTopBar">
                         {this.metricPicker}
                         {this.frequencyPicker}

@@ -1,5 +1,4 @@
 $controls-color: #3f9eff;
-$sidebar-width: 200px;
 $ideal-ratio: 680/480;
 
 .CovidChartBuilder {
@@ -10,7 +9,7 @@ $ideal-ratio: 680/480;
     padding-top: 5px;
 
     .CovidChartBuilderSideBar {
-        width: $sidebar-width;
+        width: 200px;
         background: white;
         margin-right: 10px;
         border: 1px solid rgb(233, 233, 233);
@@ -57,8 +56,8 @@ $ideal-ratio: 680/480;
         }
     }
 
-    .CovidChartBuilderMainBar {
-        width: calc(100% - $sidebar-width);
+    .CovidChartBuilderMain {
+        width: calc(100% - 200);
 
         .CovidChartBuilderTopBar {
             display: flex;
