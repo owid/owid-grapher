@@ -10,7 +10,7 @@
     background-color: $primary-color-100;
     border: 1px solid $primary-color-100;
     border-radius: 2px;
-    transition: all 0.3s;
+    transition: all 0.1s;
 
     &:hover {
         @include block-shadow;
@@ -78,10 +78,11 @@
                 align-items: center;
             }
             figure {
-                flex: 0 0 100px;
+                // hack 1: 74px is the height of the block with one line of content + title
+                // hack 2: 850 / 600 = ratio of SVG charts
+                flex: 0 0 74px * 850/600 - 1px;
                 margin: 1rem 0 1rem 1rem;
                 @include md-up {
-                    flex: 0 0 120px;
                     margin: 0;
                 }
                 img {
