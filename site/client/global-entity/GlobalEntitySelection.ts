@@ -6,7 +6,8 @@ import { excludeUndefined } from "charts/Util"
 import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
 import { bindUrlToWindow } from "charts/UrlBinding"
 
-export enum GlobalEntitySelectionStates {
+export enum GlobalEntitySelectionModes {
+    none = "none",
     // Possibly might need the `add` state in the future to
     // add country from geolocation without clearing others.
     // One thing to figure out is what its behaviour should
@@ -22,8 +23,8 @@ export class GlobalEntitySelection {
     private url?: GlobalEntitySelectionUrl
     private isBoundToWindow: boolean = false
 
-    @observable state: GlobalEntitySelectionStates =
-        GlobalEntitySelectionStates.override
+    @observable mode: GlobalEntitySelectionModes =
+        GlobalEntitySelectionModes.none
     @observable
     selectedEntities: GlobalEntitySelectionEntity[] = []
 
@@ -49,21 +50,27 @@ export function subscribeChartToGlobalEntitySelection(
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {
     return reaction(
-        () => chart.data.isReady && globalSelection.selectedEntities,
+        () => [
+            chart.data.isReady,
+            globalSelection.mode,
+            globalSelection.selectedEntities
+        ],
         () => {
-            const { selectedEntities } = globalSelection
-            if (!chart.data.canAddData && !chart.data.canChangeEntity) {
-                // Chart doesn't support changing entities - do nothing
-                return
-            }
-
             // This implements "override" mode only!
-            if (selectedEntities.length > 0) {
-                chart.data.setSelectedEntitiesByCode(
-                    selectedEntities.map(entity => entity.code)
-                )
-            } else {
-                chart.data.resetSelectedEntities()
+            if (globalSelection.mode === GlobalEntitySelectionModes.override) {
+                const { selectedEntities } = globalSelection
+                if (!chart.data.canAddData && !chart.data.canChangeEntity) {
+                    // Chart doesn't support changing entities - do nothing
+                    return
+                }
+
+                if (selectedEntities.length > 0) {
+                    chart.data.setSelectedEntitiesByCode(
+                        selectedEntities.map(entity => entity.code)
+                    )
+                } else {
+                    chart.data.resetSelectedEntities()
+                }
             }
         },
         { fireImmediately: true }

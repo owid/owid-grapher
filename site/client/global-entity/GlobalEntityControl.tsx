@@ -24,7 +24,8 @@ import {
 } from "charts/Util"
 import {
     GlobalEntitySelection,
-    GlobalEntitySelectionEntity
+    GlobalEntitySelectionEntity,
+    GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
@@ -187,6 +188,8 @@ export class GlobalEntityControl extends React.Component<
     @action.bound setSelectedEntities(
         countries: GlobalEntitySelectionEntity[]
     ) {
+        this.props.globalEntitySelection.mode =
+            GlobalEntitySelectionModes.override
         this.props.globalEntitySelection.selectedEntities = countries
     }
 
