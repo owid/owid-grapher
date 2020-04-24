@@ -301,7 +301,7 @@ export class ScatterTransform extends ChartTransform {
         }
 
         // Exclude any with data for only one axis
-        dataByEntityAndYear.forEach((dataByYear, entity) => {
+        dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
                 if (!has(point, "x") || !has(point, "y"))
                     dataByYear.delete(year)

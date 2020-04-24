@@ -104,7 +104,7 @@ export async function formatWordpressPost(
     ;[html, latexBlocks] = extractLatex(html)
 
     const references: Reference[] = []
-    html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, (_, bibtex) => {
+    html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, () => {
         references.push({}) // Todo
         return ``
     })

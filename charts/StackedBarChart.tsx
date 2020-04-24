@@ -82,7 +82,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     }
 
     render() {
-        const { bar, color, opacity, xOffset, yScale, barWidth } = this.props
+        const { color, xOffset, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 
         return (
@@ -339,7 +339,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get ticks() {
-        const { tickPlacements, axisBox } = this
+        const { tickPlacements } = this
 
         for (let i = 0; i < tickPlacements.length; i++) {
             for (let j = 1; j < tickPlacements.length; j++) {

@@ -610,8 +610,7 @@ export function valuesByEntityAtYears(
 
 export function valuesByEntityWithinYears(
     valueByEntityAndYear: Map<string, Map<number, string | number>>,
-    range: (number | undefined)[],
-    boundsOnly: boolean = false
+    range: (number | undefined)[]
 ): Map<string, DataValue[]> {
     const start = range[0] !== undefined ? range[0] : -Infinity
     const end = range[1] !== undefined ? range[1] : Infinity

@@ -37,7 +37,7 @@ export namespace log {
             ts: Math.floor(Date.now() / 1000)
         }
 
-        slack.webhook({ attachments: [attachment] }, (error, response) => {
+        slack.webhook({ attachments: [attachment] }, error => {
             if (error) console.error(error)
         })
     }

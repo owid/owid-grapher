@@ -433,7 +433,6 @@ export class StackedArea extends React.Component<{
     componentDidMount() {
         // Fancy intro animation
 
-        const base = select(this.base.current)
         this.animSelection = select(this.base.current)
             .selectAll("clipPath > rect")
             .attr("width", 0)

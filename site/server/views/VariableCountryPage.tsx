@@ -4,7 +4,6 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
-import { defaultTo } from "charts/Util"
 
 export interface VariableCountryPageProps {
     country: {
@@ -29,8 +28,6 @@ export interface VariableCountryPageProps {
 
 export const VariableCountryPage = (props: VariableCountryPageProps) => {
     const { variable, country } = props
-
-    const displayName = defaultTo(variable.display.name, variable.name)
 
     const pageTitle = `${country.name} / ${variable.name}`
     const script = `window.runVariableCountryPage(${JSON.stringify(props)})`

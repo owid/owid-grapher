@@ -108,7 +108,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Get the svg path specification string for every feature
     @computed get geoPaths(): string[] {
-        const { geoFeatures, pathGen, geoBounds } = this
+        const { geoFeatures, pathGen } = this
 
         return geoFeatures.map(d => {
             const s = pathGen(d) as string

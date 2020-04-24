@@ -35,12 +35,7 @@ export class VariablesIndexPage extends React.Component {
     }
 
     render() {
-        const {
-            variablesToShow,
-            searchInput,
-            highlightSearch,
-            numTotalRows
-        } = this
+        const { variablesToShow, searchInput, numTotalRows } = this
 
         const highlight = (text: string) => {
             if (this.highlightSearch) {

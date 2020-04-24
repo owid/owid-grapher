@@ -6,7 +6,6 @@ import { RootStore, IndicatorStore } from "charts/Store"
 import * as fixtures from "test/fixtures"
 import * as apiMock from "test/apiMock"
 
-const indicatorsBuffer = fixtures.readBuffer("indicators")
 const indicator = fixtures.readIndicators().indicators[0]
 
 function createIndicatorStore() {

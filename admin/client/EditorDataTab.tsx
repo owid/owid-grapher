@@ -147,7 +147,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 name="add-country-mode"
                                 value="add-country"
                                 checked={chart.addCountryMode === "add-country"}
-                                onChange={_ =>
+                                onChange={() =>
                                     (chart.props.addCountryMode = "add-country")
                                 }
                             />
@@ -164,7 +164,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 checked={
                                     chart.addCountryMode === "change-country"
                                 }
-                                onChange={_ =>
+                                onChange={() =>
                                     (chart.props.addCountryMode =
                                         "change-country")
                                 }
@@ -180,7 +180,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 name="add-country-mode"
                                 value="disabled"
                                 checked={chart.addCountryMode === "disabled"}
-                                onChange={_ =>
+                                onChange={() =>
                                     (chart.props.addCountryMode = "disabled")
                                 }
                             />

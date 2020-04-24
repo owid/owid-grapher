@@ -10,7 +10,6 @@ import { ChartConfig } from "charts/ChartConfig"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "settings"
-import _ from "lodash"
 
 export type EditorTab = string
 

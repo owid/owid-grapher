@@ -156,7 +156,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             pngDownloadUrl,
             svgPreviewUrl,
             svgDownloadUrl,
-            isPortrait,
             baseFilename
         } = this
 

@@ -30,8 +30,6 @@ import { EntityDimensionKey } from "./EntityDimensionKey"
 const LEGEND_ITEM_MIN_SPACING = 2
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
-// Marker lines start and end with a horizontal segment, this sets the minimum size of it
-const MARKER_HORIZONTAL_SEGMENT = 5
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 

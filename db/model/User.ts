@@ -24,25 +24,25 @@ export class User extends BaseEntity {
     @Column() lastSeen!: Date
 
     @OneToMany(
-        type => Chart,
+        () => Chart,
         chart => chart.lastEditedByUser
     )
     lastEditedCharts!: Chart[]
 
     @OneToMany(
-        type => Chart,
+        () => Chart,
         chart => chart.publishedByUser
     )
     publishedCharts!: Chart[]
 
     @OneToMany(
-        type => ChartRevision,
+        () => ChartRevision,
         rev => rev.user
     )
     editedCharts!: ChartRevision[]
 
     @OneToMany(
-        type => Dataset,
+        () => Dataset,
         dataset => dataset.createdByUser
     )
     createdDatasets!: Dataset[]

@@ -8,7 +8,7 @@ export const CitationMeta = (props: {
     date: Date
     canonicalUrl: string
 }) => {
-    const { id, title, date, canonicalUrl } = props
+    const { title, date, canonicalUrl } = props
     let { authors } = props
 
     if (authors.indexOf("Max Roser") === -1)

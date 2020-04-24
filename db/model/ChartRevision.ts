@@ -19,13 +19,13 @@ export class ChartRevision extends BaseEntity {
     @Column() updatedAt!: Date
 
     @ManyToOne(
-        type => User,
+        () => User,
         user => user.editedCharts
     )
     user!: User
 
     @ManyToOne(
-        type => Chart,
+        () => Chart,
         chart => chart.logs
     )
     chart!: Chart

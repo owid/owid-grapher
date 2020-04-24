@@ -50,7 +50,7 @@ export const TableOfContents = ({
             // Sets up an intersection observer to notify when the element with the class
             // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
             // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
-            const observer = new IntersectionObserver((records, observer) => {
+            const observer = new IntersectionObserver(records => {
                 for (const record of records) {
                     const targetInfo = record.boundingClientRect
                     // Started sticking
