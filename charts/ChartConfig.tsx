@@ -256,15 +256,36 @@ export class ChartConfigProps {
 // TODO: this really represents more than just the configuration state and should be split
 // into multiple components. It's sort of the top-level chart state.
 export class ChartConfig {
+    /** Stores the current chart state. Can be modified to change the chart. */
     props: ChartConfigProps = new ChartConfigProps()
 
-    origPropsRaw: ChartConfigProps
+    private origPropsRaw: Readonly<ChartConfigProps>
+
+    /**
+     * The original chart props as they are stored in the database. Useful for deriving the URL
+     * parameters that need to be applied to reach the current state.
+     */
     @computed get origProps(): Readonly<ChartConfigProps> {
         if (typeof App !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.props)
         } else {
             return this.origPropsRaw
+        }
+    }
+
+    private initialPropsRaw: Readonly<ChartConfigProps>
+
+    /**
+     * The chart props after consuming the initial URL parameters but before any user-triggered
+     * changes. Helpful for "resetting" embeds to their initial state.
+     */
+    @computed get initialProps(): Readonly<ChartConfigProps> {
+        if (typeof App !== "undefined" && App.isEditor) {
+            // In the editor, the current chart state is always the "initial" state
+            return toJS(this.props)
+        } else {
+            return this.initialPropsRaw
         }
     }
 
@@ -435,6 +456,8 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
+
+        // The original chart props, as stored in the database
         this.origPropsRaw = toJS(this.props)
 
         this.disposers.push(
@@ -445,6 +468,9 @@ export class ChartConfig {
 
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
+
+        // The chart props after consuming the URL parameters, but before any user interaction
+        this.initialPropsRaw = toJS(this.props)
 
         if (options.globalEntitySelection) {
             this.disposers.push(
