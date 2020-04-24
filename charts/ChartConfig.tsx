@@ -257,7 +257,7 @@ export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
     origPropsRaw: ChartConfigProps
-    @computed get origProps(): ChartConfigProps {
+    @computed get origProps(): Readonly<ChartConfigProps> {
         if (typeof App !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.props)
