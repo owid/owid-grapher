@@ -39,6 +39,7 @@ import {
 } from "./CovidData"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
+import { populationMap } from "./CovidPopulationMap"
 
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
@@ -323,19 +324,32 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get countryOptions(): CountryOption[] {
-        const countries = uniqBy(this.props.data, "iso_code")
-        return countries.map(country => {
-            return {
-                name: country.location,
-                selected: this.props.params.selectedCountryCodes.has(
-                    country.iso_code
-                ),
-                slug: country.location,
-                code: country.iso_code,
-                continent:
-                    labelsByRegion[worldRegionByMapEntity[country.location]]
-            }
-        })
+        const lastCountryRows = uniqBy(
+            this.props.data.slice().reverse(),
+            "iso_code"
+        )
+        return lastCountryRows
+            .map(country => {
+                return {
+                    name: country.location,
+                    selected: this.props.params.selectedCountryCodes.has(
+                        country.iso_code
+                    ),
+                    slug: country.location,
+                    code: country.iso_code,
+                    totalDeaths: country.total_deaths,
+                    totalCases: country.total_cases,
+                    totalTests: country.total_tests,
+                    noData:
+                        !country.total_deaths &&
+                        !country.total_cases &&
+                        !country.total_tests,
+                    population: populationMap[country.location],
+                    continent:
+                        labelsByRegion[worldRegionByMapEntity[country.location]]
+                }
+            })
+            .reverse()
     }
 
     @computed private get availableEntities() {

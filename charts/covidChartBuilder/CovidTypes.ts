@@ -36,4 +36,9 @@ export interface CountryOption {
     selected: boolean
     code: string
     continent: string
+    population: number
+    totalDeaths: number
+    totalCases: number
+    totalTests: number
+    noData: boolean
 }

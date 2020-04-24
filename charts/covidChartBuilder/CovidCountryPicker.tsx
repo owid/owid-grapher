@@ -51,17 +51,38 @@ export class CountryPicker extends React.Component<{
                     ref={e => (this.searchField = e as HTMLInputElement)}
                 />
                 <div className="CountrySearchResults">
-                    {this.searchResults.map((option, index) => (
-                        <label className="CountryOption" key={index}>
-                            <input
-                                type="checkbox"
-                                checked={option.selected}
-                                onChange={this.onChange}
-                                value={option.code}
-                            />
-                            {option.name}
-                        </label>
-                    ))}
+                    <table>
+                        <tbody>
+                            {this.searchResults.map((option, index) => (
+                                <tr key={index}>
+                                    <td>
+                                        <label
+                                            className={
+                                                "CountryOption" +
+                                                (option.totalTests
+                                                    ? ""
+                                                    : " MissingTests")
+                                            }
+                                            key={index}
+                                            title={
+                                                option.totalTests
+                                                    ? ""
+                                                    : "No testing data available."
+                                            }
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={option.selected}
+                                                onChange={this.onChange}
+                                                value={option.code}
+                                            />
+                                            {option.name}{" "}
+                                        </label>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
                 <div className="CountrySelectionControls">

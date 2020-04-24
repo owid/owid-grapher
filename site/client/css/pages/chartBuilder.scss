@@ -27,9 +27,13 @@ $ideal-ratio: 680/480;
 
             .CountryOption {
                 display: block;
-                background: white;
                 padding: 10px;
-                margin-bottom: 5px;
+                font-size: 14px;
+                border-bottom: 1px solid #eee;
+
+                &.MissingTests {
+                    opacity: 0.9;
+                }
 
                 input {
                     margin-right: 8px;
@@ -59,7 +63,6 @@ $ideal-ratio: 680/480;
         margin: 3px;
         padding: 7px;
         font-size: 14px;
-        background: white;
 
         input {
             margin-right: 5px;
