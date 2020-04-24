@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import { bind } from "decko"
 
 import { asArray } from "utils/client/react-select"
+import { first } from "charts/Util"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
@@ -74,8 +75,8 @@ export class ColorSchemeDropdown extends React.Component<
     }
 
     @action.bound onChange(selected: ValueType<ColorSchemeOption>) {
-        const value = asArray(selected)[0]
-        this.props.onChange(value)
+        const value = first(asArray(selected))
+        if (value) this.props.onChange(value)
     }
 
     @bind formatOptionLabel(option: ColorSchemeOption) {

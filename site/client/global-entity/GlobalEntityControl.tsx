@@ -236,9 +236,7 @@ export class GlobalEntityControl extends React.Component<
     @action.bound private onChange(
         newEntities: ValueType<GlobalEntitySelectionEntity>
     ) {
-        const entities: GlobalEntitySelectionEntity[] = asArray(newEntities)
-
-        if (entities.length === 0) return
+        const entities = asArray(newEntities)
 
         this.setSelectedEntities(entities)
 

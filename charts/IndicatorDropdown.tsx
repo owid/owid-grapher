@@ -11,6 +11,7 @@ import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
 import { StoreEntry } from "./Store"
 import { asArray } from "utils/client/react-select"
+import { first } from "./Util"
 
 export interface IndicatorDropdownProps {
     placeholder: string
@@ -28,7 +29,7 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     }
 
     @bind onChange(indicator: ValueType<Indicator>) {
-        const value = asArray(indicator)[0]?.id
+        const value = first(asArray(indicator))?.id
         if (value) this.props.onChangeId(value)
     }
 
