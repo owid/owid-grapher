@@ -26,11 +26,7 @@ export class CountryPicker extends React.Component<{
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.options
-        return sortBy(
-            results,
-            result => !result.selected,
-            result => result.name
-        )
+        return sortBy(results, result => result.name)
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}

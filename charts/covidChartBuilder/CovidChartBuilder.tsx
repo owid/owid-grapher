@@ -75,18 +75,12 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     buildVariable(name: MetricKind, rowFn: RowAccessor) {
-        const perCapita =
-            this.props.params.count === "total"
-                ? undefined
-                : this.props.params.testsMetric
-                ? 1000
-                : 1000000
         return buildCovidVariable(
             name,
             this.countryMap,
             this.props.data,
             rowFn,
-            perCapita,
+            this.perCapitaDivisor,
             this.props.params.smoothing
         )
     }
@@ -355,12 +349,22 @@ export class CovidChartBuilder extends React.Component<{
         return "Total"
     }
 
-    @computed get countTitle() {
+    @computed get perCapitaDivisor() {
         const { params } = this.props
-        if (params.testsMetric && params.count === "perCapita")
-            return " per thousand people"
-        if (params.count === "perCapita") return " per million people"
-        return ""
+        if (params.count === "total") return 1
+        if (params.testsMetric && !params.deathsMetric && !params.casesMetric)
+            return 1000
+        return 1000000
+    }
+
+    @computed get countTitle() {
+        const options = {
+            1: "",
+            1000: " per thousand people",
+            1000000: " per million people"
+        }
+
+        return options[this.perCapitaDivisor]
     }
 
     @computed get metricTitle() {
@@ -377,12 +381,22 @@ export class CovidChartBuilder extends React.Component<{
 
     @computed get smoothingTitle() {
         if (this.props.params.smoothing > 0)
-            return `, rolling ${this.props.params.smoothing}-day average`
+            return `Rolling ${this.props.params.smoothing}-day average. `
         return ""
     }
 
     @computed get title() {
-        return `${this.frequencyTitle} COVID-19 ${this.metricTitle}${this.countTitle}${this.smoothingTitle}`
+        return `${this.frequencyTitle} Confirmed COVID-19 ${this.metricTitle}${this.countTitle}`
+    }
+
+    @computed get subtitle() {
+        let str = `${this.smoothingTitle}`
+        if (this.props.params.deathsMetric)
+            str += `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
+        if (this.props.params.casesMetric)
+            str += `The number of confirmed cases is lower than the number of total cases. The main reason for this is limited testing.`
+        if (this.props.params.testsMetric) str += ""
+        return str
     }
 
     @computed get note() {
@@ -503,6 +517,7 @@ export class CovidChartBuilder extends React.Component<{
         // todo: cleanup
         const chartProps = this.chart.props
         chartProps.title = this.title
+        chartProps.subtitle = this.subtitle
         chartProps.note = this.note
         chartProps.type = this.chartType
         chartProps.owidDataset = this.owidVariableSet
@@ -599,6 +614,7 @@ export class CovidChartBuilder extends React.Component<{
             id: 4128,
             version: 9,
             title: this.title,
+            subtitle: this.subtitle,
             note: this.note,
             hideTitleAnnotation: true,
             xAxis: {
