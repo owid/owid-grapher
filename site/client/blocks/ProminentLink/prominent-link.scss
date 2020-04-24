@@ -52,7 +52,7 @@
     &.is-style-thin {
         margin-bottom: $vertical-spacing;
         .content-wrapper {
-            margin: 1rem;
+            margin: 0.5rem;
         }
         .content {
             font-size: 0.9rem;
@@ -66,7 +66,7 @@
             }
         }
         .title {
-            margin-top: $vertical-spacing / 2;
+            margin-top: $vertical-spacing / 4;
             font-weight: bold;
             line-height: 1;
         }
@@ -78,10 +78,10 @@
                 align-items: center;
             }
             figure {
-                // hack 1: 74px is the height of the block with one line of content + title
+                // hack 1: 55px is the height of the block with one line of content + title, including padding
                 // hack 2: 850 / 600 = ratio of SVG charts
-                flex: 0 0 74px * 850/600 - 1px;
-                margin: 1rem 0 1rem 1rem;
+                flex: 0 0 55px * 850/600;
+                margin: 0.5rem 0 0.5rem 0.5rem;
                 @include md-up {
                     margin: 0;
                 }
