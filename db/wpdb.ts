@@ -521,7 +521,10 @@ export async function getFullPost(
         imageUrl:
             BAKED_BASE_URL +
             defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg"),
-        relatedCharts: await getRelatedCharts(postApi.id)
+        relatedCharts:
+            postApi.type === "page"
+                ? await getRelatedCharts(postApi.id)
+                : undefined
     }
 }
 
