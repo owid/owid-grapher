@@ -12,3 +12,5 @@ tmp
 .tscache
 test
 dist
+.queue
+.pending
