@@ -245,6 +245,7 @@ export const SiteFooter = ({
                 runCovid();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
+                    runGlobalEntityControl(Grapher.globalEntitySelection);
                 }
             `
                     }}

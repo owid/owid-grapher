@@ -15,7 +15,7 @@ import {
     slugify,
     lastOfNonEmptyArray
 } from "./Util"
-import { computed, toJS } from "mobx"
+import { computed, toJS, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
@@ -337,10 +337,38 @@ export class ChartData {
             : this.availableEntities
     }
 
-    setSelectedEntity(entityId: number) {
+    @action.bound setSelectedEntity(entityId: number) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
+    }
+
+    @action.bound setSelectedEntitiesByCode(entityCodes: string[]) {
+        if (this.canChangeEntity) {
+            this.availableEntities.forEach(entity => {
+                const entityMeta = this.chart.entityMetaByKey[entity]
+                if (
+                    entityMeta.code === entityCodes[0] ||
+                    entityMeta.name === entityCodes[0]
+                ) {
+                    this.setSelectedEntity(entityMeta.id)
+                }
+            })
+        } else {
+            this.selectedKeys = this.availableKeys.filter(key => {
+                const meta = this.lookupKey(key)
+                const entityMeta = this.chart.entityMetaByKey[meta.entity]
+                return (
+                    includes(entityCodes, meta.shortCode) ||
+                    includes(entityCodes, entityMeta.code) ||
+                    includes(entityCodes, entityMeta.name)
+                )
+            })
+        }
+    }
+
+    @action.bound resetSelectedEntities() {
+        this.chart.props.selectedData = this.chart.origProps.selectedData
     }
 
     @computed get selectedKeys(): EntityDimensionKey[] {
@@ -462,7 +490,7 @@ export class ChartData {
         return keysByEntity
     }
 
-    lookupKey(key: EntityDimensionKey) {
+    lookupKey(key: EntityDimensionKey): EntityDimensionInfo {
         const keyDatum = this.entityDimensionMap.get(key)
         if (keyDatum !== undefined) return keyDatum
         else throw new Error(`Unknown data key: ${key}`)

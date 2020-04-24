@@ -1,0 +1,122 @@
+.global-entity-control-container {
+    position: sticky;
+    top: 5px;
+    z-index: $zindex-global-entity-select;
+}
+
+.global-entity-control {
+    margin-top: 1rem;
+    padding: 0.65em;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1), 0 8px 15px rgba(0, 0, 0, 0.08),
+        0 1px 3px 1px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    align-items: center;
+
+    &.is-narrow {
+        // must be 1rem to avoid auto-zoom
+        font-size: 1rem;
+        padding: 0.5em;
+    }
+
+    .select-dropdown-container {
+        width: 15%;
+        min-width: 16em;
+        max-width: 19em;
+        margin-right: 0.75em;
+    }
+
+    .selected-items-container {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: visible;
+    }
+
+    .selected-items {
+        display: flex;
+        align-content: center;
+    }
+
+    .selected-item {
+        display: flex;
+        align-items: stretch;
+        border-radius: 100px;
+        padding: 0;
+        margin-right: 0.375em;
+        user-select: none;
+        white-space: nowrap;
+        // enough to avoid clipping box-shadow
+        margin-left: 2px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+
+        background-color: #3360a9;
+        color: #fff;
+
+        .label {
+            font-weight: 700;
+            padding: 0.2em 0.8em;
+        }
+
+        &.removable .label {
+            padding-right: 0.3em;
+        }
+
+        .remove-icon {
+            flex: 0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            padding-right: 0.85em;
+            padding-left: 0.3em;
+            cursor: pointer;
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    .empty {
+        text-align: center;
+        color: $primary-color-400;
+    }
+
+    .narrow-summary {
+        flex: 1;
+    }
+
+    .narrow-summary-selected-items {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: rgba(0, 0, 0, 0.5);
+        padding-left: 0.25em;
+    }
+
+    .narrow-summary-selected-item {
+        font-weight: 700;
+        color: #3360a9;
+    }
+
+    .narrow-actions {
+        flex: 0;
+        display: flex;
+        align-items: center;
+        margin-left: 0.5em;
+        min-height: 2.25em; // roughly enough space for <select> not to cause a height change
+    }
+
+    .button {
+        border-radius: 100px;
+        background-color: #3360a9;
+        color: white;
+        font-weight: 700;
+        padding: 0.5em 0.8em;
+        border: none;
+        white-space: nowrap;
+    }
+}

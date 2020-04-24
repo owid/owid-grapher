@@ -15,6 +15,7 @@ import {
     RelatedChart
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
+import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityControl"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -530,6 +531,10 @@ export async function formatWordpressPost(
     // should not be a need for more.
     const style =
         $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
+
+    // Render global country selection component.
+    // Injects a <section>, which is why it executes last.
+    bakeGlobalEntityControl($)
 
     return {
         id: post.id,

@@ -1,4 +1,7 @@
-declare var window: any
+import { ENV } from "settings"
+
+const DEBUG = false
+const IS_DEV = ENV === "development"
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
@@ -35,6 +38,14 @@ export class Analytics {
         this.logToGA("ChartsPage", "Filter", query)
     }
 
+    static logGlobalEntityControl(
+        action: "open" | "change" | "close",
+        note?: string
+    ) {
+        this.logToAmplitude("GLOBAL_ENTITY_CONTROL", { action, note })
+        this.logToGA("GlobalEntityControl", action, note)
+    }
+
     static logSiteClick(text: string, href?: string, note?: string) {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,
@@ -49,6 +60,9 @@ export class Analytics {
     }
 
     private static logToAmplitude(name: string, props?: any) {
+        if (DEBUG && IS_DEV) {
+            console.log("Analytics.logToAmplitude", name, props)
+        }
         props = Object.assign(
             {},
             {
@@ -70,6 +84,15 @@ export class Analytics {
         eventLabel?: string,
         eventValue?: number
     ) {
+        if (DEBUG && IS_DEV) {
+            console.log(
+                "Analytics.logToGA",
+                eventCategory,
+                eventAction,
+                eventLabel,
+                eventValue
+            )
+        }
         const event: GAEvent = {
             hitType: "event",
             eventCategory,
@@ -79,7 +102,12 @@ export class Analytics {
         }
         if (window.ga) {
             const tracker = window.ga.getAll()[0]
-            if (tracker) tracker.send(event)
+            // @types/google.analytics seems to suggest this usage is invalid but we know Google
+            // Analytics logs these events correctly.
+            // I have avoided changing the implementation for now, but we should look into this as
+            // we use Google Analytics more.
+            // -@danielgavrilov 2020-04-23
+            if (tracker) tracker.send(event as any)
         }
     }
 }

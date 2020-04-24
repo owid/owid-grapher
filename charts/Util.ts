@@ -336,6 +336,10 @@ export function last<T>(arr: T[]): T | undefined {
     return arr[arr.length - 1]
 }
 
+export function excludeUndefined<T>(arr: (T | undefined)[]): T[] {
+    return arr.filter(x => x !== undefined) as T[]
+}
+
 export function firstOfNonEmptyArray<T>(arr: T[]): T {
     if (arr.length < 1) throw new Error("array is empty")
     return first(arr) as T
@@ -496,6 +500,9 @@ export async function getCountryCodeFromNetlifyRedirect(): Promise<
         req.addEventListener("load", () => {
             resolve(req.responseURL.split("?")[1])
         })
+        req.addEventListener("error", () =>
+            reject(new Error("Couldn't retrieve country code"))
+        )
         req.open("GET", "/detect-country-redirect")
         req.send()
     })

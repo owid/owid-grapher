@@ -27,6 +27,7 @@ import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
 import * as urlBinding from "charts/UrlBinding"
+import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
 
 declare const window: any
 
@@ -55,18 +56,21 @@ export class ChartView extends React.Component<ChartViewProps> {
         containerNode,
         isEditor,
         isEmbed,
-        queryStr
+        queryStr,
+        globalEntitySelection
     }: {
         jsonConfig: ChartConfigProps
         containerNode: HTMLElement
         isEditor?: boolean
         isEmbed?: true
         queryStr?: string
+        globalEntitySelection?: GlobalEntitySelection
     }) {
         let chartView
         const chart = new ChartConfig(jsonConfig, {
             isEmbed: isEmbed,
-            queryStr: queryStr
+            queryStr: queryStr,
+            globalEntitySelection: globalEntitySelection
         })
 
         function render() {
@@ -436,6 +440,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentWillUnmount() {
         window.removeEventListener("scroll", this.checkVisibility)
+        this.chart.dispose()
     }
 
     componentDidUpdate() {

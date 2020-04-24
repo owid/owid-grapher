@@ -1,3 +1,17 @@
+import * as React from "react"
+import * as ReactDOMServer from "react-dom/server"
+import {
+    observable,
+    computed,
+    action,
+    autorun,
+    toJS,
+    runInAction,
+    reaction,
+    IReactionDisposer
+} from "mobx"
+import { bind } from "decko"
+
 import {
     extend,
     map,
@@ -16,15 +30,6 @@ import {
     each,
     keys
 } from "./Util"
-import {
-    observable,
-    computed,
-    action,
-    autorun,
-    toJS,
-    runInAction,
-    reaction
-} from "mobx"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
@@ -43,8 +48,6 @@ import { ScatterTransform } from "./ScatterTransform"
 import { SlopeChartTransform } from "./SlopeChartTransform"
 import { Color } from "./Color"
 import { ChartView } from "./ChartView"
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
 import { ChartDimension } from "./ChartDimension"
@@ -61,6 +64,10 @@ import {
     Time,
     TimeBounds
 } from "./TimeBounds"
+import {
+    GlobalEntitySelection,
+    subscribeChartToGlobalEntitySelection
+} from "site/client/global-entity/GlobalEntitySelection"
 
 declare const App: any
 declare const window: any
@@ -249,6 +256,16 @@ export class ChartConfigProps {
 export class ChartConfig {
     props: ChartConfigProps = new ChartConfigProps()
 
+    origPropsRaw: ChartConfigProps
+    @computed get origProps(): ChartConfigProps {
+        if (typeof App !== "undefined" && App.isEditor) {
+            // In the editor, the current chart state is always the "original" state
+            return toJS(this.props)
+        } else {
+            return this.origPropsRaw
+        }
+    }
+
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
@@ -372,12 +389,19 @@ export class ChartConfig {
         )
     }
 
+    disposers: IReactionDisposer[] = []
+
+    @bind dispose() {
+        this.disposers.forEach(dispose => dispose())
+    }
+
     constructor(
         props?: ChartConfigProps,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
             queryStr?: string
+            globalEntitySelection?: GlobalEntitySelection
         } = {}
     ) {
         this.isEmbed = !!options.isEmbed
@@ -393,39 +417,53 @@ export class ChartConfig {
         this.isNode = isNode && !isJsdom
 
         this.update(props || { yAxis: { min: 0 } })
-        reaction(() => this.variableIds, this.downloadData, {
-            fireImmediately: true
-        })
+        this.origPropsRaw = toJS(this.props)
+
+        this.disposers.push(
+            reaction(() => this.variableIds, this.downloadData, {
+                fireImmediately: true
+            })
+        )
+
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
+
+        if (options.globalEntitySelection) {
+            this.disposers.push(
+                subscribeChartToGlobalEntitySelection(
+                    this,
+                    options.globalEntitySelection
+                )
+            )
+        }
 
         if (!this.isNode) this.ensureValidConfig()
     }
 
     ensureValidConfig() {
-        autorun(() => {
-            if (!this.availableTabs.includes(this.props.tab)) {
-                runInAction(() => (this.props.tab = this.availableTabs[0]))
-            }
-        })
-
-        autorun(() => {
-            if (this.props.hasMapTab && !this.props.map) {
-                runInAction(() => (this.props.map = new MapConfigProps()))
-            }
-        })
-
-        autorun(() => {
-            if (!isEqual(this.props.dimensions, this.validDimensions)) {
-                this.props.dimensions = this.validDimensions
-            }
-        })
-
-        autorun(() => {
-            if (this.props.isExplorable && !canBeExplorable(this.props)) {
-                this.props.isExplorable = false
-            }
-        })
+        const disposers = [
+            autorun(() => {
+                if (!this.availableTabs.includes(this.props.tab)) {
+                    runInAction(() => (this.props.tab = this.availableTabs[0]))
+                }
+            }),
+            autorun(() => {
+                if (this.props.hasMapTab && !this.props.map) {
+                    runInAction(() => (this.props.map = new MapConfigProps()))
+                }
+            }),
+            autorun(() => {
+                if (!isEqual(this.props.dimensions, this.validDimensions)) {
+                    this.props.dimensions = this.validDimensions
+                }
+            }),
+            autorun(() => {
+                if (this.props.isExplorable && !canBeExplorable(this.props)) {
+                    this.props.isExplorable = false
+                }
+            })
+        ]
+        this.disposers.push(...disposers)
     }
 
     @computed get subtitle() {

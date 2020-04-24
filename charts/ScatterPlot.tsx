@@ -218,10 +218,10 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get sidebarMaxWidth() {
-        return this.bounds.width * 0.5
+        return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
     }
     @computed get sidebarMinWidth() {
-        return 100
+        return Math.max(this.bounds.width * 0.1, 60)
     }
     @computed.struct get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legend } = this
