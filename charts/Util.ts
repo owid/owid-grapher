@@ -500,6 +500,9 @@ export async function getCountryCodeFromNetlifyRedirect(): Promise<
         req.addEventListener("load", () => {
             resolve(req.responseURL.split("?")[1])
         })
+        req.addEventListener("error", () =>
+            reject(new Error("Couldn't retrieve country code"))
+        )
         req.open("GET", "/detect-country-redirect")
         req.send()
     })

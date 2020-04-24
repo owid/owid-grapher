@@ -3,15 +3,25 @@ import * as ReactDOM from "react-dom"
 import * as ReactDOMServer from "react-dom/server"
 import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
-import Select, { ValueType, components, OptionProps, Props } from "react-select"
+import Select, {
+    ValueType,
+    components,
+    OptionProps,
+    Props,
+    GroupedOptionsType
+} from "react-select"
 import classnames from "classnames"
-import { bind } from "decko"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { countries } from "utils/countries"
-import { throttle, noop, orderBy } from "charts/Util"
+import {
+    throttle,
+    noop,
+    getCountryCodeFromNetlifyRedirect,
+    sortBy
+} from "charts/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity
@@ -19,7 +29,7 @@ import {
 import { isMultiValue } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
 
-const allCountries = countries
+const allEntities = sortBy(countries, c => c.name)
     // Remove 'Antarctica'
     .filter(c => c.code !== "ATA")
     // Add 'World'
@@ -124,11 +134,12 @@ export class GlobalEntityControl extends React.Component<
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
-    @observable isNarrow: boolean = true
-    @observable isOpen: boolean = false
+    @observable private isNarrow: boolean = true
+    @observable private isOpen: boolean = false
+    @observable private localEntity: GlobalEntitySelectionEntity | undefined
 
     @observable.ref
-    sortedCountries: GlobalEntitySelectionEntity[] = allCountries
+    private selectOptions: GroupedOptionsType<GlobalEntitySelectionEntity> = []
 
     componentDidMount() {
         this.onResize()
@@ -136,9 +147,10 @@ export class GlobalEntityControl extends React.Component<
         this.disposers.push(
             reaction(
                 () => this.isOpen,
-                () => this.sortAllCountries()
+                () => this.prepareSelectOptions()
             )
         )
+        this.populateLocalEntity()
     }
 
     componentWillUnmount() {
@@ -154,64 +166,92 @@ export class GlobalEntityControl extends React.Component<
         }
     }
 
-    @computed private get selectedCountries(): GlobalEntitySelectionEntity[] {
+    @action.bound async populateLocalEntity() {
+        try {
+            const localCountryCode = await getCountryCodeFromNetlifyRedirect()
+            if (localCountryCode) {
+                const [country] = allEntities.filter(
+                    c => c.code === localCountryCode
+                )
+                if (country) {
+                    this.localEntity = country
+                }
+            }
+        } catch (e) {}
+    }
+
+    @computed private get selectedEntities(): GlobalEntitySelectionEntity[] {
         return this.props.globalEntitySelection.selectedEntities
     }
 
-    @action.bound setSelectedCountries(
+    @action.bound setSelectedEntities(
         countries: GlobalEntitySelectionEntity[]
     ) {
         this.props.globalEntitySelection.selectedEntities = countries
     }
 
-    @bind private isSelected(country: GlobalEntitySelectionEntity) {
-        return this.selectedCountries
-            .map(country => country.code)
-            .includes(country.code)
+    private getOptionValue(entity: GlobalEntitySelectionEntity) {
+        return entity.code
     }
 
-    private getOptionValue(country: GlobalEntitySelectionEntity) {
-        return country.code
+    private getOptionLabel(entity: GlobalEntitySelectionEntity) {
+        return entity.name
     }
 
-    private getOptionLabel(country: GlobalEntitySelectionEntity) {
-        return country.name
-    }
-
-    @action.bound private sortAllCountries() {
-        this.sortedCountries = orderBy(
-            this.sortedCountries,
-            [this.isSelected, country => country.name],
-            ["desc", "asc"]
-        )
+    @action.bound private prepareSelectOptions(): GroupedOptionsType<
+        GlobalEntitySelectionEntity
+    > {
+        let optionGroups: GroupedOptionsType<GlobalEntitySelectionEntity> = []
+        if (this.localEntity) {
+            optionGroups = optionGroups.concat([
+                {
+                    label: "Suggestions",
+                    options: [this.localEntity]
+                }
+            ])
+        }
+        if (this.selectedEntities.length > 0) {
+            optionGroups = optionGroups.concat([
+                {
+                    label: "Selected",
+                    options: this.selectedEntities
+                }
+            ])
+        }
+        optionGroups = optionGroups.concat([
+            {
+                label: "All countries",
+                options: allEntities
+            }
+        ])
+        this.selectOptions = optionGroups
+        return optionGroups
     }
 
     @action.bound private onChange(
-        newCountries: ValueType<GlobalEntitySelectionEntity>
+        newEntities: ValueType<GlobalEntitySelectionEntity>
     ) {
-        if (newCountries == null) return
+        if (newEntities == null) return
 
-        const countries: GlobalEntitySelectionEntity[] = isMultiValue(
-            newCountries
+        const entities: GlobalEntitySelectionEntity[] = isMultiValue(
+            newEntities
         )
-            ? Array.from(newCountries)
-            : [newCountries]
+            ? Array.from(newEntities)
+            : [newEntities]
 
-        this.setSelectedCountries(countries)
+        this.setSelectedEntities(entities)
 
         Analytics.logGlobalEntityControl(
             "change",
-            countries.map(c => c.code).join(",")
+            entities.map(c => c.code).join(",")
         )
     }
 
     @action.bound private onRemove(
-        countryToRemove: GlobalEntitySelectionEntity
+        entityToRemove: GlobalEntitySelectionEntity
     ) {
-        this.setSelectedCountries(
-            this.selectedCountries.filter(
-                country => country !== countryToRemove
-            )
+        this.setSelectedEntities(
+            this.selectedEntities.filter(entity => entity !== entityToRemove)
         )
     }
 
@@ -247,25 +287,25 @@ export class GlobalEntityControl extends React.Component<
                 >
                     {this.isOpen ? (
                         <EntitySelect
-                            options={this.sortedCountries}
+                            options={this.selectOptions}
                             getOptionValue={this.getOptionValue}
                             getOptionLabel={this.getOptionLabel}
                             onChange={this.onChange}
-                            value={this.selectedCountries}
+                            value={this.selectedEntities}
                             menuIsOpen={this.isOpen}
                             autoFocus={true}
                         />
                     ) : (
                         <React.Fragment>
-                            {this.selectedCountries.length === 0
+                            {this.selectedEntities.length === 0
                                 ? "None selected"
-                                : this.selectedCountries
-                                      .map(country => (
+                                : this.selectedEntities
+                                      .map(entity => (
                                           <span
                                               className="narrow-summary-selected-item"
-                                              key={country.code}
+                                              key={entity.code}
                                           >
-                                              {country.name}
+                                              {entity.name}
                                           </span>
                                       ))
                                       .reduce(
@@ -285,7 +325,7 @@ export class GlobalEntityControl extends React.Component<
                         </button>
                     ) : (
                         <button className="button" onClick={this.onButtonOpen}>
-                            {this.selectedCountries.length === 0
+                            {this.selectedEntities.length === 0
                                 ? "Select countries"
                                 : "Edit"}
                         </button>
@@ -300,17 +340,17 @@ export class GlobalEntityControl extends React.Component<
             <React.Fragment>
                 <div className="select-dropdown-container">
                     <EntitySelect
-                        options={this.sortedCountries}
+                        options={this.selectOptions}
                         getOptionValue={this.getOptionValue}
                         getOptionLabel={this.getOptionLabel}
                         onChange={this.onChange}
-                        value={this.selectedCountries}
+                        value={this.selectedEntities}
                         onMenuOpen={this.onMenuOpen}
                         onMenuClose={this.onMenuClose}
                     />
                 </div>
                 <SelectedItems
-                    selectedItems={this.selectedCountries}
+                    selectedItems={this.selectedEntities}
                     getLabel={this.getOptionLabel}
                     onRemove={this.onRemove}
                     emptyLabel="Select countries to show on all charts"
