@@ -117,7 +117,7 @@ export const buildCovidVariable = (
     const years = filtered.map(row => dateToYear(row.date))
     let values = filtered.map(rowFn)
     const entities = filtered.map(row => countryMap.get(row.location))
-    if (perCapita)
+    if (perCapita && perCapita > 1)
         values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
             const value = rowFn(row)
