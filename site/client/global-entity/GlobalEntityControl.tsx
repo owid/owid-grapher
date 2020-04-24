@@ -372,6 +372,9 @@ export class GlobalEntityControl extends React.Component<
                     "is-wide": !this.isNarrow
                 })}
                 ref={this.refContainer}
+                onClick={
+                    this.isNarrow && !this.isOpen ? this.onMenuOpen : undefined
+                }
             >
                 {this.isNarrow ? this.renderNarrow() : this.renderWide()}
             </div>
