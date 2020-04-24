@@ -47,6 +47,7 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
     return variable as OwidVariable
 }
 
+// Todo: export as JSON?
 export const daysSinceVariable = (
     data: ParsedCovidRow[],
     countryMap: Map<any, any>
