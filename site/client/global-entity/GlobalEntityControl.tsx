@@ -19,13 +19,17 @@ import {
 import { isMultiValue } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
 
-const allCountries = countries.concat([
-    {
-        name: "World",
-        code: "OWID_WRL",
-        slug: "world"
-    }
-])
+const allCountries = countries
+    // Remove 'Antarctica'
+    .filter(c => c.code !== "ATA")
+    // Add 'World'
+    .concat([
+        {
+            name: "World",
+            code: "OWID_WRL",
+            slug: "world"
+        }
+    ])
 
 const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     return (
