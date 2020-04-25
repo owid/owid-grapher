@@ -496,19 +496,22 @@ export class CovidChartBuilder extends React.Component<{
         if (params.testsMetric) {
             const id = buildId(variablePartials.tests.id!)
             indices.push(id)
-            this.owidVariableSet.variables[id] = this.testsVariable
+            if (!this.owidVariableSet.variables[id])
+                this.owidVariableSet.variables[id] = this.testsVariable
         }
 
         if (params.casesMetric) {
             const id = buildId(variablePartials.cases.id!)
             indices.push(id)
-            this.owidVariableSet.variables[id] = this.casesVariable
+            if (!this.owidVariableSet.variables[id])
+                this.owidVariableSet.variables[id] = this.casesVariable
         }
 
         if (params.deathsMetric) {
             const id = buildId(variablePartials.deaths.id!)
             indices.push(id)
-            this.owidVariableSet.variables[id] = this.deathsVariable
+            if (!this.owidVariableSet.variables[id])
+                this.owidVariableSet.variables[id] = this.deathsVariable
         }
 
         return indices
