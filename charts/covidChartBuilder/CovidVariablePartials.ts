@@ -9,12 +9,12 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
     cases: {
         id: 142581,
-        name: "Daily new confirmed cases of COVID-19",
+        name: "Confirmed cases of COVID-19",
         unit: "",
         description: "",
         coverage: "",
         display: {
-            name: "Daily confirmed cases",
+            name: "confirmed cases",
             unit: "cases",
             zeroDay: "2020-01-21",
             yearIsDay: true,
@@ -36,11 +36,12 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
     },
     deaths: {
         id: 142583,
-        name: "Total confirmed deaths due to COVID-19",
+        name: "Confirmed deaths due to COVID-19",
         unit: "",
         description: "",
         coverage: "",
         display: {
+            name: "confirmed deaths",
             unit: "deaths",
             zeroDay: "2020-01-21",
             yearIsDay: true

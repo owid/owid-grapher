@@ -5,7 +5,7 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
-import { flatten } from "lodash"
+import { flatten, cloneDeep } from "lodash"
 
 // Todo: cleanup
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
@@ -106,12 +106,14 @@ const computeRollingAverage = (numbers: number[], windowSize: number) => {
 }
 
 export const buildCovidVariable = (
+    newId: number,
     name: MetricKind,
     countryMap: Map<any, any>,
     data: ParsedCovidRow[],
     rowFn: RowAccessor,
     perCapita?: number,
-    rollingAverage?: number
+    rollingAverage?: number,
+    daily?: boolean
 ): OwidVariable => {
     const filtered = data.filter(rowFn)
     const years = filtered.map(row => dateToYear(row.date))
@@ -142,12 +144,20 @@ export const buildCovidVariable = (
         values = flatten(averages)
     }
 
+    const clone = cloneDeep(variablePartials[name])
+
     const variable: Partial<OwidVariable> = {
-        ...variablePartials[name],
+        ...clone,
         years,
         entities,
         values
     }
+
+    variable.id = newId
+
+    variable.display!.name = `${daily ? "Daily " : "Total "}${
+        variable.display!.name
+    }`
 
     return variable as OwidVariable
 }

@@ -57,32 +57,21 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
-    @computed private get deathsVariable(): OwidVariable {
-        if (this.props.params.totalFreq)
-            return this.buildVariable("deaths", row => row.total_deaths)
-        return this.buildVariable("deaths", row => row.new_deaths)
-    }
-
-    @computed private get casesVariable(): OwidVariable {
-        if (this.props.params.totalFreq)
-            return this.buildVariable("cases", row => row.total_cases)
-        return this.buildVariable("cases", row => row.new_cases)
-    }
-
-    @computed private get testsVariable(): OwidVariable {
-        if (this.props.params.totalFreq)
-            return this.buildVariable("tests", row => row.total_tests)
-        return this.buildVariable("tests", row => row.new_tests)
-    }
-
-    buildVariable(name: MetricKind, rowFn: RowAccessor) {
+    buildVariable(
+        newId: number,
+        name: MetricKind,
+        rowFn: RowAccessor,
+        daily: boolean
+    ) {
         return buildCovidVariable(
+            newId,
             name,
             this.countryMap,
             this.props.data,
             rowFn,
             this.perCapitaDivisor,
-            this.props.params.smoothing
+            this.props.params.smoothing,
+            daily
         )
     }
 
@@ -485,34 +474,71 @@ export class CovidChartBuilder extends React.Component<{
     // for all of these combinations.
     @computed get yVariableIndices(): number[] {
         const params = this.props.params
-        const indices = []
+        const indices: number[] = []
 
-        const buildId = (id: number) =>
+        const setVariable = (
+            id: number,
+            columnName: MetricKind,
+            rowFn: RowAccessor,
+            daily: boolean = false
+        ) => {
+            indices.push(id)
+            if (!this.owidVariableSet.variables[id])
+                this.owidVariableSet.variables[id] = this.buildVariable(
+                    id,
+                    columnName,
+                    rowFn,
+                    daily
+                )
+        }
+
+        const buildId = (id: number, isDaily: boolean) =>
             id *
-            (params.dailyFreq ? 3 : 1) *
+            (isDaily ? 3 : 1) *
             (params.count === "perCapita" ? 5 : 1) *
             (params.smoothing > 0 ? params.smoothing * 11 : 1)
 
-        if (params.testsMetric) {
-            const id = buildId(variablePartials.tests.id!)
-            indices.push(id)
-            if (!this.owidVariableSet.variables[id])
-                this.owidVariableSet.variables[id] = this.testsVariable
-        }
+        if (params.testsMetric && params.dailyFreq)
+            setVariable(
+                buildId(variablePartials.tests.id!, true),
+                "tests",
+                row => row.new_tests,
+                true
+            )
+        if (params.testsMetric && params.totalFreq)
+            setVariable(
+                buildId(variablePartials.tests.id!, false),
+                "tests",
+                row => row.total_tests
+            )
 
-        if (params.casesMetric) {
-            const id = buildId(variablePartials.cases.id!)
-            indices.push(id)
-            if (!this.owidVariableSet.variables[id])
-                this.owidVariableSet.variables[id] = this.casesVariable
-        }
+        if (params.casesMetric && params.dailyFreq)
+            setVariable(
+                buildId(variablePartials.cases.id!, true),
+                "cases",
+                row => row.new_cases,
+                true
+            )
+        if (params.casesMetric && params.totalFreq)
+            setVariable(
+                buildId(variablePartials.cases.id!, false),
+                "cases",
+                row => row.total_cases
+            )
 
-        if (params.deathsMetric) {
-            const id = buildId(variablePartials.deaths.id!)
-            indices.push(id)
-            if (!this.owidVariableSet.variables[id])
-                this.owidVariableSet.variables[id] = this.deathsVariable
-        }
+        if (params.deathsMetric && params.dailyFreq)
+            setVariable(
+                buildId(variablePartials.deaths.id!, true),
+                "deaths",
+                row => row.new_deaths,
+                true
+            )
+        if (params.deathsMetric && params.totalFreq)
+            setVariable(
+                buildId(variablePartials.deaths.id!, false),
+                "deaths",
+                row => row.total_deaths
+            )
 
         return indices
     }
