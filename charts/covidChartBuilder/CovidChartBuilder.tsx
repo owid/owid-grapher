@@ -393,13 +393,16 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get subtitle() {
-        let str = `${this.smoothingTitle}`
+        const parts: string[] = []
         if (this.props.params.deathsMetric)
-            str += `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
+            parts.push(
+                `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
+            )
         if (this.props.params.casesMetric)
-            str += `The number of confirmed cases is lower than the number of total cases. The main reason for this is limited testing.`
-        if (this.props.params.testsMetric) str += ""
-        return str
+            parts.push(
+                `The number of confirmed cases is lower than the number of total cases. The main reason for this is limited testing.`
+            )
+        return `${this.smoothingTitle}` + parts.join("\n")
     }
 
     @computed get note() {
