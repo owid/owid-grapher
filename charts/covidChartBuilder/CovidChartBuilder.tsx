@@ -384,7 +384,7 @@ export class CovidChartBuilder extends React.Component<{
 
     @computed get smoothingTitle() {
         if (this.props.params.smoothing > 0)
-            return `Rolling ${this.props.params.smoothing}-day average. `
+            return `Shown is the rolling ${this.props.params.smoothing}-day average. `
         return ""
     }
 
