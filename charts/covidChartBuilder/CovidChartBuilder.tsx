@@ -486,13 +486,14 @@ export class CovidChartBuilder extends React.Component<{
             daily: boolean = false
         ) => {
             indices.push(id)
-            if (!this.owidVariableSet.variables[id])
+            if (!this.owidVariableSet.variables[id]) {
                 this.owidVariableSet.variables[id] = this.buildVariable(
                     id,
                     columnName,
                     rowFn,
                     daily
                 )
+            }
         }
 
         const buildId = (id: number, isDaily: boolean) =>
@@ -556,7 +557,7 @@ export class CovidChartBuilder extends React.Component<{
 
     private continentsVariableId = variablePartials.continents.id!
 
-    updateChart() {
+    async updateChart() {
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
@@ -571,7 +572,11 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.data!.availableEntities = this.availableEntities
 
         chartProps.addCountryMode = this.addCountryMode
+
+        // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensions
+        // Todo: perf improvements
+        await this.chart.downloadData()
 
         // We sort of have 2 types of line charts: "SingleCountryLineChart" and "MultiCountryLineChart".
         // We determine this by the "addCountryMode". If we have multiple metrics, we need to do this

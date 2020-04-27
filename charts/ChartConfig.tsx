@@ -284,7 +284,7 @@ export class ChartConfig {
         return keys(this.entityMetaByKey)
     }
 
-    @action.bound private async downloadData() {
+    @action.bound async downloadData() {
         if (this.props.externalDataUrl) {
             const json = await fetchJSON(this.props.externalDataUrl)
             this.receiveData(json)
