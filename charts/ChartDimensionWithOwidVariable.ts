@@ -8,7 +8,8 @@ import {
     sortBy,
     isNumber,
     formatDay,
-    formatYear
+    formatYear,
+    last
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -140,6 +141,10 @@ export class ChartDimensionWithOwidVariable {
         }
     }
 
+    @computed get yearIsDayVar() {
+        return this.variable.display.yearIsDay
+    }
+
     @computed get formatYear(): (year: number) => string {
         const { yearIsDay } = this.variable.display
         return yearIsDay ? (year: number) => formatDay(year) : formatYear
@@ -184,6 +189,11 @@ export class ChartDimensionWithOwidVariable {
 
     get entityNames() {
         return this.variable.entityNames
+    }
+
+    yearAndValueOfLatestValueforEntity(entity: string) {
+        const valueByYear = this.valueByEntityAndYear.get(entity)
+        return valueByYear ? last(Array.from(valueByYear)) ?? null : null
     }
 
     @computed get valueByEntityAndYear(): Map<
