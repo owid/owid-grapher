@@ -98,7 +98,11 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         description: "",
         coverage: "",
         shortUnit: "",
-        display: { zeroDay: "2020-01-21", yearIsDay: true, numDecimalPlaces: 0 },
+        display: {
+            zeroDay: "2020-01-21",
+            yearIsDay: true,
+            numDecimalPlaces: 0
+        },
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
             id: 17801,

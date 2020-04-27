@@ -566,16 +566,20 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
         chartProps.type = this.chartType
-        chartProps.owidDataset = this.owidVariableSet
 
-        chartProps.dimensions = this.dimensions
         chartProps.map.variableId = this.yVariableIndices[0]
         chartProps.data!.availableEntities = this.availableEntities
 
-        if (
-            this.addCountryMode === "change-country" &&
-            this.firstSelectedCountryName
-        ) {
+        chartProps.addCountryMode = this.addCountryMode
+        chartProps.dimensions = this.dimensions
+
+        // We sort of have 2 types of line charts: "SingleCountryLineChart" and "MultiCountryLineChart".
+        // We determine this by the "addCountryMode". If we have multiple metrics, we need to do this
+        // hacky thing to select all the keys for the country which we are showing.
+        // Todo: cleanup
+        const useSingleCountryLineChart =
+            this.addCountryMode === "change-country"
+        if (useSingleCountryLineChart && this.firstSelectedCountryName) {
             const keys = this.chart.data.availableKeysByEntity.get(
                 this.firstSelectedCountryName
             )
@@ -585,8 +589,6 @@ export class CovidChartBuilder extends React.Component<{
         } else {
             chartProps.selectedData = this.selectedData
         }
-
-        chartProps.addCountryMode = this.addCountryMode
 
         // this.chart.url.externalBaseUrl = "covid-chart-builder"
         // this.chart.url.externallyProvidedParams = this.props.params.toParams
