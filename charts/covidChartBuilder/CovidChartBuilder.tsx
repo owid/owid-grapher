@@ -639,7 +639,8 @@ export class CovidChartBuilder extends React.Component<{
             (params.casesMetric ? 1 : 0) +
                 (params.deathsMetric ? 1 : 0) +
                 (params.testsMetric ? 1 : 0) >
-            1
+                1 ||
+            (params.dailyFreq && params.totalFreq)
         )
     }
 
