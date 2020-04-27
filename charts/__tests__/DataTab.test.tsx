@@ -25,7 +25,7 @@ function testIfDataTabMatchesSnapshot(
 
 describe("DataTab data downloads", () => {
     test("one year-based variable", done => {
-        const dataTab = setupDataTab(677, [104402])
+        const dataTab = setupDataTab(792, [3512])
         testIfDataTabMatchesSnapshot(dataTab, done)
     })
 
