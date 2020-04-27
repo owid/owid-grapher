@@ -1,4 +1,6 @@
 #!/bin/bash -e
+
+USER="$(id -un)" # $USER empty in vscode terminal
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
 
