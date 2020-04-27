@@ -79,7 +79,7 @@ then
 
   # Install dependencies, build assets and migrate
   cd $TMP_NEW
-  yarn install --production
+  yarn install --production --frozen-lockfile
   yarn build
   yarn migrate
   yarn tsn scripts/configureAlgolia.ts
