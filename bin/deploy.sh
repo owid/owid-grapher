@@ -2,6 +2,7 @@
 
 USER="$(id -un)" # $USER empty in vscode terminal
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+RSYNC_TESTS="rsync -havz --no-perms --progress --delete --include=/test --include=__tests__ --exclude-from=$DIR/.rsync-ignore"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
 
 if [ "$1" == "staging" ]; then
@@ -42,6 +43,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]
 then
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
   SYNC_TARGET="$ROOT/tmp/$NAME-$USER"
+  SYNC_TARGET_TESTS="$ROOT/tmp/$NAME-tests"
   TMP_NEW="$ROOT/tmp/$NAME-$USER-tmp"
   FINAL_TARGET="$ROOT/$NAME"
   FINAL_DATA="$ROOT/$NAME-data"
@@ -50,8 +52,20 @@ then
   GIT_NAME="$(git config user.name)"
   GIT_HEAD="$(git rev-parse HEAD)"
 
-  # Run pre-deploy checks
+if [ "$2" == "-r" ]; then
+  # Run pre-deploy checks remotely
+  $RSYNC_TESTS $DIR/ $HOST:$SYNC_TARGET_TESTS
+
+  ssh -t $HOST 'bash -e -s' <<EOF
+  cd $SYNC_TARGET_TESTS
+  yarn install --production=false --frozen-lockfile
   yarn testcheck
+EOF
+else
+  # Run pre-deploy check locally
+  yarn testcheck
+fi
+
 
   # Write the current commit SHA to public/head.txt so we always know which commit is deployed
   echo $GIT_HEAD > public/head.txt
