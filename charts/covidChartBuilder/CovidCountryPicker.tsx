@@ -16,6 +16,7 @@ export class CountryPicker extends React.Component<{
             ev.currentTarget.value,
             ev.currentTarget.checked
         )
+        this.searchInput = ""
     }
 
     @computed get fuzzy(): FuzzySearch<CountryOption> {
@@ -26,7 +27,9 @@ export class CountryPicker extends React.Component<{
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.options
-        return sortBy(results, result => result.name)
+        // Show the selected up top and in order.
+        const selected = results.filter(result => result.selected)
+        return selected.concat(sortBy(results, result => result.name))
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}
