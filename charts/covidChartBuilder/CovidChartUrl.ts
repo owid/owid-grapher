@@ -54,6 +54,7 @@ export class CovidQueryParams {
         params.casesMetric = this.casesMetric ? true : undefined
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
+        params.timeline = this.timeline ? this.timeline : undefined
         params.count = this.count
         params.smoothing = this.smoothing
 

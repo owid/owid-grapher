@@ -126,6 +126,8 @@ export const buildCovidVariable = (
     if (perCapita && perCapita > 1)
         values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
+            if (!populationMap[row.location])
+                throw new Error(`Missing population for ${row.location}`)
             const value = rowFn(row)
             return perCapita * (value / pop)
         })
