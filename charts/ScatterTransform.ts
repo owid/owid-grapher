@@ -303,11 +303,34 @@ export class ScatterTransform extends ChartTransform {
             })
         }
 
-        // Exclude any with data for only one axis
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
-                if (!has(point, "x") || !has(point, "y"))
+                // The exclusion of points happens as a last step in order to avoid artefacts due to
+                // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
+                // domains before creating the points, the tolerance may lead to different X-Y
+                // values being joined.
+                // -@danielgavrilov, 2020-04-29
+                if (
+                    // Exclude any points with data for only one axis
+                    !has(point, "x") ||
+                    !has(point, "y") ||
+                    // Exclude points that go beyond min/max of X axis
+                    (chart.xAxis.removePointsOutsideDomain &&
+                        chart.xAxis.min !== undefined &&
+                        point.x < chart.xAxis.min) ||
+                    (chart.xAxis.removePointsOutsideDomain &&
+                        chart.xAxis.max !== undefined &&
+                        point.x > chart.xAxis.max) ||
+                    // Exclude points that go beyond min/max of Y axis
+                    (chart.yAxis.removePointsOutsideDomain &&
+                        chart.yAxis.min !== undefined &&
+                        point.y < chart.yAxis.min) ||
+                    (chart.yAxis.removePointsOutsideDomain &&
+                        chart.yAxis.max !== undefined &&
+                        point.y > chart.yAxis.max)
+                ) {
                     dataByYear.delete(year)
+                }
             })
         })
 
@@ -599,6 +622,7 @@ export class ScatterTransform extends ChartTransform {
             // Prioritize the start and end years first, then the "true" year
             let values = series.values
 
+            // NOTE: since groupBy() creates an object, the values may be reordered
             values = map(
                 groupBy(values, v => v.time.y),
                 (vals: ScatterValue[]) =>
@@ -610,6 +634,7 @@ export class ScatterTransform extends ChartTransform {
             )
 
             if (xOverrideYear === undefined) {
+                // NOTE: since groupBy() creates an object, the values may be reordered
                 values = map(
                     groupBy(values, v => v.time.x),
                     (vals: ScatterValue[]) =>
@@ -620,6 +645,9 @@ export class ScatterTransform extends ChartTransform {
                         )[0]
                 )
             }
+
+            // Sort values by year again in case groupBy() above reordered the values
+            values = sortBy(values, v => v.year)
 
             // Don't allow values <= 0 for log scales
             if (yScaleType === "log") values = values.filter(v => v.y > 0)

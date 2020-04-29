@@ -12,7 +12,7 @@ describe(DataTable, () => {
 
     describe("when you render a table", () => {
         beforeAll(() => {
-            const chart = setupChart(677, 104402)
+            const chart = setupChart(677, [104402])
             view = shallow(<DataTable chart={chart} />)
         })
 
@@ -61,7 +61,7 @@ describe(DataTable, () => {
 
     describe("when you select a range of years", () => {
         beforeAll(() => {
-            const chart = setupChart(677, 104402, {
+            const chart = setupChart(677, [104402], {
                 type: "LineChart",
                 tab: "chart",
                 minTime: 1990,
@@ -102,7 +102,7 @@ describe(DataTable, () => {
 
     describe("when the table doesn't have data for all rows", () => {
         beforeAll(() => {
-            const chart = setupChart(792, 3512)
+            const chart = setupChart(792, [3512])
             view = shallow(<DataTable chart={chart} />)
         })
 

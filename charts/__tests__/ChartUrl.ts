@@ -209,7 +209,7 @@ describe(ChartUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = setupChart(4066, 142708)
+                    const chart = setupChart(4066, [142708])
                     chart.url.populateFromQueryParams({ time: test.query })
                     const [start, end] = chart.timeDomain
                     expect(start).toEqual(test.param[0])
@@ -217,7 +217,7 @@ describe(ChartUrl, () => {
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const chart = setupChart(4066, 142708)
+                        const chart = setupChart(4066, [142708])
                         chart.update({
                             minTime: test.param[0],
                             maxTime: test.param[1]
@@ -312,13 +312,13 @@ describe(ChartUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = setupChart(4066, 142708)
+                    const chart = setupChart(4066, [142708])
                     chart.url.populateFromQueryParams({ year: test.query })
                     expect(chart.map.targetYear).toEqual(test.param)
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const chart = setupChart(4066, 142708)
+                        const chart = setupChart(4066, [142708])
                         chart.update({
                             map: new MapConfigProps({ targetYear: test.param })
                         })

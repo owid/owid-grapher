@@ -10,7 +10,8 @@ logs/*
 datasetsExport
 tmp
 .tscache
-test
+/test
+__tests__
 dist
 .queue
 .pending

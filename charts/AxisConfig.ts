@@ -10,6 +10,7 @@ export class AxisConfigProps {
     @observable.ref scaleType: ScaleType = "linear"
     @observable.ref canChangeScaleType?: true = undefined
     @observable label?: string = undefined
+    @observable.ref removePointsOutsideDomain?: true = undefined
 }
 
 // Interface used to access configuration by charts
@@ -44,6 +45,10 @@ export class AxisConfig {
     }
     @computed get canChangeScaleType(): boolean {
         return defaultTo(this.props.canChangeScaleType, false)
+    }
+
+    @computed get removePointsOutsideDomain(): boolean {
+        return defaultTo(this.props.removePointsOutsideDomain, false)
     }
 
     @computed get domain(): [number | undefined, number | undefined] {

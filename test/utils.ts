@@ -1,6 +1,7 @@
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
 import * as fixtures from "./fixtures"
+import { first } from "lodash"
 
 export function createConfig(props?: Partial<ChartConfigProps>) {
     const config = new ChartConfig(new ChartConfigProps(props))
@@ -11,15 +12,21 @@ export function createConfig(props?: Partial<ChartConfigProps>) {
 }
 
 export function setupChart(
-    id: 677 | 792 | 4066,
-    varId: 3512 | 104402 | 142708,
+    id: number,
+    varIds: number[],
     configOverrides?: Partial<ChartConfigProps>
 ) {
+    const variableSet =
+        varIds.length > 1
+            ? fixtures.readVariableSet(varIds)
+            : fixtures.readVariable(first(varIds) as number)
+
     const props = new ChartConfigProps({
         ...fixtures.readChart(id),
-        ...configOverrides
+        ...configOverrides,
+        owidDataset: variableSet
     })
+
     const chart = new ChartConfig(props)
-    chart.receiveData(fixtures.readVariable(varId))
     return chart
 }

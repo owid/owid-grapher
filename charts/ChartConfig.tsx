@@ -28,7 +28,9 @@ import {
     keyBy,
     fetchJSON,
     each,
-    keys
+    keys,
+    flatten,
+    sortBy
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
@@ -351,6 +353,12 @@ export class ChartConfig {
     @computed get formatYearFunction() {
         const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
+    }
+
+    @computed get sortedUniqueEntitiesAcrossDimensions() {
+        return sortBy(
+            uniq(flatten(this.data.filledDimensions.map(d => d.entitiesUniq)))
+        )
     }
 
     data: ChartData
