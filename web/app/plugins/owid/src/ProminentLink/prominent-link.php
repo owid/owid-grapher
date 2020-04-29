@@ -30,7 +30,10 @@ function render($attributes, $content)
 
   $linkStart = $linkEnd = null;
   if (!empty($attributes['linkUrl'])) {
-    $linkStart = '<a href="' . esc_url($attributes['linkUrl']) . '">';
+    $target_blank = substr(parse_url($attributes['linkUrl'], PHP_URL_PATH), 0, 9) === '/grapher/'
+      ? ' target="_blank"'
+      : null;
+    $linkStart = '<a href="' . esc_url($attributes['linkUrl']) . '"' . $target_blank . '>';
     $linkEnd = '</a>';
   }
 
