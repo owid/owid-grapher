@@ -221,7 +221,7 @@ export async function formatWordpressPost(
                 const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
-                        <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" /></div>
+                        <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" loading="lazy" /></div>
                         <div class="interactionNotice">
                             <span class="icon">${INTERACTIVE_ICON_SVG}</span>
                             <span class="label">Click to open interactive version</span>
@@ -331,6 +331,11 @@ export async function formatWordpressPost(
             el.attribs["alt"] = _.capitalize(
                 originalFilename.replace(/[-_]/g, " ")
             )
+        }
+
+        // Lazy load all images, unless they already have a "loading" attribute.
+        if (!el.attribs["loading"]) {
+            el.attribs["loading"] = "lazy"
         }
     }
 

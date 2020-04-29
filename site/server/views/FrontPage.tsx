@@ -449,6 +449,7 @@ export const FrontPage = (props: {
                                     <img
                                         src={`${settings.BAKED_BASE_URL}/sdg-wheel.png`}
                                         alt="SDG Tracker logo"
+                                        loading="lazy"
                                     />
                                 </div>
                                 <div className="content">
@@ -473,6 +474,7 @@ export const FrontPage = (props: {
                                     <img
                                         src={`${settings.BAKED_BASE_URL}/teaching-hub.svg`}
                                         alt="Teaching Hub logo"
+                                        loading="lazy"
                                     />
                                 </div>
                                 <div className="content">
