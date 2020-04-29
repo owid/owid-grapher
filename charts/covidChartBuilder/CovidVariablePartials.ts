@@ -23,8 +23,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
             id: 17801,
-            name:
-                "European CDC – Situation Update Worldwide – Last updated 18th April, 11:15 (London time)",
+            name: "European CDC – Situation Update Worldwide",
             dataPublishedBy:
                 "European Centre for Disease Prevention and Control (ECDC)",
             dataPublisherSource: "",
@@ -50,8 +49,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
             id: 17801,
-            name:
-                "European CDC – Situation Update Worldwide – Last updated 18th April, 11:15 (London time)",
+            name: "European CDC – Situation Update Worldwide",
             dataPublishedBy:
                 "European Centre for Disease Prevention and Control (ECDC)",
             dataPublisherSource: "",
@@ -76,7 +74,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             entityAnnotationsMap:
                 "Argentina: tests performed\nAustralia: units unclear\nAustria: units unclear\nBahrain: units unclear\nBangladesh: samples tested\nBelgium: tests performed\nBolivia: cases tested\nCanada: people tested\nChile: tests performed\nColombia: samples processed\nCosta Rica: people tested\nCzech Republic: tests performed\nDenmark: people tested\nEcuador: samples tested\nEl Salvador: tests performed\nEstonia: units unclear\nEthiopia: tests performed\nFinland: tests sampled\nFrance: units unclear\nGermany: tests performed\nGhana: people tested\nGreece: people tested\nHong Kong: tests performed\nHungary: tests performed\nIceland: units unclear\nIndia: samples tested\nIndonesia: units unclear\nIreland: units unclear\nIsrael: units unclear\nItaly: tests performed\nJapan: people tested\nLatvia: tests performed\nLithuania: samples analyzed\nLuxembourg: tests analysed\nMalaysia: cases tested\nMexico: cases tested\nNetherlands: people tested\nNew Zealand: units unclear\nNorway: people tested\nPakistan: tests performed\nPanama: units unclear\nParaguay: samples tested\nPeru: units unclear\nPhilippines: people tested\nPoland: samples tested\nPortugal: cases tested\nRomania: tests performed\nRussia: tests performed\nSenegal: tests performed\nSerbia: people tested\nSingapore: people tested\nSlovakia: analysed samples\nSlovenia: tests performed\nSouth Africa: units unclear\nSouth Korea: cases tested\nSpain: tests performed\nSweden: people tested\nSwitzerland: tests performed\nTaiwan: tests performed\nThailand: people tested\nTunisia: units unclear\nTurkey: units unclear\nUnited Kingdom: people tested\nUnited States: inconsistent units (COVID Tracking Project)\nUruguay: units unclear\nVietnam: units unclear\n"
         },
-        datasetName: "COVID testing time series data (17 April 18:00)",
+        datasetName: "COVID testing time series data",
         source: {
             id: 17805,
             name: "Official data collated by Our World in Data",
@@ -106,8 +104,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
             id: 17801,
-            name:
-                "European CDC – Situation Update Worldwide – Last updated 20th April, 11:30 (London time)",
+            name: "European CDC – Situation Update Worldwide",
             dataPublishedBy:
                 "European Centre for Disease Prevention and Control (ECDC)",
             dataPublisherSource: "",

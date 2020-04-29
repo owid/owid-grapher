@@ -6,6 +6,7 @@ import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
 import { flatten, cloneDeep } from "lodash"
+import { CovidTableRow } from "site/client/covid/CovidTableRow"
 
 // Todo: cleanup
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
@@ -54,9 +55,10 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
 // Todo: export as JSON?
 export const daysSinceVariable = (
     data: ParsedCovidRow[],
-    countryMap: Map<any, any>
+    countryMap: Map<any, any>,
+    predicate: (row: ParsedCovidRow) => boolean
 ) => {
-    const rows = data.filter(row => row.total_deaths >= 5)
+    const rows = data.filter(predicate)
     let currentCountry = ""
     let firstCountryDate = ""
     const dataWeNeed = rows.map(row => {
@@ -67,6 +69,8 @@ export const daysSinceVariable = (
         return {
             year: dateToYear(row.date),
             entity: countryMap.get(row.location),
+            // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
+            // row for that country.
             value: dateDiffInDays(
                 moment.utc(row.date).toDate(),
                 moment.utc(firstCountryDate).toDate()

@@ -222,10 +222,10 @@ export class CovidChartBuilder extends React.Component<{
                 }
             },
             {
-                label: "Align with the first 5 deaths",
-                checked: this.props.params.timeline === "alignFirstFiveDeaths",
+                label: "Align with start of pandemic",
+                checked: this.props.params.timeline === "aligned",
                 onChange: () => {
-                    this.setTimelineCommand("alignFirstFiveDeaths")
+                    this.setTimelineCommand("aligned")
                 }
             }
         ]
@@ -468,7 +468,7 @@ export class CovidChartBuilder extends React.Component<{
         return key
     }
 
-    // Todo: if someone selects "Align with the first N deaths", then we should switch to a scatterplot chart type.
+    // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
         return this.props.params.timeline === "normal"
             ? "LineChart"
@@ -553,7 +553,16 @@ export class CovidChartBuilder extends React.Component<{
 
     @observable.struct owidVariableSet: OwidVariableSet = {
         variables: {
-            99999: daysSinceVariable(this.props.data, this.countryMap),
+            99999: daysSinceVariable(
+                this.props.data,
+                this.countryMap,
+                row => row.total_deaths >= 5
+            ),
+            99998: daysSinceVariable(
+                this.props.data,
+                this.countryMap,
+                row => row.total_cases >= 100
+            ),
             123: continentsVariable(this.countryOptions)
         },
         entityKey: this.entityKey
