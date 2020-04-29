@@ -619,6 +619,7 @@ export class ScatterTransform extends ChartTransform {
             // Prioritize the start and end years first, then the "true" year
             let values = series.values
 
+            // NOTE: since groupBy() creates an object, the values may be reordered
             values = map(
                 groupBy(values, v => v.time.y),
                 (vals: ScatterValue[]) =>
@@ -630,6 +631,7 @@ export class ScatterTransform extends ChartTransform {
             )
 
             if (xOverrideYear === undefined) {
+                // NOTE: since groupBy() creates an object, the values may be reordered
                 values = map(
                     groupBy(values, v => v.time.x),
                     (vals: ScatterValue[]) =>
@@ -640,6 +642,9 @@ export class ScatterTransform extends ChartTransform {
                         )[0]
                 )
             }
+
+            // Sort values by year again in case groupBy() above reordered the values
+            values = sortBy(values, v => v.year)
 
             // Don't allow values <= 0 for log scales
             if (yScaleType === "log") values = values.filter(v => v.y > 0)
