@@ -26,7 +26,7 @@
         "test": "jest",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "cypress:open": "yarn cypress open --project ./test/e2e",
-        "testcheck": "yarn test && yarn typecheck && yarn prettify:check",
+        "testcheck": "yarn prettify:check && yarn typecheck && yarn test",
         "deploy": "./bin/deploy.sh",
         "serve": "yarn tsn admin/server/server.tsx",
         "bake": "yarn tsn scripts/bakeSite.ts",
