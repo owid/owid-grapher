@@ -37,6 +37,10 @@ export class EditorFeatures {
         return this.canCustomizeXAxisScale || this.canCustomizeXAxisLabel
     }
 
+    @computed get canRemovePointsOutsideAxisDomain() {
+        return this.chart.isScatter
+    }
+
     @computed get timeDomain() {
         return !this.chart.isDiscreteBar
     }

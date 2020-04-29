@@ -356,14 +356,33 @@ export class EditorCustomizeTab extends React.Component<{
                                         allowNegative
                                     />
                                 </FieldsRow>
-                                <Toggle
-                                    label={`Enable log/linear selector`}
-                                    value={yAxis.canChangeScaleType || false}
-                                    onValue={value =>
-                                        (yAxis.canChangeScaleType =
-                                            value || undefined)
-                                    }
-                                />
+                                {features.canRemovePointsOutsideAxisDomain && (
+                                    <FieldsRow>
+                                        <Toggle
+                                            label={`Remove points outside domain`}
+                                            value={
+                                                yAxis.removePointsOutsideDomain ||
+                                                false
+                                            }
+                                            onValue={value =>
+                                                (yAxis.removePointsOutsideDomain =
+                                                    value || undefined)
+                                            }
+                                        />
+                                    </FieldsRow>
+                                )}
+                                <FieldsRow>
+                                    <Toggle
+                                        label={`Enable log/linear selector`}
+                                        value={
+                                            yAxis.canChangeScaleType || false
+                                        }
+                                        onValue={value =>
+                                            (yAxis.canChangeScaleType =
+                                                value || undefined)
+                                        }
+                                    />
+                                </FieldsRow>
                             </React.Fragment>
                         )}
                         {features.canCustomizeYAxisLabel && (
@@ -395,14 +414,33 @@ export class EditorCustomizeTab extends React.Component<{
                                         allowNegative
                                     />
                                 </FieldsRow>
-                                <Toggle
-                                    label={`Enable log/linear selector`}
-                                    value={xAxis.canChangeScaleType || false}
-                                    onValue={value =>
-                                        (xAxis.canChangeScaleType =
-                                            value || undefined)
-                                    }
-                                />
+                                {features.canRemovePointsOutsideAxisDomain && (
+                                    <FieldsRow>
+                                        <Toggle
+                                            label={`Remove points outside domain`}
+                                            value={
+                                                xAxis.removePointsOutsideDomain ||
+                                                false
+                                            }
+                                            onValue={value =>
+                                                (xAxis.removePointsOutsideDomain =
+                                                    value || undefined)
+                                            }
+                                        />
+                                    </FieldsRow>
+                                )}
+                                <FieldsRow>
+                                    <Toggle
+                                        label={`Enable log/linear selector`}
+                                        value={
+                                            xAxis.canChangeScaleType || false
+                                        }
+                                        onValue={value =>
+                                            (xAxis.canChangeScaleType =
+                                                value || undefined)
+                                        }
+                                    />
+                                </FieldsRow>
                             </React.Fragment>
                         )}
                         {features.canCustomizeXAxisLabel && (

@@ -300,11 +300,34 @@ export class ScatterTransform extends ChartTransform {
             })
         }
 
-        // Exclude any with data for only one axis
         dataByEntityAndYear.forEach((dataByYear, entity) => {
             dataByYear.forEach((point, year) => {
-                if (!has(point, "x") || !has(point, "y"))
+                // The exclusion of points happens as a last step in order to avoid artefacts due to
+                // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
+                // domains before creating the points, the tolerance may lead to different X-Y
+                // values being joined.
+                // -@danielgavrilov, 2020-04-29
+                if (
+                    // Exclude any points with data for only one axis
+                    !has(point, "x") ||
+                    !has(point, "y") ||
+                    // Exclude points that go beyond min/max of X axis
+                    (chart.xAxis.removePointsOutsideDomain &&
+                        chart.xAxis.min !== undefined &&
+                        point.x < chart.xAxis.min) ||
+                    (chart.xAxis.removePointsOutsideDomain &&
+                        chart.xAxis.max !== undefined &&
+                        point.x > chart.xAxis.max) ||
+                    // Exclude points that go beyond min/max of Y axis
+                    (chart.yAxis.removePointsOutsideDomain &&
+                        chart.yAxis.min !== undefined &&
+                        point.y < chart.yAxis.min) ||
+                    (chart.yAxis.removePointsOutsideDomain &&
+                        chart.yAxis.max !== undefined &&
+                        point.y > chart.yAxis.max)
+                ) {
                     dataByYear.delete(year)
+                }
             })
         })
 
