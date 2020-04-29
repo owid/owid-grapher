@@ -77,7 +77,6 @@ export class CovidChartBuilder extends React.Component<{
 
     @action.bound setDeathsMetricCommand(value: DeathsMetricOption) {
         this.props.params.deathsMetric = value
-        this.updateChart()
     }
 
     @action.bound clearSelectionCommand() {
@@ -95,22 +94,18 @@ export class CovidChartBuilder extends React.Component<{
 
     @action.bound setCasesMetricCommand(value: CasesMetricOption) {
         this.props.params.casesMetric = value
-        this.updateChart()
     }
 
     @action.bound setTestsMetricCommand(value: TestsMetricOption) {
         this.props.params.testsMetric = value
-        this.updateChart()
     }
 
     setTotalFrequencyCommand(option: TotalFrequencyOption) {
         this.props.params.totalFreq = option
-        this.updateChart()
     }
 
     setDailyFrequencyCommand(option: DailyFrequencyOption) {
         this.props.params.dailyFreq = option
-        this.updateChart()
     }
 
     @action.bound setCountCommand(countOption: CountOption) {
@@ -135,6 +130,11 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
                     this.setDeathsMetricCommand(value)
+                    if (this.areMultipleCountriesSelected && value) {
+                        this.setCasesMetricCommand(false)
+                        this.setTestsMetricCommand(false)
+                    }
+                    this.updateChart()
                 }
             },
             {
@@ -142,6 +142,11 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.setCasesMetricCommand(value)
+                    if (this.areMultipleCountriesSelected && value) {
+                        this.setTestsMetricCommand(false)
+                        this.setDeathsMetricCommand(false)
+                    }
+                    this.updateChart()
                 }
             },
             {
@@ -149,6 +154,11 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.testsMetric,
                 onChange: value => {
                     this.setTestsMetricCommand(value)
+                    if (this.areMultipleCountriesSelected && value) {
+                        this.setCasesMetricCommand(false)
+                        this.setDeathsMetricCommand(false)
+                    }
+                    this.updateChart()
                 }
             }
         ]
@@ -156,7 +166,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="metric"
                 options={options}
-                isCheckbox={true}
+                isCheckbox={!this.areMultipleCountriesSelected}
             ></CovidInputControl>
         )
     }
@@ -168,6 +178,10 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
+                    if (this.areMultipleCountriesSelected && value) {
+                        this.setDailyFrequencyCommand(false)
+                    }
+                    this.updateChart()
                 }
             },
             {
@@ -175,6 +189,10 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
+                    if (this.areMultipleCountriesSelected && value) {
+                        this.setTotalFrequencyCommand(false)
+                    }
+                    this.updateChart()
                 }
             }
         ]
@@ -182,7 +200,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="frequency"
                 options={options}
-                isCheckbox={true}
+                isCheckbox={!this.areMultipleCountriesSelected}
             ></CovidInputControl>
         )
     }
@@ -570,7 +588,31 @@ export class CovidChartBuilder extends React.Component<{
 
     private continentsVariableId = variablePartials.continents.id!
 
+    resolveConstraints() {
+        if (
+            this.areMultipleCountriesSelected &&
+            this.areMultipleMetricsSelected
+        ) {
+            //
+            const params = this.props.params
+            if (params.dailyFreq && params.totalFreq) params.dailyFreq = false
+            if (
+                params.casesMetric &&
+                params.deathsMetric &&
+                params.testsMetric
+            ) {
+                params.testsMetric = false
+                params.casesMetric = false
+            } else if (params.testsMetric) {
+                params.testsMetric = false
+            } else {
+                params.casesMetric = false
+            }
+        }
+    }
+
     async updateChart() {
+        this.resolveConstraints()
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
