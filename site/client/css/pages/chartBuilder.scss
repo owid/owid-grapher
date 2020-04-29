@@ -1,6 +1,9 @@
 $controls-color: #3f9eff;
 $ideal-ratio: 680/480;
 
+$border-radius: 4px;
+$text-color: #7a899e;
+
 .CovidChartBuilder {
     display: flex;
     margin: 0 auto;
@@ -10,18 +13,7 @@ $ideal-ratio: 680/480;
 
     .CovidChartBuilderSideBar {
         width: 200px;
-        background: white;
         margin-right: 10px;
-        border: 1px solid rgb(233, 233, 233);
-        border-radius: 5px;
-
-        .CountrySearch {
-            padding: 5px;
-            margin-top: 5px;
-            border: 0;
-            border-bottom: 1px solid #ddd;
-            width: 100%;
-        }
 
         .ClearSelectionButton {
             color: $controls-color;
@@ -81,5 +73,55 @@ $ideal-ratio: 680/480;
         input {
             margin-right: 5px;
         }
+    }
+}
+
+.CountryList {
+    border-radius: $border-radius;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.CovidSearchInput {
+    position: relative;
+    color: $text-color;
+    margin-bottom: 10px;
+
+    .input-field {
+        width: 100%;
+        border: 1px solid #d6dadf;
+        padding: 0.5em 0.75em;
+        padding-left: 2em;
+        outline: none;
+        color: inherit;
+        font-weight: 700;
+        border-radius: $border-radius;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+        &:focus {
+            border-color: $text-color;
+        }
+
+        &::placeholder {
+            color: inherit;
+            font-weight: 400;
+            transition: opacity 150ms ease;
+        }
+        &:focus::placeholder {
+            opacity: 0.5;
+        }
+    }
+
+    .search-icon {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0.6em;
+        display: flex;
+        align-items: center;
+        pointer-events: none;
     }
 }

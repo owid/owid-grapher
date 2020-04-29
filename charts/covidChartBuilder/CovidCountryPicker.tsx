@@ -1,10 +1,16 @@
 import React from "react"
-import { FuzzySearch } from "charts/FuzzySearch"
-import { observer } from "mobx-react"
-import { CovidChartBuilder } from "./CovidChartBuilder"
 import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import { Flipper, Flipped } from "react-flip-toolkit"
+import { bind } from "decko"
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+
+import { FuzzySearch } from "charts/FuzzySearch"
+import { partition, sortBy } from "charts/Util"
+import { CovidChartBuilder } from "./CovidChartBuilder"
 import { CountryOption } from "./CovidTypes"
-import { sortBy } from "lodash"
 
 @observer
 export class CountryPicker extends React.Component<{
@@ -16,7 +22,6 @@ export class CountryPicker extends React.Component<{
             ev.currentTarget.value,
             ev.currentTarget.checked
         )
-        this.searchInput = ""
     }
 
     @computed get fuzzy(): FuzzySearch<CountryOption> {
@@ -28,8 +33,15 @@ export class CountryPicker extends React.Component<{
             ? this.fuzzy.search(this.searchInput)
             : this.options
         // Show the selected up top and in order.
-        const selected = results.filter(result => result.selected)
-        return selected.concat(sortBy(results, result => result.name))
+        const [selected, unselected] = partition(
+            sortBy(results, r => r.name),
+            result => result.selected
+        )
+        return [...selected, ...unselected]
+    }
+
+    @computed get selectedCountries(): CountryOption[] {
+        return this.options.filter(country => country.selected)
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}
@@ -43,22 +55,25 @@ export class CountryPicker extends React.Component<{
 
     render() {
         return (
-            <div>
-                <input
-                    className="CountrySearch"
-                    type="search"
-                    placeholder="Add a country"
+            <div className="CountryPicker">
+                <CovidSearchInput
                     value={this.searchInput}
-                    onInput={e => (this.searchInput = e.currentTarget.value)}
-                    onKeyDown={this.onSearchKeyDown}
-                    ref={e => (this.searchField = e as HTMLInputElement)}
+                    onInput={query => (this.searchInput = query)}
                 />
-                <div className="CountrySearchResults">
-                    <table>
-                        <tbody>
+                <div className="CountryList">
+                    <div className="CountrySearchResults">
+                        <Flipper
+                            spring={{
+                                stiffness: 300,
+                                damping: 33
+                            }}
+                            flipKey={this.selectedCountries
+                                .map(s => s.name)
+                                .join(",")}
+                        >
                             {this.searchResults.map((option, index) => (
-                                <tr key={index}>
-                                    <td>
+                                <Flipped flipId={option.name} translate opacity>
+                                    <div key={index}>
                                         <label
                                             className={
                                                 "CountryOption" +
@@ -81,20 +96,49 @@ export class CountryPicker extends React.Component<{
                                             />
                                             {option.name}{" "}
                                         </label>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </Flipped>
                             ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="CountrySelectionControls">
-                    <div
-                        className="ClearSelectionButton"
-                        onClick={this.props.chartBuilder.clearSelectionCommand}
-                    >
-                        <strong>X</strong> Clear selection
+                        </Flipper>
                     </div>
+                    <div className="CountrySelectionControls">
+                        <div
+                            className="ClearSelectionButton"
+                            onClick={
+                                this.props.chartBuilder.clearSelectionCommand
+                            }
+                        >
+                            <strong>X</strong> Clear selection
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
+
+interface CovidSearchInputProps {
+    value: string | undefined
+    onInput: (value: string) => void
+}
+
+class CovidSearchInput extends React.Component<CovidSearchInputProps> {
+    @bind onInput(event: React.FormEvent<HTMLInputElement>) {
+        this.props.onInput(event.currentTarget.value)
+    }
+
+    render() {
+        return (
+            <div className="CovidSearchInput">
+                <input
+                    className="input-field"
+                    type="text"
+                    placeholder="Add a country"
+                    value={this.props.value}
+                    onInput={this.onInput}
+                />
+                <div className="search-icon">
+                    <FontAwesomeIcon icon={faSearch} />
                 </div>
             </div>
         )
