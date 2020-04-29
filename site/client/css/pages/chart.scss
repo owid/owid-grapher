@@ -15,6 +15,10 @@
     $max-width: 1250px; // The rough max-width across all pages on the site
     $max-height: $max-width / $ideal-ratio;
 
+    // Charts shouldn't be below this height in any circumstance, whether mobile or not.
+    // Except in iframes, where we override this.
+    min-height: 480px;
+
     // On small viewports always use the full available height.
     // We only leave space for the mobile header and fill the rest.
     height: calc(100vh - #{$mobile-header-height});
