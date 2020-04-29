@@ -17,18 +17,18 @@ export class CountryPicker extends React.Component<{
     chartBuilder: CovidChartBuilder
     toggleCountryCommand: (countryCode: string, value: boolean) => void
 }> {
-    @action.bound onChange(ev: React.FormEvent<HTMLInputElement>) {
+    @action.bound private onChange(ev: React.FormEvent<HTMLInputElement>) {
         this.props.toggleCountryCommand(
             ev.currentTarget.value,
             ev.currentTarget.checked
         )
     }
 
-    @computed get fuzzy(): FuzzySearch<CountryOption> {
+    @computed private get fuzzy(): FuzzySearch<CountryOption> {
         return new FuzzySearch(this.options, "name")
     }
 
-    @computed get searchResults(): CountryOption[] {
+    @computed private get searchResults(): CountryOption[] {
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.options
@@ -40,18 +40,15 @@ export class CountryPicker extends React.Component<{
         return [...selected, ...unselected]
     }
 
-    @computed get selectedCountries(): CountryOption[] {
+    @computed private get selectedCountries(): CountryOption[] {
         return this.options.filter(country => country.selected)
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {}
-
-    @computed get options() {
+    @computed private get options() {
         return this.props.chartBuilder.countryOptions
     }
 
-    @observable searchInput?: string
-    searchField!: HTMLInputElement
+    @observable private searchInput?: string
 
     render() {
         return (
@@ -61,46 +58,11 @@ export class CountryPicker extends React.Component<{
                     onInput={query => (this.searchInput = query)}
                 />
                 <div className="CountryList">
-                    <div className="CountrySearchResults">
-                        <Flipper
-                            spring={{
-                                stiffness: 300,
-                                damping: 33
-                            }}
-                            flipKey={this.selectedCountries
-                                .map(s => s.name)
-                                .join(",")}
-                        >
-                            {this.searchResults.map((option, index) => (
-                                <Flipped flipId={option.name} translate opacity>
-                                    <div key={index}>
-                                        <label
-                                            className={
-                                                "CountryOption" +
-                                                (option.totalTests
-                                                    ? ""
-                                                    : " MissingTests")
-                                            }
-                                            key={index}
-                                            title={
-                                                option.totalTests
-                                                    ? ""
-                                                    : "No testing data available."
-                                            }
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={option.selected}
-                                                onChange={this.onChange}
-                                                value={option.code}
-                                            />
-                                            {option.name}{" "}
-                                        </label>
-                                    </div>
-                                </Flipped>
-                            ))}
-                        </Flipper>
-                    </div>
+                    <CovidCountryResults
+                        countries={this.searchResults}
+                        selectedCountries={this.selectedCountries}
+                        onChange={this.onChange}
+                    />
                     <div className="CountrySelectionControls">
                         <div
                             className="ClearSelectionButton"
@@ -140,6 +102,54 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                 <div className="search-icon">
                     <FontAwesomeIcon icon={faSearch} />
                 </div>
+            </div>
+        )
+    }
+}
+
+interface CovidCountryResultsProps {
+    countries: CountryOption[]
+    selectedCountries: CountryOption[]
+    onChange: (ev: React.FormEvent<HTMLInputElement>) => void
+}
+
+class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
+    render() {
+        const { countries, selectedCountries } = this.props
+        return (
+            <div className="CountrySearchResults">
+                <Flipper
+                    spring={{
+                        stiffness: 300,
+                        damping: 33
+                    }}
+                    flipKey={selectedCountries.map(s => s.name).join(",")}
+                >
+                    {countries.map((option, index) => (
+                        <Flipped flipId={option.name} translate opacity>
+                            <label
+                                className={
+                                    "CountryOption" +
+                                    (option.totalTests ? "" : " MissingTests")
+                                }
+                                key={index}
+                                title={
+                                    option.totalTests
+                                        ? `${option.totalTests}`
+                                        : "No testing data available."
+                                }
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={option.selected}
+                                    onChange={this.props.onChange}
+                                    value={option.code}
+                                />
+                                {option.name}{" "}
+                            </label>
+                        </Flipped>
+                    ))}
+                </Flipper>
             </div>
         )
     }

@@ -12,7 +12,7 @@ $text-color: #7a899e;
     padding-top: 5px;
 
     .CovidChartBuilderSideBar {
-        width: 200px;
+        width: 220px;
         margin-right: 10px;
 
         .ClearSelectionButton {
@@ -36,6 +36,7 @@ $text-color: #7a899e;
                 display: block;
                 padding: 10px;
                 font-size: 14px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
                 &.MissingTests {
                     opacity: 0.9;
