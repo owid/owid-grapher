@@ -332,6 +332,11 @@ export async function formatWordpressPost(
                 originalFilename.replace(/[-_]/g, " ")
             )
         }
+
+        // Lazy load all images, unless they already have a "loading" attribute.
+        if (!el.attribs["loading"]) {
+            el.attribs["loading"] = "lazy"
+        }
     }
 
     // Table of contents and deep links
