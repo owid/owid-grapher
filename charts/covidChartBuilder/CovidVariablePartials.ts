@@ -68,7 +68,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         datasetId: "covid",
         shortUnit: "",
         display: {
-            name: "Tests",
+            name: "tests",
             yearIsDay: true,
             numDecimalPlaces: 0,
             entityAnnotationsMap:

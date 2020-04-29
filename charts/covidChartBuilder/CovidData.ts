@@ -119,7 +119,7 @@ export const buildCovidVariable = (
     countryMap: Map<any, any>,
     data: ParsedCovidRow[],
     rowFn: RowAccessor,
-    perCapita?: number,
+    perCapita: number,
     rollingAverage?: number,
     daily?: boolean
 ): OwidVariable => {
@@ -127,7 +127,7 @@ export const buildCovidVariable = (
     const years = filtered.map(row => dateToYear(row.date))
     let values = filtered.map(rowFn)
     const entities = filtered.map(row => countryMap.get(row.location))
-    if (perCapita && perCapita > 1)
+    if (perCapita > 1)
         values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
             if (!populationMap[row.location])
@@ -165,9 +165,15 @@ export const buildCovidVariable = (
 
     variable.id = newId
 
+    const messages: { [index: number]: string } = {
+        1: "",
+        1000: " per thousand people",
+        1000000: " per million people"
+    }
+
     variable.display!.name = `${daily ? "Daily " : "Total "}${
         variable.display!.name
-    }`
+    }${messages[perCapita]}`
 
     return variable as OwidVariable
 }
