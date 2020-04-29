@@ -269,6 +269,10 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
+    @computed get areMultipleCountriesSelected() {
+        return Array.from(this.props.params.selectedCountryCodes).length > 1
+    }
+
     @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
         if (value) this.props.params.selectedCountryCodes.add(code)
         else if (value === false)
