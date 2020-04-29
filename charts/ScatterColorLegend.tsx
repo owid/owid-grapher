@@ -1,9 +1,8 @@
 import * as React from "react"
-import { sum, includes, max } from "./Util"
+import { sum, includes, max, defaultTo } from "./Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "./TextWrap"
-import { defaultTo } from "./Util"
 import { Colorable } from "./Colorizer"
 
 export interface ScatterColorLegendProps {

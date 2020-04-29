@@ -405,7 +405,7 @@ class BinLabelView extends React.Component<{
     }
 
     render() {
-        const { mapConfig, bin } = this.props
+        const { bin } = this.props
 
         return (
             <EditableListItem className="BinLabelView">

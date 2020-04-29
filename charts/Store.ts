@@ -48,7 +48,7 @@ export class IndicatorStore {
                 // This can happen when we delete an indicator and a user visits
                 // an old (possibly bookmarked) link.
                 const loadingIds = Object.entries(this.indicatorsById)
-                    .filter(([id, entry]) => entry.isLoading)
+                    .filter(([, entry]) => entry.isLoading)
                     .map(([id]) => parseInt(id))
                 const loadedIds = indicators.map(i => i.id)
                 const missingIds = difference(loadingIds, loadedIds)

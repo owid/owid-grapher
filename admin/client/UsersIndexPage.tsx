@@ -181,7 +181,7 @@ export class UsersIndexPage extends React.Component {
                                         <td>
                                             <button
                                                 className="btn btn-danger"
-                                                onClick={_ =>
+                                                onClick={() =>
                                                     this.onDelete(user)
                                                 }
                                             >

@@ -43,7 +43,7 @@ export class UserEditPage extends React.Component<{ userId: number }> {
                     />
                     <button
                         className="btn btn-success"
-                        onClick={_ => this.save()}
+                        onClick={() => this.save()}
                     >
                         Update user
                     </button>

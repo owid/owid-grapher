@@ -1,8 +1,7 @@
-import { maxBy } from "charts/Util"
+import { maxBy, dateDiffInDays, formatValue } from "charts/Util"
 import { utcFormat } from "d3-time-format"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
-import { dateDiffInDays, formatValue } from "charts/Util"
 
 import {
     CovidSeries,

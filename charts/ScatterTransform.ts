@@ -16,14 +16,17 @@ import {
     uniq,
     compact,
     formatYear,
-    flatten
+    flatten,
+    defaultTo,
+    first,
+    last,
+    formatValue,
+    domainExtent
 } from "./Util"
 import { computed } from "mobx"
-import { defaultTo, first, last } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
-import { formatValue, domainExtent } from "./Util"
 import { ChartTransform } from "./ChartTransform"
 import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
@@ -300,7 +303,7 @@ export class ScatterTransform extends ChartTransform {
             })
         }
 
-        dataByEntityAndYear.forEach((dataByYear, entity) => {
+        dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
                 // The exclusion of points happens as a last step in order to avoid artefacts due to
                 // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y

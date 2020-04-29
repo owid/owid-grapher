@@ -55,7 +55,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         value={chart.data.slug}
                         onValue={this.onSlug}
                         isAuto={chart.props.slug === undefined}
-                        onToggleAuto={_ =>
+                        onToggleAuto={() =>
                             (chart.props.slug =
                                 chart.props.slug === undefined
                                     ? chart.data.slug

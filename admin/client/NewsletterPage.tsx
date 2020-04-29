@@ -40,7 +40,7 @@ class PostRow extends React.Component<{
     context!: AdminAppContextType
 
     render() {
-        const { post, highlight } = this.props
+        const { post } = this.props
 
         return (
             <tr>

@@ -30,7 +30,7 @@ export class Dataset extends BaseEntity {
     @Column({ default: false }) isPrivate!: boolean
 
     @ManyToOne(
-        type => User,
+        () => User,
         user => user.createdDatasets
     )
     createdByUser!: User

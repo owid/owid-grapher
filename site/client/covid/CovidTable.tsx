@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear } from "d3-scale"
 import { schemeCategory10 } from "d3-scale-chromatic"
-import { fromPairs, uniq } from "charts/Util"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
@@ -19,7 +18,9 @@ import {
     partition,
     max,
     addDays,
-    extend
+    extend,
+    fromPairs,
+    uniq
 } from "charts/Util"
 
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"

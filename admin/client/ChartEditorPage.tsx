@@ -47,7 +47,6 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
         this.onHashChange()
 
         this.dispose = autorun(() => {
-            const tab = this.props.editor.tab
             //setTimeout(() => window.location.hash = `#${tab}-tab`, 100)
         })
     }
@@ -304,7 +303,7 @@ export class ChartEditorPage extends React.Component<{
                             <input
                                 type="radio"
                                 onChange={action(
-                                    _ => (editor.previewMode = "mobile")
+                                    () => (editor.previewMode = "mobile")
                                 )}
                                 name="previewSize"
                                 id="mobile"
@@ -321,7 +320,7 @@ export class ChartEditorPage extends React.Component<{
                         >
                             <input
                                 onChange={action(
-                                    _ => (editor.previewMode = "desktop")
+                                    () => (editor.previewMode = "desktop")
                                 )}
                                 type="radio"
                                 name="previewSize"

@@ -1,5 +1,7 @@
-import { hydrate as hydrateAdditionalInformation } from "./AdditionalInformation/AdditionalInformation"
-import { render as renderAdditionalInformation } from "./AdditionalInformation/AdditionalInformation"
+import {
+    hydrate as hydrateAdditionalInformation,
+    render as renderAdditionalInformation
+} from "./AdditionalInformation/AdditionalInformation"
 import { render as renderHelp } from "./Help/Help"
 import { shouldProgressiveEmbed } from "../Grapher"
 

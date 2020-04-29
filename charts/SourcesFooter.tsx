@@ -229,7 +229,7 @@ export class SourcesFooterHTML extends React.Component<{
     }
 
     render() {
-        const { footer, chart } = this.props
+        const { footer } = this.props
         const { tooltipTarget } = this
 
         const license = (

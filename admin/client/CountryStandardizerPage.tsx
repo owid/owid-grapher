@@ -228,8 +228,6 @@ export class CountryEntryRowRenderer extends React.Component<{
     @action.bound onEntrySelected(selectedName: string) {
         const { entry, onUpdate } = this.props
 
-        const value =
-            selectedName === this.defaultOption ? undefined : selectedName
         onUpdate(selectedName, entry.originalName, false)
     }
 
@@ -535,7 +533,7 @@ export class CountryStandardizerPage extends React.Component {
         const countries: any = {}
         let needToSave: boolean = false
 
-        csv.countryEntriesMap.forEach((entry, key) => {
+        csv.countryEntriesMap.forEach(entry => {
             // ignore if there was a user entered a new name
             if (entry.customName !== undefined && entry.customName.length > 0) {
                 console.log(
@@ -563,7 +561,7 @@ export class CountryStandardizerPage extends React.Component {
         if (this.csv === undefined) return []
 
         const countries: CountryEntry[] = []
-        this.csv.countryEntriesMap.forEach((entry, country) => {
+        this.csv.countryEntriesMap.forEach(entry => {
             if (this.showAllRows) {
                 countries.push(entry)
             } else if (entry.standardizedName === undefined) {

@@ -156,9 +156,6 @@ adminViews.get("/datasets/:datasetId.csv", async (req, res) => {
 adminViews.get("/datasets/:datasetId/downloadZip", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    const datasetName = (
-        await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])
-    ).name
     res.attachment("additional-material.zip")
 
     const file = await db.get(

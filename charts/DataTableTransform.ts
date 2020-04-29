@@ -322,7 +322,7 @@ export class DataTableTransform {
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
-        return this.dimensionsWithValues.map((d, dimIndex) => ({
+        return this.dimensionsWithValues.map(d => ({
             key: d.dimension.variableId,
             name: d.dimension.displayName,
             unit: getHeaderUnit(d.dimension.unit),

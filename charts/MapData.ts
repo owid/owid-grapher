@@ -5,7 +5,6 @@ import { ChartConfig } from "./ChartConfig"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { Color } from "./Color"
 import { ChoroplethData } from "./ChoroplethMap"
-import { entityNameForMap, formatYear } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapTopology } from "./MapTopology"
 
@@ -23,7 +22,9 @@ import {
     find,
     keyBy,
     isNumber,
-    sortBy
+    sortBy,
+    entityNameForMap,
+    formatYear
 } from "./Util"
 import { Time, getClosestTime } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"

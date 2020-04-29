@@ -603,7 +603,7 @@ export class BindString<
         const { props } = this
 
         const { field, store, label, textarea, ...rest } = props
-        const value = props.store[props.field] as string | undefined
+        const value = store[field] as string | undefined
         if (textarea)
             return (
                 <TextAreaField

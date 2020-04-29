@@ -171,7 +171,7 @@ async function getReferencesByChartId(
                     AND (
                         ${slugs
                             .map(
-                                (_: any) =>
+                                () =>
                                     `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
                             )
                             .join(" OR ")}
@@ -1512,15 +1512,6 @@ interface ImportPostData {
 api.post("/importDataset", async (req: Request, res: Response) => {
     const userId = res.locals.user.id
     const { dataset, entities, years, variables } = req.body as ImportPostData
-
-    let oldDatasetName: string | undefined
-    if (dataset.id) {
-        oldDatasetName = (
-            await db.query(`SELECT name FROM datasets WHERE id = ?`, [
-                dataset.id
-            ])
-        )[0].name
-    }
 
     const newDatasetId = await db.transaction(async t => {
         const now = new Date()

@@ -1,12 +1,20 @@
 import * as React from "react"
-import { sortBy, reverse, clone, last, guid, pointsToPath } from "./Util"
+import {
+    sortBy,
+    reverse,
+    clone,
+    last,
+    guid,
+    pointsToPath,
+    getRelativeMouse,
+    makeSafeForCSS
+} from "./Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
 import { AxisBox } from "./AxisBox"
 import { StandardAxisBoxView } from "./StandardAxisBoxView"
-import { getRelativeMouse, makeSafeForCSS } from "./Util"
 import {
     HeightedLegend,
     HeightedLegendItem,
@@ -433,7 +441,6 @@ export class StackedArea extends React.Component<{
     componentDidMount() {
         // Fancy intro animation
 
-        const base = select(this.base.current)
         this.animSelection = select(this.base.current)
             .selectAll("clipPath > rect")
             .attr("width", 0)

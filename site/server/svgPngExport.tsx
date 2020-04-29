@@ -53,7 +53,7 @@ export async function bakeImageExports(
     return Promise.all([
         fs
             .writeFile(`${outPath}.svg`, svgCode)
-            .then(_ => console.log(`${outPath}.svg`)),
+            .then(() => console.log(`${outPath}.svg`)),
         sharp(Buffer.from(chart.staticSVG), { density: 144 })
             .png()
             .resize(chart.idealBounds.width, chart.idealBounds.height)

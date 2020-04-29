@@ -35,7 +35,7 @@ export class LogRenderer extends React.Component<{
                 <span>{title}</span>
                 <button
                     className="align-self-end btn btn-danger"
-                    onClick={_ => this.props.applyConfig(log.config)}
+                    onClick={() => this.props.applyConfig(log.config)}
                 >
                     Restore
                 </button>

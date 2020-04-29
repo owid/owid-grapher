@@ -6,11 +6,16 @@ import { ChartConfig } from "./ChartConfig"
 import { NoData } from "./NoData"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./AxisScale"
+import { ScaleType, AxisScale } from "./AxisScale"
 
-import { sortBy, cloneDeep, isEmpty, guid } from "./Util"
-import { AxisScale } from "./AxisScale"
-import { getRelativeMouse, makeSafeForCSS } from "./Util"
+import {
+    sortBy,
+    cloneDeep,
+    isEmpty,
+    guid,
+    getRelativeMouse,
+    makeSafeForCSS
+} from "./Util"
 import { Vector2 } from "./Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "./Tooltip"

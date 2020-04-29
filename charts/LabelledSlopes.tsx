@@ -22,19 +22,20 @@ import {
     intersection,
     includes,
     filter,
-    flatten
+    flatten,
+    SVGElement,
+    getRelativeMouse,
+    domainExtent
 } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { SVGElement } from "./Util"
 import { ScaleType } from "./ScaleType"
 import { Bounds } from "./Bounds"
 import { Text } from "./Text"
 import { TextWrap } from "./TextWrap"
 import { NoData } from "./NoData"
 import { ScaleSelector } from "./ScaleSelector"
-import { getRelativeMouse, domainExtent } from "./Util"
 import { EntityDimensionKey } from "charts/EntityDimensionKey"
 
 export interface SlopeChartValue {

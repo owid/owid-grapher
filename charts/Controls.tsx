@@ -5,12 +5,15 @@ import * as Cookies from "js-cookie"
 import Select, { ValueType } from "react-select"
 import copy from "copy-to-clipboard"
 
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import {
+    ChartConfig,
+    ChartConfigProps,
+    HighlightToggleConfig
+} from "./ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
-import { HighlightToggleConfig } from "./ChartConfig"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries } from "./Util"
+import { extend, keys, entries, first } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -32,7 +35,6 @@ import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
-import { first } from "charts/Util"
 
 @observer
 class EmbedMenu extends React.Component<{

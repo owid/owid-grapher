@@ -10,7 +10,8 @@ import {
     clone,
     defaultTo,
     formatValue,
-    flatten
+    flatten,
+    findIndex
 } from "./Util"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
@@ -18,7 +19,6 @@ import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
-import { findIndex } from "./Util"
 import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form

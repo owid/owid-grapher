@@ -10,7 +10,7 @@
 
 import * as React from "react"
 import { observable, computed, action } from "mobx"
-import { intersection, without, compact, uniq } from "./Util"
+import { intersection, without, compact, uniq, first, last } from "./Util"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
@@ -29,7 +29,6 @@ import {
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScaleType } from "./AxisScale"
-import { first, last } from "./Util"
 import { TimeBound } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 

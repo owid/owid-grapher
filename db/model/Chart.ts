@@ -28,17 +28,17 @@ export class Chart extends BaseEntity {
     @Column() isExplorable!: boolean
 
     @ManyToOne(
-        type => User,
+        () => User,
         user => user.lastEditedCharts
     )
     lastEditedByUser!: User
     @ManyToOne(
-        type => User,
+        () => User,
         user => user.publishedCharts
     )
     publishedByUser!: User
     @OneToMany(
-        type => ChartRevision,
+        () => ChartRevision,
         rev => rev.chart
     )
     logs!: ChartRevision[]
