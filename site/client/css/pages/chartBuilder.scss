@@ -28,15 +28,18 @@ $text-color: #7a899e;
             height: 695px;
             overflow-y: scroll;
 
-            td {
-                border-bottom: 1px solid #eee;
-            }
-
             .CountryOption {
                 display: block;
                 padding: 10px;
                 font-size: 14px;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                cursor: pointer;
+                background-color: transparent;
+                transition: background-color 150ms linear;
+
+                &.selected {
+                    background-color: #fff;
+                }
 
                 &.MissingTests {
                     opacity: 0.9;
@@ -81,7 +84,7 @@ $text-color: #7a899e;
     border-radius: $border-radius;
     border: 1px solid rgba(0, 0, 0, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    background-color: #fff;
+    background-color: #fafafa;
     overflow: hidden;
 }
 

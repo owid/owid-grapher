@@ -3,6 +3,7 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
+import classnames from "classnames"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -128,10 +129,10 @@ class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
                     {countries.map((option, index) => (
                         <Flipped flipId={option.name} translate opacity>
                             <label
-                                className={
-                                    "CountryOption" +
-                                    (option.totalTests ? "" : " MissingTests")
-                                }
+                                className={classnames("CountryOption", {
+                                    MissingTests: !option.totalTests,
+                                    selected: option.selected
+                                })}
                                 key={index}
                                 title={
                                     option.totalTests
