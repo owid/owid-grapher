@@ -215,7 +215,7 @@ export async function formatWordpressPost(
             .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
         for (const el of grapherIframes) {
             const $el = $(el)
-            const src = el.attribs["src"]
+            const src = el.attribs["src"].trim()
             const chart = grapherExports.get(src)
             if (chart) {
                 const output = `

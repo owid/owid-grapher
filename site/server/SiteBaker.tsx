@@ -170,7 +170,7 @@ export class SiteBaker {
                     .filter(el =>
                         (el.attribs["src"] || "").match(/\/grapher\//)
                     )
-                    .map(el => el.attribs["src"])
+                    .map(el => el.attribs["src"].trim())
             )
         }
         grapherUrls = _.uniq(grapherUrls)

@@ -27,7 +27,7 @@ interface ChartExportMeta {
 }
 
 export interface GrapherExports {
-    get: (grapherUrl: string) => ChartExportMeta
+    get: (grapherUrl: string) => ChartExportMeta | undefined
 }
 
 export async function mapSlugsToIds(): Promise<{ [slug: string]: number }> {
@@ -96,13 +96,11 @@ export async function bakeGrapherUrls(urls: string[]) {
     }
 }
 
-export async function getGrapherExportsByUrl(): Promise<{
-    get: (grapherUrl: string) => ChartExportMeta
-}> {
+export async function getGrapherExportsByUrl(): Promise<GrapherExports> {
     // Index the files to see what we have available, using the most recent version
     // if multiple exports exist
     const files = glob.sync(`${BAKED_SITE_DIR}/exports/*.svg`)
-    const exportsByKey = new Map()
+    const exportsByKey = new Map<string, ChartExportMeta>()
     for (const filepath of files) {
         const filename = path.basename(filepath)
         const [key, version, dims] = filename.split("_")
