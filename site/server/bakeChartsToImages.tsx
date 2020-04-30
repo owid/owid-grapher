@@ -48,13 +48,15 @@ export async function bakeChartsToImages(
         const slug = _.last(url.pathname.split("/")) as string
         const jsonConfig = chartsBySlug.get(slug)
         if (jsonConfig) {
-            const queryStr = url.query as any
+            // the type definition for url.query is wrong (bc we have query string parsing disabled),
+            // so we have to explicitly cast it
+            const queryStr = (url.query as unknown) as string
 
-            const chart = new ChartConfig(jsonConfig, { queryStr: queryStr })
+            const chart = new ChartConfig(jsonConfig, { queryStr })
             chart.isLocalExport = true
             const { width, height } = chart.idealBounds
             const outPath = `${outDir}/${slug}${
-                queryStr ? "-" + (md5(queryStr) as string) : ""
+                queryStr ? "-" + md5(queryStr) : ""
             }_v${jsonConfig.version}_${width}x${height}.svg`
             console.log(outPath)
 

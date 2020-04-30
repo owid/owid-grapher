@@ -149,7 +149,7 @@ async function renderPage(postApi: object) {
     const grapherUrls = $("iframe")
         .toArray()
         .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
-        .map(el => el.attribs["src"])
+        .map(el => el.attribs["src"].trim())
 
     // This can be slow if uncached!
     await bakeGrapherUrls(grapherUrls)
