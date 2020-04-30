@@ -1,10 +1,10 @@
-import algoliasearch from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch/lite"
 
 import { countries, Country } from "utils/countries"
 
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
-let algolia: algoliasearch.Client | undefined
+let algolia: SearchClient | undefined
 
 function getClient() {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
@@ -63,8 +63,8 @@ export interface ChartHit {
 }
 
 export interface SiteSearchResults {
-    pages: PageHit[]
-    charts: ChartHit[]
+    pages: Readonly<PageHit[]>
+    charts: Readonly<ChartHit[]>
     countries: Country[]
 }
 
@@ -94,6 +94,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
         }
     }
 
+    /* tslint:disable:await-promise */
     const json = await getClient().search([
         {
             indexName: "pages",
@@ -133,8 +134,8 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     ])
 
     return {
-        pages: json.results[0].hits,
-        charts: json.results[1].hits,
+        pages: json.results[0].hits as any,
+        charts: json.results[1].hits as any,
         countries: matchCountries
     }
 }

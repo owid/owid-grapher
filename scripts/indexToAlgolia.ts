@@ -41,8 +41,8 @@ function getPostType(post: FormattedPost, tags: Tag[]) {
 
 async function indexToAlgolia() {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const finalIndex = await client.initIndex("pages")
-    const tmpIndex = await client.initIndex("pages_tmp")
+    const finalIndex = client.initIndex("pages")
+    const tmpIndex = client.initIndex("pages_tmp")
 
     // Copy to a temporary index which we will then update
     // This is so we can do idempotent reindexing
@@ -109,9 +109,7 @@ async function indexToAlgolia() {
         }
     }
 
-    for (let i = 0; i < records.length; i += 1000) {
-        await tmpIndex.saveObjects(records.slice(i, i + 1000))
-    }
+    await tmpIndex.saveObjects(records)
     await client.moveIndex(tmpIndex.indexName, finalIndex.indexName)
 
     await wpdb.end()

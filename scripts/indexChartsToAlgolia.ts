@@ -38,8 +38,8 @@ async function indexChartsToAlgolia() {
     }
 
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const finalIndex = await client.initIndex("charts")
-    const tmpIndex = await client.initIndex("charts_tmp")
+    const finalIndex = client.initIndex("charts")
+    const tmpIndex = client.initIndex("charts_tmp")
 
     await client.copyIndex(finalIndex.indexName, tmpIndex.indexName, [
         "settings",
@@ -71,10 +71,6 @@ async function indexChartsToAlgolia() {
 
     await tmpIndex.saveObjects(records)
     await client.moveIndex(tmpIndex.indexName, finalIndex.indexName)
-    // for (let i = 0; i < records.length; i += 1000) {
-    //     console.log(i)
-    //     await index.saveObjects(records.slice(i, i+1000))
-    // }
 
     await db.end()
 }

@@ -1,4 +1,5 @@
 import algoliasearch from "algoliasearch"
+import { Synonym } from "@algolia/client-search"
 
 import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
@@ -77,18 +78,19 @@ export async function configureAlgolia() {
         }
     }
 
-    const algoliaSynonyms = synonyms.map(s => {
-        return {
-            objectID: s.join("-"),
-            type: "synonym",
-            synonyms: s
-        } as algoliasearch.Synonym
-    })
+    const algoliaSynonyms = synonyms.map(
+        s =>
+            ({
+                objectID: s.join("-"),
+                type: "synonym",
+                synonyms: s
+            } as Synonym)
+    )
 
-    await pagesIndex.batchSynonyms(algoliaSynonyms, {
+    await pagesIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true
     })
-    await chartsIndex.batchSynonyms(algoliaSynonyms, {
+    await chartsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true
     })
 }
