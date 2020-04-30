@@ -110,7 +110,7 @@ export const FrontPage = (props: {
                     <div className="wrapper">
                         <div className="inner-wrapper">
                             <div className="owid-row owid-spacing--4">
-                                <div className="owid-col owid-col--lg-2 owid-padding-bottom--sm-5">
+                                <div className="owid-col owid-col--lg-2">
                                     <section>
                                         <h3 className="align-center">
                                             Trusted in{" "}
@@ -154,44 +154,6 @@ export const FrontPage = (props: {
                                                 </p>
                                             </div>
                                         </a>
-                                    </section>
-                                </div>
-                                {/* <div className="owid-col owid-col--lg-shrink md-up flex-row">
-                                    <div className="divider"></div>
-                                </div> */}
-                                <div className="owid-col owid-col--lg-1">
-                                    <section>
-                                        <h3>
-                                            <strong>Authored by</strong>
-                                        </h3>
-                                        <ul>
-                                            <li>
-                                                <strong>Max Roser</strong>{" "}
-                                                &ndash; Founder and editor
-                                            </li>
-                                            <li>
-                                                <strong>
-                                                    Esteban Ortiz-Ospina
-                                                </strong>{" "}
-                                                &ndash; Social science
-                                            </li>
-                                            <li>
-                                                <strong>Hannah Ritchie</strong>{" "}
-                                                &ndash; Environmental science
-                                            </li>
-                                            <li>
-                                                <strong>Joe Hasell</strong>{" "}
-                                                &ndash; Social science
-                                            </li>
-                                            <li>
-                                                <strong>Daniel Gavrilov</strong>{" "}
-                                                &ndash; Web developer
-                                            </li>
-                                            <li>
-                                                <strong>Matthieu Bergel</strong>{" "}
-                                                &ndash; Web engineer
-                                            </li>
-                                        </ul>
                                     </section>
                                 </div>
                             </div>
