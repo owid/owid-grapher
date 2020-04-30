@@ -219,7 +219,7 @@ function build_static($post_ID, $post_after, $post_before)
 	}
 }
 
-// add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
+add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
 
 /*
  * API fields
