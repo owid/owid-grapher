@@ -61,6 +61,8 @@ if [ "$2" == "-r" ]; then
   yarn install --production=false --frozen-lockfile
   yarn testcheck
 EOF
+elif [ "$2" == "--skip-checks" ] && [ "$NAME" != "live" ]; then
+    : # allow skipping checks when deploying to a staging server
 else
   # Run pre-deploy check locally
   yarn testcheck
