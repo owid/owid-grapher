@@ -258,15 +258,18 @@ export async function formatWordpressPost(
         }
     }
 
-    // Any remaining iframes: ensure https embeds
-    if (HTTPS_ONLY) {
-        for (const iframe of $("iframe").toArray()) {
-            if (iframe.attribs["src"]) {
-                iframe.attribs["src"] = iframe.attribs["src"].replace(
-                    "http://",
-                    "https://"
-                )
-            }
+    // Any remaining iframes
+    for (const iframe of $("iframe").toArray()) {
+        // Ensure https embeds
+        if (HTTPS_ONLY && iframe.attribs["src"]) {
+            iframe.attribs["src"] = iframe.attribs["src"].replace(
+                "http://",
+                "https://"
+            )
+        }
+        // Lazy load unless "loading" attribute already specified
+        if (!iframe.attribs["loading"]) {
+            iframe.attribs["loading"] = "lazy"
         }
     }
 
