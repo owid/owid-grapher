@@ -14,7 +14,7 @@ import { log } from "utils/server/log"
 export function grapherUrlToFilekey(grapherUrl: string) {
     const url = parseUrl(grapherUrl)
     const slug = _.last(url.pathname.split("/")) as string
-    const queryStr = url.query as any
+    const queryStr = (url.query as unknown) as string
     return `${slug}${queryStr ? "-" + md5(queryStr) : ""}`
 }
 
@@ -103,7 +103,7 @@ export async function getGrapherExportsByUrl(): Promise<GrapherExports> {
     const exportsByKey = new Map<string, ChartExportMeta>()
     for (const filepath of files) {
         const filename = path.basename(filepath)
-        const [key, version, dims] = filename.split("_")
+        const [key, version, dims] = filename.toLowerCase().split("_")
         const versionNumber = parseInt(version.split("v")[1])
         const [width, height] = dims.split("x")
 
@@ -121,7 +121,9 @@ export async function getGrapherExportsByUrl(): Promise<GrapherExports> {
 
     return {
         get(grapherUrl: string) {
-            return exportsByKey.get(grapherUrlToFilekey(grapherUrl))
+            return exportsByKey.get(
+                grapherUrlToFilekey(grapherUrl).toLowerCase()
+            )
         }
     }
 }
