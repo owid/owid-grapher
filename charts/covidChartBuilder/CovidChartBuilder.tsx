@@ -49,6 +49,10 @@ export class CovidChartBuilder extends React.Component<{
 }> {
     static async bootstrap() {
         const containerNode = document.getElementById("chartBuilder")
+        ReactDOM.render(
+            <div className="LoadingChartBuilder"></div>,
+            containerNode
+        )
         const typedData = await fetchAndParseData()
         const startingParams = new CovidQueryParams(window.location.search)
         ReactDOM.render(
