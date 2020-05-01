@@ -138,6 +138,10 @@ export class CovidChartBuilder extends React.Component<{
         this.updateChart()
     }
 
+    private get isSingleMetricMode() {
+        return this.areMultipleCountriesSelected || this.props.params.aligned
+    }
+
     private get metricPicker() {
         const options: InputOption[] = [
             {
@@ -145,7 +149,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
                     this.setDeathsMetricCommand(value)
-                    if (this.areMultipleCountriesSelected && value) {
+                    if (this.isSingleMetricMode && value) {
                         this.setCasesMetricCommand(false)
                         this.setTestsMetricCommand(false)
                     }
@@ -157,7 +161,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.setCasesMetricCommand(value)
-                    if (this.areMultipleCountriesSelected && value) {
+                    if (this.isSingleMetricMode && value) {
                         this.setTestsMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -169,7 +173,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.testsMetric,
                 onChange: value => {
                     this.setTestsMetricCommand(value)
-                    if (this.areMultipleCountriesSelected && value) {
+                    if (this.isSingleMetricMode && value) {
                         this.setCasesMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -181,7 +185,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="metric"
                 options={options}
-                isCheckbox={!this.areMultipleCountriesSelected}
+                isCheckbox={!this.isSingleMetricMode}
             ></CovidInputControl>
         )
     }
@@ -193,7 +197,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
-                    if (this.areMultipleCountriesSelected && value) {
+                    if (this.isSingleMetricMode && value) {
                         this.setDailyFrequencyCommand(false)
                     }
                     this.updateChart()
@@ -204,7 +208,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
-                    if (this.areMultipleCountriesSelected && value) {
+                    if (this.isSingleMetricMode && value) {
                         this.setTotalFrequencyCommand(false)
                     }
                     this.updateChart()
@@ -215,7 +219,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="frequency"
                 options={options}
-                isCheckbox={!this.areMultipleCountriesSelected}
+                isCheckbox={!this.isSingleMetricMode}
             ></CovidInputControl>
         )
     }
@@ -595,25 +599,21 @@ export class CovidChartBuilder extends React.Component<{
 
     // Currently we can't show multiple metrics and multiple countries at the same time. So if the user
     // gets into that state, we have to disable some choices.
-    resolveConstraints() {
-        if (
-            this.areMultipleCountriesSelected &&
-            this.areMultipleMetricsSelected
-        ) {
-            const params = this.props.params
-            if (params.dailyFreq && params.totalFreq) params.dailyFreq = false
-            if (
-                params.casesMetric &&
-                params.deathsMetric &&
-                params.testsMetric
-            ) {
-                params.testsMetric = false
-                params.casesMetric = false
-            } else if (params.testsMetric) {
-                params.testsMetric = false
-            } else {
-                params.casesMetric = false
-            }
+    private resolveConstraints() {
+        if (this.areMultipleMetricsSelected && this.isSingleMetricMode)
+            this.deselectMultipleMetrics()
+    }
+
+    private deselectMultipleMetrics() {
+        const params = this.props.params
+        if (params.dailyFreq && params.totalFreq) params.dailyFreq = false
+        if (params.casesMetric && params.deathsMetric && params.testsMetric) {
+            params.testsMetric = false
+            params.casesMetric = false
+        } else if (params.testsMetric) {
+            params.testsMetric = false
+        } else {
+            params.casesMetric = false
         }
     }
 
