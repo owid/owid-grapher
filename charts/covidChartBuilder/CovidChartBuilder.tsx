@@ -766,7 +766,7 @@ export class CovidChartBuilder extends React.Component<{
             isPublished: true,
             map: {
                 variableId: this.yVariableIndices[0],
-                targetYear: 85,
+                timeTolerance: 7,
                 colorSchemeValues: [],
                 colorSchemeLabels: [],
                 customNumericColors: [],
