@@ -627,6 +627,12 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.title = this.title
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
+
+        // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
+        // config because then it won't appear in the URL.
+        if (chartProps.type === "LineChart" && this.chartType === "ScatterPlot")
+            chartProps.zoomToSelection = true
+
         chartProps.type = this.chartType
 
         chartProps.map.variableId = this.yVariableIndices[0]
