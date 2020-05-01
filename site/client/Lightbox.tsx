@@ -41,7 +41,9 @@ const Lightbox = ({
 
     return (
         <div className="container">
-            {!isLoaded && <LoadingIndicator color="#ccc" />}
+            {!isLoaded && (
+                <LoadingIndicator backgroundColor="#000" color="#ccc" />
+            )}
             <TransformWrapper doubleClick={{ mode: "reset" }}>
                 {({ zoomIn, zoomOut, resetTransform }: any) => (
                     <>
