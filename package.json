@@ -2,7 +2,7 @@
     "private": true,
     "version": "2.0.0",
     "engines": {
-        "node": "12.13.1"
+        "node": ">=12.13.1"
     },
     "scripts": {
         "tsn": "ts-node --transpile-only -r tsconfig-paths/register -r dotenv/config",
