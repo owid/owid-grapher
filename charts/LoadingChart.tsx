@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Bounds } from "./Bounds"
 import { ControlsOverlay } from "./Controls"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 export class LoadingChart extends React.Component<{ bounds: Bounds }> {
     render() {
@@ -9,19 +10,9 @@ export class LoadingChart extends React.Component<{ bounds: Bounds }> {
         // In order to keep the animation consistent, we render HTML in an overlay (by using a React
         // portal, ControlsOverlay).
         // -@danielgavrilov, 2020-01-07
-        const { bounds } = this.props
         return (
             <ControlsOverlay id="loading-chart">
-                <div
-                    className="loading-chart"
-                    style={{
-                        position: "absolute",
-                        top: bounds.top,
-                        left: bounds.left,
-                        width: bounds.width,
-                        height: bounds.height
-                    }}
-                ></div>
+                <LoadingIndicator bounds={this.props.bounds} color="#333" />
             </ControlsOverlay>
         )
     }
