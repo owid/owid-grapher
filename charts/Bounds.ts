@@ -158,8 +158,8 @@ export class Bounds {
     constructor(x: number, y: number, width: number, height: number) {
         this.x = x
         this.y = y
-        this.width = width
-        this.height = height
+        this.width = Math.max(width, 0)
+        this.height = Math.max(height, 0)
     }
 
     get left(): number {
