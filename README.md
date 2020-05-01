@@ -54,7 +54,7 @@ This can be adjusted in your Docker preferences.
 ## Development
 
 `yarn` and `composer` dependencies are not shared with the Docker host for performance reasons. They are installed during the build step (`lando build`) directly into their respective containers. For instance, composer dependencies can be accessed through `lando ssh` in `/app/vendor`.
-As a result `yarn`and `composer `need to be run from within the containers only (otherwise dependencies won't be found as they are not synced back to the host).
+As a result `yarn`and `composer` need to be run from within the containers only (otherwise dependencies won't be found as they are not synced back to the host).
 
 ### OWID Wordpress plugin
 
