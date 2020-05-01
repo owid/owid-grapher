@@ -597,10 +597,30 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 const lowerPriorityLabel = labelsByPriority[j]
                 if (lowerPriorityLabel.isHidden) continue
 
+                const isHighlightedEndLabelOfEqualPriority =
+                    lowerPriorityLabel.isEnd &&
+                    (lowerPriorityLabel.series.isHover ||
+                        lowerPriorityLabel.series.isFocus) &&
+                    higherPriorityLabel.series.isHover ===
+                        lowerPriorityLabel.series.isHover &&
+                    higherPriorityLabel.series.isFocus ===
+                        lowerPriorityLabel.series.isFocus
+
                 if (
-                    higherPriorityLabel.bounds
-                        .pad(-5)
-                        .intersects(lowerPriorityLabel.bounds)
+                    isHighlightedEndLabelOfEqualPriority
+                        ? // For highlighted end labels of equal priority, we want to allow some
+                          // overlap – labels are still readable even if they overlap
+                          higherPriorityLabel.bounds
+                              .pad(6) // allow up to 6px of overlap
+                              .intersects(lowerPriorityLabel.bounds)
+                        : // For non-highlighted labels we want to leave more space between labels,
+                          // partly to have a less noisy chart, and partly to prevent readers from
+                          // thinking that "everything is labelled". In the past this has made
+                          // readers think that if a label doesn't exist, it isn't plotted on the
+                          // chart.
+                          higherPriorityLabel.bounds
+                              .pad(-6)
+                              .intersects(lowerPriorityLabel.bounds)
                 ) {
                     lowerPriorityLabel.isHidden = true
                 }
