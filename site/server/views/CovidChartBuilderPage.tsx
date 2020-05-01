@@ -12,7 +12,14 @@ export const CovidChartBuilderPage = () => {
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/covid-chart-builder`}
                 pageTitle="Covid-19 Dashboard"
-            ></Head>
+            >
+                <link
+                    rel="preload"
+                    href="https://covid.ourworldindata.org/data/owid-covid-data.csv"
+                    as="fetch"
+                    crossOrigin="anonymous"
+                />
+            </Head>
             <body>
                 <SiteHeader />
                 <main id="chartBuilder"></main>

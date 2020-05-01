@@ -33,7 +33,6 @@ const dateToYear = (dateString: string): number =>
 
 export declare type RowAccessor = (row: ParsedCovidRow) => number
 
-// const localCsvPath = "http://localhost:3099/owid-covid-data.csv"
 const csvPath = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
