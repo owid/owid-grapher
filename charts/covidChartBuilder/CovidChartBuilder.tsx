@@ -670,6 +670,8 @@ export class CovidChartBuilder extends React.Component<{
     componentDidMount() {
         this.bindToWindow()
         this.updateChart()
+        const win = window as any
+        win.chartBuilder = this
     }
 
     bindToWindow() {

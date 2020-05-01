@@ -16,8 +16,8 @@ const parseRow = (row: any) => {
         const isNumeric = !keepStrings.has(key)
         if (isNumeric) row[key] = row[key] ? parseFloat(row[key]) : 0
         if (key === "iso_code" && !row.iso_code) {
-            if ((row.location = "World")) row.iso_code = "OWID_WRL"
-            else if ((row.location = "International")) row.iso_code = "III"
+            if (row.location === "World") row.iso_code = "OWID_WRL"
+            else if (row.location === "International") row.iso_code = "OWID_INT"
         }
     })
     return row
