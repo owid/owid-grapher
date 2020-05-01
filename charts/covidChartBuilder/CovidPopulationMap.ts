@@ -107,6 +107,7 @@ export const populationMap: { [country: string]: number } = {
     Iceland: 341250,
     India: 1380004385,
     Indonesia: 273523621,
+    International: 7794798729,
     Iran: 83992953,
     Iraq: 40222503,
     Ireland: 4937796,

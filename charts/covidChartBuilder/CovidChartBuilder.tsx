@@ -63,24 +63,6 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
-    buildVariable(
-        newId: number,
-        name: MetricKind,
-        rowFn: RowAccessor,
-        daily: boolean
-    ) {
-        return buildCovidVariable(
-            newId,
-            name,
-            this.countryMap,
-            this.props.data,
-            rowFn,
-            this.perCapitaDivisor,
-            this.props.params.smoothing,
-            daily
-        )
-    }
-
     @action.bound setDeathsMetricCommand(value: DeathsMetricOption) {
         this.props.params.deathsMetric = value
     }
@@ -109,6 +91,9 @@ export class CovidChartBuilder extends React.Component<{
             this.selectionChangeFromBuilder = false
             return
         }
+        // Do not clear country selection if the chart selection is empty. That may happen if there are
+        // no metrics selected.
+        if (!this.chart.data.selectedEntityCodes.length) return
         const chartSet = new Set(this.chart.data.selectedEntityCodes)
         if (isEqual(chartSet, this.props.params.selectedCountryCodes)) return
         this.props.params.selectedCountryCodes.clear()
@@ -517,63 +502,51 @@ export class CovidChartBuilder extends React.Component<{
             daily: boolean = false
         ) => {
             indices.push(id)
+
+            console.log(id)
+            console.log(this.perCapitaDivisor)
+
             if (!this.owidVariableSet.variables[id]) {
-                this.owidVariableSet.variables[id] = this.buildVariable(
+                this.owidVariableSet.variables[id] = buildCovidVariable(
                     id,
                     columnName,
+                    this.countryMap,
+                    this.props.data,
                     rowFn,
+                    this.perCapitaDivisor,
+                    this.props.params.smoothing,
                     daily
                 )
             }
         }
 
-        const buildId = (id: number, isDaily: boolean) =>
-            id *
-            (isDaily ? 3 : 1) *
-            (params.perCapita ? 5 : 1) *
-            (params.smoothing > 0 ? params.smoothing * 11 : 1)
+        // Generate a unique ID for each metric
+        const buildId = (metric: number, isDaily: boolean) => {
+            const parts = [
+                1145,
+                metric,
+                isDaily ? 1 : 0,
+                params.perCapita ? 1 : 0,
+                params.smoothing
+            ]
+
+            return parseInt(parts.join(""))
+        }
 
         if (params.testsMetric && params.dailyFreq)
-            setVariable(
-                buildId(variablePartials.tests.id!, true),
-                "tests",
-                row => row.new_tests,
-                true
-            )
+            setVariable(buildId(1, true), "tests", row => row.new_tests, true)
         if (params.testsMetric && params.totalFreq)
-            setVariable(
-                buildId(variablePartials.tests.id!, false),
-                "tests",
-                row => row.total_tests
-            )
+            setVariable(buildId(1, false), "tests", row => row.total_tests)
 
         if (params.casesMetric && params.dailyFreq)
-            setVariable(
-                buildId(variablePartials.cases.id!, true),
-                "cases",
-                row => row.new_cases,
-                true
-            )
+            setVariable(buildId(2, true), "cases", row => row.new_cases, true)
         if (params.casesMetric && params.totalFreq)
-            setVariable(
-                buildId(variablePartials.cases.id!, false),
-                "cases",
-                row => row.total_cases
-            )
+            setVariable(buildId(2, false), "cases", row => row.total_cases)
 
         if (params.deathsMetric && params.dailyFreq)
-            setVariable(
-                buildId(variablePartials.deaths.id!, true),
-                "deaths",
-                row => row.new_deaths,
-                true
-            )
+            setVariable(buildId(3, true), "deaths", row => row.new_deaths, true)
         if (params.deathsMetric && params.totalFreq)
-            setVariable(
-                buildId(variablePartials.deaths.id!, false),
-                "deaths",
-                row => row.total_deaths
-            )
+            setVariable(buildId(3, false), "deaths", row => row.total_deaths)
 
         return indices
     }
