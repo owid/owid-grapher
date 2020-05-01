@@ -4,7 +4,7 @@ import { ObservableUrl } from "../UrlBinding"
 import { ChartUrl } from "../ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { extend } from "../Util"
-import { CountOption, TimelineOption, SmoothingOption } from "./CovidTypes"
+import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
 
 export class CovidQueryParams {
     @observable testsMetric: boolean = false
@@ -12,8 +12,8 @@ export class CovidQueryParams {
     @observable casesMetric: boolean = false
     @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
-    @observable count: CountOption = "total"
-    @observable timeline: TimelineOption = "normal"
+    @observable perCapita: PerCapita = false
+    @observable aligned: AlignedOption = false
     @observable smoothing: SmoothingOption = 0
     @observable selectedCountryCodes: Set<string> = new Set()
 
@@ -29,8 +29,8 @@ export class CovidQueryParams {
         if (params.casesMetric) this.casesMetric = true
         if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
-        if (params.count) this.count = params.count as CountOption
-        if (params.timeline) this.timeline = params.timeline as TimelineOption
+        if (params.perCapita) this.perCapita = true
+        if (params.aligned) this.aligned = true
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
         if (params.locations)
@@ -54,8 +54,8 @@ export class CovidQueryParams {
         params.casesMetric = this.casesMetric ? true : undefined
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
-        params.timeline = this.timeline ? this.timeline : undefined
-        params.count = this.count
+        params.aligned = this.aligned ? true : undefined
+        params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
 
         const locations = Array.from(this.selectedCountryCodes)

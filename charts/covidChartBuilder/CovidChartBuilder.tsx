@@ -12,13 +12,13 @@ import { uniqBy } from "lodash"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
-    TimelineOption,
+    AlignedOption,
     SmoothingOption,
     TotalFrequencyOption,
     CasesMetricOption,
     TestsMetricOption,
     DailyFrequencyOption,
-    CountOption,
+    PerCapita,
     DeathsMetricOption,
     MetricKind,
     ParsedCovidRow,
@@ -112,18 +112,8 @@ export class CovidChartBuilder extends React.Component<{
         this.props.params.dailyFreq = option
     }
 
-    @action.bound setCountCommand(countOption: CountOption) {
-        this.props.params.count = countOption
-        this.updateChart()
-    }
-
     setSmoothingCommand(option: SmoothingOption) {
         this.props.params.smoothing = option
-        this.updateChart()
-    }
-
-    setTimelineCommand(option: TimelineOption) {
-        this.props.params.timeline = option
         this.updateChart()
     }
 
@@ -209,51 +199,41 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
-    @computed private get countPicker() {
+    @computed private get perCapitaPicker() {
         const options: InputOption[] = [
             {
-                label: "Total counts",
-                checked: this.props.params.count === "total",
-                onChange: () => {
-                    this.setCountCommand("total")
-                }
-            },
-            {
                 label: "Per capita",
-                checked: this.props.params.count === "perCapita",
-                onChange: () => {
-                    this.setCountCommand("perCapita")
+                checked: this.props.params.perCapita,
+                onChange: value => {
+                    this.props.params.perCapita = value
+                    this.updateChart()
                 }
             }
         ]
         return (
             <CovidInputControl
-                name="count"
+                name="perCapita"
+                isCheckbox={true}
                 options={options}
             ></CovidInputControl>
         )
     }
 
-    private get timelinePicker() {
+    private get alignedPicker() {
         const options: InputOption[] = [
             {
-                label: "Normal timeline",
-                checked: this.props.params.timeline === "normal",
-                onChange: () => {
-                    this.setTimelineCommand("normal")
-                }
-            },
-            {
                 label: "Align with start of pandemic",
-                checked: this.props.params.timeline === "aligned",
-                onChange: () => {
-                    this.setTimelineCommand("aligned")
+                checked: this.props.params.aligned,
+                onChange: value => {
+                    this.props.params.aligned = value
+                    this.updateChart()
                 }
             }
         ]
         return (
             <CovidInputControl
-                name="timeline"
+                name="aligned"
+                isCheckbox={true}
                 options={options}
             ></CovidInputControl>
         )
@@ -323,8 +303,8 @@ export class CovidChartBuilder extends React.Component<{
                     <div className="CovidChartBuilderTopBar">
                         {this.metricPicker}
                         {this.frequencyPicker}
-                        {this.countPicker}
-                        {this.timelinePicker}
+                        {this.perCapitaPicker}
+                        {this.alignedPicker}
                         {this.smoothingPicker}
                     </div>
                     <div className="CovidChartBuilderFigure">
@@ -380,13 +360,13 @@ export class CovidChartBuilder extends React.Component<{
 
     @computed get perCapitaDivisor() {
         const { params } = this.props
-        if (params.count === "total") return 1
+        if (!params.perCapita) return 1
         if (params.testsMetric && !params.deathsMetric && !params.casesMetric)
             return 1000
         return 1000000
     }
 
-    @computed get countTitle() {
+    @computed get perCapitaTitle() {
         const options = {
             1: "",
             1000: " per thousand people",
@@ -415,7 +395,7 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get title() {
-        return `${this.frequencyTitle} Confirmed COVID-19 ${this.metricTitle}${this.countTitle}`
+        return `${this.frequencyTitle} Confirmed COVID-19 ${this.metricTitle}${this.perCapitaTitle}`
     }
 
     @computed get subtitle() {
@@ -492,9 +472,7 @@ export class CovidChartBuilder extends React.Component<{
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
-        return this.props.params.timeline === "normal"
-            ? "LineChart"
-            : "ScatterPlot"
+        return this.props.params.aligned ? "ScatterPlot" : "LineChart"
     }
 
     // We are computing variables clientside so they don't have a variable index. The variable index is used by Chart
@@ -525,7 +503,7 @@ export class CovidChartBuilder extends React.Component<{
         const buildId = (id: number, isDaily: boolean) =>
             id *
             (isDaily ? 3 : 1) *
-            (params.count === "perCapita" ? 5 : 1) *
+            (params.perCapita ? 5 : 1) *
             (params.smoothing > 0 ? params.smoothing * 11 : 1)
 
         if (params.testsMetric && params.dailyFreq)
@@ -628,13 +606,14 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.type = this.chartType
 
         chartProps.map.variableId = this.yVariableIndices[0]
-        chartProps.data!.availableEntities = this.availableEntities
+        // chartProps.data!.availableEntities = this.availableEntities
 
         chartProps.addCountryMode = this.addCountryMode
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensions
         // Todo: perf improvements
+        // We manually call this first, before doing the selection thing, because we cannot select data that is not there.
         await this.chart.downloadData()
 
         // We sort of have 2 types of line charts: "SingleCountryLineChart" and "MultiCountryLineChart".

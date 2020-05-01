@@ -116,7 +116,7 @@ const computeRollingAverage = (numbers: number[], windowSize: number) => {
 export const buildCovidVariable = (
     newId: number,
     name: MetricKind,
-    countryMap: Map<any, any>,
+    countryMap: Map<string, number>,
     data: ParsedCovidRow[],
     rowFn: RowAccessor,
     perCapita: number,
@@ -126,7 +126,8 @@ export const buildCovidVariable = (
     const filtered = data.filter(rowFn)
     const years = filtered.map(row => dateToYear(row.date))
     let values = filtered.map(rowFn)
-    const entities = filtered.map(row => countryMap.get(row.location))
+    const entityNames = filtered.map(row => row.location)
+    const entities = filtered.map(row => countryMap.get(row.location)!)
     if (perCapita > 1)
         values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
@@ -160,6 +161,7 @@ export const buildCovidVariable = (
         ...clone,
         years,
         entities,
+        entityNames,
         values
     }
 

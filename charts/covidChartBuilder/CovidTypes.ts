@@ -1,6 +1,6 @@
-export declare type CountOption = "perCapita" | "total"
+export declare type PerCapita = boolean
+export declare type AlignedOption = boolean
 export declare type SmoothingOption = 0 | 3 | 7
-export declare type TimelineOption = "normal" | "aligned"
 
 export declare type DailyFrequencyOption = boolean
 export declare type TotalFrequencyOption = boolean
