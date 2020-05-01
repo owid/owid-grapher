@@ -219,7 +219,7 @@ export class CovidChartBuilder extends React.Component<{
                 }
             },
             {
-                label: "Per capita statistics",
+                label: "Per capita",
                 checked: this.props.params.count === "perCapita",
                 onChange: () => {
                     this.setCountCommand("perCapita")
@@ -262,7 +262,7 @@ export class CovidChartBuilder extends React.Component<{
     private get smoothingPicker() {
         const options: InputOption[] = [
             {
-                label: "Normal",
+                label: "Daily Figures",
                 checked: this.props.params.smoothing === 0,
                 onChange: () => {
                     this.setSmoothingCommand(0)
