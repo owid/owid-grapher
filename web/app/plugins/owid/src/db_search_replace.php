@@ -43,7 +43,10 @@ foreach ($posts as $post) {
 
     $my_post = array(
       'ID'           => $post->ID,
-      'post_content' => $content,
+      // necessary to prevent "un-slashing" attributes JSON encoded by setAttributes (see ProminentLink.js, RichText)
+      // https://github.com/WordPress/gutenberg/blob/master/packages/escape-html/src/index.js#L60
+      // Without this unicode characters \u003c ("<"), \u003e (">"), \u0026 ("&") get stripped of their backslash and "u003c" is shown on the front-end.
+      'post_content' => wp_slash($content),
     );
 
     // IMPORTANT: comment out post_updated hook in owid.php before uncommenting this (DB will crash otherwise) 
