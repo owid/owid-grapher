@@ -371,6 +371,14 @@ export class ChartData {
         this.chart.props.selectedData = this.chart.origProps.selectedData
     }
 
+    @computed get selectedEntityCodes(): string[] {
+        return uniq(
+            this.selectedKeys
+                .map(k => this.lookupKey(k).shortCode)
+                .map(encodeURIComponent)
+        )
+    }
+
     @computed get selectedKeys(): EntityDimensionKey[] {
         return this.selectionData.map(d => d.entityDimensionKey)
     }

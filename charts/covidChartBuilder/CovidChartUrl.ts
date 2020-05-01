@@ -33,10 +33,13 @@ export class CovidQueryParams {
         if (params.aligned) this.aligned = true
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
-        if (params.locations)
-            params.locations
-                .split("+")
-                .forEach(code => this.selectedCountryCodes.add(code))
+        if (params.country) this.setCountrySelectionFromChartUrl(params.country)
+    }
+
+    setCountrySelectionFromChartUrl(chartCountries: string) {
+        chartCountries
+            .split("+")
+            .forEach(code => this.selectedCountryCodes.add(code))
     }
 
     private setDefaults() {
@@ -57,10 +60,6 @@ export class CovidQueryParams {
         params.aligned = this.aligned ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
-
-        const locations = Array.from(this.selectedCountryCodes)
-
-        if (locations.length) params.locations = locations.join("+")
         return params as QueryParams
     }
 }

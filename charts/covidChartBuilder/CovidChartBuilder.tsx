@@ -4,11 +4,12 @@ import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
 import { ChartConfig } from "charts/ChartConfig"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { OwidVariable } from "../owidData/OwidVariable"
 import { uniqBy } from "lodash"
+import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
@@ -40,6 +41,7 @@ import {
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
 import { populationMap } from "./CovidPopulationMap"
+import isEqual from "lodash/isEqual"
 
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
@@ -83,17 +85,36 @@ export class CovidChartBuilder extends React.Component<{
         this.props.params.deathsMetric = value
     }
 
+    private selectionChangeFromBuilder = false
+
     @action.bound clearSelectionCommand() {
+        this.selectionChangeFromBuilder = true
         this.props.params.selectedCountryCodes.clear()
         this.updateChart()
     }
 
     // todo: perf
     @action.bound selectAllCommand() {
+        this.selectionChangeFromBuilder = true
         this.countryOptions.forEach(country => {
-            this.toggleSelectedCountryCommand(country.code, true)
+            this.toggleSelectedCountry(country.code, true)
         })
         this.updateChart()
+    }
+
+    // If the user does something like click a country on the map, we need to pull that selection out into the ChartBuilder
+    // Ideally we would not be duplicating selection code here, but it's a little tricky with the current chart code.
+    setCountrySelectionsFromChart() {
+        if (this.selectionChangeFromBuilder) {
+            this.selectionChangeFromBuilder = false
+            return
+        }
+        const chartSet = new Set(this.chart.data.selectedEntityCodes)
+        if (isEqual(chartSet, this.props.params.selectedCountryCodes)) return
+        this.props.params.selectedCountryCodes.clear()
+        this.chart.data.selectedEntityCodes.forEach(code => {
+            this.toggleSelectedCountry(code, true)
+        })
     }
 
     @action.bound setCasesMetricCommand(value: CasesMetricOption) {
@@ -275,16 +296,18 @@ export class CovidChartBuilder extends React.Component<{
         return Array.from(this.props.params.selectedCountryCodes).length > 1
     }
 
-    @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
+    toggleSelectedCountry(code: string, value?: boolean) {
         if (value) this.props.params.selectedCountryCodes.add(code)
         else if (value === false)
             this.props.params.selectedCountryCodes.delete(code)
         else if (this.props.params.selectedCountryCodes.has(code))
             this.props.params.selectedCountryCodes.delete(code)
         else this.props.params.selectedCountryCodes.add(code)
+    }
 
-        // this.chart.data.setSelectedEntity(this.countryCodeMap.get(code))
-
+    @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
+        this.selectionChangeFromBuilder = true
+        this.toggleSelectedCountry(code, value)
         this.updateChart()
     }
 
@@ -570,12 +593,13 @@ export class CovidChartBuilder extends React.Component<{
 
     private continentsVariableId = variablePartials.continents.id!
 
+    // Currently we can't show multiple metrics and multiple countries at the same time. So if the user
+    // gets into that state, we have to disable some choices.
     resolveConstraints() {
         if (
             this.areMultipleCountriesSelected &&
             this.areMultipleMetricsSelected
         ) {
-            //
             const params = this.props.params
             if (params.dailyFreq && params.totalFreq) params.dailyFreq = false
             if (
@@ -645,6 +669,19 @@ export class CovidChartBuilder extends React.Component<{
     bindToWindow() {
         const url = new CovidUrl(this.chart.url, this.props.params)
         urlBinding.bindUrlToWindow(url)
+
+        this.disposers.push(
+            reaction(
+                () => this.chart.data.selectedEntityCodes,
+                () => this.setCountrySelectionsFromChart()
+            )
+        )
+    }
+
+    disposers: IReactionDisposer[] = []
+
+    @bind dispose() {
+        this.disposers.forEach(dispose => dispose())
     }
 
     @computed get dimensions(): ChartDimension[] {

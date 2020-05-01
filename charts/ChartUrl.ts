@@ -205,11 +205,7 @@ export class ChartUrl implements ObservableUrl {
             JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
-            return uniq(
-                chart.data.selectedKeys
-                    .map(k => chart.data.lookupKey(k).shortCode)
-                    .map(encodeURIComponent)
-            ).join("+")
+            return chart.data.selectedEntityCodes.join("+")
         } else {
             return undefined
         }
