@@ -4,8 +4,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 interface DownloadTabProps {
     bounds: Bounds
@@ -241,9 +240,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 {this.isReady ? (
                     this.renderReady()
                 ) : (
-                    <div className="loadingIcon">
-                        <FontAwesomeIcon icon={faSpinner} />
-                    </div>
+                    <LoadingIndicator color="#000" />
                 )}
             </div>
         )

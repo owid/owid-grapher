@@ -14,15 +14,13 @@ $zindex-Tooltip: 20;
 $zindex-EntitySelector: 30;
 $zindex-IndicatorDropdown: 50;
 
-figure[data-grapher-src]:empty,
-.loading-chart {
+figure[data-grapher-src]:empty {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-figure[data-grapher-src]:empty:after,
-.loading-chart:after {
+figure[data-grapher-src]:empty:after {
     content: "";
     border: 5px solid #333;
     border-radius: 30px;
@@ -310,19 +308,6 @@ figure[data-grapher-src]:empty:after,
         nav.tabs li.active > a {
             border-bottom-color: rgba(0, 33, 71, 0.9);
         }
-    }
-
-    /* The little loading icon on the download tab */
-    .loadingIcon {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3em;
     }
 
     /* Axis Scale Selectors
