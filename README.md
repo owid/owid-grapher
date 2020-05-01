@@ -9,8 +9,7 @@
 
 ## Requirements
 
-- [Docker](https://www.docker.com/)
-- [Lando](https://lando.dev/)
+- [Lando](https://lando.dev/) (Docker comes packaged with the installer, which is the recommended way to install both)
 
 ## Custom plugin
 
@@ -42,3 +41,27 @@
    ```sh
    $ lando refresh -c -u
    ```
+
+## Performance optimization
+
+[File sharing](https://docs.docker.com/docker-for-mac/#file-sharing) between host and containers is only needed for:
+
+- ~/.lando
+- /path/to/this/repository
+
+This can be adjusted in your Docker preferences.
+
+## Development
+
+`yarn` and `composer` dependencies are not shared with the Docker host for performance reasons. They are installed during the build step (`lando build`) directly into their respective containers. For instance, composer dependencies can be accessed through `lando ssh` in `/app/vendor`.
+As a result `yarn`and `composer `need to be run from within the containers only (otherwise dependencies won't be found as they are not synced back to the host).
+
+### OWID Wordpress plugin
+
+1. (Once) Follow installation steps above
+2. Start development environment
+
+```sh
+lando start && lando yarn start
+```
+

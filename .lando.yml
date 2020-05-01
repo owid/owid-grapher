@@ -8,6 +8,11 @@ config:
   xdebug: true
   config:
     vhosts: .lando/vhosts.conf.tpl
+excludes:
+  # prevent those from being synced back to the host
+  # (reduces CPU usage after installing large amount of deps)
+  - vendor
+  - web/app/plugins/owid/node_modules
 services:
   appserver:
     build_as_root:
@@ -43,3 +48,7 @@ tooling:
     description: Deploys app to target
     service: appserver
     cmd: .lando/scripts/deploy.sh
+  yarn:
+    description: enables 'lando yarn' # e.g. 'lando yarn start' within web/app/plugins/owid
+    service: node
+    cmd: yarn
