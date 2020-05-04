@@ -503,9 +503,6 @@ export class CovidChartBuilder extends React.Component<{
         ) => {
             indices.push(id)
 
-            console.log(id)
-            console.log(this.perCapitaDivisor)
-
             if (!this.owidVariableSet.variables[id]) {
                 this.owidVariableSet.variables[id] = buildCovidVariable(
                     id,
