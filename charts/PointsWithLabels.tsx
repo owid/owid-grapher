@@ -342,7 +342,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     offsetVector: Vector2.zero
                 }
             }),
-            d => d.size
+            d => -d.size
         ) as any
     }
 
@@ -546,9 +546,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     @computed private get renderData(): ScatterRenderSeries[] {
         // Draw the largest points first so that smaller ones can sit on top of them
-        const renderData = cloneDeep(
-            sortBy(this.initialRenderData, d => -d.size)
-        )
+        const renderData = this.initialRenderData
 
         for (const series of renderData) {
             series.isHover = this.hoverKeys.includes(series.entityDimensionKey)
