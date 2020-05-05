@@ -633,19 +633,82 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     /* Major sections e.g. I. Empirical View */
-    > h2 {
-        font-family: $serif-font-stack;
-        font-size: 3rem;
-        font-weight: 400;
-        margin-top: 0;
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        margin-bottom: 5.25rem;
-        line-height: 1.25em;
-        border-bottom: 10px solid $primary-color-200;
+    > .section-heading {
+        $v-padding-section-heading: 5rem;
+        .wrapper {
+            @include content-wrapper;
+            @include lg-up {
+                max-width: $text-max-content-width + $graph-max-content-width +
+                    3 * $padding-x-md;
+            }
+        }
+        position: relative;
+        width: calc(100vw - #{$sidebar-closed-drawer-width});
+        padding-bottom: $v-padding-section-heading;
+        left: $sidebar-closed-drawer-width;
+        margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+        margin-bottom: 5rem;
+        background-color: $primary-color-200;
+
+        @include xxlg-up {
+            width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
+            margin-left: calc(
+                50% - 50vw - #{($sidebar-content-width + 2 * $padding-x-md) / 2}
+            );
+            left: $sidebar-content-width + 2 * $padding-x-md;
+        }
+
+        h2 {
+            margin: 0;
+            padding-top: $v-padding-section-heading;
+            font-family: $serif-font-stack;
+            font-size: 3rem;
+            font-weight: 400;
+            line-height: 1.25em;
+        }
+
+        .in-this-section {
+            display: flex;
+            align-items: center;
+            margin: 2 * $vertical-spacing 0 $vertical-spacing;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: $primary-color-400;
+            .border {
+                margin-left: 1rem;
+                background-color: $primary-color-300;
+                height: 0.7em;
+                flex: 1;
+            }
+        }
+
+        ul {
+            margin-bottom: 0;
+            list-style: none;
+            padding: 0;
+            font-size: 0.9rem;
+        }
+        li {
+            line-height: 1.2;
+            margin-bottom: $vertical-spacing / 2;
+            // display: inline;
+            // &:not(:last-child)::after {
+            //     content: "\00b7";
+            //     margin: 0 0.5rem;
+            // }
+        }
+
+        a {
+            color: $primary-color;
+        }
 
         @include sm-only {
-            font-size: 2.5rem;
+            padding-left: $padding-x-sm;
+            padding-right: $padding-x-sm;
+            h2 {
+                font-size: 2.5rem;
+            }
         }
     }
 
@@ -658,10 +721,9 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         border-top: 1px solid $primary-color-200;
     }
 
-    > h2 + h3 {
+    > .section-heading + h3 {
         border-top: none;
         padding-top: 0;
-        margin-top: 0;
     }
 
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */

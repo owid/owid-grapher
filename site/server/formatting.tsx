@@ -1,3 +1,4 @@
+import { SectionHeading } from "./../client/SectionHeading/SectionHeading"
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as _ from "lodash"
@@ -47,6 +48,12 @@ export interface FormattedPost {
     imageUrl?: string
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
     relatedCharts?: RelatedChart[]
+}
+
+export interface TocHeading {
+    text: string
+    slug: string
+    isSubheading: boolean
 }
 
 function extractLatex(html: string): [string, string[]] {
@@ -344,12 +351,6 @@ export async function formatWordpressPost(
 
     // Table of contents and deep links
 
-    interface TocHeading {
-        text: string
-        slug: string
-        isSubheading: boolean
-    }
-
     const tocHeadings: TocHeading[] = []
     const existingSlugs: string[] = []
     let parentHeading: TocHeading | null = null
@@ -386,8 +387,6 @@ export async function formatWordpressPost(
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
                 } else if (
-                    // HACK
-                    post.slug !== "coronavirus" &&
                     $heading.closest(".wp-block-owid-prominent-link").length ===
                         0 &&
                     $heading.closest(".wp-block-owid-additional-information")
@@ -463,7 +462,20 @@ export async function formatWordpressPost(
             const $el = $(el)
             // Leave h2 at the section level, do not move into columns
             if (el.name === "h2") {
-                $section.append($el)
+                $section.append(
+                    ReactDOMServer.renderToStaticMarkup(
+                        <SectionHeading
+                            title={$el.text()}
+                            tocHeadings={tocHeadings}
+                        >
+                            <div
+                                dangerouslySetInnerHTML={{
+                                    __html: $.html($el)
+                                }}
+                            />
+                        </SectionHeading>
+                    )
+                )
             } else if (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
