@@ -201,7 +201,7 @@ export class DonateForm extends React.Component {
 
                 <fieldset className="donate-form-amount">
                     <legend>
-                        <h3>Amount</h3>
+                        <h3>Amount (USD)</h3>
                     </legend>
                     <div className="radios">
                         {this.intervalAmounts.map(amount => (
@@ -310,7 +310,7 @@ export class DonateForm extends React.Component {
                     })}
                     disabled={this.isLoading}
                 >
-                    Donate ${this.amount}{" "}
+                    Donate {this.amount ? `$${this.amount} USD` : ""}{" "}
                     {this.interval === "monthly" ? "per month" : ""}
                 </button>
 
