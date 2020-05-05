@@ -50,8 +50,15 @@ export class AxisBox {
         const [prevMinY, prevMaxY] = this.prevYDomain
         const [targetMinY, targetMaxY] = this.targetYDomain
 
+        // If we have a log axis and are animating from linear to log do not set domain min to 0
+        const progress = this.animProgress
+            ? this.animProgress
+            : this.props.yAxis.scaleType === "log"
+            ? 0.01
+            : 0
+
         return [
-            prevMinY + (targetMinY - prevMinY) * this.animProgress,
+            prevMinY + (targetMinY - prevMinY) * progress,
             prevMaxY + (targetMaxY - prevMaxY) * this.animProgress
         ]
     }
@@ -62,8 +69,15 @@ export class AxisBox {
         const [prevMinX, prevMaxX] = this.prevXDomain
         const [targetMinX, targetMaxX] = this.targetXDomain
 
+        // If we have a log axis and are animating from linear to log do not set domain min to 0
+        const progress = this.animProgress
+            ? this.animProgress
+            : this.props.xAxis.scaleType === "log"
+            ? 0.01
+            : 0
+
         return [
-            prevMinX + (targetMinX - prevMinX) * this.animProgress,
+            prevMinX + (targetMinX - prevMinX) * progress,
             prevMaxX + (targetMaxX - prevMaxX) * this.animProgress
         ]
     }
