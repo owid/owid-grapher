@@ -12,6 +12,7 @@ import { uniqBy } from "lodash"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
+import { map, groupBy } from "charts/Util"
 import {
     AlignedOption,
     SmoothingOption,
@@ -331,32 +332,19 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get countryOptions(): CountryOption[] {
-        const lastCountryRows = uniqBy(
-            this.props.data.slice().reverse(),
-            "iso_code"
-        )
-        return lastCountryRows
-            .map(country => {
-                return {
-                    name: country.location,
-                    selected: this.props.params.selectedCountryCodes.has(
-                        country.iso_code
-                    ),
-                    slug: country.location,
-                    code: country.iso_code,
-                    totalDeaths: country.total_deaths,
-                    totalCases: country.total_cases,
-                    totalTests: country.total_tests,
-                    noData:
-                        !country.total_deaths &&
-                        !country.total_cases &&
-                        !country.total_tests,
-                    population: populationMap[country.location],
-                    continent:
-                        labelsByRegion[worldRegionByMapEntity[country.location]]
-                }
-            })
-            .reverse()
+        const rowsByCountry = groupBy(this.props.data, "iso_code")
+        return map(rowsByCountry, rows => {
+            const { location, iso_code } = rows[0]
+            return {
+                name: location,
+                slug: location,
+                selected: this.props.params.selectedCountryCodes.has(iso_code),
+                code: iso_code,
+                population: populationMap[location],
+                continent: labelsByRegion[worldRegionByMapEntity[location]],
+                rows: rows
+            }
+        })
     }
 
     @computed private get availableEntities() {

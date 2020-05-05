@@ -4,26 +4,37 @@ import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
 import classnames from "classnames"
+import { scaleLinear, ScaleLinear } from "d3-scale"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 import { FuzzySearch } from "charts/FuzzySearch"
-import { partition, sortBy } from "charts/Util"
+import { partition, sortBy, maxBy, max } from "charts/Util"
 import { CovidChartBuilder } from "./CovidChartBuilder"
-import { CountryOption } from "./CovidTypes"
+import { CountryOption, ParsedCovidRow } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
+
+function getLatestTotalTestsPerCase(
+    rows: ParsedCovidRow[]
+): number | undefined {
+    const row = maxBy(
+        rows.filter(r => r.total_tests && r.total_cases),
+        r => r.date
+    )
+    if (row) {
+        return row.total_tests / row.total_cases
+    }
+    return undefined
+}
 
 @observer
 export class CountryPicker extends React.Component<{
     chartBuilder: CovidChartBuilder
     toggleCountryCommand: (countryCode: string, value: boolean) => void
 }> {
-    @action.bound private onChange(ev: React.FormEvent<HTMLInputElement>) {
-        this.props.toggleCountryCommand(
-            ev.currentTarget.value,
-            ev.currentTarget.checked
-        )
+    @action.bound private onChange(code: string, checked: boolean) {
+        this.props.toggleCountryCommand(code, checked)
     }
 
     @computed private get fuzzy(): FuzzySearch<CountryOption> {
@@ -50,6 +61,16 @@ export class CountryPicker extends React.Component<{
         return this.props.chartBuilder.countryOptions
     }
 
+    @computed private get barScale() {
+        const allTestsPerCase = this.options
+            .map(opt => getLatestTotalTestsPerCase(opt.rows))
+            .filter(d => d) as number[]
+        const maxTestsPerCase = max(allTestsPerCase) ?? 1
+        return scaleLinear()
+            .domain([0, maxTestsPerCase])
+            .range([0, 1])
+    }
+
     @observable private searchInput?: string
 
     render() {
@@ -64,6 +85,12 @@ export class CountryPicker extends React.Component<{
                         countries={this.searchResults}
                         selectedCountries={this.selectedCountries}
                         onChange={this.onChange}
+                        renderCountry={props => (
+                            <CovidCountryOption
+                                barScale={this.barScale}
+                                {...props}
+                            />
+                        )}
                     />
                     <div className="CountrySelectionControls">
                         <div
@@ -112,12 +139,13 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
 interface CovidCountryResultsProps {
     countries: CountryOption[]
     selectedCountries: CountryOption[]
-    onChange: (ev: React.FormEvent<HTMLInputElement>) => void
+    onChange: (code: string, checked: boolean) => void
+    renderCountry: (props: CovidCountryOptionProps) => JSX.Element
 }
 
 class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
     render() {
-        const { countries, selectedCountries } = this.props
+        const { countries, selectedCountries, onChange } = this.props
         return (
             <VerticalScrollContainer
                 scrollingShadows={true}
@@ -135,31 +163,73 @@ class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
                     flipKey={selectedCountries.map(s => s.name).join(",")}
                 >
                     {countries.map((option, index) => (
-                        <Flipped flipId={option.name} translate opacity>
-                            <label
-                                className={classnames("CountryOption", {
-                                    MissingTests: !option.totalTests,
-                                    selected: option.selected
-                                })}
-                                key={index}
-                                title={
-                                    option.totalTests
-                                        ? `${option.totalTests}`
-                                        : "No testing data available."
-                                }
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={option.selected}
-                                    onChange={this.props.onChange}
-                                    value={option.code}
-                                />
-                                {option.name}{" "}
-                            </label>
-                        </Flipped>
+                        <React.Fragment key={index}>
+                            {this.props.renderCountry({ option, onChange })}
+                        </React.Fragment>
                     ))}
                 </Flipper>
             </VerticalScrollContainer>
+        )
+    }
+}
+
+interface CovidCountryOptionProps {
+    option: CountryOption
+    onChange: (code: string, checked: boolean) => void
+    barScale?: ScaleLinear<number, number>
+}
+
+class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
+    render() {
+        const { option, onChange, barScale } = this.props
+        const testsPerCase = getLatestTotalTestsPerCase(option.rows)
+        return (
+            <Flipped flipId={option.name} translate opacity>
+                <label
+                    className={classnames("CountryOption", {
+                        selected: option.selected
+                    })}
+                >
+                    <div className="input-container">
+                        <input
+                            type="checkbox"
+                            checked={option.selected}
+                            onChange={event =>
+                                onChange(
+                                    option.code,
+                                    event.currentTarget.checked
+                                )
+                            }
+                            value={option.code}
+                        />
+                    </div>
+                    <div className="info-container">
+                        <div className="labels-container">
+                            <div className="name">{option.name}</div>
+                            {/* Hide testing numbers as they lack labels to be understandable */}
+                            {/* {testsPerCase && (
+                                <div className="metric">
+                                    {testsPerCase.toFixed(1)}
+                                </div>
+                            )} */}
+                        </div>
+                        {/* Hide plot as it lacks labels to be understandable */}
+                        {/* {barScale && testsPerCase ? (
+                            <div className="plot">
+                                <div
+                                    className="bar"
+                                    style={{
+                                        width: `${barScale(testsPerCase) *
+                                            100}%`
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="plot"></div>
+                        )} */}
+                    </div>
+                </label>
+            </Flipped>
         )
     }
 }

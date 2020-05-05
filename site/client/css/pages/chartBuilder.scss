@@ -35,33 +35,6 @@ $border-radius: 4px;
         .CountrySearchResults {
             height: 588px;
             overflow-y: scroll;
-
-            .CountryOption {
-                display: block;
-                padding: 7px 10px;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-                font-size: 15px;
-                cursor: pointer;
-                color: $text-color;
-                background-color: $primary-color-50;
-                user-select: none;
-
-                &:hover {
-                    background-color: $primary-color-30;
-                }
-
-                &.selected {
-                    background-color: #fff;
-                }
-
-                &.MissingTests {
-                    opacity: 0.9;
-                }
-
-                input {
-                    margin-right: 8px;
-                }
-            }
         }
     }
 
@@ -90,6 +63,68 @@ $border-radius: 4px;
         input {
             margin-right: 5px;
         }
+    }
+}
+
+.CountryOption {
+    display: flex;
+    align-items: center;
+    padding: 9px 10px;
+    line-height: 1.3;
+    border-bottom: 1px solid $primary-color-200;
+    font-size: 15px;
+    cursor: pointer;
+    color: $text-color;
+    background-color: $primary-color-50;
+    user-select: none;
+    position: relative;
+
+    &:hover {
+        background-color: $primary-color-30;
+    }
+
+    &.selected {
+        background-color: #fff;
+    }
+
+    .input-container {
+        flex: 0;
+        margin-right: 6px;
+        align-items: center;
+    }
+
+    .info-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .labels-container {
+        flex: 1;
+        display: flex;
+    }
+
+    .name {
+        flex: 1;
+    }
+
+    .metric {
+        flex: 0;
+        font-size: 14px;
+        font-weight: 400;
+        color: $primary-color-500;
+    }
+
+    .plot {
+        position: absolute;
+        left: 0;
+        right: 10px;
+        bottom: 0;
+    }
+
+    .bar {
+        height: 3px;
+        background-color: $primary-color-300;
     }
 }
 
