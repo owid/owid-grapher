@@ -2,7 +2,6 @@ $controls-color: #3f9eff;
 $ideal-ratio: 680/480;
 
 $border-radius: 4px;
-$text-color: #7a899e;
 
 .CovidChartBuilder {
     display: flex;
@@ -15,6 +14,14 @@ $text-color: #7a899e;
     .CovidChartBuilderSideBar {
         width: 220px;
         margin-right: 10px;
+        margin-top: 98px;
+
+        .CountryList {
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+                rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+            border-radius: 0 0 2px 2px;
+            background-color: #fff;
+        }
 
         .ClearSelectionButton {
             color: $controls-color;
@@ -26,17 +33,22 @@ $text-color: #7a899e;
         }
 
         .CountrySearchResults {
-            height: 695px;
+            height: 588px;
             overflow-y: scroll;
 
             .CountryOption {
                 display: block;
-                padding: 10px;
-                font-size: 14px;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                padding: 7px 10px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                font-size: 15px;
                 cursor: pointer;
-                background-color: transparent;
-                transition: background-color 150ms linear;
+                color: $text-color;
+                background-color: $primary-color-50;
+                user-select: none;
+
+                &:hover {
+                    background-color: $primary-color-30;
+                }
 
                 &.selected {
                     background-color: #fff;
@@ -81,42 +93,35 @@ $text-color: #7a899e;
     }
 }
 
-.CountryList {
-    border-radius: $border-radius;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    background-color: #fafafa;
-    overflow: hidden;
-}
-
 .CovidSearchInput {
     position: relative;
-    color: $text-color;
-    margin-bottom: 10px;
+    color: $primary-color-800;
 
     .input-field {
         width: 100%;
-        border: 1px solid #d6dadf;
-        padding: 0.5em 0.75em;
+        border: none;
+        background-color: #fff;
+        border-radius: 3px 3px 0 0;
+        border: none;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+            rgba(0, 0, 0, 0.08) 0px 2px 2px;
+        padding: 12px 10px;
         padding-left: 2em;
         outline: none;
         color: inherit;
         font-weight: 700;
-        border-radius: $border-radius;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        position: relative;
+        z-index: 1;
 
         &:focus {
-            border-color: $text-color;
         }
 
         &::placeholder {
             color: inherit;
-            font-weight: 400;
             transition: opacity 150ms ease;
         }
         &:focus::placeholder {
-            opacity: 0.5;
+            opacity: 0.25;
         }
     }
 
@@ -124,10 +129,12 @@ $text-color: #7a899e;
         position: absolute;
         top: 0;
         bottom: 0;
-        left: 0.6em;
+        left: 10px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         pointer-events: none;
+        z-index: 2;
     }
 }
 

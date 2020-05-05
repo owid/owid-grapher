@@ -45,7 +45,7 @@ export const VerticalScrollContainer = (
                 <ScrollingShadow
                     direction="down"
                     size={10}
-                    opacity={getShadowOpacity(0.2, 80, scrollTop)}
+                    opacity={getShadowOpacity(0.1, 80, scrollTop)}
                 />
             )}
             <div
@@ -60,7 +60,7 @@ export const VerticalScrollContainer = (
                 <ScrollingShadow
                     direction="up"
                     size={10}
-                    opacity={getShadowOpacity(0.2, 80, scrollBottom)}
+                    opacity={getShadowOpacity(0.1, 80, scrollBottom)}
                 />
             )}
         </div>
