@@ -8,7 +8,6 @@ import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { OwidVariable } from "../owidData/OwidVariable"
-import { uniqBy } from "lodash"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
@@ -42,7 +41,7 @@ import {
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
 import { populationMap } from "./CovidPopulationMap"
-import isEqual from "lodash/isEqual"
+import { isEqual } from "charts/Util"
 
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer

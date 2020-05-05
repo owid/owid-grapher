@@ -5,7 +5,7 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
-import { flatten, cloneDeep } from "lodash"
+import { flatten, cloneDeep } from "charts/Util"
 import { CovidTableRow } from "site/client/covid/CovidTableRow"
 
 // Todo: cleanup
