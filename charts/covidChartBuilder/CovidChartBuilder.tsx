@@ -696,9 +696,8 @@ export class CovidChartBuilder extends React.Component<{
         | "change-country"
         | "add-country"
         | "disabled" {
-        return this.areMultipleMetricsSelected
-            ? "change-country"
-            : "add-country"
+        // Disable the in-chart entity selector at all times
+        return "disabled"
     }
 
     @observable.ref chart = new ChartConfig(
