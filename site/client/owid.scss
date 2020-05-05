@@ -916,22 +916,22 @@ article.page .authors-byline .citation-note:hover {
 
 /* Customizations to tooltip */
 
-.tippy-tooltip.owid-reference-theme {
+.tippy-box[data-theme~="owid-reference"] {
     font-size: 12px;
     padding: 15px;
     cursor: default;
     background-color: #000;
 
-    &[data-placement^="top"] .tippy-arrow {
+    &[data-placement^="top"] .tippy-arrow::before {
         border-top-color: #000;
     }
-    &[data-placement^="bottom"] .tippy-arrow {
+    &[data-placement^="bottom"] .tippy-arrow::before {
         border-bottom-color: #000;
     }
-    &[data-placement^="left"] .tippy-arrow {
+    &[data-placement^="left"] .tippy-arrow::before {
         border-left-color: #000;
     }
-    &[data-placement^="right"] .tippy-arrow {
+    &[data-placement^="right"] .tippy-arrow::before {
         border-right-color: #000;
     }
 
@@ -951,6 +951,7 @@ article.page .authors-byline .citation-note:hover {
 
         &:hover {
             color: #75b7eb;
+            text-decoration: underline;
         }
     }
 }
