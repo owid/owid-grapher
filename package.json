@@ -42,7 +42,7 @@
         "@fortawesome/free-regular-svg-icons": "^5.9.0",
         "@fortawesome/free-solid-svg-icons": "^5.9.0",
         "@fortawesome/react-fontawesome": "^0.1.4",
-        "@tippy.js/react": "^3.1.1",
+        "@tippyjs/react": "^4.0.2",
         "@types/algoliasearch": "^3.30.12",
         "@types/amplitude-js": "^5.8.0",
         "@types/bcrypt": "^3.0.0",
