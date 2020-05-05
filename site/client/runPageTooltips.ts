@@ -1,9 +1,9 @@
-import tippy from "tippy.js"
+import { tippyCore } from "charts/Tippy"
 
 export function runPageTooltips() {
     const tooltips = document.querySelectorAll("a.ref sup")
 
-    tippy(tooltips, {
+    tippyCore(tooltips, {
         appendTo: () => document.body,
         allowHTML: true,
         content: el => {
