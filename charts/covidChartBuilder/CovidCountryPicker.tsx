@@ -12,6 +12,7 @@ import { FuzzySearch } from "charts/FuzzySearch"
 import { partition, sortBy } from "charts/Util"
 import { CovidChartBuilder } from "./CovidChartBuilder"
 import { CountryOption } from "./CovidTypes"
+import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 
 @observer
 export class CountryPicker extends React.Component<{
@@ -118,12 +119,19 @@ class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
     render() {
         const { countries, selectedCountries } = this.props
         return (
-            <div className="CountrySearchResults">
+            <VerticalScrollContainer
+                scrollingShadows={true}
+                scrollLock={true}
+                className="CountrySearchResults"
+                contentsId={countries.map(c => c.name).join(",")}
+            >
                 <Flipper
                     spring={{
                         stiffness: 300,
                         damping: 33
                     }}
+                    // We only want to animate when the selection changes, but not on changes due to
+                    // searching
                     flipKey={selectedCountries.map(s => s.name).join(",")}
                 >
                     {countries.map((option, index) => (
@@ -151,7 +159,7 @@ class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
                         </Flipped>
                     ))}
                 </Flipper>
-            </div>
+            </VerticalScrollContainer>
         )
     }
 }
