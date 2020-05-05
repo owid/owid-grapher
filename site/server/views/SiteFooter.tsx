@@ -240,6 +240,7 @@ export const SiteFooter = ({
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
+                runPage();
                 runHeaderMenus();
                 runBlocks();
                 runLightbox();

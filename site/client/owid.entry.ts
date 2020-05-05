@@ -1,6 +1,5 @@
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import "./oldScripts.js"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
@@ -30,6 +29,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidChartBuilder } from "charts/covidChartBuilder/CovidChartBuilder"
+import runPage from "site/client/runPage"
 
 declare var window: any
 window.Grapher = Grapher
@@ -53,6 +53,7 @@ window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
+window.runPage = runPage
 
 Analytics.logPageLoad()
 
