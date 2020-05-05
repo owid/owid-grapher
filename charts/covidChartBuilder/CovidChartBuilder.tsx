@@ -626,6 +626,7 @@ export class CovidChartBuilder extends React.Component<{
 
     componentDidMount() {
         this.bindToWindow()
+        this.chart.hideAddDataButton = true
         this.updateChart()
         const win = window as any
         win.chartBuilder = this
@@ -695,8 +696,9 @@ export class CovidChartBuilder extends React.Component<{
         | "change-country"
         | "add-country"
         | "disabled" {
-        // Disable the in-chart entity selector at all times
-        return "disabled"
+        return this.areMultipleMetricsSelected
+            ? "change-country"
+            : "add-country"
     }
 
     @observable.ref chart = new ChartConfig(

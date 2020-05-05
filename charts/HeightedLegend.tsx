@@ -484,7 +484,7 @@ export class HeightedLegendComponent extends React.Component<
             >
                 {this.renderBackground()}
                 {this.renderFocus()}
-                {this.context.chart.data.canAddData && (
+                {this.context.chart.showChangeEntityButton && (
                     <ControlsOverlay id="add-country">
                         <AddEntityButton
                             x={this.props.x + leftOffset}

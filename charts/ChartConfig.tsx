@@ -390,6 +390,15 @@ export class ChartConfig {
         return `${BAKED_GRAPHER_URL}/data/variables/${this.dataFileName}`
     }
 
+    @computed get showChangeEntityButton() {
+        return !this.hideAddDataButton && this.data.canAddData
+    }
+
+    // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
+    // allows you to still use add country "modes" without showing the buttons in order to prioritize
+    // another entity selector over the built in ones.
+    hideAddDataButton = false
+
     @computed get hasOWIDLogo(): boolean {
         return (
             !this.props.hideLogo &&

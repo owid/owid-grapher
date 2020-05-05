@@ -343,7 +343,7 @@ export class DiscreteBarChart extends React.Component<{
 
                     return result
                 })}
-                {this.props.chart.data.canAddData && (
+                {this.chart.showChangeEntityButton && (
                     <ControlsOverlay id="add-country">
                         <AddEntityButton
                             x={this.bounds.left + this.legendWidth}
