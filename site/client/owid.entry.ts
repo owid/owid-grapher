@@ -29,7 +29,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidChartBuilder } from "charts/covidChartBuilder/CovidChartBuilder"
-import runPage from "site/client/runPage"
+import { runPageTooltips } from "site/client/runPageTooltips"
 
 declare var window: any
 window.Grapher = Grapher
@@ -53,9 +53,20 @@ window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
-window.runPage = runPage
+window.runPageTooltips = runPageTooltips
 
 Analytics.logPageLoad()
+
+document.querySelector("html")?.classList.add("js")
+
+if (
+    document.cookie.includes("wordpress") ||
+    document.cookie.includes("wp-settings") ||
+    document.cookie.includes("isAdmin")
+) {
+    const adminbar = document.getElementById("wpadminbar")
+    if (adminbar) adminbar.style.display = ""
+}
 
 new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     speed: 600,

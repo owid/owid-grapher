@@ -1,17 +1,6 @@
 import tippy from "tippy.js"
 
-export default function runPage() {
-    document.querySelector("html")?.classList.add("js")
-
-    if (
-        document.cookie.includes("wordpress") ||
-        document.cookie.includes("wp-settings") ||
-        document.cookie.includes("isAdmin")
-    ) {
-        const adminbar = document.getElementById("wpadminbar")
-        if (adminbar) adminbar.style.display = ""
-    }
-
+export function runPageTooltips() {
     const tooltips = document.querySelectorAll("a.ref sup")
 
     tippy(tooltips, {

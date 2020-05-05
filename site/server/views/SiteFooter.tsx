@@ -240,13 +240,13 @@ export const SiteFooter = ({
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
-                runPage();
                 runHeaderMenus();
                 runBlocks();
                 runLightbox();
                 runSiteTools();
                 runCookieNotice();
                 runCovid();
+                runPageTooltips();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
                     runGlobalEntityControl(Grapher.globalEntitySelection);
