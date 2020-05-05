@@ -159,6 +159,7 @@
         "react": "^16.8.6",
         "react-animate-height": "^2.0.17",
         "react-dom": "^16.8.6",
+        "react-flip-toolkit": "^7.0.9",
         "react-recaptcha": "^2.3.10",
         "react-router-dom": "^5.0.1",
         "react-select": "3.1.0",

@@ -17,7 +17,8 @@ import {
     renderNotFoundPage,
     renderBlogByPageNum,
     renderExplorableIndicatorsJson,
-    renderCovidPage
+    renderCovidPage,
+    renderCovidChartBuilderPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
@@ -97,6 +98,10 @@ devServer.get("/charts", async (req, res) => {
 
 devServer.get("/explore", async (req, res) => {
     res.send(await renderExplorePage())
+})
+
+devServer.get("/covid-chart-builder", async (req, res) => {
+    res.send(await renderCovidChartBuilderPage())
 })
 
 // Route only available on the dev server

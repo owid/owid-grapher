@@ -26,7 +26,8 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderExplorableIndicatorsJson
+    renderExplorableIndicatorsJson,
+    renderCovidChartBuilderPage
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -237,6 +238,7 @@ export class SiteBaker {
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
+                    !path.startsWith("covid-chart-builder") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
@@ -300,6 +302,12 @@ export class SiteBaker {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/explore/indicators.json`,
                 await renderExplorableIndicatorsJson()
+            )
+        }
+        if (settings.COVID_DASHBOARD) {
+            await this.stageWrite(
+                `${BAKED_SITE_DIR}/covid-chart-builder.html`,
+                await renderCovidChartBuilderPage()
             )
         }
     }

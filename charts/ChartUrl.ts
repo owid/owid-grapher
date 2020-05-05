@@ -5,7 +5,7 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-import { computed, when, runInAction } from "mobx"
+import { computed, when, runInAction, toJS, observable } from "mobx"
 
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
@@ -133,14 +133,22 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get queryStr(): string {
-        return queryParamsToStr(this.params)
+        const queryParams = {
+            ...this.params,
+            ...this.externallyProvidedParams
+        }
+        return queryParamsToStr(queryParams)
     }
 
     @computed get baseUrl(): string | undefined {
+        if (this.externalBaseUrl) return this.externalBaseUrl
         if (this.chart.isPublished)
             return `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
         else return undefined
     }
+
+    @observable externalBaseUrl: string = ""
+    @observable externallyProvidedParams: QueryParams = {}
 
     // Get the full url representing the canonical location of this chart state
     @computed get canonicalUrl(): string | undefined {
@@ -197,11 +205,7 @@ export class ChartUrl implements ObservableUrl {
             JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
-            return uniq(
-                chart.data.selectedKeys
-                    .map(k => chart.data.lookupKey(k).shortCode)
-                    .map(encodeURIComponent)
-            ).join("+")
+            return chart.data.selectedEntityCodes.join("+")
         } else {
             return undefined
         }

@@ -1,0 +1,208 @@
+$controls-color: #3f9eff;
+$ideal-ratio: 680/480;
+
+$border-radius: 4px;
+
+.CovidChartBuilder {
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1200px;
+    padding-top: 5px;
+    min-height: 790px;
+
+    .CovidChartBuilderSideBar {
+        width: 220px;
+        margin-right: 10px;
+        margin-top: 98px;
+
+        .CountryList {
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+                rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+            border-radius: 0 0 2px 2px;
+            background-color: #fff;
+        }
+
+        .ClearSelectionButton {
+            color: $controls-color;
+            font-size: 13px;
+            line-height: 16px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .CountrySearchResults {
+            height: 588px;
+            overflow-y: scroll;
+        }
+    }
+
+    .CovidChartBuilderMain {
+        width: calc(100% - 200);
+
+        .CovidChartBuilderTopBar {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid rgb(233, 233, 233);
+        }
+
+        .CovidChartBuilderFigure {
+        }
+    }
+
+    .CovidChartBuilderRadio {
+        height: 80px;
+        margin: 3px;
+        padding: 7px;
+        font-size: 14px;
+
+        input {
+            margin-right: 5px;
+        }
+    }
+}
+
+.CountryOption {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    line-height: 1.3;
+    border-bottom: 1px solid $primary-color-200;
+    font-size: 15px;
+    cursor: pointer;
+    color: $text-color;
+    background-color: $primary-color-50;
+    user-select: none;
+    position: relative;
+
+    &:hover {
+        background-color: $primary-color-30;
+    }
+
+    &.selected {
+        background-color: #fff;
+    }
+
+    .input-container {
+        flex: 0;
+        margin-right: 6px;
+        align-items: center;
+    }
+
+    .info-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .labels-container {
+        flex: 1;
+        display: flex;
+    }
+
+    .name {
+        flex: 1;
+    }
+
+    .metric {
+        flex: 0;
+        font-size: 14px;
+        font-weight: 400;
+        color: $primary-color-500;
+    }
+
+    .plot {
+        position: absolute;
+        left: 0;
+        right: 10px;
+        bottom: 0;
+    }
+
+    .bar {
+        height: 3px;
+        background-color: $primary-color-300;
+    }
+}
+
+.CovidSearchInput {
+    position: relative;
+    color: $primary-color-800;
+
+    .input-field {
+        width: 100%;
+        border: none;
+        background-color: #fff;
+        border-radius: 3px 3px 0 0;
+        border: none;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+            rgba(0, 0, 0, 0.08) 0px 2px 2px;
+        padding: 12px 10px;
+        padding-left: 2em;
+        outline: none;
+        color: inherit;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+
+        &:focus {
+        }
+
+        &::placeholder {
+            color: inherit;
+            transition: opacity 150ms ease;
+        }
+        &:focus::placeholder {
+            opacity: 0.25;
+        }
+    }
+
+    .search-icon {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 10px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+        z-index: 2;
+    }
+}
+
+.LoadingChartBuilder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 790px;
+    width: 100%;
+}
+
+.LoadingChartBuilder:after {
+    content: "";
+    border: 5px solid #333;
+    border-radius: 30px;
+    height: 30px;
+    width: 30px;
+    opacity: 0;
+
+    animation: pulsate 1s ease-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        transform: scale(0.1);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}

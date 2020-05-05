@@ -29,10 +29,12 @@ import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
+import { CovidChartBuilder } from "charts/covidChartBuilder/CovidChartBuilder"
 
 declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
+window.CovidChartBuilder = CovidChartBuilder
 window.ExploreView = ExploreView
 window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage

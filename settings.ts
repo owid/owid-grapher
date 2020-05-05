@@ -78,6 +78,11 @@ export const EXPLORER: boolean = process.env.EXPLORER
     ? parseBool(process.env.EXPLORER)
     : false
 
+// Feature flag for COVID Dashboard
+export const COVID_DASHBOARD: boolean = process.env.COVID_DASHBOARD
+    ? parseBool(process.env.COVID_DASHBOARD)
+    : false
+
 // Settings for optimizations that are applied in the baking step
 export const OPTIMIZE_SVG_EXPORTS = process.env.OPTIMIZE_SVG_EXPORTS
     ? parseBool(process.env.OPTIMIZE_SVG_EXPORTS)
