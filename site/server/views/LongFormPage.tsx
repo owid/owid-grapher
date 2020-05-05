@@ -173,6 +173,7 @@ export const LongFormPage = (props: {
                                     <TableOfContents
                                         headings={post.tocHeadings}
                                         pageTitle={pageTitle}
+                                        hideSubheadings={true}
                                     />
                                 </div>
                             )}
@@ -332,7 +333,8 @@ export const LongFormPage = (props: {
                         __html: `
                         runTableOfContents(${JSON.stringify({
                             headings: post.tocHeadings,
-                            pageTitle
+                            pageTitle,
+                            hideSubheadings: true
                         })})
                         runRelatedCharts(${JSON.stringify(post.relatedCharts)})
                         `

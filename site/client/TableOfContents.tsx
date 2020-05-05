@@ -11,6 +11,7 @@ const TOC_CLASS_NAME = "entry-sidebar"
 interface TableOfContentsData {
     headings: { isSubheading: boolean; slug: string; text: string }[]
     pageTitle: string
+    hideSubheadings?: boolean
 }
 
 const isRecordTopViewport = (record: IntersectionObserverEntry) => {
@@ -31,7 +32,8 @@ const getPreviousHeading = (
 
 export const TableOfContents = ({
     headings,
-    pageTitle
+    pageTitle,
+    hideSubheadings
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
@@ -130,8 +132,7 @@ export const TableOfContents = ({
             )
 
             let contentHeadings = null
-            // HACK
-            if (window.location.pathname === "/coronavirus") {
+            if (hideSubheadings) {
                 contentHeadings = document.querySelectorAll("h2")
             } else {
                 contentHeadings = document.querySelectorAll("h2, h3")
@@ -163,23 +164,29 @@ export const TableOfContents = ({
                             {pageTitle}
                         </a>
                     </li>
-                    {headings.map((heading, i: number) => (
-                        <li
-                            key={i}
-                            className={
-                                (heading.isSubheading
-                                    ? "subsection"
-                                    : "section") +
-                                (heading.slug === activeHeading
-                                    ? " active"
-                                    : "")
-                            }
-                        >
-                            <a onClick={toggle} href={`#${heading.slug}`}>
-                                {heading.text}
-                            </a>
-                        </li>
-                    ))}
+                    {headings
+                        .filter(heading =>
+                            hideSubheadings && heading.isSubheading
+                                ? false
+                                : true
+                        )
+                        .map((heading, i: number) => (
+                            <li
+                                key={i}
+                                className={
+                                    (heading.isSubheading
+                                        ? "subsection"
+                                        : "section") +
+                                    (heading.slug === activeHeading
+                                        ? " active"
+                                        : "")
+                                }
+                            >
+                                <a onClick={toggle} href={`#${heading.slug}`}>
+                                    {heading.text}
+                                </a>
+                            </li>
+                        ))}
                 </ul>
             </nav>
             <div className="toggle-toc">
