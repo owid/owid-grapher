@@ -1,4 +1,4 @@
-import { dateDiffInDays } from "charts/Util"
+import { dateDiffInDays, maxBy } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
@@ -21,6 +21,19 @@ const parseRow = (row: any) => {
         }
     })
     return row
+}
+
+export const getLatestTotalTestsPerCase = (
+    rows: ParsedCovidRow[]
+): number | undefined => {
+    const row = maxBy(
+        rows.filter(r => r.total_tests && r.total_cases),
+        r => r.date
+    )
+    if (row) {
+        return row.total_tests / row.total_cases
+    }
+    return undefined
 }
 
 const EPOCH_DATE = "2020-01-21"

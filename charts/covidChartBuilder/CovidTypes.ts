@@ -33,9 +33,13 @@ export interface ParsedCovidRow {
 export interface CountryOption {
     name: string
     slug: countrySlug
-    selected: boolean
     code: string
     continent: string
     population: number
     rows: ParsedCovidRow[]
+    latestTotalTestsPerCase: number | undefined
+}
+
+export interface CountryOptionWithSelection extends CountryOption {
+    selected: boolean
 }

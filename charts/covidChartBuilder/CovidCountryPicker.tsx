@@ -4,29 +4,17 @@ import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
 import classnames from "classnames"
-import { scaleLinear, ScaleLinear } from "d3-scale"
+import { ScaleLinear } from "d3-scale"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 import { FuzzySearch } from "charts/FuzzySearch"
-import { partition, sortBy, maxBy, max } from "charts/Util"
+import { partition, sortBy } from "charts/Util"
 import { CovidChartBuilder } from "./CovidChartBuilder"
-import { CountryOption, ParsedCovidRow } from "./CovidTypes"
+import { CountryOptionWithSelection } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
-
-function getLatestTotalTestsPerCase(
-    rows: ParsedCovidRow[]
-): number | undefined {
-    const row = maxBy(
-        rows.filter(r => r.total_tests && r.total_cases),
-        r => r.date
-    )
-    if (row) {
-        return row.total_tests / row.total_cases
-    }
-    return undefined
-}
+import { getLatestTotalTestsPerCase } from "./CovidData"
 
 @observer
 export class CountryPicker extends React.Component<{
@@ -37,11 +25,11 @@ export class CountryPicker extends React.Component<{
         this.props.toggleCountryCommand(code, checked)
     }
 
-    @computed private get fuzzy(): FuzzySearch<CountryOption> {
+    @computed private get fuzzy(): FuzzySearch<CountryOptionWithSelection> {
         return new FuzzySearch(this.options, "name")
     }
 
-    @computed private get searchResults(): CountryOption[] {
+    @computed private get searchResults(): CountryOptionWithSelection[] {
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.options
@@ -53,22 +41,12 @@ export class CountryPicker extends React.Component<{
         return [...selected, ...unselected]
     }
 
-    @computed private get selectedCountries(): CountryOption[] {
+    @computed private get selectedCountries(): CountryOptionWithSelection[] {
         return this.options.filter(country => country.selected)
     }
 
     @computed private get options() {
-        return this.props.chartBuilder.countryOptions
-    }
-
-    @computed private get barScale() {
-        const allTestsPerCase = this.options
-            .map(opt => getLatestTotalTestsPerCase(opt.rows))
-            .filter(d => d) as number[]
-        const maxTestsPerCase = max(allTestsPerCase) ?? 1
-        return scaleLinear()
-            .domain([0, maxTestsPerCase])
-            .range([0, 1])
+        return this.props.chartBuilder.countryOptionsWithSelectionStatus
     }
 
     @observable private searchInput?: string
@@ -87,7 +65,7 @@ export class CountryPicker extends React.Component<{
                         onChange={this.onChange}
                         renderCountry={props => (
                             <CovidCountryOption
-                                barScale={this.barScale}
+                                barScale={this.props.chartBuilder.barScale}
                                 {...props}
                             />
                         )}
@@ -137,8 +115,8 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
 }
 
 interface CovidCountryResultsProps {
-    countries: CountryOption[]
-    selectedCountries: CountryOption[]
+    countries: CountryOptionWithSelection[]
+    selectedCountries: CountryOptionWithSelection[]
     onChange: (code: string, checked: boolean) => void
     renderCountry: (props: CovidCountryOptionProps) => JSX.Element
 }
@@ -174,7 +152,7 @@ class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
 }
 
 interface CovidCountryOptionProps {
-    option: CountryOption
+    option: CountryOptionWithSelection
     onChange: (code: string, checked: boolean) => void
     barScale?: ScaleLinear<number, number>
 }
@@ -182,7 +160,7 @@ interface CovidCountryOptionProps {
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
     render() {
         const { option, onChange, barScale } = this.props
-        const testsPerCase = getLatestTotalTestsPerCase(option.rows)
+        const testsPerCase = option.latestTotalTestsPerCase
         return (
             <Flipped flipId={option.name} translate opacity>
                 <label

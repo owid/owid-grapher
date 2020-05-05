@@ -11,7 +11,7 @@ import { OwidVariable } from "../owidData/OwidVariable"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { map, groupBy } from "charts/Util"
+import { map, groupBy, max } from "charts/Util"
 import {
     AlignedOption,
     SmoothingOption,
@@ -23,7 +23,8 @@ import {
     DeathsMetricOption,
     MetricKind,
     ParsedCovidRow,
-    CountryOption
+    CountryOption,
+    CountryOptionWithSelection
 } from "./CovidTypes"
 import {
     RadioOption as InputOption,
@@ -36,12 +37,14 @@ import {
     RowAccessor,
     buildCovidVariable,
     daysSinceVariable,
-    continentsVariable
+    continentsVariable,
+    getLatestTotalTestsPerCase
 } from "./CovidData"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
 import { populationMap } from "./CovidPopulationMap"
 import { isEqual } from "charts/Util"
+import { scaleLinear } from "d3"
 
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
@@ -330,6 +333,16 @@ export class CovidChartBuilder extends React.Component<{
         )
     }
 
+    @computed
+    get countryOptionsWithSelectionStatus(): CountryOptionWithSelection[] {
+        return this.countryOptions.map(option => {
+            ;(option as any).selected = this.props.params.selectedCountryCodes.has(
+                option.code
+            )
+            return option as CountryOptionWithSelection
+        })
+    }
+
     @computed get countryOptions(): CountryOption[] {
         const rowsByCountry = groupBy(this.props.data, "iso_code")
         return map(rowsByCountry, rows => {
@@ -337,10 +350,10 @@ export class CovidChartBuilder extends React.Component<{
             return {
                 name: location,
                 slug: location,
-                selected: this.props.params.selectedCountryCodes.has(iso_code),
                 code: iso_code,
                 population: populationMap[location],
                 continent: labelsByRegion[worldRegionByMapEntity[location]],
+                latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
                 rows: rows
             }
         })
@@ -472,6 +485,17 @@ export class CovidChartBuilder extends React.Component<{
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
         return this.props.params.aligned ? "ScatterPlot" : "LineChart"
+    }
+
+    // Keep the barScale here for perf reasons
+    @computed get barScale() {
+        const allTestsPerCase = this.countryOptions
+            .map(opt => opt.latestTotalTestsPerCase)
+            .filter(d => d) as number[]
+        const maxTestsPerCase = max(allTestsPerCase) ?? 1
+        return scaleLinear()
+            .domain([0, maxTestsPerCase])
+            .range([0, 1])
     }
 
     // We are computing variables clientside so they don't have a variable index. The variable index is used by Chart
