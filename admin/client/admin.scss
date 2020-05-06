@@ -389,11 +389,26 @@ body {
             }
 
             > * {
-                margin-right: 12px;
+                margin-right: 8px;
+
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+
+            .range {
+                display: flex;
+                flex: 1 0;
+                align-items: center;
+
+                span {
+                    font-size: 0.85em;
+                    margin: 0 3px;
+                }
             }
 
             .form-group {
-                flex-grow: 1;
+                flex: 1 1;
                 margin-bottom: 0;
             }
         }
