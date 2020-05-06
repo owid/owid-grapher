@@ -1,6 +1,5 @@
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import "./oldScripts.js"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
@@ -30,6 +29,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidChartBuilder } from "charts/covidChartBuilder/CovidChartBuilder"
+import { runPageTooltips } from "site/client/runPageTooltips"
 
 declare var window: any
 window.Grapher = Grapher
@@ -53,8 +53,20 @@ window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
+window.runPageTooltips = runPageTooltips
 
 Analytics.logPageLoad()
+
+document.querySelector("html")?.classList.add("js")
+
+if (
+    document.cookie.includes("wordpress") ||
+    document.cookie.includes("wp-settings") ||
+    document.cookie.includes("isAdmin")
+) {
+    const adminbar = document.getElementById("wpadminbar")
+    if (adminbar) adminbar.style.display = ""
+}
 
 new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     speed: 600,
