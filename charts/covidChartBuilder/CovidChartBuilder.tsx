@@ -46,6 +46,43 @@ import { populationMap } from "./CovidPopulationMap"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
 
+class CovidModeToggle extends React.Component<{
+    chartBuilder: CovidChartBuilder
+}> {
+    @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
+        this.props.chartBuilder.props.params.compareMode =
+            ev.currentTarget.value === "true" ? true : false
+    }
+    render() {
+        const { chartBuilder } = this.props
+        return (
+            <div className="CovidChartBuilderModeToggle">
+                <div>MODE</div>
+                <label>
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="true"
+                        checked={chartBuilder.isCompareMode}
+                        onChange={this.onChange}
+                    />
+                    Compare countries
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="false"
+                        checked={!chartBuilder.isCompareMode}
+                        onChange={this.onChange}
+                    />
+                    Focus on one country
+                </label>
+            </div>
+        )
+    }
+}
+
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
 export class CovidChartBuilder extends React.Component<{
@@ -126,8 +163,8 @@ export class CovidChartBuilder extends React.Component<{
         this.updateChart()
     }
 
-    private get isSingleMetricMode() {
-        return this.areMultipleCountriesSelected || this.props.params.aligned
+    @computed get isCompareMode() {
+        return this.props.params.compareMode // this.areMultipleCountriesSelected || this.props.params.aligned
     }
 
     private get metricPicker() {
@@ -137,7 +174,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
                     this.setDeathsMetricCommand(value)
-                    if (this.isSingleMetricMode && value) {
+                    if (this.isCompareMode && value) {
                         this.setCasesMetricCommand(false)
                         this.setTestsMetricCommand(false)
                     }
@@ -149,7 +186,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.setCasesMetricCommand(value)
-                    if (this.isSingleMetricMode && value) {
+                    if (this.isCompareMode && value) {
                         this.setTestsMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -161,7 +198,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.testsMetric,
                 onChange: value => {
                     this.setTestsMetricCommand(value)
-                    if (this.isSingleMetricMode && value) {
+                    if (this.isCompareMode && value) {
                         this.setCasesMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -173,7 +210,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="metric"
                 options={options}
-                isCheckbox={!this.isSingleMetricMode}
+                isCheckbox={!this.isCompareMode}
             ></CovidInputControl>
         )
     }
@@ -185,7 +222,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
-                    if (this.isSingleMetricMode && value) {
+                    if (this.isCompareMode && value) {
                         this.setDailyFrequencyCommand(false)
                     }
                     this.updateChart()
@@ -196,7 +233,7 @@ export class CovidChartBuilder extends React.Component<{
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
-                    if (this.isSingleMetricMode && value) {
+                    if (this.isCompareMode && value) {
                         this.setTotalFrequencyCommand(false)
                     }
                     this.updateChart()
@@ -207,7 +244,7 @@ export class CovidChartBuilder extends React.Component<{
             <CovidInputControl
                 name="frequency"
                 options={options}
-                isCheckbox={!this.isSingleMetricMode}
+                isCheckbox={!this.isCompareMode}
             ></CovidInputControl>
         )
     }
@@ -309,6 +346,7 @@ export class CovidChartBuilder extends React.Component<{
         return (
             <div className="CovidChartBuilder">
                 <div className="CovidChartBuilderSideBar">
+                    <CovidModeToggle chartBuilder={this} />
                     <CountryPicker
                         chartBuilder={this}
                         toggleCountryCommand={this.toggleSelectedCountryCommand}
@@ -581,7 +619,7 @@ export class CovidChartBuilder extends React.Component<{
     // Currently we can't show multiple metrics and multiple countries at the same time. So if the user
     // gets into that state, we have to disable some choices.
     private resolveConstraints() {
-        if (this.areMultipleMetricsSelected && this.isSingleMetricMode)
+        if (this.areMultipleMetricsSelected && this.isCompareMode)
             this.deselectMultipleMetrics()
     }
 

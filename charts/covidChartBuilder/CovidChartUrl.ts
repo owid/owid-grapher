@@ -15,6 +15,7 @@ export class CovidQueryParams {
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
     @observable smoothing: SmoothingOption = 0
+    @observable compareMode: boolean = false
     @observable selectedCountryCodes: Set<string> = new Set()
 
     constructor(queryString: string) {
@@ -30,6 +31,7 @@ export class CovidQueryParams {
         if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
         if (params.perCapita) this.perCapita = true
+        if (params.compareMode) this.compareMode = true
         if (params.aligned) this.aligned = true
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
@@ -47,6 +49,7 @@ export class CovidQueryParams {
         this.deathsMetric = true
         this.casesMetric = true
         this.totalFreq = true
+        this.compareMode = false
         this.selectedCountryCodes.add("USA")
     }
 
@@ -59,6 +62,7 @@ export class CovidQueryParams {
         params.totalFreq = this.totalFreq ? true : undefined
         params.aligned = this.aligned ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
+        params.compareMode = this.compareMode ? true : undefined
         params.smoothing = this.smoothing
         return params as QueryParams
     }
