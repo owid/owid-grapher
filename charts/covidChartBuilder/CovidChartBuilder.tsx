@@ -46,43 +46,6 @@ import { populationMap } from "./CovidPopulationMap"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
 
-class CovidModeToggle extends React.Component<{
-    chartBuilder: CovidChartBuilder
-}> {
-    @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
-        this.props.chartBuilder.props.params.compareMode =
-            ev.currentTarget.value === "true" ? true : false
-    }
-    render() {
-        const { chartBuilder } = this.props
-        return (
-            <div className="CovidChartBuilderModeToggle">
-                <div>MODE</div>
-                <label>
-                    <input
-                        type="radio"
-                        name="mode"
-                        value="true"
-                        checked={chartBuilder.isCompareMode}
-                        onChange={this.onChange}
-                    />
-                    Compare countries
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name="mode"
-                        value="false"
-                        checked={!chartBuilder.isCompareMode}
-                        onChange={this.onChange}
-                    />
-                    Focus on one country
-                </label>
-            </div>
-        )
-    }
-}
-
 // TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
 export class CovidChartBuilder extends React.Component<{
@@ -164,7 +127,7 @@ export class CovidChartBuilder extends React.Component<{
     }
 
     @computed get isCompareMode() {
-        return this.props.params.compareMode // this.areMultipleCountriesSelected || this.props.params.aligned
+        return true
     }
 
     private get metricPicker() {
@@ -346,7 +309,6 @@ export class CovidChartBuilder extends React.Component<{
         return (
             <div className="CovidChartBuilder">
                 <div className="CovidChartBuilderSideBar">
-                    <CovidModeToggle chartBuilder={this} />
                     <CountryPicker
                         chartBuilder={this}
                         toggleCountryCommand={this.toggleSelectedCountryCommand}
