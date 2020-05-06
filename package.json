@@ -131,7 +131,7 @@
         "js-base64": "^2.5.1",
         "js-cookie": "^2.2.0",
         "knex": "0.19.5",
-        "linkifyjs": "^2.1.8",
+        "linkifyjs": "^2.1.9",
         "lodash": "^4.17.13",
         "mathjax-full": "^3.0.1",
         "md5": "^2.2.1",
