@@ -1,5 +1,6 @@
 .tscache
 bakedSite
+datasetsExport
 dist
 package.json
 test/fixtures
