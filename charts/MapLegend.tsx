@@ -319,12 +319,7 @@ class NumericMapLegendView extends React.Component<{
                 {sortBy(
                     positionedBins.map((d, i) => {
                         const isFocus =
-                            focusBracket &&
-                            ((d.bin as NumericBin).min ===
-                                (focusBracket as NumericBin).min ||
-                                ((d.bin as CategoricalBin).value != null &&
-                                    (d.bin as CategoricalBin).value ===
-                                        (focusBracket as CategoricalBin).value))
+                            focusBracket && d.bin.equals(focusBracket)
                         return (
                             <rect
                                 key={i}
