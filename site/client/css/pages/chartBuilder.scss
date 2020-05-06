@@ -15,7 +15,7 @@ $border-radius: 4px;
         width: 220px;
         margin-right: 10px;
 
-        .CovidChartBuilderModeToggle {
+        .CovidHeaderBox {
             height: 90px;
             padding: 5px;
             background: white;
@@ -23,14 +23,6 @@ $border-radius: 4px;
             margin-bottom: 10px;
             border: 1px solid rgb(233, 233, 233);
             font-size: 13px;
-
-            label {
-                display: block;
-            }
-
-            input {
-                margin-right: 10px;
-            }
         }
 
         .CountryList {
