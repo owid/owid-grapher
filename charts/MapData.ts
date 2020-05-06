@@ -89,6 +89,14 @@ export class NumericBin {
             return d.value >= this.min && d.value <= this.max
         else return d.value > this.min && d.value <= this.max
     }
+
+    equals(other: MapLegendBin): boolean {
+        return (
+            other instanceof NumericBin &&
+            this.min === other.min &&
+            this.max === other.max
+        )
+    }
 }
 
 export class CategoricalBin {
@@ -127,6 +135,10 @@ export class CategoricalBin {
             (d === null && this.value === "No data") ||
             (d !== null && d.value === this.value)
         )
+    }
+
+    equals(other: MapLegendBin): boolean {
+        return other instanceof CategoricalBin && this.index === other.index
     }
 }
 
