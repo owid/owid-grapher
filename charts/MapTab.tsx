@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse } from "./Util"
+import { getRelativeMouse, range, last } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -24,6 +24,12 @@ import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
+import { CovidBars, CovidBarsProps } from "site/client/covid/CovidBars"
+import { CovidDatum } from "site/client/covid/CovidTypes"
+import { CovidDoublingTooltip } from "site/client/covid/CovidDoublingTooltip"
+import { fetchECDCData } from "site/client/covid/CovidFetch"
+import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
+import { map, first } from "lodash"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -189,6 +195,33 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         )
     }
 
+    sparkBarProps(tooltipEntity: string): SparkBarsProps<SparkBarsDatum> {
+        const sparkBarValues: SparkBarsDatum[] = []
+        this.context.chart.map.data.dimension?.valueByEntityAndYear
+            .get(tooltipEntity)
+            ?.forEach((value, key) => {
+                sparkBarValues.push({
+                    year: key,
+                    value: value as number
+                })
+            })
+
+        const sparkBarData = sparkBarValues.slice(
+            sparkBarValues.length - 20,
+            sparkBarValues.length
+        )
+
+        return {
+            data: sparkBarData,
+            x: d => d.year,
+            y: d => d.value,
+            xDomain: [
+                first(sparkBarData)?.year as number,
+                last(sparkBarData)?.year as number
+            ]
+        }
+    }
+
     render() {
         const {
             choroplethData,
@@ -207,7 +240,6 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             tooltipDatum,
             projectionChooserBounds
         } = this
-
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
@@ -259,6 +291,15 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                             }}
                         >
                             <span>
+                                {this.context.chart.yearIsDayVar && (
+                                        <span>"HEY BRUDDER</span>
+                                    ) && (
+                                        <SparkBars<SparkBarsDatum>
+                                            {...this.sparkBarProps(
+                                                tooltipDatum?.entity as string
+                                            )}
+                                        />
+                                    )}
                                 {tooltipDatum
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
