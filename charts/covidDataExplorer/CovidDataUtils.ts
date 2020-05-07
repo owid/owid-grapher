@@ -77,7 +77,7 @@ export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
 
 export const continentsVariable = (countryOptions: CountryOption[]) => {
     const variable: Partial<OwidVariable> = {
-        ...variablePartials.days_since_five,
+        ...variablePartials.continents,
         years: countryOptions.map(country => 2020),
         entities: countryOptions.map((country, index) => index),
         values: countryOptions.map(country => country.continent)
