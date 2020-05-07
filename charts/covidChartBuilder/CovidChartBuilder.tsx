@@ -655,8 +655,8 @@ export class CovidChartBuilder extends React.Component<{
             chartProps.selectedData = this.selectedData
         }
 
-        // this.chart.url.externalBaseUrl = "covid-chart-builder"
-        // this.chart.url.externallyProvidedParams = this.props.params.toParams
+        this.chart.url.externalBaseUrl = "covid-chart-builder"
+        this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
     componentDidMount() {
