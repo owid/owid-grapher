@@ -15,7 +15,6 @@ import { partition, sortBy } from "charts/Util"
 import { CovidChartBuilder } from "./CovidChartBuilder"
 import { CountryOptionWithSelection } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
-import { getLatestTotalTestsPerCase } from "./CovidData"
 
 @observer
 export class CountryPicker extends React.Component<{

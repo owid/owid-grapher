@@ -1,5 +1,4 @@
 import { computed, observable } from "mobx"
-
 import { ObservableUrl } from "../UrlBinding"
 import { ChartUrl } from "../ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
