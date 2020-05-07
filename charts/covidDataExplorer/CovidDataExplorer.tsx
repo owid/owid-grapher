@@ -11,7 +11,7 @@ import { OwidVariable } from "../owidData/OwidVariable"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { map, groupBy, max } from "charts/Util"
+import { max } from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -36,12 +36,10 @@ import {
     buildCovidVariable,
     daysSinceVariable,
     continentsVariable,
-    getLatestTotalTestsPerCase,
-    buildCovidVariableId
+    buildCovidVariableId,
+    makeCountryOptions
 } from "./CovidDataUtils"
-import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
-import { populationMap } from "./CovidPopulationMap"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
 
@@ -339,19 +337,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get countryOptions(): CountryOption[] {
-        const rowsByCountry = groupBy(this.props.data, "iso_code")
-        return map(rowsByCountry, rows => {
-            const { location, iso_code } = rows[0]
-            return {
-                name: location,
-                slug: location,
-                code: iso_code,
-                population: populationMap[location],
-                continent: labelsByRegion[worldRegionByMapEntity[location]],
-                latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
-                rows: rows
-            }
-        })
+        return makeCountryOptions(this.props.data)
     }
 
     @computed private get availableEntities() {
