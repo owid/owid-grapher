@@ -7,7 +7,8 @@ import {
     getStartEndValues,
     DataValue,
     formatDay,
-    retryPromise
+    retryPromise,
+    computeRollingAverage
 } from "../Util"
 
 describe(findClosestYear, () => {
@@ -70,6 +71,21 @@ describe(getStartEndValues, () => {
         ]) as DataValue[]
         expect(extent[0].year).toEqual(2014)
         expect(extent[1].year).toEqual(2017)
+    })
+})
+
+describe(computeRollingAverage, () => {
+    const testCases = [
+        { numbers: [2, 4, 6, 8], window: 1, results: [3, 4, 6, 7] },
+        { numbers: [2, 4, 6, 8], window: 0, results: [2, 4, 6, 8] },
+        { numbers: [2, 4, 6, 8], window: 10, results: [5, 5, 5, 5] }
+    ]
+    it("computes the rolling average", () => {
+        testCases.forEach(testCase => {
+            expect(
+                computeRollingAverage(testCase.numbers, testCase.window)
+            ).toEqual(testCase.results)
+        })
     })
 })
 
