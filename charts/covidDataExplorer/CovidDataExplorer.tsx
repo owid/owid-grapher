@@ -664,6 +664,15 @@ export class CovidDataExplorer extends React.Component<{
             dimensions: this.dimensions,
             addCountryMode: "add-country",
             stackMode: "absolute",
+            customColors: {
+                Asia: "#2d8587",
+                Africa: "#ef943a",
+                Europe: "#4c5c78",
+                Oceania: "#662c68",
+                Antarctica: "#818282",
+                "North America": "#e04e4b",
+                "South America": "#932834"
+            },
             hideRelativeToggle: true,
             hasChartTab: true,
             hasMapTab: true,
