@@ -623,7 +623,9 @@ export class CovidDataExplorer extends React.Component<{
             {
                 property: "y",
                 variableId: this.yVariableIndices[0],
-                display: {}
+                display: {
+                    name: ""
+                }
             },
             {
                 property: "x",
