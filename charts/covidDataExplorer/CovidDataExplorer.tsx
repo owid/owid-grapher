@@ -62,7 +62,7 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    @action.bound setDeathsMetricCommand(value: DeathsMetricOption) {
+    setDeathsMetricCommand(value: DeathsMetricOption) {
         this.props.params.deathsMetric = value
     }
 
@@ -92,11 +92,11 @@ export class CovidDataExplorer extends React.Component<{
         })
     }
 
-    @action.bound setCasesMetricCommand(value: CasesMetricOption) {
+    setCasesMetricCommand(value: CasesMetricOption) {
         this.props.params.casesMetric = value
     }
 
-    @action.bound setTestsMetricCommand(value: TestsMetricOption) {
+    setTestsMetricCommand(value: TestsMetricOption) {
         this.props.params.testsMetric = value
     }
 
@@ -110,11 +110,6 @@ export class CovidDataExplorer extends React.Component<{
 
     setSmoothingCommand(option: SmoothingOption) {
         this.props.params.smoothing = option
-        this.updateChart()
-    }
-
-    @computed get isCompareMode() {
-        return true
     }
 
     private get metricPicker() {
@@ -124,7 +119,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
                     this.setDeathsMetricCommand(value)
-                    if (this.isCompareMode && value) {
+                    if (value) {
                         this.setCasesMetricCommand(false)
                         this.setTestsMetricCommand(false)
                     }
@@ -136,7 +131,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.setCasesMetricCommand(value)
-                    if (this.isCompareMode && value) {
+                    if (value) {
                         this.setTestsMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -148,7 +143,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.testsMetric,
                 onChange: value => {
                     this.setTestsMetricCommand(value)
-                    if (this.isCompareMode && value) {
+                    if (value) {
                         this.setCasesMetricCommand(false)
                         this.setDeathsMetricCommand(false)
                     }
@@ -160,7 +155,7 @@ export class CovidDataExplorer extends React.Component<{
             <CovidInputControl
                 name="metric"
                 options={options}
-                isCheckbox={!this.isCompareMode}
+                isCheckbox={false}
             ></CovidInputControl>
         )
     }
@@ -172,9 +167,8 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
-                    if (this.isCompareMode && value) {
-                        this.setDailyFrequencyCommand(false)
-                    }
+                    if (value) this.setDailyFrequencyCommand(false)
+
                     this.updateChart()
                 }
             },
@@ -183,9 +177,8 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
-                    if (this.isCompareMode && value) {
-                        this.setTotalFrequencyCommand(false)
-                    }
+                    if (value) this.setTotalFrequencyCommand(false)
+
                     this.updateChart()
                 }
             }
@@ -194,7 +187,7 @@ export class CovidDataExplorer extends React.Component<{
             <CovidInputControl
                 name="frequency"
                 options={options}
-                isCheckbox={!this.isCompareMode}
+                isCheckbox={false}
             ></CovidInputControl>
         )
     }
@@ -246,6 +239,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.smoothing === 0,
                 onChange: () => {
                     this.setSmoothingCommand(0)
+                    this.updateChart()
                 }
             },
             {
@@ -253,6 +247,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.smoothing === 3,
                 onChange: () => {
                     this.setSmoothingCommand(3)
+                    this.updateChart()
                 }
             },
             {
@@ -260,6 +255,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.props.params.smoothing === 7,
                 onChange: () => {
                     this.setSmoothingCommand(7)
+                    this.updateChart()
                 }
             }
         ]
@@ -556,28 +552,7 @@ export class CovidDataExplorer extends React.Component<{
 
     private continentsVariableId = variablePartials.continents.id!
 
-    // Currently we can't show multiple metrics and multiple countries at the same time. So if the user
-    // gets into that state, we have to disable some choices.
-    private resolveConstraints() {
-        if (this.areMultipleMetricsSelected && this.isCompareMode)
-            this.deselectMultipleMetrics()
-    }
-
-    private deselectMultipleMetrics() {
-        const params = this.props.params
-        if (params.dailyFreq && params.totalFreq) params.dailyFreq = false
-        if (params.casesMetric && params.deathsMetric && params.testsMetric) {
-            params.testsMetric = false
-            params.casesMetric = false
-        } else if (params.testsMetric) {
-            params.testsMetric = false
-        } else {
-            params.casesMetric = false
-        }
-    }
-
     async updateChart() {
-        this.resolveConstraints()
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
@@ -596,30 +571,13 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.map.variableId = this.yVariableIndices[0]
 
-        chartProps.addCountryMode = this.addCountryMode
-
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensions
         // Todo: perf improvements
         // We manually call this first, before doing the selection thing, because we cannot select data that is not there.
         await this.chart.downloadData()
 
-        // We sort of have 2 types of line charts: "SingleCountryLineChart" and "MultiCountryLineChart".
-        // We determine this by the "addCountryMode". If we have multiple metrics, we need to do this
-        // hacky thing to select all the keys for the country which we are showing.
-        // Todo: cleanup
-        const useSingleCountryLineChart =
-            this.addCountryMode === "change-country"
-        if (useSingleCountryLineChart && this.firstSelectedCountryName) {
-            const keys = this.chart.data.availableKeysByEntity.get(
-                this.firstSelectedCountryName
-            )
-            if (keys && keys.length) {
-                this.chart.data.selectedKeys = keys
-            }
-        } else {
-            chartProps.selectedData = this.selectedData
-        }
+        chartProps.selectedData = this.selectedData
 
         this.chart.url.externalBaseUrl = "covid-data-explorer"
         this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -682,24 +640,6 @@ export class CovidDataExplorer extends React.Component<{
         ]
     }
 
-    @computed get areMultipleMetricsSelected() {
-        const params = this.props.params
-        return (
-            (params.casesMetric ? 1 : 0) +
-                (params.deathsMetric ? 1 : 0) +
-                (params.testsMetric ? 1 : 0) >
-                1 ||
-            (params.dailyFreq && params.totalFreq)
-        )
-    }
-
-    @computed get addCountryMode():
-        | "change-country"
-        | "add-country"
-        | "disabled" {
-        return "add-country"
-    }
-
     @observable.ref chart = new ChartConfig(
         {
             slug: "covid-data-explorer",
@@ -722,7 +662,7 @@ export class CovidDataExplorer extends React.Component<{
             owidDataset: this.owidVariableSet,
             selectedData: this.selectedData,
             dimensions: this.dimensions,
-            addCountryMode: this.addCountryMode,
+            addCountryMode: "add-country",
             stackMode: "absolute",
             hideRelativeToggle: true,
             hasChartTab: true,
