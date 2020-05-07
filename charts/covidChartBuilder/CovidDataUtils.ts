@@ -6,7 +6,6 @@ import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
 import { flatten, cloneDeep } from "charts/Util"
-import { CovidTableRow } from "site/client/covid/CovidTableRow"
 
 // Todo: cleanup
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
