@@ -660,7 +660,7 @@ export class CovidDataExplorer extends React.Component<{
                 canChangeScaleType: true
             },
             owidDataset: this.owidVariableSet,
-            selectedData: this.selectedData,
+            selectedData: [],
             dimensions: this.dimensions,
             addCountryMode: "add-country",
             stackMode: "absolute",
