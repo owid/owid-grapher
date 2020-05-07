@@ -13,13 +13,11 @@ import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import { map, groupBy, max } from "charts/Util"
 import {
-    AlignedOption,
     SmoothingOption,
     TotalFrequencyOption,
     CasesMetricOption,
     TestsMetricOption,
     DailyFrequencyOption,
-    PerCapita,
     DeathsMetricOption,
     MetricKind,
     ParsedCovidRow,
@@ -39,14 +37,13 @@ import {
     daysSinceVariable,
     continentsVariable,
     getLatestTotalTestsPerCase
-} from "./CovidData"
+} from "./CovidDataUtils"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
 import { populationMap } from "./CovidPopulationMap"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
 
-// TODO: ensure ***FASTT*** stands for Footnote, Axis label, Subtitle, Title, Target unit
 @observer
 export class CovidChartBuilder extends React.Component<{
     data: ParsedCovidRow[]
@@ -75,15 +72,6 @@ export class CovidChartBuilder extends React.Component<{
     @action.bound clearSelectionCommand() {
         this.selectionChangeFromBuilder = true
         this.props.params.selectedCountryCodes.clear()
-        this.updateChart()
-    }
-
-    // todo: perf
-    @action.bound selectAllCommand() {
-        this.selectionChangeFromBuilder = true
-        this.countryOptions.forEach(country => {
-            this.toggleSelectedCountry(country.code, true)
-        })
         this.updateChart()
     }
 
@@ -628,7 +616,6 @@ export class CovidChartBuilder extends React.Component<{
         chartProps.type = this.chartType
 
         chartProps.map.variableId = this.yVariableIndices[0]
-        // chartProps.data!.availableEntities = this.availableEntities
 
         chartProps.addCountryMode = this.addCountryMode
 
