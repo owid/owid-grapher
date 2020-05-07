@@ -22,10 +22,15 @@ export class CovidRadioControl extends React.Component<{
 
     render() {
         return (
-            <div className="CovidChartBuilderRadio">
+            <div className="CovidChartBuilderControl">
+                <div className="ToggleHeader">{this.props.name}</div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
-                        <label>
+                        <label
+                            className={
+                                option.checked ? "SelectedOption" : "Option"
+                            }
+                        >
                             <input
                                 onChange={this.onChange}
                                 type={
