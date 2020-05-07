@@ -37,10 +37,9 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     @computed get searchResults(): EntityDimensionInfo[] {
-        const results = this.searchInput
+        return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableEntities
-        return sortBy(results, result => result.label)
+            : sortBy(this.availableEntities, result => result.label)
     }
 
     isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
@@ -208,10 +207,9 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @computed get searchResults(): { id: number; label: string }[] {
-        const results = this.searchInput
+        return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.availableEntities
-        return sortBy(results, result => result.label)
+            : sortBy(this.availableEntities, result => result.label)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {

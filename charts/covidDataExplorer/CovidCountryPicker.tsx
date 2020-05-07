@@ -32,10 +32,10 @@ export class CountryPicker extends React.Component<{
     @computed private get searchResults(): CountryOptionWithSelection[] {
         const results = this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.options
+            : sortBy(this.options, r => r.name)
         // Show the selected up top and in order.
         const [selected, unselected] = partition(
-            sortBy(results, r => r.name),
+            results,
             result => result.selected
         )
         return [...selected, ...unselected]
