@@ -570,6 +570,7 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.type = this.chartType
 
         chartProps.map.variableId = this.yVariableIndices[0]
+        chartProps.map.baseColorScheme = this.mapColorScheme
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensions
@@ -601,6 +602,14 @@ export class CovidDataExplorer extends React.Component<{
                 () => this.setCountrySelectionsFromChart()
             )
         )
+    }
+
+    @computed get mapColorScheme() {
+        return this.props.params.testsMetric
+            ? undefined
+            : this.props.params.casesMetric
+            ? "YlOrBr"
+            : "OrRd"
     }
 
     disposers: IReactionDisposer[] = []
