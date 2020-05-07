@@ -1,15 +1,23 @@
-import { dateDiffInDays, maxBy, computeRollingAverage } from "charts/Util"
+import {
+    dateDiffInDays,
+    maxBy,
+    computeRollingAverage,
+    flatten,
+    cloneDeep,
+    map,
+    groupBy
+} from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
-import { flatten, cloneDeep } from "charts/Util"
+import { labelsByRegion, worldRegionByMapEntity } from "charts/WorldRegions"
 
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
 
-const parseRow = (row: any) => {
+export const parseCovidRow = (row: any) => {
     Object.keys(row).forEach(key => {
         const isNumeric = !keepStrings.has(key)
         if (isNumeric) row[key] = row[key] ? parseFloat(row[key]) : 0
@@ -48,7 +56,23 @@ const csvPath = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const rawData = await csv(csvPath)
-    return rawData.map(parseRow)
+    return rawData.map(parseCovidRow)
+}
+
+export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
+    const rowsByCountry = groupBy(data, "iso_code")
+    return map(rowsByCountry, rows => {
+        const { location, iso_code } = rows[0]
+        return {
+            name: location,
+            slug: location,
+            code: iso_code,
+            population: populationMap[location],
+            continent: labelsByRegion[worldRegionByMapEntity[location]],
+            latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
+            rows: rows
+        }
+    })
 }
 
 export const continentsVariable = (countryOptions: CountryOption[]) => {
@@ -64,7 +88,7 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
 
 export const daysSinceVariable = (
     data: ParsedCovidRow[],
-    countryMap: Map<any, any>,
+    countryMap: Map<string, number>,
     predicate: (row: ParsedCovidRow) => boolean
 ) => {
     const rows = data.filter(predicate)
@@ -77,7 +101,7 @@ export const daysSinceVariable = (
         }
         return {
             year: dateToYear(row.date),
-            entity: countryMap.get(row.location),
+            entity: countryMap.get(row.location)!,
             // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
             // row for that country.
             value: dateDiffInDays(
