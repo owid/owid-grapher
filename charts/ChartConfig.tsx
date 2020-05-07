@@ -398,6 +398,7 @@ export class ChartConfig {
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     hideAddDataButton = false
+    externalCsvLink = ""
 
     @computed get hasOWIDLogo(): boolean {
         return (
