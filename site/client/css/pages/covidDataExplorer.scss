@@ -3,7 +3,7 @@ $ideal-ratio: 680/480;
 
 $border-radius: 4px;
 
-.CovidChartBuilder {
+.CovidDataExplorer {
     display: flex;
     margin: 0 auto;
     width: 100%;
@@ -11,7 +11,7 @@ $border-radius: 4px;
     padding-top: 5px;
     min-height: 790px;
 
-    .CovidChartBuilderSideBar {
+    .CovidDataExplorerSideBar {
         width: 220px;
         margin-right: 10px;
 
@@ -60,10 +60,10 @@ $border-radius: 4px;
         }
     }
 
-    .CovidChartBuilderMain {
+    .CovidDataExplorerMain {
         width: calc(100% - 200);
 
-        .CovidChartBuilderTopBar {
+        .CovidDataExplorerTopBar {
             display: flex;
             justify-content: space-between;
             background: white;
@@ -73,7 +73,7 @@ $border-radius: 4px;
             padding: 8px 14px;
             height: 120px;
 
-            .CovidChartBuilderControl {
+            .CovidDataExplorerControl {
                 display: flex;
                 flex-direction: column;
                 font-size: 13px;
@@ -204,7 +204,7 @@ $border-radius: 4px;
     }
 }
 
-.LoadingChartBuilder {
+.LoadingCovidDataExplorer {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,7 +212,7 @@ $border-radius: 4px;
     width: 100%;
 }
 
-.LoadingChartBuilder:after {
+.LoadingCovidDataExplorer:after {
     content: "";
     border: 5px solid #333;
     border-radius: 30px;

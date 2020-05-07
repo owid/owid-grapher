@@ -45,20 +45,20 @@ import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
 
 @observer
-export class CovidChartBuilder extends React.Component<{
+export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
 }> {
     static async bootstrap() {
-        const containerNode = document.getElementById("chartBuilder")
+        const containerNode = document.getElementById("covidDataExplorer")
         ReactDOM.render(
-            <div className="LoadingChartBuilder"></div>,
+            <div className="LoadingCovidDataExplorer"></div>,
             containerNode
         )
         const typedData = await fetchAndParseData()
         const startingParams = new CovidQueryParams(window.location.search)
         ReactDOM.render(
-            <CovidChartBuilder data={typedData} params={startingParams} />,
+            <CovidDataExplorer data={typedData} params={startingParams} />,
             containerNode
         )
     }
@@ -75,7 +75,7 @@ export class CovidChartBuilder extends React.Component<{
         this.updateChart()
     }
 
-    // If the user does something like click a country on the map, we need to pull that selection out into the ChartBuilder
+    // If the user does something like click a country on the map, we need to pull that selection out into the covidDataExplorer
     // Ideally we would not be duplicating selection code here, but it's a little tricky with the current chart code.
     setCountrySelectionsFromChart() {
         if (this.selectionChangeFromBuilder) {
@@ -295,8 +295,8 @@ export class CovidChartBuilder extends React.Component<{
         const bounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
 
         return (
-            <div className="CovidChartBuilder">
-                <div className="CovidChartBuilderSideBar">
+            <div className="CovidDataExplorer">
+                <div className="CovidDataExplorerSideBar">
                     <div className="CovidHeaderBox">
                         <div className="CovidTitle">Covid-19 Data Explorer</div>
                         <div className="CovidLastUpdated">
@@ -304,19 +304,19 @@ export class CovidChartBuilder extends React.Component<{
                         </div>
                     </div>
                     <CountryPicker
-                        chartBuilder={this}
+                        covidDataExplorer={this}
                         toggleCountryCommand={this.toggleSelectedCountryCommand}
                     ></CountryPicker>
                 </div>
-                <div className="CovidChartBuilderMain">
-                    <div className="CovidChartBuilderTopBar">
+                <div className="CovidDataExplorerMain">
+                    <div className="CovidDataExplorerTopBar">
                         {this.metricPicker}
                         {this.frequencyPicker}
                         {this.perCapitaPicker}
                         {this.alignedPicker}
                         {this.smoothingPicker}
                     </div>
-                    <div className="CovidChartBuilderFigure">
+                    <div className="CovidDataExplorerFigure">
                         <ChartView
                             bounds={bounds}
                             chart={this.chart}
@@ -642,7 +642,7 @@ export class CovidChartBuilder extends React.Component<{
             chartProps.selectedData = this.selectedData
         }
 
-        this.chart.url.externalBaseUrl = "covid-chart-builder"
+        this.chart.url.externalBaseUrl = "covid-data-explorer"
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
@@ -651,7 +651,7 @@ export class CovidChartBuilder extends React.Component<{
         this.chart.hideAddDataButton = true
         this.updateChart()
         const win = window as any
-        win.chartBuilder = this
+        win.covidDataExplorer = this
     }
 
     bindToWindow() {
@@ -723,7 +723,7 @@ export class CovidChartBuilder extends React.Component<{
 
     @observable.ref chart = new ChartConfig(
         {
-            slug: "covid-chart-builder",
+            slug: "covid-data-explorer",
             type: this.chartType,
             isExplorable: false,
             id: 4128,

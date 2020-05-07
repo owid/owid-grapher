@@ -4,14 +4,14 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 
-export const CovidChartBuilderPage = () => {
-    const script = `window.CovidChartBuilder.bootstrap()`
+export const CovidDataExplorerPage = () => {
+    const script = `window.CovidDataExplorer.bootstrap()`
 
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/covid-chart-builder`}
-                pageTitle="Covid-19 Dashboard"
+                canonicalUrl={`${settings.BAKED_BASE_URL}/covid-data-explorer`}
+                pageTitle="Covid-19 Data Explorer"
             >
                 <link
                     rel="preload"
@@ -22,7 +22,7 @@ export const CovidChartBuilderPage = () => {
             </Head>
             <body>
                 <SiteHeader />
-                <main id="chartBuilder"></main>
+                <main id="covidDataExplorer"></main>
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>

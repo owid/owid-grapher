@@ -12,13 +12,13 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { FuzzySearch } from "charts/FuzzySearch"
 import { partition, sortBy } from "charts/Util"
-import { CovidChartBuilder } from "./CovidChartBuilder"
+import { CovidDataExplorer } from "./CovidDataExplorer"
 import { CountryOptionWithSelection } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 
 @observer
 export class CountryPicker extends React.Component<{
-    chartBuilder: CovidChartBuilder
+    covidDataExplorer: CovidDataExplorer
     toggleCountryCommand: (countryCode: string, value: boolean) => void
 }> {
     @action.bound private onChange(code: string, checked: boolean) {
@@ -46,7 +46,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get options() {
-        return this.props.chartBuilder.countryOptionsWithSelectionStatus
+        return this.props.covidDataExplorer.countryOptionsWithSelectionStatus
     }
 
     @observable private searchInput?: string
@@ -65,7 +65,7 @@ export class CountryPicker extends React.Component<{
                         onChange={this.onChange}
                         renderCountry={props => (
                             <CovidCountryOption
-                                barScale={this.props.chartBuilder.barScale}
+                                barScale={this.props.covidDataExplorer.barScale}
                                 {...props}
                             />
                         )}
@@ -74,7 +74,8 @@ export class CountryPicker extends React.Component<{
                         <div
                             className="ClearSelectionButton"
                             onClick={
-                                this.props.chartBuilder.clearSelectionCommand
+                                this.props.covidDataExplorer
+                                    .clearSelectionCommand
                             }
                         >
                             <FontAwesomeIcon icon={faTimes} /> Clear selection

@@ -22,7 +22,7 @@ export class CovidRadioControl extends React.Component<{
 
     render() {
         return (
-            <div className="CovidChartBuilderControl">
+            <div className="CovidDataExplorerControl">
                 <div className="ControlHeader">{this.props.name}</div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
