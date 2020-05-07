@@ -675,3 +675,28 @@ export function parseIntOrUndefined(s: string | undefined) {
     const value = parseInt(s)
     return isNaN(value) ? undefined : value
 }
+
+export function computeRollingAverage(numbers: number[], windowSize: number) {
+    const result: number[] = []
+
+    for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
+        const leftEdge = valueIndex - windowSize
+        const start = leftEdge >= 0 ? leftEdge : 0
+        const end = valueIndex + windowSize + 1
+
+        let count = 0
+        let sum = 0
+        for (
+            let windowIndex = start;
+            windowIndex < end && windowIndex < numbers.length;
+            windowIndex++
+        ) {
+            sum += numbers[windowIndex]
+            count++
+        }
+
+        result[valueIndex] = sum / count
+    }
+
+    return result
+}

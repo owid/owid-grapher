@@ -1,4 +1,4 @@
-import { dateDiffInDays, maxBy } from "charts/Util"
+import { dateDiffInDays, maxBy, computeRollingAverage } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
@@ -99,31 +99,6 @@ export const daysSinceVariable = (
     return variable as OwidVariable
 }
 
-const computeRollingAverage = (numbers: number[], windowSize: number) => {
-    const result: number[] = []
-
-    for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
-        const leftEdge = valueIndex - windowSize
-        const start = leftEdge >= 0 ? leftEdge : 0
-        const end = valueIndex + windowSize + 1
-
-        let count = 0
-        let sum = 0
-        for (
-            let windowIndex = start;
-            windowIndex < end && windowIndex < numbers.length;
-            windowIndex++
-        ) {
-            sum += numbers[windowIndex]
-            count++
-        }
-
-        result[valueIndex] = sum / count
-    }
-
-    return result
-}
-
 export const buildCovidVariable = (
     newId: number,
     name: MetricKind,
@@ -152,12 +127,11 @@ export const buildCovidVariable = (
         const averages = []
         let currentEntity = entities[0]
         let currentValues = []
+        let windowSize = Math.floor(rollingAverage / 2)
         for (let i = 0; i < entities.length; i++) {
             const entity = entities[i]
             if (currentEntity !== entity) {
-                averages.push(
-                    computeRollingAverage(currentValues, rollingAverage)
-                )
+                averages.push(computeRollingAverage(currentValues, windowSize))
                 currentValues = []
                 currentEntity = entity
             }
