@@ -225,7 +225,7 @@ export class CovidChartBuilder extends React.Component<{
         ]
         return (
             <CovidInputControl
-                name="perCapita"
+                name="count"
                 isCheckbox={true}
                 options={options}
             ></CovidInputControl>
@@ -245,7 +245,7 @@ export class CovidChartBuilder extends React.Component<{
         ]
         return (
             <CovidInputControl
-                name="aligned"
+                name="timeline"
                 isCheckbox={true}
                 options={options}
             ></CovidInputControl>
@@ -309,7 +309,12 @@ export class CovidChartBuilder extends React.Component<{
         return (
             <div className="CovidChartBuilder">
                 <div className="CovidChartBuilderSideBar">
-                    <div className="CovidHeaderBox">Last updated today.</div>
+                    <div className="CovidHeaderBox">
+                        <div className="CovidTitle">Covid-19 Data Explorer</div>
+                        <div className="CovidLastUpdated">
+                            Updated {this.lastUpdated}
+                        </div>
+                    </div>
                     <CountryPicker
                         chartBuilder={this}
                         toggleCountryCommand={this.toggleSelectedCountryCommand}
@@ -362,6 +367,11 @@ export class CovidChartBuilder extends React.Component<{
 
     @computed private get availableEntities() {
         return this.countryOptions.map(country => country.name)
+    }
+
+    @computed get lastUpdated() {
+        const rows = this.countryOptions[this.countryMap.get("World")!].rows
+        return rows[rows.length - 1].date
     }
 
     @computed get frequencyTitle() {
@@ -721,9 +731,7 @@ export class CovidChartBuilder extends React.Component<{
         | "change-country"
         | "add-country"
         | "disabled" {
-        return this.areMultipleMetricsSelected
-            ? "change-country"
-            : "add-country"
+        return "add-country"
     }
 
     @observable.ref chart = new ChartConfig(

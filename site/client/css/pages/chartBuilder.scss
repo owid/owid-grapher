@@ -16,13 +16,26 @@ $border-radius: 4px;
         margin-right: 10px;
 
         .CovidHeaderBox {
-            height: 90px;
-            padding: 5px;
+            height: 120px;
+            padding: 8px;
             background: white;
             border-radius: 5px;
             margin-bottom: 10px;
             border: 1px solid rgb(233, 233, 233);
-            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+
+            .CovidTitle {
+                font-size: 28px;
+                line-height: 32px;
+                font-family: "Playfair Display";
+            }
+
+            .CovidLastUpdated {
+                color: #7a899e;
+                font-size: 13px;
+            }
         }
 
         .CountryList {
@@ -38,11 +51,11 @@ $border-radius: 4px;
             line-height: 16px;
             text-align: center;
             cursor: pointer;
-            margin-top: 15px;
+            padding: 5px;
         }
 
         .CountrySearchResults {
-            height: 588px;
+            height: 603px;
             overflow-y: scroll;
         }
     }
@@ -57,20 +70,32 @@ $border-radius: 4px;
             border-radius: 5px;
             margin-bottom: 10px;
             border: 1px solid rgb(233, 233, 233);
+            padding: 8px 14px;
+            height: 120px;
+
+            .CovidChartBuilderControl {
+                display: flex;
+                flex-direction: column;
+                font-size: 13px;
+                color: #7a899e;
+                line-height: 26px;
+
+                input {
+                    margin-right: 5px;
+                }
+
+                .ToggleHeader {
+                    font-size: 11px;
+                    text-transform: uppercase;
+                }
+
+                .SelectedOption {
+                    color: #243d60;
+                }
+            }
         }
 
         .CovidChartBuilderFigure {
-        }
-    }
-
-    .CovidChartBuilderRadio {
-        height: 80px;
-        margin: 3px;
-        padding: 7px;
-        font-size: 14px;
-
-        input {
-            margin-right: 5px;
         }
     }
 }

@@ -8,6 +8,7 @@ import { ScaleLinear } from "d3-scale"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { FuzzySearch } from "charts/FuzzySearch"
 import { partition, sortBy } from "charts/Util"
@@ -77,7 +78,7 @@ export class CountryPicker extends React.Component<{
                                 this.props.chartBuilder.clearSelectionCommand
                             }
                         >
-                            <strong>X</strong> Clear selection
+                            <FontAwesomeIcon icon={faTimes} /> Clear selection
                         </div>
                     </div>
                 </div>
