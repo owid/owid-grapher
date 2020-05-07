@@ -3,6 +3,8 @@ $ideal-ratio: 680/480;
 
 $border-radius: 4px;
 
+$header-height: 130px;
+
 .CovidDataExplorer {
     display: flex;
     margin: 0 auto;
@@ -16,7 +18,7 @@ $border-radius: 4px;
         margin-right: 10px;
 
         .CovidHeaderBox {
-            height: 120px;
+            height: $header-height;
             padding: 8px;
             background: white;
             border-radius: 5px;
@@ -64,6 +66,7 @@ $border-radius: 4px;
         width: calc(100% - 200);
 
         .CovidDataExplorerTopBar {
+            height: $header-height;
             display: flex;
             justify-content: space-between;
             background: white;
@@ -71,7 +74,6 @@ $border-radius: 4px;
             margin-bottom: 10px;
             border: 1px solid rgb(233, 233, 233);
             padding: 8px 14px;
-            height: 120px;
 
             .CovidDataExplorerControl {
                 display: flex;
