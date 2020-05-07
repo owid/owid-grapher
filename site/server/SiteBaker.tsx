@@ -27,7 +27,7 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
-    renderCovidChartBuilderPage
+    renderCovidDataExplorerPage
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -238,7 +238,7 @@ export class SiteBaker {
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
-                    !path.startsWith("covid-chart-builder") &&
+                    !path.startsWith("covid-data-explorer") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
@@ -306,8 +306,8 @@ export class SiteBaker {
         }
         if (settings.COVID_DASHBOARD) {
             await this.stageWrite(
-                `${BAKED_SITE_DIR}/covid-chart-builder.html`,
-                await renderCovidChartBuilderPage()
+                `${BAKED_SITE_DIR}/covid-data-explorer.html`,
+                await renderCovidDataExplorerPage()
             )
         }
     }
