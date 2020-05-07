@@ -103,7 +103,9 @@ export class DataTab extends React.Component<{
     }
 
     render() {
-        const { bounds, csvDataUri, csvFilename } = this
+        const { bounds, csvFilename } = this
+
+        const externalCsvLink = this.props.chart.externalCsvLink
 
         return (
             <div
@@ -116,11 +118,13 @@ export class DataTab extends React.Component<{
                         visualization:
                     </p>
                     <a
-                        href={csvDataUri}
+                        href={
+                            externalCsvLink ? externalCsvLink : this.csvDataUri
+                        }
                         download={csvFilename}
                         className="btn btn-primary"
                         data-track-note="chart-download-csv"
-                        onClick={this.onDownload}
+                        onClick={externalCsvLink ? undefined : this.onDownload}
                     >
                         <FontAwesomeIcon icon={faDownload} /> {csvFilename}
                     </a>

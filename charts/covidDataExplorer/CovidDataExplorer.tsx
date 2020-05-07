@@ -37,7 +37,8 @@ import {
     daysSinceVariable,
     continentsVariable,
     buildCovidVariableId,
-    makeCountryOptions
+    makeCountryOptions,
+    covidDataPath
 } from "./CovidDataUtils"
 import { variablePartials } from "./CovidVariablePartials"
 import { isEqual } from "charts/Util"
@@ -587,6 +588,7 @@ export class CovidDataExplorer extends React.Component<{
     componentDidMount() {
         this.bindToWindow()
         this.chart.hideAddDataButton = true
+        this.chart.externalCsvLink = covidDataPath
         this.updateChart()
         const win = window as any
         win.covidDataExplorer = this
