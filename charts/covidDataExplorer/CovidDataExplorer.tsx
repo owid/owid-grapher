@@ -36,7 +36,8 @@ import {
     buildCovidVariable,
     daysSinceVariable,
     continentsVariable,
-    getLatestTotalTestsPerCase
+    getLatestTotalTestsPerCase,
+    buildCovidVariableId
 } from "./CovidDataUtils"
 import { worldRegionByMapEntity, labelsByRegion } from "charts/WorldRegions"
 import { variablePartials } from "./CovidVariablePartials"
@@ -506,11 +507,16 @@ export class CovidDataExplorer extends React.Component<{
         const indices: number[] = []
 
         const setVariable = (
-            id: number,
             columnName: MetricKind,
             rowFn: RowAccessor,
             daily: boolean = false
         ) => {
+            const id = buildCovidVariableId(
+                columnName,
+                this.perCapitaDivisor,
+                this.props.params.smoothing,
+                daily
+            )
             indices.push(id)
 
             if (!this.owidVariableSet.variables[id]) {
@@ -527,33 +533,20 @@ export class CovidDataExplorer extends React.Component<{
             }
         }
 
-        // Generate a unique ID for each metric
-        const buildId = (metric: number, isDaily: boolean) => {
-            const parts = [
-                1145,
-                metric,
-                isDaily ? 1 : 0,
-                params.perCapita ? 1 : 0,
-                params.smoothing
-            ]
-
-            return parseInt(parts.join(""))
-        }
-
         if (params.testsMetric && params.dailyFreq)
-            setVariable(buildId(1, true), "tests", row => row.new_tests, true)
+            setVariable("tests", row => row.new_tests, true)
         if (params.testsMetric && params.totalFreq)
-            setVariable(buildId(1, false), "tests", row => row.total_tests)
+            setVariable("tests", row => row.total_tests)
 
         if (params.casesMetric && params.dailyFreq)
-            setVariable(buildId(2, true), "cases", row => row.new_cases, true)
+            setVariable("cases", row => row.new_cases, true)
         if (params.casesMetric && params.totalFreq)
-            setVariable(buildId(2, false), "cases", row => row.total_cases)
+            setVariable("cases", row => row.total_cases)
 
         if (params.deathsMetric && params.dailyFreq)
-            setVariable(buildId(3, true), "deaths", row => row.new_deaths, true)
+            setVariable("deaths", row => row.new_deaths, true)
         if (params.deathsMetric && params.totalFreq)
-            setVariable(buildId(3, false), "deaths", row => row.total_deaths)
+            setVariable("deaths", row => row.total_deaths)
 
         return indices
     }

@@ -7,7 +7,6 @@ import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3"
 import { flatten, cloneDeep } from "charts/Util"
 
-// Todo: cleanup
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
 
 const parseRow = (row: any) => {
@@ -63,7 +62,6 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
     return variable as OwidVariable
 }
 
-// Todo: export as JSON?
 export const daysSinceVariable = (
     data: ParsedCovidRow[],
     countryMap: Map<any, any>,
@@ -97,6 +95,23 @@ export const daysSinceVariable = (
     }
 
     return variable as OwidVariable
+}
+
+export const buildCovidVariableId = (
+    name: MetricKind,
+    perCapita: number,
+    rollingAverage?: number,
+    daily?: boolean
+): number => {
+    const arbitraryStartingPrefix = 1145
+    const parts = [
+        arbitraryStartingPrefix,
+        name === "tests" ? 0 : name === "cases" ? 1 : 2,
+        daily ? 1 : 0,
+        perCapita,
+        rollingAverage
+    ]
+    return parseInt(parts.join(""))
 }
 
 export const buildCovidVariable = (
