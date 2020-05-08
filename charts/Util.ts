@@ -700,3 +700,44 @@ export function computeRollingAverage(numbers: number[], windowSize: number) {
 
     return result
 }
+
+// Scroll Helpers
+// Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
+
+export function isDocumentElement(el: HTMLElement) {
+    return [document.documentElement, document.body].indexOf(el) > -1
+}
+
+export function scrollTo(el: HTMLElement, top: number): void {
+    // with a scroll distance, we perform scroll on the element
+    if (isDocumentElement(el)) {
+        window.scrollTo(0, top)
+        return
+    }
+
+    el.scrollTop = top
+}
+
+export function scrollIntoViewIfNeeded(
+    containerEl: HTMLElement,
+    focusedEl: HTMLElement
+): void {
+    const menuRect = containerEl.getBoundingClientRect()
+    const focusedRect = focusedEl.getBoundingClientRect()
+    const overScroll = focusedEl.offsetHeight / 3
+
+    if (focusedRect.bottom + overScroll > menuRect.bottom) {
+        scrollTo(
+            containerEl,
+            Math.min(
+                focusedEl.offsetTop +
+                    focusedEl.clientHeight -
+                    containerEl.offsetHeight +
+                    overScroll,
+                containerEl.scrollHeight
+            )
+        )
+    } else if (focusedRect.top - overScroll < menuRect.top) {
+        scrollTo(containerEl, Math.max(focusedEl.offsetTop - overScroll, 0))
+    }
+}

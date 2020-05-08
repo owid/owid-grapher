@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, runInAction, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
@@ -11,65 +11,240 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { FuzzySearch } from "charts/FuzzySearch"
-import { partition, sortBy } from "charts/Util"
+import { partition, sortBy, scrollIntoViewIfNeeded } from "charts/Util"
 import { CovidDataExplorer } from "./CovidDataExplorer"
-import { CountryOptionWithSelection } from "./CovidTypes"
+import { CountryOption } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
+
+enum FocusDirection {
+    first = "first",
+    last = "last",
+    up = "up",
+    down = "down"
+}
+
+/** Modulo that wraps negative numbers too */
+function mod(n: number, m: number) {
+    return ((n % m) + m) % m
+}
 
 @observer
 export class CountryPicker extends React.Component<{
     covidDataExplorer: CovidDataExplorer
-    toggleCountryCommand: (countryCode: string, value: boolean) => void
+    toggleCountryCommand: (countryCode: string, value?: boolean) => void
 }> {
-    @action.bound private onChange(code: string, checked: boolean) {
+    @observable private searchInput?: string
+
+    @observable private focusIndex?: number
+    @observable private focusRef: React.RefObject<
+        HTMLLabelElement
+    > = React.createRef()
+    @observable private scrollFocusedIntoViewOnUpdate: boolean = false
+
+    @observable private blockOptionHover: boolean = false
+
+    @observable private scrollContainerRef: React.RefObject<
+        HTMLDivElement
+    > = React.createRef()
+
+    @action.bound private selectCountryCode(code: string, checked?: boolean) {
         this.props.toggleCountryCommand(code, checked)
     }
 
-    @computed private get fuzzy(): FuzzySearch<CountryOptionWithSelection> {
+    @computed private get options(): CountryOption[] {
+        return this.props.covidDataExplorer.countryOptions
+    }
+
+    @computed private get selectedOptions(): CountryOption[] {
+        return this.props.covidDataExplorer.selectedCountryOptions
+    }
+
+    @bind private isSelected(option: CountryOption) {
+        return this.selectedOptions.includes(option)
+    }
+
+    @computed private get fuzzy(): FuzzySearch<CountryOption> {
         return new FuzzySearch(this.options, "name")
     }
 
-    @computed private get searchResults(): CountryOptionWithSelection[] {
+    @computed private get searchResults(): CountryOption[] {
         if (this.searchInput) {
             return this.fuzzy.search(this.searchInput)
         }
         // Show the selected up top and in order.
         const [selected, unselected] = partition(
             sortBy(this.options, r => r.name),
-            result => result.selected
+            this.isSelected
         )
         return [...selected, ...unselected]
     }
 
-    @computed private get selectedCountries(): CountryOptionWithSelection[] {
-        return this.options.filter(country => country.selected)
+    @computed private get focusableOptions(): CountryOption[] {
+        return this.searchResults
     }
 
-    @computed private get options() {
-        return this.props.covidDataExplorer.countryOptionsWithSelectionStatus
+    private normalizeFocusIndex(index: number): number | undefined {
+        if (this.focusableOptions.length === 0) return undefined
+        return mod(index, this.focusableOptions.length)
     }
 
-    @observable private searchInput?: string
+    @computed private get focusedOption(): CountryOption | undefined {
+        return this.focusIndex !== undefined
+            ? this.focusableOptions[this.focusIndex]
+            : undefined
+    }
+
+    @action.bound private focusOptionDirection(direction: FocusDirection) {
+        if (direction === FocusDirection.first) {
+            this.focusIndex = this.normalizeFocusIndex(0)
+        } else if (direction === FocusDirection.last) {
+            this.focusIndex = this.normalizeFocusIndex(-1)
+        } else if (direction === FocusDirection.up) {
+            const newIndex =
+                this.focusIndex === undefined ? -1 : this.focusIndex - 1
+            this.focusIndex = this.normalizeFocusIndex(newIndex)
+        } else if (direction === FocusDirection.down) {
+            const newIndex =
+                this.focusIndex === undefined ? 0 : this.focusIndex + 1
+            this.focusIndex = this.normalizeFocusIndex(newIndex)
+        }
+    }
+
+    @action.bound private clearSearchInput() {
+        if (this.searchInput) {
+            this.searchInput = ""
+        }
+    }
+
+    @action.bound private onKeyDown(
+        event: React.KeyboardEvent<HTMLDivElement>
+    ) {
+        // We want to block hover if a key is pressed.
+        // The hover will be unblocked iff the user moves the mouse (relative to the menu).
+        this.blockHover()
+        switch (event.key) {
+            case "Enter":
+                if (event.keyCode === 229) {
+                    // ignore the keydown event from an Input Method Editor(IME)
+                    // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
+                    break
+                }
+                if (!this.focusedOption) return
+                this.selectCountryCode(this.focusedOption.code)
+                this.clearSearchInput()
+                break
+            case "ArrowUp":
+                this.focusOptionDirection(FocusDirection.up)
+                this.scrollFocusedIntoViewOnUpdate = true
+                break
+            case "ArrowDown":
+                this.focusOptionDirection(FocusDirection.down)
+                this.scrollFocusedIntoViewOnUpdate = true
+                break
+            default:
+                return
+        }
+        event.preventDefault()
+    }
+
+    @action.bound private onSearchFocus() {
+        if (this.focusIndex === undefined) {
+            this.focusOptionDirection(FocusDirection.first)
+        }
+    }
+
+    @action.bound private onHover(option: CountryOption, index: number) {
+        if (!this.blockOptionHover) {
+            this.focusIndex = index
+        }
+    }
+
+    @action.bound private blockHover() {
+        this.blockOptionHover = true
+    }
+
+    @action.bound private unblockHover() {
+        this.blockOptionHover = false
+    }
+
+    componentDidMount() {
+        // Whenever the search term changes, shift focus to first option in the list
+        reaction(
+            () => this.searchInput,
+            () => {
+                this.focusOptionDirection(FocusDirection.first)
+            }
+        )
+    }
+
+    componentDidUpdate() {
+        if (
+            this.focusIndex !== undefined &&
+            this.scrollFocusedIntoViewOnUpdate &&
+            this.scrollContainerRef.current &&
+            this.focusRef.current
+        ) {
+            scrollIntoViewIfNeeded(
+                this.scrollContainerRef.current,
+                this.focusRef.current
+            )
+            runInAction(() => {
+                this.scrollFocusedIntoViewOnUpdate = false
+            })
+        }
+    }
 
     render() {
+        const countries = this.searchResults
+        const selectedCountries = this.selectedOptions
+
         return (
-            <div className="CountryPicker">
+            <div className="CountryPicker" onKeyDown={this.onKeyDown}>
                 <CovidSearchInput
                     value={this.searchInput}
                     onInput={query => (this.searchInput = query)}
+                    onFocus={this.onSearchFocus}
                 />
                 <div className="CountryList">
-                    <CovidCountryResults
-                        countries={this.searchResults}
-                        selectedCountries={this.selectedCountries}
-                        onChange={this.onChange}
-                        renderCountry={props => (
-                            <CovidCountryOption
-                                barScale={this.props.covidDataExplorer.barScale}
-                                {...props}
-                            />
-                        )}
-                    />
+                    <VerticalScrollContainer
+                        scrollingShadows={true}
+                        scrollLock={true}
+                        className="CountrySearchResults"
+                        contentsId={countries.map(c => c.name).join(",")}
+                        onMouseMove={this.unblockHover}
+                        ref={this.scrollContainerRef}
+                    >
+                        <Flipper
+                            spring={{
+                                stiffness: 300,
+                                damping: 33
+                            }}
+                            // We only want to animate when the selection changes, but not on changes due to
+                            // searching
+                            flipKey={selectedCountries
+                                .map(s => s.name)
+                                .join(",")}
+                        >
+                            {countries.map((option, index) => (
+                                <CovidCountryOption
+                                    key={index}
+                                    barScale={
+                                        this.props.covidDataExplorer.barScale
+                                    }
+                                    onChange={this.selectCountryCode}
+                                    onHover={() => this.onHover(option, index)}
+                                    isSelected={this.isSelected(option)}
+                                    isFocused={this.focusIndex === index}
+                                    innerRef={
+                                        this.focusIndex === index
+                                            ? this.focusRef
+                                            : undefined
+                                    }
+                                    option={option}
+                                />
+                            ))}
+                        </Flipper>
+                    </VerticalScrollContainer>
                     <div className="CountrySelectionControls">
                         <div
                             className="ClearSelectionButton"
@@ -90,6 +265,7 @@ export class CountryPicker extends React.Component<{
 interface CovidSearchInputProps {
     value: string | undefined
     onInput: (value: string) => void
+    onFocus: () => void
 }
 
 class CovidSearchInput extends React.Component<CovidSearchInputProps> {
@@ -106,6 +282,7 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                     placeholder="Search for a country..."
                     value={this.props.value}
                     onInput={this.onInput}
+                    onFocus={this.props.onFocus}
                 />
                 <div className="search-icon">
                     <FontAwesomeIcon icon={faSearch} />
@@ -115,64 +292,42 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
     }
 }
 
-interface CovidCountryResultsProps {
-    countries: CountryOptionWithSelection[]
-    selectedCountries: CountryOptionWithSelection[]
-    onChange: (code: string, checked: boolean) => void
-    renderCountry: (props: CovidCountryOptionProps) => JSX.Element
-}
-
-class CovidCountryResults extends React.Component<CovidCountryResultsProps> {
-    render() {
-        const { countries, selectedCountries, onChange } = this.props
-        return (
-            <VerticalScrollContainer
-                scrollingShadows={true}
-                scrollLock={true}
-                className="CountrySearchResults"
-                contentsId={countries.map(c => c.name).join(",")}
-            >
-                <Flipper
-                    spring={{
-                        stiffness: 300,
-                        damping: 33
-                    }}
-                    // We only want to animate when the selection changes, but not on changes due to
-                    // searching
-                    flipKey={selectedCountries.map(s => s.name).join(",")}
-                >
-                    {countries.map((option, index) => (
-                        <React.Fragment key={index}>
-                            {this.props.renderCountry({ option, onChange })}
-                        </React.Fragment>
-                    ))}
-                </Flipper>
-            </VerticalScrollContainer>
-        )
-    }
-}
-
 interface CovidCountryOptionProps {
-    option: CountryOptionWithSelection
+    option: CountryOption
     onChange: (code: string, checked: boolean) => void
+    onHover?: () => void
+    innerRef?: React.RefObject<HTMLLabelElement>
+    isFocused?: boolean
+    isSelected?: boolean
     barScale?: ScaleLinear<number, number>
 }
 
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
     render() {
-        const { option, onChange, barScale } = this.props
+        const {
+            option,
+            onChange,
+            innerRef,
+            isSelected,
+            isFocused,
+            barScale
+        } = this.props
         const testsPerCase = option.latestTotalTestsPerCase
         return (
             <Flipped flipId={option.name} translate opacity>
                 <label
                     className={classnames("CountryOption", {
-                        selected: option.selected
+                        selected: isSelected,
+                        focused: isFocused
                     })}
+                    onMouseMove={this.props.onHover}
+                    onMouseOver={this.props.onHover}
+                    ref={innerRef}
                 >
                     <div className="input-container">
                         <input
                             type="checkbox"
-                            checked={option.selected}
+                            checked={isSelected}
                             onChange={event =>
                                 onChange(
                                     option.code,
@@ -180,6 +335,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                                 )
                             }
                             value={option.code}
+                            tabIndex={-1}
                         />
                     </div>
                     <div className="info-container">

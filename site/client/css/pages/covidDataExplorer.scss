@@ -112,12 +112,12 @@ $header-height: 130px;
     user-select: none;
     position: relative;
 
-    &:hover {
-        background-color: $primary-color-30;
-    }
-
     &.selected {
         background-color: #fff;
+    }
+
+    &.focused {
+        background-color: $primary-color-30;
     }
 
     .input-container {
