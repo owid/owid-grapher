@@ -374,7 +374,7 @@ $table-bg: $body-bg;
 }
 
 .covid-table-mobile {
-    .covid-bars {
+    .spark-bars {
         width: 100%;
         max-width: 70px;
         height: 2.5em;
@@ -385,7 +385,7 @@ $table-bg: $body-bg;
     }
 }
 
-.covid-bars {
+.spark-bars {
     width: 84px; // should be a multiple of 14
     height: 3em;
     display: flex;
@@ -479,7 +479,7 @@ $table-bg: $body-bg;
     }
 }
 
-.covid-bars {
+.spark-bars {
     .bar {
         background-color: rgba($primary-color, 0.3);
         &.current {

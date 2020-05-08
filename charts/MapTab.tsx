@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, range, last } from "./Util"
+import { getRelativeMouse, last } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -24,12 +24,7 @@ import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
-import { CovidBars, CovidBarsProps } from "site/client/covid/CovidBars"
-import { CovidDatum } from "site/client/covid/CovidTypes"
-import { CovidDoublingTooltip } from "site/client/covid/CovidDoublingTooltip"
-import { fetchECDCData } from "site/client/covid/CovidFetch"
 import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
-import { map, first } from "lodash"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -195,10 +190,30 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         )
     }
 
-    sparkBarProps(tooltipEntity: string): SparkBarsProps<SparkBarsDatum> {
+    sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year
+
+    @computed get sparkBarsToDisplay() {
+        return this.context.chartView.isMobile ? 13 : 20
+    }
+
+    @computed get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
+        const sparkBarsData = this.sparkBarsData
+        const [start, end] = this.sparkBarsDomain
+
+        return {
+            data: sparkBarsData,
+            x: this.sparkBarsDatumXAccessor,
+            y: (d: SparkBarsDatum) => d.value,
+            xDomain: [start, end]
+        }
+    }
+
+    @computed get sparkBarsData(): SparkBarsDatum[] {
         const sparkBarValues: SparkBarsDatum[] = []
+        if (!this.tooltipDatum) return sparkBarValues
+
         this.context.chart.map.data.dimension?.valueByEntityAndYear
-            .get(tooltipEntity)
+            .get(this.tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
                     year: key,
@@ -206,20 +221,16 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 })
             })
 
-        const sparkBarData = sparkBarValues.slice(
-            sparkBarValues.length - 20,
-            sparkBarValues.length
-        )
+        return sparkBarValues
+    }
 
-        return {
-            data: sparkBarData,
-            x: d => d.year,
-            y: d => d.value,
-            xDomain: [
-                first(sparkBarData)?.year as number,
-                last(sparkBarData)?.year as number
-            ]
-        }
+    @computed get sparkBarsDomain() {
+        const lastVal = last(this.sparkBarsData)
+
+        const end = lastVal ? this.sparkBarsDatumXAccessor(lastVal) : 0
+        const start = end > 0 ? end - this.sparkBarsToDisplay : 0
+
+        return [start, end]
     }
 
     render() {
@@ -238,7 +249,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             mapLegend,
             tooltipTarget,
             tooltipDatum,
-            projectionChooserBounds
+            projectionChooserBounds,
+            sparkBarsProps
         } = this
         return (
             <g ref={this.base} className="mapTab">
@@ -291,15 +303,11 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                             }}
                         >
                             <span>
-                                {this.context.chart.yearIsDayVar && (
-                                        <span>"HEY BRUDDER</span>
-                                    ) && (
-                                        <SparkBars<SparkBarsDatum>
-                                            {...this.sparkBarProps(
-                                                tooltipDatum?.entity as string
-                                            )}
-                                        />
-                                    )}
+                                {sparkBarsProps && (
+                                    <SparkBars<SparkBarsDatum>
+                                        {...sparkBarsProps}
+                                    />
+                                )}
                                 {tooltipDatum
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
