@@ -60,7 +60,7 @@ export class DiscreteBarChart extends React.Component<{
     // Account for the width of the legend
     @computed get legendWidth() {
         const labels = this.currentData.map(d => d.label)
-        if (this.hasAddButton)
+        if (this.hasFloatingAddButton)
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
         // TypeScript assumes that indexes always return the array type, but it can also be undefined
         // Issue: https://github.com/microsoft/TypeScript/issues/13778
@@ -183,13 +183,13 @@ export class DiscreteBarChart extends React.Component<{
             .padRight(this.rightEndLabelWidth)
     }
 
-    @computed get hasAddButton() {
-        return this.context.chartView.controls.hasAddButton
+    @computed get hasFloatingAddButton() {
+        return this.context.chartView.controls.hasFloatingAddButton
     }
 
     // Leave space for extra bar at bottom to show "Add country" button
     @computed get totalBars() {
-        return this.hasAddButton
+        return this.hasFloatingAddButton
             ? this.currentData.length + 1
             : this.currentData.length
     }

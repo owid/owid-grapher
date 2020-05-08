@@ -537,7 +537,7 @@ export class Controls {
         const { chart } = this.props
         return (
             chart.tab === "chart" &&
-            ((chart.data.canAddData && !this.hasAddButton) ||
+            ((chart.data.canAddData && !this.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.data.canChangeEntity ||
                 (chart.isStackedArea && chart.stackedArea.canToggleRelative) ||
@@ -553,7 +553,7 @@ export class Controls {
         return this.props.width > 700
     }
 
-    @computed get hasAddButton(): boolean {
+    @computed get hasFloatingAddButton(): boolean {
         const { chart } = this.props
         return (
             chart.primaryTab === "chart" &&
@@ -889,11 +889,11 @@ export class ControlsFooterView extends React.Component<{
 
     private _getInlineControlsElement() {
         const { props } = this
-        const { hasAddButton } = props.controls
+        const { hasFloatingAddButton } = props.controls
         const { chart } = props.controls.props
         return (
             <div className="extraControls">
-                {chart.data.canAddData && !hasAddButton && (
+                {chart.data.canAddData && !hasFloatingAddButton && (
                     <button
                         type="button"
                         onClick={this.onDataSelect}
