@@ -11,7 +11,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { FuzzySearch } from "charts/FuzzySearch"
-import { partition, sortBy, scrollIntoViewIfNeeded } from "charts/Util"
+import { partition, sortBy, scrollIntoViewIfNeeded, last } from "charts/Util"
 import { CovidDataExplorer } from "./CovidDataExplorer"
 import { CountryOption } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
@@ -167,6 +167,36 @@ export class CountryPicker extends React.Component<{
         this.blockOptionHover = false
     }
 
+    @bind private highlightLabel(label: string): JSX.Element | string {
+        if (this.searchInput) {
+            const result = this.fuzzy.single(this.searchInput, label)
+            if (result) {
+                const tokens: { match: boolean; text: string }[] = []
+                for (let i = 0; i < result.target.length; i++) {
+                    const currentToken = last(tokens)
+                    const match = result.indexes.includes(i)
+                    const char = result.target[i]
+                    if (!currentToken || currentToken.match !== match) {
+                        tokens.push({
+                            match,
+                            text: char
+                        })
+                    } else {
+                        currentToken.text += char
+                    }
+                }
+                return (
+                    <React.Fragment>
+                        {tokens.map(token =>
+                            token.match ? <mark>{token.text}</mark> : token.text
+                        )}
+                    </React.Fragment>
+                )
+            }
+        }
+        return label
+    }
+
     componentDidMount() {
         // Whenever the search term changes, shift focus to first option in the list
         reaction(
@@ -228,6 +258,8 @@ export class CountryPicker extends React.Component<{
                             {countries.map((option, index) => (
                                 <CovidCountryOption
                                     key={index}
+                                    option={option}
+                                    highlight={this.highlightLabel}
                                     barScale={
                                         this.props.covidDataExplorer.barScale
                                     }
@@ -240,7 +272,6 @@ export class CountryPicker extends React.Component<{
                                             ? this.focusRef
                                             : undefined
                                     }
-                                    option={option}
                                 />
                             ))}
                         </Flipper>
@@ -294,6 +325,7 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
 
 interface CovidCountryOptionProps {
     option: CountryOption
+    highlight: (label: string) => JSX.Element | string
     onChange: (code: string, checked: boolean) => void
     onHover?: () => void
     innerRef?: React.RefObject<HTMLLabelElement>
@@ -310,6 +342,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             innerRef,
             isSelected,
             isFocused,
+            highlight,
             barScale
         } = this.props
         const testsPerCase = option.latestTotalTestsPerCase
@@ -340,7 +373,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                     </div>
                     <div className="info-container">
                         <div className="labels-container">
-                            <div className="name">{option.name}</div>
+                            <div className="name">{highlight(option.name)}</div>
                             {/* Hide testing numbers as they lack labels to be understandable */}
                             {/* {testsPerCase && (
                                 <div className="metric">

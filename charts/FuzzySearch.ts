@@ -16,6 +16,10 @@ export class FuzzySearch<T> {
             .map((result: any) => this.datamap[result.target])
     }
 
+    single(input: string, target: string) {
+        return fuzzysort.single(input, target)
+    }
+
     highlight(input: string, target: string): string {
         const result = fuzzysort.single(input, target)
         return highlight(result) ?? target
