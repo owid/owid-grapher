@@ -48,9 +48,14 @@ import { BAKED_BASE_URL } from "settings"
 export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
+    bounds: Bounds
 }> {
     static async bootstrap() {
-        const containerNode = document.getElementById("covidDataExplorer")
+        const containerNode = document.getElementById(
+            "covidDataExplorerContainer"
+        )
+        const rect = containerNode!.getBoundingClientRect()
+        const containerBounds = Bounds.fromRect(rect)
         ReactDOM.render(
             <div className="LoadingCovidDataExplorer"></div>,
             containerNode
@@ -58,7 +63,11 @@ export class CovidDataExplorer extends React.Component<{
         const typedData = await fetchAndParseData()
         const startingParams = new CovidQueryParams(window.location.search)
         ReactDOM.render(
-            <CovidDataExplorer data={typedData} params={startingParams} />,
+            <CovidDataExplorer
+                data={typedData}
+                params={startingParams}
+                bounds={containerBounds}
+            />,
             containerNode
         )
     }
@@ -288,7 +297,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        const bounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
+        console.log(this.props.bounds)
+        const chartBounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
 
         return (
             <div className="CovidDataExplorer">
@@ -314,7 +324,7 @@ export class CovidDataExplorer extends React.Component<{
                     </div>
                     <div className="CovidDataExplorerFigure">
                         <ChartView
-                            bounds={bounds}
+                            bounds={chartBounds}
                             chart={this.chart}
                         ></ChartView>
                     </div>
