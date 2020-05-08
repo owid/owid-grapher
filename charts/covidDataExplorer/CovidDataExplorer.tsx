@@ -296,7 +296,6 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        console.log(this.props.bounds)
         const chartBounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
 
         return (
