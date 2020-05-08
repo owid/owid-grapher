@@ -5,7 +5,8 @@ import {
     flatten,
     cloneDeep,
     map,
-    groupBy
+    groupBy,
+    parseFloatOrUndefined
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
@@ -20,7 +21,7 @@ const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
 export const parseCovidRow = (row: any) => {
     Object.keys(row).forEach(key => {
         const isNumeric = !keepStrings.has(key)
-        if (isNumeric) row[key] = row[key] ? parseFloat(row[key]) : 0
+        if (isNumeric) row[key] = parseFloatOrUndefined(row[key])
         if (key === "iso_code" && !row.iso_code) {
             if (row.location === "World") row.iso_code = "OWID_WRL"
             else if (row.location === "International") row.iso_code = "OWID_INT"
@@ -50,7 +51,7 @@ const dateToYear = (dateString: string): number =>
         moment.utc(EPOCH_DATE).toDate()
     )
 
-export declare type RowAccessor = (row: ParsedCovidRow) => number
+export declare type RowAccessor = (row: ParsedCovidRow) => number | undefined
 
 export const covidDataPath =
     "https://covid.ourworldindata.org/data/owid-covid-data.csv"
@@ -155,17 +156,18 @@ export const buildCovidVariable = (
     rollingAverage?: number,
     daily?: boolean
 ): OwidVariable => {
-    const filtered = data.filter(rowFn)
+    const filtered = data.filter(d => rowFn(d) !== undefined)
     const years = filtered.map(row => dateToYear(row.date))
-    let values = filtered.map(rowFn)
     const entityNames = filtered.map(row => row.location)
     const entities = filtered.map(row => countryMap.get(row.location)!)
+    // force to number[] as undefined were filtered above
+    let values = filtered.map(rowFn) as number[]
     if (perCapita > 1)
         values = filtered.map((row, index) => {
             const pop = populationMap[row.location]
             if (!populationMap[row.location])
                 throw new Error(`Missing population for ${row.location}`)
-            const value = rowFn(row)
+            const value = rowFn(row) as number
             return perCapita * (value / pop)
         })
 

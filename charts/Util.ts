@@ -676,6 +676,12 @@ export function parseIntOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
+export function parseFloatOrUndefined(s: string | undefined) {
+    if (s === undefined) return undefined
+    const value = parseFloat(s)
+    return isNaN(value) ? undefined : value
+}
+
 export function computeRollingAverage(
     numbers: number[],
     windowSize: number,
