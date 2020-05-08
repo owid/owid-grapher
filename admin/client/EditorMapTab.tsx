@@ -463,6 +463,12 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
     }
 
+    @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
+        this.props.mapConfig.props.tooltipUseCustomLabels = tooltipUseCustomLabels
+            ? true
+            : undefined
+    }
+
     render() {
         const { mapConfig } = this.props
         return (
@@ -472,6 +478,13 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
                     label="Disable visual scaling of legend bins"
                     value={!!mapConfig.props.equalSizeBins}
                     onValue={this.onEqualSizeBins}
+                />
+                <Toggle
+                    label={
+                        "Show custom label in the tooltip, instead of the numeric value"
+                    }
+                    value={!!mapConfig.props.tooltipUseCustomLabels}
+                    onValue={this.onTooltipUseCustomLabels}
                 />
                 {mapConfig.props.isManualBuckets && (
                     <EditableList>

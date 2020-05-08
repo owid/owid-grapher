@@ -29,6 +29,8 @@ export class MapConfigProps {
     // e.g. { 'foo' => '#c00' }
     @observable.ref customCategoryColors: { [key: string]: string } = {}
     @observable.ref customCategoryLabels: { [key: string]: string } = {}
+    // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
+    @observable.ref tooltipUseCustomLabels?: true = undefined
 
     // Allow hiding categories from the legend
     @observable.ref customHiddenCategories: { [key: string]: true } = {}
@@ -41,7 +43,7 @@ export class MapConfigProps {
         if (json !== undefined) {
             for (const key in this) {
                 if (key in json) {
-                    ;(this as any)[key] = (json as any)[key]
+                    this[key] = (json as any)[key]
                 }
             }
         }
@@ -112,6 +114,10 @@ export class MapConfig {
 
     set targetYear(value: TimeBound) {
         this.props.targetYear = value
+    }
+
+    @computed get tooltipUseCustomLabels() {
+        return this.props.tooltipUseCustomLabels ?? false
     }
 
     constructor(chart: ChartConfig) {
