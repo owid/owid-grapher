@@ -676,19 +676,31 @@ export function parseIntOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
-export function computeRollingAverage(numbers: number[], windowSize: number) {
+export function computeRollingAverage(
+    numbers: number[],
+    windowSize: number,
+    align: "right" | "center" = "right"
+) {
     const result: number[] = []
 
     for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
-        const leftEdge = valueIndex - windowSize
-        const start = leftEdge >= 0 ? leftEdge : 0
-        const end = valueIndex + windowSize + 1
+        // Take away 1 for the current value (windowSize=1 means no smoothing & no expansion)
+        const expand = windowSize - 1
+
+        // With centered smoothing, expand uneven windows asymmetrically (ceil & floor) to ensure
+        // a correct number of window values get taken into account.
+        // Arbitrarily biased towards left (past).
+        const expandLeft = align === "center" ? Math.ceil(expand / 2) : expand
+        const expandRight = align === "center" ? Math.floor(expand / 2) : 0
+
+        const startIndex = Math.max(valueIndex - expandLeft, 0)
+        const endIndex = Math.min(valueIndex + expandRight, numbers.length - 1)
 
         let count = 0
         let sum = 0
         for (
-            let windowIndex = start;
-            windowIndex < end && windowIndex < numbers.length;
+            let windowIndex = startIndex;
+            windowIndex <= endIndex;
             windowIndex++
         ) {
             sum += numbers[windowIndex]

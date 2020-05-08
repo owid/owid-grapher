@@ -75,16 +75,47 @@ describe(getStartEndValues, () => {
 })
 
 describe(computeRollingAverage, () => {
-    const testCases = [
-        { numbers: [2, 4, 6, 8], window: 1, results: [3, 4, 6, 7] },
-        { numbers: [2, 4, 6, 8], window: 0, results: [2, 4, 6, 8] },
-        { numbers: [2, 4, 6, 8], window: 10, results: [5, 5, 5, 5] }
+    const testCases: {
+        numbers: number[]
+        window: number
+        align: "center" | "right"
+        result: number[]
+    }[] = [
+        // no smoothing
+        {
+            numbers: [2, 4, 6, 8],
+            window: 1,
+            align: "right",
+            result: [2, 4, 6, 8]
+        },
+        {
+            numbers: [1, -1, 1, -1],
+            window: 2,
+            align: "right",
+            result: [1, 0, 0, 0]
+        },
+        {
+            numbers: [1, 3, 5, 1],
+            window: 3,
+            align: "right",
+            result: [1, 2, 3, 3]
+        },
+        {
+            numbers: [0, 2, 4, 0],
+            window: 3,
+            align: "center",
+            result: [1, 2, 2, 2]
+        }
     ]
     it("computes the rolling average", () => {
         testCases.forEach(testCase => {
             expect(
-                computeRollingAverage(testCase.numbers, testCase.window)
-            ).toEqual(testCase.results)
+                computeRollingAverage(
+                    testCase.numbers,
+                    testCase.window,
+                    testCase.align
+                )
+            ).toEqual(testCase.result)
         })
     })
 })
