@@ -397,7 +397,7 @@ export class ChartConfig {
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
-    hideEntityControls = false
+    @observable hideEntityControls: boolean = false
     externalCsvLink = ""
 
     @computed get hasOWIDLogo(): boolean {
