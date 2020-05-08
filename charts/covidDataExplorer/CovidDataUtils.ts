@@ -209,5 +209,8 @@ export const buildCovidVariable = (
         variable.display!.name
     }${messages[perCapita]}`
 
+    // Show decimal places in per-capita variables
+    variable.display!.numDecimalPlaces = perCapita > 1 ? 2 : 0
+
     return variable as OwidVariable
 }
