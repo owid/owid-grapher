@@ -560,10 +560,13 @@ export class MapData extends ChartTransform {
 
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
+        const customLabels = this.map.tooltipUseCustomLabels
+            ? this.customBucketLabels
+            : []
         return formatValueLong
             ? (d: number | string) => {
                   if (isString(d)) return d
-                  else return formatValueLong(d)
+                  else return customLabels[d] ?? formatValueLong(d)
               }
             : () => ""
     }
