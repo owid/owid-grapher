@@ -7,7 +7,7 @@ export class AxisTickMarks extends React.Component<{
 }> {
     render() {
         const { tickMarkTopPosition, tickMarkXPositions, color } = this.props
-        const tickSize = 3
+        const tickSize = 4
         const tickBottom = tickMarkTopPosition + tickSize
         return tickMarkXPositions.map((tickMarkPosition, index) => {
             return (

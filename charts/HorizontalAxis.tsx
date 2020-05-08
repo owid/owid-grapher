@@ -134,7 +134,7 @@ export class HorizontalAxisView extends React.Component<{
             <AxisTickMarks
                 tickMarkTopPosition={axisPosition}
                 tickMarkXPositions={ticks.map(tick => scale.place(tick))}
-                color={textColor}
+                color="#ccc"
             />
         ) : (
             undefined
