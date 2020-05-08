@@ -7,7 +7,7 @@ import {
     makeCountryOptions
 } from "../covidDataExplorer/CovidDataUtils"
 import uniq from "lodash/uniq"
-import { csvParse } from "d3"
+import { csvParse } from "d3-dsv"
 import { testData } from "../../test/fixtures/CovidTestData"
 
 describe(buildCovidVariableId, () => {
