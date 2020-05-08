@@ -893,27 +893,29 @@ export class ControlsFooterView extends React.Component<{
         const { chart } = props.controls.props
         return (
             <div className="extraControls">
-                {chart.data.canAddData && !hasFloatingAddButton && (
-                    <button
-                        type="button"
-                        onClick={this.onDataSelect}
-                        data-track-note="chart-select-entities"
-                    >
-                        {chart.isScatter || chart.isSlopeChart ? (
-                            <span className="SelectEntitiesButton">
-                                <FontAwesomeIcon icon={faPencilAlt} />
-                                {`Select ${chart.entityTypePlural}`}
-                            </span>
-                        ) : (
-                            <span>
-                                <FontAwesomeIcon icon={faPlus} />{" "}
-                                {this.props.controls.addButtonLabel}
-                            </span>
-                        )}
-                    </button>
-                )}
+                {chart.data.canAddData &&
+                    !hasFloatingAddButton &&
+                    !chart.hideEntityControls && (
+                        <button
+                            type="button"
+                            onClick={this.onDataSelect}
+                            data-track-note="chart-select-entities"
+                        >
+                            {chart.isScatter || chart.isSlopeChart ? (
+                                <span className="SelectEntitiesButton">
+                                    <FontAwesomeIcon icon={faPencilAlt} />
+                                    {`Select ${chart.entityTypePlural}`}
+                                </span>
+                            ) : (
+                                <span>
+                                    <FontAwesomeIcon icon={faPlus} />{" "}
+                                    {this.props.controls.addButtonLabel}
+                                </span>
+                            )}
+                        </button>
+                    )}
 
-                {chart.data.canChangeEntity && (
+                {chart.data.canChangeEntity && !chart.hideEntityControls && (
                     <button
                         type="button"
                         onClick={this.onDataSelect}
