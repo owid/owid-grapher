@@ -352,7 +352,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get lastUpdated() {
-        const rows = this.countryOptions[this.countryMap.get("World")!].rows
+        const rows = this.countryOptions[this.countryMap.get("United States")!]
+            .rows
         return rows[rows.length - 1].date
     }
 
@@ -544,24 +545,79 @@ export class CovidDataExplorer extends React.Component<{
         return indices
     }
 
+    @computed get daysSinceVariableId() {
+        const params = this.props.params
+        const idParts = [
+            456,
+            params.deathsMetric ? 1 : 0,
+            params.casesMetric ? 1 : 0,
+            params.testsMetric ? 1 : 0,
+            params.dailyFreq ? 1 : 0
+        ]
+        const id = parseInt(idParts.join(""))
+        if (!this.owidVariableSet.variables[id]) {
+            this.owidVariableSet.variables[id] = daysSinceVariable(
+                this.props.data,
+                this.countryMap,
+                this.daysSinceOption.fn
+            )
+        }
+        return id
+    }
+
+    @computed get daysSinceOption() {
+        const params = this.props.params
+        const kind = params.deathsMetric
+            ? "deaths"
+            : params.casesMetric
+            ? "cases"
+            : "tests"
+        return this.daysSinceOptions[kind][params.dailyFreq ? "daily" : "total"]
+    }
+
+    daysSinceOptions = {
+        deaths: {
+            total: {
+                title: "Days since the 5th total confirmed death",
+                fn: (row: ParsedCovidRow) => row.total_deaths >= 5
+            },
+            daily: {
+                title: "Days since 5 daily deaths first reported",
+                fn: (row: ParsedCovidRow) => row.new_deaths >= 5
+            }
+        },
+        cases: {
+            total: {
+                title: "Days since the 100th confirmed case",
+                fn: (row: ParsedCovidRow) => row.total_cases >= 100
+            },
+            daily: {
+                title: "Days since confirmed cases first reached 30 per day",
+                fn: (row: ParsedCovidRow) => row.new_cases >= 30
+            }
+        },
+        tests: {
+            total: {
+                title:
+                    "Days since daily new confirmed deaths due to COVID-19 reached 0.1 per million",
+                fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+            },
+            daily: {
+                title:
+                    "Days since daily new confirmed deaths due to COVID-19 reached 0.1 per million",
+                fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+            }
+        }
+    }
+
     @observable.struct owidVariableSet: OwidVariableSet = {
         variables: {
-            99999: daysSinceVariable(
-                this.props.data,
-                this.countryMap,
-                row => row.total_deaths >= 5
-            ),
-            99998: daysSinceVariable(
-                this.props.data,
-                this.countryMap,
-                row => row.total_cases >= 100
-            ),
             123: continentsVariable(this.countryOptions)
         },
         entityKey: this.entityKey
     }
 
-    private continentsVariableId = variablePartials.continents.id!
+    private continentsVariableId = 123
 
     updateChart() {
         // Generating the new chart may take a second so render the Data Explorer controls immediately then
@@ -657,9 +713,9 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 property: "x",
-                variableId: 99999,
+                variableId: this.daysSinceVariableId,
                 display: {
-                    name: "Days since the 5th total confirmed death"
+                    name: this.daysSinceOption.title
                 }
             },
             {
@@ -692,6 +748,7 @@ export class CovidDataExplorer extends React.Component<{
             owidDataset: this.owidVariableSet,
             selectedData: [],
             dimensions: this.dimensions,
+            scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",
             stackMode: "absolute",
             customColors: {
