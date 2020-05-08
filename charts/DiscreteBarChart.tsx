@@ -125,7 +125,11 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get x0(): number {
-        return this.isLogScale ? 1 : 0
+        if (this.isLogScale) {
+            const minValue = min(this.allData.map(d => d.value))
+            return minValue !== undefined ? Math.min(1, minValue) : 1
+        }
+        return 0
     }
 
     // Now we can work out the main x axis scale
