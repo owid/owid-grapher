@@ -408,7 +408,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get note() {
         if (this.props.params.testsMetric)
-            return "Note: For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found at the linked page."
+            return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on our testing page."
         return ""
     }
 
@@ -489,7 +489,7 @@ export class CovidDataExplorer extends React.Component<{
         const params = this.props.params
         const indices: number[] = []
 
-        const setVariable = (
+        const initVariable = (
             columnName: MetricKind,
             rowFn: RowAccessor,
             daily: boolean = false
@@ -517,19 +517,19 @@ export class CovidDataExplorer extends React.Component<{
         }
 
         if (params.testsMetric && params.dailyFreq)
-            setVariable("tests", row => row.new_tests, true)
+            initVariable("tests", row => row.new_tests, true)
         if (params.testsMetric && params.totalFreq)
-            setVariable("tests", row => row.total_tests)
+            initVariable("tests", row => row.total_tests)
 
         if (params.casesMetric && params.dailyFreq)
-            setVariable("cases", row => row.new_cases, true)
+            initVariable("cases", row => row.new_cases, true)
         if (params.casesMetric && params.totalFreq)
-            setVariable("cases", row => row.total_cases)
+            initVariable("cases", row => row.total_cases)
 
         if (params.deathsMetric && params.dailyFreq)
-            setVariable("deaths", row => row.new_deaths, true)
+            initVariable("deaths", row => row.new_deaths, true)
         if (params.deathsMetric && params.totalFreq)
-            setVariable("deaths", row => row.total_deaths)
+            initVariable("deaths", row => row.total_deaths)
 
         return indices
     }
@@ -578,15 +578,14 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.type = this.chartType
 
-        chartProps.map.variableId = this.yVariableIndices[0]
-        chartProps.map.baseColorScheme = this.mapColorScheme
-
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensions
         // Todo: perf improvements
         // We manually call this first, before doing the selection thing, because we cannot select data that is not there.
         await this.chart.downloadData()
 
+        chartProps.map.variableId = this.yVariableIndices[0]
+        chartProps.map.baseColorScheme = this.mapColorScheme
         chartProps.selectedData = this.selectedData
 
         this.chart.url.externallyProvidedParams = this.props.params.toParams
