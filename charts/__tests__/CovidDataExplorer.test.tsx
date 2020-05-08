@@ -3,7 +3,7 @@
 import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { testData } from "../../test/fixtures/CovidTestData"
-import { csvParse } from "d3"
+import { csvParse } from "d3-dsv"
 import { parseCovidRow } from "charts/covidDataExplorer/CovidDataUtils"
 import React from "react"
 import { shallow } from "enzyme"

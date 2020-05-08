@@ -13,7 +13,7 @@ import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
 import { populationMap } from "./CovidPopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
-import { csv } from "d3"
+import { csv } from "d3-fetch"
 import { labelsByRegion, worldRegionByMapEntity } from "charts/WorldRegions"
 
 const keepStrings = new Set(`iso_code location date tests_units`.split(" "))

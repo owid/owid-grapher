@@ -40,7 +40,7 @@ import {
 } from "./CovidDataUtils"
 import { variablePartials } from "./CovidVariablePartials"
 import { isEqual } from "charts/Util"
-import { scaleLinear } from "d3"
+import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 
 @observer
