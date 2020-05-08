@@ -209,9 +209,14 @@ export const buildCovidVariable = (
         variable.display!.name
     }${messages[perCapita]}`
 
-    // Show decimal places in per-capita variables
-    variable.display!.numDecimalPlaces =
-        perCapita > 1 ? 2 : rollingAverage > 1 ? 1 : 0
+    // Show decimal places for rolling average & per capita variables
+    if (perCapita > 1) {
+        variable.display!.numDecimalPlaces = 2
+    } else if (rollingAverage && rollingAverage > 1) {
+        variable.display!.numDecimalPlaces = 1
+    } else {
+        variable.display!.numDecimalPlaces = 0
+    }
 
     return variable as OwidVariable
 }
