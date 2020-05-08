@@ -141,6 +141,12 @@ $header-height: 130px;
         flex: 1;
     }
 
+    mark {
+        font-weight: 600;
+        background-color: #f9eec6;
+        border-radius: 2px;
+    }
+
     .metric {
         flex: 0;
         font-size: 14px;
