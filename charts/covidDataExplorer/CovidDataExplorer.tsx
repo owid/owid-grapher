@@ -654,7 +654,7 @@ export class CovidDataExplorer extends React.Component<{
 
     componentDidMount() {
         this.bindToWindow()
-        this.chart.hideAddDataButton = true
+        this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/covid-data-explorer`
         this.updateChart()
