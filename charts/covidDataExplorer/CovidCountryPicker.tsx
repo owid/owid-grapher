@@ -279,7 +279,7 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                 <input
                     className="input-field"
                     type="search"
-                    placeholder="Search for a country..."
+                    placeholder="Type to add a country..."
                     value={this.props.value}
                     onInput={this.onInput}
                     onFocus={this.props.onFocus}
