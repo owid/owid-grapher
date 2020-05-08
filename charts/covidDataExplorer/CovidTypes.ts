@@ -39,7 +39,3 @@ export interface CountryOption {
     rows: ParsedCovidRow[]
     latestTotalTestsPerCase: number | undefined
 }
-
-export interface CountryOptionWithSelection extends CountryOption {
-    selected: boolean
-}

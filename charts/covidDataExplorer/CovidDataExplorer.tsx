@@ -20,8 +20,7 @@ import {
     DeathsMetricOption,
     MetricKind,
     ParsedCovidRow,
-    CountryOption,
-    CountryOptionWithSelection
+    CountryOption
 } from "./CovidTypes"
 import {
     RadioOption as InputOption,
@@ -333,18 +332,14 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    @computed
-    get countryOptionsWithSelectionStatus(): CountryOptionWithSelection[] {
-        return this.countryOptions.map(option => {
-            ;(option as any).selected = this.props.params.selectedCountryCodes.has(
-                option.code
-            )
-            return option as CountryOptionWithSelection
-        })
-    }
-
     @computed get countryOptions(): CountryOption[] {
         return makeCountryOptions(this.props.data)
+    }
+
+    @computed get selectedCountryOptions(): CountryOption[] {
+        return this.countryOptions.filter(option =>
+            this.props.params.selectedCountryCodes.has(option.code)
+        )
     }
 
     @computed private get availableEntities() {
