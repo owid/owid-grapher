@@ -57,7 +57,11 @@ export const covidDataPath =
 
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const rawData = await csv(covidDataPath)
-    return rawData.map(parseCovidRow)
+    return rawData
+        .map(parseCovidRow)
+        .filter(
+            row => row.location !== "World" && row.location !== "International"
+        )
 }
 
 export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
@@ -92,31 +96,33 @@ export const daysSinceVariable = (
     countryMap: Map<string, number>,
     predicate: (row: ParsedCovidRow) => boolean
 ) => {
-    const rows = data.filter(predicate)
     let currentCountry = ""
     let firstCountryDate = ""
-    const dataWeNeed = rows.map(row => {
-        if (row.location !== currentCountry) {
-            currentCountry = row.location
-            firstCountryDate = row.date
-        }
-        return {
-            year: dateToYear(row.date),
-            entity: countryMap.get(row.location)!,
-            // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
-            // row for that country.
-            value: dateDiffInDays(
-                moment.utc(row.date).toDate(),
-                moment.utc(firstCountryDate).toDate()
-            )
-        }
-    })
+    const dataWeNeed = data
+        .map(row => {
+            if (row.location !== currentCountry) {
+                if (!predicate(row)) return undefined
+                currentCountry = row.location
+                firstCountryDate = row.date
+            }
+            return {
+                year: dateToYear(row.date),
+                entity: countryMap.get(row.location)!,
+                // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
+                // row for that country.
+                value: dateDiffInDays(
+                    moment.utc(row.date).toDate(),
+                    moment.utc(firstCountryDate).toDate()
+                )
+            }
+        })
+        .filter(row => row)
 
     const variable: Partial<OwidVariable> = {
         ...variablePartials.days_since_five,
-        years: dataWeNeed.map(row => row.year),
-        entities: dataWeNeed.map(row => row.entity),
-        values: dataWeNeed.map(row => row.value)
+        years: dataWeNeed.map(row => row!.year),
+        entities: dataWeNeed.map(row => row!.entity),
+        values: dataWeNeed.map(row => row!.value)
     }
 
     return variable as OwidVariable
