@@ -125,7 +125,7 @@ const ScrollingShadow = (props: {
                 background: background,
                 opacity: props.opacity,
                 pointerEvents: "none",
-                zIndex: 1
+                zIndex: 10
             }}
         />
     )
