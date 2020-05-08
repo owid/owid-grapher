@@ -115,6 +115,7 @@ $header-height: 130px;
     &.selected {
         background-color: #fff;
         font-weight: bold;
+        z-index: 1;
     }
 
     &.focused {
