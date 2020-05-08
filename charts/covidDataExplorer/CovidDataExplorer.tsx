@@ -553,7 +553,15 @@ export class CovidDataExplorer extends React.Component<{
 
     private continentsVariableId = variablePartials.continents.id!
 
-    async updateChart() {
+    updateChart() {
+        // Generating the new chart may take a second so render the Data Explorer controls immediately then
+        // update the chart view.
+        setTimeout(() => {
+            this._updateChart()
+        }, 1)
+    }
+
+    private async _updateChart() {
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
@@ -581,7 +589,6 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.selectedData = this.selectedData
 
-        this.chart.url.externalBaseUrl = "covid-data-explorer"
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
@@ -589,6 +596,7 @@ export class CovidDataExplorer extends React.Component<{
         this.bindToWindow()
         this.chart.hideAddDataButton = true
         this.chart.externalCsvLink = covidDataPath
+        this.chart.url.externalBaseUrl = "covid-data-explorer"
         this.updateChart()
         const win = window as any
         win.covidDataExplorer = this
