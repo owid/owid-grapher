@@ -7,7 +7,6 @@ import { ChartConfig } from "charts/ChartConfig"
 import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
-import { OwidVariable } from "../owidData/OwidVariable"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
@@ -43,6 +42,7 @@ import {
 import { variablePartials } from "./CovidVariablePartials"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3"
+import { BAKED_BASE_URL } from "settings"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -595,7 +595,7 @@ export class CovidDataExplorer extends React.Component<{
         this.bindToWindow()
         this.chart.hideAddDataButton = true
         this.chart.externalCsvLink = covidDataPath
-        this.chart.url.externalBaseUrl = "covid-data-explorer"
+        this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/covid-data-explorer`
         this.updateChart()
         const win = window as any
         win.covidDataExplorer = this
