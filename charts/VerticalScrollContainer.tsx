@@ -10,62 +10,84 @@ export type VerticalScrollContainerProps = React.DetailedHTMLProps<
     contentsId?: string
 }
 
-export const VerticalScrollContainer = (
-    props: VerticalScrollContainerProps
-) => {
-    let {
-        scrollingShadows,
-        scrollLock,
-        className,
-        children,
-        contentsId,
-        style,
-        ...rest
-    } = props
+type ReactRef<T> =
+    | ((instance: T | null) => void)
+    | React.MutableRefObject<T | null>
+    | null
 
-    scrollingShadows = scrollingShadows ?? true
-    scrollLock = scrollLock ?? true
+function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T> {
+    const targetRef = React.useRef<T>(null)
 
-    const scrollContainerRef = useRef<HTMLDivElement>(null)
-    const [scrollTop, scrollBottom] = useScrollBounds(
-        scrollContainerRef,
-        contentsId
-    )
+    React.useEffect(() => {
+        refs.forEach(ref => {
+            if (!ref) return
+            if (typeof ref === "function") {
+                ref(targetRef.current || null)
+            } else {
+                ref.current = targetRef.current || null
+            }
+        })
+    }, [refs])
 
-    if (scrollLock) {
-        useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
-    }
-
-    return (
-        <div
-            className="VerticalScrollContainerShadows"
-            style={{ position: "relative" }}
-        >
-            {scrollingShadows && (
-                <ScrollingShadow
-                    direction="down"
-                    size={10}
-                    opacity={getShadowOpacity(0.1, 80, scrollTop)}
-                />
-            )}
-            <div
-                className={classnames(className, "VerticalScrollContainer")}
-                style={{ overflowY: "auto", ...style }}
-                ref={scrollContainerRef}
-                {...rest}
-            >
-                {children}
-            </div>
-            {scrollingShadows && (
-                <ScrollingShadow
-                    direction="up"
-                    size={10}
-                    opacity={getShadowOpacity(0.1, 80, scrollBottom)}
-                />
-            )}
-        </div>
-    )
+    return targetRef
 }
+
+export const VerticalScrollContainer = React.forwardRef(
+    (props: VerticalScrollContainerProps, ref: ReactRef<HTMLDivElement>) => {
+        let {
+            scrollingShadows,
+            scrollLock,
+            className,
+            children,
+            contentsId,
+            style,
+            ...rest
+        } = props
+
+        scrollingShadows = scrollingShadows ?? true
+        scrollLock = scrollLock ?? true
+
+        const scrollContainerRef = useCombinedRefs<HTMLDivElement>(ref)
+        const [scrollTop, scrollBottom] = useScrollBounds(
+            scrollContainerRef,
+            contentsId
+        )
+
+        if (scrollLock) {
+            useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
+        }
+
+        return (
+            <div
+                className="VerticalScrollContainerShadows"
+                style={{ position: "relative" }}
+            >
+                {scrollingShadows && (
+                    <ScrollingShadow
+                        direction="down"
+                        size={10}
+                        opacity={getShadowOpacity(0.1, 80, scrollTop)}
+                    />
+                )}
+                <div
+                    className={classnames(className, "VerticalScrollContainer")}
+                    style={{ overflowY: "auto", ...style }}
+                    ref={scrollContainerRef}
+                    {...rest}
+                >
+                    {children}
+                </div>
+                {scrollingShadows && (
+                    <ScrollingShadow
+                        direction="up"
+                        size={10}
+                        opacity={getShadowOpacity(0.1, 80, scrollBottom)}
+                    />
+                )}
+            </div>
+        )
+    }
+)
 
 function getShadowOpacity(
     maxOpacity: number,
