@@ -391,13 +391,13 @@ export class ChartConfig {
     }
 
     @computed get showChangeEntityButton() {
-        return !this.hideAddDataButton && this.data.canAddData
+        return !this.hideEntityControls && this.data.canAddData
     }
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
-    hideAddDataButton = false
+    hideEntityControls = false
     externalCsvLink = ""
 
     @computed get hasOWIDLogo(): boolean {
