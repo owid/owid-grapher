@@ -300,32 +300,28 @@ export class CovidDataExplorer extends React.Component<{
 
         return (
             <div className="CovidDataExplorer">
-                <div className="CovidDataExplorerSideBar">
-                    <div className="CovidHeaderBox">
-                        <div className="CovidTitle">Covid-19 Data Explorer</div>
-                        <div className="CovidLastUpdated">
-                            Updated {this.lastUpdated}
-                        </div>
+                <div className="CovidHeaderBox">
+                    <div className="CovidTitle">Covid-19 Data Explorer</div>
+                    <div className="CovidLastUpdated">
+                        Updated {this.lastUpdated}
                     </div>
-                    <CountryPicker
-                        covidDataExplorer={this}
-                        toggleCountryCommand={this.toggleSelectedCountryCommand}
-                    ></CountryPicker>
                 </div>
-                <div className="CovidDataExplorerMain">
-                    <div className="CovidDataExplorerTopBar">
-                        {this.metricPicker}
-                        {this.frequencyPicker}
-                        {this.perCapitaPicker}
-                        {this.alignedPicker}
-                        {this.smoothingPicker}
-                    </div>
-                    <div className="CovidDataExplorerFigure">
-                        <ChartView
-                            bounds={chartBounds}
-                            chart={this.chart}
-                        ></ChartView>
-                    </div>
+                <div className="CovidDataExplorerTopBar">
+                    {this.metricPicker}
+                    {this.frequencyPicker}
+                    {this.perCapitaPicker}
+                    {this.alignedPicker}
+                    {this.smoothingPicker}
+                </div>
+                <CountryPicker
+                    covidDataExplorer={this}
+                    toggleCountryCommand={this.toggleSelectedCountryCommand}
+                ></CountryPicker>
+                <div className="CovidDataExplorerFigure">
+                    <ChartView
+                        bounds={chartBounds}
+                        chart={this.chart}
+                    ></ChartView>
                 </div>
             </div>
         )
