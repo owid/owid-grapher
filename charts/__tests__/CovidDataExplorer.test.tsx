@@ -23,6 +23,6 @@ describe(CovidDataExplorer, () => {
             />
         )
 
-        expect(element.html()).toContain("Covid-19 Data Explorer")
+        expect(element.html()).toContain("COVID-19 Data Explorer")
     })
 })
