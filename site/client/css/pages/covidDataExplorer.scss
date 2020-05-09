@@ -4,6 +4,7 @@ $ideal-ratio: 680/480;
 $border-radius: 4px;
 $grid-gap: 10px;
 $header-height: 130px;
+$placeholder-height: 800px;
 
 .CovidDataExplorer {
     display: grid;
@@ -206,10 +207,15 @@ $header-height: 130px;
     }
 }
 
+#covidDataExplorerContainer {
+    min-height: $placeholder-height;
+}
+
 .LoadingCovidDataExplorer {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: $placeholder-height;
     width: 100%;
 }
 
