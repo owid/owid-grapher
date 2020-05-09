@@ -224,7 +224,7 @@ export class CovidDataExplorer extends React.Component<{
     private get alignedPicker() {
         const options: InputOption[] = [
             {
-                label: "Align with start of pandemic",
+                label: "Align outbreaks",
                 checked: this.props.params.aligned,
                 onChange: value => {
                     this.props.params.aligned = value
