@@ -21,6 +21,7 @@ export class CovidRadioControl extends React.Component<{
     }
 
     render() {
+        const name = this.props.name
         return (
             <div className="CovidDataExplorerControl">
                 <div className="ControlHeader">{this.props.name}</div>
@@ -36,7 +37,8 @@ export class CovidRadioControl extends React.Component<{
                                 type={
                                     this.props.isCheckbox ? "checkbox" : "radio"
                                 }
-                                name={this.props.name}
+                                name={name}
+                                data-track-note={`covid-click-${name}`}
                                 checked={option.checked}
                                 value={index}
                             />{" "}

@@ -279,6 +279,7 @@ export class CountryPicker extends React.Component<{
                     <div className="CountrySelectionControls">
                         <div
                             className="ClearSelectionButton"
+                            data-track-note="covid-clear-selection"
                             onClick={
                                 this.props.covidDataExplorer
                                     .clearSelectionCommand
