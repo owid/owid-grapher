@@ -2,98 +2,89 @@ $controls-color: #3f9eff;
 $ideal-ratio: 680/480;
 
 $border-radius: 4px;
-
+$grid-gap: 10px;
 $header-height: 130px;
 
 .CovidDataExplorer {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
     margin: 0 auto;
+    padding-top: $grid-gap;
     width: 100%;
     max-width: 1200px;
-    padding-top: 5px;
-    min-height: 790px;
+    grid-row-gap: $grid-gap;
+    grid-column-gap: $grid-gap;
 
-    .CovidDataExplorerSideBar {
-        width: 220px;
-        margin-right: 10px;
+    .CovidHeaderBox {
+        height: $header-height;
+        padding: 8px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid rgb(233, 233, 233);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
 
-        .CovidHeaderBox {
-            height: $header-height;
-            padding: 8px;
-            background: white;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border: 1px solid rgb(233, 233, 233);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-
-            .CovidTitle {
-                font-size: 28px;
-                line-height: 32px;
-                font-family: "Playfair Display";
-            }
-
-            .CovidLastUpdated {
-                color: #7a899e;
-                font-size: 13px;
-            }
+        .CovidTitle {
+            font-size: 28px;
+            line-height: 32px;
+            font-family: "Playfair Display";
         }
 
-        .CountryList {
-            box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-                rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
-            border-radius: 2px;
-            background-color: #fff;
-        }
-
-        .ClearSelectionButton {
-            color: $controls-color;
+        .CovidLastUpdated {
+            color: #7a899e;
             font-size: 13px;
-            line-height: 16px;
-            text-align: center;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .CountrySearchResults {
-            height: 603px;
-            overflow-y: scroll;
         }
     }
 
-    .CovidDataExplorerMain {
-        width: calc(100% - 200);
+    .CountryList {
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+            rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+        border-radius: 2px;
+        background-color: #fff;
+    }
 
-        .CovidDataExplorerTopBar {
-            height: $header-height;
+    .ClearSelectionButton {
+        color: $controls-color;
+        font-size: 13px;
+        line-height: 16px;
+        text-align: center;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .CountrySearchResults {
+        overflow-y: scroll;
+        height: 595px;
+    }
+
+    .CovidDataExplorerTopBar {
+        height: $header-height;
+        display: flex;
+        justify-content: space-between;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid rgb(233, 233, 233);
+        padding: 8px 14px;
+
+        .CovidDataExplorerControl {
             display: flex;
-            justify-content: space-between;
-            background: white;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border: 1px solid rgb(233, 233, 233);
-            padding: 8px 14px;
+            flex-direction: column;
+            font-size: 13px;
+            color: #7a899e;
+            line-height: 26px;
 
-            .CovidDataExplorerControl {
-                display: flex;
-                flex-direction: column;
-                font-size: 13px;
-                color: #7a899e;
-                line-height: 26px;
+            input {
+                margin-right: 5px;
+            }
 
-                input {
-                    margin-right: 5px;
-                }
+            .ControlHeader {
+                font-size: 11px;
+                text-transform: uppercase;
+            }
 
-                .ControlHeader {
-                    font-size: 11px;
-                    text-transform: uppercase;
-                }
-
-                .SelectedOption {
-                    color: #243d60;
-                }
+            .SelectedOption {
+                color: #243d60;
             }
         }
     }
@@ -219,7 +210,6 @@ $header-height: 130px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 790px;
     width: 100%;
 }
 
