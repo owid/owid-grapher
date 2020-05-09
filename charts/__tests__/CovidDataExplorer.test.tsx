@@ -24,6 +24,6 @@ describe(CovidDataExplorer, () => {
             />
         )
 
-        expect(element.html()).toContain("COVID-19 Data Explorer")
+        expect(element.html()).toContain("Coronavirus Pandemic Data Explorer")
     })
 })

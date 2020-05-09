@@ -21,7 +21,7 @@ export const CovidDataExplorerPage = () => {
         <html>
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/covid-data-explorer`}
-                pageTitle="COVID-19 Data Explorer"
+                pageTitle="Coronavirus Pandemic Data Explorer"
             >
                 <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
                 <link
