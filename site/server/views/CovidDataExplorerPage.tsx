@@ -3,6 +3,10 @@ import * as settings from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
+import {
+    covidLastUpdatedPath,
+    covidDataPath
+} from "charts/covidDataExplorer/CovidDataUtils"
 
 export const CovidDataExplorerPage = () => {
     const script = `window.CovidDataExplorer.bootstrap()`
@@ -17,12 +21,18 @@ export const CovidDataExplorerPage = () => {
         <html>
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/covid-data-explorer`}
-                pageTitle="Covid-19 Data Explorer"
+                pageTitle="COVID-19 Data Explorer"
             >
                 <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
                 <link
                     rel="preload"
-                    href="https://covid.ourworldindata.org/data/owid-covid-data.csv"
+                    href={covidDataPath}
+                    as="fetch"
+                    crossOrigin="anonymous"
+                />
+                <link
+                    rel="preload"
+                    href={covidLastUpdatedPath}
                     as="fetch"
                     crossOrigin="anonymous"
                 />

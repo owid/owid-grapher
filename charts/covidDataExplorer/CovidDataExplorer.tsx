@@ -10,7 +10,7 @@ import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { max, isMobile } from "charts/Util"
+import { max, isMobile, fetchText } from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -36,17 +36,19 @@ import {
     continentsVariable,
     buildCovidVariableId,
     makeCountryOptions,
-    covidDataPath
+    covidDataPath,
+    covidLastUpdatedPath
 } from "./CovidDataUtils"
-import { variablePartials } from "./CovidVariablePartials"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
+import moment from "moment"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
+    updated: string
     bounds: Bounds
 }> {
     static async bootstrap() {
@@ -59,11 +61,14 @@ export class CovidDataExplorer extends React.Component<{
             <div className="LoadingCovidDataExplorer"></div>,
             containerNode
         )
+
         const typedData = await fetchAndParseData()
+        const updated = await fetchText(covidLastUpdatedPath)
         const startingParams = new CovidQueryParams(window.location.search)
         ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
+                updated={updated}
                 params={startingParams}
                 bounds={containerBounds}
             />,
@@ -295,6 +300,16 @@ export class CovidDataExplorer extends React.Component<{
         this.updateChart()
     }
 
+    @computed get lastUpdated() {
+        const time = moment.utc(this.props.updated)
+        const formatString = "Do MMM, kk:mm"
+        return `Data last updated ${time.format(formatString)} (London time)`
+    }
+
+    @computed get howLongAgo() {
+        return moment.utc(this.props.updated).fromNow()
+    }
+
     render() {
         const bounds = this.props.bounds
         let chartBounds = new Bounds(0, 0, 1000, 1000 * (680 / 480))
@@ -307,8 +322,8 @@ export class CovidDataExplorer extends React.Component<{
             <div className="CovidDataExplorer">
                 <div className="CovidHeaderBox">
                     <div className="CovidTitle">COVID-19 Data Explorer</div>
-                    <div className="CovidLastUpdated">
-                        Updated {this.lastUpdated}
+                    <div className="CovidLastUpdated" title={this.howLongAgo}>
+                        {this.lastUpdated}
                     </div>
                 </div>
                 <div className="CovidDataExplorerControlBar">
@@ -344,12 +359,6 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed private get availableEntities() {
         return this.countryOptions.map(country => country.name)
-    }
-
-    @computed get lastUpdated() {
-        const rows = this.countryOptions[this.countryMap.get("United States")!]
-            .rows
-        return rows[rows.length - 1].date
     }
 
     @computed get frequencyTitle() {
@@ -517,7 +526,8 @@ export class CovidDataExplorer extends React.Component<{
                     rowFn,
                     this.perCapitaDivisor,
                     this.props.params.smoothing,
-                    daily
+                    daily,
+                    this.lastUpdated
                 )
             }
         }
