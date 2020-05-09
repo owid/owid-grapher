@@ -306,7 +306,7 @@ export class CovidDataExplorer extends React.Component<{
         return (
             <div className="CovidDataExplorer">
                 <div className="CovidHeaderBox">
-                    <div className="CovidTitle">Covid-19 Data Explorer</div>
+                    <div className="CovidTitle">COVID-19 Data Explorer</div>
                     <div className="CovidLastUpdated">
                         Updated {this.lastUpdated}
                     </div>
