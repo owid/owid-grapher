@@ -20,6 +20,7 @@ describe(CovidDataExplorer, () => {
                 data={parsedRows}
                 params={startingParams}
                 bounds={bounds}
+                updated="2020-05-09T18:59:31"
             />
         )
 

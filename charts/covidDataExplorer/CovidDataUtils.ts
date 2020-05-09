@@ -57,6 +57,9 @@ export declare type RowAccessor = (row: ParsedCovidRow) => number | undefined
 export const covidDataPath =
     "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 
+export const covidLastUpdatedPath =
+    "https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt"
+
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const rawData = await csv(covidDataPath)
     return rawData
@@ -155,7 +158,8 @@ export const buildCovidVariable = (
     rowFn: RowAccessor,
     perCapita: number,
     rollingAverage?: number,
-    daily?: boolean
+    daily?: boolean,
+    updatedTime?: string
 ): OwidVariable => {
     const filtered = data.filter(d => rowFn(d) !== undefined)
     const years = filtered.map(row => dateToYear(row.date))
@@ -208,6 +212,8 @@ export const buildCovidVariable = (
         entityNames,
         values
     }
+
+    variable.source!.name = `${variable.source!.name} - ${updatedTime}`
 
     variable.id = newId
 
