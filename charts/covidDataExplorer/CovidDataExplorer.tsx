@@ -10,7 +10,7 @@ import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { max } from "charts/Util"
+import { max, isMobile } from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -296,7 +296,12 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        const chartBounds = new Bounds(0, 0, 1000, (1000 * 680) / 480)
+        const bounds = this.props.bounds
+        let chartBounds = new Bounds(0, 0, 1000, 1000 * (680 / 480))
+
+        if (isMobile()) {
+            chartBounds = new Bounds(0, 0, bounds.width, bounds.height)
+        }
 
         return (
             <div className="CovidDataExplorer">
@@ -306,7 +311,7 @@ export class CovidDataExplorer extends React.Component<{
                         Updated {this.lastUpdated}
                     </div>
                 </div>
-                <div className="CovidDataExplorerTopBar">
+                <div className="CovidDataExplorerControlBar">
                     {this.metricPicker}
                     {this.frequencyPicker}
                     {this.perCapitaPicker}

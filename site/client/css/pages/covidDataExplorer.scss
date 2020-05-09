@@ -3,7 +3,6 @@ $ideal-ratio: 680/480;
 
 $border-radius: 4px;
 $grid-gap: 10px;
-$header-height: 130px;
 $placeholder-height: 800px;
 
 .CovidDataExplorer {
@@ -17,8 +16,8 @@ $placeholder-height: 800px;
     grid-column-gap: $grid-gap;
 
     .CovidHeaderBox {
-        height: $header-height;
         padding: 8px;
+        min-width: 200px;
         background: white;
         border-radius: 5px;
         border: 1px solid rgb(233, 233, 233);
@@ -57,16 +56,25 @@ $placeholder-height: 800px;
     .CountrySearchResults {
         overflow-y: scroll;
         height: 595px;
+
+        @media only screen and (max-width: 450px) {
+            height: 100px;
+        }
     }
 
-    .CovidDataExplorerTopBar {
-        height: $header-height;
+    .CovidDataExplorerControlBar {
         display: flex;
         justify-content: space-between;
         background: white;
         border-radius: 5px;
         border: 1px solid rgb(233, 233, 233);
         padding: 8px 14px;
+
+        @media only screen and (max-width: 450px) {
+            flex-direction: column;
+            height: 100px;
+            overflow: scroll;
+        }
 
         .CovidDataExplorerControl {
             display: flex;
@@ -88,6 +96,10 @@ $placeholder-height: 800px;
                 color: #243d60;
             }
         }
+    }
+
+    @media only screen and (max-width: 450px) {
+        grid-template-columns: auto;
     }
 }
 
