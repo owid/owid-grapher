@@ -6,7 +6,8 @@ import {
     cloneDeep,
     map,
     groupBy,
-    parseFloatOrUndefined
+    parseFloatOrUndefined,
+    insertMissingValuePlaceholders
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
@@ -172,19 +173,28 @@ export const buildCovidVariable = (
         })
 
     if (rollingAverage) {
-        const averages = []
+        const averages: number[][] = []
         let currentEntity = entities[0]
-        let currentValues = []
+        let currentValues: number[] = []
+        let currentDates: number[] = []
         for (let i = 0; i < entities.length; i++) {
             const entity = entities[i]
             if (currentEntity !== entity) {
                 averages.push(
-                    computeRollingAverage(currentValues, rollingAverage)
+                    computeRollingAverage(
+                        insertMissingValuePlaceholders(
+                            currentValues,
+                            currentDates
+                        ),
+                        rollingAverage
+                    ).filter(value => value !== undefined) as number[]
                 )
                 currentValues = []
+                currentDates = []
                 currentEntity = entity
             }
             currentValues.push(values[i])
+            currentDates.push(years[i])
         }
         values = flatten(averages)
     }

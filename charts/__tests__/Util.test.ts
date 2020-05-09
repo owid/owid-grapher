@@ -8,7 +8,8 @@ import {
     DataValue,
     formatDay,
     retryPromise,
-    computeRollingAverage
+    computeRollingAverage,
+    insertMissingValuePlaceholders
 } from "../Util"
 
 describe(findClosestYear, () => {
@@ -76,10 +77,10 @@ describe(getStartEndValues, () => {
 
 describe(computeRollingAverage, () => {
     const testCases: {
-        numbers: number[]
+        numbers: (number | undefined)[]
         window: number
         align: "center" | "right"
-        result: number[]
+        result: (number | undefined)[]
     }[] = [
         // no smoothing
         {
@@ -93,6 +94,12 @@ describe(computeRollingAverage, () => {
             window: 2,
             align: "right",
             result: [1, 0, 0, 0]
+        },
+        {
+            numbers: [1, undefined, undefined, -1, 1],
+            window: 2,
+            align: "right",
+            result: [1, undefined, undefined, -1, 0]
         },
         {
             numbers: [1, 3, 5, 1],
@@ -116,6 +123,23 @@ describe(computeRollingAverage, () => {
                     testCase.align
                 )
             ).toEqual(testCase.result)
+        })
+    })
+})
+
+describe(insertMissingValuePlaceholders, () => {
+    const testCases = [
+        {
+            values: [2, -3, 10],
+            years: [0, 2, 3],
+            expected: [2, undefined, -3, 10]
+        }
+    ]
+    it("computes the rolling average", () => {
+        testCases.forEach(testCase => {
+            expect(
+                insertMissingValuePlaceholders(testCase.values, testCase.years)
+            ).toEqual(testCase.expected)
         })
     })
 })
