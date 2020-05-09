@@ -683,13 +683,19 @@ export function parseFloatOrUndefined(s: string | undefined) {
 }
 
 export function computeRollingAverage(
-    numbers: number[],
+    numbers: (number | undefined)[],
     windowSize: number,
     align: "right" | "center" = "right"
 ) {
-    const result: number[] = []
+    const result: (number | undefined)[] = []
 
     for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
+        // If a value is undefined in the original input, keep it undefined in the output
+        if (numbers[valueIndex] === undefined) {
+            result[valueIndex] = undefined
+            continue
+        }
+
         // Take away 1 for the current value (windowSize=1 means no smoothing & no expansion)
         const expand = windowSize - 1
 
@@ -709,14 +715,41 @@ export function computeRollingAverage(
             windowIndex <= endIndex;
             windowIndex++
         ) {
-            sum += numbers[windowIndex]
-            count++
+            const value = numbers[windowIndex]
+            if (value !== undefined) {
+                sum += value
+                count++
+            }
         }
 
         result[valueIndex] = sum / count
     }
 
     return result
+}
+
+// In Grapher we return just the years for which we have values for. This puts undefineds
+// in the spots where we are missing values (added to make computing rolling windows easier).
+// Takes an array of value/year pairs and expands it so that there is an undefined
+// for each missing value from the first year to the last year, preserving the position of
+// the existing values.
+export function insertMissingValuePlaceholders(
+    values: number[],
+    years: number[]
+) {
+    const startYear = years[0]
+    const endYear = years[years.length - 1]
+    const filledRange = []
+    let year = startYear
+    const map = new Map()
+    years.forEach((year, index) => {
+        map.set(year, index)
+    })
+    while (year <= endYear) {
+        filledRange.push(values[map.get(year)])
+        year++
+    }
+    return filledRange
 }
 
 // Scroll Helpers
