@@ -222,7 +222,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 })
             })
 
-        return sparkBarValues
+        return sparkBarValues.slice(-this.sparkBarsToDisplay)
     }
 
     @computed get sparkBarsDomain() {
