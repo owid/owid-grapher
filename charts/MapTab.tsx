@@ -25,6 +25,7 @@ import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
+import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -303,18 +304,43 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                             }}
                         >
                             <span>
-                                {sparkBarsProps && (
-                                    <SparkBars<SparkBarsDatum>
-                                        {...sparkBarsProps}
-                                    />
+                                {tooltipDatum ? (
+                                    <div className="temp">
+                                        <div className="measure--deaths">
+                                            <div className="trend">
+                                                <div className="plot">
+                                                    <SparkBars<SparkBarsDatum>
+                                                        {...sparkBarsProps}
+                                                    />
+                                                </div>
+                                                <div className="value">
+                                                    {tooltipDatum && (
+                                                        <CovidTimeSeriesValue
+                                                            className="current"
+                                                            value={this.context.chart.map.data.formatTooltipValue(
+                                                                tooltipDatum.value
+                                                            )}
+                                                            formattedDate={formatYear(
+                                                                inputYear as number
+                                                            )}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    `No data for ${formatYear(
+                                        inputYear as number
+                                    )}`
                                 )}
-                                {tooltipDatum
+                                {/* {tooltipDatum
                                     ? this.context.chart.map.data.formatTooltipValue(
                                           tooltipDatum.value
                                       )
                                     : `No data for ${formatYear(
                                           inputYear as number
-                                      )}`}
+                                      )}`} */}
                             </span>
                             <br />
                             {tooltipDatum && tooltipDatum.year !== inputYear && (
@@ -398,4 +424,31 @@ export class MapTab extends React.Component<MapTabProps> {
             </ChartLayoutView>
         )
     }
+}
+
+const sparkBarGenerator = (
+    latestDatumForTooltipEntity: SparkBarsDatum | undefined
+) => (props: SparkBarsProps<SparkBarsDatum>) => {
+    // const { bars, datum } = props
+    const date2 = new Date(Date.now())
+    return (
+        <div className="temp">
+            <div className="measure--deaths">
+                <div className="trend">
+                    <div className="plot">
+                        <SparkBars<SparkBarsDatum> {...props} />
+                    </div>
+                    <div className="value">
+                        {latestDatumForTooltipEntity && (
+                            <CovidTimeSeriesValue
+                                className="current"
+                                value={"bro"}
+                                date={date2}
+                            />
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
 }
