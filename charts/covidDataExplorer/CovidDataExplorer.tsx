@@ -604,14 +604,12 @@ export class CovidDataExplorer extends React.Component<{
         },
         tests: {
             total: {
-                title:
-                    "Days since daily new confirmed deaths due to COVID-19 reached 0.1 per million",
-                fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+                title: "Days since the 5th total confirmed death",
+                fn: (row: ParsedCovidRow) => row.total_deaths >= 5
             },
             daily: {
-                title:
-                    "Days since daily new confirmed deaths due to COVID-19 reached 0.1 per million",
-                fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+                title: "Days since 5 daily deaths first reported",
+                fn: (row: ParsedCovidRow) => row.new_deaths >= 5
             }
         }
     }
