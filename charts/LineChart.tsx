@@ -261,7 +261,7 @@ export class LineChart extends React.Component<{
 
     @observable hoverKey?: string
     @action.bound onLegendClick(key: EntityDimensionKey) {
-        if (this.chart.data.canAddData) {
+        if (this.chart.showAddEntityControls) {
             this.context.chartView.isSelectingData = true
         }
     }
@@ -362,7 +362,7 @@ export class LineChart extends React.Component<{
                             focusKeys={this.focusKeys}
                             yScale={axisBox.yScale}
                             onClick={this.onLegendClick}
-                            areMarksClickable={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.showAddEntityControls}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
                         />
