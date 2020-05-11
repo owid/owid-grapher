@@ -46,9 +46,9 @@ export class CovidQueryParams {
         this.deathsMetric = false
         this.casesMetric = true
         this.totalFreq = true
-        this.selectedCountryCodes.add("USA")
-        this.selectedCountryCodes.add("JPN")
-        this.selectedCountryCodes.add("GBR")
+        "USA+GBR+CAN+BRA+AUS+IND+ESP+DEU+FRA"
+            .split("+")
+            .forEach(code => this.selectedCountryCodes.add(code))
     }
 
     @computed get toParams(): QueryParams {
