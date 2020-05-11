@@ -406,7 +406,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get title() {
-        return `${this.frequencyTitle} Confirmed COVID-19 ${this.metricTitle}${this.perCapitaTitle}`
+        return `${this.frequencyTitle} confirmed COVID-19 ${this.metricTitle}${this.perCapitaTitle}`
     }
 
     @computed get subtitle() {
@@ -424,7 +424,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get note() {
         if (this.props.params.testsMetric)
-            return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on our testing page."
+            return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on ourworldindata.org/covid-testing."
         return ""
     }
 
