@@ -390,7 +390,7 @@ export class ChartConfig {
         return `${BAKED_GRAPHER_URL}/data/variables/${this.dataFileName}`
     }
 
-    @computed get showChangeEntityButton() {
+    @computed get showAddEntityControls() {
         return !this.hideEntityControls && this.data.canAddData
     }
 

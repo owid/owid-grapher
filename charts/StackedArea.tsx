@@ -295,7 +295,7 @@ export class StackedArea extends React.Component<{
 
     @observable hoverKey?: string
     @action.bound onLegendClick(key: EntityDimensionKey) {
-        if (this.chart.data.canAddData) {
+        if (this.chart.showAddEntityControls) {
             this.context.chartView.isSelectingData = true
         }
     }
@@ -494,7 +494,7 @@ export class StackedArea extends React.Component<{
                             onClick={this.onLegendClick}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
-                            areMarksClickable={this.chart.data.canAddData}
+                            areMarksClickable={this.chart.showAddEntityControls}
                         />
                     )}
                     <Areas
