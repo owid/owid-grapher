@@ -1,5 +1,5 @@
 $table-bg: $body-bg;
-.temp {
+.map-tooltip {
     .time-series-value {
         line-height: 1.3;
         white-space: nowrap;
@@ -31,6 +31,27 @@ $table-bg: $body-bg;
 
             &:hover {
                 color: rgba($primary-color, 0.65);
+            }
+        }
+
+        $bar-color: #ab0000;
+        $highlight-color: $bar-color;
+
+        .time-series-value.current .count {
+            color: $bar-color;
+        }
+
+        .time-series-value.highlighted {
+            color: $highlight-color;
+        }
+
+        .bar {
+            background-color: rgba(desaturate($bar-color, 40%), 0.25);
+            &.current {
+                background-color: $bar-color;
+            }
+            &.highlighted {
+                background-color: $highlight-color;
             }
         }
     }
@@ -100,49 +121,5 @@ $table-bg: $body-bg;
             0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg,
             0 0 3px $table-bg, 0 0 3px $table-bg, 0 0 3px $table-bg;
         z-index: 1;
-    }
-}
-
-// themes
-
-.time-series-value {
-    &.highlighted {
-        color: #d42b21;
-    }
-}
-
-.spark-bars {
-    .bar {
-        background-color: rgba($primary-color, 0.3);
-        &.current {
-            background-color: #1d3d63;
-        }
-        &.highlighted {
-            background-color: #d42b21;
-        }
-    }
-}
-
-.measure--deaths {
-    $measure-color: #ab0000;
-    $highlight-color: $measure-color;
-
-    .time-series-value.current .count,
-    .measure {
-        color: $measure-color;
-    }
-
-    .time-series-value.highlighted {
-        color: $highlight-color;
-    }
-
-    .bar {
-        background-color: rgba(desaturate($measure-color, 40%), 0.25);
-        &.current {
-            background-color: $measure-color;
-        }
-        &.highlighted {
-            background-color: $highlight-color;
-        }
     }
 }
