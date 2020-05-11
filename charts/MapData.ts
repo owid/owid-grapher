@@ -187,6 +187,17 @@ export class MapData extends ChartTransform {
         )
     }
 
+    @computed get hasTimeline(): boolean {
+        // Maps have historically had an independent property to hide the timeline.
+        // The config objects in the database still have this property, though we have not yet run
+        // into a case where the timeline needs to be shown
+        return (
+            this.timelineYears.length > 1 &&
+            !this.chart.props.hideTimeline &&
+            !this.map.props.hideTimeline
+        )
+    }
+
     @computed get map() {
         return this.chart.map
     }
