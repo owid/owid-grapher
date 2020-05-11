@@ -37,7 +37,8 @@ import {
     buildCovidVariableId,
     makeCountryOptions,
     covidDataPath,
-    covidLastUpdatedPath
+    covidLastUpdatedPath,
+    getTrajectoryOptions
 } from "./CovidDataUtils"
 import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3-scale"
@@ -579,40 +580,7 @@ export class CovidDataExplorer extends React.Component<{
             : params.casesMetric
             ? "cases"
             : "tests"
-        return this.daysSinceOptions[kind][params.dailyFreq ? "daily" : "total"]
-    }
-
-    daysSinceOptions = {
-        deaths: {
-            total: {
-                title: "Days since the 5th total confirmed death",
-                fn: (row: ParsedCovidRow) => row.total_deaths >= 5
-            },
-            daily: {
-                title: "Days since 5 daily deaths first reported",
-                fn: (row: ParsedCovidRow) => row.new_deaths >= 5
-            }
-        },
-        cases: {
-            total: {
-                title: "Days since the 100th confirmed case",
-                fn: (row: ParsedCovidRow) => row.total_cases >= 100
-            },
-            daily: {
-                title: "Days since confirmed cases first reached 30 per day",
-                fn: (row: ParsedCovidRow) => row.new_cases >= 30
-            }
-        },
-        tests: {
-            total: {
-                title: "Days since the 5th total confirmed death",
-                fn: (row: ParsedCovidRow) => row.total_deaths >= 5
-            },
-            daily: {
-                title: "Days since 5 daily deaths first reported",
-                fn: (row: ParsedCovidRow) => row.new_deaths >= 5
-            }
-        }
+        return getTrajectoryOptions(kind, params.dailyFreq, params.perCapita)
     }
 
     @observable.struct owidVariableSet: OwidVariableSet = {
