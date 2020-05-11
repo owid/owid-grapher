@@ -35,6 +35,7 @@ import { countryProfilePage, countriesIndexPage } from "./countryProfiles"
 import { makeSitemap } from "./sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "./svgPngExport"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 
 const devServer = express()
 
@@ -100,7 +101,7 @@ devServer.get("/explore", async (req, res) => {
     res.send(await renderExplorePage())
 })
 
-devServer.get("/covid-data-explorer", async (req, res) => {
+devServer.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidDataExplorerPage())
 })
 

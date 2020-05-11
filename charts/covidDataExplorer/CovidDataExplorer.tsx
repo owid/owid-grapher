@@ -43,6 +43,7 @@ import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
+import { covidDashboardSlug } from "./CovidConstants"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -665,7 +666,7 @@ export class CovidDataExplorer extends React.Component<{
         this.bindToWindow()
         this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
-        this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/covid-data-explorer`
+        this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
         const win = window as any
         win.covidDataExplorer = this
@@ -732,7 +733,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @observable.ref chart = new ChartConfig(
         {
-            slug: "covid-data-explorer",
+            slug: covidDashboardSlug,
             type: this.chartType,
             isExplorable: false,
             id: 4128,
