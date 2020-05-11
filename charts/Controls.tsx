@@ -434,8 +434,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onMapTargetChange}
-                    startYear={map.data.targetYear}
-                    endYear={map.data.targetYear}
+                    startYear={map.targetYear}
+                    endYear={map.targetYear}
                     singleYearMode={true}
                 />
             )
