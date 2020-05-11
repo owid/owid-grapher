@@ -693,15 +693,17 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         li {
             line-height: 1.2;
             margin-bottom: $vertical-spacing / 2;
-            // display: inline;
-            // &:not(:last-child)::after {
-            //     content: "\00b7";
-            //     margin: 0 0.5rem;
-            // }
         }
 
         a {
             color: $primary-color;
+            &:hover svg {
+                color: inherit;
+            }
+        }
+        svg {
+            color: $primary-color-400;
+            margin-right: 0.5rem;
         }
 
         @include sm-only {
