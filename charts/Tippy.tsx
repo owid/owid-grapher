@@ -4,8 +4,8 @@ import {
     TippyProps,
     tippy as tippyCore
 } from "@tippyjs/react"
-// import "tippyjs/dist/tippy.css"
-// import "tippyjs/themes/light.css"
+import "tippy.js/dist/tippy.css"
+import "tippy.js/themes/light.css"
 
 export const Tippy = (props: TippyProps) => (
     <OriginalTippy theme="light" {...props} />
