@@ -240,8 +240,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     generateTooltip(
-        inputYear: number | undefined,
-        tooltipDatum: ChoroplethDatum | undefined
+        tooltipDatum: ChoroplethDatum | undefined,
+        inputYear: number | undefined
     ) {
         return tooltipDatum ? (
             <div className="map-tooltip">
@@ -261,7 +261,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                         tooltipDatum.value
                                     )}
                                     formattedDate={this.props.formatYear(
-                                        inputYear as number
+                                        tooltipDatum.year as number
                                     )}
                                 />
                             )}
@@ -281,8 +281,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             defaultFill,
             bounds,
             inputYear,
-            mapToDataEntities,
-            formatYear
+            mapToDataEntities
         } = this.props
         const {
             focusBracket,
@@ -345,23 +344,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                             }}
                         >
                             <span>
-                                {this.generateTooltip(inputYear, tooltipDatum)}
-                                {/* {tooltipDatum
-                                    ? this.context.chart.map.data.formatTooltipValue(
-                                          tooltipDatum.value
-                                      )
-                                    : `No data for ${formatYear(
-                                          inputYear as number
-                                      )}`} */}
+                                {this.generateTooltip(tooltipDatum, inputYear)}
                             </span>
                             <br />
-                            {tooltipDatum && tooltipDatum.year !== inputYear && (
-                                <div>
-                                    in
-                                    <br />
-                                    <span>{formatYear(tooltipDatum.year)}</span>
-                                </div>
-                            )}
                         </div>
                         {this.isEntityClickable(tooltipTarget.featureId) && (
                             <div>
@@ -369,7 +354,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     style={{
                                         margin: 0,
                                         padding: "0.3em 0.9em",
-                                        fontSize: "0.7em",
+                                        fontSize: "0.8em",
                                         opacity: 0.6
                                     }}
                                 >
