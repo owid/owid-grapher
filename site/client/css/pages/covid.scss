@@ -583,3 +583,34 @@ $table-bg: $body-bg;
         }
     }
 }
+
+.article-content ul.covid-country-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    grid-gap: 0.5rem;
+    padding: 0;
+    list-style-type: none;
+
+    a {
+        text-align: center;
+        border-radius: 3px;
+        border: 1px solid $primary-color-200;
+        background-color: $primary-color-100;
+        display: block;
+        padding: 0.5rem;
+        color: $primary-color;
+        text-decoration: none;
+        transition: all 0.1s;
+
+        &:hover {
+            color: $primary-color-800;
+            text-decoration: none;
+            background-color: $primary-color-200;
+            border-color: $primary-color;
+        }
+
+        &:visited {
+            color: $primary-color-800;
+        }
+    }
+}
