@@ -7,6 +7,7 @@ import {
     covidLastUpdatedPath,
     covidDataPath
 } from "charts/covidDataExplorer/CovidDataUtils"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 
 export const CovidDataExplorerPage = () => {
     const script = `window.CovidDataExplorer.bootstrap()`
@@ -20,7 +21,7 @@ export const CovidDataExplorerPage = () => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/covid-data-explorer`}
+                canonicalUrl={`${settings.BAKED_BASE_URL}/${covidDashboardSlug}`}
                 pageTitle="Coronavirus Pandemic Data Explorer"
             >
                 <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
