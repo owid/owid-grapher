@@ -52,6 +52,7 @@ export interface FormattedPost {
 
 export interface TocHeading {
     text: string
+    html?: string
     slug: string
     isSubheading: boolean
 }
@@ -358,8 +359,7 @@ export async function formatWordpressPost(
     $("h1, h2, h3, h4").each((_, el) => {
         const $heading = $(el)
         const headingText = $heading.text()
-        // We need both the text and the html because may contain footnote
-        // let headingHtml = $heading.html() as string
+
         let slug = urlSlug(headingText)
 
         // Avoid If the slug already exists, try prepend the parent
@@ -380,7 +380,7 @@ export async function formatWordpressPost(
             } else if (!$heading.is("h1") && !$heading.is("h4")) {
                 if ($heading.is("h2")) {
                     const tocHeading = {
-                        text: $heading.text(),
+                        text: headingText,
                         slug: slug,
                         isSubheading: false
                     }
@@ -393,7 +393,8 @@ export async function formatWordpressPost(
                         .length === 0
                 ) {
                     tocHeadings.push({
-                        text: $heading.text(),
+                        text: headingText,
+                        html: $heading.html() || undefined,
                         slug: slug,
                         isSubheading: true
                     })
