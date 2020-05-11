@@ -21,6 +21,8 @@ export interface SparkBarsProps<T> {
     currentX?: number
     highlightedX?: number
     renderValue?: (d: T | undefined) => JSX.Element | undefined
+    onHover?: (d: T | undefined, index: number | undefined) => void
+    className?: string
 }
 
 export interface SparkBarsDatum {
@@ -31,7 +33,8 @@ export interface SparkBarsDatum {
 @observer
 export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
-        onHover: () => undefined
+        onHover: () => undefined,
+        className: "spark-bars"
     }
 
     @computed get barHeightScale() {
@@ -73,11 +76,28 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return result
     }
 
+    applyHoverFunctionIfExists = (
+        d: T | undefined,
+        index: number | undefined
+    ) => () => {
+        this.props.onHover && this.props.onHover(d, index)
+    }
+
     render() {
         return (
-            <div className="spark-bars">
+            <div
+                className={this.props.className}
+                onMouseLeave={this.applyHoverFunctionIfExists(
+                    undefined,
+                    undefined
+                )}
+            >
                 {this.bars.map((d, i) => (
-                    <div key={i} className="bar-wrapper">
+                    <div
+                        key={i}
+                        className="bar-wrapper"
+                        onMouseEnter={this.applyHoverFunctionIfExists(d, i)}
+                    >
                         {this.props.highlightedX === i &&
                             d !== undefined &&
                             this.props.renderValue && (

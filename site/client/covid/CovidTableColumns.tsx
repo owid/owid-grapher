@@ -22,7 +22,7 @@ import {
     CovidDoublingRange
 } from "./CovidTypes"
 import { formatDate, formatInt } from "./CovidUtils"
-import { CovidBarsProps, CovidBars } from "./CovidBars"
+import CovidBars, { CovidBarsProps } from "./CovidBars"
 import { nouns } from "./CovidConstants"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
 import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
