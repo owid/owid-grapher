@@ -63,8 +63,7 @@ $table-bg: $body-bg;
     }
 }
 
-.covid-table,
-.temp {
+.covid-table {
     margin: 0;
     border: none;
     width: 100%;
@@ -375,7 +374,6 @@ $table-bg: $body-bg;
 }
 
 .covid-table-mobile {
-    .spark-bars,
     .covid-bars {
         width: 100%;
         max-width: 70px;
@@ -387,7 +385,6 @@ $table-bg: $body-bg;
     }
 }
 
-.spark-bars,
 .covid-bars {
     width: 84px; // should be a multiple of 14
     height: 3em;
@@ -482,7 +479,6 @@ $table-bg: $body-bg;
     }
 }
 
-.spark-bars,
 .covid-bars {
     .bar {
         background-color: rgba($primary-color, 0.3);

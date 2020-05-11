@@ -86,7 +86,8 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
                                 </div>
                             )}
                         <div
-                            className={`bar ${this.barState(i)}`}
+                            className={`bar ${d &&
+                                this.barState(this.props.x(d))}`}
                             style={{
                                 height: this.barHeight(d)
                             }}

@@ -234,6 +234,11 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return [start, end]
     }
 
+    @computed get currentSparkBar() {
+        const lastVal = last(this.sparkBarsData)
+        return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
+    }
+
     render() {
         const {
             choroplethData,
@@ -251,7 +256,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             tooltipTarget,
             tooltipDatum,
             projectionChooserBounds,
-            sparkBarsProps
+            sparkBarsProps,
+            currentSparkBar
         } = this
         return (
             <g ref={this.base} className="mapTab">
@@ -284,6 +290,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{ textAlign: "center" }}
+                        offsetX={30}
                     >
                         <h3
                             style={{
@@ -311,6 +318,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                                 <div className="plot">
                                                     <SparkBars<SparkBarsDatum>
                                                         {...sparkBarsProps}
+                                                        currentX={
+                                                            currentSparkBar
+                                                        }
                                                     />
                                                 </div>
                                                 <div className="value">
