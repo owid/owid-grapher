@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, last } from "./Util"
+import { getRelativeMouse, last, isMobile } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -291,6 +291,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                         y={tooltipTarget.y}
                         style={{ textAlign: "center" }}
                         offsetX={30}
+                        offsetY={isMobile && -50}
                     >
                         <h3
                             style={{
