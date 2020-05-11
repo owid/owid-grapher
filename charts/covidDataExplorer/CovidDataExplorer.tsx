@@ -530,7 +530,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.perCapitaDivisor,
                     this.props.params.smoothing,
                     daily,
-                    this.lastUpdated
+                    columnName === "tests" ? "" : " - " + this.lastUpdated
                 )
             }
         }

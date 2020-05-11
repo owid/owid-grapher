@@ -213,7 +213,7 @@ export const buildCovidVariable = (
         values
     }
 
-    variable.source!.name = `${variable.source!.name} - ${updatedTime}`
+    variable.source!.name = `${variable.source!.name}${updatedTime}`
 
     variable.id = newId
 
