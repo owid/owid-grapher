@@ -1,5 +1,7 @@
 import * as React from "react"
 import { TocHeading } from "site/server/formatting"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 
 export const SectionHeading = ({
     title,
@@ -37,7 +39,16 @@ export const SectionHeading = ({
                             {subHeadings.map(subHeading => (
                                 <li>
                                     <a href={`#${subHeading.slug}`}>
-                                        {subHeading.text}
+                                        <FontAwesomeIcon icon={faArrowDown} />
+                                        {subHeading.html ? (
+                                            <span
+                                                dangerouslySetInnerHTML={{
+                                                    __html: subHeading.html
+                                                }}
+                                            ></span>
+                                        ) : (
+                                            subHeading.text
+                                        )}
                                     </a>
                                 </li>
                             ))}
