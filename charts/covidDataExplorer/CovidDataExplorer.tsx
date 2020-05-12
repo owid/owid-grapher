@@ -20,11 +20,11 @@ import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
     max,
-    isMobile,
     fetchText,
     difference,
     pick,
-    lastOfNonEmptyArray
+    lastOfNonEmptyArray,
+    throttle
 } from "charts/Util"
 import {
     SmoothingOption,
@@ -318,12 +318,24 @@ export class CovidDataExplorer extends React.Component<{
 
     @observable showControlsPopup = false
 
+    @action.bound onResize() {
+        this.isMobile = Math.min(window.innerWidth, window.screen.width) <= 450
+    }
+
+    @observable isMobile: boolean =
+        Math.min(window.innerWidth, window.screen.width) <= 450
+
     render() {
         const bounds = this.props.bounds
         let chartBounds = new Bounds(0, 0, 1000, 1000 * (680 / 480))
-        const mobile = isMobile()
+        const mobile = this.isMobile
         if (mobile) {
-            chartBounds = new Bounds(0, 0, bounds.width, bounds.height)
+            chartBounds = new Bounds(
+                0,
+                0,
+                Math.min(window.screen.width, bounds.width),
+                bounds.height
+            )
         }
 
         const customizeChartMobileButton = mobile ? (
@@ -722,7 +734,18 @@ export class CovidDataExplorer extends React.Component<{
 
         const win = window as any
         win.covidDataExplorer = this
+
+        this.onResizeThrottled = throttle(this.onResize, 100)
+        window.addEventListener("resize", this.onResizeThrottled)
     }
+
+    componentWillUnmount() {
+        if (this.onResizeThrottled) {
+            window.removeEventListener("resize", this.onResizeThrottled)
+        }
+    }
+
+    onResizeThrottled?: () => void
 
     private observeChartEntitySelection() {
         this.disposers.push(
