@@ -290,12 +290,15 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     toggleSelectedCountry(code: string, value?: boolean) {
-        if (value) this.props.params.selectedCountryCodes.add(code)
-        else if (value === false)
+        if (value) {
+            this.props.params.selectedCountryCodes.add(code)
+        } else if (value === false) {
             this.props.params.selectedCountryCodes.delete(code)
-        else if (this.props.params.selectedCountryCodes.has(code))
+        } else if (this.props.params.selectedCountryCodes.has(code)) {
             this.props.params.selectedCountryCodes.delete(code)
-        else this.props.params.selectedCountryCodes.add(code)
+        } else {
+            this.props.params.selectedCountryCodes.add(code)
+        }
     }
 
     @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
