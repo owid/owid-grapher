@@ -5,13 +5,20 @@ import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
 import { ChartConfig } from "charts/ChartConfig"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
+import {
+    computed,
+    action,
+    observable,
+    IReactionDisposer,
+    observe,
+    Lambda
+} from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { max, isMobile, fetchText } from "charts/Util"
+import { max, isMobile, fetchText, difference } from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -41,7 +48,6 @@ import {
     covidLastUpdatedPath,
     getTrajectoryOptions
 } from "./CovidDataUtils"
-import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -87,27 +93,8 @@ export class CovidDataExplorer extends React.Component<{
     private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
-        this.selectionChangeFromBuilder = true
         this.props.params.selectedCountryCodes.clear()
         this.updateChart()
-    }
-
-    // If the user does something like click a country on the map, we need to pull that selection out into the covidDataExplorer
-    // Ideally we would not be duplicating selection code here, but it's a little tricky with the current chart code.
-    setCountrySelectionsFromChart() {
-        if (this.selectionChangeFromBuilder) {
-            this.selectionChangeFromBuilder = false
-            return
-        }
-        // Do not clear country selection if the chart selection is empty. That may happen if there are
-        // no metrics selected.
-        if (!this.chart.data.selectedEntityCodes.length) return
-        const chartSet = new Set(this.chart.data.selectedEntityCodes)
-        if (isEqual(chartSet, this.props.params.selectedCountryCodes)) return
-        this.props.params.selectedCountryCodes.clear()
-        this.chart.data.selectedEntityCodes.forEach(code => {
-            this.toggleSelectedCountry(code, true)
-        })
     }
 
     setCasesMetricCommand(value: CasesMetricOption) {
@@ -302,7 +289,6 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
-        this.selectionChangeFromBuilder = true
         this.toggleSelectedCountry(code, value)
         this.updateChart()
     }
@@ -643,11 +629,12 @@ export class CovidDataExplorer extends React.Component<{
         // Generating the new chart may take a second so render the Data Explorer controls immediately then
         // update the chart view.
         setTimeout(() => {
+            this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
     }
 
-    private async _updateChart() {
+    @action.bound private async _updateChart() {
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
@@ -692,10 +679,31 @@ export class CovidDataExplorer extends React.Component<{
         urlBinding.bindUrlToWindow(url)
 
         this.disposers.push(
-            reaction(
-                () => this.chart.data.selectedEntityCodes,
-                () => this.setCountrySelectionsFromChart()
-            )
+            observe(this.chart.data, "selectedEntityCodes", change => {
+                // Ignore the change if it was triggered by the chart builder,
+                // but do not ignore subsequent changes.
+                if (this.selectionChangeFromBuilder) {
+                    this.selectionChangeFromBuilder = false
+                    return
+                }
+                // Change can only be of 'update' type since we are observing an object property.
+                if (change.type === "update") {
+                    // We want to find the added/removed entities based on the chart selection, not
+                    // taking the explorer selection into account. This is because there can be
+                    // entities excluded in the chart selection because we have no data for them,
+                    // but which may be selected in the explorer.
+                    const newCodes = change.newValue
+                    const oldCodes = change.oldValue ?? []
+                    const added = difference(newCodes, oldCodes)
+                    const removed = difference(oldCodes, newCodes)
+                    added.forEach(code =>
+                        this.toggleSelectedCountry(code, true)
+                    )
+                    removed.forEach(code =>
+                        this.toggleSelectedCountry(code, false)
+                    )
+                }
+            })
         )
     }
 
@@ -707,7 +715,7 @@ export class CovidDataExplorer extends React.Component<{
             : "OrRd"
     }
 
-    disposers: IReactionDisposer[] = []
+    disposers: (IReactionDisposer | Lambda)[] = []
 
     @bind dispose() {
         this.disposers.forEach(dispose => dispose())
