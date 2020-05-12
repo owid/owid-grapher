@@ -5,13 +5,27 @@ import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
 import { ChartConfig } from "charts/ChartConfig"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
+import {
+    computed,
+    action,
+    observable,
+    IReactionDisposer,
+    observe,
+    Lambda
+} from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { max, isMobile, fetchText } from "charts/Util"
+import {
+    max,
+    isMobile,
+    fetchText,
+    difference,
+    pick,
+    lastOfNonEmptyArray
+} from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -39,14 +53,15 @@ import {
     makeCountryOptions,
     covidDataPath,
     covidLastUpdatedPath,
-    getTrajectoryOptions
+    getTrajectoryOptions,
+    getLeastUsedColor
 } from "./CovidDataUtils"
-import { isEqual } from "charts/Util"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import { covidDashboardSlug } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -87,27 +102,8 @@ export class CovidDataExplorer extends React.Component<{
     private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
-        this.selectionChangeFromBuilder = true
         this.props.params.selectedCountryCodes.clear()
         this.updateChart()
-    }
-
-    // If the user does something like click a country on the map, we need to pull that selection out into the covidDataExplorer
-    // Ideally we would not be duplicating selection code here, but it's a little tricky with the current chart code.
-    setCountrySelectionsFromChart() {
-        if (this.selectionChangeFromBuilder) {
-            this.selectionChangeFromBuilder = false
-            return
-        }
-        // Do not clear country selection if the chart selection is empty. That may happen if there are
-        // no metrics selected.
-        if (!this.chart.data.selectedEntityCodes.length) return
-        const chartSet = new Set(this.chart.data.selectedEntityCodes)
-        if (isEqual(chartSet, this.props.params.selectedCountryCodes)) return
-        this.props.params.selectedCountryCodes.clear()
-        this.chart.data.selectedEntityCodes.forEach(code => {
-            this.toggleSelectedCountry(code, true)
-        })
     }
 
     setCasesMetricCommand(value: CasesMetricOption) {
@@ -290,16 +286,18 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     toggleSelectedCountry(code: string, value?: boolean) {
-        if (value) this.props.params.selectedCountryCodes.add(code)
-        else if (value === false)
+        if (value) {
+            this.props.params.selectedCountryCodes.add(code)
+        } else if (value === false) {
             this.props.params.selectedCountryCodes.delete(code)
-        else if (this.props.params.selectedCountryCodes.has(code))
+        } else if (this.props.params.selectedCountryCodes.has(code)) {
             this.props.params.selectedCountryCodes.delete(code)
-        else this.props.params.selectedCountryCodes.add(code)
+        } else {
+            this.props.params.selectedCountryCodes.add(code)
+        }
     }
 
     @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
-        this.selectionChangeFromBuilder = true
         this.toggleSelectedCountry(code, value)
         this.updateChart()
     }
@@ -479,7 +477,8 @@ export class CovidDataExplorer extends React.Component<{
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
             return {
                 index: 0,
-                entityId: countryCodeMap.get(code)!
+                entityId: countryCodeMap.get(code)!,
+                color: this.countryCodeToColorMap[code]
             }
         })
     }
@@ -506,6 +505,42 @@ export class CovidDataExplorer extends React.Component<{
             map.set(country.code, country.name)
         })
         return map
+    }
+
+    private _countryCodeToColorMapCache: {
+        [key: string]: string | undefined
+    } = {}
+
+    @computed get countryCodeToColorMap(): {
+        [key: string]: string | undefined
+    } {
+        const codes = this.selectedCountryOptions.map(country => country.code)
+        // If there isn't a color for every country code, we need to update the color map
+        if (!codes.every(code => code in this._countryCodeToColorMapCache)) {
+            // Omit any unselected country codes from color map
+            const newColorMap = pick(this._countryCodeToColorMapCache, codes)
+            // Check for code *key* existence, not value.
+            // `undefined` value means we want the color to be automatic, determined by the chart.
+            const codesWithoutColor = codes.filter(
+                code => !(code in newColorMap)
+            )
+            // For codes that don't have a color, assign one.
+            codesWithoutColor.forEach(code => {
+                const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+                const availableColors = lastOfNonEmptyArray(scheme.colorSets)
+                const usedColors = Object.values(newColorMap).filter(
+                    color => color !== undefined
+                ) as string[]
+                newColorMap[code] = getLeastUsedColor(
+                    availableColors,
+                    usedColors
+                )
+            })
+            // Update the country color map cache
+            this._countryCodeToColorMapCache = newColorMap
+        }
+
+        return this._countryCodeToColorMapCache
     }
 
     @computed get firstSelectedCountryName() {
@@ -640,11 +675,12 @@ export class CovidDataExplorer extends React.Component<{
         // Generating the new chart may take a second so render the Data Explorer controls immediately then
         // update the chart view.
         setTimeout(() => {
+            this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
     }
 
-    private async _updateChart() {
+    @action.bound private async _updateChart() {
         // We can't create a new chart object with every radio change because the Chart component itself
         // maintains state (for example, which tab is currently active). Temporary workaround is just to
         // manually update the chart when the chart builderselections change.
@@ -676,24 +712,53 @@ export class CovidDataExplorer extends React.Component<{
 
     componentDidMount() {
         this.bindToWindow()
+
         this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
+
+        this.observeChartEntitySelection()
+
         const win = window as any
         win.covidDataExplorer = this
+    }
+
+    private observeChartEntitySelection() {
+        this.disposers.push(
+            observe(this.chart.data, "selectedEntityCodes", change => {
+                // Ignore the change if it was triggered by the chart builder,
+                // but do not ignore subsequent changes.
+                if (this.selectionChangeFromBuilder) {
+                    this.selectionChangeFromBuilder = false
+                    return
+                }
+                // Change can only be of 'update' type since we are observing an object property.
+                if (change.type === "update") {
+                    // We want to find the added/removed entities based on the chart selection, not
+                    // taking the explorer selection into account. This is because there can be
+                    // entities excluded in the chart selection because we have no data for them,
+                    // but which may be selected in the explorer.
+                    const newCodes = change.newValue
+                    const oldCodes = change.oldValue ?? []
+                    const added = difference(newCodes, oldCodes)
+                    const removed = difference(oldCodes, newCodes)
+                    added.forEach(code =>
+                        this.toggleSelectedCountry(code, true)
+                    )
+                    removed.forEach(code =>
+                        this.toggleSelectedCountry(code, false)
+                    )
+                    // Trigger an update in order to apply color changes
+                    this.updateChart()
+                }
+            })
+        )
     }
 
     bindToWindow() {
         const url = new CovidUrl(this.chart.url, this.props.params)
         urlBinding.bindUrlToWindow(url)
-
-        this.disposers.push(
-            reaction(
-                () => this.chart.data.selectedEntityCodes,
-                () => this.setCountrySelectionsFromChart()
-            )
-        )
     }
 
     @computed get mapColorScheme() {
@@ -704,7 +769,7 @@ export class CovidDataExplorer extends React.Component<{
             : "OrRd"
     }
 
-    disposers: IReactionDisposer[] = []
+    disposers: (IReactionDisposer | Lambda)[] = []
 
     @bind dispose() {
         this.disposers.forEach(dispose => dispose())

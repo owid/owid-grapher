@@ -7,7 +7,10 @@ import {
     map,
     groupBy,
     parseFloatOrUndefined,
-    insertMissingValuePlaceholders
+    insertMissingValuePlaceholders,
+    difference,
+    entries,
+    minBy
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
@@ -293,4 +296,26 @@ const trajectoryOptions = {
             fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
         }
     }
+}
+
+export function getLeastUsedColor(
+    availableColors: string[],
+    usedColors: string[]
+): string {
+    // If there are unused colors, return the first available
+    const unusedColors = difference(availableColors, usedColors)
+    if (unusedColors.length > 0) {
+        return unusedColors[0]
+    }
+    // If all colors are used, we want to count the times each color is used, and use the most
+    // unused one.
+    const colorCounts = entries(groupBy(usedColors)).map(([color, arr]) => [
+        color,
+        arr.length
+    ])
+    const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
+        string,
+        number
+    ]
+    return mostUnusedColor[0]
 }

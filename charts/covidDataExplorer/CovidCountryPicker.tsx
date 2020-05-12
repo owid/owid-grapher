@@ -59,6 +59,10 @@ export class CountryPicker extends React.Component<{
         return this.props.covidDataExplorer.selectedCountryOptions
     }
 
+    @computed private get optionColorMap() {
+        return this.props.covidDataExplorer.countryCodeToColorMap
+    }
+
     @bind private isSelected(option: CountryOption) {
         return this.selectedOptions.includes(option)
     }
@@ -187,8 +191,14 @@ export class CountryPicker extends React.Component<{
                 }
                 return (
                     <React.Fragment>
-                        {tokens.map(token =>
-                            token.match ? <mark>{token.text}</mark> : token.text
+                        {tokens.map((token, i) =>
+                            token.match ? (
+                                <mark key={i}>{token.text}</mark>
+                            ) : (
+                                <React.Fragment key={i}>
+                                    {token.text}
+                                </React.Fragment>
+                            )
                         )}
                     </React.Fragment>
                 )
@@ -232,7 +242,7 @@ export class CountryPicker extends React.Component<{
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
                 <CovidSearchInput
                     value={this.searchInput}
-                    onInput={query => (this.searchInput = query)}
+                    onChange={query => (this.searchInput = query)}
                     onFocus={this.onSearchFocus}
                 />
                 <div className="CountryList">
@@ -263,6 +273,7 @@ export class CountryPicker extends React.Component<{
                                     barScale={
                                         this.props.covidDataExplorer.barScale
                                     }
+                                    color={this.optionColorMap[option.code]}
                                     onChange={this.selectCountryCode}
                                     onHover={() => this.onHover(option, index)}
                                     isSelected={this.isSelected(option)}
@@ -296,13 +307,13 @@ export class CountryPicker extends React.Component<{
 
 interface CovidSearchInputProps {
     value: string | undefined
-    onInput: (value: string) => void
+    onChange: (value: string) => void
     onFocus: () => void
 }
 
 class CovidSearchInput extends React.Component<CovidSearchInputProps> {
-    @bind onInput(event: React.FormEvent<HTMLInputElement>) {
-        this.props.onInput(event.currentTarget.value)
+    @bind onChange(event: React.FormEvent<HTMLInputElement>) {
+        this.props.onChange(event.currentTarget.value)
     }
 
     render() {
@@ -312,8 +323,8 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                     className="input-field"
                     type="search"
                     placeholder="Type to add a country..."
-                    value={this.props.value}
-                    onInput={this.onInput}
+                    value={this.props.value ?? ""}
+                    onChange={this.onChange}
                     onFocus={this.props.onFocus}
                 />
                 <div className="search-icon">
@@ -333,6 +344,7 @@ interface CovidCountryOptionProps {
     isFocused?: boolean
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
+    color?: string
 }
 
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
@@ -344,6 +356,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             isSelected,
             isFocused,
             highlight,
+            color,
             barScale
         } = this.props
         const testsPerCase = option.latestTotalTestsPerCase
@@ -382,6 +395,14 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                                 </div>
                             )} */}
                         </div>
+                        {isSelected && color && (
+                            <div className="color-marker-container">
+                                <div
+                                    className="color-marker"
+                                    style={{ backgroundColor: color }}
+                                />
+                            </div>
+                        )}
                         {/* Hide plot as it lacks labels to be understandable */}
                         {/* {barScale && testsPerCase ? (
                             <div className="plot">

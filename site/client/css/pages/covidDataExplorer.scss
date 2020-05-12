@@ -192,6 +192,20 @@ $placeholder-height: 800px;
         border-radius: 2px;
     }
 
+    .color-marker-container {
+        position: absolute;
+        top: 6px;
+        right: 0;
+        bottom: 6px;
+        display: flex;
+        align-items: center;
+    }
+
+    .color-marker {
+        width: 3px;
+        height: 100%;
+    }
+
     .metric {
         flex: 0;
         font-size: 14px;
