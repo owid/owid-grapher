@@ -59,6 +59,10 @@ export class CountryPicker extends React.Component<{
         return this.props.covidDataExplorer.selectedCountryOptions
     }
 
+    @computed private get optionColorMap() {
+        return this.props.covidDataExplorer.countryCodeToColorMap
+    }
+
     @bind private isSelected(option: CountryOption) {
         return this.selectedOptions.includes(option)
     }
@@ -269,6 +273,7 @@ export class CountryPicker extends React.Component<{
                                     barScale={
                                         this.props.covidDataExplorer.barScale
                                     }
+                                    color={this.optionColorMap[option.code]}
                                     onChange={this.selectCountryCode}
                                     onHover={() => this.onHover(option, index)}
                                     isSelected={this.isSelected(option)}
@@ -339,6 +344,7 @@ interface CovidCountryOptionProps {
     isFocused?: boolean
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
+    color?: string
 }
 
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
@@ -350,6 +356,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             isSelected,
             isFocused,
             highlight,
+            color,
             barScale
         } = this.props
         const testsPerCase = option.latestTotalTestsPerCase
@@ -388,6 +395,14 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                                 </div>
                             )} */}
                         </div>
+                        {isSelected && color && (
+                            <div className="color-container">
+                                <div
+                                    className="color"
+                                    style={{ backgroundColor: color }}
+                                />
+                            </div>
+                        )}
                         {/* Hide plot as it lacks labels to be understandable */}
                         {/* {barScale && testsPerCase ? (
                             <div className="plot">
