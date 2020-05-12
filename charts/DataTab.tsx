@@ -72,7 +72,7 @@ export class DataTab extends React.Component<{
                         value = dim.valueByEntityAndYear.get(entity)?.get(year)
                     }
 
-                    if (value) {
+                    if (value != null) {
                         row.push(value)
                         rowHasSomeValue = true
                     } else row.push("")
