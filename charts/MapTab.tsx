@@ -245,27 +245,25 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     ) {
         return tooltipDatum ? (
             <div className="map-tooltip">
-                <div className="measure--deaths">
-                    <div className="trend">
-                        <div className="plot">
-                            <SparkBars<SparkBarsDatum>
-                                {...this.sparkBarsProps}
-                                currentX={this.currentSparkBar}
+                <div className="trend">
+                    <div className="plot">
+                        <SparkBars<SparkBarsDatum>
+                            {...this.sparkBarsProps}
+                            currentX={this.currentSparkBar}
+                        />
+                    </div>
+                    <div className="value">
+                        {tooltipDatum && (
+                            <CovidTimeSeriesValue
+                                className="current"
+                                value={this.context.chart.map.data.formatTooltipValue(
+                                    tooltipDatum.value
+                                )}
+                                formattedDate={this.props.formatYear(
+                                    tooltipDatum.year as number
+                                )}
                             />
-                        </div>
-                        <div className="value">
-                            {tooltipDatum && (
-                                <CovidTimeSeriesValue
-                                    className="current"
-                                    value={this.context.chart.map.data.formatTooltipValue(
-                                        tooltipDatum.value
-                                    )}
-                                    formattedDate={this.props.formatYear(
-                                        tooltipDatum.year as number
-                                    )}
-                                />
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -327,7 +325,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     >
                         <h3
                             style={{
-                                padding: "0.3em 0.9em",
+                                padding: "0.3em 0.3em",
                                 margin: 0,
                                 fontWeight: "normal",
                                 fontSize: "1em"
@@ -339,14 +337,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                         <div
                             style={{
                                 margin: 0,
-                                padding: "0.3em 0.9em",
-                                fontSize: "0.8em"
+                                padding: "0.3em 0.3em"
                             }}
                         >
-                            <span>
-                                {this.generateTooltip(tooltipDatum, inputYear)}
-                            </span>
-                            <br />
+                            {this.generateTooltip(tooltipDatum, inputYear)}
                         </div>
                         {this.isEntityClickable(tooltipTarget.featureId) && (
                             <div>
@@ -354,7 +348,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                                     style={{
                                         margin: 0,
                                         padding: "0.3em 0.9em",
-                                        fontSize: "0.8em",
+                                        fontSize: "13px",
                                         opacity: 0.6
                                     }}
                                 >
