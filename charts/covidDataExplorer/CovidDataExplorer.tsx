@@ -18,7 +18,14 @@ import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
-import { max, isMobile, fetchText, difference } from "charts/Util"
+import {
+    max,
+    isMobile,
+    fetchText,
+    difference,
+    pick,
+    lastOfNonEmptyArray
+} from "charts/Util"
 import {
     SmoothingOption,
     TotalFrequencyOption,
@@ -46,13 +53,15 @@ import {
     makeCountryOptions,
     covidDataPath,
     covidLastUpdatedPath,
-    getTrajectoryOptions
+    getTrajectoryOptions,
+    getLeastUsedColor
 } from "./CovidDataUtils"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import { covidDashboardSlug } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -468,7 +477,8 @@ export class CovidDataExplorer extends React.Component<{
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
             return {
                 index: 0,
-                entityId: countryCodeMap.get(code)!
+                entityId: countryCodeMap.get(code)!,
+                color: this.countryCodeToColorMap[code]
             }
         })
     }
@@ -495,6 +505,42 @@ export class CovidDataExplorer extends React.Component<{
             map.set(country.code, country.name)
         })
         return map
+    }
+
+    private _countryCodeToColorMapCache: {
+        [key: string]: string | undefined
+    } = {}
+
+    @computed get countryCodeToColorMap(): {
+        [key: string]: string | undefined
+    } {
+        const codes = this.selectedCountryOptions.map(country => country.code)
+        // If there isn't a color for every country code, we need to update the color map
+        if (!codes.every(code => code in this._countryCodeToColorMapCache)) {
+            // Omit any unselected country codes from color map
+            const newColorMap = pick(this._countryCodeToColorMapCache, codes)
+            // Check for code *key* existence, not value.
+            // `undefined` value means we want the color to be automatic, determined by the chart.
+            const codesWithoutColor = codes.filter(
+                code => !(code in newColorMap)
+            )
+            // For codes that don't have a color, assign one.
+            codesWithoutColor.forEach(code => {
+                const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+                const availableColors = lastOfNonEmptyArray(scheme.colorSets)
+                const usedColors = Object.values(newColorMap).filter(
+                    color => color !== undefined
+                ) as string[]
+                newColorMap[code] = getLeastUsedColor(
+                    availableColors,
+                    usedColors
+                )
+            })
+            // Update the country color map cache
+            this._countryCodeToColorMapCache = newColorMap
+        }
+
+        return this._countryCodeToColorMapCache
     }
 
     @computed get firstSelectedCountryName() {
