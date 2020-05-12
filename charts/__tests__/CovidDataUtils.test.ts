@@ -4,7 +4,8 @@ import {
     buildCovidVariableId,
     daysSinceVariable,
     parseCovidRow,
-    makeCountryOptions
+    makeCountryOptions,
+    getLeastUsedColor
 } from "../covidDataExplorer/CovidDataUtils"
 import uniq from "lodash/uniq"
 import { csvParse } from "d3-dsv"
@@ -59,5 +60,17 @@ describe(daysSinceVariable, () => {
             row => row.total_cases > 350000
         )
         expect(variable.values.length).toEqual(8)
+    })
+})
+
+describe(getLeastUsedColor, () => {
+    it("returns unused color", () => {
+        expect(getLeastUsedColor(["red", "green"], ["red"])).toEqual("green")
+    })
+
+    it("returns least used color", () => {
+        expect(
+            getLeastUsedColor(["red", "green"], ["red", "green", "green"])
+        ).toEqual("red")
     })
 })
