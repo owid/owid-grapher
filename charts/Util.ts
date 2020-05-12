@@ -81,6 +81,7 @@ export {
     every,
     min,
     max,
+    minBy,
     maxBy,
     compact,
     uniq,
