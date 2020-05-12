@@ -4,6 +4,7 @@ import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
 import { ChartConfig } from "charts/ChartConfig"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { computed, action, observable, reaction, IReactionDisposer } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
@@ -45,6 +46,7 @@ import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import { covidDashboardSlug } from "./CovidConstants"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -312,13 +314,42 @@ export class CovidDataExplorer extends React.Component<{
         return moment.utc(this.props.updated).fromNow()
     }
 
+    @action.bound mobileToggleCustomizePopup() {
+        this.showControlsPopup = !this.showControlsPopup
+    }
+
+    @observable showControlsPopup = false
+
     render() {
         const bounds = this.props.bounds
         let chartBounds = new Bounds(0, 0, 1000, 1000 * (680 / 480))
-
-        if (isMobile()) {
+        const mobile = isMobile()
+        if (mobile) {
             chartBounds = new Bounds(0, 0, bounds.width, bounds.height)
         }
+
+        const customizeChartMobileButton = mobile ? (
+            <a
+                className="btn btn-primary mobile-button"
+                onClick={this.mobileToggleCustomizePopup}
+            >
+                <FontAwesomeIcon icon={faChartLine} /> Customize chart
+            </a>
+        ) : (
+            undefined
+        )
+        const mobileDoneButton = mobile ? (
+            <a
+                className="btn btn-primary mobile-button"
+                onClick={this.mobileToggleCustomizePopup}
+            >
+                Done
+            </a>
+        ) : (
+            undefined
+        )
+
+        const showMobileControls = mobile && this.showControlsPopup
 
         return (
             <div className="CovidDataExplorer">
@@ -332,17 +363,27 @@ export class CovidDataExplorer extends React.Component<{
                         </a>
                     </div>
                 </div>
-                <div className="CovidDataExplorerControlBar">
+                <div
+                    className={`CovidDataExplorerControlBar${
+                        showMobileControls
+                            ? ` show-controls-popup`
+                            : mobile
+                            ? ` hide-controls-popup`
+                            : ""
+                    }`}
+                >
                     {this.metricPicker}
                     {this.frequencyPicker}
                     {this.perCapitaPicker}
                     {this.alignedPicker}
                     {this.smoothingPicker}
+                    {mobileDoneButton}
                 </div>
                 <CountryPicker
                     covidDataExplorer={this}
                     toggleCountryCommand={this.toggleSelectedCountryCommand}
                 ></CountryPicker>
+                {customizeChartMobileButton}
                 <div className="CovidDataExplorerFigure">
                     <ChartView
                         bounds={chartBounds}
