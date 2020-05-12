@@ -749,6 +749,8 @@ export class CovidDataExplorer extends React.Component<{
                     removed.forEach(code =>
                         this.toggleSelectedCountry(code, false)
                     )
+                    // Trigger an update in order to apply color changes
+                    this.updateChart()
                 }
             })
         )
