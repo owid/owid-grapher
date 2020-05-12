@@ -238,7 +238,7 @@ export class CountryPicker extends React.Component<{
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
                 <CovidSearchInput
                     value={this.searchInput}
-                    onInput={query => (this.searchInput = query)}
+                    onChange={query => (this.searchInput = query)}
                     onFocus={this.onSearchFocus}
                 />
                 <div className="CountryList">
@@ -302,13 +302,13 @@ export class CountryPicker extends React.Component<{
 
 interface CovidSearchInputProps {
     value: string | undefined
-    onInput: (value: string) => void
+    onChange: (value: string) => void
     onFocus: () => void
 }
 
 class CovidSearchInput extends React.Component<CovidSearchInputProps> {
-    @bind onInput(event: React.FormEvent<HTMLInputElement>) {
-        this.props.onInput(event.currentTarget.value)
+    @bind onChange(event: React.FormEvent<HTMLInputElement>) {
+        this.props.onChange(event.currentTarget.value)
     }
 
     render() {
@@ -318,8 +318,8 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                     className="input-field"
                     type="search"
                     placeholder="Type to add a country..."
-                    value={this.props.value}
-                    onInput={this.onInput}
+                    value={this.props.value ?? ""}
+                    onChange={this.onChange}
                     onFocus={this.props.onFocus}
                 />
                 <div className="search-icon">
