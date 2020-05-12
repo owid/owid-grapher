@@ -633,88 +633,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         margin-bottom: 1em;
     }
 
-    /* Major sections e.g. I. Empirical View */
-    > .section-heading {
-        $v-padding-section-heading: 5rem;
-        .wrapper {
-            @include content-wrapper;
-            @include lg-up {
-                max-width: $text-max-content-width + $graph-max-content-width +
-                    3 * $padding-x-md;
-            }
-        }
-        position: relative;
-        width: calc(100vw - #{$sidebar-closed-drawer-width});
-        padding-bottom: $v-padding-section-heading;
-        left: $sidebar-closed-drawer-width;
-        margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
-        margin-bottom: 5rem;
-        background-color: $primary-color-200;
-
-        @include xxlg-up {
-            width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
-            margin-left: calc(
-                50% - 50vw - #{($sidebar-content-width + 2 * $padding-x-md) / 2}
-            );
-            left: $sidebar-content-width + 2 * $padding-x-md;
-        }
-
-        h2 {
-            margin: 0;
-            padding-top: $v-padding-section-heading;
-            font-family: $serif-font-stack;
-            font-size: 3rem;
-            font-weight: 400;
-            line-height: 1.25em;
-        }
-
-        .in-this-section {
-            display: flex;
-            align-items: center;
-            margin: 2 * $vertical-spacing 0 $vertical-spacing;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: $primary-color-400;
-            .border {
-                margin-left: 1rem;
-                background-color: $primary-color-300;
-                height: 0.7em;
-                flex: 1;
-            }
-        }
-
-        ul {
-            margin-bottom: 0;
-            list-style: none;
-            padding: 0;
-            font-size: 0.9rem;
-        }
-        li {
-            line-height: 1.2;
-            margin-bottom: $vertical-spacing / 2;
-        }
-
-        a {
-            color: $primary-color;
-            &:hover svg {
-                color: inherit;
-            }
-        }
-        svg {
-            color: $primary-color-400;
-            margin-right: 0.5rem;
-        }
-
-        @include sm-only {
-            padding-left: $padding-x-sm;
-            padding-right: $padding-x-sm;
-            h2 {
-                font-size: 2.5rem;
-            }
-        }
-    }
-
     /* Subsections e.g. I.1 Historical perspective */
     > h3 {
         @include h3-style;
@@ -773,6 +691,93 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         svg {
             max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
         }
+    }
+}
+
+/* Major sections e.g. I. Empirical View */
+.article-content .section-heading {
+    $v-padding-section-heading: 5rem;
+    .wrapper {
+        @include content-wrapper;
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
+    }
+    width: 100vw;
+    padding-bottom: $v-padding-section-heading;
+    margin-left: calc(50% - 50vw);
+    margin-bottom: 5rem;
+    background-color: $primary-color-200;
+
+    @include xxlg-up {
+        width: calc(100vw - #{2 * $padding-x-md});
+        margin-left: calc(50% - 50vw - #{$padding-x-md});
+    }
+
+    h2 {
+        margin: 0;
+        padding-top: $v-padding-section-heading;
+        font-family: $serif-font-stack;
+        font-size: 2.5rem;
+        @include md-up {
+            font-size: 3rem;
+        }
+        font-weight: 400;
+        line-height: 1.25em;
+    }
+
+    .in-this-section {
+        display: flex;
+        align-items: center;
+        margin: 2 * $vertical-spacing 0 $vertical-spacing;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: $primary-color-400;
+        .border {
+            margin-left: 1rem;
+            background-color: $primary-color-300;
+            height: 0.7em;
+            flex: 1;
+        }
+    }
+
+    ul {
+        margin-bottom: 0;
+        list-style: none;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    li {
+        line-height: 1.2;
+        margin-bottom: $vertical-spacing / 2;
+    }
+
+    a {
+        color: $primary-color;
+        &:hover svg {
+            color: inherit;
+        }
+    }
+    svg {
+        color: $primary-color-400;
+        margin-right: 0.5rem;
+    }
+}
+
+.with-sidebar .section-heading {
+    position: relative;
+    width: calc(100vw - #{$sidebar-closed-drawer-width});
+    left: $sidebar-closed-drawer-width;
+    margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+
+    @include xxlg-up {
+        width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
+        margin-left: calc(
+            50% - 50vw - #{($sidebar-content-width + 2 * $padding-x-md) / 2}
+        );
+        left: $sidebar-content-width + 2 * $padding-x-md;
     }
 }
 
