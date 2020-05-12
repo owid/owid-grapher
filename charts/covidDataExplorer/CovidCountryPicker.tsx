@@ -396,9 +396,9 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                             )} */}
                         </div>
                         {isSelected && color && (
-                            <div className="color-container">
+                            <div className="color-marker-container">
                                 <div
-                                    className="color"
+                                    className="color-marker"
                                     style={{ backgroundColor: color }}
                                 />
                             </div>
