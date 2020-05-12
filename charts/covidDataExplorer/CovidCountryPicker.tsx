@@ -187,8 +187,14 @@ export class CountryPicker extends React.Component<{
                 }
                 return (
                     <React.Fragment>
-                        {tokens.map(token =>
-                            token.match ? <mark>{token.text}</mark> : token.text
+                        {tokens.map((token, i) =>
+                            token.match ? (
+                                <mark key={i}>{token.text}</mark>
+                            ) : (
+                                <React.Fragment key={i}>
+                                    {token.text}
+                                </React.Fragment>
+                            )
                         )}
                     </React.Fragment>
                 )
