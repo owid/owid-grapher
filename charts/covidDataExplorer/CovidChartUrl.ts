@@ -2,7 +2,7 @@ import { computed, observable } from "mobx"
 import { ObservableUrl } from "../UrlBinding"
 import { ChartUrl } from "../ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { extend } from "../Util"
+import { omit } from "../Util"
 import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
 
 export class CovidQueryParams {
@@ -61,6 +61,7 @@ export class CovidQueryParams {
         params.aligned = this.aligned ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
+        params.country = Array.from(this.selectedCountryCodes).join("+")
         return params as QueryParams
     }
 }
@@ -75,7 +76,10 @@ export class CovidUrl implements ObservableUrl {
     }
 
     @computed get params(): QueryParams {
-        return extend({}, this.chartUrl.params, this.covidQueryParams.toParams)
+        // Omit `country` from chart params, it will be managed by the explorer.
+        const chartParams = omit(this.chartUrl.params, "country")
+        const covidParams = this.covidQueryParams.toParams
+        return { ...chartParams, ...covidParams }
     }
 
     @computed get debounceMode(): boolean {
