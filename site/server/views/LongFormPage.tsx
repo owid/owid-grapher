@@ -55,17 +55,19 @@ export const LongFormPage = (props: {
                 isSubheading: false
             })
         }
-        post.tocHeadings.push({
-            text: "Licence",
-            slug: "licence",
-            isSubheading: false
-        })
         if (isEntry) {
-            post.tocHeadings.push({
-                text: "Citation",
-                slug: "citation",
-                isSubheading: false
-            })
+            post.tocHeadings.push(
+                {
+                    text: "Licence",
+                    slug: "licence",
+                    isSubheading: false
+                },
+                {
+                    text: "Citation",
+                    slug: "citation",
+                    isSubheading: false
+                }
+            )
         }
     }
     if (formattingOptions.bodyClassName) {
