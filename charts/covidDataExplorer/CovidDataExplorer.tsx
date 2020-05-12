@@ -666,18 +666,19 @@ export class CovidDataExplorer extends React.Component<{
 
     componentDidMount() {
         this.bindToWindow()
+
         this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
+
+        this.observeChartEntitySelection()
+
         const win = window as any
         win.covidDataExplorer = this
     }
 
-    bindToWindow() {
-        const url = new CovidUrl(this.chart.url, this.props.params)
-        urlBinding.bindUrlToWindow(url)
-
+    private observeChartEntitySelection() {
         this.disposers.push(
             observe(this.chart.data, "selectedEntityCodes", change => {
                 // Ignore the change if it was triggered by the chart builder,
@@ -705,6 +706,11 @@ export class CovidDataExplorer extends React.Component<{
                 }
             })
         )
+    }
+
+    bindToWindow() {
+        const url = new CovidUrl(this.chart.url, this.props.params)
+        urlBinding.bindUrlToWindow(url)
     }
 
     @computed get mapColorScheme() {
