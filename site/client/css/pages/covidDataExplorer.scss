@@ -15,10 +15,6 @@ $placeholder-height: 800px;
     grid-row-gap: $grid-gap;
     grid-column-gap: $grid-gap;
 
-    @media only screen and (max-width: 450px) {
-        padding: 8px;
-    }
-
     .mobile-button {
         color: #fff;
         background-color: #3f9eff;
@@ -70,10 +66,6 @@ $placeholder-height: 800px;
     .CountrySearchResults {
         overflow-y: scroll;
         height: 595px;
-
-        @media only screen and (max-width: 450px) {
-            height: 35px;
-        }
     }
 
     .CovidDataExplorerControlBar {
@@ -83,37 +75,6 @@ $placeholder-height: 800px;
         border-radius: 5px;
         border: 1px solid rgb(233, 233, 233);
         padding: 8px 14px;
-
-        @media only screen and (max-width: 450px) {
-            .mobile-button {
-                margin: 12px 0;
-                display: block;
-            }
-
-            flex-direction: column;
-            position: fixed;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            border-radius: 0;
-
-            &.show-controls-popup {
-                bottom: 0;
-                animation-name: slideUp;
-                animation-duration: 0.5s;
-                transition-timing-function: cubic-bezier();
-                animation-iteration-count: 1;
-                box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
-            }
-
-            &.hide-controls-popup {
-                bottom: -100%;
-                animation-name: slideDown;
-                animation-duration: 0.5s;
-                transition-timing-function: cubic-bezier();
-                animation-iteration-count: 1;
-            }
-        }
 
         .CovidDataExplorerControl {
             display: flex;
@@ -137,8 +98,44 @@ $placeholder-height: 800px;
         }
     }
 
-    @media only screen and (max-width: 450px) {
+    &.mobile-explorer {
+        padding: 8px;
         grid-template-columns: auto;
+
+        .CountrySearchResults {
+            height: 35px;
+        }
+
+        .CovidDataExplorerControlBar {
+            .mobile-button {
+                margin: 12px 0;
+                display: block;
+            }
+
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-radius: 0;
+
+            &.show-controls-popup {
+                bottom: 0;
+                animation-name: slideUp;
+                animation-duration: 0.5s;
+                transition-timing-function: cubic-bezier();
+                animation-iteration-count: 1;
+                box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
+            }
+
+            &.hide-controls-popup {
+                bottom: -150%;
+                animation-name: slideDown;
+                animation-duration: 0.5s;
+                transition-timing-function: cubic-bezier();
+                animation-iteration-count: 1;
+            }
+        }
     }
 }
 
@@ -274,6 +271,7 @@ $placeholder-height: 800px;
 
 #covidDataExplorerContainer {
     min-height: $placeholder-height;
+    width: 100%;
 }
 
 .LoadingCovidDataExplorer {
@@ -298,7 +296,7 @@ $placeholder-height: 800px;
 
 @keyframes slideUp {
     0% {
-        bottom: -100%;
+        bottom: -150%;
     }
 
     100% {
@@ -312,7 +310,7 @@ $placeholder-height: 800px;
     }
 
     100% {
-        bottom: -100%;
+        bottom: -150%;
     }
 }
 
