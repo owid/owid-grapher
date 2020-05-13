@@ -100,28 +100,26 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
 }
 
 export const daysSinceVariable = (
-    data: ParsedCovidRow[],
-    countryMap: Map<string, number>,
-    predicate: (row: ParsedCovidRow) => boolean
+    owidVariable: OwidVariable,
+    threshold: number
 ) => {
-    let currentCountry = ""
-    let firstCountryDate = ""
-    const dataWeNeed = data
-        .map(row => {
-            if (row.location !== currentCountry) {
-                if (!predicate(row)) return undefined
-                currentCountry = row.location
-                firstCountryDate = row.date
+    let currentCountry: number
+    let firstCountryDate: number
+    const dataWeNeed = owidVariable.values
+        .map((value, index) => {
+            const entity = owidVariable.entities[index]
+            const year = owidVariable.years[index]
+            if (entity !== currentCountry) {
+                if (value < threshold) return undefined
+                currentCountry = entity
+                firstCountryDate = year
             }
             return {
-                year: dateToYear(row.date),
-                entity: countryMap.get(row.location)!,
+                year,
+                entity,
                 // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
                 // row for that country.
-                value: dateDiffInDays(
-                    moment.utc(row.date).toDate(),
-                    moment.utc(firstCountryDate).toDate()
-                )
+                value: year - firstCountryDate
             }
         })
         .filter(row => row)
@@ -256,44 +254,44 @@ const trajectoryOptions = {
     deaths: {
         total: {
             title: "Days since the 5th total confirmed death",
-            fn: (row: ParsedCovidRow) => row.total_deaths >= 5
+            threshold: 5
         },
         daily: {
             title: "Days since 5 daily deaths first reported",
-            fn: (row: ParsedCovidRow) => row.new_deaths >= 5
+            threshold: 5
         },
         perCapita: {
             title: "Days since total confirmed deaths reached 0.1 per million",
-            fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+            threshold: 0.1
         }
     },
     cases: {
         total: {
             title: "Days since the 100th confirmed case",
-            fn: (row: ParsedCovidRow) => row.total_cases >= 100
+            threshold: 100
         },
         daily: {
             title: "Days since confirmed cases first reached 30 per day",
-            fn: (row: ParsedCovidRow) => row.new_cases >= 30
+            threshold: 30
         },
         perCapita: {
             title:
                 "Days since the total confirmed cases per million people reached 1",
-            fn: (row: ParsedCovidRow) => row.total_cases_per_million >= 1
+            threshold: 1
         }
     },
     tests: {
         total: {
             title: "Days since the 5th total confirmed death",
-            fn: (row: ParsedCovidRow) => row.total_deaths >= 5
+            threshold: 5
         },
         daily: {
             title: "Days since 5 daily deaths first reported",
-            fn: (row: ParsedCovidRow) => row.new_deaths >= 5
+            threshold: 5
         },
         perCapita: {
             title: "Days since total confirmed deaths reached 0.1 per million",
-            fn: (row: ParsedCovidRow) => row.new_deaths_per_million >= 0.1
+            threshold: 0.1
         }
     }
 }

@@ -662,20 +662,13 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get daysSinceVariableId() {
-        const params = this.props.params
-        const idParts = [
-            456,
-            params.deathsMetric ? 1 : 0,
-            params.casesMetric ? 1 : 0,
-            params.testsMetric ? 1 : 0,
-            params.dailyFreq ? 1 : 0
-        ]
+        const sourceId = this.yVariableIndices[0]
+        const idParts = [456, sourceId]
         const id = parseInt(idParts.join(""))
         if (!this.owidVariableSet.variables[id]) {
             this.owidVariableSet.variables[id] = daysSinceVariable(
-                this.props.data,
-                this.countryMap,
-                this.daysSinceOption.fn
+                this.owidVariableSet.variables[sourceId],
+                this.daysSinceOption.threshold
             )
         }
         return id
