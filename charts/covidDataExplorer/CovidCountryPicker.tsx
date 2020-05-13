@@ -56,6 +56,8 @@ export class CountryPicker extends React.Component<{
 
     @action.bound private selectCountryCode(code: string, checked?: boolean) {
         this.props.toggleCountryCommand(code, checked)
+        // Clear search input
+        this.searchInput = ""
     }
 
     @computed private get options(): CountryOption[] {
