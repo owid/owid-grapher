@@ -15,6 +15,7 @@ import { partition, sortBy, scrollIntoViewIfNeeded, last } from "charts/Util"
 import { CovidDataExplorer } from "./CovidDataExplorer"
 import { CountryOption } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
+import { Analytics } from "site/client/Analytics"
 
 enum FocusDirection {
     first = "first",
@@ -61,6 +62,7 @@ export class CountryPicker extends React.Component<{
         this.props.toggleCountryCommand(code, checked)
         // Clear search input
         this.searchInput = ""
+        Analytics.logCovidCountrySelector(checked ? "select" : "deselect", code)
     }
 
     @computed private get options(): CountryOption[] {
@@ -150,8 +152,10 @@ export class CountryPicker extends React.Component<{
                     break
                 }
                 if (!this.focusedOption) return
-                this.selectCountryCode(this.focusedOption.code)
+                const { code } = this.focusedOption
+                this.selectCountryCode(code)
                 this.clearSearchInput()
+                Analytics.logCovidCountrySelector("enter", code)
                 break
             case "ArrowUp":
                 this.focusOptionDirection(FocusDirection.up)
@@ -294,6 +298,7 @@ export class CountryPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
+                        data-track-note="covid-country-search-input"
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
