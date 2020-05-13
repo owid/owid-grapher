@@ -14,10 +14,10 @@ export const CovidTimeSeriesValue = ({
     latest,
     tooltip,
     className,
-    formattedDate = undefined
+    formattedDate
 }: {
     value: string | undefined
-    date?: Date | undefined
+    date?: Date
     latest?: boolean
     tooltip?: JSX.Element | string
     className?: string

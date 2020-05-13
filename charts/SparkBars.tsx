@@ -80,7 +80,7 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         d: T | undefined,
         index: number | undefined
     ) => () => {
-        this.props.onHover && this.props.onHover(d, index)
+        this.props.onHover?.(d, index)
     }
 
     render() {

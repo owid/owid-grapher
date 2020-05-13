@@ -198,14 +198,11 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @computed get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
-        const sparkBarsData = this.sparkBarsData
-        const [start, end] = this.sparkBarsDomain
-
         return {
-            data: sparkBarsData,
+            data: this.sparkBarsData,
             x: this.sparkBarsDatumXAccessor,
             y: (d: SparkBarsDatum) => d.value,
-            xDomain: [start, end]
+            xDomain: this.sparkBarsDomain
         }
     }
 
@@ -225,7 +222,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return sparkBarValues.slice(-this.sparkBarsToDisplay)
     }
 
-    @computed get sparkBarsDomain() {
+    @computed get sparkBarsDomain(): [number, number] {
         const lastVal = last(this.sparkBarsData)
 
         const end = lastVal ? this.sparkBarsDatumXAccessor(lastVal) : 0
