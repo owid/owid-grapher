@@ -35,6 +35,9 @@ export class CountryPicker extends React.Component<{
     isDropdownMenu?: boolean
 }> {
     @observable private searchInput?: string
+    @observable private searchInputRef: React.RefObject<
+        HTMLInputElement
+    > = React.createRef()
 
     @observable private focusIndex?: number
     @observable private focusRef: React.RefObject<
@@ -160,6 +163,10 @@ export class CountryPicker extends React.Component<{
         event.preventDefault()
     }
 
+    @bind focusSearch() {
+        this.searchInputRef.current?.focus()
+    }
+
     @action.bound private onSearchFocus() {
         this.isOpen = true
         if (this.focusIndex === undefined) {
@@ -167,8 +174,19 @@ export class CountryPicker extends React.Component<{
         }
     }
 
-    @action.bound private onSearchBlur() {
+    @action.bound private onSearchBlur(
+        event: React.FocusEvent<HTMLInputElement>
+    ) {
+        // Do not allow focus on elements inside menu; shift focus back to search input.
+        if (
+            this.scrollContainerRef.current &&
+            this.scrollContainerRef.current.contains(document.activeElement)
+        ) {
+            this.focusSearch()
+            return
+        }
         this.isOpen = false
+        this.focusIndex = undefined
     }
 
     @action.bound private onHover(option: CountryOption, index: number) {
@@ -183,6 +201,14 @@ export class CountryPicker extends React.Component<{
 
     @action.bound private unblockHover() {
         this.blockOptionHover = false
+    }
+
+    @action.bound private onMenuMouseDown(
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) {
+        event.stopPropagation()
+        event.preventDefault()
+        this.focusSearch()
     }
 
     @bind private highlightLabel(label: string): JSX.Element | string {
@@ -254,18 +280,30 @@ export class CountryPicker extends React.Component<{
 
         return (
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
-                <CovidSearchInput
-                    value={this.searchInput}
-                    onChange={query => (this.searchInput = query)}
-                    onFocus={this.onSearchFocus}
-                    onBlur={this.onSearchBlur}
-                />
+                <div className="CovidSearchInput">
+                    <input
+                        className="input-field"
+                        type="search"
+                        placeholder="Type to add a country..."
+                        value={this.searchInput ?? ""}
+                        onChange={e =>
+                            (this.searchInput = e.currentTarget.value)
+                        }
+                        onFocus={this.onSearchFocus}
+                        onBlur={this.onSearchBlur}
+                        ref={this.searchInputRef}
+                    />
+                    <div className="search-icon">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </div>
+                </div>
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
                             className={classnames("CountryList", {
                                 isDropdown: this.isDropdownMenu
                             })}
+                            onMouseDown={this.onMenuMouseDown}
                         >
                             <VerticalScrollContainer
                                 scrollingShadows={true}
@@ -338,38 +376,6 @@ export class CountryPicker extends React.Component<{
     }
 }
 
-interface CovidSearchInputProps {
-    value: string | undefined
-    onChange: (value: string) => void
-    onFocus: () => void
-    onBlur: () => void
-}
-
-class CovidSearchInput extends React.Component<CovidSearchInputProps> {
-    @bind onChange(event: React.FormEvent<HTMLInputElement>) {
-        this.props.onChange(event.currentTarget.value)
-    }
-
-    render() {
-        return (
-            <div className="CovidSearchInput">
-                <input
-                    className="input-field"
-                    type="search"
-                    placeholder="Type to add a country..."
-                    value={this.props.value ?? ""}
-                    onChange={this.onChange}
-                    onFocus={this.props.onFocus}
-                    onBlur={this.props.onBlur}
-                />
-                <div className="search-icon">
-                    <FontAwesomeIcon icon={faSearch} />
-                </div>
-            </div>
-        )
-    }
-}
-
 interface CovidCountryOptionProps {
     option: CountryOption
     highlight: (label: string) => JSX.Element | string
@@ -383,10 +389,15 @@ interface CovidCountryOptionProps {
 }
 
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
+    @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) {
+        event.stopPropagation()
+        event.preventDefault()
+        this.props.onChange(this.props.option.code, !this.props.isSelected)
+    }
+
     render() {
         const {
             option,
-            onChange,
             innerRef,
             isSelected,
             isFocused,
@@ -404,20 +415,16 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                     })}
                     onMouseMove={this.props.onHover}
                     onMouseOver={this.props.onHover}
+                    onClick={this.onClick}
                     ref={innerRef}
                 >
                     <div className="input-container">
                         <input
                             type="checkbox"
                             checked={isSelected}
-                            onChange={event =>
-                                onChange(
-                                    option.code,
-                                    event.currentTarget.checked
-                                )
-                            }
                             value={option.code}
                             tabIndex={-1}
+                            readOnly
                         />
                     </div>
                     <div className="info-container">

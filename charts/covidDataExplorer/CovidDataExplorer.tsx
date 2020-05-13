@@ -408,6 +408,7 @@ export class CovidDataExplorer extends React.Component<{
                 <CountryPicker
                     covidDataExplorer={this}
                     toggleCountryCommand={this.toggleSelectedCountryCommand}
+                    isDropdownMenu={mobile}
                 ></CountryPicker>
                 {customizeChartMobileButton}
                 <div className="CovidDataExplorerFigure">
