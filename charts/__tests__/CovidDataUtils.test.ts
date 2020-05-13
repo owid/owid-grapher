@@ -5,7 +5,8 @@ import {
     daysSinceVariable,
     parseCovidRow,
     makeCountryOptions,
-    getLeastUsedColor
+    getLeastUsedColor,
+    buildCovidVariable
 } from "../covidDataExplorer/CovidDataUtils"
 import uniq from "lodash/uniq"
 import { csvParse } from "d3-dsv"
@@ -45,21 +46,31 @@ describe(makeCountryOptions, () => {
     })
 })
 
-describe(daysSinceVariable, () => {
-    it("correctly computes days since variable", () => {
-        const testRows = csvParse(testData)
-        const parsedRows = testRows.map(parseCovidRow)
-        const options = makeCountryOptions(parsedRows)
-        const map = new Map()
-        options.forEach((country, index) => {
-            map.set(country.name, index)
-        })
-        const variable = daysSinceVariable(
-            parsedRows,
-            map,
-            row => row.total_cases > 350000
-        )
-        expect(variable.values.length).toEqual(8)
+describe(buildCovidVariable, () => {
+    const testRows = csvParse(testData)
+    const parsedRows = testRows.map(parseCovidRow)
+    const options = makeCountryOptions(parsedRows)
+    const map = new Map()
+    options.forEach((country, index) => {
+        map.set(country.name, index)
+    })
+    const totalCases3DaySmoothing = buildCovidVariable(
+        123,
+        "cases",
+        map,
+        parsedRows,
+        row => row.total_cases,
+        1,
+        3,
+        true,
+        " Updated 2/2/2020"
+    )
+    it("correctly builds a grapher variable", () => {
+        expect(totalCases3DaySmoothing.values[3]).toEqual(14.5)
+    })
+    it("correctly builds a days since variable", () => {
+        const variable = daysSinceVariable(totalCases3DaySmoothing, 1)
+        expect(variable.values[3]).toEqual(12)
     })
 })
 
