@@ -123,7 +123,11 @@ export class CountryPicker extends React.Component<{
             const newIndex =
                 this.focusIndex === undefined ? 0 : this.focusIndex + 1
             this.focusIndex = this.normalizeFocusIndex(newIndex)
+        } else {
+            // Exit without updating scroll
+            return
         }
+        this.scrollFocusedIntoViewOnUpdate = true
     }
 
     @action.bound private clearSearchInput() {
@@ -151,11 +155,9 @@ export class CountryPicker extends React.Component<{
                 break
             case "ArrowUp":
                 this.focusOptionDirection(FocusDirection.up)
-                this.scrollFocusedIntoViewOnUpdate = true
                 break
             case "ArrowDown":
                 this.focusOptionDirection(FocusDirection.down)
-                this.scrollFocusedIntoViewOnUpdate = true
                 break
             default:
                 return
