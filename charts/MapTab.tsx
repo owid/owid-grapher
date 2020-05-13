@@ -26,6 +26,7 @@ import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
+import _ from "lodash"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -219,7 +220,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 })
             })
 
-        return sparkBarValues.slice(-this.sparkBarsToDisplay)
+        return _.takeWhile(
+            sparkBarValues,
+            d => d.year <= this.context.chart.map.data.targetYear
+        ).slice(-this.sparkBarsToDisplay)
     }
 
     @computed get sparkBarsDomain(): [number, number] {

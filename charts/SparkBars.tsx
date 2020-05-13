@@ -37,12 +37,12 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         className: "spark-bars"
     }
 
+    @computed get maxY(): number | undefined {
+        return max(this.bars.map(d => (d ? this.props.y(d) ?? 0 : 0)))
+    }
+
     @computed get barHeightScale() {
-        const maxY = max(
-            this.props.data
-                .map(this.props.y)
-                .filter(d => d !== undefined) as number[]
-        )
+        const maxY = this.maxY
         return scaleLinear()
             .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
             .range([0, 1])
