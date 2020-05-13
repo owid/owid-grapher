@@ -46,6 +46,17 @@ export class Analytics {
         this.logToGA("GlobalEntityControl", action, note)
     }
 
+    static logCovidCountrySelector(
+        action: "enter" | "select" | "deselect",
+        note?: string
+    ) {
+        this.logToAmplitude("COVID_DATA_EXPLORER_COUNTRY_SELECTOR", {
+            action,
+            note
+        })
+        this.logToGA("CovidDataExplorerCountrySelector", action, note)
+    }
+
     static logSiteClick(text: string, href?: string, note?: string) {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,
