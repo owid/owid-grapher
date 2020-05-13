@@ -32,6 +32,7 @@ function mod(n: number, m: number) {
 export class CountryPicker extends React.Component<{
     covidDataExplorer: CovidDataExplorer
     toggleCountryCommand: (countryCode: string, value?: boolean) => void
+    isDropdownMenu?: boolean
 }> {
     @observable private searchInput?: string
 
@@ -46,6 +47,12 @@ export class CountryPicker extends React.Component<{
     @observable private scrollContainerRef: React.RefObject<
         HTMLDivElement
     > = React.createRef()
+
+    @observable private isOpen: boolean = false
+
+    @computed private get isDropdownMenu(): boolean {
+        return !!this.props.isDropdownMenu
+    }
 
     @action.bound private selectCountryCode(code: string, checked?: boolean) {
         this.props.toggleCountryCommand(code, checked)
@@ -152,9 +159,14 @@ export class CountryPicker extends React.Component<{
     }
 
     @action.bound private onSearchFocus() {
+        this.isOpen = true
         if (this.focusIndex === undefined) {
             this.focusOptionDirection(FocusDirection.first)
         }
+    }
+
+    @action.bound private onSearchBlur() {
+        this.isOpen = false
     }
 
     @action.bound private onHover(option: CountryOption, index: number) {
@@ -244,61 +256,80 @@ export class CountryPicker extends React.Component<{
                     value={this.searchInput}
                     onChange={query => (this.searchInput = query)}
                     onFocus={this.onSearchFocus}
+                    onBlur={this.onSearchBlur}
                 />
-                <div className="CountryList">
-                    <VerticalScrollContainer
-                        scrollingShadows={true}
-                        scrollLock={true}
-                        className="CountrySearchResults"
-                        contentsId={countries.map(c => c.name).join(",")}
-                        onMouseMove={this.unblockHover}
-                        ref={this.scrollContainerRef}
-                    >
-                        <Flipper
-                            spring={{
-                                stiffness: 300,
-                                damping: 33
-                            }}
-                            // We only want to animate when the selection changes, but not on changes due to
-                            // searching
-                            flipKey={selectedCountries
-                                .map(s => s.name)
-                                .join(",")}
-                        >
-                            {countries.map((option, index) => (
-                                <CovidCountryOption
-                                    key={index}
-                                    option={option}
-                                    highlight={this.highlightLabel}
-                                    barScale={
-                                        this.props.covidDataExplorer.barScale
-                                    }
-                                    color={this.optionColorMap[option.code]}
-                                    onChange={this.selectCountryCode}
-                                    onHover={() => this.onHover(option, index)}
-                                    isSelected={this.isSelected(option)}
-                                    isFocused={this.focusIndex === index}
-                                    innerRef={
-                                        this.focusIndex === index
-                                            ? this.focusRef
-                                            : undefined
-                                    }
-                                />
-                            ))}
-                        </Flipper>
-                    </VerticalScrollContainer>
-                    <div className="CountrySelectionControls">
+                <div className="CountryListContainer">
+                    {(!this.isDropdownMenu || this.isOpen) && (
                         <div
-                            className="ClearSelectionButton"
-                            data-track-note="covid-clear-selection"
-                            onClick={
-                                this.props.covidDataExplorer
-                                    .clearSelectionCommand
-                            }
+                            className={classnames("CountryList", {
+                                isDropdown: this.isDropdownMenu
+                            })}
                         >
-                            <FontAwesomeIcon icon={faTimes} /> Clear selection
+                            <VerticalScrollContainer
+                                scrollingShadows={true}
+                                scrollLock={true}
+                                className="CountrySearchResults"
+                                contentsId={countries
+                                    .map(c => c.name)
+                                    .join(",")}
+                                onMouseMove={this.unblockHover}
+                                ref={this.scrollContainerRef}
+                            >
+                                <Flipper
+                                    spring={{
+                                        stiffness: 300,
+                                        damping: 33
+                                    }}
+                                    // We only want to animate when the selection changes, but not on changes due to
+                                    // searching
+                                    flipKey={selectedCountries
+                                        .map(s => s.name)
+                                        .join(",")}
+                                >
+                                    {countries.map((option, index) => (
+                                        <CovidCountryOption
+                                            key={index}
+                                            option={option}
+                                            highlight={this.highlightLabel}
+                                            barScale={
+                                                this.props.covidDataExplorer
+                                                    .barScale
+                                            }
+                                            color={
+                                                this.optionColorMap[option.code]
+                                            }
+                                            onChange={this.selectCountryCode}
+                                            onHover={() =>
+                                                this.onHover(option, index)
+                                            }
+                                            isSelected={this.isSelected(option)}
+                                            isFocused={
+                                                this.focusIndex === index
+                                            }
+                                            innerRef={
+                                                this.focusIndex === index
+                                                    ? this.focusRef
+                                                    : undefined
+                                            }
+                                        />
+                                    ))}
+                                </Flipper>
+                            </VerticalScrollContainer>
+                            <div className="CountrySelectionControls">
+                                <div
+                                    className="ClearSelectionButton"
+                                    data-track-note="covid-clear-selection"
+                                    onClick={
+                                        this.props.covidDataExplorer
+                                            .clearSelectionCommand
+                                    }
+                                >
+                                    <FontAwesomeIcon icon={faTimes} /> Clear
+                                    selection
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         )
@@ -309,6 +340,7 @@ interface CovidSearchInputProps {
     value: string | undefined
     onChange: (value: string) => void
     onFocus: () => void
+    onBlur: () => void
 }
 
 class CovidSearchInput extends React.Component<CovidSearchInputProps> {
@@ -326,6 +358,7 @@ class CovidSearchInput extends React.Component<CovidSearchInputProps> {
                     value={this.props.value ?? ""}
                     onChange={this.onChange}
                     onFocus={this.props.onFocus}
+                    onBlur={this.props.onBlur}
                 />
                 <div className="search-icon">
                     <FontAwesomeIcon icon={faSearch} />
