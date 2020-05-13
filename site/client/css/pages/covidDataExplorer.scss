@@ -47,11 +47,24 @@ $placeholder-height: 800px;
         }
     }
 
+    .CountryListContainer {
+        position: relative;
+    }
+
     .CountryList {
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
             rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
         border-radius: 2px;
         background-color: #fff;
+        margin-top: 10px;
+
+        &.isDropdown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: $zindex-dropdown;
+        }
     }
 
     .ClearSelectionButton {
@@ -103,7 +116,7 @@ $placeholder-height: 800px;
         grid-template-columns: auto;
 
         .CountrySearchResults {
-            height: 35px;
+            max-height: 45vh;
         }
 
         .CovidDataExplorerControlBar {
@@ -226,7 +239,6 @@ $placeholder-height: 800px;
 .CovidSearchInput {
     position: relative;
     color: $primary-color-800;
-    margin-bottom: 10px;
 
     .input-field {
         width: 100%;
@@ -243,6 +255,10 @@ $placeholder-height: 800px;
         font-weight: 700;
         position: relative;
         z-index: 1;
+
+        // Search inputs get forced to be with 100% rounded corners on iOS.
+        // Somehow someone thought that is reasonable.
+        -webkit-appearance: none;
 
         &:focus {
         }
