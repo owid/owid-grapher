@@ -31,6 +31,7 @@ export class CovidRadioControl extends React.Component<{
                             className={
                                 option.checked ? "SelectedOption" : "Option"
                             }
+                            data-track-note={`covid-click-${name}`}
                         >
                             <input
                                 onChange={this.onChange}
@@ -38,7 +39,6 @@ export class CovidRadioControl extends React.Component<{
                                     this.props.isCheckbox ? "checkbox" : "radio"
                                 }
                                 name={name}
-                                data-track-note={`covid-click-${name}`}
                                 checked={option.checked}
                                 value={index}
                             />{" "}
