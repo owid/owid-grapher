@@ -11,7 +11,7 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, last, isMobile } from "./Util"
+import { getRelativeMouse, last, isMobile, takeWhile } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
@@ -26,7 +26,6 @@ import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
-import _ from "lodash"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -220,7 +219,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 })
             })
 
-        return _.takeWhile(
+        return takeWhile(
             sparkBarValues,
             d => d.year <= this.context.chart.map.data.targetYear
         ).slice(-this.sparkBarsToDisplay)
