@@ -319,25 +319,37 @@ export class CovidDataExplorer extends React.Component<{
     @observable showControlsPopup = false
 
     @action.bound onResize() {
-        this.isMobile = Math.min(window.innerWidth, window.screen.width) <= 450
+        this.isMobile = this._isMobile()
+        this.screenWidth = document.documentElement.clientWidth
     }
 
-    @observable isMobile: boolean =
-        Math.min(window.innerWidth, window.screen.width) <= 450
+    private _isMobile() {
+        return (
+            window.screen.width < 450 ||
+            document.documentElement.clientWidth <= 680
+        )
+    }
 
-    render() {
+    @observable isMobile: boolean = this._isMobile()
+    @observable screenWidth: number = document.documentElement.clientWidth
+
+    // Todo: add better logic to maximize the size of the chart
+    @computed get chartBounds() {
         const bounds = this.props.bounds
-        let chartBounds = new Bounds(0, 0, 1000, 1000 * (680 / 480))
-        const mobile = this.isMobile
-        if (mobile) {
-            chartBounds = new Bounds(
+        if (this.isMobile)
+            return new Bounds(
                 0,
                 0,
-                Math.min(window.screen.width, bounds.width),
+                document.documentElement.clientWidth,
                 bounds.height
             )
-        }
+        const width = Math.min(1000, this.screenWidth - 250)
+        const height = 1000 / (680 / 480)
+        return new Bounds(0, 0, width, height)
+    }
 
+    render() {
+        const mobile = this.isMobile
         const customizeChartMobileButton = mobile ? (
             <a
                 className="btn btn-primary mobile-button"
@@ -362,7 +374,11 @@ export class CovidDataExplorer extends React.Component<{
         const showMobileControls = mobile && this.showControlsPopup
 
         return (
-            <div className="CovidDataExplorer">
+            <div
+                className={
+                    `CovidDataExplorer` + (mobile ? " mobile-explorer" : "")
+                }
+            >
                 <div className="CovidHeaderBox">
                     <div>Coronavirus Pandemic</div>
                     <div className="CovidTitle">Data Explorer</div>
@@ -396,7 +412,7 @@ export class CovidDataExplorer extends React.Component<{
                 {customizeChartMobileButton}
                 <div className="CovidDataExplorerFigure">
                     <ChartView
-                        bounds={chartBounds}
+                        bounds={this.chartBounds}
                         chart={this.chart}
                     ></ChartView>
                 </div>
