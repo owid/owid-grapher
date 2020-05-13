@@ -137,31 +137,29 @@ export const runLightbox = () => {
             ".article-content .wp-block-column:nth-child(2) img, .article-content .wp-block-columns.is-style-side-by-side img"
         )
     ).forEach(img => {
-        // TODO/HACK: refactor with something more generic when more exceptions need to be made
-        if (!img.closest(".wp-block-owid-prominent-link")) {
-            img.classList.add("lightbox-enabled")
-            img.addEventListener("click", () => {
-                const imgSrc = img.getAttribute("data-high-res-src")
-                    ? img.getAttribute("data-high-res-src")
-                    : img.src
-                if (imgSrc) {
-                    ReactDOM.render(
-                        <Lightbox
-                            imgSrc={imgSrc}
-                            containerNode={lightboxContainer}
-                        >
-                            {(isLoaded: boolean, setIsLoaded: any) => (
-                                <Image
-                                    src={imgSrc}
-                                    isLoaded={isLoaded}
-                                    setIsLoaded={setIsLoaded}
-                                />
-                            )}
-                        </Lightbox>,
-                        lightboxContainer
-                    )
-                }
-            })
-        }
+        if (
+            img.closest(".wp-block-owid-prominent-link") ||
+            img.closest("[data-no-lightbox]")
+        )
+            return
+
+        img.classList.add("lightbox-enabled")
+        img.addEventListener("click", () => {
+            const imgSrc = img.getAttribute("data-high-res-src") ?? img.src
+            if (imgSrc) {
+                ReactDOM.render(
+                    <Lightbox imgSrc={imgSrc} containerNode={lightboxContainer}>
+                        {(isLoaded: boolean, setIsLoaded: any) => (
+                            <Image
+                                src={imgSrc}
+                                isLoaded={isLoaded}
+                                setIsLoaded={setIsLoaded}
+                            />
+                        )}
+                    </Lightbox>,
+                    lightboxContainer
+                )
+            }
+        })
     })
 }
