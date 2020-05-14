@@ -58,39 +58,33 @@ export class SiteSubnavigation extends React.Component<{
     render() {
         const { subnavId, subnavCurrentId } = this.props
         const subnavLinks = subnavs[subnavId]
-        if (subnavLinks) {
-            return (
-                <div className="offset-subnavigation">
-                    <div className="site-subnavigation">
-                        <div className="site-subnavigation-scroll">
-                            <div className="site-subnavigation-title">
-                                <a href={subnavLinks[0].href}>
-                                    {subnavLinks[0].label}
-                                    <FontAwesomeIcon icon={faChevronLeft} />
-                                </a>
-                            </div>
-                            <ul className="site-subnavigation-links">
-                                {subnavLinks
-                                    .slice(1)
-                                    .map(({ href, label, id }) => (
-                                        <li
-                                            className={
-                                                id === subnavCurrentId
-                                                    ? "current"
-                                                    : undefined
-                                            }
-                                            key={href}
-                                        >
-                                            <a href={href}>{label}</a>
-                                        </li>
-                                    ))}
-                            </ul>
+        return subnavLinks ? (
+            <div className="offset-subnavigation">
+                <div className="site-subnavigation">
+                    <div className="site-subnavigation-scroll">
+                        <div className="site-subnavigation-title">
+                            <a href={subnavLinks[0].href}>
+                                {subnavLinks[0].label}
+                                <FontAwesomeIcon icon={faChevronLeft} />
+                            </a>
                         </div>
+                        <ul className="site-subnavigation-links">
+                            {subnavLinks.slice(1).map(({ href, label, id }) => (
+                                <li
+                                    className={
+                                        id === subnavCurrentId
+                                            ? "current"
+                                            : undefined
+                                    }
+                                    key={href}
+                                >
+                                    <a href={href}>{label}</a>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </div>
-            )
-        } else {
-            return undefined
-        }
+            </div>
+        ) : null
     }
 }
