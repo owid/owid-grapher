@@ -336,13 +336,13 @@ export class CovidDataExplorer extends React.Component<{
     // Todo: add better logic to maximize the size of the chart
     private getChartBounds(): Bounds | undefined {
         const chartContainer = this.chartContainerRef.current
-
         if (!chartContainer) return undefined
-
-        const width = Math.min(1000, chartContainer.clientWidth)
-        const height = chartContainer.clientHeight
-
-        return new Bounds(0, 0, width, height)
+        return new Bounds(
+            0,
+            0,
+            chartContainer.clientWidth,
+            chartContainer.clientHeight
+        )
     }
 
     render() {
