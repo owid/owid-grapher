@@ -584,7 +584,7 @@ export class ScatterTransform extends ChartTransform {
             const group = {
                 entityDimensionKey,
                 label: chart.data.getLabelForKey(entityDimensionKey),
-                color: "#ffcb1f", // Default color
+                color: "#932834", // Default color
                 size: 0,
                 values: []
             } as ScatterSeries
