@@ -49,9 +49,11 @@
     }
 
     &.is-style-thin {
+        background-color: transparent;
         margin-bottom: $vertical-spacing;
         .content-wrapper {
-            margin: 0.5rem;
+            padding: 0.5rem;
+            background-color: $primary-color-100;
         }
         .content {
             font-size: 0.9rem;
@@ -72,17 +74,13 @@
 
         &.with-image a {
             display: flex;
-            align-items: flex-start;
-            @include md-up {
-                align-items: center;
-            }
+            align-items: stretch;
             figure {
-                // hack 1: 55px is the height of the block with one line of content + title, including padding
-                // hack 2: 850 / 600 = ratio of SVG charts
-                flex: 0 0 55px * 850/600;
-                margin: 0.5rem 0 0.5rem 0.5rem;
+                flex: 0 0 5rem;
+                margin: 0.5rem;
                 @include md-up {
                     margin: 0;
+                    align-self: center;
                 }
                 img {
                     width: 100%;
