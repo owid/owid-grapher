@@ -31,6 +31,23 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         },
         { label: "Grapher", href: "/owid-grapher", id: "grapher" },
         { label: "Contact", href: "/about#contact", id: "contact" }
+    ],
+    coronavirus: [
+        { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
+        { label: "Deaths", href: "/covid-deaths", id: "deaths" },
+        { label: "Cases", href: "/covid-cases", id: "cases" },
+        { label: "Tests", href: "/coronavirus-testing", id: "testing" },
+        {
+            label: "Mortality risk",
+            href: "/mortality-risk-covid",
+            id: "mortality-risk"
+        },
+        {
+            label: "Policy responses",
+            href: "/policy-responses-covid",
+            id: "policy-responses"
+        },
+        { label: "All charts", href: "/coronavirus-data", id: "data" }
     ]
 }
 
