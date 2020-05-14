@@ -149,9 +149,14 @@ html.iframe {
 
     .CovidDataExplorerFigure {
         display: flex;
+        align-items: center;
         justify-content: center;
         position: relative;
         min-height: 600px;
+
+        // The chart normally leaves 5px padding on the sides for the shadows. In the future we may
+        // want to approach this better, but this is a quick and dirty fix for now.
+        margin: -2.5px;
 
         // Remove chart from layout calculation.
         // Since grid/flex layouts size to their contents, having the chart dictate that leads to
