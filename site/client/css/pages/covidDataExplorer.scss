@@ -1,9 +1,15 @@
 $controls-color: #3f9eff;
 $ideal-ratio: 680/480;
 
-$border-radius: 4px;
 $grid-gap: 10px;
 $placeholder-height: 800px;
+
+// Match chart styles
+$chart-border-radius: 2px;
+$chart-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+    rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;
 
 .CovidDataExplorer {
     display: grid;
@@ -32,8 +38,8 @@ $placeholder-height: 800px;
         padding: 8px;
         min-width: 200px;
         background: white;
-        border-radius: 5px;
-        border: 1px solid rgb(233, 233, 233);
+        border-radius: $chart-border-radius;
+        box-shadow: $light-shadow;
         display: flex;
         flex-direction: column;
         justify-content: space-around;
@@ -62,9 +68,8 @@ $placeholder-height: 800px;
         flex: 1;
         display: flex;
         flex-direction: column;
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-            rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
-        border-radius: 2px;
+        box-shadow: $chart-box-shadow;
+        border-radius: $chart-border-radius;
         background-color: #fff;
         margin-top: 10px;
 
@@ -94,8 +99,8 @@ $placeholder-height: 800px;
         display: flex;
         justify-content: space-between;
         background: white;
-        border-radius: 5px;
-        border: 1px solid rgb(233, 233, 233);
+        border-radius: $chart-border-radius;
+        box-shadow: $light-shadow;
         padding: 8px 14px;
 
         .CovidDataExplorerControl {
@@ -280,8 +285,7 @@ $placeholder-height: 800px;
         background-color: #fff;
         border-radius: 3px;
         border: none;
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
-            rgba(0, 0, 0, 0.08) 0px 2px 2px;
+        box-shadow: $light-shadow;
         padding: 11px 10px;
         padding-left: 2em;
         outline: none;
