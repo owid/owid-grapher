@@ -102,12 +102,6 @@ export const LongFormPage = (props: {
             </Head>
             <body className={bodyClasses.join(" ")}>
                 <SiteHeader />
-                {formattingOptions.subnavId && (
-                    <SiteSubnavigation
-                        subnavId={formattingOptions.subnavId}
-                        subnavCurrentId={formattingOptions.subnavCurrentId}
-                    />
-                )}
                 <main>
                     <article
                         className={`page${
@@ -168,6 +162,14 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
+                        {formattingOptions.subnavId && (
+                            <SiteSubnavigation
+                                subnavId={formattingOptions.subnavId}
+                                subnavCurrentId={
+                                    formattingOptions.subnavCurrentId
+                                }
+                            />
+                        )}
 
                         <div className="content-wrapper">
                             {post.tocHeadings.length > 0 && (
