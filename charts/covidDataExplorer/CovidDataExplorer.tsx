@@ -892,6 +892,7 @@ export class CovidDataExplorer extends React.Component<{
             isPublished: true,
             map: {
                 variableId: this.yVariableIndices[0],
+                baseColorScheme: this.mapColorScheme,
                 timeTolerance: 7,
                 colorSchemeValues: [],
                 colorSchemeLabels: [],
