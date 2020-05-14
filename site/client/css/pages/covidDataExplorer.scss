@@ -256,19 +256,16 @@ $placeholder-height: 800px;
         position: relative;
         z-index: 1;
 
-        // Search inputs get forced to be with 100% rounded corners on iOS.
-        // Somehow someone thought that is reasonable.
-        -webkit-appearance: none;
-
-        &:focus {
-        }
-
         &::placeholder {
             color: inherit;
             transition: opacity 150ms ease;
         }
         &:focus::placeholder {
             opacity: 0.25;
+        }
+
+        &.with-done-button {
+            padding-right: 4em;
         }
     }
 
@@ -282,6 +279,25 @@ $placeholder-height: 800px;
         align-items: center;
         pointer-events: none;
         z-index: 2;
+    }
+
+    .done {
+        position: absolute;
+        top: 0;
+        right: 6px;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        z-index: 2;
+
+        button {
+            background-color: $primary-color;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: white;
+            border-radius: 3px;
+            border: none;
+        }
     }
 }
 
