@@ -249,7 +249,7 @@ export class CovidDataExplorer extends React.Component<{
     private get smoothingPicker() {
         const options: InputOption[] = [
             {
-                label: "Daily Figures",
+                label: "No smoothing",
                 checked: this.props.params.smoothing === 0,
                 onChange: () => {
                     this.setSmoothingCommand(0)
@@ -257,7 +257,7 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "3 Day Rolling Average",
+                label: "3-day rolling average",
                 checked: this.props.params.smoothing === 3,
                 onChange: () => {
                     this.setSmoothingCommand(3)
@@ -265,7 +265,7 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "7 Day Rolling Average",
+                label: "7-day rolling average",
                 checked: this.props.params.smoothing === 7,
                 onChange: () => {
                     this.setSmoothingCommand(7)
