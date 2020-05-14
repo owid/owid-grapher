@@ -290,6 +290,9 @@ $placeholder-height: 800px;
         position: relative;
         z-index: 1;
 
+        // Mobile Safari ignores box-shadow if we don't reset the appearance.
+        -webkit-appearance: none;
+
         &::placeholder {
             color: inherit;
             transition: opacity 150ms ease;
