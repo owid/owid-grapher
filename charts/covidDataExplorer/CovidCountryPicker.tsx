@@ -112,6 +112,10 @@ export class CountryPicker extends React.Component<{
             : undefined
     }
 
+    @computed private get showDoneButton(): boolean {
+        return this.isDropdownMenu && this.isOpen
+    }
+
     @action.bound private focusOptionDirection(direction: FocusDirection) {
         if (direction === FocusDirection.first) {
             this.focusIndex = this.normalizeFocusIndex(0)
@@ -288,8 +292,10 @@ export class CountryPicker extends React.Component<{
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
                 <div className="CovidSearchInput">
                     <input
-                        className="input-field"
-                        type="search"
+                        className={classnames("input-field", {
+                            "with-done-button": this.showDoneButton
+                        })}
+                        type="text"
                         placeholder="Type to add a country..."
                         value={this.searchInput ?? ""}
                         onChange={e =>
@@ -303,6 +309,11 @@ export class CountryPicker extends React.Component<{
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
                     </div>
+                    {this.showDoneButton && (
+                        <div className="done">
+                            <button>Done</button>
+                        </div>
+                    )}
                 </div>
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
