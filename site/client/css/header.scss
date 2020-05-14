@@ -176,8 +176,11 @@
 
 /* Subnavigation */
 
-.site-subnavigation {
+.offset-subnavigation {
     background-color: $primary-color-200;
+}
+
+.site-subnavigation {
     color: $primary-color;
     position: relative;
 
@@ -216,10 +219,33 @@
 
 .site-subnavigation-scroll {
     display: flex;
+    align-items: center;
 
     @include sm-only {
         overflow-x: scroll;
         -webkit-overflow-scrolling: touch;
+    }
+}
+
+.site-subnavigation-title {
+    font-size: 1.2rem;
+    padding-right: 1rem;
+    margin-right: 0.5rem;
+    border-right: 1px solid $primary-color-400;
+    a {
+        white-space: nowrap;
+        color: $primary-color;
+        &:hover svg {
+            color: $primary-color;
+        }
+    }
+
+    svg {
+        color: $primary-color-600;
+        vertical-align: middle;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        transform: rotate(180deg);
     }
 }
 
@@ -228,23 +254,20 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
     list-style-type: none;
     padding: 0 0.5rem;
-    font-size: 16px;
+    @include md-up {
+        padding: 0;
+    }
+    font-size: 0.9rem;
 
     @include sm-only {
-        font-size: 15px;
         flex-wrap: nowrap;
         justify-content: left;
     }
 
     li {
-        padding: 0 0.75rem;
-
-        @include sm-only {
-            padding: 0 0.5rem;
-        }
+        padding: 0 0.5rem;
     }
 
     a {

@@ -2,38 +2,42 @@
     & > .content-wrapper {
         position: relative;
         padding-top: $vertical-spacing;
-        background-color: $body-bg;
+    }
+
+    .content-and-footnotes,
+    .article-header,
+    .site-subnavigation {
+        @include content-wrapper;
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
+    }
+    @include sm-only {
+        .site-subnavigation {
+            padding-right: 0;
+        }
     }
 
     &.with-sidebar {
         @include xlg-down {
             .offset-header,
-            .offset-content {
-                margin-left: $sidebar-closed-drawer-width;
+            .offset-content,
+            .offset-subnavigation {
+                padding-left: $sidebar-closed-drawer-width;
             }
         }
         @include xxlg-up {
             & > .content-wrapper {
                 display: flex;
             }
-            .offset-header {
-                margin-left: ($sidebar-content-width + 2 * $padding-x-md);
+            .offset-header,
+            .offset-subnavigation {
+                padding-left: ($sidebar-content-width + 2 * $padding-x-md);
             }
             .offset-content {
                 flex: 1;
             }
-            .content-and-footnotes {
-                margin: auto;
-            }
-        }
-    }
-
-    .content-and-footnotes,
-    .article-header {
-        @include content-wrapper;
-        @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
         }
     }
 
@@ -98,8 +102,9 @@
     }
 
     &.large-banner {
-        background-color: $primary-color-100;
-
+        .offset-header {
+            background-color: $primary-color-100;
+        }
         .article-header {
             padding-top: 2rem;
             padding-bottom: 2 * $vertical-spacing;
@@ -152,7 +157,9 @@
     }
 
     &.thin-banner {
-        background-color: $tertiary-color-100;
+        .offset-header {
+            background-color: $tertiary-color-100;
+        }
         .article-header {
             padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
