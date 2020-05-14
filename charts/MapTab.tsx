@@ -11,12 +11,11 @@ import {
     MapEntity
 } from "./ChoroplethMap"
 import { MapLegend, MapLegendView } from "./MapLegend"
-import { getRelativeMouse, last, isMobile, takeWhile } from "./Util"
+import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
 import { MapProjection } from "./MapProjection"
-import { Tooltip } from "./Tooltip"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
@@ -24,8 +23,7 @@ import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
-import { SparkBarsProps, SparkBars, SparkBarsDatum } from "./SparkBars"
-import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
+import { MapTooltip } from "./MapTooltip"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -89,7 +87,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const entity = this.props.mapToDataEntities[featureId]
         const datakeys = chart.data.availableKeysByEntity.get(entity)
 
-        return datakeys && datakeys.length
+        return datakeys && datakeys.length > 0
     }
 
     @action.bound onClick(d: GeoFeature) {
@@ -191,105 +189,24 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         )
     }
 
-    sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year
-
-    @computed get sparkBarsToDisplay() {
-        return this.context.chartView.isMobile ? 13 : 20
-    }
-
-    @computed get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
-        return {
-            data: this.sparkBarsData,
-            x: this.sparkBarsDatumXAccessor,
-            y: (d: SparkBarsDatum) => d.value,
-            xDomain: this.sparkBarsDomain
-        }
-    }
-
-    @computed get sparkBarsData(): SparkBarsDatum[] {
-        const sparkBarValues: SparkBarsDatum[] = []
-        if (!this.tooltipDatum) return sparkBarValues
-
-        this.context.chart.map.data.dimension?.valueByEntityAndYear
-            .get(this.tooltipDatum.entity)
-            ?.forEach((value, key) => {
-                sparkBarValues.push({
-                    year: key,
-                    value: value as number
-                })
-            })
-
-        return takeWhile(
-            sparkBarValues,
-            d => d.year <= this.context.chart.map.data.targetYear
-        ).slice(-this.sparkBarsToDisplay)
-    }
-
-    @computed get sparkBarsDomain(): [number, number] {
-        const lastVal = last(this.sparkBarsData)
-
-        const end = lastVal ? this.sparkBarsDatumXAccessor(lastVal) : 0
-        const start = end > 0 ? end - this.sparkBarsToDisplay : 0
-
-        return [start, end]
-    }
-
-    @computed get currentSparkBar() {
-        const lastVal = last(this.sparkBarsData)
-        return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
-    }
-
-    generateTooltip(
-        tooltipDatum: ChoroplethDatum | undefined,
-        inputYear: number | undefined,
-        renderPlot: boolean
-    ) {
-        return tooltipDatum ? (
-            <div className="map-tooltip">
-                <div className="trend">
-                    {renderPlot && (
-                        <div className="plot">
-                            <SparkBars<SparkBarsDatum>
-                                {...this.sparkBarsProps}
-                                currentX={this.currentSparkBar}
-                            />
-                        </div>
-                    )}
-                    <div className={"value" + (renderPlot ? "" : " no-plot")}>
-                        <CovidTimeSeriesValue
-                            className="current"
-                            value={this.context.chart.map.data.formatTooltipValue(
-                                tooltipDatum.value
-                            )}
-                            formattedDate={this.props.formatYear(
-                                tooltipDatum.year as number
-                            )}
-                        />
-                    </div>
-                </div>
-            </div>
-        ) : (
-            `No data for ${this.props.formatYear(inputYear as number)}`
-        )
-    }
-
     render() {
-        const {
-            choroplethData,
-            projection,
-            defaultFill,
-            bounds,
-            inputYear,
-            mapToDataEntities
-        } = this.props
+        const { choroplethData, projection, defaultFill, bounds } = this.props
         const {
             focusBracket,
             focusEntity,
             mapLegend,
             tooltipTarget,
-            tooltipDatum,
             projectionChooserBounds
         } = this
+
+        const tooltipProps = {
+            inputYear: this.props.inputYear,
+            formatYear: this.props.formatYear,
+            mapToDataEntities: this.props.mapToDataEntities,
+            tooltipDatum: this.tooltipDatum,
+            isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId)
+        }
+
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
@@ -316,52 +233,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     />
                 </ControlsOverlay>
                 {tooltipTarget && (
-                    <Tooltip
-                        key="mapTooltip"
-                        x={tooltipTarget.x}
-                        y={tooltipTarget.y}
-                        style={{ textAlign: "center" }}
-                        offsetX={30}
-                        offsetY={isMobile && -50}
-                    >
-                        <h3
-                            style={{
-                                padding: "0.3em 0.3em",
-                                margin: 0,
-                                fontWeight: "normal",
-                                fontSize: "1em"
-                            }}
-                        >
-                            {mapToDataEntities[tooltipTarget.featureId] ||
-                                tooltipTarget.featureId.replace(/_/g, " ")}
-                        </h3>
-                        <div
-                            style={{
-                                margin: 0,
-                                padding: "0.3em 0.3em"
-                            }}
-                        >
-                            {this.generateTooltip(
-                                tooltipDatum,
-                                inputYear,
-                                this.context.chart.hasChartTab
-                            )}
-                        </div>
-                        {this.isEntityClickable(tooltipTarget.featureId) && (
-                            <div>
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        padding: "0.3em 0.9em",
-                                        fontSize: "13px",
-                                        opacity: 0.6
-                                    }}
-                                >
-                                    Click for change over time
-                                </p>
-                            </div>
-                        )}
-                    </Tooltip>
+                    <MapTooltip
+                        {...tooltipProps}
+                        tooltipTarget={tooltipTarget}
+                    />
                 )}
             </g>
         )
