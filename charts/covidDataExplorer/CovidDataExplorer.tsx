@@ -62,7 +62,6 @@ import moment from "moment"
 import { covidDashboardSlug } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 @observer
 export class CovidDataExplorer extends React.Component<{
