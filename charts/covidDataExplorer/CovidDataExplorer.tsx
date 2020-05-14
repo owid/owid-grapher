@@ -381,7 +381,11 @@ export class CovidDataExplorer extends React.Component<{
                     <div className="CovidTitle">Data Explorer</div>
                     <div className="CovidLastUpdated" title={this.howLongAgo}>
                         Download the complete <em>Our World in Data</em>{" "}
-                        <a href="https://github.com/owid/covid-19-data/tree/master/public/data">
+                        <a
+                            href="https://github.com/owid/covid-19-data/tree/master/public/data"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             COVID-19 dataset.
                         </a>
                     </div>
