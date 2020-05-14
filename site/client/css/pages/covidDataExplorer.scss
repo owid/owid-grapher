@@ -7,11 +7,15 @@ $placeholder-height: 800px;
 
 .CovidDataExplorer {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 1fr 4fr;
+    grid-template-rows: 1fr 9fr;
     margin: 0 auto;
     padding-top: $grid-gap;
     width: 100%;
     max-width: 1200px;
+    height: 90vh;
+    max-height: 900px;
+    min-height: 480px;
     grid-row-gap: $grid-gap;
     grid-column-gap: $grid-gap;
 
@@ -48,10 +52,16 @@ $placeholder-height: 800px;
     }
 
     .CountryListContainer {
+        flex: 1;
         position: relative;
+        display: flex;
+        flex-direction: column;
     }
 
     .CountryList {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
             rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
         border-radius: 2px;
@@ -78,7 +88,6 @@ $placeholder-height: 800px;
 
     .CountrySearchResults {
         overflow-y: scroll;
-        height: 595px;
     }
 
     .CovidDataExplorerControlBar {
@@ -111,12 +120,27 @@ $placeholder-height: 800px;
         }
     }
 
-    &.mobile-explorer {
-        padding: 8px;
-        grid-template-columns: auto;
+    .CovidDataExplorerFigure {
+        display: flex;
+        justify-content: center;
+        position: relative;
+        min-height: 600px;
 
-        .CountrySearchResults {
-            max-height: 45vh;
+        // Remove chart from layout calculation.
+        // Since grid/flex layouts size to their contents, having the chart dictate that leads to
+        // a very slow adaptations to resizing.
+        .chart {
+            position: absolute;
+        }
+    }
+
+    &.mobile-explorer {
+        grid-template-columns: auto;
+        grid-template-rows: 0fr 0fr 0fr 1fr;
+
+        .CountryList {
+            min-height: 200px;
+            height: 45vh;
         }
 
         .CovidDataExplorerControlBar {
@@ -149,7 +173,16 @@ $placeholder-height: 800px;
                 animation-iteration-count: 1;
             }
         }
+
+        .CovidDataExplorerFigure {
+            min-height: 480px;
+        }
     }
+}
+
+.CountryPicker {
+    display: flex;
+    flex-direction: column;
 }
 
 .CountryOption {
@@ -237,6 +270,7 @@ $placeholder-height: 800px;
 }
 
 .CovidSearchInput {
+    flex: 0;
     position: relative;
     color: $primary-color-800;
 
@@ -305,6 +339,7 @@ $placeholder-height: 800px;
     min-height: $placeholder-height;
     width: 100%;
     position: relative;
+    padding: 8px;
 }
 
 @keyframes slideUp {
