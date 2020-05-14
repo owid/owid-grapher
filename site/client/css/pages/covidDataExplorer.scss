@@ -288,26 +288,7 @@ $placeholder-height: 800px;
 #covidDataExplorerContainer {
     min-height: $placeholder-height;
     width: 100%;
-}
-
-.LoadingCovidDataExplorer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: $placeholder-height;
-    width: 100%;
-}
-
-.LoadingCovidDataExplorer:after {
-    content: "";
-    border: 5px solid #333;
-    border-radius: 30px;
-    height: 30px;
-    width: 30px;
-    opacity: 0;
-
-    animation: pulsate 1s ease-out;
-    animation-iteration-count: infinite;
+    position: relative;
 }
 
 @keyframes slideUp {
@@ -327,19 +308,5 @@ $placeholder-height: 800px;
 
     100% {
         bottom: -150%;
-    }
-}
-
-@keyframes pulsate {
-    0% {
-        transform: scale(0.1);
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1.2);
-        opacity: 0;
     }
 }

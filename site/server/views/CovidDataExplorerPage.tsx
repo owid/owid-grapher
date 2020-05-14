@@ -8,6 +8,7 @@ import {
     covidDataPath
 } from "charts/covidDataExplorer/CovidDataUtils"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 export const CovidDataExplorerPage = () => {
     const script = `window.CovidDataExplorer.bootstrap()`
@@ -40,7 +41,9 @@ export const CovidDataExplorerPage = () => {
             </Head>
             <body className="ChartPage">
                 <SiteHeader />
-                <main id="covidDataExplorerContainer"></main>
+                <main id="covidDataExplorerContainer">
+                    <LoadingIndicator color="#333" />
+                </main>
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
