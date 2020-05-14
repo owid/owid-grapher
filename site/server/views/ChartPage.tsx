@@ -12,6 +12,7 @@ import { Head } from "./Head"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 export const ChartPage = (props: {
     chart: ChartConfigProps
@@ -87,9 +88,9 @@ export const ChartPage = (props: {
             <body className="ChartPage">
                 <SiteHeader />
                 <main>
-                    <figure
-                        data-grapher-src={`/grapher/${chart.slug}`}
-                    ></figure>
+                    <figure data-grapher-src={`/grapher/${chart.slug}`}>
+                        <LoadingIndicator color="#333" />
+                    </figure>
 
                     {post && (
                         <div className="related-research-data">

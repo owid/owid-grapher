@@ -1,14 +1,40 @@
 .loading-indicator {
-    position: fixed;
+    position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
     top: 0;
     left: 0;
-    bottom: 0;
     right: 0;
-    background-color: black;
-    opacity: 0.5;
-    font-size: 1.2rem;
-    color: $white;
+    bottom: 0;
+}
+
+.loading-indicator span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 5px solid;
+    box-sizing: content-box;
+    border-radius: 30px;
+    height: 30px;
+    width: 30px;
+    opacity: 0;
+
+    animation: pulsate 1s ease-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        transform: scale(0.1);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
 }

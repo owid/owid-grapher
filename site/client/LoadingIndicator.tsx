@@ -1,11 +1,24 @@
 import * as React from "react"
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Bounds } from "charts/Bounds"
 
-export const LoadingIndicator = () => {
+export const LoadingIndicator = (props: {
+    backgroundColor?: string
+    bounds?: Bounds
+    color: string
+}) => {
     return (
-        <div className="loading-indicator">
-            <FontAwesomeIcon icon={faSpinner} spin />
+        <div
+            className="loading-indicator"
+            style={{
+                backgroundColor: props.backgroundColor,
+                ...props.bounds?.toCSS()
+            }}
+        >
+            <span
+                style={{
+                    borderColor: props.color
+                }}
+            />
         </div>
     )
 }
