@@ -91,6 +91,10 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    @observable private chartContainerRef: React.RefObject<
+        HTMLDivElement
+    > = React.createRef()
+
     setDeathsMetricCommand(value: DeathsMetricOption) {
         this.props.params.deathsMetric = value
     }
@@ -316,7 +320,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @action.bound onResize() {
         this.isMobile = this._isMobile()
-        this.screenWidth = document.documentElement.clientWidth
+        this.chartBounds = this.getChartBounds()
     }
 
     private _isMobile() {
@@ -327,20 +331,17 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @observable isMobile: boolean = this._isMobile()
-    @observable screenWidth: number = document.documentElement.clientWidth
+    @observable.ref chartBounds: Bounds | undefined = undefined
 
     // Todo: add better logic to maximize the size of the chart
-    @computed get chartBounds() {
-        const bounds = this.props.bounds
-        if (this.isMobile)
-            return new Bounds(
-                0,
-                0,
-                document.documentElement.clientWidth,
-                bounds.height
-            )
-        const width = Math.min(1000, this.screenWidth - 250)
-        const height = 1000 / (680 / 480)
+    private getChartBounds(): Bounds | undefined {
+        const chartContainer = this.chartContainerRef.current
+
+        if (!chartContainer) return undefined
+
+        const width = Math.min(1000, chartContainer.clientWidth)
+        const height = chartContainer.clientHeight
+
         return new Bounds(0, 0, width, height)
     }
 
@@ -407,11 +408,17 @@ export class CovidDataExplorer extends React.Component<{
                     isDropdownMenu={mobile}
                 ></CountryPicker>
                 {customizeChartMobileButton}
-                <div className="CovidDataExplorerFigure">
-                    <ChartView
-                        bounds={this.chartBounds}
-                        chart={this.chart}
-                    ></ChartView>
+                <div
+                    className="CovidDataExplorerFigure"
+                    ref={this.chartContainerRef}
+                >
+                    {this.chartBounds && (
+                        <ChartView
+                            bounds={this.chartBounds}
+                            chart={this.chart}
+                            isEmbed={true}
+                        ></ChartView>
+                    )}
                 </div>
             </div>
         )
@@ -743,6 +750,9 @@ export class CovidDataExplorer extends React.Component<{
 
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
+
+        // call resize for the first time to initialize chart
+        this.onResize()
     }
 
     componentWillUnmount() {

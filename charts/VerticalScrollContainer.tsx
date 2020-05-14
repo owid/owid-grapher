@@ -60,7 +60,10 @@ export const VerticalScrollContainer = React.forwardRef(
         return (
             <div
                 className="VerticalScrollContainerShadows"
-                style={{ position: "relative" }}
+                style={{
+                    position: "relative",
+                    height: "100%"
+                }}
             >
                 {scrollingShadows && (
                     <ScrollingShadow
@@ -71,7 +74,15 @@ export const VerticalScrollContainer = React.forwardRef(
                 )}
                 <div
                     className={classnames(className, "VerticalScrollContainer")}
-                    style={{ overflowY: "auto", ...style }}
+                    style={{
+                        overflowY: "auto",
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                        ...style
+                    }}
                     ref={scrollContainerRef}
                     {...rest}
                 >
