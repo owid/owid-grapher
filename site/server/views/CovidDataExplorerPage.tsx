@@ -7,7 +7,10 @@ import {
     covidLastUpdatedPath,
     covidDataPath
 } from "charts/covidDataExplorer/CovidDataUtils"
-import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import {
+    covidDashboardSlug,
+    coronaOpenGraphImagePath
+} from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 export const CovidDataExplorerPage = () => {
@@ -24,6 +27,7 @@ export const CovidDataExplorerPage = () => {
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/${covidDashboardSlug}`}
                 pageTitle="Coronavirus Pandemic Data Explorer"
+                imageUrl={`${settings.BAKED_BASE_URL}/${coronaOpenGraphImagePath}`}
             >
                 <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
                 <link
