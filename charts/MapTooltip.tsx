@@ -81,7 +81,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         } = this.props
 
         const renderPlot = this.context.chart.hasChartTab
-        debugger
         return (
             <Tooltip
                 key="mapTooltip"
