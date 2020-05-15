@@ -151,7 +151,7 @@ const daysToDoubleGenerator = (
                     <div className="trend">
                         <div className="plot">
                             <SparkBars<CovidDatum>
-                                className="covid-bars"
+                                className="spark-bars covid-bars"
                                 {...bars}
                                 y={accessorDatum}
                                 highlightedX={
@@ -180,7 +180,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
             <div className="trend">
                 <div className="plot">
                     <SparkBars<CovidDatum>
-                        className="covid-bars"
+                        className="spark-bars covid-bars"
                         {...bars}
                         y={accessor}
                         renderValue={d =>
@@ -223,7 +223,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
             <div className="trend">
                 <div className="plot">
                     <SparkBars<CovidDatum>
-                        className="covid-bars"
+                        className="spark-bars covid-bars"
                         {...bars}
                         y={accessor}
                         renderValue={d =>
