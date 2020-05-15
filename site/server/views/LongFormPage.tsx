@@ -46,7 +46,7 @@ export const LongFormPage = (props: {
 
     const bodyClasses = []
     let hasSidebar = false
-    if (post.tocHeadings.length > 0) {
+    if (post.tocHeadings.some(tocHeading => !tocHeading.isSubheading)) {
         hasSidebar = true
         if (post.footnotes.length) {
             post.tocHeadings.push({
@@ -172,7 +172,7 @@ export const LongFormPage = (props: {
                         )}
 
                         <div className="content-wrapper">
-                            {post.tocHeadings.length > 0 && (
+                            {hasSidebar && (
                                 <div>
                                     <TableOfContents
                                         headings={post.tocHeadings}
