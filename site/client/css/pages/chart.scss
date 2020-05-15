@@ -47,6 +47,12 @@
     border: 1px solid #ccc;
 }
 
+.ChartPage .site-subnavigation {
+    padding-left: 1rem;
+    margin: 0 auto;
+    max-width: $max-width-covid-data-explorer;
+}
+
 .ChartPage main {
     .related-research-data {
         @include block-spacing;
@@ -91,6 +97,7 @@ html.iframe .ChartPage {
 
     .site-header,
     .alert-banner,
+    .offset-subnavigation,
     .donate-footer,
     .cookie-notice,
     .site-footer,

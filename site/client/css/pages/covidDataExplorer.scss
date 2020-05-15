@@ -42,7 +42,7 @@ html.iframe {
     margin: 0 auto;
     padding-top: $grid-gap;
     width: 100%;
-    max-width: 1200px;
+    max-width: $max-width-covid-data-explorer;
     height: 90vh;
     max-height: 900px;
     min-height: 480px;
