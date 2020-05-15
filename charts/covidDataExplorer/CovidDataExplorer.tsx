@@ -304,8 +304,8 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get lastUpdated() {
         const time = moment.utc(this.props.updated)
-        const formatString = "Do MMM, kk:mm"
-        return `Data last updated ${time.format(formatString)} (London time)`
+        const formatString = "Do MMM, kk:mm [(GMT]Z[)]"
+        return `Data last updated ${time.local().format(formatString)}`
     }
 
     @computed get howLongAgo() {
