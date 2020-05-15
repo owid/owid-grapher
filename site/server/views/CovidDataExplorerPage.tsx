@@ -12,6 +12,7 @@ import {
     coronaOpenGraphImagePath
 } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { SiteSubnavigation } from "./SiteSubnavigation"
 
 export const CovidDataExplorerPage = () => {
     const script = `window.CovidDataExplorer.bootstrap()`
@@ -45,6 +46,10 @@ export const CovidDataExplorerPage = () => {
             </Head>
             <body className="ChartPage">
                 <SiteHeader />
+                <SiteSubnavigation
+                    subnavId="coronavirus"
+                    subnavCurrentId="data-explorer"
+                />
                 <main id="covidDataExplorerContainer">
                     <LoadingIndicator color="#333" />
                 </main>

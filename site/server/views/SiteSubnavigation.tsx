@@ -47,6 +47,11 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
             href: "/policy-responses-covid",
             id: "policy-responses"
         },
+        {
+            label: "Data explorer",
+            href: "/coronavirus-data-explorer",
+            id: "data-explorer"
+        },
         { label: "All charts", href: "/coronavirus-data", id: "data" }
     ]
 }
