@@ -7,7 +7,19 @@ import { AlertBanner } from "./AlertBanner"
 
 import { BAKED_BASE_URL } from "settings"
 
-export const SiteHeader = () => {
+export interface SiteHeaderProps {
+    hideAlertBanner: boolean
+}
+
+const DEFAULT_PROPS: SiteHeaderProps = {
+    hideAlertBanner: false
+}
+
+export const SiteHeader = (overrideProps: Partial<SiteHeaderProps>) => {
+    const props: SiteHeaderProps = {
+        ...DEFAULT_PROPS,
+        ...overrideProps
+    }
     return (
         <>
             <header className="site-header">
@@ -135,7 +147,7 @@ export const SiteHeader = () => {
                     </div>
                 </div>
             </header>
-            <AlertBanner />
+            {!props.hideAlertBanner && <AlertBanner />}
         </>
     )
 }
