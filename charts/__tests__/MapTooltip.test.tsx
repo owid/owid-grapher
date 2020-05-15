@@ -30,7 +30,7 @@ describe(MapTooltip, () => {
         expect(chartWrapperWithHover.find(".map-tooltip")).toHaveLength(1)
 
         const tooltipWrapper = chartWrapperWithHover.find(".map-tooltip")
-        expect(tooltipWrapper.find(".bar")).toHaveLength(21)
+        expect(tooltipWrapper.find(".bar")).toHaveLength(20)
         expect(tooltipWrapper.find(".count").text()).toEqual(
             "0.5% of children under 5 "
         )
