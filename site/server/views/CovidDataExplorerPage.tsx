@@ -45,7 +45,7 @@ export const CovidDataExplorerPage = () => {
                 />
             </Head>
             <body className="ChartPage">
-                <SiteHeader />
+                <SiteHeader hideAlertBanner={true} />
                 <SiteSubnavigation
                     subnavId="coronavirus"
                     subnavCurrentId="data-explorer"
