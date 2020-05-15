@@ -61,7 +61,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const lastVal = last(this.sparkBarsData)
 
         const end = lastVal ? this.sparkBarsDatumXAccessor(lastVal) : 0
-        const start = end > 0 ? end - this.sparkBarsToDisplay : 0
+        const start = end > 0 ? end - this.sparkBarsToDisplay + 1 : 0
 
         return [start, end]
     }
@@ -81,7 +81,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         } = this.props
 
         const renderPlot = this.context.chart.hasChartTab
-
+        debugger
         return (
             <Tooltip
                 key="mapTooltip"
