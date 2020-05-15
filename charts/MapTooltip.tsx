@@ -39,10 +39,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed get sparkBarsData(): SparkBarsDatum[] {
         const sparkBarValues: SparkBarsDatum[] = []
-        if (!this.props.tooltipDatum) return sparkBarValues
+        const tooltipDatum = this.props.tooltipDatum
+        if (!tooltipDatum) return sparkBarValues
 
         this.context.chart.map.data.dimension?.valueByEntityAndYear
-            .get(this.props.tooltipDatum.entity)
+            .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
                     year: key,
@@ -52,7 +53,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         return takeWhile(
             sparkBarValues,
-            d => d.year <= this.context.chart.map.data.targetYear
+            d => d.year <= tooltipDatum.year
         ).slice(-this.sparkBarsToDisplay)
     }
 
