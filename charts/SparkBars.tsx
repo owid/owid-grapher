@@ -76,27 +76,17 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return result
     }
 
-    applyHoverFunctionIfExists = (
-        d: T | undefined,
-        index: number | undefined
-    ) => () => {
-        this.props.onHover?.(d, index)
-    }
-
     render() {
         return (
             <div
                 className={this.props.className}
-                onMouseLeave={this.applyHoverFunctionIfExists(
-                    undefined,
-                    undefined
-                )}
+                onMouseLeave={() => this.props.onHover?.(undefined, undefined)}
             >
                 {this.bars.map((d, i) => (
                     <div
                         key={i}
                         className="bar-wrapper"
-                        onMouseEnter={this.applyHoverFunctionIfExists(d, i)}
+                        onMouseEnter={() => this.props.onHover?.(d, i)}
                     >
                         {this.props.highlightedX === i &&
                             d !== undefined &&

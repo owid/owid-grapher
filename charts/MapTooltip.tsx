@@ -86,7 +86,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
-                style={{ textAlign: "center" }}
+                style={{ textAlign: "center", padding: "8px" }}
                 offsetX={30}
                 offsetY={isMobile && -50}
             >
