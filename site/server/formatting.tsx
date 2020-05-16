@@ -17,6 +17,7 @@ import {
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityControl"
+import { Footnote } from "site/client/Footnote"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -125,7 +126,13 @@ export async function formatWordpressPost(
         if (formattingOptions.footnotes) {
             footnotes.push(footnote)
             const i = footnotes.length
-            return `<a id="ref-${i}" class="ref" href="#note-${i}"><sup>${i}</sup></a>`
+            const href = `#ref-${i}`
+
+            return ReactDOMServer.renderToStaticMarkup(
+                <a id={`ref-${i}`} className="ref" href={href}>
+                    <Footnote index={i} href={href} />
+                </a>
+            )
         } else {
             return ""
         }
