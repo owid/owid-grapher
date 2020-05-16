@@ -29,7 +29,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
-import { runPageTooltips } from "site/client/runPageTooltips"
+import { runFootnotes } from "site/client/Footnote"
 
 declare var window: any
 window.Grapher = Grapher
@@ -53,7 +53,7 @@ window.runRelatedCharts = runRelatedCharts
 window.runLightbox = runLightbox
 window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
-window.runPageTooltips = runPageTooltips
+window.runFootnotes = runFootnotes
 
 Analytics.logPageLoad()
 
