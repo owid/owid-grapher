@@ -71,8 +71,90 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             name: "tests",
             yearIsDay: true,
             numDecimalPlaces: 0,
-            entityAnnotationsMap:
-                "Argentina: tests performed\nAustralia: units unclear\nAustria: units unclear\nBahrain: units unclear\nBangladesh: samples tested\nBelgium: tests performed\nBolivia: cases tested\nCanada: people tested\nChile: tests performed\nColombia: samples processed\nCosta Rica: people tested\nCzech Republic: tests performed\nDenmark: people tested\nEcuador: samples tested\nEl Salvador: tests performed\nEstonia: units unclear\nEthiopia: tests performed\nFinland: tests sampled\nFrance: units unclear\nGermany: tests performed\nGhana: people tested\nGreece: people tested\nHong Kong: tests performed\nHungary: tests performed\nIceland: units unclear\nIndia: samples tested\nIndonesia: units unclear\nIreland: units unclear\nIsrael: units unclear\nItaly: tests performed\nJapan: people tested\nLatvia: tests performed\nLithuania: samples analyzed\nLuxembourg: tests analysed\nMalaysia: cases tested\nMexico: cases tested\nNetherlands: people tested\nNew Zealand: units unclear\nNorway: people tested\nPakistan: tests performed\nPanama: units unclear\nParaguay: samples tested\nPeru: units unclear\nPhilippines: people tested\nPoland: samples tested\nPortugal: cases tested\nRomania: tests performed\nRussia: tests performed\nSenegal: tests performed\nSerbia: people tested\nSingapore: people tested\nSlovakia: analysed samples\nSlovenia: tests performed\nSouth Africa: units unclear\nSouth Korea: cases tested\nSpain: tests performed\nSweden: people tested\nSwitzerland: tests performed\nTaiwan: tests performed\nThailand: people tested\nTunisia: units unclear\nTurkey: units unclear\nUnited Kingdom: people tested\nUnited States: inconsistent units (COVID Tracking Project)\nUruguay: units unclear\nVietnam: units unclear\n"
+            entityAnnotationsMap: `Argentina: tests performed
+Australia: tests performed
+Austria: tests performed
+Bahrain: units unclear
+Bangladesh: samples tested
+Belarus: tests performed
+Belgium: units unclear
+Bolivia: cases tested
+Brazil: tests performed
+Bulgaria: tests performed
+Canada: people tested
+Chile: tests performed
+Colombia: samples tested
+Costa Rica: people tested
+Croatia: people tested
+Cuba: tests performed
+Czech Republic: tests performed
+Denmark: people tested
+Ecuador: units unclear
+El Salvador: tests performed
+Estonia: tests performed
+Ethiopia: tests performed
+Finland: samples tested
+France: tests performed
+Germany: tests performed
+Ghana: people tested
+Greece: tests performed
+Hong Kong: tests performed
+Hungary: tests performed
+Iceland: samples tested
+India: samples tested
+Indonesia: people tested
+Iran: tests performed
+Ireland: units unclear
+Israel: tests performed
+Italy: tests performed
+Japan: people tested
+Kazakhstan: tests performed
+Kenya: units unclear
+Latvia: tests performed
+Lithuania: samples tested
+Luxembourg: people tested
+Malaysia: cases tested
+Mexico: cases tested
+Morocco: people tested
+Myanmar: samples tested
+Nepal: people tested
+Netherlands: people tested
+New Zealand: tests performed
+Nigeria: samples tested
+Norway: people tested
+Pakistan: tests performed
+Panama: units unclear
+Paraguay: samples tested
+Peru: units unclear
+Philippines: people tested
+Poland: samples tested
+Portugal: samples tested
+Qatar: people tested
+Romania: tests performed
+Russia: tests performed
+Rwanda: units unclear
+Saudi Arabia: units unclear
+Senegal: tests performed
+Serbia: people tested
+Singapore: people tested
+Slovakia: tests performed
+Slovenia: tests performed
+South Africa: units unclear
+South Korea: cases tested
+Spain: tests performed
+Sweden: people tested
+Switzerland: tests performed
+Taiwan: tests performed
+Thailand: samples tested
+Tunisia: units unclear
+Turkey: tests performed
+Uganda: samples tested
+Ukraine: units unclear
+United Kingdom: people tested
+United States: inconsistent units (COVID Tracking Project)
+Uruguay: tests performed
+Vietnam: units unclear
+Zimbabwe: tests performed`
         },
         datasetName: "COVID testing time series data",
         source: {
