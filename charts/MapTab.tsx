@@ -16,7 +16,6 @@ import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapLegendBin } from "./MapData"
 import { MapProjection } from "./MapProjection"
-import { Tooltip } from "./Tooltip"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
@@ -24,6 +23,7 @@ import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
+import { MapTooltip } from "./MapTooltip"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -87,7 +87,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const entity = this.props.mapToDataEntities[featureId]
         const datakeys = chart.data.availableKeysByEntity.get(entity)
 
-        return datakeys && datakeys.length
+        return datakeys && datakeys.length > 0
     }
 
     @action.bound onClick(d: GeoFeature) {
@@ -190,23 +190,22 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     render() {
-        const {
-            choroplethData,
-            projection,
-            defaultFill,
-            bounds,
-            inputYear,
-            mapToDataEntities,
-            formatYear
-        } = this.props
+        const { choroplethData, projection, defaultFill, bounds } = this.props
         const {
             focusBracket,
             focusEntity,
             mapLegend,
             tooltipTarget,
-            tooltipDatum,
             projectionChooserBounds
         } = this
+
+        const tooltipProps = {
+            inputYear: this.props.inputYear,
+            formatYear: this.props.formatYear,
+            mapToDataEntities: this.props.mapToDataEntities,
+            tooltipDatum: this.tooltipDatum,
+            isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId)
+        }
 
         return (
             <g ref={this.base} className="mapTab">
@@ -234,63 +233,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     />
                 </ControlsOverlay>
                 {tooltipTarget && (
-                    <Tooltip
-                        key="mapTooltip"
-                        x={tooltipTarget.x}
-                        y={tooltipTarget.y}
-                        style={{ textAlign: "center" }}
-                    >
-                        <h3
-                            style={{
-                                padding: "0.3em 0.9em",
-                                margin: 0,
-                                fontWeight: "normal",
-                                fontSize: "1em"
-                            }}
-                        >
-                            {mapToDataEntities[tooltipTarget.featureId] ||
-                                tooltipTarget.featureId.replace(/_/g, " ")}
-                        </h3>
-                        <div
-                            style={{
-                                margin: 0,
-                                padding: "0.3em 0.9em",
-                                fontSize: "0.8em"
-                            }}
-                        >
-                            <span>
-                                {tooltipDatum
-                                    ? this.context.chart.map.data.formatTooltipValue(
-                                          tooltipDatum.value
-                                      )
-                                    : `No data for ${formatYear(
-                                          inputYear as number
-                                      )}`}
-                            </span>
-                            <br />
-                            {tooltipDatum && tooltipDatum.year !== inputYear && (
-                                <div>
-                                    in
-                                    <br />
-                                    <span>{formatYear(tooltipDatum.year)}</span>
-                                </div>
-                            )}
-                        </div>
-                        {this.isEntityClickable(tooltipTarget.featureId) && (
-                            <div>
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        padding: "0.3em 0.9em",
-                                        fontSize: "0.7em",
-                                        opacity: 0.6
-                                    }}
-                                >
-                                    Click for change over time
-                                </p>
-                            </div>
-                        )}
-                    </Tooltip>
+                    <MapTooltip
+                        {...tooltipProps}
+                        tooltipTarget={tooltipTarget}
+                    />
                 )}
             </g>
         )

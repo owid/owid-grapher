@@ -13,29 +13,36 @@ export enum BarState {
     faint = "faint"
 }
 
-export interface CovidBarsProps<T> {
+export interface SparkBarsProps<T> {
     data: T[]
     x: (d: T) => number
     y: (d: T) => number | undefined
     xDomain: [number, number]
-    onHover: (d: T | undefined, index: number | undefined) => void
     currentX?: number
     highlightedX?: number
     renderValue?: (d: T | undefined) => JSX.Element | undefined
+    onHover?: (d: T | undefined, index: number | undefined) => void
+    className?: string
+}
+
+export interface SparkBarsDatum {
+    year: number
+    value: number
 }
 
 @observer
-export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
+export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
-        onHover: () => undefined
+        onHover: () => undefined,
+        className: "spark-bars"
+    }
+
+    @computed get maxY(): number | undefined {
+        return max(this.bars.map(d => (d ? this.props.y(d) ?? 0 : 0)))
     }
 
     @computed get barHeightScale() {
-        const maxY = max(
-            this.props.data
-                .map(this.props.y)
-                .filter(d => d !== undefined) as number[]
-        )
+        const maxY = this.maxY
         return scaleLinear()
             .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
             .range([0, 1])
@@ -72,14 +79,14 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
     render() {
         return (
             <div
-                className="covid-bars"
-                onMouseLeave={() => this.props.onHover(undefined, undefined)}
+                className={this.props.className}
+                onMouseLeave={() => this.props.onHover?.(undefined, undefined)}
             >
                 {this.bars.map((d, i) => (
                     <div
                         key={i}
                         className="bar-wrapper"
-                        onMouseEnter={() => this.props.onHover(d, i)}
+                        onMouseEnter={() => this.props.onHover?.(d, i)}
                     >
                         {this.props.highlightedX === i &&
                             d !== undefined &&
@@ -89,7 +96,8 @@ export class CovidBars<T> extends React.Component<CovidBarsProps<T>> {
                                 </div>
                             )}
                         <div
-                            className={`bar ${this.barState(i)}`}
+                            className={`bar ${d &&
+                                this.barState(this.props.x(d))}`}
                             style={{
                                 height: this.barHeight(d)
                             }}

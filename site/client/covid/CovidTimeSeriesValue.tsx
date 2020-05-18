@@ -13,13 +13,15 @@ export const CovidTimeSeriesValue = ({
     date,
     latest,
     tooltip,
-    className
+    className,
+    formattedDate
 }: {
     value: string | undefined
-    date: Date | undefined
+    date?: Date
     latest?: boolean
     tooltip?: JSX.Element | string
     className?: string
+    formattedDate?: string
 }) => (
     <div className={classnames("time-series-value", className)}>
         {value !== undefined ? (
@@ -35,7 +37,7 @@ export const CovidTimeSeriesValue = ({
                     )}
                 </span>
                 <span className={classnames("date", { latest: latest })}>
-                    {formatDate(date)}
+                    {formattedDate ?? formatDate(date)}
                 </span>
             </>
         ) : (

@@ -62,6 +62,7 @@ import findIndex from "lodash/findIndex"
 import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
 import memoize from "lodash/memoize"
+import takeWhile from "lodash/takeWhile"
 
 export {
     isEqual,
@@ -126,7 +127,8 @@ export {
     findIndex,
     fromPairs,
     mapKeys,
-    memoize
+    memoize,
+    takeWhile
 }
 
 import moment from "moment"

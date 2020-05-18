@@ -1,0 +1,35 @@
+.spark-bars {
+    width: 84px; // should be a multiple of 14
+    height: 4em;
+    display: flex;
+
+    .bar-wrapper {
+        flex: 1;
+        height: 100%;
+        margin-right: 1px;
+        position: relative;
+    }
+
+    .bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: 1px;
+    }
+
+    .hanging-value {
+        display: inline-block;
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        right: 100%;
+        bottom: 0;
+        text-align: right;
+        margin-right: 6px;
+        text-shadow: 0 0 3px $body-bg, 0 0 3px $body-bg, 0 0 3px $body-bg,
+            0 0 3px $body-bg, 0 0 3px $body-bg, 0 0 3px $body-bg,
+            0 0 3px $body-bg, 0 0 3px $body-bg, 0 0 3px $body-bg;
+        z-index: 1;
+    }
+}

@@ -1,0 +1,78 @@
+.map-tooltip {
+    $bar-color: #ab0000;
+    $highlight-color: $bar-color;
+
+    .time-series-value {
+        line-height: 1.3;
+        white-space: nowrap;
+
+        .count {
+            font-size: 16px;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 1px;
+        }
+
+        .date {
+            font-size: 13px;
+            font-weight: 400;
+            display: block;
+            opacity: 1;
+        }
+
+        .date.latest {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.65;
+        }
+
+        &.current .count {
+            color: $bar-color;
+        }
+
+        &.highlighted {
+            color: $highlight-color;
+        }
+    }
+
+    .bar {
+        background-color: rgba(desaturate($bar-color, 40%), 0.25);
+        &.current {
+            background-color: $bar-color;
+        }
+        &.highlighted {
+            background-color: $highlight-color;
+        }
+    }
+
+    .trend {
+        display: flex;
+        height: 100%;
+
+        .plot {
+            flex: 0;
+            margin-bottom: -1px;
+            align-self: flex-end;
+        }
+
+        .value {
+            flex: 1;
+            align-self: center;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            padding-left: 12px;
+            padding-right: 12px;
+            text-align: left;
+        }
+
+        .value.no-plot {
+            text-align: center;
+            padding-top: 0.3em;
+
+            .count {
+                color: black;
+                text-align: center;
+            }
+        }
+    }
+}
