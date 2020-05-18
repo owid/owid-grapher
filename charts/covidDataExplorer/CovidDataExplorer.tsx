@@ -495,7 +495,7 @@ export class CovidDataExplorer extends React.Component<{
             )
         if (this.props.params.casesMetric)
             parts.push(
-                `The number of confirmed cases is lower than the number of total cases. The main reason for this is limited testing.`
+                `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
             )
         return `${this.smoothingTitle}` + parts.join("\n")
     }
