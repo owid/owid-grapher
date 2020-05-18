@@ -151,6 +151,42 @@ export const buildCovidVariableId = (
     return parseInt(parts.join(""))
 }
 
+const computeRollingAveragesForEachCountry = (
+    values: number[],
+    entities: number[],
+    years: number[],
+    rollingAverage: number
+) => {
+    const averages: number[][] = []
+    let currentEntity = entities[0]
+    let currentValues: number[] = []
+    let currentDates: number[] = []
+    // Assumes items are sorted by entity
+    for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i]
+        if (currentEntity !== entity) {
+            averages.push(
+                computeRollingAverage(
+                    insertMissingValuePlaceholders(currentValues, currentDates),
+                    rollingAverage
+                ).filter(value => value !== undefined) as number[]
+            )
+            currentValues = []
+            currentDates = []
+            currentEntity = entity
+        }
+        currentValues.push(values[i])
+        currentDates.push(years[i])
+    }
+    averages.push(
+        computeRollingAverage(
+            insertMissingValuePlaceholders(currentValues, currentDates),
+            rollingAverage
+        ).filter(value => value !== undefined) as number[]
+    )
+    return flatten(averages)
+}
+
 export const buildCovidVariable = (
     newId: number,
     name: MetricKind,
@@ -177,32 +213,13 @@ export const buildCovidVariable = (
             return perCapita * (value / pop)
         })
 
-    if (rollingAverage) {
-        const averages: number[][] = []
-        let currentEntity = entities[0]
-        let currentValues: number[] = []
-        let currentDates: number[] = []
-        for (let i = 0; i < entities.length; i++) {
-            const entity = entities[i]
-            if (currentEntity !== entity) {
-                averages.push(
-                    computeRollingAverage(
-                        insertMissingValuePlaceholders(
-                            currentValues,
-                            currentDates
-                        ),
-                        rollingAverage
-                    ).filter(value => value !== undefined) as number[]
-                )
-                currentValues = []
-                currentDates = []
-                currentEntity = entity
-            }
-            currentValues.push(values[i])
-            currentDates.push(years[i])
-        }
-        values = flatten(averages)
-    }
+    if (rollingAverage)
+        values = computeRollingAveragesForEachCountry(
+            values,
+            entities,
+            years,
+            rollingAverage
+        )
 
     const clone = cloneDeep(variablePartials[name])
 
@@ -212,6 +229,12 @@ export const buildCovidVariable = (
         entities,
         entityNames,
         values
+    }
+
+    // This should never throw but keep it here in case something goes wrong in our building of the runtime variables
+    // so we will fail and can spot it.
+    if (years.length !== values.length && values.length !== entities.length) {
+        throw new Error(`Length mismatch when building variables.`)
     }
 
     variable.source!.name = `${variable.source!.name}${updatedTime}`
