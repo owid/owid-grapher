@@ -379,30 +379,34 @@ export class GlobalEntityControl extends React.Component<
     }
 }
 
+const DATA_ATTR = "data-global-entity-control"
+
 export function bakeGlobalEntityControl($: CheerioStatic) {
-    $("*[data-entity-select]").each((_, el) => {
+    // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
+    // But we should still support the old attribute.
+    $(`*[data-entity-select], *[${DATA_ATTR}]`).each((_, el) => {
         const $el = $(el)
         const $section = $el.closest("section")
 
-        // Remove the "marker" element and inject a new section.
-        // We need a separate section in order to make position:sticky work.
-        $el.remove()
-        const $container = $(
-            `<div data-global-entity-control class="global-entity-control-container" />`
-        )
         const rendered = ReactDOMServer.renderToString(
             <GlobalEntityControl
                 globalEntitySelection={new GlobalEntitySelection()}
             />
         )
-        $container.html(rendered).insertAfter($section)
+
+        // Move the element to top-level where <section>s are,
+        // in order to make position:sticky work.
+        $el.remove()
+        $el.attr(DATA_ATTR, "")
+        $el.addClass("global-entity-control-container")
+        $el.html(rendered).insertAfter($section)
     })
 }
 
 export function runGlobalEntityControl(
     globalEntitySelection: GlobalEntitySelection
 ) {
-    const element = document.querySelector("*[data-global-entity-control]")
+    const element = document.querySelector(`*[${DATA_ATTR}]`)
     if (element) {
         ReactDOM.hydrate(
             <GlobalEntityControl
