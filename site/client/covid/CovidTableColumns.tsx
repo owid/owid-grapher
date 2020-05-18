@@ -22,10 +22,10 @@ import {
     CovidDoublingRange
 } from "./CovidTypes"
 import { formatDate, formatInt } from "./CovidUtils"
-import { CovidBarsProps, CovidBars } from "./CovidBars"
 import { nouns } from "./CovidConstants"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
 import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
+import { SparkBars, SparkBarsProps } from "charts/SparkBars"
 
 export enum CovidTableColumnKey {
     location = "location",
@@ -53,7 +53,7 @@ export interface CovidTableCellSpec {
     datum: CovidCountryDatum
     isMobile: boolean
     bars: Pick<
-        CovidBarsProps<CovidDatum>,
+        SparkBarsProps<CovidDatum>,
         "data" | "xDomain" | "x" | "currentX" | "highlightedX" | "onHover"
     >
     totalTestsBarScale: ScaleLinear<number, number>
@@ -150,7 +150,8 @@ const daysToDoubleGenerator = (
                 >
                     <div className="trend">
                         <div className="plot">
-                            <CovidBars<CovidDatum>
+                            <SparkBars<CovidDatum>
+                                className="spark-bars covid-bars"
                                 {...bars}
                                 y={accessorDatum}
                                 highlightedX={
@@ -178,7 +179,8 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
         >
             <div className="trend">
                 <div className="plot">
-                    <CovidBars<CovidDatum>
+                    <SparkBars<CovidDatum>
+                        className="spark-bars covid-bars"
                         {...bars}
                         y={accessor}
                         renderValue={d =>
@@ -220,7 +222,8 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
         >
             <div className="trend">
                 <div className="plot">
-                    <CovidBars<CovidDatum>
+                    <SparkBars<CovidDatum>
+                        className="spark-bars covid-bars"
                         {...bars}
                         y={accessor}
                         renderValue={d =>

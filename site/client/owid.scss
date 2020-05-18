@@ -15,6 +15,9 @@
 
 @import "~normalize.css";
 
+@import "~tippy.js/dist/tippy.css";
+@import "~tippy.js/themes/light.css";
+
 @import "css/variables.scss";
 @import "css/mixins.scss";
 
@@ -43,6 +46,8 @@
 @import "css/components/newsletter-subscription.scss";
 @import "css/components/lightbox.scss";
 @import "css/components/loading-indicator.scss";
+@import "css/components/sparkbars.scss";
+@import "css/components/map-tooltip.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
 @import "site/client/blocks/RelatedCharts/related-charts.scss";
