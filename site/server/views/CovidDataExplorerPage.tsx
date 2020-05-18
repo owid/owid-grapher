@@ -9,7 +9,8 @@ import {
 } from "charts/covidDataExplorer/CovidDataUtils"
 import {
     covidDashboardSlug,
-    coronaOpenGraphImagePath
+    coronaOpenGraphImagePath,
+    covidDataExplorerContainerId
 } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
@@ -50,7 +51,7 @@ export const CovidDataExplorerPage = () => {
                     subnavId="coronavirus"
                     subnavCurrentId="data-explorer"
                 />
-                <main id="covidDataExplorerContainer">
+                <main id={covidDataExplorerContainerId}>
                     <LoadingIndicator color="#333" />
                 </main>
                 <SiteFooter />
