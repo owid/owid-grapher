@@ -59,7 +59,11 @@ import {
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
-import { covidDashboardSlug } from "./CovidConstants"
+import {
+    covidDashboardSlug,
+    coronaWordpressElementAttribute,
+    covidDataExplorerContainerId
+} from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 
@@ -68,15 +72,10 @@ export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
     updated: string
-    bounds: Bounds
 }> {
-    static async bootstrap() {
-        const containerNode = document.getElementById(
-            "covidDataExplorerContainer"
-        )
-        const rect = containerNode!.getBoundingClientRect()
-        const containerBounds = Bounds.fromRect(rect)
-
+    static async bootstrap(
+        containerNode = document.getElementById(covidDataExplorerContainerId)
+    ) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
         const startingParams = new CovidQueryParams(window.location.search)
@@ -85,7 +84,6 @@ export class CovidDataExplorer extends React.Component<{
                 data={typedData}
                 updated={updated}
                 params={startingParams}
-                bounds={containerBounds}
             />,
             containerNode
         )
