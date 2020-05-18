@@ -240,6 +240,7 @@ export class CovidDataExplorer extends React.Component<{
                 name="timeline"
                 isCheckbox={true}
                 options={options}
+                comment={this.daysSinceOption.title}
             ></CovidInputControl>
         )
     }
