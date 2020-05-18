@@ -416,5 +416,14 @@ export function runGlobalEntityControl(
         )
         // We only want to bind the URL if a global control element exists
         globalEntitySelection.bindUrlParamsToWindow()
+        // Load default set of countries if none are selected
+        const countryAttr = element.getAttribute("data-default-country")
+        if (
+            countryAttr &&
+            globalEntitySelection.selectedEntities.length === 0
+        ) {
+            const countryCodes = countryAttr.split(/[+,]/g)
+            globalEntitySelection.selectByCountryCodes(countryCodes)
+        }
     }
 }
