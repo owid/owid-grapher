@@ -13,6 +13,7 @@ export class CovidRadioControl extends React.Component<{
     name: string
     isCheckbox?: boolean
     options: RadioOption[]
+    comment?: string
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
         this.props.options[parseInt(ev.currentTarget.value)].onChange(
@@ -21,7 +22,7 @@ export class CovidRadioControl extends React.Component<{
     }
 
     render() {
-        const name = this.props.name
+        const { name, comment } = this.props
         return (
             <div className="CovidDataExplorerControl">
                 <div className="ControlHeader">{this.props.name}</div>
@@ -43,6 +44,9 @@ export class CovidRadioControl extends React.Component<{
                                 value={index}
                             />{" "}
                             {option.label}
+                            {comment && (
+                                <div className="comment">{comment}</div>
+                            )}
                         </label>
                     </div>
                 ))}
