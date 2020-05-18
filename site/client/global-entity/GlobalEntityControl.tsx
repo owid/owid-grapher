@@ -424,6 +424,7 @@ export function runGlobalEntityControl(
         ) {
             const countryCodes = countryAttr.split(/[+,]/g)
             globalEntitySelection.selectByCountryCodes(countryCodes)
+            globalEntitySelection.mode = GlobalEntitySelectionModes.override
         }
     }
 }
