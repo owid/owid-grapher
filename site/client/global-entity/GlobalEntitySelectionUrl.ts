@@ -6,6 +6,7 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
+import { entityUrlDelimiter } from "charts/ChartUrl"
 
 type GlobalEntitySelectionQueryParams = {
     country?: string
@@ -23,7 +24,9 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
         const entities = this.globalEntitySelection.selectedEntities
         // Do not add 'country' param unless at least one country is selected
         if (entities.length > 0) {
-            params.country = entities.map(entity => entity.code).join("+")
+            params.country = entities
+                .map(entity => entity.code)
+                .join(entityUrlDelimiter)
         }
         return params
     }
@@ -39,7 +42,7 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
 
     private populateFromQueryParams(params: QueryParams) {
         if (params.country) {
-            const countryCodes = params.country.split("+")
+            const countryCodes = params.country.split(entityUrlDelimiter)
             this.globalEntitySelection.mode =
                 GlobalEntitySelectionModes.override
             this.globalEntitySelection.selectByCountryCodes(countryCodes)
