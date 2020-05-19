@@ -297,7 +297,6 @@ $zindex-IndicatorDropdown: 50;
         justify-content: center;
         border-radius: 5px;
         background: rgba(255, 255, 255, 0.95);
-        padding: 1em;
         text-align: center;
     }
 
@@ -936,8 +935,11 @@ $zindex-IndicatorDropdown: 50;
 }
 
 .ExplorePage .data-table {
-    font-size: 0.9375rem;
     margin-top: 60px;
+}
+
+.data-table {
+    font-size: 0.9375rem;
     border: none;
     background: white;
     width: 100%;
