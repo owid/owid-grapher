@@ -11,6 +11,7 @@ import { EmbedChart } from "./EmbedChart"
 import { BAKED_GRAPHER_URL } from "settings"
 import { uniq, capitalize } from "charts/Util"
 import { Country } from "utils/countries"
+import { entityUrlDelimiter } from "charts/ChartUrl"
 
 class ChartResult extends React.Component<{
     hit: ChartHit
@@ -29,7 +30,7 @@ class ChartResult extends React.Component<{
                 hit.slug +
                 `?tab=chart&country=${entities
                     .map(e => encodeURIComponent(e))
-                    .join("+")}`
+                    .join(entityUrlDelimiter)}`
             )
     }
 
@@ -163,7 +164,7 @@ export class SearchResults extends React.Component<{
                 bestChartHit.slug +
                 `?tab=chart&country=${bestChartEntities
                     .map(e => encodeURIComponent(e))
-                    .join("+")}`
+                    .join(entityUrlDelimiter)}`
             )
     }
 

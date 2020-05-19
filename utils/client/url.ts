@@ -65,7 +65,3 @@ export function setWindowQueryStr(str: string) {
         window.location.pathname + str + window.location.hash
     )
 }
-
-export function decodeQueryParam(s: string) {
-    return decodeURIComponent(s.replace(/\+/g, " "))
-}
