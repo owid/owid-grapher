@@ -133,7 +133,7 @@ html.iframe {
             font-size: 13px;
             color: #7a899e;
             line-height: 26px;
-            max-width: 25%;
+            max-width: 22%;
 
             input {
                 margin-right: 5px;
@@ -215,6 +215,10 @@ html.iframe {
 
         .CovidDataExplorerFigure {
             min-height: 480px;
+        }
+
+        .CovidDataExplorerControl {
+            max-width: inherit;
         }
     }
 }
