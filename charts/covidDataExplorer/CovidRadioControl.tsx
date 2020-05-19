@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
+import classNames from "classnames"
 
 export interface RadioOption {
     label: string
@@ -24,7 +25,12 @@ export class CovidRadioControl extends React.Component<{
     render() {
         const { name, comment } = this.props
         return (
-            <div className="CovidDataExplorerControl">
+            <div
+                className={classNames(
+                    "CovidDataExplorerControl",
+                    this.props.name
+                )}
+            >
                 <div className="ControlHeader">{this.props.name}</div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
