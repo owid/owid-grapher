@@ -67,6 +67,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
 
+const abSeed = Math.random()
+
 @observer
 export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
@@ -344,13 +346,16 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
+        // A/B Test.
+        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
         const mobile = this.isMobile
         const customizeChartMobileButton = mobile ? (
             <a
                 className="btn btn-primary mobile-button"
                 onClick={this.mobileToggleCustomizePopup}
+                data-track-note="covid-customize-chart"
             >
-                <FontAwesomeIcon icon={faChartLine} /> Customize chart
+                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
             </a>
         ) : (
             undefined
