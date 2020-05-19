@@ -133,6 +133,7 @@ html.iframe {
             font-size: 13px;
             color: #7a899e;
             line-height: 26px;
+            max-width: 25%;
 
             input {
                 margin-right: 5px;
@@ -145,6 +146,10 @@ html.iframe {
 
             .SelectedOption {
                 color: #243d60;
+            }
+
+            .comment {
+                line-height: normal;
             }
         }
     }

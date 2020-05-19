@@ -24,7 +24,8 @@ import {
     difference,
     pick,
     lastOfNonEmptyArray,
-    throttle
+    throttle,
+    capitalize
 } from "charts/Util"
 import {
     SmoothingOption,
@@ -207,7 +208,7 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get perCapitaPicker() {
         const options: InputOption[] = [
             {
-                label: "Per capita",
+                label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.props.params.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
@@ -448,22 +449,27 @@ export class CovidDataExplorer extends React.Component<{
         return "Total"
     }
 
+    @computed get perCapitaDivisorIfEnabled() {
+        return this.props.params.perCapita ? this.perCapitaDivisor : 1
+    }
+
     @computed get perCapitaDivisor() {
         const { params } = this.props
-        if (!params.perCapita) return 1
         if (params.testsMetric && !params.deathsMetric && !params.casesMetric)
             return 1000
         return 1000000
     }
 
-    @computed get perCapitaTitle() {
-        const options = {
+    @computed get perCapitaOptions() {
+        return {
             1: "",
-            1000: " per thousand people",
-            1000000: " per million people"
+            1000: "per thousand people",
+            1000000: "per million people"
         }
+    }
 
-        return options[this.perCapitaDivisor]
+    @computed get perCapitaTitle() {
+        return " " + this.perCapitaOptions[this.perCapitaDivisor]
     }
 
     @computed get metricTitle() {
@@ -628,7 +634,7 @@ export class CovidDataExplorer extends React.Component<{
         ) => {
             const id = buildCovidVariableId(
                 columnName,
-                this.perCapitaDivisor,
+                this.perCapitaDivisorIfEnabled,
                 this.props.params.smoothing,
                 daily
             )
@@ -641,7 +647,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.countryMap,
                     this.props.data,
                     rowFn,
-                    this.perCapitaDivisor,
+                    this.perCapitaDivisorIfEnabled,
                     this.props.params.smoothing,
                     daily,
                     columnName === "tests" ? "" : " - " + this.lastUpdated
