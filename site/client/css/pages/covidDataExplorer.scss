@@ -120,6 +120,9 @@ html.iframe {
     }
 
     .CovidDataExplorerControlBar {
+        $option-color: #7a899e;
+        $selected-option-color: #243d60;
+
         display: flex;
         justify-content: space-between;
         background: white;
@@ -131,7 +134,7 @@ html.iframe {
             display: flex;
             flex-direction: column;
             font-size: 13px;
-            color: #7a899e;
+            color: $option-color;
             line-height: 26px;
             max-width: 22%;
 
@@ -145,11 +148,12 @@ html.iframe {
             }
 
             .SelectedOption {
-                color: #243d60;
+                color: $selected-option-color;
             }
 
             .comment {
                 line-height: normal;
+                color: $option-color;
             }
         }
     }
