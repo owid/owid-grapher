@@ -445,8 +445,8 @@ export function sortedFindClosestIndex(array: number[], value: number): number {
     return array[lo] - value < value - array[hi] ? lo : hi
 }
 
-export function isMobile() {
-    return window.navigator.userAgent.toLowerCase().includes("mobi")
+export function isMobile(): boolean {
+    return !!window?.navigator?.userAgent.toLowerCase().includes("mobi")
 }
 
 export function isTouchDevice() {
