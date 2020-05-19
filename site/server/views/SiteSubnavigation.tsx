@@ -34,6 +34,11 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
     ],
     coronavirus: [
         { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
+        {
+            label: "By country",
+            href: "/coronavirus-country-by-country",
+            id: "by-country"
+        },
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
         { label: "Cases", href: "/covid-cases", id: "cases" },
         { label: "Tests", href: "/coronavirus-testing", id: "testing" },
