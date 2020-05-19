@@ -701,7 +701,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 /* Major sections e.g. I. Empirical View */
 .article-content .section-heading {
-    $v-padding-section-heading: 5rem;
     .wrapper {
         @include content-wrapper;
         @include lg-up {
@@ -710,7 +709,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         }
     }
     width: 100vw;
-    padding-bottom: $v-padding-section-heading;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    @include md-up {
+        padding-top: 4 * $vertical-spacing;
+        padding-bottom: 4 * $vertical-spacing;
+    }
     margin-left: calc(50% - 50vw);
     margin-bottom: 5rem;
     background-color: $primary-color-200;
@@ -722,7 +726,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     h2 {
         margin: 0;
-        padding-top: $v-padding-section-heading;
         font-family: $serif-font-stack;
         font-size: 2.5rem;
         @include md-up {
@@ -735,7 +738,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     .in-this-section {
         display: flex;
         align-items: center;
-        margin: 2 * $vertical-spacing 0 $vertical-spacing;
+        margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
+        @include md-up {
+            margin-top: 2 * $vertical-spacing;
+        }
         text-transform: uppercase;
         font-size: 0.9rem;
         font-weight: bold;
