@@ -155,6 +155,10 @@ html.iframe {
                 line-height: normal;
                 color: $option-color;
             }
+
+            &.count {
+                width: 15%;
+            }
         }
     }
 
@@ -222,7 +226,11 @@ html.iframe {
         }
 
         .CovidDataExplorerControl {
-            max-width: inherit;
+            max-width: unset;
+
+            &.count {
+                width: unset;
+            }
         }
     }
 }
