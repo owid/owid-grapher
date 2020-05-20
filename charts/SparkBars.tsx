@@ -23,6 +23,7 @@ export interface SparkBarsProps<T> {
     renderValue?: (d: T | undefined) => JSX.Element | undefined
     onHover?: (d: T | undefined, index: number | undefined) => void
     className?: string
+    color?: string
 }
 
 export interface SparkBarsDatum {
@@ -99,7 +100,8 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
                             className={`bar ${d &&
                                 this.barState(this.props.x(d))}`}
                             style={{
-                                height: this.barHeight(d)
+                                height: this.barHeight(d),
+                                backgroundColor: this.props.color
                             }}
                         ></div>
                     </div>

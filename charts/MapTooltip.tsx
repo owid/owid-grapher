@@ -80,7 +80,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             isEntityClickable
         } = this.props
 
-        const renderPlot = this.context.chart.hasChartTab
+        const chart = this.context.chart
+        const renderPlot = chart.hasChartTab
+        const barColor = last(chart.map.data.baseColors)
         return (
             <Tooltip
                 key="mapTooltip"
@@ -115,6 +117,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                         <SparkBars<SparkBarsDatum>
                                             {...this.sparkBarsProps}
                                             currentX={this.currentSparkBar}
+                                            color={barColor}
                                         />
                                     </div>
                                 )}
@@ -131,6 +134,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                         formattedDate={this.props.formatYear(
                                             tooltipDatum.year as number
                                         )}
+                                        valueColor={
+                                            renderPlot ? barColor : "black"
+                                        }
                                     />
                                 </div>
                             </div>
