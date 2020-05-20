@@ -49,7 +49,7 @@ export interface ChartQueryParams {
     endpointsOnly?: string
 }
 
-// Todo: ensure entityCodeOrName never contain the delimiter "|"
+// Todo: ensure entityCodeOrName never contain the v2Delimiter
 declare type entityCodeOrName = string
 
 export class EntityUrlBuilder {
@@ -57,7 +57,7 @@ export class EntityUrlBuilder {
     private static v2Delimiter = "~"
 
     static entitiesToQueryParams(entities: entityCodeOrName[]) {
-        // Always include a | in a v2 link
+        // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entities.length === 1)
             return encodeURIComponent(entities[0] + this.v2Delimiter)
 
@@ -66,7 +66,7 @@ export class EntityUrlBuilder {
 
     static queryParamToEntities(queryParam: string) {
         // First preserve handling of the old v1 country=USA+FRA style links. If a link does not
-        // include a | and includes a + we assume it's a v1 link. Unfortunately link sharing
+        // include a v2Delimiter and includes a + we assume it's a v1 link. Unfortunately link sharing
         // with v1 links did not work on Facebook because FB would replace %20 with "+".
         return this.isV1Link(queryParam)
             ? this.decodeV1Link(queryParam)
@@ -74,7 +74,7 @@ export class EntityUrlBuilder {
     }
 
     private static isV1Link(queryParam: string) {
-        // No entities currently have a "|" in their name so if a | is present we know it's a v2 link.
+        // No entities currently have a v2Delimiter in their name so if a v2Delimiter is present we know it's a v2 link.
         return !decodeURIComponent(queryParam).includes(this.v2Delimiter)
     }
 
