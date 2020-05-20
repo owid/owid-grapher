@@ -12,6 +12,6 @@
     "@wordpress/scripts": "7.2.0"
   },
   "dependencies": {
-    "markdown-it": "^10.0.0"
+    "markdown-it": "^11.0.0"
   }
 }
