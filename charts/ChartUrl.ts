@@ -54,7 +54,7 @@ declare type entityCodeOrName = string
 
 export class EntityUrlBuilder {
     private static v1Delimiter = "+"
-    private static v2Delimiter = "|"
+    private static v2Delimiter = "~"
 
     static entitiesToQueryParams(entities: entityCodeOrName[]) {
         // Always include a | in a v2 link

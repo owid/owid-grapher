@@ -333,10 +333,10 @@ describe(ChartUrl, () => {
 
 describe(EntityUrlBuilder, () => {
     const encodeTests = [
-        { entities: ["USA", "GB"], queryString: "USA%7CGB" },
+        { entities: ["USA", "GB"], queryString: "USA~GB" },
         {
             entities: ["YouTube", "Google+"],
-            queryString: "YouTube%7CGoogle%2B"
+            queryString: "YouTube~Google%2B"
         },
         {
             entities: [
@@ -345,20 +345,20 @@ describe(EntityUrlBuilder, () => {
                 "Brittany; 6000 BCE"
             ],
             queryString:
-                "Bogebakken%20(Denmark)%3B%204300%20-%203800%20BCE%7CBritish%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE%7CBrittany%3B%206000%20BCE"
+                "Bogebakken%20(Denmark)%3B%204300%20-%203800%20BCE~British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE~Brittany%3B%206000%20BCE"
         },
         {
             entities: ["British Columbia (30 sites); 3500 BCE - 1674 CE"],
             queryString:
-                "British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE%7C"
+                "British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE~"
         },
         {
             entities: ["Caribbean small states"],
-            queryString: "Caribbean%20small%20states%7C"
+            queryString: "Caribbean%20small%20states~"
         },
         {
             entities: ["North America"],
-            queryString: "North%20America%7C"
+            queryString: "North%20America~"
         },
         {
             entities: [
@@ -366,7 +366,7 @@ describe(EntityUrlBuilder, () => {
                 "Australia & New Zealand + (Total)"
             ],
             queryString:
-                "Men%20and%20Women%20Ages%2065%2B%7CAustralia%20%26%20New%20Zealand%20%2B%20(Total)"
+                "Men%20and%20Women%20Ages%2065%2B~Australia%20%26%20New%20Zealand%20%2B%20(Total)"
         }
     ]
 
@@ -404,7 +404,7 @@ describe(EntityUrlBuilder, () => {
     const facebookLinks = [
         {
             entities: ["Caribbean small states"],
-            queryString: "Caribbean+small+states%7C"
+            queryString: "Caribbean+small+states~"
         }
     ]
 
