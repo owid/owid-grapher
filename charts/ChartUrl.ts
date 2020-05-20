@@ -50,12 +50,36 @@ export interface ChartQueryParams {
 }
 
 export class EntityUrlBuilder {
-    static entitiesToQueryParams(countries: string[], delimiter: string = "+") {
-        return countries.map(encodeURIComponent).join(delimiter)
+    private static v1Delimiter = "+"
+    private static v2Delimiter = "|"
+
+    static entitiesToQueryParams(countries: string[]) {
+        return encodeURIComponent(countries.join(this.v2Delimiter))
     }
 
-    static queryParamToCountries(queryParam: string, delimiter: string = "+") {
-        return queryParam.split(delimiter).map(decodeURIComponent)
+    static queryParamToCountries(queryParam: string) {
+        // First preserve handling of the old v1 country=USA+FRA style links. If a link does not
+        // include a | and includes a + we assume it's a v1 link. Unfortunately link sharing
+        // with v1 links did not work on Facebook because FB would replace %20 with "+".
+        return this.isV1Link(queryParam)
+            ? this.decodeV1Link(queryParam)
+            : this.decodeV2Link(queryParam)
+    }
+
+    private static isV1Link(queryParam: string) {
+        // No entities currently have a "|" in their name so if a | is present we know it's a v2 link.
+        if (decodeURIComponent(queryParam).includes(this.v2Delimiter))
+            return false
+        // If there is no + then we can just let v2 parse
+        return queryParam.includes(this.v1Delimiter)
+    }
+
+    private static decodeV1Link(queryParam: string) {
+        return queryParam.split(this.v1Delimiter).map(decodeURIComponent)
+    }
+
+    private static decodeV2Link(queryParam: string) {
+        return decodeURIComponent(queryParam).split(this.v2Delimiter)
     }
 }
 
