@@ -1,6 +1,6 @@
 import { computed, observable } from "mobx"
 import { ObservableUrl } from "../UrlBinding"
-import { ChartUrl, entityUrlDelimiter } from "../ChartUrl"
+import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { omit } from "../Util"
 import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
@@ -36,9 +36,9 @@ export class CovidQueryParams {
     }
 
     setCountrySelectionFromChartUrl(chartCountries: string) {
-        chartCountries
-            .split(entityUrlDelimiter)
-            .forEach(code => this.selectedCountryCodes.add(code))
+        EntityUrlBuilder.queryParamToCountries(chartCountries).forEach(code =>
+            this.selectedCountryCodes.add(code)
+        )
     }
 
     private setDefaults() {
@@ -61,8 +61,8 @@ export class CovidQueryParams {
         params.aligned = this.aligned ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
-        params.country = Array.from(this.selectedCountryCodes).join(
-            entityUrlDelimiter
+        params.country = EntityUrlBuilder.entitiesToQueryParams(
+            Array.from(this.selectedCountryCodes)
         )
         return params as QueryParams
     }
