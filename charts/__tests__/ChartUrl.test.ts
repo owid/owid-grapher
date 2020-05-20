@@ -353,6 +353,10 @@ describe(EntityUrlBuilder, () => {
                 "British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE%7C"
         },
         {
+            entities: ["Caribbean small states"],
+            queryString: "Caribbean%20small%20states%7C"
+        },
+        {
             entities: ["North America"],
             queryString: "North%20America%7C"
         },
