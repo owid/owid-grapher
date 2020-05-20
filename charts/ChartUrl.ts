@@ -49,7 +49,15 @@ export interface ChartQueryParams {
     endpointsOnly?: string
 }
 
-export const entityUrlDelimiter = "+"
+export class EntityUrlBuilder {
+    static entitiesToQueryParams(countries: string[], delimiter: string = "+") {
+        return countries.map(encodeURIComponent).join(delimiter)
+    }
+
+    static queryParamToCountries(queryParam: string, delimiter: string = "+") {
+        return queryParam.split(delimiter).map(decodeURIComponent)
+    }
+}
 
 const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
 const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
@@ -201,14 +209,16 @@ export class ChartUrl implements ObservableUrl {
         }
     }
 
-    @computed get countryParam(): string | undefined {
+    @computed private get countryParam(): string | undefined {
         const { chart, origChartProps } = this
         if (
             chart.data.isReady &&
             JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
-            return chart.data.selectedEntityCodes.join(entityUrlDelimiter)
+            return EntityUrlBuilder.entitiesToQueryParams(
+                chart.data.selectedEntityCodes
+            )
         } else {
             return undefined
         }
@@ -334,9 +344,9 @@ export class ChartUrl implements ObservableUrl {
             () => {
                 runInAction(() => {
                     if (country) {
-                        const entityCodes = country
-                            .split(entityUrlDelimiter)
-                            .map(decodeURIComponent)
+                        const entityCodes = EntityUrlBuilder.queryParamToCountries(
+                            country
+                        )
                         const matchedEntities = this.chart.data.setSelectedEntitiesByCode(
                             entityCodes
                         )
