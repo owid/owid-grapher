@@ -36,7 +36,7 @@ export class CovidQueryParams {
     }
 
     setCountrySelectionFromChartUrl(chartCountries: string) {
-        EntityUrlBuilder.queryParamToCountries(chartCountries).forEach(code =>
+        EntityUrlBuilder.queryParamToEntities(chartCountries).forEach(code =>
             this.selectedCountryCodes.add(code)
         )
     }
