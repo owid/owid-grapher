@@ -4,7 +4,7 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/TimeBounds"
 import { createConfig, setupChart } from "test/utils"
 
-import { ChartUrl, ChartQueryParams } from "../ChartUrl"
+import { ChartUrl, ChartQueryParams, EntityUrlBuilder } from "../ChartUrl"
 import { MapConfigProps } from "charts/MapConfig"
 
 function fromQueryParams(
@@ -327,6 +327,53 @@ describe(ChartUrl, () => {
                     })
                 }
             }
+        })
+    })
+})
+
+describe(EntityUrlBuilder, () => {
+    const encodeTests = [
+        { entities: ["USA", "GB"], queryString: "USA+GB" },
+        { entities: ["YouTube", "Google+"], queryString: "YouTube+Google%2B" },
+        {
+            entities: [
+                "Bogebakken (Denmark); 4300 - 3800 BCE",
+                "British Columbia (30 sites); 3500 BCE - 1674 CE",
+                "Brittany; 6000 BCE"
+            ],
+            delimiter: "|",
+            queryString:
+                "Bogebakken%20(Denmark)%3B%204300%20-%203800%20BCE|British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE|Brittany%3B%206000%20BCE"
+        },
+
+        {
+            delimiter: "|",
+            entities: [
+                "Men and Women Ages 65+",
+                "Australia & New Zealand + (Total)"
+            ],
+            queryString:
+                "Men%20and%20Women%20Ages%2065%2B|Australia%20%26%20New%20Zealand%20%2B%20(Total)"
+        }
+    ]
+
+    encodeTests.forEach(testCase => {
+        it(`correctly encodes url strings`, () => {
+            expect(
+                EntityUrlBuilder.entitiesToQueryParams(
+                    testCase.entities,
+                    testCase.delimiter
+                )
+            ).toEqual(testCase.queryString)
+        })
+
+        it(`correctly decodes url strings`, () => {
+            expect(
+                EntityUrlBuilder.queryParamToCountries(
+                    testCase.queryString,
+                    testCase.delimiter
+                )
+            ).toEqual(testCase.entities)
         })
     })
 })
