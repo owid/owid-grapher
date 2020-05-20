@@ -350,11 +350,11 @@ describe(EntityUrlBuilder, () => {
         {
             entities: ["British Columbia (30 sites); 3500 BCE - 1674 CE"],
             queryString:
-                "British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE"
+                "British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE%7C"
         },
         {
             entities: ["North America"],
-            queryString: "North%20America"
+            queryString: "North%20America%7C"
         },
         {
             entities: [
@@ -375,7 +375,7 @@ describe(EntityUrlBuilder, () => {
 
         it(`correctly decodes url strings`, () => {
             expect(
-                EntityUrlBuilder.queryParamToCountries(testCase.queryString)
+                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
             ).toEqual(testCase.entities)
         })
     })
@@ -392,7 +392,22 @@ describe(EntityUrlBuilder, () => {
     legacyLinks.forEach(testCase => {
         it(`correctly decodes legacy url strings`, () => {
             expect(
-                EntityUrlBuilder.queryParamToCountries(testCase.queryString)
+                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+            ).toEqual(testCase.entities)
+        })
+    })
+
+    const facebookLinks = [
+        {
+            entities: ["Caribbean small states"],
+            queryString: "Caribbean+small+states%7C"
+        }
+    ]
+
+    facebookLinks.forEach(testCase => {
+        it(`correctly decodes Facebook altered links`, () => {
+            expect(
+                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
             ).toEqual(testCase.entities)
         })
     })

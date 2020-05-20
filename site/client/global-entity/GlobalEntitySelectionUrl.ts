@@ -42,7 +42,7 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
 
     private populateFromQueryParams(params: QueryParams) {
         if (params.country) {
-            const countryCodes = EntityUrlBuilder.queryParamToCountries(
+            const countryCodes = EntityUrlBuilder.queryParamToEntities(
                 params.country
             )
             this.globalEntitySelection.mode =
