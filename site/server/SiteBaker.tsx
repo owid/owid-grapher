@@ -537,6 +537,7 @@ export class SiteBaker {
         await this.bakeAssets()
         await this.bakeSpecialPages()
         await this.bakeGoogleScholar()
+        await this.bakeCovidCountryProfiles()
         await this.bakePosts()
         await this.bakeCharts()
     }
