@@ -2,7 +2,7 @@ import * as React from "react"
 import moment from "moment"
 
 export const CitationMeta = (props: {
-    id: number
+    // id: number
     title: string
     authors: string[]
     date: Date

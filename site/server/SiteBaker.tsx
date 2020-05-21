@@ -27,7 +27,8 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
-    renderCovidDataExplorerPage
+    renderCovidDataExplorerPage,
+    renderCovidCountryProfile
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -45,7 +46,10 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
 import { countries } from "utils/countries"
-import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import {
+    covidDashboardSlug,
+    covidCountryProfileRootPath
+} from "charts/covidDataExplorer/CovidConstants"
 
 // Static site generator using Wordpress
 
@@ -185,9 +189,28 @@ export class SiteBaker {
         this.grapherExports = await getGrapherExportsByUrl()
     }
 
+    async bakeCovidCountryProfiles() {
+        // Delete all country profiles before regenerating them
+        await fs.remove(`${BAKED_SITE_DIR}/${covidCountryProfileRootPath}`)
+
+        // Not necessary, as this is done by stageWrite already
+        // await this.ensureDir(covidCountryProfileRootPath)
+        for (const country of countries) {
+            const html = await renderCovidCountryProfile(
+                country,
+                this.grapherExports
+            )
+            const outPath = path.join(
+                BAKED_SITE_DIR,
+                `${covidCountryProfileRootPath}/${country.slug}.html`
+            )
+            await this.stageWrite(outPath, html)
+        }
+    }
+
     // Bake an individual post/page
     async bakePost(post: wpdb.FullPost) {
-        const entries = await wpdb.getEntriesByCategory()
+        const pageType = await wpdb.getPageType(post)
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(
             post,
@@ -196,7 +219,7 @@ export class SiteBaker {
         )
         const html = renderToHtmlPage(
             <LongFormPage
-                entries={entries}
+                pageType={pageType}
                 post={formatted}
                 formattingOptions={formattingOptions}
             />
@@ -243,6 +266,7 @@ export class SiteBaker {
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !path.startsWith(covidDashboardSlug) &&
+                    !path.startsWith(covidCountryProfileRootPath) &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&

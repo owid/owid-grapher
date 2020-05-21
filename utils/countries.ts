@@ -1507,3 +1507,7 @@ const allCountries: FilterableCountry[] = [
 export const countries: Country[] = allCountries.filter(
     country => !country.filter
 )
+
+export const getCountry = (slug: string): Country | undefined => {
+    return countries.find(c => c.slug === slug)
+}

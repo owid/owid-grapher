@@ -11,7 +11,7 @@ import {
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "./SiteBaker"
-import { countries } from "utils/countries"
+import { countries, getCountry } from "utils/countries"
 
 export async function countriesIndexPage() {
     return renderToHtmlPage(<CountriesIndexPage countries={countries} />)
@@ -164,7 +164,7 @@ async function countryIndicatorLatestData(countryCode: string) {
 // }
 
 export async function countryProfilePage(countrySlug: string) {
-    const country = countries.find(c => c.slug === countrySlug)
+    const country = getCountry(countrySlug)
     if (!country) {
         throw new JsonError(`No such country ${countrySlug}`, 404)
     }
