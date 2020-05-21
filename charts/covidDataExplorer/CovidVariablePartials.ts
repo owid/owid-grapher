@@ -18,7 +18,11 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             unit: "cases",
             zeroDay: "2020-01-21",
             yearIsDay: true,
-            numDecimalPlaces: 0
+            numDecimalPlaces: 0,
+            entityAnnotationsMap: `Spain: Note that on April 19 the methodology has changed
+Lithuania: Note that on April 28 the methodology has changed
+Ecuador: Note that on May 8 the methodology has changed
+United Kingdom: Note that on May 20 the methodology has changed`
         },
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
