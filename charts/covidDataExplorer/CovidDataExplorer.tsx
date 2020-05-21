@@ -63,7 +63,8 @@ import moment from "moment"
 import {
     covidDashboardSlug,
     coronaWordpressElementAttribute,
-    covidDataExplorerContainerId
+    covidDataExplorerContainerId,
+    coronaDefaultView
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
@@ -81,7 +82,9 @@ export class CovidDataExplorer extends React.Component<{
     ) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
-        const startingParams = new CovidQueryParams(window.location.search)
+        const startingParams = new CovidQueryParams(
+            window.location.search || coronaDefaultView
+        )
         ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
@@ -917,7 +920,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
-            queryStr: window.location.search
+            queryStr: window.location.search || coronaDefaultView
         }
     )
 }
