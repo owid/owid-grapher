@@ -1,6 +1,6 @@
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import { LongFormPage } from "./views/LongFormPage"
+import { LongFormPage, PageOverrides } from "./views/LongFormPage"
 import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
@@ -13,8 +13,17 @@ import SubscribePage from "./views/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as _ from "lodash"
-import { formatPost, extractFormattingOptions } from "./formatting"
-import { bakeGrapherUrls, getGrapherExportsByUrl } from "./grapherUtil"
+import {
+    formatPost,
+    extractFormattingOptions,
+    FormattedPost,
+    FormattingOptions
+} from "./formatting"
+import {
+    bakeGrapherUrls,
+    getGrapherExportsByUrl,
+    GrapherExports
+} from "./grapherUtil"
 import * as cheerio from "cheerio"
 import { JsonError } from "utils/server/serverUtil"
 import { Post } from "db/model/Post"
@@ -29,6 +38,11 @@ import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
 import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
+import {
+    covidCountryProfileSlug,
+    covidLandingSlug
+} from "charts/covidDataExplorer/CovidConstants"
+import { getCountry, Country } from "utils/countries"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -145,7 +159,7 @@ export async function renderMenuJson() {
 
 async function renderPage(postApi: object) {
     const post = await wpdb.getFullPost(postApi)
-    const entries = await wpdb.getEntriesByCategory()
+    const pageType = await wpdb.getPageType(post)
 
     const $ = cheerio.load(post.content)
 
@@ -165,7 +179,7 @@ async function renderPage(postApi: object) {
 
     return renderToHtmlPage(
         <LongFormPage
-            entries={entries}
+            pageType={pageType}
             post={formatted}
             formattingOptions={formattingOptions}
         />
@@ -303,4 +317,92 @@ export async function pagePerVariable(variableId: number, countryName: string) {
 
 export async function feedbackPage() {
     return renderToHtmlPage(<FeedbackPage />)
+}
+
+let cachedCovidCountryProfilePostFormatted: FormattedPost | undefined
+let cachedCovidCountryProfilePostFormattingOptions:
+    | FormattingOptions
+    | undefined
+async function getCovidCountryProfilePost(
+    grapherExports?: GrapherExports
+): Promise<[FormattedPost, FormattingOptions]> {
+    if (
+        cachedCovidCountryProfilePostFormatted &&
+        cachedCovidCountryProfilePostFormattingOptions
+    ) {
+        return [
+            cachedCovidCountryProfilePostFormatted,
+            cachedCovidCountryProfilePostFormattingOptions
+        ]
+    }
+
+    // Get formatted content from generic covid country profile page.
+    const genericCountryProfilePostApi = await wpdb.getPostBySlug(
+        covidCountryProfileSlug
+    )
+
+    const genericCountryProfilePost = await wpdb.getFullPost(
+        genericCountryProfilePostApi
+    )
+    cachedCovidCountryProfilePostFormattingOptions = extractFormattingOptions(
+        genericCountryProfilePost.content
+    )
+
+    cachedCovidCountryProfilePostFormatted = await formatPost(
+        genericCountryProfilePost,
+        cachedCovidCountryProfilePostFormattingOptions,
+        grapherExports
+    )
+
+    return [
+        cachedCovidCountryProfilePostFormatted,
+        cachedCovidCountryProfilePostFormattingOptions
+    ]
+}
+
+let covidLandingPost: wpdb.FullPost | undefined
+async function getCovidLandingPost() {
+    if (covidLandingPost) return covidLandingPost
+
+    const landingPagePostApi = await wpdb.getPostBySlug(covidLandingSlug)
+    covidLandingPost = await wpdb.getFullPost(landingPagePostApi)
+
+    return covidLandingPost
+}
+
+export async function renderCovidCountryProfile(
+    country: Country,
+    grapherExports?: GrapherExports
+) {
+    const [formatted, formattingOptions] = await getCovidCountryProfilePost(
+        grapherExports
+    )
+    const landing = await getCovidLandingPost()
+
+    const overrides: PageOverrides = {
+        pageTitle: `${formatted.title} - ${country.name}`,
+        citationTitle: landing.title,
+        citationSlug: landing.slug,
+        citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
+        citationAuthors: landing.authors,
+        modifiedDate: landing.modifiedDate
+    }
+    return renderToHtmlPage(
+        <LongFormPage
+            pageType={wpdb.PageType.SubEntry}
+            post={formatted}
+            overrides={overrides}
+            formattingOptions={formattingOptions}
+        />
+    )
+}
+
+export async function covidCountryProfileCountryPage(countrySlug: string) {
+    const country = getCountry(countrySlug)
+    if (!country) {
+        throw new JsonError(`No such country ${countrySlug}`, 404)
+    } else {
+        // Voluntarily not dealing with grapherExports on devServer for simplicity
+        return renderCovidCountryProfile(country)
+    }
 }

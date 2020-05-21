@@ -348,6 +348,29 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     return cachedEntries
 }
 
+export enum PageType {
+    Entry = "ENTRY",
+    SubEntry = "SUBENTRY",
+    Standard = "STANDARD"
+}
+
+export async function getPageType(post: FullPost): Promise<PageType> {
+    const entries = await getEntriesByCategory()
+    const isEntry = entries.some(category => {
+        return (
+            category.entries.some(entry => entry.slug === post.slug) ||
+            category.subcategories.some((subcategory: CategoryWithEntries) => {
+                return subcategory.entries.some(
+                    subCategoryEntry => subCategoryEntry.slug === post.slug
+                )
+            })
+        )
+    })
+
+    // TODO Add subEntry detection
+    return isEntry ? PageType.Entry : PageType.Standard
+}
+
 export async function getPermalinks() {
     return {
         // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage

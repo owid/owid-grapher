@@ -8,44 +8,54 @@ import {
     formatAuthors,
     formatDate,
     FormattedPost,
-    FormattingOptions
+    FormattingOptions,
     TocHeading
 } from "../formatting"
-import { CategoryWithEntries } from "db/wpdb"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "site/client/TableOfContents"
+import { PageType } from "db/wpdb"
+
+export interface PageOverrides {
+    pageTitle?: string
+    citationTitle?: string
+    citationSlug?: string
+    citationCanonicalUrl?: string
+    citationAuthors?: string[]
+    modifiedDate?: Date
+}
 
 export const LongFormPage = (props: {
-    entries: CategoryWithEntries[]
+    pageType: PageType
     post: FormattedPost
+    overrides?: PageOverrides
     formattingOptions: FormattingOptions
 }) => {
-    const { entries, post, formattingOptions } = props
+    const { pageType, post, overrides, formattingOptions } = props
 
-    const pageTitle = post.title
-    const pageTitleSEO = `${post.title}${
+    const isPost = post.type === "post"
+    const isEntry = pageType === PageType.Entry
+    const isSubEntry = pageType === PageType.SubEntry
+
+    const pageTitle = overrides?.pageTitle ?? post.title
+    const pageTitleSEO = `${pageTitle}${
         post.subtitle ? ` - ${post.subtitle}` : ""
     }`
-    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
     const pageDesc = post.excerpt
-    const publishedYear = post.modifiedDate.getFullYear()
-    const isEntry = entries.some(category => {
-        return (
-            category.entries.some(entry => entry.slug === post.slug) ||
-            category.subcategories.some((subcategory: CategoryWithEntries) => {
-                return subcategory.entries.some(
-                    subEntry => subEntry.slug === post.slug
-                )
-            })
-        )
-    })
-    const isPost = post.type === "post"
-    const authorsText = formatAuthors(post.authors, isEntry)
+    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
+    const authorsFormatted = formatAuthors(post.authors, isEntry)
 
-    const bodyClasses = []
+    const citationTitle = overrides?.citationTitle ?? pageTitle
+    const citationSlug = overrides?.citationSlug ?? post.slug
+    const citationCanonicalUrl = overrides?.citationCanonicalUrl ?? canonicalUrl
+    const citationPublishedYear = (
+        overrides?.modifiedDate ?? post.modifiedDate
+    ).getFullYear()
+    const citationAuthors = overrides?.citationAuthors ?? post.authors
+    const citationAuthorsFormatted = formatAuthors(citationAuthors)
+
     let hasSidebar = false
     const tocHeadings: TocHeading[] = [...post.tocHeadings]
     if (tocHeadings.some(tocHeading => !tocHeading.isSubheading)) {
@@ -57,7 +67,7 @@ export const LongFormPage = (props: {
                 isSubheading: false
             })
         }
-        if (isEntry) {
+        if (isEntry || isSubEntry) {
             tocHeadings.push(
                 {
                     text: "Licence",
@@ -72,16 +82,18 @@ export const LongFormPage = (props: {
             )
         }
     }
+
+    const bodyClasses = []
     if (formattingOptions.bodyClassName) {
         bodyClasses.push(formattingOptions.bodyClassName)
     }
 
-    const bibtex = `@article{owid${post.slug.replace(/-/g, "")},
-    author = {${authorsText}},
-    title = {${pageTitle}},
+    const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
+    author = {${citationAuthorsFormatted}},
+    title = {${citationTitle}},
     journal = {Our World in Data},
-    year = {${publishedYear}},
-    note = {${canonicalUrl}}
+    year = {${citationPublishedYear}},
+    note = {${citationCanonicalUrl}}
 }`
 
     return (
@@ -92,13 +104,12 @@ export const LongFormPage = (props: {
                 canonicalUrl={canonicalUrl}
                 imageUrl={post.imageUrl}
             >
-                {isEntry && (
+                {(isEntry || isSubEntry) && (
                     <CitationMeta
-                        id={post.id}
-                        title={pageTitle}
-                        authors={post.authors}
+                        title={citationTitle}
+                        authors={citationAuthors}
                         date={post.date}
-                        canonicalUrl={canonicalUrl}
+                        canonicalUrl={citationCanonicalUrl}
                     />
                 )}
             </Head>
@@ -113,14 +124,16 @@ export const LongFormPage = (props: {
                         <div className="offset-header">
                             <header className="article-header">
                                 <h1 className="entry-title">
-                                    <span>{post.title}</span>
+                                    <span>{pageTitle}</span>
                                     {post.subtitle && (
                                         <span>{post.subtitle}</span>
                                     )}
                                 </h1>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
-                                        <a href="/team">by {authorsText}</a>
+                                        <a href="/team">
+                                            by {authorsFormatted}
+                                        </a>
                                     </div>
                                 )}
                                 {isPost && <time>{formatDate(post.date)}</time>}
@@ -141,18 +154,16 @@ export const LongFormPage = (props: {
                                         }}
                                     />
                                 )}
-                                {(isPost || isEntry) && (
+                                {(isPost || isEntry || isSubEntry) && (
                                     <div className="tools">
-                                        {(isPost || isEntry) && (
-                                            <a href="#licence">
-                                                <FontAwesomeIcon
-                                                    icon={faCreativeCommons}
-                                                />
-                                                Reuse our work{" "}
-                                                <strong>freely</strong>
-                                            </a>
-                                        )}
-                                        {isEntry && (
+                                        <a href="#licence">
+                                            <FontAwesomeIcon
+                                                icon={faCreativeCommons}
+                                            />
+                                            Reuse our work{" "}
+                                            <strong>freely</strong>
+                                        </a>
+                                        {(isEntry || isSubEntry) && (
                                             <a href="#citation">
                                                 <FontAwesomeIcon
                                                     icon={faBook}
@@ -223,7 +234,9 @@ export const LongFormPage = (props: {
                                                 ) : (
                                                     undefined
                                                 )}
-                                                {(isPost || isEntry) && (
+                                                {(isPost ||
+                                                    isEntry ||
+                                                    isSubEntry) && (
                                                     <>
                                                         <h3 id="licence">
                                                             Reuse our work
@@ -255,8 +268,8 @@ export const LongFormPage = (props: {
                                                         </p>
                                                     </>
                                                 )}
-                                                {isEntry && (
-                                                    <React.Fragment>
+                                                {(isEntry || isSubEntry) && (
+                                                    <>
                                                         <h3 id="citation">
                                                             Citation
                                                         </h3>
@@ -274,23 +287,31 @@ export const LongFormPage = (props: {
                                                             can be cited as:
                                                         </p>
                                                         <pre className="citation">
-                                                            {authorsText} (
-                                                            {publishedYear}) - "
-                                                            {pageTitle}".{" "}
+                                                            {
+                                                                citationAuthorsFormatted
+                                                            }{" "}
+                                                            (
+                                                            {
+                                                                citationPublishedYear
+                                                            }
+                                                            ) - "{citationTitle}
+                                                            ".{" "}
                                                             <em>
                                                                 Published online
                                                                 at
                                                                 OurWorldInData.org.
                                                             </em>{" "}
                                                             Retrieved from: '
-                                                            {canonicalUrl}'
-                                                            [Online Resource]
+                                                            {
+                                                                citationCanonicalUrl
+                                                            }
+                                                            ' [Online Resource]
                                                         </pre>
                                                         <p>BibTeX citation</p>
                                                         <pre className="citation">
                                                             {bibtex}
                                                         </pre>
-                                                    </React.Fragment>
+                                                    </>
                                                 )}
                                             </div>
                                             <div className="wp-block-column"></div>
