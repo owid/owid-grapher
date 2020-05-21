@@ -36,10 +36,8 @@ import { countryProfilePage, countriesIndexPage } from "./countryProfiles"
 import { makeSitemap } from "./sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "./svgPngExport"
-import {
-    covidDashboardSlug,
-    covidCountryProfileRootPath
-} from "charts/covidDataExplorer/CovidConstants"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 
 const devServer = express()
 

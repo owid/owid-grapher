@@ -46,10 +46,8 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
 import { countries } from "utils/countries"
-import {
-    covidDashboardSlug,
-    covidCountryProfileRootPath
-} from "charts/covidDataExplorer/CovidConstants"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 
 // Static site generator using Wordpress
 
