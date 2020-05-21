@@ -115,11 +115,9 @@ export async function renderExplorableIndicatorsJson() {
 }
 
 export async function renderPageBySlug(slug: string) {
-    const postApiArray = await wpdb.getPostBySlug(slug)
-    if (!postApiArray.length)
-        throw new JsonError(`No page found by slug ${slug}`, 404)
+    const postApi = await wpdb.getPostBySlug(slug)
 
-    return renderPage(postApiArray[0])
+    return renderPage(postApi)
 }
 
 export async function renderPageById(

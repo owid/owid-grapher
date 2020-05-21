@@ -19,6 +19,7 @@ import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { JsonError } from "utils/server/serverUtil"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -448,9 +449,11 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
             searchParams: [["slug", slug]]
         }
     )
-    const postArray = await response.json()
+    const postApiArray = await response.json()
+    if (!postApiArray.length)
+        throw new JsonError(`No page found by slug ${slug}`, 404)
 
-    return postArray
+    return postApiArray[0]
 }
 
 export async function getLatestPostRevision(id: number): Promise<any> {
