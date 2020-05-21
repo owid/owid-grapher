@@ -474,7 +474,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get perCapitaTitle() {
-        return " " + this.perCapitaOptions[this.perCapitaDivisor]
+        return " " + this.perCapitaOptions[this.perCapitaDivisorIfEnabled]
     }
 
     @computed get metricTitle() {
