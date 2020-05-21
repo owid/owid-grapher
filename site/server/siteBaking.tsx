@@ -40,8 +40,9 @@ import { Indicator } from "charts/Indicator"
 import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
 import {
     covidCountryProfileSlug,
-    covidLandingSlug
-} from "charts/covidDataExplorer/CovidConstants"
+    covidLandingSlug,
+    covidDefaultCountryPlaceholder
+} from "./covid/CovidConstants"
 import { getCountry, Country } from "utils/countries"
 
 // Wrap ReactDOMServer to stick the doctype on
@@ -377,6 +378,15 @@ export async function renderCovidCountryProfile(
     const [formatted, formattingOptions] = await getCovidCountryProfilePost(
         grapherExports
     )
+    // Localize country selector
+    const formattedLocalized = {
+        ...formatted,
+        html: formatted.html.replace(
+            covidDefaultCountryPlaceholder,
+            country.code
+        )
+    }
+
     const landing = await getCovidLandingPost()
 
     const overrides: PageOverrides = {
@@ -390,7 +400,7 @@ export async function renderCovidCountryProfile(
     return renderToHtmlPage(
         <LongFormPage
             pageType={wpdb.PageType.SubEntry}
-            post={formatted}
+            post={formattedLocalized}
             overrides={overrides}
             formattingOptions={formattingOptions}
         />
