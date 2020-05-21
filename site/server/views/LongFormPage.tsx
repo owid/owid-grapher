@@ -9,6 +9,7 @@ import {
     formatDate,
     FormattedPost,
     FormattingOptions
+    TocHeading
 } from "../formatting"
 import { CategoryWithEntries } from "db/wpdb"
 import { SiteSubnavigation } from "./SiteSubnavigation"
@@ -46,17 +47,18 @@ export const LongFormPage = (props: {
 
     const bodyClasses = []
     let hasSidebar = false
-    if (post.tocHeadings.some(tocHeading => !tocHeading.isSubheading)) {
+    const tocHeadings: TocHeading[] = [...post.tocHeadings]
+    if (tocHeadings.some(tocHeading => !tocHeading.isSubheading)) {
         hasSidebar = true
         if (post.footnotes.length) {
-            post.tocHeadings.push({
+            tocHeadings.push({
                 text: "References",
                 slug: "references",
                 isSubheading: false
             })
         }
         if (isEntry) {
-            post.tocHeadings.push(
+            tocHeadings.push(
                 {
                     text: "Licence",
                     slug: "licence",
@@ -175,7 +177,7 @@ export const LongFormPage = (props: {
                             {hasSidebar && (
                                 <div>
                                     <TableOfContents
-                                        headings={post.tocHeadings}
+                                        headings={tocHeadings}
                                         pageTitle={pageTitle}
                                         hideSubheadings={true}
                                     />
@@ -336,7 +338,7 @@ export const LongFormPage = (props: {
                     dangerouslySetInnerHTML={{
                         __html: `
                         runTableOfContents(${JSON.stringify({
-                            headings: post.tocHeadings,
+                            headings: tocHeadings,
                             pageTitle,
                             hideSubheadings: true
                         })})
