@@ -292,6 +292,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
                         if (bin instanceof NumericBin) {
                             return (
                                 <NumericBinView
+                                    key={index}
                                     mapConfig={mapConfig}
                                     bin={bin}
                                     index={index}
@@ -300,6 +301,7 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
                         } else {
                             return (
                                 <CategoricalBinView
+                                    key={index}
                                     mapConfig={mapConfig}
                                     bin={bin}
                                 />
