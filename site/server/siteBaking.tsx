@@ -41,7 +41,8 @@ import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
 import {
     covidCountryProfileSlug,
     covidLandingSlug,
-    covidDefaultCountryPlaceholder
+    covidDefaultCountryPlaceholder,
+    covidCountryProfileRootPath
 } from "./covid/CovidConstants"
 import { getCountry, Country } from "utils/countries"
 
@@ -395,7 +396,9 @@ export async function renderCovidCountryProfile(
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
-        modifiedDate: landing.modifiedDate
+        modifiedDate: landing.modifiedDate,
+        canonicalUrl: `${BAKED_BASE_URL}/${covidCountryProfileRootPath}/${country.slug}`,
+        excerpt: `${country.name}: ${formatted.excerpt}`
     }
     return renderToHtmlPage(
         <LongFormPage

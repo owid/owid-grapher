@@ -25,6 +25,8 @@ export interface PageOverrides {
     citationCanonicalUrl?: string
     citationAuthors?: string[]
     modifiedDate?: Date
+    canonicalUrl?: string
+    excerpt?: string
 }
 
 export const LongFormPage = (props: {
@@ -43,8 +45,9 @@ export const LongFormPage = (props: {
     const pageTitleSEO = `${pageTitle}${
         post.subtitle ? ` - ${post.subtitle}` : ""
     }`
-    const pageDesc = post.excerpt
-    const canonicalUrl = `${BAKED_BASE_URL}/${post.slug}`
+    const pageDesc = overrides?.excerpt ?? post.excerpt
+    const canonicalUrl =
+        overrides?.canonicalUrl ?? `${BAKED_BASE_URL}/${post.slug}`
     const authorsFormatted = formatAuthors(post.authors, isEntry)
 
     const citationTitle = overrides?.citationTitle ?? pageTitle
