@@ -280,7 +280,7 @@ const trajectoryOptions = {
             threshold: 5
         },
         daily: {
-            title: "Days since 5 daily deaths first reported",
+            title: "Days since 5 daily new deaths first reported",
             threshold: 5
         },
         perCapita: {
@@ -309,7 +309,7 @@ const trajectoryOptions = {
             threshold: 5
         },
         daily: {
-            title: "Days since 5 daily deaths first reported",
+            title: "Days since 5 daily new deaths first reported",
             threshold: 5
         },
         perCapita: {

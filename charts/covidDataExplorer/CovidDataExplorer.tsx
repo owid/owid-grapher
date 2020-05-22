@@ -191,7 +191,7 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "Daily",
+                label: "Daily new",
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
@@ -452,8 +452,8 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get frequencyTitle() {
         if (this.props.params.dailyFreq && this.props.params.totalFreq)
-            return "Total and daily"
-        else if (this.props.params.dailyFreq) return "Daily"
+            return "Total and daily new"
+        else if (this.props.params.dailyFreq) return "Daily new"
         return "Total"
     }
 
