@@ -550,13 +550,6 @@ export async function formatWordpressPost(
         $start.replaceWith($section)
     }
 
-    // Inline styling
-    // Get the first root level <style> tag within the content as it gets
-    // stripped out by $("body").html() below. Voluntarily limits to 1 as there
-    // should not be a need for more.
-    const style =
-        $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
-
     // Render global country selection component.
     // Injects a <section>, which is why it executes last.
     bakeGlobalEntityControl($)
@@ -574,7 +567,7 @@ export async function formatWordpressPost(
         lastUpdated: lastUpdated,
         authors: post.authors,
         info: info,
-        html: `${style}${$("body").html()}` as string,
+        html: $.html(),
         footnotes: footnotes,
         references: references,
         excerpt:
