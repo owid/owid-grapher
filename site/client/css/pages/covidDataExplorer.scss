@@ -14,7 +14,7 @@ $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
 html.iframe {
     #covidDataExplorerContainer {
         height: 100vh;
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
         // leave some padding for shadows
         padding: 3px;
@@ -22,15 +22,15 @@ html.iframe {
 
     .CovidDataExplorer {
         height: 100%;
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
-        min-width: auto;
+        min-width: auto !important;
         max-width: none;
         padding: 0;
     }
 
     .CovidDataExplorerFigure {
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
     }
 }
