@@ -61,7 +61,7 @@
     "wpackagist-plugin/broken-link-checker": "1.11.12",
     "wpackagist-plugin/co-authors-plus": "3.4.3",
     "wpackagist-plugin/mailgun": "1.7.1",
-    "wpackagist-plugin/my-default-post-content": "0.7",
+    "wpackagist-plugin/my-default-post-content": "0.7.1",
     "wpackagist-plugin/public-post-preview": "2.9",
     "wpackagist-plugin/public-post-preview-configurator": "1.0.3",
     "wpackagist-plugin/redirection": "4.7.2",
