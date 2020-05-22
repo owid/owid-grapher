@@ -42,14 +42,11 @@
    $ lando refresh -c -u
    ```
 
-## Performance optimization
+## File sharing
 
-[File sharing](https://docs.docker.com/docker-for-mac/#file-sharing) between host and containers is only needed for:
+[File sharing](https://docs.docker.com/docker-for-mac/#file-sharing) between host and containers is required for your HOME folder, for SSH keys to work properly.
 
-- ~/.lando
-- /path/to/this/repository
-
-This can be adjusted in your Docker preferences.
+File sharing can be adjusted in your Docker preferences.
 
 ## Development
 
@@ -64,4 +61,3 @@ As a result `yarn`and `composer` need to be run from within the containers only 
 ```sh
 lando start && lando yarn start
 ```
-
