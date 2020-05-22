@@ -17,7 +17,8 @@ import {
     formatPost,
     extractFormattingOptions,
     FormattedPost,
-    FormattingOptions
+    FormattingOptions,
+    formatCovidCountryProfile
 } from "./formatting"
 import {
     bakeGrapherUrls,
@@ -41,7 +42,6 @@ import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
 import {
     covidCountryProfileSlug,
     covidLandingSlug,
-    covidDefaultCountryPlaceholder,
     covidCountryProfileRootPath
 } from "./covid/CovidConstants"
 import { getCountry, Country } from "utils/countries"
@@ -379,31 +379,28 @@ export async function renderCovidCountryProfile(
     const [formatted, formattingOptions] = await getCovidCountryProfilePost(
         grapherExports
     )
-    // Localize country selector
-    const formattedLocalized = {
-        ...formatted,
-        html: formatted.html.replace(
-            covidDefaultCountryPlaceholder,
-            country.code
-        )
-    }
+
+    const formattedCountryProfile = formatCovidCountryProfile(
+        formatted,
+        country
+    )
 
     const landing = await getCovidLandingPost()
 
     const overrides: PageOverrides = {
-        pageTitle: `${country.name}: ${formatted.title}`,
+        pageTitle: `${country.name}: ${formattedCountryProfile.title}`,
         citationTitle: landing.title,
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
         modifiedDate: landing.modifiedDate,
         canonicalUrl: `${BAKED_BASE_URL}/${covidCountryProfileRootPath}/${country.slug}`,
-        excerpt: `${country.name}: ${formatted.excerpt}`
+        excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`
     }
     return renderToHtmlPage(
         <LongFormPage
             pageType={wpdb.PageType.SubEntry}
-            post={formattedLocalized}
+            post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}
         />
