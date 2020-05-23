@@ -21,6 +21,7 @@ import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "./owidData/OwidSource"
+import { Analytics } from "site/client/Analytics"
 
 export interface EntityDimensionInfo {
     entity: string
@@ -344,6 +345,8 @@ export class ChartData {
     }
 
     @action.bound setSelectedEntitiesByCode(entityCodes: string[]) {
+        const matchedEntities = new Map<string, boolean>()
+        entityCodes.forEach(code => matchedEntities.set(code, false))
         if (this.canChangeEntity) {
             this.availableEntities.forEach(entity => {
                 const entityMeta = this.chart.entityMetaByKey[entity]
@@ -351,6 +354,7 @@ export class ChartData {
                     entityMeta.code === entityCodes[0] ||
                     entityMeta.name === entityCodes[0]
                 ) {
+                    matchedEntities.set(entityCodes[0], true)
                     this.setSelectedEntity(entityMeta.id)
                 }
             })
@@ -358,13 +362,20 @@ export class ChartData {
             this.selectedKeys = this.availableKeys.filter(key => {
                 const meta = this.lookupKey(key)
                 const entityMeta = this.chart.entityMetaByKey[meta.entity]
-                return (
-                    includes(entityCodes, meta.shortCode) ||
-                    includes(entityCodes, entityMeta.code) ||
-                    includes(entityCodes, entityMeta.name)
-                )
+                return [meta.shortCode, entityMeta.code, entityMeta.name]
+                    .map(key => {
+                        if (!matchedEntities.has(key)) return false
+                        matchedEntities.set(key, true)
+                        return true
+                    })
+                    .some(item => item)
             })
         }
+        const notFoundEntities = Array.from(matchedEntities.keys()).filter(
+            key => !matchedEntities.get(key)
+        )
+        if (notFoundEntities.length)
+            Analytics.logEntitiesNotFoundError(notFoundEntities)
     }
 
     @action.bound resetSelectedEntities() {
