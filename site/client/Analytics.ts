@@ -23,6 +23,11 @@ export class Analytics {
         this.logToGA("Errors", "Explore")
     }
 
+    static logEntitiesNotFoundError(entities: string[]) {
+        this.logToAmplitude("ENTITIES_NOT_FOUND", { entities })
+        this.logToGA("Errors", "ENTITIES_NOT_FOUND", JSON.stringify(entities))
+    }
+
     static logChartTimelinePlay(slug?: string) {
         this.logToAmplitude("CHART_TIMELINE_PLAY")
         this.logToGA("Chart", "TimelinePlay", slug)
