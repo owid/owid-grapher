@@ -426,6 +426,10 @@ export class MapData extends ChartTransform {
         return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
     }
 
+    @computed get singleColorScale(): boolean {
+        return this.colorScheme?.singleColorScale ?? false
+    }
+
     @computed get baseColors() {
         const { categoricalValues, colorScheme, bucketMaximums } = this
         const { isColorSchemeInverted } = this.map

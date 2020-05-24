@@ -3,7 +3,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "./Tooltip"
-import { isMobile, takeWhile, last } from "./Util"
+import { isMobile, takeWhile, last, first } from "./Util"
 import { SparkBars, SparkBarsDatum, SparkBarsProps } from "./SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
@@ -81,8 +81,14 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         } = this.props
 
         const chart = this.context.chart
-        const renderPlot = chart.hasChartTab
-        const barColor = last(chart.map.data.baseColors)
+        const renderPlot = chart.hasChartTab && chart.isLineChart
+        const darkestColor = chart.map.isColorSchemeInverted
+            ? first(chart.map.data.baseColors)
+            : last(chart.map.data.baseColors)
+        const barColor =
+            chart.map.data.singleColorScale && !chart.map.isCustomColors
+                ? darkestColor
+                : undefined
         return (
             <Tooltip
                 key="mapTooltip"
