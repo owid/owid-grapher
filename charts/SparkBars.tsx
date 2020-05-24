@@ -74,7 +74,7 @@ export class SparkBars<T extends SparkBarsDatum> extends React.Component<
         const [start, end] = this.props.xDomain
         const result = []
         for (let i = start; i <= end; i++) {
-            result.push(indexed[i] || ({ year: i, value: 0 } as T))
+            result.push(indexed[i] || { year: i, value: 0 })
         }
         return result
     }
