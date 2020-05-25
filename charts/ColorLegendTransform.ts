@@ -33,7 +33,7 @@ export class ColorLegendTransform {
         return +defaultTo(this.config.colorSchemeMinValue, 0)
     }
 
-    @computed get colorSchemeValues() {
+    @computed get colorSchemeValues(): number[] {
         return defaultTo(this.config.colorSchemeValues, [])
     }
 
