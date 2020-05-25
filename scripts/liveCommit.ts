@@ -74,7 +74,12 @@ async function fetchAll(): Promise<Array<ServerCommitInformation>> {
             if (!commit.commitSha) return commit
 
             const apiResponse = (await fetch(
-                `https://api.github.com/repos/owid/owid-grapher/git/commits/${commit.commitSha}`
+                `https://api.github.com/repos/owid/owid-grapher/git/commits/${commit.commitSha}`,
+                {
+                    headers: {
+                        Accept: "application/vnd.github.v3"
+                    }
+                }
             )) as any
 
             const response = await apiResponse.json()
