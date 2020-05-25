@@ -47,7 +47,10 @@ import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
 import { countries } from "utils/countries"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "./covid/CovidConstants"
+import {
+    covidCountryProfileRootPath,
+    covidCountryProfileSlug
+} from "./covid/CovidConstants"
 
 // Static site generator using Wordpress
 
@@ -238,7 +241,12 @@ export class SiteBaker {
             // blog: handled separately
             // isPostEmbedded: post displayed in the entry only (not on its own
             // page), skipping.
-            if (post.slug === "blog" || wpdb.isPostEmbedded(post)) continue
+            if (
+                post.slug === "blog" ||
+                post.slug === covidCountryProfileSlug ||
+                wpdb.isPostEmbedded(post)
+            )
+                continue
 
             postSlugs.push(post.slug)
             await this.bakePost(post)
