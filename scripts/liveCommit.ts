@@ -19,7 +19,7 @@ import { promisifiedExec as exec } from "utils/server/serverUtil"
  *  If it still doesn't work, the live commit is not pushed to GitHub yet. That should only happen on a staging server, never on live.
  */
 
-const servers = ["live", "staging", "explorer", "hans", "playfair"]
+const servers = ["live", "staging", "explorer", "hans", "playfair", "jefferson"]
 
 const args = parseArgs(process.argv.slice(2))
 
