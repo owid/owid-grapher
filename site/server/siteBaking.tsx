@@ -393,7 +393,7 @@ export async function renderCovidCountryProfile(
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
-        modifiedDate: landing.modifiedDate,
+        publicationDate: landing.date,
         canonicalUrl: `${BAKED_BASE_URL}/${covidCountryProfileRootPath}/${country.slug}`,
         excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`
     }

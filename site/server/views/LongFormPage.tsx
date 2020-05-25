@@ -24,7 +24,7 @@ export interface PageOverrides {
     citationSlug?: string
     citationCanonicalUrl?: string
     citationAuthors?: string[]
-    modifiedDate?: Date
+    publicationDate?: Date
     canonicalUrl?: string
     excerpt?: string
 }
@@ -54,7 +54,7 @@ export const LongFormPage = (props: {
     const citationSlug = overrides?.citationSlug ?? post.slug
     const citationCanonicalUrl = overrides?.citationCanonicalUrl ?? canonicalUrl
     const citationPublishedYear = (
-        overrides?.modifiedDate ?? post.modifiedDate
+        overrides?.publicationDate ?? post.date
     ).getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
     const citationAuthorsFormatted = formatAuthors(citationAuthors)
