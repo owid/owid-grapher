@@ -32,9 +32,7 @@ export interface SparkBarsDatum {
 }
 
 @observer
-export class SparkBars<T extends SparkBarsDatum> extends React.Component<
-    SparkBarsProps<T>
-> {
+export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
         onHover: () => undefined,
         className: "spark-bars"
@@ -74,7 +72,7 @@ export class SparkBars<T extends SparkBarsDatum> extends React.Component<
         const [start, end] = this.props.xDomain
         const result = []
         for (let i = start; i <= end; i++) {
-            result.push(indexed[i] || { year: i, value: 0 })
+            result.push(indexed[i])
         }
         return result
     }
@@ -99,8 +97,11 @@ export class SparkBars<T extends SparkBarsDatum> extends React.Component<
                                 </div>
                             )}
                         <div
-                            className={`bar ${d &&
-                                this.barState(this.props.x(d))}`}
+                            className={`bar ${
+                                d
+                                    ? this.barState(this.props.x(d))
+                                    : BarState.normal
+                            }`}
                             style={{
                                 height: this.barHeight(d),
                                 backgroundColor: this.props.color
