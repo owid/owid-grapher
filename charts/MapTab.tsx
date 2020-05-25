@@ -166,7 +166,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             .attr("data-fill", function() {
                 return (this as SVGPathElement).getAttribute("fill")
             })
-            .attr("fill", this.context.chart.map.noDataColor)
+            .attr("fill", this.context.chart.map.legend.noDataColor)
             .transition()
             .duration(500)
             .ease(easeCubic)
@@ -283,7 +283,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         inputYear={map.data.targetYear}
                         legendData={map.data.legendData}
                         projection={map.projection}
-                        defaultFill={map.noDataColor}
+                        defaultFill={map.legend.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
                     />

@@ -135,7 +135,7 @@ class NumericBinView extends React.Component<{
     @action.bound onColor(color: Color | undefined) {
         const { mapConfig, index } = this.props
 
-        if (!mapConfig.isCustomColors) {
+        if (!mapConfig.legend.isCustomColors) {
             // Creating a new custom color scheme
             mapConfig.props.legend.customCategoryColors = {}
             mapConfig.props.legend.customNumericColors = []
@@ -144,7 +144,7 @@ class NumericBinView extends React.Component<{
 
         while (
             mapConfig.props.legend.customNumericColors.length <
-            mapConfig.data.numBins
+            mapConfig.legend.numBins
         )
             mapConfig.props.legend.customNumericColors.push(undefined)
 
@@ -161,7 +161,7 @@ class NumericBinView extends React.Component<{
         const { mapConfig, index } = this.props
         while (
             mapConfig.props.legend.colorSchemeLabels.length <
-            mapConfig.data.numBins
+            mapConfig.legend.numBins
         )
             mapConfig.props.legend.colorSchemeLabels.push(undefined)
         mapConfig.props.legend.colorSchemeLabels[index] = value
@@ -183,7 +183,7 @@ class NumericBinView extends React.Component<{
 
         if (index === colorSchemeValues.length - 1)
             colorSchemeValues.push(
-                currentValue + mapConfig.data.binStepSizeDefault
+                currentValue + mapConfig.legend.binStepSizeDefault
             )
         else {
             const newValue = (currentValue + colorSchemeValues[index + 1]) / 2
@@ -235,7 +235,7 @@ class CategoricalBinView extends React.Component<{
 }> {
     @action.bound onColor(color: Color | undefined) {
         const { mapConfig, bin } = this.props
-        if (!mapConfig.isCustomColors) {
+        if (!mapConfig.legend.isCustomColors) {
             // Creating a new custom color scheme
             mapConfig.props.legend.customCategoryColors = {}
             mapConfig.props.legend.customNumericColors = []
@@ -350,7 +350,9 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
     @computed get currentColorScheme() {
         const { mapConfig } = this.props
 
-        return mapConfig.isCustomColors ? "custom" : mapConfig.baseColorScheme
+        return mapConfig.legend.isCustomColors
+            ? "custom"
+            : mapConfig.legend.baseColorScheme
     }
 
     render() {
@@ -396,14 +398,14 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                     field="colorSchemeMinValue"
                     store={mapConfig.props.legend}
                     label="Minimum value"
-                    auto={mapConfig.data.autoMinBinValue}
+                    auto={mapConfig.legend.autoMinBinValue}
                 />
                 {!mapConfig.props.legend.isManualBuckets && (
                     <BindAutoFloat
                         label="Step size"
                         field="binStepSize"
                         store={mapConfig.props.legend}
-                        auto={mapConfig.data.binStepSizeDefault}
+                        auto={mapConfig.legend.binStepSizeDefault}
                     />
                 )}
                 {mapConfig.props.legend.isManualBuckets && (
@@ -425,7 +427,7 @@ class BinLabelView extends React.Component<{
             const { mapConfig, index } = this.props
             while (
                 mapConfig.props.legend.colorSchemeLabels.length <
-                mapConfig.data.numBins
+                mapConfig.legend.numBins
             )
                 mapConfig.props.legend.colorSchemeLabels.push(undefined)
             mapConfig.props.legend.colorSchemeLabels[index] = value

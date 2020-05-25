@@ -1,5 +1,4 @@
-import { computed, autorun, runInAction, reaction, toJS } from "mobx"
-import { mean, deviation } from "d3-array"
+import { computed, autorun, runInAction } from "mobx"
 
 import { ChartConfig } from "./ChartConfig"
 import { ColorSchemes, ColorScheme } from "./ColorSchemes"
@@ -9,14 +8,9 @@ import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable
 import { MapTopology } from "./MapTopology"
 
 import {
-    defaultTo,
     isString,
     findClosestYear,
-    round,
-    toArray,
     keys,
-    isEmpty,
-    reverse,
     extend,
     each,
     find,
@@ -169,22 +163,23 @@ export class MapData extends ChartTransform {
             }
         })
 
+        // TODO: Move this to @computed prop ideally
         // When automatic classification is turned off, assign defaults
-        reaction(
-            () => this.map.props.legend.isManualBuckets,
-            () => {
-                if (this.map.props.legend.isManualBuckets) {
-                    const { autoBinMaximums } = this
-                    const colorSchemeValues =
-                        toJS(this.map.props.legend.colorSchemeValues) || []
-                    for (let i = 0; i < autoBinMaximums.length; i++) {
-                        if (i >= colorSchemeValues.length)
-                            colorSchemeValues.push(autoBinMaximums[i])
-                    }
-                    this.map.props.legend.colorSchemeValues = colorSchemeValues
-                }
-            }
-        )
+        // reaction(
+        //     () => this.map.props.legend.isManualBuckets,
+        //     () => {
+        //         if (this.map.props.legend.isManualBuckets) {
+        //             const { autoBinMaximums } = this
+        //             const colorSchemeValues =
+        //                 toJS(this.map.props.legend.colorSchemeValues) || []
+        //             for (let i = 0; i < autoBinMaximums.length; i++) {
+        //                 if (i >= colorSchemeValues.length)
+        //                     colorSchemeValues.push(autoBinMaximums[i])
+        //             }
+        //             this.map.props.legend.colorSchemeValues = colorSchemeValues
+        //         }
+        //     }
+        // )
     }
 
     @computed get hasTimeline(): boolean {
@@ -320,208 +315,12 @@ export class MapData extends ChartTransform {
         return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }
 
-    @computed get numAutoBins(): number {
-        return 5
-    }
-
-    @computed get numBins(): number {
-        return this.map.props.legend.isManualBuckets
-            ? this.map.props.legend.colorSchemeValues.length
-            : this.numAutoBins
-    }
-
-    @computed get customBucketLabels() {
-        const labels = toJS(this.map.props.legend.colorSchemeLabels) || []
-        while (labels.length < this.numBins) labels.push(undefined)
-        return labels
-    }
-
-    // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed get commonValues(): number[] {
-        const { sortedNumericValues } = this
-        if (!sortedNumericValues.length) return []
-        const sampleMean = mean(sortedNumericValues) as number
-        const sampleDeviation = deviation(sortedNumericValues) as number
-        return sortedNumericValues.filter(
-            d => Math.abs(d - sampleMean) <= sampleDeviation * 2
-        )
-    }
-
-    @computed get autoMinBinValue(): number {
-        const minValue = Math.min(0, this.commonValues[0])
-        const magnitude = Math.floor(Math.log(minValue) / Math.log(10))
-        return Math.min(0, round(minValue, -magnitude))
-    }
-
-    @computed get minBinValue(): number {
-        return this.map.props.legend.colorSchemeMinValue !== undefined
-            ? this.map.props.legend.colorSchemeMinValue
-            : this.autoMinBinValue
-    }
-
-    @computed get binStepSizeDefault(): number {
-        const { numAutoBins, minBinValue, commonValues } = this
-        if (!commonValues.length) return 10
-
-        const stepSizeInitial =
-            (commonValues[commonValues.length - 1] - minBinValue) / numAutoBins
-        const stepMagnitude = Math.floor(
-            Math.log(stepSizeInitial) / Math.log(10)
-        )
-        return round(stepSizeInitial, -stepMagnitude)
-    }
-
-    @computed get binStepSize(): number {
-        return this.map.props.legend.binStepSize !== undefined
-            ? this.map.props.legend.binStepSize
-            : this.binStepSizeDefault
-    }
-
-    @computed get manualBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numBins <= 0) return []
-
-        const { numBins } = this
-        const { colorSchemeValues } = this.map
-
-        let values = toArray(colorSchemeValues)
-        while (values.length < numBins) values.push(0)
-        while (values.length > numBins) values = values.slice(0, numBins)
-        return values as number[]
-    }
-
-    // When automatic classification is turned on, this takes the numeric map data
-    // and works out some discrete ranges to assign colors to
-    @computed get autoBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numAutoBins <= 0) return []
-
-        const { binStepSize, numAutoBins, minBinValue } = this
-
-        const bucketMaximums = []
-        let nextMaximum = minBinValue + binStepSize
-        for (let i = 0; i < numAutoBins; i++) {
-            bucketMaximums.push(nextMaximum)
-            nextMaximum += binStepSize
-        }
-
-        return bucketMaximums
-    }
-
-    @computed get bucketMaximums(): number[] {
-        if (this.map.props.legend.isManualBuckets) return this.manualBinMaximums
-        else return this.autoBinMaximums
-    }
-
     @computed get defaultColorScheme(): ColorScheme {
         return ColorSchemes[keys(ColorSchemes)[0]] as ColorScheme
     }
 
-    @computed get colorScheme(): ColorScheme {
-        const colorScheme = ColorSchemes[this.map.baseColorScheme]
-        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
-    }
-
-    @computed get singleColorScale(): boolean {
-        return this.colorScheme.singleColorScale
-    }
-
-    @computed get baseColors() {
-        const { categoricalValues, colorScheme, bucketMaximums } = this
-        const { isColorSchemeInverted } = this.map
-        const numColors = bucketMaximums.length + categoricalValues.length - 1
-        const colors = colorScheme.getColors(numColors)
-
-        if (isColorSchemeInverted) {
-            reverse(colors)
-        }
-
-        return colors
-    }
-
-    // Ensure there's always a custom color for "No data"
-    @computed get customCategoryColors(): { [key: string]: Color } {
-        return extend({}, this.map.customCategoryColors, {
-            "No data": this.map.noDataColor
-        })
-    }
-
     @computed get legendData(): (NumericBin | CategoricalBin)[] {
-        // Will eventually produce something like this:
-        // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
-        //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
-        //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const { minPossibleValue, maxPossibleValue, formatValueShort } = this
-
-        const legendData = []
-        const {
-            map,
-            bucketMaximums,
-            baseColors,
-            categoricalValues,
-            customCategoryColors,
-            customBucketLabels,
-            minBinValue
-        } = this
-        const {
-            customNumericColors,
-            customCategoryLabels,
-            customHiddenCategories
-        } = map
-
-        /*var unitsString = chart.model.get("units"),
-            units = !isEmpty(unitsString) ? JSON.parse(unitsString) : {},
-            yUnit = find(units, { property: 'y' });*/
-
-        // Numeric 'buckets' of color
-        let minValue = minBinValue
-        for (let i = 0; i < bucketMaximums.length; i++) {
-            const baseColor = baseColors[i]
-            const color = defaultTo(
-                customNumericColors.length > i
-                    ? customNumericColors[i]
-                    : undefined,
-                baseColor
-            )
-            const maxValue = +(bucketMaximums[i] as number)
-            const label = customBucketLabels[i]
-            legendData.push(
-                new NumericBin({
-                    isFirst: i === 0,
-                    isOpenLeft: i === 0 && minValue > minPossibleValue,
-                    isOpenRight:
-                        i === bucketMaximums.length - 1 &&
-                        maxValue < maxPossibleValue,
-                    min: minValue,
-                    max: maxValue,
-                    color: color,
-                    label: label,
-                    format: formatValueShort
-                })
-            )
-            minValue = maxValue
-        }
-
-        // Categorical values, each assigned a color
-        for (let i = 0; i < categoricalValues.length; i++) {
-            const value = categoricalValues[i]
-            const boundingOffset = isEmpty(bucketMaximums)
-                ? 0
-                : bucketMaximums.length - 1
-            const baseColor = baseColors[i + boundingOffset]
-            const color = customCategoryColors[value] || baseColor
-            const label = customCategoryLabels[value] || ""
-
-            legendData.push(
-                new CategoricalBin({
-                    index: i,
-                    value: value,
-                    color: color,
-                    label: label,
-                    isHidden: customHiddenCategories[value]
-                })
-            )
-        }
-
-        return legendData
+        return this.map.legend.legendData
     }
 
     // Get values for the current year, without any color info yet
@@ -570,7 +369,7 @@ export class MapData extends ChartTransform {
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
         const customLabels = this.map.tooltipUseCustomLabels
-            ? this.customBucketLabels
+            ? this.map.legend.customBucketLabels
             : []
         return formatValueLong
             ? (d: number | string) => {
