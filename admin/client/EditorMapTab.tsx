@@ -1,6 +1,6 @@
 import * as React from "react"
 import { clone, isEmpty, noop } from "charts/Util"
-import { computed, action } from "mobx"
+import { computed, action, IReactionDisposer, reaction, toJS } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import {
@@ -218,7 +218,7 @@ class NumericBinView extends React.Component<{
                     />
                     {bin.props.isOpenRight && <span>and above</span>}
                 </div>
-                {mapConfig.props.legend.colorSchemeValues.length > 2 && (
+                {mapConfig.legend.colorSchemeValues.length > 2 && (
                     <div className="clickable" onClick={this.onRemove}>
                         <FontAwesomeIcon icon={faMinus} />
                     </div>
@@ -325,6 +325,38 @@ class ColorSchemeEditor extends React.Component<{ map: MapConfig }> {
 
 @observer
 class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
+    disposers: IReactionDisposer[] = []
+
+    componentDidMount() {
+        const { mapConfig } = this.props
+        this.disposers.push(
+            // When the user disables automatic classification,
+            // populate with automatic buckets.
+            reaction(
+                () => mapConfig.props.legend.isManualBuckets,
+                () => {
+                    const { colorSchemeValues } = mapConfig.legend
+                    if (
+                        mapConfig.props.legend.isManualBuckets &&
+                        colorSchemeValues.length <= 1
+                    ) {
+                        const { autoBinMaximums } = mapConfig.legend
+                        for (let i = 0; i < autoBinMaximums.length; i++) {
+                            if (i >= colorSchemeValues.length) {
+                                colorSchemeValues.push(autoBinMaximums[i])
+                            }
+                        }
+                        mapConfig.props.legend.colorSchemeValues = colorSchemeValues
+                    }
+                }
+            )
+        )
+    }
+
+    componentWillUnmount() {
+        this.disposers.forEach(dispose => dispose())
+    }
+
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { mapConfig } = this.props
 

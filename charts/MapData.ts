@@ -162,24 +162,6 @@ export class MapData extends ChartTransform {
                 runInAction(() => (chart.map.props.variableId = variableId))
             }
         })
-
-        // TODO: Move this to @computed prop ideally
-        // When automatic classification is turned off, assign defaults
-        // reaction(
-        //     () => this.map.props.legend.isManualBuckets,
-        //     () => {
-        //         if (this.map.props.legend.isManualBuckets) {
-        //             const { autoBinMaximums } = this
-        //             const colorSchemeValues =
-        //                 toJS(this.map.props.legend.colorSchemeValues) || []
-        //             for (let i = 0; i < autoBinMaximums.length; i++) {
-        //                 if (i >= colorSchemeValues.length)
-        //                     colorSchemeValues.push(autoBinMaximums[i])
-        //             }
-        //             this.map.props.legend.colorSchemeValues = colorSchemeValues
-        //         }
-        //     }
-        // )
     }
 
     @computed get hasTimeline(): boolean {
