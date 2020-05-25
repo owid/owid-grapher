@@ -15,7 +15,7 @@ import { Bounds } from "./Bounds"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
-    MapLegendBin,
+    ColorLegendBin,
     NumericBin,
     CategoricalBin,
     MapDataValue
@@ -25,11 +25,11 @@ import { sum } from "d3-array"
 
 const FOCUS_BORDER_COLOR = "#111"
 
-interface NumericMapLegendProps {
+interface NumericColorLegendProps {
     width: number
     fontSize: number
-    legendData: MapLegendBin[]
-    focusBracket?: MapLegendBin
+    legendData: ColorLegendBin[]
+    focusBracket?: ColorLegendBin
     equalSizeBins?: true
 }
 
@@ -37,7 +37,7 @@ interface PositionedBin {
     x: number
     width: number
     margin: number
-    bin: MapLegendBin
+    bin: ColorLegendBin
 }
 
 interface NumericLabel {
@@ -48,9 +48,9 @@ interface NumericLabel {
     hidden: boolean
 }
 
-class NumericMapLegend {
-    props: NumericMapLegendProps
-    constructor(props: NumericMapLegendProps) {
+class NumericColorLegend {
+    props: NumericColorLegendProps
+    constructor(props: NumericColorLegendProps) {
         this.props = props
     }
 
@@ -69,7 +69,7 @@ class NumericMapLegend {
         return 0.75 * this.props.fontSize
     }
 
-    // NumericMapLegend wants to map a range to a width. However, sometimes we are given
+    // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
     @computed get minValue(): number {
         return min(this.numericBins.map(d => d.min)) as number
@@ -233,11 +233,11 @@ class NumericMapLegend {
 }
 
 @observer
-class NumericMapLegendView extends React.Component<{
-    legend: NumericMapLegend
+class NumericColorLegendView extends React.Component<{
+    legend: NumericColorLegend
     x: number
     y: number
-    onMouseOver: (d: MapLegendBin) => void
+    onMouseOver: (d: ColorLegendBin) => void
     onMouseLeave: () => void
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -252,7 +252,7 @@ class NumericMapLegendView extends React.Component<{
         )
     }
 
-    @computed get legend(): NumericMapLegend {
+    @computed get legend(): NumericColorLegend {
         return this.props.legend
     }
 
@@ -304,7 +304,7 @@ class NumericMapLegendView extends React.Component<{
         const bottomY = props.y + height
 
         return (
-            <g ref={this.base} className="numericMapLegend">
+            <g ref={this.base} className="numericColorLegend">
                 {numericLabels.map(label => (
                     <line
                         key={label.text}
@@ -353,7 +353,7 @@ class NumericMapLegendView extends React.Component<{
     }
 }
 
-interface CategoricalMapLegendProps {
+interface CategoricalColorLegendProps {
     maxWidth: number
     scale: number
     legendData: CategoricalBin[]
@@ -378,9 +378,9 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-class CategoricalMapLegend {
-    props: CategoricalMapLegendProps
-    constructor(props: CategoricalMapLegendProps) {
+class CategoricalColorLegend {
+    props: CategoricalColorLegendProps
+    constructor(props: CategoricalColorLegendProps) {
         this.props = props
     }
 
@@ -463,8 +463,8 @@ class CategoricalMapLegend {
     }
 }
 
-interface CategoricalMapLegendViewProps {
-    legend: CategoricalMapLegend
+interface CategoricalColorLegendViewProps {
+    legend: CategoricalColorLegend
     x: number
     y: number
     onMouseOver: (d: CategoricalBin) => void
@@ -472,8 +472,8 @@ interface CategoricalMapLegendViewProps {
 }
 
 @observer
-class CategoricalMapLegendView extends React.Component<
-    CategoricalMapLegendViewProps
+class CategoricalColorLegendView extends React.Component<
+    CategoricalColorLegendViewProps
 > {
     render() {
         const { props } = this
@@ -483,7 +483,7 @@ class CategoricalMapLegendView extends React.Component<
         //Bounds.debug([this.bounds])
         //Bounds.debug(marks.map(m => m.label.bounds))
         return (
-            <g className="categoricalMapLegend">
+            <g className="categoricalColorLegend">
                 {marks.map((m, i) => {
                     const isFocus =
                         focusBracket && m.bin.value === focusBracket.value
@@ -520,23 +520,23 @@ class CategoricalMapLegendView extends React.Component<
     }
 }
 
-export interface MapLegendProps {
+export interface ColorLegendProps {
     fontSize: number
-    legendData: MapLegendBin[]
+    legendData: ColorLegendBin[]
     title: string
     bounds: Bounds
-    focusBracket: MapLegendBin
+    focusBracket: ColorLegendBin
     focusEntity: { datum: MapDataValue }
     equalSizeBins?: true
 }
 
-export class MapLegend {
-    props: MapLegendProps
-    constructor(props: MapLegendProps) {
+export class ColorLegend {
+    props: ColorLegendProps
+    constructor(props: ColorLegendProps) {
         this.props = props
     }
 
-    @computed get numericLegendData(): MapLegendBin[] {
+    @computed get numericLegendData(): ColorLegendBin[] {
         if (
             this.hasCategorical ||
             !some(
@@ -576,7 +576,7 @@ export class MapLegend {
         })
     }
 
-    @computed get numericFocusBracket(): MapLegendBin | undefined {
+    @computed get numericFocusBracket(): ColorLegendBin | undefined {
         const { focusBracket, focusEntity } = this.props
         const { numericLegendData } = this
 
@@ -600,10 +600,10 @@ export class MapLegend {
         else return undefined
     }
 
-    @computed get categoryLegend(): CategoricalMapLegend | undefined {
+    @computed get categoryLegend(): CategoricalColorLegend | undefined {
         const that = this
         return this.hasCategorical
-            ? new CategoricalMapLegend({
+            ? new CategoricalColorLegend({
                   get legendData() {
                       return that.categoricalLegendData
                   },
@@ -624,10 +624,10 @@ export class MapLegend {
         return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
-    @computed get numericLegend(): NumericMapLegend | undefined {
+    @computed get numericLegend(): NumericColorLegend | undefined {
         const that = this
         return this.hasNumeric
-            ? new NumericMapLegend({
+            ? new NumericColorLegend({
                   get legendData() {
                       return that.numericLegendData
                   },
@@ -665,14 +665,14 @@ export class MapLegend {
     }
 }
 
-export interface MapLegendViewProps {
-    legend: MapLegend
-    onMouseOver: (d: MapLegendBin) => void
+export interface ColorLegendViewProps {
+    legend: ColorLegend
+    onMouseOver: (d: ColorLegendBin) => void
     onMouseLeave: () => void
 }
 
 @observer
-export class MapLegendView extends React.Component<MapLegendViewProps> {
+export class ColorLegendView extends React.Component<ColorLegendViewProps> {
     render() {
         const { legend, onMouseOver, onMouseLeave } = this.props
         const {
@@ -686,7 +686,7 @@ export class MapLegendView extends React.Component<MapLegendViewProps> {
         return (
             <g className="mapLegend">
                 {numericLegend && (
-                    <NumericMapLegendView
+                    <NumericColorLegendView
                         legend={numericLegend}
                         x={bounds.centerX - numericLegend.width / 2}
                         y={
@@ -701,7 +701,7 @@ export class MapLegendView extends React.Component<MapLegendViewProps> {
                     />
                 )}
                 {categoryLegend && (
-                    <CategoricalMapLegendView
+                    <CategoricalColorLegendView
                         legend={categoryLegend}
                         x={bounds.centerX - categoryLegend.width / 2}
                         y={

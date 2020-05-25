@@ -460,7 +460,7 @@ class BinLabelView extends React.Component<{
 }
 
 @observer
-class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
+class ColorLegendSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
         this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
     }
@@ -524,7 +524,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                     <React.Fragment>
                         <TimelineSection mapConfig={mapConfig} />
                         <ColorsSection mapConfig={mapConfig} />
-                        <MapLegendSection mapConfig={mapConfig} />
+                        <ColorLegendSection mapConfig={mapConfig} />
                     </React.Fragment>
                 )}
             </div>

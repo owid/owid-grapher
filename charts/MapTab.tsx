@@ -10,11 +10,11 @@ import {
     MapBracket,
     MapEntity
 } from "./ChoroplethMap"
-import { MapLegend, MapLegendView } from "./MapLegend"
+import { ColorLegend, ColorLegendView } from "./ColorLegend"
 import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
-import { MapLegendBin } from "./MapData"
+import { ColorLegendBin } from "./MapData"
 import { MapProjection } from "./MapProjection"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -36,7 +36,7 @@ interface MapWithLegendProps {
     years: number[]
     inputYear?: number
     formatYear: (year: number) => string
-    legendData: MapLegendBin[]
+    legendData: ColorLegendBin[]
     legendTitle: string
     projection: MapProjection
     defaultFill: string
@@ -128,9 +128,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.context.chart.map.props.projection = value
     }
 
-    @computed get mapLegend(): MapLegend {
+    @computed get mapLegend(): ColorLegend {
         const that = this
-        return new MapLegend({
+        return new ColorLegend({
             get bounds() {
                 return that.props.bounds.padBottom(15)
             },
@@ -220,7 +220,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     focusBracket={focusBracket}
                     focusEntity={focusEntity}
                 />
-                <MapLegendView
+                <ColorLegendView
                     legend={mapLegend}
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}

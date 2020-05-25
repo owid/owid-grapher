@@ -90,7 +90,7 @@ export class NumericBin {
         else return d.value > this.min && d.value <= this.max
     }
 
-    equals(other: MapLegendBin): boolean {
+    equals(other: ColorLegendBin): boolean {
         return (
             other instanceof NumericBin &&
             this.min === other.min &&
@@ -137,12 +137,12 @@ export class CategoricalBin {
         )
     }
 
-    equals(other: MapLegendBin): boolean {
+    equals(other: ColorLegendBin): boolean {
         return other instanceof CategoricalBin && this.index === other.index
     }
 }
 
-export type MapLegendBin = NumericBin | CategoricalBin
+export type ColorLegendBin = NumericBin | CategoricalBin
 
 export class MapData extends ChartTransform {
     constructor(chart: ChartConfig) {
