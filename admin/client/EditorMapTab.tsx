@@ -137,43 +137,48 @@ class NumericBinView extends React.Component<{
 
         if (!mapConfig.isCustomColors) {
             // Creating a new custom color scheme
-            mapConfig.props.customCategoryColors = {}
-            mapConfig.props.customNumericColors = []
-            mapConfig.props.customColorsActive = true
+            mapConfig.props.legend.customCategoryColors = {}
+            mapConfig.props.legend.customNumericColors = []
+            mapConfig.props.legend.customColorsActive = true
         }
 
         while (
-            mapConfig.props.customNumericColors.length < mapConfig.data.numBins
+            mapConfig.props.legend.customNumericColors.length <
+            mapConfig.data.numBins
         )
-            mapConfig.props.customNumericColors.push(undefined)
+            mapConfig.props.legend.customNumericColors.push(undefined)
 
-        mapConfig.props.customNumericColors[index] = color
+        mapConfig.props.legend.customNumericColors[index] = color
     }
 
     @action.bound onMaximumValue(value: number | undefined) {
         const { mapConfig, index } = this.props
         if (value !== undefined)
-            mapConfig.props.colorSchemeValues[index] = value
+            mapConfig.props.legend.colorSchemeValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
         const { mapConfig, index } = this.props
         while (
-            mapConfig.props.colorSchemeLabels.length < mapConfig.data.numBins
+            mapConfig.props.legend.colorSchemeLabels.length <
+            mapConfig.data.numBins
         )
-            mapConfig.props.colorSchemeLabels.push(undefined)
-        mapConfig.props.colorSchemeLabels[index] = value
+            mapConfig.props.legend.colorSchemeLabels.push(undefined)
+        mapConfig.props.legend.colorSchemeLabels[index] = value
     }
 
     @action.bound onRemove() {
         const { mapConfig, index } = this.props
-        mapConfig.props.colorSchemeValues.splice(index, 1)
-        mapConfig.props.customNumericColors.splice(index, 1)
+        mapConfig.props.legend.colorSchemeValues.splice(index, 1)
+        mapConfig.props.legend.customNumericColors.splice(index, 1)
     }
 
     @action.bound onAddAfter() {
         const { mapConfig, index } = this.props
-        const { colorSchemeValues, customNumericColors } = mapConfig.props
+        const {
+            colorSchemeValues,
+            customNumericColors
+        } = mapConfig.props.legend
         const currentValue = colorSchemeValues[index]
 
         if (index === colorSchemeValues.length - 1)
@@ -213,7 +218,7 @@ class NumericBinView extends React.Component<{
                     />
                     {bin.props.isOpenRight && <span>and above</span>}
                 </div>
-                {mapConfig.props.colorSchemeValues.length > 2 && (
+                {mapConfig.props.legend.colorSchemeValues.length > 2 && (
                     <div className="clickable" onClick={this.onRemove}>
                         <FontAwesomeIcon icon={faMinus} />
                     </div>
@@ -232,33 +237,37 @@ class CategoricalBinView extends React.Component<{
         const { mapConfig, bin } = this.props
         if (!mapConfig.isCustomColors) {
             // Creating a new custom color scheme
-            mapConfig.props.customCategoryColors = {}
-            mapConfig.props.customNumericColors = []
-            mapConfig.props.customColorsActive = true
+            mapConfig.props.legend.customCategoryColors = {}
+            mapConfig.props.legend.customNumericColors = []
+            mapConfig.props.legend.customColorsActive = true
         }
 
-        const customCategoryColors = clone(mapConfig.props.customCategoryColors)
+        const customCategoryColors = clone(
+            mapConfig.props.legend.customCategoryColors
+        )
         if (color === undefined) delete customCategoryColors[bin.value]
         else customCategoryColors[bin.value] = color
-        mapConfig.props.customCategoryColors = customCategoryColors
+        mapConfig.props.legend.customCategoryColors = customCategoryColors
     }
 
     @action.bound onLabel(value: string) {
         const { mapConfig, bin } = this.props
-        const customCategoryLabels = clone(mapConfig.props.customCategoryLabels)
+        const customCategoryLabels = clone(
+            mapConfig.props.legend.customCategoryLabels
+        )
         customCategoryLabels[bin.value] = value
-        mapConfig.props.customCategoryLabels = customCategoryLabels
+        mapConfig.props.legend.customCategoryLabels = customCategoryLabels
     }
 
     @action.bound onToggleHidden() {
         const { mapConfig, bin } = this.props
 
         const customHiddenCategories = clone(
-            mapConfig.props.customHiddenCategories
+            mapConfig.props.legend.customHiddenCategories
         )
         if (bin.isHidden) delete customHiddenCategories[bin.value]
         else customHiddenCategories[bin.value] = true
-        mapConfig.props.customHiddenCategories = customHiddenCategories
+        mapConfig.props.legend.customHiddenCategories = customHiddenCategories
     }
 
     render() {
@@ -320,19 +329,20 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
         const { mapConfig } = this.props
 
         if (selected.value === "custom") {
-            mapConfig.props.customColorsActive = true
+            mapConfig.props.legend.customColorsActive = true
         } else {
-            mapConfig.props.baseColorScheme = selected.value
-            mapConfig.props.customColorsActive = undefined
+            mapConfig.props.legend.baseColorScheme = selected.value
+            mapConfig.props.legend.customColorsActive = undefined
         }
     }
 
     @action.bound onInvert(invert: boolean) {
-        this.props.mapConfig.props.colorSchemeInvert = invert || undefined
+        this.props.mapConfig.props.legend.colorSchemeInvert =
+            invert || undefined
     }
 
     @action.bound onAutomatic(isAutomatic: boolean) {
-        this.props.mapConfig.props.isManualBuckets = isAutomatic
+        this.props.mapConfig.props.legend.isManualBuckets = isAutomatic
             ? undefined
             : true
     }
@@ -355,7 +365,7 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={
-                                !!mapConfig.props.colorSchemeInvert
+                                !!mapConfig.props.legend.colorSchemeInvert
                             }
                             additionalOptions={[
                                 {
@@ -371,30 +381,32 @@ class ColorsSection extends React.Component<{ mapConfig: MapConfig }> {
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={mapConfig.props.colorSchemeInvert || false}
+                        value={
+                            mapConfig.props.legend.colorSchemeInvert || false
+                        }
                         onValue={this.onInvert}
                     />
                     <Toggle
                         label="Automatic classification"
-                        value={!mapConfig.props.isManualBuckets}
+                        value={!mapConfig.props.legend.isManualBuckets}
                         onValue={this.onAutomatic}
                     />
                 </FieldsRow>
                 <BindAutoFloat
                     field="colorSchemeMinValue"
-                    store={mapConfig.props}
+                    store={mapConfig.props.legend}
                     label="Minimum value"
                     auto={mapConfig.data.autoMinBinValue}
                 />
-                {!mapConfig.props.isManualBuckets && (
+                {!mapConfig.props.legend.isManualBuckets && (
                     <BindAutoFloat
                         label="Step size"
                         field="binStepSize"
-                        store={mapConfig.props}
+                        store={mapConfig.props.legend}
                         auto={mapConfig.data.binStepSizeDefault}
                     />
                 )}
-                {mapConfig.props.isManualBuckets && (
+                {mapConfig.props.legend.isManualBuckets && (
                     <ColorSchemeEditor map={mapConfig} />
                 )}
             </Section>
@@ -412,18 +424,18 @@ class BinLabelView extends React.Component<{
         if (this.props.bin instanceof NumericBin) {
             const { mapConfig, index } = this.props
             while (
-                mapConfig.props.colorSchemeLabels.length <
+                mapConfig.props.legend.colorSchemeLabels.length <
                 mapConfig.data.numBins
             )
-                mapConfig.props.colorSchemeLabels.push(undefined)
-            mapConfig.props.colorSchemeLabels[index] = value
+                mapConfig.props.legend.colorSchemeLabels.push(undefined)
+            mapConfig.props.legend.colorSchemeLabels[index] = value
         } else {
             const { mapConfig, bin } = this.props
             const customCategoryLabels = clone(
-                mapConfig.props.customCategoryLabels
+                mapConfig.props.legend.customCategoryLabels
             )
             customCategoryLabels[bin.value] = value
-            mapConfig.props.customCategoryLabels = customCategoryLabels
+            mapConfig.props.legend.customCategoryLabels = customCategoryLabels
         }
     }
 
@@ -462,9 +474,12 @@ class BinLabelView extends React.Component<{
 @observer
 class ColorLegendSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.mapConfig.props.equalSizeBins = isEqual ? true : undefined
+        this.props.mapConfig.props.legend.equalSizeBins = isEqual
+            ? true
+            : undefined
     }
 
+    // NOTE this should be extracted out
     @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
         this.props.mapConfig.props.tooltipUseCustomLabels = tooltipUseCustomLabels
             ? true
@@ -475,10 +490,10 @@ class ColorLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         const { mapConfig } = this.props
         return (
             <Section name="Legend">
-                {/*<BindAutoString label="Label" field="legendDescription" store={mapConfig.props} auto={mapConfig.data.legendTitle}/>*/}
+                {/*<BindAutoString label="Label" field="legendDescription" store={mapConfig.props.legend} auto={mapConfig.data.legendTitle}/>*/}
                 <Toggle
                     label="Disable visual scaling of legend bins"
-                    value={!!mapConfig.props.equalSizeBins}
+                    value={!!mapConfig.props.legend.equalSizeBins}
                     onValue={this.onEqualSizeBins}
                 />
                 <Toggle
@@ -488,7 +503,7 @@ class ColorLegendSection extends React.Component<{ mapConfig: MapConfig }> {
                     value={!!mapConfig.props.tooltipUseCustomLabels}
                     onValue={this.onTooltipUseCustomLabels}
                 />
-                {mapConfig.props.isManualBuckets && (
+                {mapConfig.props.legend.isManualBuckets && (
                     <EditableList>
                         {mapConfig.data.legendData.map((bin, index) => (
                             <BinLabelView

@@ -171,17 +171,17 @@ export class MapData extends ChartTransform {
 
         // When automatic classification is turned off, assign defaults
         reaction(
-            () => this.map.props.isManualBuckets,
+            () => this.map.props.legend.isManualBuckets,
             () => {
-                if (this.map.props.isManualBuckets) {
+                if (this.map.props.legend.isManualBuckets) {
                     const { autoBinMaximums } = this
                     const colorSchemeValues =
-                        toJS(this.map.props.colorSchemeValues) || []
+                        toJS(this.map.props.legend.colorSchemeValues) || []
                     for (let i = 0; i < autoBinMaximums.length; i++) {
                         if (i >= colorSchemeValues.length)
                             colorSchemeValues.push(autoBinMaximums[i])
                     }
-                    this.map.props.colorSchemeValues = colorSchemeValues
+                    this.map.props.legend.colorSchemeValues = colorSchemeValues
                 }
             }
         )
@@ -331,13 +331,13 @@ export class MapData extends ChartTransform {
     }
 
     @computed get numBins(): number {
-        return this.map.props.isManualBuckets
-            ? this.map.props.colorSchemeValues.length
+        return this.map.props.legend.isManualBuckets
+            ? this.map.props.legend.colorSchemeValues.length
             : this.numAutoBins
     }
 
     @computed get customBucketLabels() {
-        const labels = toJS(this.map.props.colorSchemeLabels) || []
+        const labels = toJS(this.map.props.legend.colorSchemeLabels) || []
         while (labels.length < this.numBins) labels.push(undefined)
         return labels
     }
@@ -360,8 +360,8 @@ export class MapData extends ChartTransform {
     }
 
     @computed get minBinValue(): number {
-        return this.map.props.colorSchemeMinValue !== undefined
-            ? this.map.props.colorSchemeMinValue
+        return this.map.props.legend.colorSchemeMinValue !== undefined
+            ? this.map.props.legend.colorSchemeMinValue
             : this.autoMinBinValue
     }
 
@@ -378,8 +378,8 @@ export class MapData extends ChartTransform {
     }
 
     @computed get binStepSize(): number {
-        return this.map.props.binStepSize !== undefined
-            ? this.map.props.binStepSize
+        return this.map.props.legend.binStepSize !== undefined
+            ? this.map.props.legend.binStepSize
             : this.binStepSizeDefault
     }
 
@@ -413,7 +413,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get bucketMaximums(): number[] {
-        if (this.map.props.isManualBuckets) return this.manualBinMaximums
+        if (this.map.props.legend.isManualBuckets) return this.manualBinMaximums
         else return this.autoBinMaximums
     }
 

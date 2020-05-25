@@ -138,7 +138,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.props.legendData
             },
             get equalSizeBins() {
-                return that.context.chart.map.props.equalSizeBins
+                return that.context.chart.map.props.legend.equalSizeBins
             },
             get title() {
                 return that.props.legendTitle
