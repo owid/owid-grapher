@@ -1,11 +1,12 @@
 import * as React from "react"
-import { uniq } from "./Util"
+import { uniq, formatDay } from "./Util"
 import { computed } from "mobx"
 import { Bounds } from "./Bounds"
 import { ScaleType, AxisScale } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { AxisTickMarks } from "./AxisTickMarks"
+import { ChartConfig } from "./ChartConfig"
 
 interface HorizontalAxisProps {
     scale: AxisScale
@@ -123,6 +124,7 @@ export class HorizontalAxisView extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
     axisPosition: number
+    chart: ChartConfig
     showTickMarks?: boolean
     onScaleTypeChange?: (scale: ScaleType) => void
 }> {
@@ -132,7 +134,8 @@ export class HorizontalAxisView extends React.Component<{
             axis,
             onScaleTypeChange,
             axisPosition,
-            showTickMarks
+            showTickMarks,
+            chart
         } = this.props
         const { scale, ticks, label, labelOffset, tickFormattingOptions } = axis
         const textColor = "#666"
@@ -155,12 +158,23 @@ export class HorizontalAxisView extends React.Component<{
                         bounds.bottom - label.height
                     )}
                 {tickMarks}
-                {ticks.map((tick, i) => {
-                    const label = scale.tickFormat(tick, tickFormattingOptions)
+                {ticks.map((tick, index) => {
+                    let label = scale.tickFormat(tick, tickFormattingOptions)
+                    // On line charts with dates on the x axis format the dates without the year except for the final date.
+                    if (
+                        chart.isLineChart &&
+                        !chart.lineChart.isSingleYear &&
+                        chart.yearIsDayVar
+                    )
+                        label =
+                            index === ticks.length - 1
+                                ? scale.tickFormat(tick)
+                                : formatDay(tick, { format: "MMM D" })
+
                     const rawXPosition = scale.place(tick)
                     // Ensure the first label does not exceed the chart viewing area
                     const xPosition =
-                        i === 0
+                        index === 0
                             ? Bounds.getRightShiftForMiddleAlignedTextIfNeeded(
                                   label,
                                   axis.tickFontSize,
@@ -169,7 +183,7 @@ export class HorizontalAxisView extends React.Component<{
                             : rawXPosition
                     const element = (
                         <text
-                            key={i}
+                            key={index}
                             x={xPosition}
                             y={bounds.bottom - labelOffset}
                             fill={textColor}

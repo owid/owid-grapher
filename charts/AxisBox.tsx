@@ -18,6 +18,7 @@ import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisSpec } from "./AxisSpec"
 import { ScaleType } from "./ScaleType"
 import { extend } from "./Util"
+import { ChartConfig } from "./ChartConfig"
 
 interface AxisBoxProps {
     bounds: Bounds
@@ -245,6 +246,7 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
 
 export interface AxisBoxViewProps {
     axisBox: AxisBox
+    chart: ChartConfig
     onYScaleChange: (scaleType: ScaleType) => void
     onXScaleChange: (scaleType: ScaleType) => void
     highlightValue?: { x: number; y: number }
@@ -262,6 +264,7 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
             axisBox,
             onYScaleChange,
             onXScaleChange,
+            chart,
             showTickMarks
         } = this.props
         const { bounds, xScale, yScale, xAxis, yAxis, innerBounds } = axisBox
@@ -270,6 +273,7 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
             <g className="AxisBoxView">
                 <HorizontalAxisView
                     bounds={bounds}
+                    chart={chart}
                     axisPosition={innerBounds.bottom}
                     axis={xAxis}
                     onScaleTypeChange={onXScaleChange}

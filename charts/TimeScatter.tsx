@@ -646,6 +646,7 @@ export class TimeScatter extends React.Component<{
         return (
             <g>
                 <AxisBoxView
+                    chart={this.chart}
                     axisBox={axisBox}
                     onXScaleChange={this.onXScaleChange}
                     onYScaleChange={this.onYScaleChange}

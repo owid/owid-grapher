@@ -275,6 +275,7 @@ export class DiscreteBarChart extends React.Component<{
                 />
                 <HorizontalAxisView
                     bounds={bounds}
+                    chart={this.chart}
                     axis={xAxis}
                     onScaleTypeChange={
                         this.chart.yAxis.canChangeScaleType

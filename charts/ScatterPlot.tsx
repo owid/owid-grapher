@@ -331,6 +331,7 @@ export class ScatterPlot extends React.Component<{
             <g>
                 <AxisBoxView
                     axisBox={axisBox}
+                    chart={this.chart}
                     onXScaleChange={this.onXScaleChange}
                     onYScaleChange={this.onYScaleChange}
                     showTickMarks={false}
