@@ -320,12 +320,6 @@ export class MapData extends ChartTransform {
         return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }
 
-    @computed get legendTitle(): string {
-        return "" // Disabled for now; redundant with chart title
-        //const {legendDescription} = this.map.props
-        //return legendDescription !== undefined ? legendDescription : (this.dimension ? this.dimension.displayName : "")
-    }
-
     @computed get numAutoBins(): number {
         return 5
     }

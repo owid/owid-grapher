@@ -490,7 +490,6 @@ class ColorLegendSection extends React.Component<{ mapConfig: MapConfig }> {
         const { mapConfig } = this.props
         return (
             <Section name="Legend">
-                {/*<BindAutoString label="Label" field="legendDescription" store={mapConfig.props.legend} auto={mapConfig.data.legendTitle}/>*/}
                 <Toggle
                     label="Disable visual scaling of legend bins"
                     value={!!mapConfig.props.legend.equalSizeBins}

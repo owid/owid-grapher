@@ -37,7 +37,6 @@ interface MapWithLegendProps {
     inputYear?: number
     formatYear: (year: number) => string
     legendData: ColorLegendBin[]
-    legendTitle: string
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
@@ -141,7 +140,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.context.chart.map.props.legend.equalSizeBins
             },
             get title() {
-                return that.props.legendTitle
+                return ""
             },
             get focusBracket() {
                 return that.focusBracket
@@ -283,7 +282,6 @@ export class MapTab extends React.Component<MapTabProps> {
                         years={map.data.timelineYears}
                         inputYear={map.data.targetYear}
                         legendData={map.data.legendData}
-                        legendTitle={map.data.legendTitle}
                         projection={map.projection}
                         defaultFill={map.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
