@@ -1,4 +1,4 @@
-import { sortBy } from "lodash"
+import { keyBy, mapValues, sortBy } from "lodash"
 import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
@@ -132,5 +132,18 @@ if (args._[0]) {
         )
 } else {
     // fetch information for _all_ servers
-    fetchAll().then(console.table)
+    fetchAll().then(commitInformation =>
+        console.table(
+            mapValues(
+                keyBy(
+                    commitInformation,
+                    commitInformation => commitInformation.serverName
+                ),
+                commitInformation => {
+                    delete commitInformation.serverName
+                    return commitInformation
+                }
+            )
+        )
+    )
 }
