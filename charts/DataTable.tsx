@@ -274,7 +274,7 @@ export class DataTable extends React.Component<DataTableProps> {
                                     >
                                         {column.targetYearMode ===
                                         TargetYearMode.point
-                                            ? column.targetYear
+                                            ? dim.formatYear(column.targetYear!)
                                             : columnNameByType[column.key]}
                                         {this.renderSortIcon({
                                             isActive: isSorted
