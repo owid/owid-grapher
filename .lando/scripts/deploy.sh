@@ -21,6 +21,10 @@ elif [ "$1" == "playfair" ]; then
   HOST="owid-staging"
   PREFIX="playfair"
 
+elif [ "$1" == "nightingale" ]; then
+ HOST="owid-staging"
+ PREFIX="nightingale"
+
 elif [ "$1" == "jefferson" ]; then
   HOST="owid-staging"
   PREFIX="jefferson"
