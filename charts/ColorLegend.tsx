@@ -16,7 +16,6 @@ import {
     sum
 } from "./Util"
 import { Bounds } from "./Bounds"
-import { MapDataValue } from "./MapData"
 import { TextWrap } from "./TextWrap"
 import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
 
@@ -522,8 +521,8 @@ export interface ColorLegendProps {
     legendData: ColorLegendBin[]
     title: string
     bounds: Bounds
-    focusBracket: ColorLegendBin
-    focusEntity: { datum: MapDataValue }
+    focusValue?: number | string
+    focusBracket?: ColorLegendBin
     equalSizeBins?: true
 }
 
@@ -574,26 +573,22 @@ export class ColorLegend {
     }
 
     @computed get numericFocusBracket(): ColorLegendBin | undefined {
-        const { focusBracket, focusEntity } = this.props
+        const { focusBracket, focusValue } = this.props
         const { numericLegendData } = this
 
         if (focusBracket) return focusBracket
-        else if (focusEntity)
-            return find(numericLegendData, bin =>
-                bin.contains(focusEntity.datum.value)
-            )
+        else if (focusValue)
+            return find(numericLegendData, bin => bin.contains(focusValue))
         else return undefined
     }
 
     @computed get categoricalFocusBracket(): CategoricalBin | undefined {
-        const { focusBracket, focusEntity } = this.props
+        const { focusBracket, focusValue } = this.props
         const { categoricalLegendData } = this
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
-        else if (focusEntity)
-            return find(categoricalLegendData, bin =>
-                bin.contains(focusEntity.datum.value)
-            )
+        else if (focusValue)
+            return find(categoricalLegendData, bin => bin.contains(focusValue))
         else return undefined
     }
 

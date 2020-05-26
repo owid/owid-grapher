@@ -44,10 +44,11 @@ interface MapWithLegendProps {
 
 @observer
 class MapWithLegend extends React.Component<MapWithLegendProps> {
-    @observable focusEntity?: any
     @observable.ref tooltip: React.ReactNode | null = null
-    @observable focusBracket: MapBracket
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
+
+    @observable focusEntity?: MapEntity
+    @observable focusBracket?: MapBracket
 
     static contextType = ChartViewContext
     context!: ChartViewContextType
@@ -107,7 +108,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.onLegendMouseLeave()
     }
 
-    @action.bound onLegendMouseOver(d: MapEntity) {
+    @action.bound onLegendMouseOver(d: MapBracket) {
         this.focusBracket = d
     }
 
@@ -120,7 +121,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onLegendMouseLeave() {
-        this.focusBracket = null
+        this.focusBracket = undefined
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
@@ -145,8 +146,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             get focusBracket() {
                 return that.focusBracket
             },
-            get focusEntity() {
-                return that.focusEntity
+            get focusValue() {
+                return that.focusEntity?.datum?.value
             },
             get fontSize() {
                 return that.context.chart.baseFontSize
