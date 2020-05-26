@@ -9,7 +9,8 @@ import {
     formatDay,
     retryPromise,
     computeRollingAverage,
-    insertMissingValuePlaceholders
+    insertMissingValuePlaceholders,
+    rollingMap
 } from "../Util"
 
 describe(findClosestYear, () => {
@@ -202,5 +203,17 @@ describe(retryPromise, () => {
     it("rejects when promise doesn't succeed within retry limit", async () => {
         const promiseGetter = resolveAfterNthRetry(3, "success")
         expect(retryPromise(promiseGetter, 3)).rejects.toBeUndefined()
+    })
+})
+
+describe(rollingMap, () => {
+    it("handles empty arrays", () => {
+        expect(rollingMap([], () => undefined).length).toEqual(0)
+    })
+    it("handles 1 element arrays", () => {
+        expect(rollingMap([1], (a, b) => a + b).length).toEqual(0)
+    })
+    it("handles 1 element arrays", () => {
+        expect(rollingMap([1, 2, 4, 8], (a, b) => b - a)).toEqual([1, 2, 4])
     })
 })
