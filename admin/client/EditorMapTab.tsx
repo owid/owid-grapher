@@ -1,6 +1,6 @@
 import * as React from "react"
 import { clone, isEmpty, noop } from "charts/Util"
-import { computed, action, IReactionDisposer, reaction, toJS } from "mobx"
+import { computed, action, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import {
