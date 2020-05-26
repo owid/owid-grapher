@@ -573,7 +573,7 @@ export async function formatWordpressPost(
         lastUpdated: lastUpdated,
         authors: post.authors,
         info: info,
-        html: $.html(),
+        html: getHtmlContentWithStyles($),
         footnotes: footnotes,
         references: references,
         excerpt:
@@ -585,6 +585,19 @@ export async function formatWordpressPost(
         tocHeadings: tocHeadings,
         relatedCharts: post.relatedCharts
     }
+}
+
+function getHtmlContentWithStyles($: CheerioStatic) {
+    // Inline styling
+    // Get the first root level <style> tag within the content as it gets
+    // stripped out by $("body").html() below. Voluntarily limits to 1 as there
+    // should not be a need for more.
+    const style =
+        $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
+
+    // This is effectively a hack within a hack, as style tags are technically
+    // not allowed in the body (of the main article)
+    return `${style}${$("body").html()}`
 }
 
 export interface FormattingOptions {
@@ -696,7 +709,7 @@ export function formatCovidCountryProfile(
         $deepLinkAnchor.after(`${country.name}: `)
     })
 
-    return { ...post, html: $.html() }
+    return { ...post, html: getHtmlContentWithStyles($) }
 }
 
 export function formatAuthors(authors: string[], requireMax?: boolean): string {
