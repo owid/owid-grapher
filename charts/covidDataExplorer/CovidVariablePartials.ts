@@ -19,7 +19,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             zeroDay: "2020-01-21",
             yearIsDay: true,
             numDecimalPlaces: 0,
-            entityAnnotationsMap: `Spain: Note that on April 19 the methodology has changed
+            entityAnnotationsMap: `Spain: Note that on April 19 & May 25th the methodology has changed
 Lithuania: Note that on April 28 the methodology has changed
 Ecuador: Note that on May 8 the methodology has changed
 United Kingdom: Note that on May 20 the methodology has changed`
@@ -48,7 +48,9 @@ United Kingdom: Note that on May 20 the methodology has changed`
             unit: "deaths",
             zeroDay: "2020-01-21",
             yearIsDay: true,
-            numDecimalPlaces: 0
+            numDecimalPlaces: 0,
+            entityAnnotationsMap: `Benin: Note that on May 19 the methodology has changed
+Spain: Note that on May 25 the methodology has changed`
         },
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
@@ -82,7 +84,7 @@ Bahrain: units unclear
 Bangladesh: samples tested
 Belarus: tests performed
 Belgium: units unclear
-Bolivia: cases tested
+Bolivia: people tested
 Brazil: tests performed
 Bulgaria: tests performed
 Canada: people tested
@@ -117,8 +119,9 @@ Kenya: units unclear
 Latvia: tests performed
 Lithuania: samples tested
 Luxembourg: people tested
-Malaysia: cases tested
-Mexico: cases tested
+Malaysia: people tested
+Maldives: samples tested
+Mexico: people tested
 Morocco: people tested
 Myanmar: samples tested
 Nepal: people tested
@@ -144,7 +147,7 @@ Singapore: people tested
 Slovakia: tests performed
 Slovenia: tests performed
 South Africa: units unclear
-South Korea: cases tested
+South Korea: people tested
 Spain: tests performed
 Sweden: people tested
 Switzerland: tests performed
