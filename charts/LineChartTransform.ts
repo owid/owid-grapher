@@ -214,7 +214,8 @@ export class LineChartTransform extends ChartTransform {
             scaleType: yScaleType,
             scaleTypeOptions: isRelativeMode
                 ? ["linear"]
-                : chart.yAxis.scaleTypeOptions
+                : chart.yAxis.scaleTypeOptions,
+            hideFractionalTicks: this.yDimensionFirst?.numDecimalPlaces === 0
         }
     }
 
