@@ -19,7 +19,15 @@ import { promisifiedExec as exec } from "utils/server/serverUtil"
  *  If it still doesn't work, the live commit is not pushed to GitHub yet. That should only happen on a staging server, never on live.
  */
 
-const servers = ["live", "staging", "explorer", "hans", "playfair", "jefferson", "nightingale"]
+const servers = [
+    "live",
+    "staging",
+    "explorer",
+    "hans",
+    "playfair",
+    "jefferson",
+    "nightingale"
+]
 
 const args = parseArgs(process.argv.slice(2))
 
@@ -132,18 +140,27 @@ if (args._[0]) {
         )
 } else {
     // fetch information for _all_ servers
-    fetchAll().then(commitInformation =>
-        console.table(
-            mapValues(
-                keyBy(
-                    commitInformation,
-                    commitInformation => commitInformation.serverName
-                ),
-                commitInformation => {
-                    delete commitInformation.serverName
-                    return commitInformation
+    fetchAll().then(commitInformation => {
+        const data = mapValues(
+            keyBy(
+                commitInformation,
+                commitInformation => commitInformation.serverName
+            ),
+            commitInformation => {
+                delete commitInformation.serverName
+                return {
+                    ...commitInformation,
+                    commitMessage:
+                        // truncate to 60 characters
+                        commitInformation.commitMessage &&
+                        commitInformation.commitMessage.length > 60
+                            ? commitInformation.commitMessage?.substr(0, 60) +
+                              "…"
+                            : commitInformation?.commitMessage
                 }
-            )
+            }
         )
-    )
+
+        console.table(data)
+    })
 }
