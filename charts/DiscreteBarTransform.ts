@@ -155,7 +155,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }) {
         Object.keys(dataByEntityDimensionKey).forEach(key => {
             const datum = dataByEntityDimensionKey[key]
-            if (datum.value === 0) delete dataByEntityDimensionKey[key]
+            if (datum.value <= 0) delete dataByEntityDimensionKey[key]
         })
     }
 
@@ -164,7 +164,7 @@ export class DiscreteBarTransform extends ChartTransform {
         // This is because, as d3 puts it: "a log scale domain must be strictly-positive or strictly-negative;
         // the domain must not include or cross zero". We may want to update to d3 5.8 and explore switching to
         // scaleSymlog which handles a wider domain.
-        return allData.filter(datum => datum.value !== 0)
+        return allData.filter(datum => datum.value > 0)
     }
 
     @computed get isLogScale() {
