@@ -837,7 +837,11 @@ export class CovidDataExplorer extends React.Component<{
                 return {
                     property: "y",
                     variableId: id,
-                    display: {}
+                    display: {
+                        // Allow ± 1 day difference in data plotted on bar charts
+                        // This is what we use for charts on the Grapher too
+                        tolerance: 1
+                    }
                 }
             })
 
