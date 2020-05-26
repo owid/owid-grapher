@@ -388,7 +388,7 @@ export async function renderCovidCountryProfile(
     const landing = await getCovidLandingPost()
 
     const overrides: PageOverrides = {
-        pageTitle: `${country.name}: ${landing.title}`,
+        pageTitle: `${country.name}: Coronavirus Pandemic`,
         citationTitle: landing.title,
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
