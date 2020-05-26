@@ -24,6 +24,7 @@ import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { MapTooltip } from "./MapTooltip"
+import { ColorLegendTransform } from "./ColorLegendTransform"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -36,7 +37,7 @@ interface MapWithLegendProps {
     years: number[]
     inputYear?: number
     formatYear: (year: number) => string
-    legendData: ColorLegendBin[]
+    legend: ColorLegendTransform
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
@@ -135,10 +136,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.props.bounds.padBottom(15)
             },
             get legendData() {
-                return that.props.legendData
+                return that.props.legend.legendData
             },
             get equalSizeBins() {
-                return that.context.chart.map.props.legend.equalSizeBins
+                return that.props.legend.config.equalSizeBins
             },
             get title() {
                 return ""
@@ -167,7 +168,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             .attr("data-fill", function() {
                 return (this as SVGPathElement).getAttribute("fill")
             })
-            .attr("fill", this.context.chart.map.legend.noDataColor)
+            .attr("fill", this.props.legend.noDataColor)
             .transition()
             .duration(500)
             .ease(easeCubic)
@@ -282,7 +283,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         choroplethData={map.data.choroplethData}
                         years={map.data.timelineYears}
                         inputYear={map.data.targetYear}
-                        legendData={map.data.legendData}
+                        legend={map.legend}
                         projection={map.projection}
                         defaultFill={map.legend.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
