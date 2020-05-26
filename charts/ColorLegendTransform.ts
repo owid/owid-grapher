@@ -18,7 +18,7 @@ interface ColorLegendTransformProps {
 
 export class ColorLegendTransform {
     config: ColorLegendConfigProps
-    props: ColorLegendTransformProps
+    private props: Readonly<ColorLegendTransformProps>
     constructor(
         config: ColorLegendConfigProps,
         props: ColorLegendTransformProps
@@ -28,10 +28,6 @@ export class ColorLegendTransform {
     }
 
     // Config accessors
-
-    @computed get minBucketValue() {
-        return +defaultTo(this.config.colorSchemeMinValue, 0)
-    }
 
     @computed get colorSchemeValues(): number[] {
         return defaultTo(this.config.colorSchemeValues, [])
@@ -47,13 +43,6 @@ export class ColorLegendTransform {
             []
         )
     }
-
-    // @computed get customCategoryColors(): { [key: string]: string } {
-    //     return defaultTo(
-    //         this.isCustomColors ? this.config.customCategoryColors : {},
-    //         {}
-    //     )
-    // }
 
     @computed get customHiddenCategories(): { [key: string]: true } {
         return defaultTo(this.config.customHiddenCategories, {})
@@ -171,7 +160,7 @@ export class ColorLegendTransform {
         return colors
     }
 
-    @computed get numAutoBins(): number {
+    @computed private get numAutoBins(): number {
         return 5
     }
 
@@ -200,7 +189,7 @@ export class ColorLegendTransform {
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed get commonValues(): number[] {
+    @computed private get commonValues(): number[] {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number

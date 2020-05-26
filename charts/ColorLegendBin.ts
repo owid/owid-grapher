@@ -1,5 +1,3 @@
-import { computed } from "mobx"
-
 import { Color } from "./Color"
 
 export interface NumericBinProps {
@@ -14,37 +12,37 @@ export interface NumericBinProps {
 }
 
 export class NumericBin {
-    props: NumericBinProps
+    props: Readonly<NumericBinProps>
     constructor(props: NumericBinProps) {
         this.props = props
     }
 
-    @computed get min() {
+    get min() {
         return this.props.min
     }
-    @computed get max() {
+    get max() {
         return this.props.max
     }
-    @computed get color() {
+    get color() {
         return this.props.color
     }
-    @computed get minText() {
+    get minText() {
         const str = this.props.format(this.props.min)
         if (this.props.isOpenLeft) return `<${str}`
         else return str
     }
-    @computed get maxText() {
+    get maxText() {
         const str = this.props.format(this.props.max)
         if (this.props.isOpenRight) return `>${str}`
         else return str
     }
-    @computed get label() {
+    get label() {
         return this.props.label
     }
-    @computed get text() {
+    get text() {
         return this.props.label || ""
     }
-    @computed get isHidden() {
+    get isHidden() {
         return false
     }
 
@@ -80,33 +78,43 @@ export interface CategoricalBinProps {
 }
 
 export class CategoricalBin {
-    index: number
-    value: string
-    color: Color
-    label: string
-    isHidden: boolean
+    private props: Readonly<CategoricalBinProps>
+    constructor(props: CategoricalBinProps) {
+        this.props = props
+    }
 
-    constructor({ index, value, color, label, isHidden }: CategoricalBinProps) {
-        this.index = index
-        this.value = value
-        this.color = color
-        this.label = label
-        this.isHidden = isHidden
+    get index() {
+        return this.props.index
+    }
+    get value() {
+        return this.props.value
+    }
+    get color() {
+        return this.props.color
+    }
+    get label() {
+        return this.props.label
+    }
+    get isHidden() {
+        return this.props.isHidden
     }
 
     get text() {
-        return this.label || this.value
+        return this.props.label || this.props.value
     }
 
     contains(value: string | number | undefined): boolean {
         return (
-            (value === undefined && this.value === "No data") ||
-            (value !== undefined && value === this.value)
+            (value === undefined && this.props.value === "No data") ||
+            (value !== undefined && value === this.props.value)
         )
     }
 
     equals(other: ColorLegendBin): boolean {
-        return other instanceof CategoricalBin && this.index === other.index
+        return (
+            other instanceof CategoricalBin &&
+            this.props.index === other.props.index
+        )
     }
 }
 
