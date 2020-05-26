@@ -21,7 +21,6 @@ import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "./owidData/OwidSource"
-import { Analytics } from "site/client/Analytics"
 
 export interface EntityDimensionInfo {
     entity: string
@@ -371,11 +370,7 @@ export class ChartData {
                     .some(item => item)
             })
         }
-        const notFoundEntities = Array.from(matchedEntities.keys()).filter(
-            key => !matchedEntities.get(key)
-        )
-        if (notFoundEntities.length)
-            Analytics.logEntitiesNotFoundError(notFoundEntities)
+        return matchedEntities
     }
 
     @action.bound resetSelectedEntities() {
