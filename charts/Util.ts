@@ -795,3 +795,12 @@ export function scrollIntoViewIfNeeded(
         scrollTo(containerEl, Math.max(focusedEl.offsetTop - overScroll, 0))
     }
 }
+
+export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
+    const result: U[] = []
+    if (array.length <= 1) return result
+    for (let i = 0; i < array.length - 1; i++) {
+        result.push(mapper(array[i], array[i + 1]))
+    }
+    return result
+}

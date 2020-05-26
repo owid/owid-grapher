@@ -79,9 +79,12 @@ export class HorizontalAxis {
     @computed get tickPlacements() {
         const { scale, labelOffset } = this
         return this.baseTicks.map(tick => {
-            const bounds = Bounds.forText(scale.tickFormat(tick), {
-                fontSize: this.tickFontSize
-            })
+            const bounds = Bounds.forText(
+                scale.tickFormat(tick, this.tickFormattingOptions),
+                {
+                    fontSize: this.tickFontSize
+                }
+            )
             return {
                 tick: tick,
                 bounds: bounds.extend({
@@ -110,6 +113,10 @@ export class HorizontalAxis {
 
         return tickPlacements.filter(t => !t.isHidden).map(t => t.tick)
     }
+
+    @computed get tickFormattingOptions() {
+        return this.scale.getTickFormattingOptions()
+    }
 }
 
 export class HorizontalAxisView extends React.Component<{
@@ -127,7 +134,7 @@ export class HorizontalAxisView extends React.Component<{
             axisPosition,
             showTickMarks
         } = this.props
-        const { scale, ticks, label, labelOffset } = axis
+        const { scale, ticks, label, labelOffset, tickFormattingOptions } = axis
         const textColor = "#666"
 
         const tickMarks = showTickMarks ? (
@@ -149,7 +156,7 @@ export class HorizontalAxisView extends React.Component<{
                     )}
                 {tickMarks}
                 {ticks.map((tick, i) => {
-                    const label = scale.tickFormat(tick)
+                    const label = scale.tickFormat(tick, tickFormattingOptions)
                     const rawXPosition = scale.place(tick)
                     // Ensure the first label does not exceed the chart viewing area
                     const xPosition =
