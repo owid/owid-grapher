@@ -7,16 +7,20 @@
  */
 
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { map, extend } from "./Util"
 import { observable, computed, toJS } from "mobx"
 
-export type ScaleType = "linear" | "log"
+import { map, extend, rollingMap, min } from "./Util"
+import { TickFormattingOptions } from "./TickFormattingOptions"
 
+export type ScaleType = "linear" | "log"
 
 export class AxisScale {
     @observable scaleType: ScaleType
     @observable.struct scaleTypeOptions: ScaleType[]
-    @observable tickFormat: (v: number) => string
+    @observable tickFormat: (
+        v: number,
+        options?: TickFormattingOptions
+    ) => string
     @observable.struct domain: [number, number]
     @observable.struct range: [number, number]
     @observable hideFractionalTicks: boolean
@@ -94,8 +98,21 @@ export class AxisScale {
         return ticks
     }
 
+    getTickFormattingOptions(): TickFormattingOptions {
+        const tickValues = this.getTickValues()
+        const minDist = min(rollingMap(tickValues, (a, b) => Math.abs(a - b)))
+        if (minDist !== undefined) {
+            const dp = Math.ceil(-Math.log10(minDist))
+            if (isFinite(dp) && dp >= 0) return { numDecimalPlaces: dp }
+        }
+        return {}
+    }
+
     getFormattedTicks(): string[] {
-        return map(this.getTickValues(), this.tickFormat)
+        const options = this.getTickFormattingOptions()
+        return this.getTickValues().map(value =>
+            this.tickFormat(value, options)
+        )
     }
 
     place(value: number) {
