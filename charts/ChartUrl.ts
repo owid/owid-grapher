@@ -32,6 +32,7 @@ import {
     TimeBound,
     parseTimeBound
 } from "./TimeBounds"
+import { Analytics } from "site/client/Analytics"
 
 export interface ChartQueryParams {
     tab?: string
@@ -334,7 +335,14 @@ export class ChartUrl implements ObservableUrl {
                         const entityCodes = country
                             .split("+")
                             .map(decodeURIComponent)
-                        this.chart.data.setSelectedEntitiesByCode(entityCodes)
+                        const matchedEntities = this.chart.data.setSelectedEntitiesByCode(
+                            entityCodes
+                        )
+                        const notFoundEntities = Array.from(
+                            matchedEntities.keys()
+                        ).filter(key => !matchedEntities.get(key))
+                        if (notFoundEntities.length)
+                            Analytics.logEntitiesNotFoundError(notFoundEntities)
                     }
                 })
             }
