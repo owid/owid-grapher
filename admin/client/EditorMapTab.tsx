@@ -18,7 +18,7 @@ import {
 } from "./Forms"
 import { MapConfig } from "charts/MapConfig"
 import { MapProjection } from "charts/MapProjection"
-import { NumericBin, CategoricalBin } from "charts/MapData"
+import { NumericBin, CategoricalBin } from "charts/ColorLegendBin"
 import { Color } from "charts/Color"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"

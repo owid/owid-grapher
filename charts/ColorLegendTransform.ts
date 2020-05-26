@@ -3,9 +3,9 @@ import { mean, deviation } from "d3-array"
 
 import { ColorLegendConfigProps } from "./ColorLegendConfig"
 import { defaultTo, isEmpty, extend, reverse, round, toArray } from "./Util"
-import { NumericBin, CategoricalBin } from "./MapData"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
+import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
 
 interface ColorLegendTransformProps {
     minPossibleValue: number
@@ -210,7 +210,7 @@ export class ColorLegendTransform {
         )
     }
 
-    @computed get legendData(): (NumericBin | CategoricalBin)[] {
+    @computed get legendData(): ColorLegendBin[] {
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },

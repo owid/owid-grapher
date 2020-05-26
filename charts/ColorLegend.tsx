@@ -1,4 +1,7 @@
 import * as React from "react"
+import { computed, action } from "mobx"
+import { observer } from "mobx-react"
+
 import {
     min,
     max,
@@ -9,19 +12,13 @@ import {
     flatten,
     some,
     find,
-    getRelativeMouse
+    getRelativeMouse,
+    sum
 } from "./Util"
 import { Bounds } from "./Bounds"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
-import {
-    ColorLegendBin,
-    NumericBin,
-    CategoricalBin,
-    MapDataValue
-} from "./MapData"
+import { MapDataValue } from "./MapData"
 import { TextWrap } from "./TextWrap"
-import { sum } from "d3-array"
+import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
 
 const FOCUS_BORDER_COLOR = "#111"
 
