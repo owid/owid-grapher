@@ -160,7 +160,8 @@ export class HorizontalAxisView extends React.Component<{
                 {tickMarks}
                 {ticks.map((tick, index) => {
                     let label = scale.tickFormat(tick, tickFormattingOptions)
-                    // On line charts with dates on the x axis format the dates without the year except for the final date.
+                    // On line charts, with dates on the x axis, display the dates sans year except for the final tick.
+                    // So we print something like:  `Mar 1     April 1    May 1 2020`
                     if (
                         chart.isLineChart &&
                         !chart.lineChart.isSingleYear &&
