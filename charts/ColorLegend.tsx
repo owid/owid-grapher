@@ -583,7 +583,7 @@ export class ColorLegend {
         if (focusBracket) return focusBracket
         else if (focusEntity)
             return find(numericLegendData, bin =>
-                bin.contains(focusEntity.datum)
+                bin.contains(focusEntity.datum.value)
             )
         else return undefined
     }
@@ -595,7 +595,7 @@ export class ColorLegend {
             return focusBracket
         else if (focusEntity)
             return find(categoricalLegendData, bin =>
-                bin.contains(focusEntity.datum)
+                bin.contains(focusEntity.datum.value)
             )
         else return undefined
     }

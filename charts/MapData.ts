@@ -75,13 +75,18 @@ export class NumericBin {
         return false
     }
 
-    contains(d: MapDataValue | null): boolean {
-        if (!d) return false
-        else if (this.props.isOpenLeft) return d.value <= this.max
-        else if (this.props.isOpenRight) return d.value > this.min
-        else if (this.props.isFirst)
-            return d.value >= this.min && d.value <= this.max
-        else return d.value > this.min && d.value <= this.max
+    contains(value: string | number | undefined): boolean {
+        if (value === undefined) {
+            return false
+        } else if (this.props.isOpenLeft) {
+            return value <= this.max
+        } else if (this.props.isOpenRight) {
+            return value > this.min
+        } else if (this.props.isFirst) {
+            return value >= this.min && value <= this.max
+        } else {
+            return value > this.min && value <= this.max
+        }
     }
 
     equals(other: ColorLegendBin): boolean {
@@ -124,10 +129,10 @@ export class CategoricalBin {
         return this.label || this.value
     }
 
-    contains(d: MapDataValue | null): boolean {
+    contains(value: string | number | undefined): boolean {
         return (
-            (d === null && this.value === "No data") ||
-            (d !== null && d.value === this.value)
+            (value === undefined && this.value === "No data") ||
+            (value !== undefined && value === this.value)
         )
     }
 
@@ -337,7 +342,7 @@ export class MapData extends ChartTransform {
         const choroplethData: ChoroplethData = {}
 
         each(valuesByEntity, (datum, entity) => {
-            const bin = find(legendData, b => b.contains(datum))
+            const bin = find(legendData, b => b.contains(datum.value))
             if (!bin) return
             choroplethData[entity] = extend({}, datum, {
                 color: bin.color,
