@@ -12,13 +12,6 @@ import { observable, computed, toJS } from "mobx"
 
 export type ScaleType = "linear" | "log"
 
-export interface AxisConfig {
-    scaleType: ScaleType
-    scaleTypeOptions: ScaleType[]
-    tickFormat: (v: number) => string
-    domain: [number, number]
-    label: string
-}
 
 export class AxisScale {
     @observable scaleType: ScaleType
