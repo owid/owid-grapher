@@ -471,6 +471,8 @@ export class ColorBox extends React.Component<{
                 placement="right"
                 interactive={true}
                 trigger="click"
+                appendTo={() => document.body}
+                className="colorpicker-tooltip"
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
