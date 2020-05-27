@@ -1,5 +1,3 @@
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Tippy } from "charts/Tippy"
 import { parseIntOrUndefined } from "charts/Util"
 import React from "react"
@@ -7,12 +5,10 @@ import ReactDOM from "react-dom"
 
 export const Footnote = ({
     index,
-    href,
     htmlContent,
     triggerTarget
 }: {
     index: number
-    href: string
     htmlContent?: string
     triggerTarget?: Element
 }) => {
@@ -27,12 +23,6 @@ export const Footnote = ({
                                 __html: htmlContent
                             }}
                         />
-                        <div className="jump-to-ref">
-                            <a href={href}>
-                                Scroll to footnotes{" "}
-                                <FontAwesomeIcon icon={faAngleDoubleDown} />
-                            </a>
-                        </div>
                     </div>
                 )
             }
@@ -76,7 +66,6 @@ export function runFootnotes() {
         ReactDOM.hydrate(
             <Footnote
                 index={footnoteContent.index}
-                href={footnoteContent.href}
                 htmlContent={footnoteContent.htmlContent}
                 triggerTarget={f}
             />,
