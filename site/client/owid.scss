@@ -939,13 +939,13 @@ article.page .authors-byline .citation-note:hover {
     padding: 0;
     cursor: default;
     position: relative;
-    border-radius: 3px;
-    overflow: hidden;
 
     $background-color: #000;
     $vertical-padding: 16px;
     $horizontal-padding: 19px;
+    $border-radius: 4px;
 
+    border-radius: $border-radius;
     background-color: $background-color;
 
     // Show shadows at top and bottom edge of footnote to give users
@@ -966,6 +966,7 @@ article.page .authors-byline .citation-note:hover {
             rgba($background-color, 1),
             rgba($background-color, 0)
         );
+        border-radius: $border-radius $border-radius 0 0;
     }
 
     &:after {
@@ -974,6 +975,7 @@ article.page .authors-byline .citation-note:hover {
             rgba($background-color, 0),
             rgba($background-color, 1)
         );
+        border-radius: 0 0 $border-radius $border-radius;
     }
 
     &[data-placement^="top"] .tippy-arrow::before {
