@@ -205,6 +205,11 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
+    @computed get yAxisHideFractionalTicks(): boolean {
+        // all y axis points are integral, don't show fractional ticks in that case
+        return this.allValues.every(val => val.y % 1 === 0)
+    }
+
     @computed get yAxis(): AxisSpec {
         const { chart, yDomain, yScaleType, yTickFormat, isRelativeMode } = this
         return {
@@ -214,7 +219,8 @@ export class LineChartTransform extends ChartTransform {
             scaleType: yScaleType,
             scaleTypeOptions: isRelativeMode
                 ? ["linear"]
-                : chart.yAxis.scaleTypeOptions
+                : chart.yAxis.scaleTypeOptions,
+            hideFractionalTicks: this.yAxisHideFractionalTicks
         }
     }
 
