@@ -210,10 +210,10 @@ describe(rollingMap, () => {
     it("handles empty arrays", () => {
         expect(rollingMap([], () => undefined).length).toEqual(0)
     })
-    it("handles 1 element arrays", () => {
+    it("handles arrays with 1 element", () => {
         expect(rollingMap([1], (a, b) => a + b).length).toEqual(0)
     })
-    it("handles 1 element arrays", () => {
+    it("handles arrays with multiple elements", () => {
         expect(rollingMap([1, 2, 4, 8], (a, b) => b - a)).toEqual([1, 2, 4])
     })
 })
