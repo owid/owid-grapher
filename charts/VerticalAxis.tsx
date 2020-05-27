@@ -63,6 +63,10 @@ export class VerticalAxis {
     @computed get ticks(): number[] {
         return this.scale.getTickValues()
     }
+
+    @computed get tickFormattingOptions() {
+        return this.scale.getTickFormattingOptions()
+    }
 }
 
 @observer
@@ -73,7 +77,7 @@ export class VerticalAxisView extends React.Component<{
 }> {
     render() {
         const { bounds, axis, onScaleTypeChange } = this.props
-        const { scale, ticks, label } = axis
+        const { scale, ticks, label, tickFormattingOptions } = axis
         const textColor = "#666"
 
         return (
@@ -94,7 +98,7 @@ export class VerticalAxisView extends React.Component<{
                         textAnchor="end"
                         fontSize={axis.tickFontSize}
                     >
-                        {scale.tickFormat(tick)}
+                        {scale.tickFormat(tick, tickFormattingOptions)}
                     </text>
                 ))}
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
