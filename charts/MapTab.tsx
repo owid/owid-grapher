@@ -10,11 +10,11 @@ import {
     MapBracket,
     MapEntity
 } from "./ChoroplethMap"
-import { ColorLegend, ColorLegendView } from "./ColorLegend"
+import { ColorLegend } from "./ColorLegend"
+import { ColorLegendView } from "./ColorLegendView"
 import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
-import { ColorLegendBin } from "./ColorLegendBin"
 import { MapProjection } from "./MapProjection"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"

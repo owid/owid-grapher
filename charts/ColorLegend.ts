@@ -1,33 +1,9 @@
-import * as React from "react"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
+import { computed } from "mobx"
 
-import {
-    min,
-    max,
-    map,
-    each,
-    last,
-    sortBy,
-    flatten,
-    some,
-    find,
-    getRelativeMouse,
-    sum
-} from "./Util"
+import { min, max, map, each, last, flatten, some, find, sum } from "./Util"
 import { Bounds } from "./Bounds"
 import { TextWrap } from "./TextWrap"
 import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
-
-const FOCUS_BORDER_COLOR = "#111"
-
-interface NumericColorLegendProps {
-    width: number
-    fontSize: number
-    legendData: ColorLegendBin[]
-    focusBracket?: ColorLegendBin
-    equalSizeBins?: true
-}
 
 interface PositionedBin {
     x: number
@@ -44,7 +20,15 @@ interface NumericLabel {
     hidden: boolean
 }
 
-class NumericColorLegend {
+export interface NumericColorLegendProps {
+    width: number
+    fontSize: number
+    legendData: ColorLegendBin[]
+    focusBracket?: ColorLegendBin
+    equalSizeBins?: true
+}
+
+export class NumericColorLegend {
     props: NumericColorLegendProps
     constructor(props: NumericColorLegendProps) {
         this.props = props
@@ -228,135 +212,6 @@ class NumericColorLegend {
     }
 }
 
-@observer
-class NumericColorLegendView extends React.Component<{
-    legend: NumericColorLegend
-    x: number
-    y: number
-    onMouseOver: (d: ColorLegendBin) => void
-    onMouseLeave: () => void
-}> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
-    @computed get bounds(): Bounds {
-        const { props } = this
-        return new Bounds(
-            props.x,
-            props.y,
-            props.legend.width,
-            props.legend.height
-        )
-    }
-
-    @computed get legend(): NumericColorLegend {
-        return this.props.legend
-    }
-
-    @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
-        const { legend, props, base } = this
-        const { focusBracket } = legend
-        const mouse = getRelativeMouse(base.current, ev)
-        if (!this.bounds.contains(mouse))
-            if (focusBracket) return this.props.onMouseLeave()
-            else return
-
-        let newFocusBracket = null
-        legend.positionedBins.forEach(d => {
-            if (mouse.x >= props.x + d.x && mouse.x <= props.x + d.x + d.width)
-                newFocusBracket = d.bin
-        })
-
-        if (newFocusBracket) this.props.onMouseOver(newFocusBracket)
-    }
-
-    componentDidMount() {
-        document.documentElement.addEventListener("mousemove", this.onMouseMove)
-        document.documentElement.addEventListener("touchmove", this.onMouseMove)
-    }
-
-    componentWillUnmount() {
-        document.documentElement.removeEventListener(
-            "mousemove",
-            this.onMouseMove
-        )
-        document.documentElement.removeEventListener(
-            "touchmove",
-            this.onMouseMove
-        )
-    }
-
-    render() {
-        const { props, legend } = this
-        const {
-            rectHeight,
-            numericLabels,
-            height,
-            positionedBins,
-            focusBracket
-        } = legend
-        //Bounds.debug([this.bounds])
-
-        const borderColor = "#333"
-        const bottomY = props.y + height
-
-        return (
-            <g ref={this.base} className="numericColorLegend">
-                {numericLabels.map(label => (
-                    <line
-                        key={label.text}
-                        x1={props.x + label.bounds.x + label.bounds.width / 2}
-                        y1={bottomY - rectHeight}
-                        x2={props.x + label.bounds.x + label.bounds.width / 2}
-                        y2={bottomY + label.bounds.y + label.bounds.height}
-                        stroke={borderColor}
-                        strokeWidth={0.3}
-                    />
-                ))}
-                {sortBy(
-                    positionedBins.map((d, i) => {
-                        const isFocus =
-                            focusBracket && d.bin.equals(focusBracket)
-                        return (
-                            <rect
-                                key={i}
-                                x={props.x + d.x}
-                                y={bottomY - rectHeight}
-                                width={d.width}
-                                height={rectHeight}
-                                fill={d.bin.color}
-                                stroke={
-                                    isFocus ? FOCUS_BORDER_COLOR : borderColor
-                                }
-                                strokeWidth={isFocus ? 2 : 0.3}
-                            />
-                        )
-                    }),
-                    r => r.props["strokeWidth"]
-                )}
-                {numericLabels.map(label => (
-                    <text
-                        key={label.text}
-                        x={props.x + label.bounds.x}
-                        y={bottomY + label.bounds.y}
-                        fontSize={label.fontSize}
-                        dominantBaseline="hanging"
-                    >
-                        {label.text}
-                    </text>
-                ))}
-            </g>
-        )
-    }
-}
-
-interface CategoricalColorLegendProps {
-    maxWidth: number
-    scale: number
-    legendData: CategoricalBin[]
-    focusBracket?: CategoricalBin
-    fontSize: number
-}
-
 interface CategoricalMark {
     x: number
     y: number
@@ -374,7 +229,15 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-class CategoricalColorLegend {
+export interface CategoricalColorLegendProps {
+    maxWidth: number
+    scale: number
+    legendData: CategoricalBin[]
+    focusBracket?: CategoricalBin
+    fontSize: number
+}
+
+export class CategoricalColorLegend {
     props: CategoricalColorLegendProps
     constructor(props: CategoricalColorLegendProps) {
         this.props = props
@@ -456,63 +319,6 @@ class CategoricalColorLegend {
 
     @computed get height(): number {
         return max(this.marks.map(m => m.y + m.rectSize)) as number
-    }
-}
-
-interface CategoricalColorLegendViewProps {
-    legend: CategoricalColorLegend
-    x: number
-    y: number
-    onMouseOver: (d: CategoricalBin) => void
-    onMouseLeave: () => void
-}
-
-@observer
-class CategoricalColorLegendView extends React.Component<
-    CategoricalColorLegendViewProps
-> {
-    render() {
-        const { props } = this
-        const { marks } = props.legend
-        const { focusBracket } = props.legend.props
-
-        //Bounds.debug([this.bounds])
-        //Bounds.debug(marks.map(m => m.label.bounds))
-        return (
-            <g className="categoricalColorLegend">
-                {marks.map((m, i) => {
-                    const isFocus =
-                        focusBracket && m.bin.value === focusBracket.value
-                    const stroke = isFocus ? FOCUS_BORDER_COLOR : "#333"
-                    return (
-                        <g
-                            key={i}
-                            onMouseOver={() => this.props.onMouseOver(m.bin)}
-                            onMouseLeave={() => this.props.onMouseLeave()}
-                        >
-                            <rect
-                                x={(props.x as number) + m.x}
-                                y={(props.y as number) + m.y}
-                                width={m.rectSize}
-                                height={m.rectSize}
-                                fill={m.bin.color}
-                                stroke={stroke}
-                                strokeWidth={0.4}
-                            />
-                            ,
-                            <text
-                                x={(props.x as number) + m.label.bounds.x}
-                                y={(props.y as number) + m.label.bounds.y}
-                                fontSize={m.label.fontSize}
-                                dominantBaseline="hanging"
-                            >
-                                {m.label.text}
-                            </text>
-                        </g>
-                    )
-                })}
-            </g>
-        )
     }
 }
 
@@ -654,62 +460,5 @@ export class ColorLegend {
 
     @computed get bounds() {
         return this.props.bounds
-    }
-}
-
-export interface ColorLegendViewProps {
-    legend: ColorLegend
-    onMouseOver: (d: ColorLegendBin) => void
-    onMouseLeave: () => void
-}
-
-@observer
-export class ColorLegendView extends React.Component<ColorLegendViewProps> {
-    render() {
-        const { legend, onMouseOver, onMouseLeave } = this.props
-        const {
-            bounds,
-            mainLabel,
-            numericLegend,
-            categoryLegend,
-            categoryLegendHeight
-        } = legend
-
-        return (
-            <g className="mapLegend">
-                {numericLegend && (
-                    <NumericColorLegendView
-                        legend={numericLegend}
-                        x={bounds.centerX - numericLegend.width / 2}
-                        y={
-                            bounds.bottom -
-                            mainLabel.height -
-                            categoryLegendHeight -
-                            numericLegend.height -
-                            4
-                        }
-                        onMouseOver={onMouseOver}
-                        onMouseLeave={onMouseLeave}
-                    />
-                )}
-                {categoryLegend && (
-                    <CategoricalColorLegendView
-                        legend={categoryLegend}
-                        x={bounds.centerX - categoryLegend.width / 2}
-                        y={
-                            bounds.bottom -
-                            mainLabel.height -
-                            categoryLegendHeight
-                        }
-                        onMouseOver={onMouseOver}
-                        onMouseLeave={onMouseLeave}
-                    />
-                )}
-                {mainLabel.render(
-                    bounds.centerX - mainLabel.width / 2,
-                    bounds.bottom - mainLabel.height
-                )}
-            </g>
-        )
     }
 }
