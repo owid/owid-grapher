@@ -41,7 +41,6 @@ import { Indicator } from "charts/Indicator"
 import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
 import {
     covidCountryProfileSlug,
-    covidLandingSlug,
     covidCountryProfileRootPath
 } from "./covid/CovidConstants"
 import { getCountry, Country } from "utils/countries"
@@ -362,16 +361,6 @@ async function getCovidCountryProfilePost(
     ]
 }
 
-let covidLandingPost: wpdb.FullPost | undefined
-async function getCovidLandingPost() {
-    if (covidLandingPost) return covidLandingPost
-
-    const landingPagePostApi = await wpdb.getPostBySlug(covidLandingSlug)
-    covidLandingPost = await wpdb.getFullPost(landingPagePostApi)
-
-    return covidLandingPost
-}
-
 export async function renderCovidCountryProfile(
     country: Country,
     grapherExports?: GrapherExports
@@ -385,7 +374,7 @@ export async function renderCovidCountryProfile(
         country
     )
 
-    const landing = await getCovidLandingPost()
+    const landing = await wpdb.getCovidLandingPost()
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: Coronavirus Pandemic`,
@@ -415,4 +404,9 @@ export async function covidCountryProfileCountryPage(countrySlug: string) {
         // Voluntarily not dealing with grapherExports on devServer for simplicity
         return renderCovidCountryProfile(country)
     }
+}
+
+export function flushCache() {
+    cachedCovidCountryProfilePostFormatted = undefined
+    cachedCovidCountryProfilePostFormattingOptions = undefined
 }

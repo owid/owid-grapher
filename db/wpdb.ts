@@ -20,6 +20,7 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { JsonError } from "utils/server/serverUtil"
+import { covidLandingSlug } from "site/server/covid/CovidConstants"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -554,6 +555,16 @@ export async function getFullPost(
     }
 }
 
+let cachedCovidLandingPost: Promise<FullPost> | undefined
+export async function getCovidLandingPost() {
+    if (cachedCovidLandingPost) return cachedCovidLandingPost
+
+    const landingPagePostApi = await getPostBySlug(covidLandingSlug)
+    cachedCovidLandingPost = getFullPost(landingPagePostApi)
+
+    return cachedCovidLandingPost
+}
+
 let cachedPosts: Promise<FullPost[]> | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
     if (cachedPosts) return cachedPosts
@@ -621,5 +632,6 @@ export function flushCache() {
     cachedEntries = []
     cachedFeaturedImages = undefined
     cachedPosts = undefined
+    cachedCovidLandingPost = undefined
     cachedTables = undefined
 }
