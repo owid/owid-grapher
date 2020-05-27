@@ -129,7 +129,7 @@ export async function formatWordpressPost(
         if (formattingOptions.footnotes) {
             footnotes.push(footnote)
             const i = footnotes.length
-            const href = `#ref-${i}`
+            const href = `#note-${i}`
 
             return ReactDOMServer.renderToStaticMarkup(
                 <a id={`ref-${i}`} className="ref" href={href}>
