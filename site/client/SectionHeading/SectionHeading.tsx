@@ -37,7 +37,7 @@ export const SectionHeading = ({
                         </div>
                         <ul className="subheadings">
                             {subHeadings.map(subHeading => (
-                                <li>
+                                <li key={subHeading.slug}>
                                     <a href={`#${subHeading.slug}`}>
                                         <FontAwesomeIcon icon={faArrowDown} />
                                         {subHeading.html ? (
