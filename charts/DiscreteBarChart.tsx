@@ -188,7 +188,10 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get hasFloatingAddButton() {
-        return this.context.chartView.controls.hasFloatingAddButton
+        return (
+            this.context.chartView.controls.hasFloatingAddButton &&
+            this.chart.showAddEntityControls
+        )
     }
 
     // Leave space for extra bar at bottom to show "Add country" button
@@ -347,7 +350,7 @@ export class DiscreteBarChart extends React.Component<{
 
                     return result
                 })}
-                {this.chart.showAddEntityControls && (
+                {this.hasFloatingAddButton && (
                     <ControlsOverlay id="add-country">
                         <AddEntityButton
                             x={this.bounds.left + this.legendWidth}
