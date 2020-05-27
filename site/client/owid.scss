@@ -958,6 +958,7 @@ article.page .authors-byline .citation-note:hover {
         right: 0;
         height: $vertical-padding;
         z-index: 2;
+        pointer-events: none;
     }
 
     &:before {
