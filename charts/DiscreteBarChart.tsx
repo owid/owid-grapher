@@ -1,6 +1,6 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { sortBy, min, max } from "./Util"
+import { sortBy, min, max, first } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
@@ -53,6 +53,11 @@ export class DiscreteBarChart extends React.Component<{
         return this.chart.discreteBar.allData
     }
 
+    @computed get displayData() {
+        // Uses allData when the timeline handles are being dragged, and currentData otherwise
+        return this.chart.useTimelineDomains ? this.allData : this.currentData
+    }
+
     @computed get legendFontSize() {
         return 0.85 * this.props.chart.baseFontSize
     }
@@ -62,11 +67,8 @@ export class DiscreteBarChart extends React.Component<{
         const labels = this.currentData.map(d => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
-        // TypeScript assumes that indexes always return the array type, but it can also be undefined
-        // Issue: https://github.com/microsoft/TypeScript/issues/13778
-        const longestLabel = sortBy(labels, d => -d.length)[0] as
-            | string
-            | undefined
+
+        const longestLabel = first(sortBy(labels, d => -d.length))
         return Bounds.forText(longestLabel, { fontSize: this.legendFontSize })
             .width
     }
@@ -77,17 +79,17 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get hasPositive() {
-        return this.currentData.some(d => d.value >= 0)
+        return this.displayData.some(d => d.value >= 0)
     }
 
     @computed get hasNegative() {
-        return this.currentData.some(d => d.value < 0)
+        return this.displayData.some(d => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed get rightEndLabelWidth(): number {
         if (this.hasPositive) {
-            const positiveLabels = this.currentData
+            const positiveLabels = this.displayData
                 .filter(d => d.value >= 0)
                 .map(d => this.barValueFormat(d))
             const longestPositiveLabel = sortBy(
@@ -107,7 +109,7 @@ export class DiscreteBarChart extends React.Component<{
     // We pad this a little so it doesn't run directly up against the bar labels themselves
     @computed get leftEndLabelWidth(): number {
         if (this.hasNegative) {
-            const negativeLabels = this.currentData
+            const negativeLabels = this.displayData
                 .filter(d => d.value < 0)
                 .map(d => this.barValueFormat(d))
             const longestNegativeLabel = sortBy(
@@ -134,10 +136,7 @@ export class DiscreteBarChart extends React.Component<{
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = (this.chart.useTimelineDomains
-            ? this.allData
-            : this.currentData
-        ).map(d => d.value)
+        const allValues = this.displayData.map(d => d.value)
 
         const minStart = this.x0
         return [
