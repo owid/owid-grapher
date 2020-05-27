@@ -70,7 +70,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     <section>
                         <ul className="indicators">
                             {indicators.map(indicator => (
-                                <li>
+                                <li key={indicator.slug}>
                                     <div className="indicatorName">
                                         <a
                                             href={urljoin(

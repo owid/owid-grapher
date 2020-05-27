@@ -91,7 +91,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                     </div>
                 </div>
                 {props.charts.map(chart => (
-                    <div className="row">
+                    <div key={chart.slug} className="row">
                         <div className="chart-id">{chart.id}</div>
                         <div className="side-by-side">
                             <iframe
@@ -269,7 +269,7 @@ function PreviewTestPage(props: { charts: any[] }) {
             </head>
             <body>
                 {props.charts.map(chart => (
-                    <div className="row">
+                    <div key={chart.slug} className="row">
                         <a
                             href={`https://ourworldindata.org/grapher/${chart.slug}`}
                         >
@@ -347,7 +347,7 @@ function EmbedVariantsTestPage(props: EmbedTestPageProps) {
             </head>
             <body>
                 {props.charts.map(chart => (
-                    <div className="row">
+                    <div key={chart.slug} className="row">
                         <div className="chart-id">{chart.id}</div>
                         <div className="side-by-side">
                             <iframe
