@@ -24,6 +24,9 @@ export interface DiscreteBarDatum {
     formatValue: (value: number, options?: TickFormattingOptions) => string
 }
 
+const labelToTextPadding = 10
+const labelToBarPadding = 5
+
 @observer
 export class DiscreteBarChart extends React.Component<{
     bounds: Bounds
@@ -62,6 +65,10 @@ export class DiscreteBarChart extends React.Component<{
         return 0.85 * this.props.chart.baseFontSize
     }
 
+    @computed get legendFontWeight() {
+        return 700
+    }
+
     // Account for the width of the legend
     @computed get legendWidth() {
         const labels = this.currentData.map(d => d.label)
@@ -69,8 +76,10 @@ export class DiscreteBarChart extends React.Component<{
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
 
         const longestLabel = first(sortBy(labels, d => -d.length))
-        return Bounds.forText(longestLabel, { fontSize: this.legendFontSize })
-            .width
+        return Bounds.forText(longestLabel, {
+            fontSize: this.legendFontSize,
+            fontWeight: this.legendFontWeight
+        }).width
     }
 
     // Account for the width of the little value labels at the end of bars
@@ -119,7 +128,7 @@ export class DiscreteBarChart extends React.Component<{
             return (
                 Bounds.forText(longestNegativeLabel, {
                     fontSize: this.endLabelFontSize
-                }).width + 10
+                }).width + labelToTextPadding
             )
         } else {
             return 0
@@ -246,7 +255,6 @@ export class DiscreteBarChart extends React.Component<{
         const {
             currentData,
             bounds,
-            legendWidth,
             xAxis,
             xScale,
             innerBounds,
@@ -295,6 +303,14 @@ export class DiscreteBarChart extends React.Component<{
                     const barWidth = isNegative
                         ? xScale.place(this.x0) - barX
                         : xScale.place(d.value) - barX
+                    const valueLabel = barValueFormat(d)
+                    const labelX = isNegative
+                        ? barX -
+                          Bounds.forText(valueLabel, {
+                              fontSize: this.endLabelFontSize
+                          }).width -
+                          labelToTextPadding
+                        : barX - labelToBarPadding
 
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
@@ -309,10 +325,9 @@ export class DiscreteBarChart extends React.Component<{
                             <text
                                 x={0}
                                 y={0}
-                                transform={`translate(${bounds.left +
-                                    legendWidth -
-                                    5}, 0)`}
-                                fill="#666"
+                                fontWeight={this.legendFontWeight}
+                                transform={`translate(${labelX}, 0)`}
+                                fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
                                 fontSize={endLabelFontSize}
@@ -334,13 +349,15 @@ export class DiscreteBarChart extends React.Component<{
                                 x={0}
                                 y={0}
                                 transform={`translate(${xScale.place(d.value) +
-                                    (isNegative ? -5 : 5)}, 0)`}
+                                    (isNegative
+                                        ? -labelToBarPadding
+                                        : labelToBarPadding)}, 0)`}
                                 fill="#666"
                                 dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}
                                 fontSize={endLabelFontSize}
                             >
-                                {barValueFormat(d)}
+                                {valueLabel}
                             </text>
                         </g>
                     )
