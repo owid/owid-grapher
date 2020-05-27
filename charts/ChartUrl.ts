@@ -59,7 +59,7 @@ export class EntityUrlBuilder {
     static entitiesToQueryParams(entities: entityCodeOrName[]) {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entities.length === 1)
-            return encodeURIComponent(entities[0] + this.v2Delimiter)
+            return encodeURIComponent(this.v2Delimiter + entities[0])
 
         return encodeURIComponent(entities.join(this.v2Delimiter))
     }
