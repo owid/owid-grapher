@@ -63,10 +63,6 @@ export class ColorScale {
         return defaultTo(this.config.baseColorScheme, "BuGn")
     }
 
-    @computed get noDataColor() {
-        return defaultTo(this.config.customCategoryColors["No data"], "#eee")
-    }
-
     // Transforms
 
     @computed get sortedNumericValues(): number[] {
@@ -135,9 +131,14 @@ export class ColorScale {
 
     // Ensure there's always a custom color for "No data"
     @computed get customCategoryColors(): { [key: string]: Color } {
-        return extend({}, this.config.customCategoryColors, {
-            "No data": this.noDataColor
-        })
+        return {
+            "No data": "#eee", // default 'no data' color
+            ...this.config.customCategoryColors
+        }
+    }
+
+    @computed get noDataColor() {
+        return this.customCategoryColors["No data"]
     }
 
     @computed get baseColors() {
