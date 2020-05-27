@@ -23,9 +23,7 @@ export class MapConfigProps {
 
     constructor(json?: Partial<MapConfigProps & ColorScaleConfigProps>) {
         // TODO: migrate database config & only pass legend props
-        this.colorScale = new ColorScaleConfigProps(
-            json?.colorScale ? json.colorScale : json
-        )
+        this.colorScale = new ColorScaleConfigProps(json?.colorScale)
 
         if (json !== undefined) {
             for (const key in this) {
