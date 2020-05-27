@@ -14,7 +14,8 @@ export const CovidTimeSeriesValue = ({
     latest,
     tooltip,
     className,
-    formattedDate
+    formattedDate,
+    valueColor
 }: {
     value: string | undefined
     date?: Date
@@ -22,12 +23,13 @@ export const CovidTimeSeriesValue = ({
     tooltip?: JSX.Element | string
     className?: string
     formattedDate?: string
+    valueColor?: string
 }) => (
     <div className={classnames("time-series-value", className)}>
         {value !== undefined ? (
             <>
                 <span className="count">
-                    {value}{" "}
+                    <span style={{ color: valueColor }}>{value}</span>{" "}
                     {tooltip && (
                         <Tippy content={tooltip} maxWidth={250}>
                             <span className="help-icon">
