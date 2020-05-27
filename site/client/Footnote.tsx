@@ -22,17 +22,17 @@ export const Footnote = ({
             content={
                 htmlContent && (
                     <div>
-                        <div className="jump-to-ref">
-                            <a href={href}>
-                                Jump to footnote{" "}
-                                <FontAwesomeIcon icon={faAngleDoubleDown} />
-                            </a>
-                        </div>
                         <div
                             dangerouslySetInnerHTML={{
                                 __html: htmlContent
                             }}
                         />
+                        <div className="jump-to-ref">
+                            <a href={href}>
+                                Scroll to footnotes{" "}
+                                <FontAwesomeIcon icon={faAngleDoubleDown} />
+                            </a>
+                        </div>
                     </div>
                 )
             }
