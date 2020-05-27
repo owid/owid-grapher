@@ -936,7 +936,9 @@ article.page .authors-byline .citation-note:hover {
 
 .tippy-box[data-theme~="owid-footnote"] {
     font-size: 87.5%;
-    padding: 0;
+    // Have a 1px "border" between the scrollbars and the tippy arrow, so that the arrow looks
+    // connected to the box rather than the scrollbars (when they end up joining on the same side).
+    padding: 1px;
     cursor: default;
     position: relative;
 
