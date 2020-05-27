@@ -60,7 +60,7 @@ export class NumericBin {
         }
     }
 
-    equals(other: ColorLegendBin): boolean {
+    equals(other: ColorScaleBin): boolean {
         return (
             other instanceof NumericBin &&
             this.min === other.min &&
@@ -110,7 +110,7 @@ export class CategoricalBin {
         )
     }
 
-    equals(other: ColorLegendBin): boolean {
+    equals(other: ColorScaleBin): boolean {
         return (
             other instanceof CategoricalBin &&
             this.props.index === other.props.index
@@ -118,4 +118,4 @@ export class CategoricalBin {
     }
 }
 
-export type ColorLegendBin = NumericBin | CategoricalBin
+export type ColorScaleBin = NumericBin | CategoricalBin

@@ -762,7 +762,7 @@ export class CovidDataExplorer extends React.Component<{
         await this.chart.downloadData()
 
         chartProps.map.variableId = this.yVariableIndices[0]
-        chartProps.map.legend.baseColorScheme = this.mapColorScheme
+        chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
         chartProps.selectedData = this.selectedData
 
         this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -935,7 +935,7 @@ export class CovidDataExplorer extends React.Component<{
                 variableId: this.yVariableIndices[0],
                 timeTolerance: 7,
                 projection: "World",
-                legend: {
+                colorScale: {
                     baseColorScheme: this.mapColorScheme,
                     colorSchemeValues: [],
                     colorSchemeLabels: [],

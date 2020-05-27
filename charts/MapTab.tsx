@@ -24,7 +24,7 @@ import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { MapTooltip } from "./MapTooltip"
-import { ColorLegendTransform } from "./ColorLegendTransform"
+import { ColorScale } from "./ColorScale"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -37,7 +37,7 @@ interface MapWithLegendProps {
     years: number[]
     inputYear?: number
     formatYear: (year: number) => string
-    legend: ColorLegendTransform
+    colorScale: ColorScale
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
@@ -136,10 +136,10 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.props.bounds.padBottom(15)
             },
             get legendData() {
-                return that.props.legend.legendData
+                return that.props.colorScale.legendData
             },
             get equalSizeBins() {
-                return that.props.legend.config.equalSizeBins
+                return that.props.colorScale.config.equalSizeBins
             },
             get title() {
                 return ""
@@ -168,7 +168,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             .attr("data-fill", function() {
                 return (this as SVGPathElement).getAttribute("fill")
             })
-            .attr("fill", this.props.legend.noDataColor)
+            .attr("fill", this.props.colorScale.noDataColor)
             .transition()
             .duration(500)
             .ease(easeCubic)
@@ -283,9 +283,9 @@ export class MapTab extends React.Component<MapTabProps> {
                         choroplethData={map.data.choroplethData}
                         years={map.data.timelineYears}
                         inputYear={map.data.targetYear}
-                        legend={map.legend}
+                        colorScale={map.colorScale}
                         projection={map.projection}
-                        defaultFill={map.legend.noDataColor}
+                        defaultFill={map.colorScale.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
                     />

@@ -14,7 +14,7 @@ import {
     Toggle,
     Section
 } from "./Forms"
-import { EditorColorLegendSection } from "./EditorColorLegendSection"
+import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
@@ -159,7 +159,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                 {mapConfig.data.isReady && (
                     <React.Fragment>
                         <TimelineSection mapConfig={mapConfig} />
-                        <EditorColorLegendSection legend={mapConfig.legend} />
+                        <EditorColorScaleSection scale={mapConfig.colorScale} />
                         <TooltipSection mapConfig={mapConfig} />
                     </React.Fragment>
                 )}

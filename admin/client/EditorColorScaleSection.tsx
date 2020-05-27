@@ -6,12 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
-import { ColorLegendTransform } from "charts/ColorLegendTransform"
-import {
-    ColorLegendBin,
-    NumericBin,
-    CategoricalBin
-} from "charts/ColorLegendBin"
+import { ColorScale } from "charts/ColorScale"
+import { ColorScaleBin, NumericBin, CategoricalBin } from "charts/ColorScaleBin"
 import { clone, noop } from "charts/Util"
 import { Color } from "charts/Color"
 
@@ -29,14 +25,14 @@ import {
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 
 @observer
-export class EditorColorLegendSection extends React.Component<{
-    legend: ColorLegendTransform
+export class EditorColorScaleSection extends React.Component<{
+    scale: ColorScale
 }> {
     render() {
         return (
             <React.Fragment>
-                <ColorsSection legend={this.props.legend} />
-                <ColorLegendSection legend={this.props.legend} />
+                <ColorsSection scale={this.props.scale} />
+                <ColorLegendSection scale={this.props.scale} />
             </React.Fragment>
         )
     }
@@ -44,27 +40,27 @@ export class EditorColorLegendSection extends React.Component<{
 
 @observer
 class ColorLegendSection extends React.Component<{
-    legend: ColorLegendTransform
+    scale: ColorScale
 }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.legend.config.equalSizeBins = isEqual ? true : undefined
+        this.props.scale.config.equalSizeBins = isEqual ? true : undefined
     }
 
     render() {
-        const { legend } = this.props
+        const { scale } = this.props
         return (
             <Section name="Legend">
                 <Toggle
                     label="Disable visual scaling of legend bins"
-                    value={!!legend.config.equalSizeBins}
+                    value={!!scale.config.equalSizeBins}
                     onValue={this.onEqualSizeBins}
                 />
-                {legend.config.isManualBuckets && (
+                {scale.config.isManualBuckets && (
                     <EditableList>
-                        {legend.legendData.map((bin, index) => (
+                        {scale.legendData.map((bin, index) => (
                             <BinLabelView
                                 key={index}
-                                legend={legend}
+                                scale={scale}
                                 bin={bin}
                                 index={index}
                             />
@@ -78,30 +74,30 @@ class ColorLegendSection extends React.Component<{
 
 @observer
 class ColorsSection extends React.Component<{
-    legend: ColorLegendTransform
+    scale: ColorScale
 }> {
     disposers: IReactionDisposer[] = []
 
     componentDidMount() {
-        const { legend } = this.props
+        const { scale } = this.props
         this.disposers.push(
             // When the user disables automatic classification,
             // populate with automatic buckets.
             reaction(
-                () => legend.config.isManualBuckets,
+                () => scale.config.isManualBuckets,
                 () => {
-                    const { colorSchemeValues } = legend
+                    const { colorSchemeValues } = scale
                     if (
-                        legend.config.isManualBuckets &&
+                        scale.config.isManualBuckets &&
                         colorSchemeValues.length <= 1
                     ) {
-                        const { autoBinMaximums } = legend
+                        const { autoBinMaximums } = scale
                         for (let i = 0; i < autoBinMaximums.length; i++) {
                             if (i >= colorSchemeValues.length) {
                                 colorSchemeValues.push(autoBinMaximums[i])
                             }
                         }
-                        legend.config.colorSchemeValues = colorSchemeValues
+                        scale.config.colorSchemeValues = colorSchemeValues
                     }
                 }
             )
@@ -113,34 +109,31 @@ class ColorsSection extends React.Component<{
     }
 
     @action.bound onColorScheme(selected: ColorSchemeOption) {
-        const { legend } = this.props
+        const { scale } = this.props
 
         if (selected.value === "custom") {
-            legend.config.customColorsActive = true
+            scale.config.customColorsActive = true
         } else {
-            legend.config.baseColorScheme = selected.value
-            legend.config.customColorsActive = undefined
+            scale.config.baseColorScheme = selected.value
+            scale.config.customColorsActive = undefined
         }
     }
 
     @action.bound onInvert(invert: boolean) {
-        this.props.legend.config.colorSchemeInvert = invert || undefined
+        this.props.scale.config.colorSchemeInvert = invert || undefined
     }
 
     @action.bound onAutomatic(isAutomatic: boolean) {
-        this.props.legend.config.isManualBuckets = isAutomatic
-            ? undefined
-            : true
+        this.props.scale.config.isManualBuckets = isAutomatic ? undefined : true
     }
 
     @computed get currentColorScheme() {
-        const { legend } = this.props
-
-        return legend.isCustomColors ? "custom" : legend.baseColorScheme
+        const { scale } = this.props
+        return scale.isCustomColors ? "custom" : scale.baseColorScheme
     }
 
     render() {
-        const { legend } = this.props
+        const { scale } = this.props
 
         return (
             <Section name="Colors">
@@ -151,7 +144,7 @@ class ColorsSection extends React.Component<{
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={
-                                !!legend.config.colorSchemeInvert
+                                !!scale.config.colorSchemeInvert
                             }
                             additionalOptions={[
                                 {
@@ -167,31 +160,31 @@ class ColorsSection extends React.Component<{
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={legend.config.colorSchemeInvert || false}
+                        value={scale.config.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
                     <Toggle
                         label="Automatic classification"
-                        value={!legend.config.isManualBuckets}
+                        value={!scale.config.isManualBuckets}
                         onValue={this.onAutomatic}
                     />
                 </FieldsRow>
                 <BindAutoFloat
                     field="colorSchemeMinValue"
-                    store={legend.config}
+                    store={scale.config}
                     label="Minimum value"
-                    auto={legend.autoMinBinValue}
+                    auto={scale.autoMinBinValue}
                 />
-                {!legend.config.isManualBuckets && (
+                {!scale.config.isManualBuckets && (
                     <BindAutoFloat
                         label="Step size"
                         field="binStepSize"
-                        store={legend.config}
-                        auto={legend.binStepSizeDefault}
+                        store={scale.config}
+                        auto={scale.binStepSizeDefault}
                     />
                 )}
-                {legend.config.isManualBuckets && (
-                    <ColorSchemeEditor legend={legend} />
+                {scale.config.isManualBuckets && (
+                    <ColorSchemeEditor scale={scale} />
                 )}
             </Section>
         )
@@ -200,19 +193,19 @@ class ColorsSection extends React.Component<{
 
 @observer
 export class ColorSchemeEditor extends React.Component<{
-    legend: ColorLegendTransform
+    scale: ColorScale
 }> {
     render() {
-        const { legend } = this.props
+        const { scale } = this.props
         return (
             <div>
                 <EditableList className="ColorSchemeEditor">
-                    {legend.legendData.map((bin, index) => {
+                    {scale.legendData.map((bin, index) => {
                         if (bin instanceof NumericBin) {
                             return (
                                 <NumericBinView
                                     key={index}
-                                    legend={legend}
+                                    scale={scale}
                                     bin={bin}
                                     index={index}
                                 />
@@ -221,7 +214,7 @@ export class ColorSchemeEditor extends React.Component<{
                             return (
                                 <CategoricalBinView
                                     key={index}
-                                    legend={legend}
+                                    scale={scale}
                                     bin={bin}
                                 />
                             )
@@ -235,23 +228,23 @@ export class ColorSchemeEditor extends React.Component<{
 
 @observer
 class BinLabelView extends React.Component<{
-    legend: ColorLegendTransform
-    bin: ColorLegendBin
+    scale: ColorScale
+    bin: ColorScaleBin
     index: number
 }> {
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
-            const { legend, index } = this.props
-            while (legend.config.colorSchemeLabels.length < legend.numBins)
-                legend.config.colorSchemeLabels.push(undefined)
-            legend.config.colorSchemeLabels[index] = value
+            const { scale, index } = this.props
+            while (scale.config.colorSchemeLabels.length < scale.numBins)
+                scale.config.colorSchemeLabels.push(undefined)
+            scale.config.colorSchemeLabels[index] = value
         } else {
-            const { legend, bin } = this.props
+            const { scale, bin } = this.props
             const customCategoryLabels = clone(
-                legend.config.customCategoryLabels
+                scale.config.customCategoryLabels
             )
             customCategoryLabels[bin.value] = value
-            legend.config.customCategoryLabels = customCategoryLabels
+            scale.config.customCategoryLabels = customCategoryLabels
         }
     }
 
@@ -289,51 +282,51 @@ class BinLabelView extends React.Component<{
 
 @observer
 class NumericBinView extends React.Component<{
-    legend: ColorLegendTransform
+    scale: ColorScale
     bin: NumericBin
     index: number
 }> {
     @action.bound onColor(color: Color | undefined) {
-        const { legend, index } = this.props
+        const { scale, index } = this.props
 
-        if (!legend.isCustomColors) {
+        if (!scale.isCustomColors) {
             // Creating a new custom color scheme
-            legend.config.customCategoryColors = {}
-            legend.config.customNumericColors = []
-            legend.config.customColorsActive = true
+            scale.config.customCategoryColors = {}
+            scale.config.customNumericColors = []
+            scale.config.customColorsActive = true
         }
 
-        while (legend.config.customNumericColors.length < legend.numBins)
-            legend.config.customNumericColors.push(undefined)
+        while (scale.config.customNumericColors.length < scale.numBins)
+            scale.config.customNumericColors.push(undefined)
 
-        legend.config.customNumericColors[index] = color
+        scale.config.customNumericColors[index] = color
     }
 
     @action.bound onMaximumValue(value: number | undefined) {
-        const { legend, index } = this.props
-        if (value !== undefined) legend.config.colorSchemeValues[index] = value
+        const { scale, index } = this.props
+        if (value !== undefined) scale.config.colorSchemeValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
-        const { legend, index } = this.props
-        while (legend.config.colorSchemeLabels.length < legend.numBins)
-            legend.config.colorSchemeLabels.push(undefined)
-        legend.config.colorSchemeLabels[index] = value
+        const { scale, index } = this.props
+        while (scale.config.colorSchemeLabels.length < scale.numBins)
+            scale.config.colorSchemeLabels.push(undefined)
+        scale.config.colorSchemeLabels[index] = value
     }
 
     @action.bound onRemove() {
-        const { legend, index } = this.props
-        legend.config.colorSchemeValues.splice(index, 1)
-        legend.config.customNumericColors.splice(index, 1)
+        const { scale, index } = this.props
+        scale.config.colorSchemeValues.splice(index, 1)
+        scale.config.customNumericColors.splice(index, 1)
     }
 
     @action.bound onAddAfter() {
-        const { legend, index } = this.props
-        const { colorSchemeValues, customNumericColors } = legend.config
+        const { scale, index } = this.props
+        const { colorSchemeValues, customNumericColors } = scale.config
         const currentValue = colorSchemeValues[index]
 
         if (index === colorSchemeValues.length - 1)
-            colorSchemeValues.push(currentValue + legend.binStepSizeDefault)
+            colorSchemeValues.push(currentValue + scale.binStepSizeDefault)
         else {
             const newValue = (currentValue + colorSchemeValues[index + 1]) / 2
             colorSchemeValues.splice(index + 1, 0, newValue)
@@ -342,7 +335,7 @@ class NumericBinView extends React.Component<{
     }
 
     render() {
-        const { legend, bin } = this.props
+        const { scale, bin } = this.props
 
         return (
             <EditableListItem className="numeric">
@@ -367,7 +360,7 @@ class NumericBinView extends React.Component<{
                     />
                     {bin.props.isOpenRight && <span>and above</span>}
                 </div>
-                {legend.colorSchemeValues.length > 2 && (
+                {scale.colorSchemeValues.length > 2 && (
                     <div className="clickable" onClick={this.onRemove}>
                         <FontAwesomeIcon icon={faMinus} />
                     </div>
@@ -379,40 +372,40 @@ class NumericBinView extends React.Component<{
 
 @observer
 class CategoricalBinView extends React.Component<{
-    legend: ColorLegendTransform
+    scale: ColorScale
     bin: CategoricalBin
 }> {
     @action.bound onColor(color: Color | undefined) {
-        const { legend, bin } = this.props
-        if (!legend.isCustomColors) {
+        const { scale, bin } = this.props
+        if (!scale.isCustomColors) {
             // Creating a new custom color scheme
-            legend.config.customCategoryColors = {}
-            legend.config.customNumericColors = []
-            legend.config.customColorsActive = true
+            scale.config.customCategoryColors = {}
+            scale.config.customNumericColors = []
+            scale.config.customColorsActive = true
         }
 
-        const customCategoryColors = clone(legend.config.customCategoryColors)
+        const customCategoryColors = clone(scale.config.customCategoryColors)
         if (color === undefined) delete customCategoryColors[bin.value]
         else customCategoryColors[bin.value] = color
-        legend.config.customCategoryColors = customCategoryColors
+        scale.config.customCategoryColors = customCategoryColors
     }
 
     @action.bound onLabel(value: string) {
-        const { legend, bin } = this.props
-        const customCategoryLabels = clone(legend.config.customCategoryLabels)
+        const { scale, bin } = this.props
+        const customCategoryLabels = clone(scale.config.customCategoryLabels)
         customCategoryLabels[bin.value] = value
-        legend.config.customCategoryLabels = customCategoryLabels
+        scale.config.customCategoryLabels = customCategoryLabels
     }
 
     @action.bound onToggleHidden() {
-        const { legend, bin } = this.props
+        const { scale, bin } = this.props
 
         const customHiddenCategories = clone(
-            legend.config.customHiddenCategories
+            scale.config.customHiddenCategories
         )
         if (bin.isHidden) delete customHiddenCategories[bin.value]
         else customHiddenCategories[bin.value] = true
-        legend.config.customHiddenCategories = customHiddenCategories
+        scale.config.customHiddenCategories = customHiddenCategories
     }
 
     render() {

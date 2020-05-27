@@ -2,7 +2,7 @@ import { observable } from "mobx"
 
 import { Color } from "./Color"
 
-export class ColorLegendConfigProps {
+export class ColorScaleConfigProps {
     // Key for a colorbrewer scheme, may then be further customized
     @observable.ref baseColorScheme?: string
 
@@ -30,7 +30,7 @@ export class ColorLegendConfigProps {
     @observable.ref legendDescription?: string = undefined
     @observable.ref binStepSize?: number = undefined
 
-    constructor(json?: Partial<ColorLegendConfigProps>) {
+    constructor(json?: Partial<ColorScaleConfigProps>) {
         if (json !== undefined) {
             for (const key in this) {
                 if (key in json) {

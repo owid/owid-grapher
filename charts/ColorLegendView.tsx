@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 
 import { Bounds } from "./Bounds"
 import { getRelativeMouse, sortBy } from "./Util"
-import { ColorLegendBin, CategoricalBin } from "./ColorLegendBin"
+import { ColorScaleBin, CategoricalBin } from "./ColorScaleBin"
 import {
     ColorLegend,
     NumericColorLegend,
@@ -15,7 +15,7 @@ const FOCUS_BORDER_COLOR = "#111"
 
 export interface ColorLegendViewProps {
     legend: ColorLegend
-    onMouseOver: (d: ColorLegendBin) => void
+    onMouseOver: (d: ColorScaleBin) => void
     onMouseLeave: () => void
 }
 
@@ -75,7 +75,7 @@ class NumericColorLegendView extends React.Component<{
     legend: NumericColorLegend
     x: number
     y: number
-    onMouseOver: (d: ColorLegendBin) => void
+    onMouseOver: (d: ColorScaleBin) => void
     onMouseLeave: () => void
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()

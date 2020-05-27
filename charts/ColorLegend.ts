@@ -3,13 +3,13 @@ import { computed } from "mobx"
 import { min, max, map, each, last, flatten, some, find, sum } from "./Util"
 import { Bounds } from "./Bounds"
 import { TextWrap } from "./TextWrap"
-import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
+import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
 interface PositionedBin {
     x: number
     width: number
     margin: number
-    bin: ColorLegendBin
+    bin: ColorScaleBin
 }
 
 interface NumericLabel {
@@ -23,8 +23,8 @@ interface NumericLabel {
 export interface NumericColorLegendProps {
     width: number
     fontSize: number
-    legendData: ColorLegendBin[]
-    focusBracket?: ColorLegendBin
+    legendData: ColorScaleBin[]
+    focusBracket?: ColorScaleBin
     equalSizeBins?: true
 }
 
@@ -324,11 +324,11 @@ export class CategoricalColorLegend {
 
 export interface ColorLegendProps {
     fontSize: number
-    legendData: ColorLegendBin[]
+    legendData: ColorScaleBin[]
     title: string
     bounds: Bounds
     focusValue?: number | string
-    focusBracket?: ColorLegendBin
+    focusBracket?: ColorScaleBin
     equalSizeBins?: true
 }
 
@@ -338,7 +338,7 @@ export class ColorLegend {
         this.props = props
     }
 
-    @computed get numericLegendData(): ColorLegendBin[] {
+    @computed get numericLegendData(): ColorScaleBin[] {
         if (
             this.hasCategorical ||
             !some(
@@ -378,7 +378,7 @@ export class ColorLegend {
         })
     }
 
-    @computed get numericFocusBracket(): ColorLegendBin | undefined {
+    @computed get numericFocusBracket(): ColorScaleBin | undefined {
         const { focusBracket, focusValue } = this.props
         const { numericLegendData } = this
 

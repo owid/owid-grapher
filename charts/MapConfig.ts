@@ -5,8 +5,8 @@ import { ChartConfig } from "./ChartConfig"
 import { MapData } from "./MapData"
 import { defaultTo } from "./Util"
 import { TimeBound, TimeBoundValue } from "./TimeBounds"
-import { ColorLegendConfigProps } from "./ColorLegendConfig"
-import { ColorLegendTransform } from "./ColorLegendTransform"
+import { ColorScaleConfigProps } from "./ColorScaleConfig"
+import { ColorScale } from "./ColorScale"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -17,19 +17,19 @@ export class MapConfigProps {
     @observable.ref hideTimeline?: true
     @observable.ref projection: MapProjection = "World"
 
-    @observable legend: ColorLegendConfigProps
+    @observable colorScale: ColorScaleConfigProps
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable.ref tooltipUseCustomLabels?: true = undefined
 
-    constructor(json?: Partial<MapConfigProps & ColorLegendConfigProps>) {
+    constructor(json?: Partial<MapConfigProps & ColorScaleConfigProps>) {
         // TODO: migrate database config & only pass legend props
-        this.legend = new ColorLegendConfigProps(
-            json?.legend ? json.legend : json
+        this.colorScale = new ColorScaleConfigProps(
+            json?.colorScale ? json.colorScale : json
         )
 
         if (json !== undefined) {
             for (const key in this) {
-                // `legend` is passed separately
+                // `colorScale` is passed separately
                 if (key in json && key !== "legend") {
                     this[key] = (json as any)[key]
                 }
@@ -57,9 +57,9 @@ export class MapConfig {
         return defaultTo(this.props.projection, "World")
     }
 
-    @computed get legend(): ColorLegendTransform {
+    @computed get colorScale(): ColorScale {
         const that = this
-        return new ColorLegendTransform(this.props.legend, {
+        return new ColorScale(this.props.colorScale, {
             get minPossibleValue() {
                 return that.data.minPossibleValue
             },

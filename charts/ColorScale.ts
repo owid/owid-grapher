@@ -1,13 +1,13 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 
-import { ColorLegendConfigProps } from "./ColorLegendConfig"
+import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { defaultTo, isEmpty, extend, reverse, round, toArray } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
-import { ColorLegendBin, NumericBin, CategoricalBin } from "./ColorLegendBin"
+import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
-interface ColorLegendTransformProps {
+interface ColorScaleProps {
     minPossibleValue: number
     maxPossibleValue: number
     defaultColorScheme: ColorScheme
@@ -16,13 +16,10 @@ interface ColorLegendTransformProps {
     formatValue: (v: number) => string
 }
 
-export class ColorLegendTransform {
-    config: ColorLegendConfigProps
-    private props: Readonly<ColorLegendTransformProps>
-    constructor(
-        config: ColorLegendConfigProps,
-        props: ColorLegendTransformProps
-    ) {
+export class ColorScale {
+    config: ColorScaleConfigProps
+    private props: Readonly<ColorScaleProps>
+    constructor(config: ColorScaleConfigProps, props: ColorScaleProps) {
         this.config = config
         this.props = props
     }
@@ -199,7 +196,7 @@ export class ColorLegendTransform {
         )
     }
 
-    @computed get legendData(): ColorLegendBin[] {
+    @computed get legendData(): ColorScaleBin[] {
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },

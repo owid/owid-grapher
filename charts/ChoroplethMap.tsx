@@ -10,7 +10,7 @@ import { MapProjection } from "./MapProjection"
 import { MapTopology } from "./MapTopology"
 import { Vector2 } from "./Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
-import { ColorLegendBin } from "./ColorLegendBin"
+import { ColorScaleBin } from "./ColorScaleBin"
 
 export interface ChoroplethDatum {
     entity: string
@@ -25,7 +25,7 @@ export interface ChoroplethData {
 }
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
-export type MapBracket = ColorLegendBin
+export type MapBracket = ColorScaleBin
 
 export interface MapEntity {
     id: string | number | undefined
