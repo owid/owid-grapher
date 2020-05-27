@@ -427,7 +427,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get singleColorScale(): boolean {
-        return this.colorScheme?.singleColorScale
+        return this.colorScheme.singleColorScale
     }
 
     @computed get baseColors() {
