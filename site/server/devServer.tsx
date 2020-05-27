@@ -18,7 +18,8 @@ import {
     renderBlogByPageNum,
     renderExplorableIndicatorsJson,
     renderCovidPage,
-    renderCovidDataExplorerPage
+    renderCovidDataExplorerPage,
+    covidCountryProfileCountryPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
@@ -36,6 +37,7 @@ import { makeSitemap } from "./sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "./svgPngExport"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 
 const devServer = express()
 
@@ -104,6 +106,13 @@ devServer.get("/explore", async (req, res) => {
 devServer.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidDataExplorerPage())
 })
+
+devServer.get(
+    `/${covidCountryProfileRootPath}/:countrySlug`,
+    async (req, res) => {
+        res.send(await covidCountryProfileCountryPage(req.params.countrySlug))
+    }
+)
 
 // Route only available on the dev server
 devServer.get("/covid", async (req, res) => {

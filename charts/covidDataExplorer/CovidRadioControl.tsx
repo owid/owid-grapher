@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
+import classNames from "classnames"
 
 export interface RadioOption {
     label: string
@@ -13,6 +14,7 @@ export class CovidRadioControl extends React.Component<{
     name: string
     isCheckbox?: boolean
     options: RadioOption[]
+    comment?: string
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
         this.props.options[parseInt(ev.currentTarget.value)].onChange(
@@ -21,9 +23,14 @@ export class CovidRadioControl extends React.Component<{
     }
 
     render() {
-        const name = this.props.name
+        const { name, comment } = this.props
         return (
-            <div className="CovidDataExplorerControl">
+            <div
+                className={classNames(
+                    "CovidDataExplorerControl",
+                    this.props.name
+                )}
+            >
                 <div className="ControlHeader">{this.props.name}</div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
@@ -43,6 +50,9 @@ export class CovidRadioControl extends React.Component<{
                                 value={index}
                             />{" "}
                             {option.label}
+                            {comment && (
+                                <div className="comment">{comment}</div>
+                            )}
                         </label>
                     </div>
                 ))}

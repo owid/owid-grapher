@@ -14,7 +14,7 @@ $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
 html.iframe {
     #covidDataExplorerContainer {
         height: 100vh;
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
         // leave some padding for shadows
         padding: 3px;
@@ -22,15 +22,15 @@ html.iframe {
 
     .CovidDataExplorer {
         height: 100%;
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
-        min-width: auto;
+        min-width: auto !important;
         max-width: none;
         padding: 0;
     }
 
     .CovidDataExplorerFigure {
-        min-height: auto;
+        min-height: auto !important;
         max-height: none;
     }
 }
@@ -120,6 +120,9 @@ html.iframe {
     }
 
     .CovidDataExplorerControlBar {
+        $option-color: #7a899e;
+        $selected-option-color: #243d60;
+
         display: flex;
         justify-content: space-between;
         background: white;
@@ -131,8 +134,9 @@ html.iframe {
             display: flex;
             flex-direction: column;
             font-size: 13px;
-            color: #7a899e;
+            color: $option-color;
             line-height: 26px;
+            max-width: 22%;
 
             input {
                 margin-right: 5px;
@@ -144,7 +148,16 @@ html.iframe {
             }
 
             .SelectedOption {
-                color: #243d60;
+                color: $selected-option-color;
+            }
+
+            .comment {
+                line-height: normal;
+                color: $option-color;
+            }
+
+            &.count {
+                width: 15%;
             }
         }
     }
@@ -210,6 +223,14 @@ html.iframe {
 
         .CovidDataExplorerFigure {
             min-height: 480px;
+        }
+
+        .CovidDataExplorerControl {
+            max-width: unset;
+
+            &.count {
+                width: unset;
+            }
         }
     }
 }

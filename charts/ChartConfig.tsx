@@ -52,7 +52,7 @@ import { Color } from "./Color"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import { ChartDimension } from "./ChartDimension"
+import { ChartDimension, dimensionProperty } from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
@@ -98,8 +98,8 @@ export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
 
 export class DimensionSlot {
     chart: ChartConfig
-    property: string
-    constructor(chart: ChartConfig, property: string) {
+    property: dimensionProperty
+    constructor(chart: ChartConfig, property: dimensionProperty) {
         this.chart = chart
         this.property = property
     }
@@ -128,7 +128,7 @@ export class DimensionSlot {
     }
 
     @computed get isOptional(): boolean {
-        return this.allowMultiple || this.property === "filter"
+        return this.allowMultiple
     }
 
     @computed get dimensions(): ChartDimension[] {

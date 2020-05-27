@@ -15,6 +15,9 @@
 
 @import "~normalize.css";
 
+@import "~tippy.js/dist/tippy.css";
+@import "~tippy.js/themes/light.css";
+
 @import "css/variables.scss";
 @import "css/mixins.scss";
 
@@ -43,6 +46,8 @@
 @import "css/components/newsletter-subscription.scss";
 @import "css/components/lightbox.scss";
 @import "css/components/loading-indicator.scss";
+@import "css/components/sparkbars.scss";
+@import "css/components/map-tooltip.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
 @import "site/client/blocks/RelatedCharts/related-charts.scss";
@@ -696,7 +701,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
 /* Major sections e.g. I. Empirical View */
 .article-content .section-heading {
-    $v-padding-section-heading: 5rem;
     .wrapper {
         @include content-wrapper;
         @include lg-up {
@@ -705,7 +709,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         }
     }
     width: 100vw;
-    padding-bottom: $v-padding-section-heading;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    @include md-up {
+        padding-top: 4 * $vertical-spacing;
+        padding-bottom: 4 * $vertical-spacing;
+    }
     margin-left: calc(50% - 50vw);
     margin-bottom: 5rem;
     background-color: $primary-color-200;
@@ -717,7 +726,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     h2 {
         margin: 0;
-        padding-top: $v-padding-section-heading;
         font-family: $serif-font-stack;
         font-size: 2.5rem;
         @include md-up {
@@ -730,7 +738,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     .in-this-section {
         display: flex;
         align-items: center;
-        margin: 2 * $vertical-spacing 0 $vertical-spacing;
+        margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
+        @include md-up {
+            margin-top: 2 * $vertical-spacing;
+        }
         text-transform: uppercase;
         font-size: 0.9rem;
         font-weight: bold;

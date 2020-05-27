@@ -1,6 +1,6 @@
 import ReactDOM from "react-dom"
 import React from "react"
-import { getWindowQueryParams, decodeQueryParam } from "utils/client/url"
+import { getWindowQueryParams } from "utils/client/url"
 import { siteSearch, SiteSearchResults } from "site/siteSearch"
 import { SearchResults } from "site/client/SearchResults"
 import { observer } from "mobx-react"
@@ -8,7 +8,9 @@ import { action, observable, runInAction } from "mobx"
 
 @observer
 export class SearchPageMain extends React.Component {
-    @observable query: string = decodeQueryParam(getWindowQueryParams().q || "")
+    @observable query: string = decodeURIComponent(
+        (getWindowQueryParams().q || "").replace(/\+/g, " ")
+    )
     lastQuery?: string
 
     @observable.ref results?: SiteSearchResults

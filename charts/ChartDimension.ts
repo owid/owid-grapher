@@ -6,8 +6,10 @@ import { extend } from "./Util"
 import { Time } from "./TimeBounds"
 import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
 
+export declare type dimensionProperty = "y" | "x" | "size" | "color"
+
 export class ChartDimension {
-    @observable property!: string
+    @observable property!: dimensionProperty
     @observable variableId!: number
     @observable display: OwidVariableDisplaySettings = {
         name: undefined,

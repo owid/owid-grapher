@@ -19,6 +19,7 @@ import { defaultTo } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { JsonError } from "utils/server/serverUtil"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -347,6 +348,29 @@ export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
     return cachedEntries
 }
 
+export enum PageType {
+    Entry = "ENTRY",
+    SubEntry = "SUBENTRY",
+    Standard = "STANDARD"
+}
+
+export async function getPageType(post: FullPost): Promise<PageType> {
+    const entries = await getEntriesByCategory()
+    const isEntry = entries.some(category => {
+        return (
+            category.entries.some(entry => entry.slug === post.slug) ||
+            category.subcategories.some((subcategory: CategoryWithEntries) => {
+                return subcategory.entries.some(
+                    subCategoryEntry => subCategoryEntry.slug === post.slug
+                )
+            })
+        )
+    })
+
+    // TODO Add subEntry detection
+    return isEntry ? PageType.Entry : PageType.Standard
+}
+
 export async function getPermalinks() {
     return {
         // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
@@ -448,9 +472,11 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
             searchParams: [["slug", slug]]
         }
     )
-    const postArray = await response.json()
+    const postApiArray = await response.json()
+    if (!postApiArray.length)
+        throw new JsonError(`No page found by slug ${slug}`, 404)
 
-    return postArray
+    return postApiArray[0]
 }
 
 export async function getLatestPostRevision(id: number): Promise<any> {

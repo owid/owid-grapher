@@ -24,7 +24,8 @@ import {
     difference,
     pick,
     lastOfNonEmptyArray,
-    throttle
+    throttle,
+    capitalize
 } from "charts/Util"
 import {
     SmoothingOption,
@@ -59,33 +60,36 @@ import {
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
-import { covidDashboardSlug } from "./CovidConstants"
+import {
+    covidDashboardSlug,
+    coronaWordpressElementAttribute,
+    covidDataExplorerContainerId,
+    coronaDefaultView
+} from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+
+const abSeed = Math.random()
 
 @observer
 export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
     updated: string
-    bounds: Bounds
 }> {
-    static async bootstrap() {
-        const containerNode = document.getElementById(
-            "covidDataExplorerContainer"
-        )
-        const rect = containerNode!.getBoundingClientRect()
-        const containerBounds = Bounds.fromRect(rect)
-
+    static async bootstrap(
+        containerNode = document.getElementById(covidDataExplorerContainerId)
+    ) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
-        const startingParams = new CovidQueryParams(window.location.search)
+        const startingParams = new CovidQueryParams(
+            window.location.search || coronaDefaultView
+        )
         ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
                 updated={updated}
                 params={startingParams}
-                bounds={containerBounds}
             />,
             containerNode
         )
@@ -187,7 +191,7 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "Daily",
+                label: "Daily new",
                 checked: this.props.params.dailyFreq,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
@@ -209,7 +213,7 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get perCapitaPicker() {
         const options: InputOption[] = [
             {
-                label: "Per capita",
+                label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.props.params.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
@@ -242,6 +246,7 @@ export class CovidDataExplorer extends React.Component<{
                 name="timeline"
                 isCheckbox={true}
                 options={options}
+                comment={this.daysSinceOption.title}
             ></CovidInputControl>
         )
     }
@@ -346,13 +351,16 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
+        // A/B Test.
+        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
         const mobile = this.isMobile
         const customizeChartMobileButton = mobile ? (
             <a
                 className="btn btn-primary mobile-button"
                 onClick={this.mobileToggleCustomizePopup}
+                data-track-note="covid-customize-chart"
             >
-                <FontAwesomeIcon icon={faChartLine} /> Customize chart
+                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
             </a>
         ) : (
             undefined
@@ -444,27 +452,32 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get frequencyTitle() {
         if (this.props.params.dailyFreq && this.props.params.totalFreq)
-            return "Total and daily"
-        else if (this.props.params.dailyFreq) return "Daily"
+            return "Total and daily new"
+        else if (this.props.params.dailyFreq) return "Daily new"
         return "Total"
+    }
+
+    @computed get perCapitaDivisorIfEnabled() {
+        return this.props.params.perCapita ? this.perCapitaDivisor : 1
     }
 
     @computed get perCapitaDivisor() {
         const { params } = this.props
-        if (!params.perCapita) return 1
         if (params.testsMetric && !params.deathsMetric && !params.casesMetric)
             return 1000
         return 1000000
     }
 
-    @computed get perCapitaTitle() {
-        const options = {
+    @computed get perCapitaOptions() {
+        return {
             1: "",
-            1000: " per thousand people",
-            1000000: " per million people"
+            1000: "per thousand people",
+            1000000: "per million people"
         }
+    }
 
-        return options[this.perCapitaDivisor]
+    @computed get perCapitaTitle() {
+        return " " + this.perCapitaOptions[this.perCapitaDivisorIfEnabled]
     }
 
     @computed get metricTitle() {
@@ -497,7 +510,7 @@ export class CovidDataExplorer extends React.Component<{
             )
         if (this.props.params.casesMetric)
             parts.push(
-                `The number of confirmed cases is lower than the number of total cases. The main reason for this is limited testing.`
+                `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
             )
         return `${this.smoothingTitle}` + parts.join("\n")
     }
@@ -629,7 +642,7 @@ export class CovidDataExplorer extends React.Component<{
         ) => {
             const id = buildCovidVariableId(
                 columnName,
-                this.perCapitaDivisor,
+                this.perCapitaDivisorIfEnabled,
                 this.props.params.smoothing,
                 daily
             )
@@ -642,7 +655,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.countryMap,
                     this.props.data,
                     rowFn,
-                    this.perCapitaDivisor,
+                    this.perCapitaDivisorIfEnabled,
                     this.props.params.smoothing,
                     daily,
                     columnName === "tests" ? "" : " - " + this.lastUpdated
@@ -824,7 +837,11 @@ export class CovidDataExplorer extends React.Component<{
                 return {
                     property: "y",
                     variableId: id,
-                    display: {}
+                    display: {
+                        // Allow ± 1 day difference in data plotted on bar charts
+                        // This is what we use for charts on the Grapher too
+                        tolerance: 1
+                    }
                 }
             })
 
@@ -907,7 +924,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
-            queryStr: window.location.search
+            queryStr: window.location.search || coronaDefaultView
         }
     )
 }
