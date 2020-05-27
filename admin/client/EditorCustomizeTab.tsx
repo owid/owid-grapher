@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import { ChartConfig } from "charts/ChartConfig"
 import { ComparisonLineConfig } from "charts/ComparisonLine"
-import { AxisConfigProps } from "charts/AxisConfig"
 import {
     NumberField,
     Toggle,
@@ -323,10 +322,6 @@ export class EditorCustomizeTab extends React.Component<{
     }
     @computed get yAxis() {
         return this.props.editor.chart.yAxis.props
-    }
-
-    renderForAxis(axisName: string, axis: AxisConfigProps) {
-        return <div></div>
     }
 
     render() {

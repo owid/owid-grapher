@@ -420,10 +420,8 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             isSelected,
             isFocused,
             highlight,
-            color,
-            barScale
+            color
         } = this.props
-        const testsPerCase = option.latestTotalTestsPerCase
         return (
             <Flipped flipId={option.name} translate opacity>
                 <label

@@ -855,7 +855,7 @@ export class Pagination extends React.Component<{
                         <a className="page-link">Previous</a>
                     </li>
                     {_.range(1, numPages + 1).map(pageNum => (
-                        <li className="page-item">
+                        <li key={pageNum} className="page-item">
                             <a className="page-link">{pageNum}</a>
                         </li>
                     ))}

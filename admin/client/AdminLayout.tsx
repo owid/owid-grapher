@@ -10,27 +10,6 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
-class FixedOverlay extends React.Component<{ onDismiss: () => void }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
-
-    @action.bound onClick(e: React.MouseEvent<HTMLDivElement>) {
-        if (e.target === this.base.current) this.props.onDismiss()
-    }
-
-    render() {
-        return (
-            <div
-                ref={this.base}
-                className="FixedOverlay"
-                onClick={this.onClick}
-            >
-                {this.props.children}
-            </div>
-        )
-    }
-}
-
-@observer
 export class AdminLayout extends React.Component<{
     noSidebar?: boolean
     title?: string
