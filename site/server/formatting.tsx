@@ -132,9 +132,7 @@ export async function formatWordpressPost(
             const href = `#note-${i}`
 
             return ReactDOMServer.renderToStaticMarkup(
-                <a id={`ref-${i}`} className="ref" href={href}>
-                    <Footnote index={i} />
-                </a>
+                <Footnote index={i} href={href} />
             )
         } else {
             return ""
