@@ -28,7 +28,8 @@ import {
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
     renderCovidDataExplorerPage,
-    renderCovidCountryProfile
+    renderCovidCountryProfile,
+    flushCache as siteBakingFlushCache
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
@@ -611,5 +612,6 @@ export class SiteBaker {
 
     flushCache() {
         wpdb.flushCache()
+        siteBakingFlushCache()
     }
 }
