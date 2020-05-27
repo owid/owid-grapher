@@ -77,17 +77,17 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get hasPositive() {
-        return this.allData.some(d => d.value >= 0)
+        return this.currentData.some(d => d.value >= 0)
     }
 
     @computed get hasNegative() {
-        return this.allData.some(d => d.value < 0)
+        return this.currentData.some(d => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed get rightEndLabelWidth(): number {
         if (this.hasPositive) {
-            const positiveLabels = this.allData
+            const positiveLabels = this.currentData
                 .filter(d => d.value >= 0)
                 .map(d => this.barValueFormat(d))
             const longestPositiveLabel = sortBy(
@@ -107,7 +107,7 @@ export class DiscreteBarChart extends React.Component<{
     // We pad this a little so it doesn't run directly up against the bar labels themselves
     @computed get leftEndLabelWidth(): number {
         if (this.hasNegative) {
-            const negativeLabels = this.allData
+            const negativeLabels = this.currentData
                 .filter(d => d.value < 0)
                 .map(d => this.barValueFormat(d))
             const longestNegativeLabel = sortBy(
