@@ -1,5 +1,5 @@
 .map-tooltip {
-    $bar-color: #ab0000;
+    $bar-color: #555555;
     $highlight-color: $bar-color;
 
     .time-series-value {
@@ -36,10 +36,12 @@
     }
 
     .bar {
-        background-color: rgba(desaturate($bar-color, 40%), 0.25);
-        &.current {
-            background-color: $bar-color;
+        background-color: $bar-color;
+
+        &.normal {
+            opacity: 0.25;
         }
+
         &.highlighted {
             background-color: $highlight-color;
         }
@@ -70,7 +72,6 @@
             padding-top: 0.3em;
 
             .count {
-                color: black;
                 text-align: center;
             }
         }
