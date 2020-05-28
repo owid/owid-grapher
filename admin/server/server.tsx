@@ -21,11 +21,13 @@ async function main() {
             )
         }
 
-        app.listen(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, () => {
+        const server = app.listen(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, () => {
             console.log(
                 `owid-admin server started on ${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
             )
         })
+        // Increase server timeout for long-running uploads
+        server.timeout = 5 * 60 * 1000
     } catch (e) {
         log.error(e)
         process.exit(1)
