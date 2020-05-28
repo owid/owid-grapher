@@ -383,9 +383,7 @@ export class ChartConfig {
             ? (day: number, options?: TickFormattingOptions) =>
                   formatDay(
                       day,
-                      options && options.isFirstOrLastTick === false
-                          ? { format: "MMM D" }
-                          : undefined
+                      options?.isFirstOrLastTick ? {} : { format: "MMM D" }
                   )
             : formatYear
     }
