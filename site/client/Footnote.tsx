@@ -5,15 +5,17 @@ import ReactDOM from "react-dom"
 
 export const Footnote = ({
     index,
-    href,
     htmlContent,
     triggerTarget
 }: {
     index: number
-    href: string
     htmlContent?: string
     triggerTarget?: Element
 }) => {
+    const onEvent = (instance: any, event: Event) => {
+        if (event.type === "click") event.preventDefault()
+    }
+
     return (
         <Tippy
             appendTo={() => document.body}
@@ -33,16 +35,10 @@ export const Footnote = ({
             theme="owid-footnote"
             trigger="mouseenter focus click"
             triggerTarget={triggerTarget}
+            onTrigger={onEvent}
+            onUntrigger={onEvent}
         >
-            <a
-                id={`ref-${index}`}
-                className="ref"
-                href={href}
-                // Prevent scrolling to footnotes section
-                onClick={e => e.preventDefault()}
-            >
-                <sup>{index}</sup>
-            </a>
+            <sup>{index}</sup>
         </Tippy>
     )
 }
@@ -75,7 +71,6 @@ export function runFootnotes() {
         ReactDOM.hydrate(
             <Footnote
                 index={footnoteContent.index}
-                href={footnoteContent.href}
                 htmlContent={footnoteContent.htmlContent}
                 triggerTarget={f}
             />,
