@@ -97,7 +97,7 @@ export class AdminLayout extends React.Component<{
                         </li>
                     </ul>
                 </nav>
-                {isSidebar && <AdminSidebar onDismiss={this.onToggleSidebar} />}
+                {isSidebar && <AdminSidebar />}
                 {this.props.children}
             </div>
         )
