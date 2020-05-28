@@ -457,30 +457,29 @@ export class ColorBox extends React.Component<{
     color: string | undefined
     onColor: (color: string | undefined) => void
 }> {
-    @observable.ref isChoosingColor = false
-
-    @action.bound onClick() {
-        this.isChoosingColor = !this.isChoosingColor
-    }
-
     render() {
         const { color } = this.props
-        const { isChoosingColor } = this
 
         const style =
             color !== undefined ? { backgroundColor: color } : undefined
 
         return (
-            <div className="ColorBox" style={style} onClick={this.onClick}>
-                {color === undefined && <FontAwesomeIcon icon={faPaintBrush} />}
-                {isChoosingColor && (
-                    <Colorpicker
-                        color={color}
-                        onColor={this.props.onColor}
-                        onClose={() => (this.isChoosingColor = false)}
-                    />
-                )}
-            </div>
+            <Tippy
+                content={
+                    <Colorpicker color={color} onColor={this.props.onColor} />
+                }
+                placement="right"
+                interactive={true}
+                trigger="click"
+                appendTo={() => document.body}
+                className="colorpicker-tooltip"
+            >
+                <div className="ColorBox" style={style}>
+                    {color === undefined && (
+                        <FontAwesomeIcon icon={faPaintBrush} />
+                    )}
+                </div>
+            </Tippy>
         )
     }
 }
@@ -882,6 +881,7 @@ import { TagBadge, Tag } from "./TagBadge"
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.
 import ReactTags from "react-tag-autocomplete"
+import { Tippy } from "charts/Tippy"
 
 @observer
 class EditTags extends React.Component<{
