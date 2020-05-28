@@ -578,7 +578,7 @@ export class ChartConfig {
     }
 
     set tab(value) {
-        if (value === "chart" || value === "map") {
+        if (value === "chart" || value === "map" || value === "data") {
             this.props.tab = value
             this.props.overlay = undefined
         } else {

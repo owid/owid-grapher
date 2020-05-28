@@ -299,6 +299,8 @@ export class ChartView extends React.Component<ChartViewProps> {
                     chartView={this}
                 />
             )
+        else if (chart.primaryTab === "data")
+            return <DataTab key="dataTab" bounds={tabBounds} chart={chart} />
         else return undefined
     }
 
@@ -306,8 +308,6 @@ export class ChartView extends React.Component<ChartViewProps> {
         const { chart } = this
         if (chart.overlayTab === "sources")
             return <SourcesTab key="sourcesTab" bounds={bounds} chart={chart} />
-        else if (chart.overlayTab === "data")
-            return <DataTab key="dataTab" bounds={bounds} chart={chart} />
         else if (chart.overlayTab === "download")
             return (
                 <DownloadTab key="downloadTab" bounds={bounds} chart={chart} />
