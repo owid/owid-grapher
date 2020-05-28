@@ -31,8 +31,6 @@ import { asArray } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
 
 const allEntities = sortBy(countries, c => c.name)
-    // Remove 'Antarctica'
-    .filter(c => c.code !== "ATA")
     // Add 'World'
     .concat([
         {
