@@ -70,6 +70,7 @@ import {
     GlobalEntitySelection,
     subscribeChartToGlobalEntitySelection
 } from "site/client/global-entity/GlobalEntitySelection"
+import { TickFormattingOptions } from "./TickFormattingOptions"
 
 declare const App: any
 declare const window: any
@@ -374,6 +375,14 @@ export class ChartConfig {
     @computed get formatYearFunction() {
         const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
+    }
+
+    @computed get formatYearTickFunction() {
+        const yearIsDayVar = this.yearIsDayVar
+        return yearIsDayVar
+            ? (day: number, options?: TickFormattingOptions) =>
+                  formatDay(day, options?.isLastTick ? {} : { format: "MMM D" })
+            : formatYear
     }
 
     @computed get sortedUniqueEntitiesAcrossDimensions() {
