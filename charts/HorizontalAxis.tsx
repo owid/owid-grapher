@@ -158,7 +158,7 @@ export class HorizontalAxisView extends React.Component<{
                 {ticks.map((tick, i) => {
                     const label = scale.tickFormat(tick, {
                         ...tickFormattingOptions,
-                        isLastTick: i === ticks.length - 1
+                        isFirstOrLastTick: i === 0 || i === ticks.length - 1
                     })
                     const rawXPosition = scale.place(tick)
                     // Ensure the first label does not exceed the chart viewing area

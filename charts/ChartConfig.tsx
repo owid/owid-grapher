@@ -381,7 +381,12 @@ export class ChartConfig {
         const yearIsDayVar = this.yearIsDayVar
         return yearIsDayVar
             ? (day: number, options?: TickFormattingOptions) =>
-                  formatDay(day, options?.isLastTick ? {} : { format: "MMM D" })
+                  formatDay(
+                      day,
+                      options && options.isFirstOrLastTick === false
+                          ? { format: "MMM D" }
+                          : undefined
+                  )
             : formatYear
     }
 
