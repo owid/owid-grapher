@@ -66,7 +66,7 @@ Spain: Note that on May 25 the methodology has changed`
         }
     },
     tests: {
-        id: 1000001,
+        id: 142601,
         name: "tests",
         unit: "",
         description: "",
@@ -84,7 +84,7 @@ Bahrain: units unclear
 Bangladesh: samples tested
 Belarus: tests performed
 Belgium: units unclear
-Bolivia: people tested
+Bolivia: units unclear
 Brazil: tests performed
 Bulgaria: tests performed
 Canada: people tested
@@ -132,7 +132,7 @@ Norway: people tested
 Pakistan: tests performed
 Panama: units unclear
 Paraguay: samples tested
-Peru: units unclear
+Peru: people tested
 Philippines: people tested
 Poland: samples tested
 Portugal: samples tested
