@@ -2,7 +2,7 @@ import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
-import { defaultTo, isEmpty, extend, reverse, round, toArray } from "./Util"
+import { defaultTo, isEmpty, reverse, round, toArray } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
