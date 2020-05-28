@@ -78,9 +78,13 @@ export class HorizontalAxis {
 
     @computed get tickPlacements() {
         const { scale, labelOffset } = this
-        return this.baseTicks.map(tick => {
+        return this.baseTicks.map((tick, index) => {
             const bounds = Bounds.forText(
-                scale.tickFormat(tick, this.tickFormattingOptions),
+                scale.tickFormat(tick, {
+                    ...this.tickFormattingOptions,
+                    isFirstOrLastTick:
+                        index === 0 || index === this.baseTicks.length - 1
+                }),
                 {
                     fontSize: this.tickFontSize
                 }
