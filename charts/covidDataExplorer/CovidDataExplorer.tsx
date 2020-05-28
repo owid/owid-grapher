@@ -688,7 +688,8 @@ export class CovidDataExplorer extends React.Component<{
         if (!this.owidVariableSet.variables[id]) {
             this.owidVariableSet.variables[id] = daysSinceVariable(
                 this.owidVariableSet.variables[sourceId],
-                this.daysSinceOption.threshold
+                this.daysSinceOption.threshold,
+                this.daysSinceOption.title
             )
         }
         return id
