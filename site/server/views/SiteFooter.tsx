@@ -246,7 +246,7 @@ export const SiteFooter = ({
                 runSiteTools();
                 runCookieNotice();
                 runCovid();
-                runPageTooltips();
+                runFootnotes();
                 if (!document.querySelector(".ChartPage")) {
                     Grapher.embedAll();
                     runGlobalEntityControl(Grapher.globalEntitySelection);

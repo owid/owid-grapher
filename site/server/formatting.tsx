@@ -17,6 +17,7 @@ import {
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityControl"
+import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
 import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
 
@@ -129,7 +130,11 @@ export async function formatWordpressPost(
         if (formattingOptions.footnotes) {
             footnotes.push(footnote)
             const i = footnotes.length
-            return `<a id="ref-${i}" class="ref" href="#note-${i}"><sup>${i}</sup></a>`
+            const href = `#note-${i}`
+
+            return ReactDOMServer.renderToStaticMarkup(
+                <Footnote index={i} href={href} />
+            )
         } else {
             return ""
         }

@@ -934,11 +934,52 @@ article.page .authors-byline .citation-note:hover {
 
 /* Customizations to tooltip */
 
-.tippy-box[data-theme~="owid-reference"] {
-    font-size: 12px;
-    padding: 15px;
+.tippy-box[data-theme~="owid-footnote"] {
+    font-size: 87.5%;
+    // Have a 1px "border" between the scrollbars and the tippy arrow, so that the arrow looks
+    // connected to the box rather than the scrollbars (when they end up joining on the same side).
+    padding: 1px;
     cursor: default;
-    background-color: #000;
+    position: relative;
+
+    $background-color: #000;
+    $vertical-padding: 16px;
+    $horizontal-padding: 19px;
+    $border-radius: 4px;
+
+    border-radius: $border-radius;
+    background-color: $background-color;
+
+    // Show shadows at top and bottom edge of footnote to give users
+    // a hint that they can scroll.
+    &:before,
+    &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: $vertical-padding;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    &:before {
+        top: 0;
+        background: linear-gradient(
+            rgba($background-color, 1),
+            rgba($background-color, 0)
+        );
+        border-radius: $border-radius $border-radius 0 0;
+    }
+
+    &:after {
+        bottom: 0;
+        background: linear-gradient(
+            rgba($background-color, 0),
+            rgba($background-color, 1)
+        );
+        border-radius: 0 0 $border-radius $border-radius;
+    }
 
     &[data-placement^="top"] .tippy-arrow::before {
         border-top-color: #000;
@@ -953,15 +994,6 @@ article.page .authors-byline .citation-note:hover {
         border-right-color: #000;
     }
 
-    p {
-        margin: 0;
-        // Support for comments in references, and multiple references
-        // sharing the same footnote
-        & + p {
-            margin-top: 1em;
-        }
-    }
-
     a {
         background-image: none !important;
         padding-right: 0 !important;
@@ -972,30 +1004,23 @@ article.page .authors-byline .citation-note:hover {
             text-decoration: underline;
         }
     }
+
+    .tippy-content {
+        max-height: 40vh;
+        overflow: auto;
+        padding: $vertical-padding $horizontal-padding;
+
+        p {
+            margin: 0;
+            // Support for comments in references, and multiple references
+            // sharing the same footnote
+            & + p {
+                margin-top: 1em;
+            }
+        }
+    }
 }
 
-/* Weird hack to increase the mouseover area of the inline footnotes */
-a.ref sup::after {
-    overflow: hidden;
-    text-indent: -9999rem;
-    font-size: 0;
-    line-height: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    -moz-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    -o-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    content: "increase click area";
-    width: 100%;
-    height: 100%;
-    min-width: 1.875rem;
-    min-height: 1.875rem;
-    z-index: $zindex-footnote;
-    border-radius: 100%;
-}
 a.ref sup {
     padding-left: 0.5px;
 }
