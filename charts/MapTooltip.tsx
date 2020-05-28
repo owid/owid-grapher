@@ -82,12 +82,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         const chart = this.context.chart
         const renderPlot = chart.hasChartTab && chart.isLineChart
-        const darkestColor = chart.map.colorScale.isColorSchemeInverted
-            ? first(chart.map.colorScale.baseColors)
-            : last(chart.map.colorScale.baseColors)
+        const darkestColor = chart.map.data.colorScale.isColorSchemeInverted
+            ? first(chart.map.data.colorScale.baseColors)
+            : last(chart.map.data.colorScale.baseColors)
         const barColor =
-            chart.map.colorScale.singleColorScale &&
-            !chart.map.colorScale.isCustomColors
+            chart.map.data.colorScale.singleColorScale &&
+            !chart.map.data.colorScale.isCustomColors
                 ? darkestColor
                 : undefined
         return (

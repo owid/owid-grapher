@@ -55,33 +55,6 @@ export class MapConfig {
         return defaultTo(this.props.projection, "World")
     }
 
-    @computed get colorScale(): ColorScale {
-        const that = this
-        return new ColorScale({
-            get config() {
-                return this.props.colorScale
-            },
-            get minPossibleValue() {
-                return that.data.minPossibleValue
-            },
-            get maxPossibleValue() {
-                return that.data.maxPossibleValue
-            },
-            get defaultColorScheme() {
-                return that.data.defaultColorScheme
-            },
-            get sortedNumericValues() {
-                return that.data.sortedNumericValues
-            },
-            get categoricalValues() {
-                return that.data.categoricalValues
-            },
-            get formatValue() {
-                return that.data.formatValueShort
-            }
-        })
-    }
-
     @computed get data() {
         return new MapData(this.chart)
     }

@@ -283,9 +283,9 @@ export class MapTab extends React.Component<MapTabProps> {
                         choroplethData={map.data.choroplethData}
                         years={map.data.timelineYears}
                         inputYear={map.data.targetYear}
-                        colorScale={map.colorScale}
+                        colorScale={map.data.colorScale}
                         projection={map.projection}
-                        defaultFill={map.colorScale.noDataColor}
+                        defaultFill={map.data.colorScale.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
                     />

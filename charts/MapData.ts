@@ -22,6 +22,7 @@ import {
 import { Time, getClosestTime } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
 import { ColorScaleBin } from "./ColorScaleBin"
+import { ColorScale } from "./ColorScale"
 
 export interface MapDataValue {
     entity: string
@@ -192,8 +193,35 @@ export class MapData extends ChartTransform {
         return ColorSchemes[keys(ColorSchemes)[0]] as ColorScheme
     }
 
+    @computed get colorScale(): ColorScale {
+        const that = this
+        return new ColorScale({
+            get config() {
+                return that.map.props.colorScale
+            },
+            get minPossibleValue() {
+                return that.minPossibleValue
+            },
+            get maxPossibleValue() {
+                return that.maxPossibleValue
+            },
+            get defaultColorScheme() {
+                return that.defaultColorScheme
+            },
+            get sortedNumericValues() {
+                return that.sortedNumericValues
+            },
+            get categoricalValues() {
+                return that.categoricalValues
+            },
+            get formatValue() {
+                return that.formatValueShort
+            }
+        })
+    }
+
     @computed get legendData(): ColorScaleBin[] {
-        return this.map.colorScale.legendData
+        return this.map.data.colorScale.legendData
     }
 
     // Get values for the current year, without any color info yet
@@ -242,7 +270,7 @@ export class MapData extends ChartTransform {
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
         const customLabels = this.map.tooltipUseCustomLabels
-            ? this.map.colorScale.customBucketLabels
+            ? this.map.data.colorScale.customBucketLabels
             : []
         return formatValueLong
             ? (d: number | string) => {
