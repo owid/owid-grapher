@@ -8,7 +8,9 @@ export const AlertBanner = () => {
                     <strong>Coronavirus pandemic</strong>: daily updated
                     research and data.
                 </div>
-                <a href="/coronavirus">Read more</a>
+                <a href="/coronavirus" data-track-note="covid-banner-click">
+                    Read more
+                </a>
             </div>
         </div>
     )

@@ -22,6 +22,7 @@ export const SiteHeader = (overrideProps: Partial<SiteHeaderProps>) => {
     }
     return (
         <>
+            {!props.hideAlertBanner && <AlertBanner />}
             <header className="site-header">
                 <div className="wrapper site-navigation-bar">
                     <div className="site-logo">
@@ -147,7 +148,6 @@ export const SiteHeader = (overrideProps: Partial<SiteHeaderProps>) => {
                     </div>
                 </div>
             </header>
-            {!props.hideAlertBanner && <AlertBanner />}
         </>
     )
 }
