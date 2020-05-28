@@ -87,6 +87,7 @@ const allCountries: FilterableCountry[] = [
         name: "Antarctica",
         code: "ATA",
         slug: "antarctica",
+        filter: true,
         iso3166: "AQ"
     },
     {
