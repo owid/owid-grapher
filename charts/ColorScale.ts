@@ -7,7 +7,7 @@ import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
-interface ColorScaleProps {
+export interface ColorScaleProps {
     config: ColorScaleConfigProps
     minPossibleValue: number
     maxPossibleValue: number
@@ -44,7 +44,9 @@ export class ColorScale {
         )
     }
 
-    @computed get customHiddenCategories(): { [key: string]: true } {
+    @computed get customHiddenCategories(): {
+        [key: string]: true | undefined
+    } {
         return defaultTo(this.config.customHiddenCategories, {})
     }
 
@@ -58,7 +60,9 @@ export class ColorScale {
         return defaultTo(this.config.colorSchemeInvert, false)
     }
 
-    @computed get customCategoryLabels(): { [key: string]: string } {
+    @computed get customCategoryLabels(): {
+        [key: string]: string | undefined
+    } {
         return defaultTo(this.config.customCategoryLabels, {})
     }
 
@@ -269,7 +273,7 @@ export class ColorScale {
                     value: value,
                     color: color,
                     label: label,
-                    isHidden: customHiddenCategories[value]
+                    isHidden: !!customHiddenCategories[value]
                 })
             )
         }

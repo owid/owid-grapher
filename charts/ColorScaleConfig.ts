@@ -21,11 +21,17 @@ export class ColorScaleConfigProps {
     @observable customNumericColors: (Color | undefined)[] = []
 
     // e.g. { 'foo' => '#c00' }
-    @observable.ref customCategoryColors: { [key: string]: string } = {}
-    @observable.ref customCategoryLabels: { [key: string]: string } = {}
+    @observable.ref customCategoryColors: {
+        [key: string]: string | undefined
+    } = {}
+    @observable.ref customCategoryLabels: {
+        [key: string]: string | undefined
+    } = {}
 
     // Allow hiding categories from the legend
-    @observable.ref customHiddenCategories: { [key: string]: true } = {}
+    @observable.ref customHiddenCategories: {
+        [key: string]: true | undefined
+    } = {}
 
     @observable.ref legendDescription?: string = undefined
     @observable.ref binStepSize?: number = undefined
