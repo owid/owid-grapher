@@ -57,7 +57,10 @@ export class MapConfig {
 
     @computed get colorScale(): ColorScale {
         const that = this
-        return new ColorScale(this.props.colorScale, {
+        return new ColorScale({
+            get config() {
+                return this.props.colorScale
+            },
             get minPossibleValue() {
                 return that.data.minPossibleValue
             },

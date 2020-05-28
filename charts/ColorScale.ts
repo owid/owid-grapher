@@ -8,6 +8,7 @@ import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
 interface ColorScaleProps {
+    config: ColorScaleConfigProps
     minPossibleValue: number
     maxPossibleValue: number
     defaultColorScheme: ColorScheme
@@ -17,14 +18,16 @@ interface ColorScaleProps {
 }
 
 export class ColorScale {
-    config: ColorScaleConfigProps
     private props: Readonly<ColorScaleProps>
-    constructor(config: ColorScaleConfigProps, props: ColorScaleProps) {
-        this.config = config
+    constructor(props: ColorScaleProps) {
         this.props = props
     }
 
     // Config accessors
+
+    @computed get config() {
+        return this.props.config
+    }
 
     @computed get colorSchemeValues(): number[] {
         return defaultTo(this.config.colorSchemeValues, [])
