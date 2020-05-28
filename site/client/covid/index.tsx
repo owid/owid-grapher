@@ -12,6 +12,7 @@ import { SortOrder, CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "charts/Tippy"
+import { runCovidSearchCountry } from "./CovidSearchCountry"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 
@@ -241,4 +242,6 @@ export function runCovid() {
         )
         ReactDOM.render(<CovidTable {...propsByMeasure[measure]} />, element)
     })
+
+    runCovidSearchCountry()
 }
