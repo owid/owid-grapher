@@ -101,7 +101,8 @@ export const continentsVariable = (countryOptions: CountryOption[]) => {
 
 export const daysSinceVariable = (
     owidVariable: OwidVariable,
-    threshold: number
+    threshold: number,
+    title: string
 ) => {
     let currentCountry: number
     let firstCountryDate: number
@@ -124,8 +125,11 @@ export const daysSinceVariable = (
         })
         .filter(row => row)
 
+    const partial = variablePartials.days_since
+    partial.name = title
+
     const variable: Partial<OwidVariable> = {
-        ...variablePartials.days_since_five,
+        ...partial,
         years: dataWeNeed.map(row => row!.year),
         entities: dataWeNeed.map(row => row!.entity),
         values: dataWeNeed.map(row => row!.value)

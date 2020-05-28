@@ -69,7 +69,11 @@ describe(buildCovidVariable, () => {
         expect(totalCases3DaySmoothing.values[3]).toEqual(14.5)
     })
     it("correctly builds a days since variable", () => {
-        const variable = daysSinceVariable(totalCases3DaySmoothing, 1)
+        const variable = daysSinceVariable(
+            totalCases3DaySmoothing,
+            1,
+            "Some title"
+        )
         expect(variable.values[3]).toEqual(12)
     })
 })

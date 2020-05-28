@@ -178,9 +178,9 @@ Zimbabwe: tests performed`
                 "Data on COVID-19 testing. Comparisons between countries are compromised for several reasons.\n\nYou can download the full dataset, alongside detailed source descriptions here: https://github.com/owid/covid-19-data/tree/master/public/data/testing"
         }
     },
-    days_since_five: {
+    days_since: {
         id: 99999,
-        name: "Days since the total confirmed deaths of COVID-19 reached 5",
+        name: "",
         unit: "",
         description: "",
         coverage: "",
