@@ -4,4 +4,5 @@ export interface TickFormattingOptions {
     noTrailingZeroes?: boolean
     autoPrefix?: boolean
     showPlus?: boolean
+    isLastTick?: boolean
 }

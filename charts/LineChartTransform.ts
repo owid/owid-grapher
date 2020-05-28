@@ -153,7 +153,7 @@ export class LineChartTransform extends ChartTransform {
         const { xDomain } = this
         return {
             label: this.chart.xAxis.label || "",
-            tickFormat: this.chart.formatYearFunction,
+            tickFormat: this.chart.formatYearTickFunction,
             domain: xDomain,
             scaleType: "linear",
             scaleTypeOptions: ["linear"],
