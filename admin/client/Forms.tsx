@@ -857,34 +857,6 @@ export class LoadingBlocker extends React.Component<{}> {
     }
 }
 
-@observer
-export class Pagination extends React.Component<{
-    totalItems: number
-    perPage: number
-}> {
-    render() {
-        const { totalItems, perPage } = this.props
-        const numPages = Math.ceil(totalItems / perPage)
-        return (
-            <nav>
-                <ul className="pagination">
-                    <li className="page-item">
-                        <a className="page-link">Previous</a>
-                    </li>
-                    {_.range(1, numPages + 1).map(pageNum => (
-                        <li key={pageNum} className="page-item">
-                            <a className="page-link">{pageNum}</a>
-                        </li>
-                    ))}
-                    <li className="page-item">
-                        <a className="page-link">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        )
-    }
-}
-
 import { format } from "timeago.js"
 
 @observer
