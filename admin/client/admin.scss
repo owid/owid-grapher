@@ -510,6 +510,10 @@ body {
 .colorpicker-tooltip {
     .tippy-content {
         padding: 0;
+
+        .sketch-picker {
+            box-shadow: none !important;
+        }
     }
 }
 
