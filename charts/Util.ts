@@ -6,12 +6,10 @@ import orderBy from "lodash/orderBy"
 import each from "lodash/each"
 import keys from "lodash/keys"
 import entries from "lodash/entries"
-import trim from "lodash/trim"
 import isNumber from "lodash/isNumber"
 import filter from "lodash/filter"
 import extend from "lodash/extend"
 import isEmpty from "lodash/isEmpty"
-import isFinite from "lodash/isFinite"
 import some from "lodash/some"
 import every from "lodash/every"
 import min from "lodash/min"
@@ -38,8 +36,6 @@ import reverse from "lodash/reverse"
 import clone from "lodash/clone"
 import reduce from "lodash/reduce"
 import noop from "lodash/noop"
-import floor from "lodash/floor"
-import ceil from "lodash/ceil"
 import round from "lodash/round"
 import toArray from "lodash/toArray"
 import throttle from "lodash/throttle"
@@ -55,9 +51,7 @@ import pick from "lodash/pick"
 import omit from "lodash/omit"
 import difference from "lodash/difference"
 import sortedUniq from "lodash/sortedUniq"
-import zip from "lodash/zip"
 import partition from "lodash/partition"
-import range from "lodash/range"
 import findIndex from "lodash/findIndex"
 import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
@@ -72,12 +66,10 @@ export {
     each,
     keys,
     entries,
-    trim,
     isNumber,
     filter,
     extend,
     isEmpty,
-    isFinite,
     some,
     every,
     min,
@@ -104,8 +96,6 @@ export {
     clone,
     reduce,
     noop,
-    floor,
-    ceil,
     round,
     toArray,
     throttle,
@@ -121,9 +111,7 @@ export {
     omit,
     difference,
     sortedUniq,
-    zip,
     partition,
-    range,
     findIndex,
     fromPairs,
     mapKeys,
@@ -238,12 +226,6 @@ export function formatYear(year: number): string {
     }
 
     return year < 0 ? `${Math.abs(year)} BCE` : year.toString()
-}
-
-export function numberOnly(value: any): number | undefined {
-    const num = parseFloat(value)
-    if (isNaN(num)) return undefined
-    else return num
 }
 
 // Bind a "mobx component"
@@ -388,7 +370,7 @@ export function slugify(s: string) {
         .toLowerCase()
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-    return trim(s).replace(/ +/g, "-")
+    return s.trim().replace(/ +/g, "-")
 }
 
 // Unique number for this execution context
@@ -407,10 +389,6 @@ export function pointsToPath(points: Array<[number, number]>) {
         else path += `L${points[i][0]} ${points[i][1]}`
     }
     return path
-}
-
-export function defaultWith<T>(value: T | undefined, defaultFunc: () => T): T {
-    return value !== undefined ? value : defaultFunc()
 }
 
 export function keysOf<T, K extends keyof T>(obj: T): K[] {
