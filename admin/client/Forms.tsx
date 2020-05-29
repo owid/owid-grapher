@@ -466,7 +466,25 @@ export class ColorBox extends React.Component<{
         return (
             <Tippy
                 content={
-                    <Colorpicker color={color} onColor={this.props.onColor} />
+                    <>
+                        <Colorpicker
+                            color={color}
+                            onColor={this.props.onColor}
+                        />
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                flexDirection: "column"
+                            }}
+                        >
+                            <Button
+                                onClick={() => this.props.onColor(undefined)}
+                            >
+                                Reset to color scheme default
+                            </Button>
+                        </div>
+                    </>
                 }
                 placement="right"
                 interactive={true}
