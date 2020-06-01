@@ -13,6 +13,7 @@ export declare type countrySlug = string
 
 export declare type MetricKind = "deaths" | "cases" | "tests"
 
+// https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidRow {
     iso_code: string
     location: string
@@ -22,12 +23,30 @@ export interface ParsedCovidRow {
     total_deaths: number
     new_deaths: number
     total_cases_per_million: number
+    new_cases_per_million: number
+    total_deaths_per_million: number
     new_deaths_per_million: number
     total_tests: number
     new_tests: number
+    new_tests_smoothed: number
     total_tests_per_thousand: number
     new_tests_per_thousand: number
+    new_tests_smoothed_per_thousand: number
     tests_units: string
+    stringency_index: number
+    population: number
+    population_density: number
+    median_age: number
+    aged_65_older: number
+    aged_70_older: number
+    gdp_per_capita: number
+    extreme_poverty: number
+    cvd_death_rate: number
+    diabetes_prevalence: number
+    female_smokers: number
+    male_smokers: number
+    handwashing_facilities: number
+    hospital_beds_per_100k: number
 }
 
 export interface CountryOption {
