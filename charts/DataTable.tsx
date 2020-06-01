@@ -165,7 +165,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return some(this.displayDimensions, header => header.columns.length > 1)
     }
 
-    @action.bound onSort(dimIndex: DimensionIndex, columnKey?: ColumnKey) {
+    @action.bound updateSort(dimIndex: DimensionIndex, columnKey?: ColumnKey) {
         const { sort } = this.tableState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
@@ -209,49 +209,28 @@ export class DataTable extends React.Component<DataTableProps> {
         return (
             <React.Fragment>
                 <tr>
-                    <th
-                        key="entity"
-                        className={classnames({
-                            entity: true,
-                            sortable: true,
-                            sorted: sort.dimIndex === ENTITY_DIM_INDEX
-                        })}
+                    <EntityColumnHeader
+                        sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
+                        sortOrder={sort.order}
+                        updateSort={this.updateSort}
                         rowSpan={this.hasSubheaders ? 2 : 1}
-                        onClick={() => this.onSort(ENTITY_DIM_INDEX)}
-                    >
-                        {capitalize(this.entityType)}
-                        {this.renderSortIcon({
-                            type: "text",
-                            isActive: sort.dimIndex === ENTITY_DIM_INDEX
-                        })}
-                    </th>
+                        entityType={this.entityType}
+                    />
                     {this.displayDimensions.map((dim, dimIndex) => (
-                        <th
-                            key={dim.key}
-                            className={classnames({
-                                dimension: true,
-                                sortable: dim.sortable,
-                                sorted:
-                                    dim.sortable && sort.dimIndex === dimIndex
-                            })}
+                        <DimensionColumnHeader
+                            dim={dim}
+                            dimIndex={dimIndex}
+                            sortedCol={
+                                dim.sortable && sort.dimIndex === dimIndex
+                            }
+                            sortOrder={sort.order}
+                            updateSort={this.updateSort}
                             rowSpan={
                                 this.hasSubheaders && dim.columns.length < 2
                                     ? 2
                                     : 1
                             }
-                            colSpan={dim.columns.length}
-                            onClick={() =>
-                                dim.sortable &&
-                                this.onSort(dimIndex, SingleValueKey.single)
-                            }
-                        >
-                            <span className="name">{dim.name}</span>
-                            <span className="unit">{dim.unit}</span>
-                            {dim.sortable &&
-                                this.renderSortIcon({
-                                    isActive: sort.dimIndex === dimIndex
-                                })}
-                        </th>
+                        />
                     ))}
                 </tr>
                 {this.hasSubheaders && (
@@ -269,7 +248,10 @@ export class DataTable extends React.Component<DataTableProps> {
                                             sorted: isSorted
                                         })}
                                         onClick={() =>
-                                            this.onSort(dimIndex, column.key)
+                                            this.updateSort(
+                                                dimIndex,
+                                                column.key
+                                            )
                                         }
                                     >
                                         {column.targetYearMode ===
@@ -380,6 +362,122 @@ export class DataTable extends React.Component<DataTableProps> {
             </table>
         )
     }
+}
+
+function EntityColumnHeader(props: {
+    sortedCol: boolean
+    sortOrder: SortOrder
+    updateSort: (dimIndex: DimensionIndex, columnKey?: ColumnKey) => void
+    rowSpan: number
+    entityType: string
+}) {
+    const { updateSort, entityType } = props
+
+    return (
+        <ColumnHeader
+            {...props}
+            key="entity"
+            sortable={true}
+            onClick={() => updateSort(ENTITY_DIM_INDEX)}
+            headerText={capitalize(entityType)}
+            colType="entity"
+        />
+    )
+}
+
+function DimensionColumnHeader(props: {
+    dim: DataTableDimension
+    dimIndex: number
+    sortedCol: boolean
+    sortOrder: SortOrder
+    updateSort: (dimIndex: DimensionIndex, columnKey?: ColumnKey) => void
+    rowSpan: number
+}) {
+    const { dim, dimIndex, updateSort } = props
+
+    const headerText = [
+        <span className="name">{dim.name}</span>,
+        <span className="unit">{dim.unit}</span>
+    ]
+    return (
+        <ColumnHeader
+            {...props}
+            key={dim.key}
+            sortable={dim.sortable}
+            onClick={() =>
+                dim.sortable && updateSort(dimIndex, SingleValueKey.single)
+            }
+            colSpan={dim.columns.length}
+            headerText={headerText}
+            colType="dimension"
+        />
+    )
+}
+
+function ColumnHeader(props: {
+    key: string | number
+    sortable: boolean
+    sortedCol: boolean
+    sortOrder: SortOrder
+    onClick: () => void
+    rowSpan: number
+    colSpan?: number
+    headerText: React.ReactFragment
+    colType: "entity" | "dimension"
+}) {
+    const { key, sortable, sortedCol, colSpan, headerText, colType } = props
+    return (
+        <th
+            key={key}
+            className={classnames(colType, {
+                sortable: sortable,
+                sorted: sortedCol
+            })}
+            rowSpan={props.rowSpan}
+            colSpan={colSpan ?? 1}
+            onClick={props.onClick}
+        >
+            {headerText}
+            {sortable && (
+                <SortIcon
+                    type={colType === "entity" ? "text" : "numeric"}
+                    isActiveIcon={sortedCol}
+                    order={
+                        sortedCol ? props.sortOrder : DEFAULT_SORT_STATE.order
+                    }
+                />
+            )}
+        </th>
+    )
+}
+
+function SortIcon(props: {
+    type?: "text" | "numeric"
+    isActiveIcon?: boolean
+    order: SortOrder
+}) {
+    const type = defaultTo(props.type, "numeric")
+    const isActiveIcon = defaultTo(props.isActiveIcon, false)
+
+    let faIcon: IconDefinition
+
+    if (type === "text") {
+        faIcon =
+            props.order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
+    } else {
+        faIcon =
+            props.order === SortOrder.desc
+                ? faSortAmountUp
+                : faSortAmountDownAlt
+    }
+
+    return (
+        <span
+            className={classnames({ "sort-icon": true, active: isActiveIcon })}
+        >
+            <FontAwesomeIcon icon={faIcon} />
+        </span>
+    )
 }
 
 export const ClosestYearNotice = ({
