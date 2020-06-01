@@ -92,6 +92,9 @@ export class Header {
             },
             get text() {
                 return that.subtitleText
+            },
+            get lineHeight() {
+                return 1.2
             }
         })
     }
