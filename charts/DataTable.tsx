@@ -177,96 +177,85 @@ export class DataTable extends React.Component<DataTableProps> {
         this.storedState.sort.order = order
     }
 
-    renderSortIcon(params: { type?: "text" | "numeric"; isActive?: boolean }) {
-        const type = defaultTo(params.type, "numeric")
-        const isActive = defaultTo(params.isActive, false)
-
-        const order = isActive
-            ? this.tableState.sort.order
-            : DEFAULT_SORT_STATE.order
-
-        let faIcon: IconDefinition
-
-        if (type === "text") {
-            faIcon =
-                order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
-        } else {
-            faIcon =
-                order === SortOrder.desc ? faSortAmountUp : faSortAmountDownAlt
-        }
-
+    private get entityHeader() {
+        const { sort } = this.tableState
         return (
-            <span
-                className={classnames({ "sort-icon": true, active: isActive })}
-            >
-                <FontAwesomeIcon icon={faIcon} />
-            </span>
+            <ColumnHeader
+                key="entity"
+                sortable={true}
+                sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
+                sortOrder={sort.order}
+                onClick={() => this.updateSort(ENTITY_DIM_INDEX)}
+                rowSpan={this.hasSubheaders ? 2 : 1}
+                headerText={capitalize(this.entityType)}
+                colType="entity"
+                dataType="text"
+            />
+        )
+    }
+
+    private get dimensionHeaders() {
+        const { sort } = this.tableState
+        return this.displayDimensions.map((dim, dimIndex) => {
+            const dimensionHeaderText = [
+                <span className="name">{dim.name}</span>,
+                <span className="unit">{dim.unit}</span>
+            ]
+
+            const props = {
+                key: dim.key,
+                sortable: dim.sortable,
+                sortedCol: dim.sortable && sort.dimIndex === dimIndex,
+                sortOrder: sort.order,
+                onClick: () =>
+                    dim.sortable &&
+                    this.updateSort(dimIndex, SingleValueKey.single),
+                rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
+                colSpan: dim.columns.length,
+                headerText: dimensionHeaderText,
+                colType: "dimension" as const,
+                dataType: "numeric" as const
+            }
+
+            return <ColumnHeader {...props} />
+        })
+    }
+
+    private get dimensionSubheaders() {
+        const { sort } = this.tableState
+        return this.displayDimensions.map((dim, dimIndex) =>
+            dim.columns.map((column, index) => {
+                const headerText =
+                    column.targetYearMode === TargetYearMode.point
+                        ? dim.formatYear(column.targetYear!)
+                        : columnNameByType[column.key]
+                return (
+                    <ColumnHeader
+                        key={index}
+                        sortable={column.sortable}
+                        sortedCol={
+                            sort.dimIndex === dimIndex &&
+                            sort.columnKey === column.key
+                        }
+                        sortOrder={sort.order}
+                        onClick={() => this.updateSort(dimIndex, column.key)}
+                        headerText={headerText}
+                        colType="dimension"
+                        dataType="numeric"
+                    />
+                )
+            })
         )
     }
 
     renderHeaderRow() {
-        const { sort } = this.tableState
         return (
             <React.Fragment>
                 <tr>
-                    <EntityColumnHeader
-                        sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
-                        sortOrder={sort.order}
-                        updateSort={this.updateSort}
-                        rowSpan={this.hasSubheaders ? 2 : 1}
-                        entityType={this.entityType}
-                    />
-                    {this.displayDimensions.map((dim, dimIndex) => (
-                        <DimensionColumnHeader
-                            dim={dim}
-                            dimIndex={dimIndex}
-                            sortedCol={
-                                dim.sortable && sort.dimIndex === dimIndex
-                            }
-                            sortOrder={sort.order}
-                            updateSort={this.updateSort}
-                            rowSpan={
-                                this.hasSubheaders && dim.columns.length < 2
-                                    ? 2
-                                    : 1
-                            }
-                        />
-                    ))}
+                    {this.entityHeader}
+                    {this.dimensionHeaders}
                 </tr>
-                {this.hasSubheaders && (
-                    <tr>
-                        {this.displayDimensions.map((dim, dimIndex) =>
-                            dim.columns.map((column, index) => {
-                                const isSorted =
-                                    sort.dimIndex === dimIndex &&
-                                    sort.columnKey === column.key
-                                return (
-                                    <th
-                                        key={index}
-                                        className={classnames({
-                                            sortable: column.sortable,
-                                            sorted: isSorted
-                                        })}
-                                        onClick={() =>
-                                            this.updateSort(
-                                                dimIndex,
-                                                column.key
-                                            )
-                                        }
-                                    >
-                                        {column.targetYearMode ===
-                                        TargetYearMode.point
-                                            ? dim.formatYear(column.targetYear!)
-                                            : columnNameByType[column.key]}
-                                        {this.renderSortIcon({
-                                            isActive: isSorted
-                                        })}
-                                    </th>
-                                )
-                            })
-                        )}
-                    </tr>
-                )}
+                {this.hasSubheaders && <tr>{this.dimensionSubheaders}</tr>}
             </React.Fragment>
         )
     }
@@ -364,83 +353,34 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 }
 
-function EntityColumnHeader(props: {
-    sortedCol: boolean
-    sortOrder: SortOrder
-    updateSort: (dimIndex: DimensionIndex, columnKey?: ColumnKey) => void
-    rowSpan: number
-    entityType: string
-}) {
-    const { updateSort, entityType } = props
-
-    return (
-        <ColumnHeader
-            {...props}
-            key="entity"
-            sortable={true}
-            onClick={() => updateSort(ENTITY_DIM_INDEX)}
-            headerText={capitalize(entityType)}
-            colType="entity"
-        />
-    )
-}
-
-function DimensionColumnHeader(props: {
-    dim: DataTableDimension
-    dimIndex: number
-    sortedCol: boolean
-    sortOrder: SortOrder
-    updateSort: (dimIndex: DimensionIndex, columnKey?: ColumnKey) => void
-    rowSpan: number
-}) {
-    const { dim, dimIndex, updateSort } = props
-
-    const headerText = [
-        <span className="name">{dim.name}</span>,
-        <span className="unit">{dim.unit}</span>
-    ]
-    return (
-        <ColumnHeader
-            {...props}
-            key={dim.key}
-            sortable={dim.sortable}
-            onClick={() =>
-                dim.sortable && updateSort(dimIndex, SingleValueKey.single)
-            }
-            colSpan={dim.columns.length}
-            headerText={headerText}
-            colType="dimension"
-        />
-    )
-}
-
 function ColumnHeader(props: {
     key: string | number
     sortable: boolean
     sortedCol: boolean
     sortOrder: SortOrder
     onClick: () => void
-    rowSpan: number
+    rowSpan?: number
     colSpan?: number
     headerText: React.ReactFragment
     colType: "entity" | "dimension"
+    dataType: "text" | "numeric"
 }) {
-    const { key, sortable, sortedCol, colSpan, headerText, colType } = props
+    const { sortable, sortedCol } = props
     return (
         <th
-            key={key}
-            className={classnames(colType, {
+            key={props.key}
+            className={classnames(props.colType, {
                 sortable: sortable,
                 sorted: sortedCol
             })}
-            rowSpan={props.rowSpan}
-            colSpan={colSpan ?? 1}
+            rowSpan={props.rowSpan ?? 1}
+            colSpan={props.colSpan ?? 1}
             onClick={props.onClick}
         >
-            {headerText}
+            {props.headerText}
             {sortable && (
                 <SortIcon
-                    type={colType === "entity" ? "text" : "numeric"}
+                    type={props.dataType}
                     isActiveIcon={sortedCol}
                     order={
                         sortedCol ? props.sortOrder : DEFAULT_SORT_STATE.order
