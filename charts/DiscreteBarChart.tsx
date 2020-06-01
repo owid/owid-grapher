@@ -1,6 +1,6 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { sortBy, min, max } from "./Util"
+import { sortBy, min, max, first } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
@@ -23,6 +23,9 @@ export interface DiscreteBarDatum {
     color: Color
     formatValue: (value: number, options?: TickFormattingOptions) => string
 }
+
+const labelToTextPadding = 10
+const labelToBarPadding = 5
 
 @observer
 export class DiscreteBarChart extends React.Component<{
@@ -53,8 +56,23 @@ export class DiscreteBarChart extends React.Component<{
         return this.chart.discreteBar.allData
     }
 
-    @computed get legendFontSize() {
-        return 0.85 * this.props.chart.baseFontSize
+    @computed get displayData() {
+        // Uses allData when the timeline handles are being dragged, and currentData otherwise
+        return this.chart.useTimelineDomains ? this.allData : this.currentData
+    }
+
+    @computed get legendLabelStyle() {
+        return {
+            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontWeight: 700
+        }
+    }
+
+    @computed get valueLabelStyle() {
+        return {
+            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontWeight: 400
+        }
     }
 
     // Account for the width of the legend
@@ -62,41 +80,31 @@ export class DiscreteBarChart extends React.Component<{
         const labels = this.currentData.map(d => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
-        // TypeScript assumes that indexes always return the array type, but it can also be undefined
-        // Issue: https://github.com/microsoft/TypeScript/issues/13778
-        const longestLabel = sortBy(labels, d => -d.length)[0] as
-            | string
-            | undefined
-        return Bounds.forText(longestLabel, { fontSize: this.legendFontSize })
-            .width
-    }
 
-    // Account for the width of the little value labels at the end of bars
-    @computed get endLabelFontSize() {
-        return 0.75 * this.props.chart.baseFontSize
+        const longestLabel = first(sortBy(labels, d => -d.length))
+        return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
     @computed get hasPositive() {
-        return this.allData.some(d => d.value >= 0)
+        return this.displayData.some(d => d.value >= 0)
     }
 
     @computed get hasNegative() {
-        return this.allData.some(d => d.value < 0)
+        return this.displayData.some(d => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed get rightEndLabelWidth(): number {
         if (this.hasPositive) {
-            const positiveLabels = this.allData
+            const positiveLabels = this.displayData
                 .filter(d => d.value >= 0)
                 .map(d => this.barValueFormat(d))
             const longestPositiveLabel = sortBy(
                 positiveLabels,
                 l => -l.length
             )[0]
-            return Bounds.forText(longestPositiveLabel, {
-                fontSize: this.endLabelFontSize
-            }).width
+            return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
+                .width
         } else {
             return 0
         }
@@ -107,7 +115,7 @@ export class DiscreteBarChart extends React.Component<{
     // We pad this a little so it doesn't run directly up against the bar labels themselves
     @computed get leftEndLabelWidth(): number {
         if (this.hasNegative) {
-            const negativeLabels = this.allData
+            const negativeLabels = this.displayData
                 .filter(d => d.value < 0)
                 .map(d => this.barValueFormat(d))
             const longestNegativeLabel = sortBy(
@@ -115,9 +123,8 @@ export class DiscreteBarChart extends React.Component<{
                 l => -l.length
             )[0]
             return (
-                Bounds.forText(longestNegativeLabel, {
-                    fontSize: this.endLabelFontSize
-                }).width + 10
+                Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
+                    .width + labelToTextPadding
             )
         } else {
             return 0
@@ -134,10 +141,7 @@ export class DiscreteBarChart extends React.Component<{
 
     // Now we can work out the main x axis scale
     @computed get xDomainDefault(): [number, number] {
-        const allValues = (this.chart.useTimelineDomains
-            ? this.allData
-            : this.currentData
-        ).map(d => d.value)
+        const allValues = this.displayData.map(d => d.value)
 
         const minStart = this.x0
         return [
@@ -247,13 +251,13 @@ export class DiscreteBarChart extends React.Component<{
         const {
             currentData,
             bounds,
-            legendWidth,
             xAxis,
             xScale,
             innerBounds,
             barHeight,
             barSpacing,
-            endLabelFontSize,
+            legendLabelStyle,
+            valueLabelStyle,
             barValueFormat
         } = this
 
@@ -296,6 +300,13 @@ export class DiscreteBarChart extends React.Component<{
                     const barWidth = isNegative
                         ? xScale.place(this.x0) - barX
                         : xScale.place(d.value) - barX
+                    const valueLabel = barValueFormat(d)
+                    const labelX = isNegative
+                        ? barX -
+                          Bounds.forText(valueLabel, this.valueLabelStyle)
+                              .width -
+                          labelToTextPadding
+                        : barX - labelToBarPadding
 
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
@@ -310,13 +321,11 @@ export class DiscreteBarChart extends React.Component<{
                             <text
                                 x={0}
                                 y={0}
-                                transform={`translate(${bounds.left +
-                                    legendWidth -
-                                    5}, 0)`}
-                                fill="#666"
+                                transform={`translate(${labelX}, 0)`}
+                                fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
-                                fontSize={endLabelFontSize}
+                                {...this.legendLabelStyle}
                             >
                                 {d.label}
                             </text>
@@ -335,13 +344,15 @@ export class DiscreteBarChart extends React.Component<{
                                 x={0}
                                 y={0}
                                 transform={`translate(${xScale.place(d.value) +
-                                    (isNegative ? -5 : 5)}, 0)`}
+                                    (isNegative
+                                        ? -labelToBarPadding
+                                        : labelToBarPadding)}, 0)`}
                                 fill="#666"
                                 dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}
-                                fontSize={endLabelFontSize}
+                                {...this.valueLabelStyle}
                             >
-                                {barValueFormat(d)}
+                                {valueLabel}
                             </text>
                         </g>
                     )
