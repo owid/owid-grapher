@@ -61,12 +61,18 @@ export class DiscreteBarChart extends React.Component<{
         return this.chart.useTimelineDomains ? this.allData : this.currentData
     }
 
-    @computed get legendFontSize() {
-        return 0.85 * this.props.chart.baseFontSize
+    @computed get legendLabelStyle() {
+        return {
+            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontWeight: 700
+        }
     }
 
-    @computed get legendFontWeight() {
-        return 700
+    @computed get valueLabelStyle() {
+        return {
+            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontWeight: 400
+        }
     }
 
     // Account for the width of the legend
@@ -76,15 +82,7 @@ export class DiscreteBarChart extends React.Component<{
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
 
         const longestLabel = first(sortBy(labels, d => -d.length))
-        return Bounds.forText(longestLabel, {
-            fontSize: this.legendFontSize,
-            fontWeight: this.legendFontWeight
-        }).width
-    }
-
-    // Account for the width of the little value labels at the end of bars
-    @computed get endLabelFontSize() {
-        return 0.75 * this.props.chart.baseFontSize
+        return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
     @computed get hasPositive() {
@@ -105,9 +103,8 @@ export class DiscreteBarChart extends React.Component<{
                 positiveLabels,
                 l => -l.length
             )[0]
-            return Bounds.forText(longestPositiveLabel, {
-                fontSize: this.endLabelFontSize
-            }).width
+            return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
+                .width
         } else {
             return 0
         }
@@ -126,9 +123,8 @@ export class DiscreteBarChart extends React.Component<{
                 l => -l.length
             )[0]
             return (
-                Bounds.forText(longestNegativeLabel, {
-                    fontSize: this.endLabelFontSize
-                }).width + labelToTextPadding
+                Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
+                    .width + labelToTextPadding
             )
         } else {
             return 0
@@ -260,7 +256,8 @@ export class DiscreteBarChart extends React.Component<{
             innerBounds,
             barHeight,
             barSpacing,
-            endLabelFontSize,
+            legendLabelStyle,
+            valueLabelStyle,
             barValueFormat
         } = this
 
@@ -306,9 +303,8 @@ export class DiscreteBarChart extends React.Component<{
                     const valueLabel = barValueFormat(d)
                     const labelX = isNegative
                         ? barX -
-                          Bounds.forText(valueLabel, {
-                              fontSize: this.endLabelFontSize
-                          }).width -
+                          Bounds.forText(valueLabel, this.valueLabelStyle)
+                              .width -
                           labelToTextPadding
                         : barX - labelToBarPadding
 
@@ -325,12 +321,11 @@ export class DiscreteBarChart extends React.Component<{
                             <text
                                 x={0}
                                 y={0}
-                                fontWeight={this.legendFontWeight}
                                 transform={`translate(${labelX}, 0)`}
                                 fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
-                                fontSize={endLabelFontSize}
+                                {...this.legendLabelStyle}
                             >
                                 {d.label}
                             </text>
@@ -355,7 +350,7 @@ export class DiscreteBarChart extends React.Component<{
                                 fill="#666"
                                 dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}
-                                fontSize={endLabelFontSize}
+                                {...this.valueLabelStyle}
                             >
                                 {valueLabel}
                             </text>
