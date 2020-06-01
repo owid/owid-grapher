@@ -9,7 +9,7 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed, toJS } from "mobx"
 
-import { map, extend, rollingMap, min } from "./Util"
+import { extend, rollingMap, min } from "./Util"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 
 export type ScaleType = "linear" | "log"

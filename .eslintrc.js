@@ -28,10 +28,7 @@ module.exports = {
         "@typescript-eslint/no-namespace": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-this-alias": "off",
-        "@typescript-eslint/no-unused-vars": [
-            "warn",
-            { argsIgnorePattern: "^(res|req)$" }
-        ],
+        "@typescript-eslint/no-unused-vars": "warn",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/restrict-plus-operands": "warn",
@@ -39,7 +36,7 @@ module.exports = {
         "no-var": "off",
         "prefer-const": ["warn", { destructuring: "all" }],
         "react/display-name": "off",
-        "react/jsx-key": "off",
+        "react/jsx-key": "warn",
         "react/jsx-no-target-blank": "off",
         "react/no-render-return-value": "off",
         "react/no-unescaped-entities": "off",

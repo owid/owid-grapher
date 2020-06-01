@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
+
 import * as express from "express"
 import { Router } from "express"
 import * as _ from "lodash"

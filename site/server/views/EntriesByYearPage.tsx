@@ -127,7 +127,7 @@ export const EntriesForYearPage = (props: {
                             <div className="offset-content">
                                 <div className="content">
                                     {years.map(year => (
-                                        <section>
+                                        <section key={year}>
                                             <h2>{year}</h2>
                                             <ul>
                                                 {entriesByYear[year].map(

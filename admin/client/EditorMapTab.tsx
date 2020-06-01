@@ -490,6 +490,7 @@ class MapLegendSection extends React.Component<{ mapConfig: MapConfig }> {
                     <EditableList>
                         {mapConfig.data.legendData.map((bin, index) => (
                             <BinLabelView
+                                key={index}
                                 mapConfig={mapConfig}
                                 bin={bin}
                                 index={index}

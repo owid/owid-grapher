@@ -5,17 +5,11 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-import { computed, when, runInAction, toJS, observable } from "mobx"
+import { computed, when, runInAction, observable } from "mobx"
 
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
-import {
-    includes,
-    uniq,
-    defaultTo,
-    formatDay,
-    diffDateISOStringInDays
-} from "./Util"
+import { includes, defaultTo, formatDay, diffDateISOStringInDays } from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
 import { ChartConfig } from "./ChartConfig"
 import {

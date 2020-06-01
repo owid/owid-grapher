@@ -62,7 +62,6 @@ import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
     covidDashboardSlug,
-    coronaWordpressElementAttribute,
     covidDataExplorerContainerId,
     coronaDefaultView
 } from "./CovidConstants"
