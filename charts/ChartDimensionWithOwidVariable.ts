@@ -5,8 +5,6 @@ import {
     formatValue,
     some,
     isString,
-    sortBy,
-    isNumber,
     formatDay,
     formatYear,
     last
@@ -157,22 +155,6 @@ export class ChartDimensionWithOwidVariable {
                 v => (v as number) * unitConversionFactor
             )
         else return this.variable.values
-    }
-
-    @computed get numericValues(): number[] {
-        return sortBy(this.values.filter(v => isNumber(v))) as number[]
-    }
-
-    @computed get hasNumericValues(): boolean {
-        return this.numericValues.length > 0
-    }
-
-    @computed get minValue(): number {
-        return this.variable.minValue * this.unitConversionFactor
-    }
-
-    @computed get maxValue(): number {
-        return this.variable.maxValue * this.unitConversionFactor
     }
 
     get yearsUniq() {
