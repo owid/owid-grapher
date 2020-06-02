@@ -197,10 +197,12 @@ export class DataTable extends React.Component<DataTableProps> {
     private get dimensionHeaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
-            const dimensionHeaderText = [
-                <span className="name">{dim.name}</span>,
-                <span className="unit">{dim.unit}</span>
-            ]
+            const dimensionHeaderText = (
+                <React.Fragment>
+                    <span className="name">{dim.name}</span>,
+                    <span className="unit">{dim.unit}</span>
+                </React.Fragment>
+            )
 
             const props = {
                 key: dim.key,
