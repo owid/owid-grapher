@@ -408,7 +408,7 @@ class FilterSmallCountriesToggle extends React.Component<{
     }
 
     render() {
-        const label = "Hide small countries"
+        const label = "Hide countries < 1 million people"
         return (
             <label className="clickable">
                 <input
