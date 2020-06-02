@@ -89,9 +89,15 @@ export class ScatterPlot extends React.Component<{
                 return that.chart.baseFontSize
             },
             get colorables() {
-                return that.transform.colors.colorables.filter(c =>
-                    that.colorsInUse.includes(c.color)
-                )
+                return that.transform.colorScale.legendData
+                    .filter(bin => that.colorsInUse.includes(bin.color))
+                    .map(bin => {
+                        return {
+                            key: bin.label ?? "",
+                            label: bin.label ?? "",
+                            color: bin.color
+                        }
+                    })
             }
         })
     }

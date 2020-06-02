@@ -21,42 +21,45 @@ import {
     first,
     last,
     formatValue,
-    domainExtent
+    domainExtent,
+    isString,
+    identity,
+    sortedUniq
 } from "./Util"
 import { computed } from "mobx"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
-import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
 export class ScatterTransform extends ChartTransform {
-    @computed get colorKeys(): string[] {
-        const { colorDimension } = this
-        return colorDimension ? colorDimension.variable.categoricalValues : []
-    }
-
-    @computed get colors(): Colorizer {
+    @computed get colorScale(): ColorScale {
         const that = this
-        return new Colorizer({
-            get chart() {
-                return that.chart
+        return new ColorScale({
+            get config() {
+                return that.chart.props.colorScale
             },
-            get defaultColorScheme() {
+            get defaultBaseColorScheme() {
                 return "continents"
             },
-            get keys() {
-                return that.colorKeys
+            get sortedNumericValues() {
+                return that.colorDimension?.sortedNumericValues ?? []
+            },
+            get categoricalValues() {
+                return that.colorDimension?.categoricalValues ?? []
+            },
+            get hasNoDataBin() {
+                return false
+            },
+            get formatValue() {
+                return that.colorDimension?.formatValueShort ?? identity
             }
         })
-    }
-
-    @computed get colorables(): Colorable[] {
-        return this.colors.colorables
     }
 
     @computed get isValidConfig(): boolean {
@@ -216,7 +219,7 @@ export class ScatterTransform extends ChartTransform {
     private getDataByEntityAndYear(
         entitiesToShow = this.getEntitiesToShow()
     ): Map<string, Map<number, ScatterValue>> {
-        const { chart, yearsToCalculate, colors, xOverrideYear } = this
+        const { chart, yearsToCalculate, xOverrideYear } = this
         const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
@@ -294,11 +297,7 @@ export class ScatterTransform extends ChartTransform {
                     }
 
                     ;(point.time as any)[dimension.property] = year
-                    if (dimension.property === "color") {
-                        point.color = colors.get(value as string)
-                    } else {
-                        ;(point as any)[dimension.property] = value
-                    }
+                    ;(point as any)[dimension.property] = value
                 }
             })
         }
@@ -603,9 +602,10 @@ export class ScatterTransform extends ChartTransform {
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else {
-                    const color = last(
+                    const colorValue = last(
                         group.values.map(v => v.color).filter(s => s)
                     )
+                    const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
                         group.isScaleColor = true

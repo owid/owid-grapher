@@ -917,6 +917,15 @@ export class CovidDataExplorer extends React.Component<{
             scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",
             stackMode: "absolute",
+            colorScale: {
+                baseColorScheme: undefined,
+                colorSchemeValues: [],
+                colorSchemeLabels: [],
+                customNumericColors: [],
+                customCategoryColors: {},
+                customCategoryLabels: {},
+                customHiddenCategories: {}
+            },
             customColors: {
                 Asia: "#2d8587",
                 Africa: "#ef943a",

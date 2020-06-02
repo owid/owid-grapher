@@ -7,7 +7,10 @@ import {
     isString,
     formatDay,
     formatYear,
-    last
+    last,
+    sortBy,
+    isNumber,
+    sortedUniq
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -155,6 +158,14 @@ export class ChartDimensionWithOwidVariable {
                 v => (v as number) * unitConversionFactor
             )
         else return this.variable.values
+    }
+
+    @computed get sortedNumericValues(): number[] {
+        return sortBy(this.values.filter(isNumber))
+    }
+
+    @computed get categoricalValues(): string[] {
+        return sortedUniq(sortBy(this.values.filter(isString)))
     }
 
     get yearsUniq() {

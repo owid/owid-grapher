@@ -75,6 +75,7 @@ import {
 } from "site/client/global-entity/GlobalEntitySelection"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
+import { ColorScaleConfigProps } from "./ColorScaleConfig"
 
 declare const App: any
 declare const window: any
@@ -166,6 +167,11 @@ export class DimensionSlot {
 // under the same rendering conditions it ought to remain visually identical
 export class ChartConfigProps {
     constructor(initial?: Partial<ChartConfigProps>) {
+        this.colorScale = new ColorScaleConfigProps({
+            customCategoryColors: initial?.customColors,
+            baseColorScheme: initial?.baseColorScheme,
+            colorSchemeInvert: initial?.invertColorScheme
+        })
         if (initial) {
             for (const key in this) {
                 if (key in initial) {
@@ -244,6 +250,8 @@ export class ChartConfigProps {
     @observable.ref invertColorScheme?: true = undefined
 
     // SCATTERPLOT-SPECIFIC OPTIONS
+
+    @observable colorScale: ColorScaleConfigProps = new ColorScaleConfigProps()
 
     @observable.ref hideLinesOutsideTolerance?: true = undefined
 

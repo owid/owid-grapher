@@ -50,7 +50,7 @@ export interface ScatterValue {
     x: number
     y: number
     size: number
-    color?: string
+    color?: number | string
     year: number
     time: {
         x: number
