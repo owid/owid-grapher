@@ -24,6 +24,7 @@ interface ColorScaleConfig {
 }
 
 type OldChartConfig = {
+    type: "ScatterPlot" | "SlopeChart" | "StackedBar"
     customColors?: { [key: string]: string | undefined }
     baseColorScheme?: string
     invertColorScheme?: true
@@ -76,7 +77,8 @@ async function transformScatterPlotCharts(
             charts.id AS id,
             charts.config AS config
         FROM charts
-        WHERE charts.config->"$.type" = "ScatterPlot"
+        WHERE
+            charts.config->>"$.type" IN ("ScatterPlot", "SlopeChart", "StackedBar")
     `)) as { id: number; config: string }[]
     const toUpdate: { id: number; config: string }[] = []
     for (const chart of charts) {
@@ -92,8 +94,7 @@ async function transformScatterPlotCharts(
     }
 }
 
-export class NewScatterPlotColorScheme1591128415343
-    implements MigrationInterface {
+export class NewChartColorScale1591128415343 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
         await transformScatterPlotCharts(queryRunner, injectColorScheme)
     }
