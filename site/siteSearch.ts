@@ -1,10 +1,10 @@
-import algoliasearch from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch/lite"
 
 import { countries, Country } from "utils/countries"
 
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
-let algolia: algoliasearch.Client | undefined
+let algolia: SearchClient | undefined
 
 function getClient() {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
@@ -74,16 +74,11 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     let chartQuery = query.trim()
     const matchCountries = []
     for (const country of countries) {
-        let variants = [country.name]
-        if (country.variantNames) {
-            variants = variants.concat(country.variantNames)
-        }
+        const variants = [country.name, ...(country.variantNames ?? [])]
         for (const variant of variants) {
-            const r = new RegExp(`(^|\\W)(${variant})($|\\W)`, "gi")
+            const r = new RegExp(`\\b(${variant})\\b`, "gi")
 
-            const newQuery = chartQuery.replace(r, (substring, ...args) => {
-                return args[0] + args[2]
-            })
+            const newQuery = chartQuery.replace(r, "")
 
             if (newQuery !== chartQuery) {
                 matchCountries.push(country)
@@ -94,6 +89,9 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
         }
     }
 
+    // "HACK" use undocumented (legacy?) multi-queries capability of search()
+    // instead of multipleQueries() here to benefit from optimized algoliasearch/lite
+    // see https://github.com/owid/owid-grapher/pull/461#discussion_r433791078
     const json = await getClient().search([
         {
             indexName: "pages",
@@ -133,8 +131,8 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     ])
 
     return {
-        pages: json.results[0].hits,
-        charts: json.results[1].hits,
+        pages: json.results[0].hits as PageHit[],
+        charts: (json.results[1].hits as unknown) as ChartHit[],
         countries: matchCountries
     }
 }
