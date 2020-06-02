@@ -9,7 +9,8 @@ import {
     round,
     toArray,
     first,
-    last
+    last,
+    find
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
@@ -299,5 +300,10 @@ export class ColorScale {
         }
 
         return legendData
+    }
+
+    getColor(value: number | string | undefined): string | undefined {
+        if (value === undefined) return undefined
+        return find(this.legendData, b => b.contains(value))?.color
     }
 }

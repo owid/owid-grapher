@@ -242,12 +242,13 @@ export class MapData extends ChartTransform {
         const choroplethData: ChoroplethData = {}
 
         each(valuesByEntity, (datum, entity) => {
-            const bin = find(legendData, b => b.contains(datum.value))
-            if (!bin) return
-            choroplethData[entity] = extend({}, datum, {
-                color: bin.color,
-                highlightFillColor: bin.color
-            })
+            const color = this.colorScale.getColor(datum.value)
+            if (color) {
+                choroplethData[entity] = extend({}, datum, {
+                    color: color,
+                    highlightFillColor: color
+                })
+            }
         })
 
         return choroplethData
