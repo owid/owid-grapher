@@ -1,7 +1,15 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { MapProjection } from "charts/MapProjection"
 import omit from "lodash/omit"
 import clone from "lodash/clone"
+
+type MapProjection =
+    | "World"
+    | "Africa"
+    | "NorthAmerica"
+    | "SouthAmerica"
+    | "Asia"
+    | "Europe"
+    | "Oceania"
 
 interface ColorScaleConfig {
     baseColorScheme?: string
