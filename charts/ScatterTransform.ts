@@ -57,7 +57,7 @@ export class ScatterTransform extends ChartTransform {
                 return false
                 // return that.allPoints.some(point => point.color === undefined)
             },
-            get formatValue() {
+            get formatNumericValue() {
                 return that.colorDimension?.formatValueShort ?? identity
             }
         })

@@ -187,7 +187,7 @@ export class MapData extends ChartTransform {
             get defaultBaseColorScheme() {
                 return "BuGn"
             },
-            get formatValue() {
+            get formatNumericValue() {
                 return that.formatValueShort
             }
         })

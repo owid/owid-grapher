@@ -25,7 +25,8 @@ export interface ColorScaleProps {
     categoricalValues: string[]
     hasNoDataBin: boolean
     defaultBaseColorScheme?: string
-    formatValue?: (v: number) => string
+    formatNumericValue?: (v: number) => string
+    formatCategoricalValue?: (v: string) => string
 }
 
 export class ColorScale {
@@ -88,8 +89,12 @@ export class ColorScale {
         return ColorSchemes["BuGn"] as ColorScheme
     }
 
-    @computed get formatValue() {
-        return defaultTo(this.props.formatValue, identity)
+    @computed get formatNumericValue(): (v: number) => string {
+        return defaultTo(this.props.formatNumericValue, identity)
+    }
+
+    @computed get formatCategoricalValue(): (v: string) => string {
+        return defaultTo(this.props.formatCategoricalValue, identity)
     }
 
     // Transforms
@@ -257,7 +262,7 @@ export class ColorScale {
             customNumericColors,
             customCategoryLabels,
             customHiddenCategories,
-            formatValue
+            formatNumericValue
         } = this
 
         /*var unitsString = chart.model.get("units"),
@@ -288,7 +293,7 @@ export class ColorScale {
                         max: maxValue,
                         color: color,
                         label: label,
-                        format: formatValue
+                        format: formatNumericValue
                     })
                 )
                 minValue = maxValue
@@ -314,7 +319,9 @@ export class ColorScale {
                 : bucketMaximums.length - 1
             const baseColor = baseColors[i + boundingOffset]
             const color = customCategoryColors[value] || baseColor
-            const label = customCategoryLabels[value] || value
+            const label =
+                customCategoryLabels[value] ||
+                this.formatCategoricalValue(value)
 
             legendData.push(
                 new CategoricalBin({
