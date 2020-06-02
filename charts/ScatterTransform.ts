@@ -609,7 +609,9 @@ export class ScatterTransform extends ChartTransform {
                     const colorValue = last(
                         group.values.map(v => v.color).filter(s => s)
                     )
-                    const color = this.colorScale.getColor(colorValue)
+                    const color = this.colorDimension
+                        ? this.colorScale.getColor(colorValue)
+                        : undefined
                     if (color !== undefined) {
                         group.color = color
                         group.isScaleColor = true
