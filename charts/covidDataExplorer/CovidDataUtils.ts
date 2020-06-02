@@ -15,7 +15,7 @@ import {
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
-import { populationMap } from "./CovidPopulationMap"
+import { populationMap } from "../PopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3-fetch"
 import { labelsByRegion, worldRegionByMapEntity } from "charts/WorldRegions"

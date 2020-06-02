@@ -71,6 +71,7 @@ import {
     subscribeChartToGlobalEntitySelection
 } from "site/client/global-entity/GlobalEntitySelection"
 import { TickFormattingOptions } from "./TickFormattingOptions"
+import { populationMap } from "./PopulationMap"
 
 declare const App: any
 declare const window: any
