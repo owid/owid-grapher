@@ -310,7 +310,7 @@ export class ColorScale {
                 : bucketMaximums.length - 1
             const baseColor = baseColors[i + boundingOffset]
             const color = customCategoryColors[value] || baseColor
-            const label = customCategoryLabels[value] || ""
+            const label = customCategoryLabels[value] || value
 
             legendData.push(
                 new CategoricalBin({
