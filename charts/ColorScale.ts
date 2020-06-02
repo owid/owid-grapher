@@ -10,7 +10,8 @@ import {
     toArray,
     first,
     last,
-    find
+    find,
+    identity
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
@@ -23,8 +24,8 @@ export interface ColorScaleProps {
     defaultColorScheme: ColorScheme
     sortedNumericValues: number[]
     categoricalValues: string[]
-    formatValue: (v: number) => string
     hasNoDataBin: boolean
+    formatValue?: (v: number) => string
 }
 
 export class ColorScale {
@@ -78,6 +79,10 @@ export class ColorScale {
 
     @computed get baseColorScheme() {
         return defaultTo(this.config.baseColorScheme, "BuGn")
+    }
+
+    @computed get formatValue() {
+        return defaultTo(this.props.formatValue, identity)
     }
 
     // Transforms
@@ -233,8 +238,6 @@ export class ColorScale {
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const { formatValue } = this.props
-
         const legendData = []
         const {
             bucketMaximums,
@@ -248,7 +251,8 @@ export class ColorScale {
             maxPossibleValue,
             customNumericColors,
             customCategoryLabels,
-            customHiddenCategories
+            customHiddenCategories,
+            formatValue
         } = this
 
         /*var unitsString = chart.model.get("units"),
