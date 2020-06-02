@@ -92,7 +92,7 @@
         "@types/unidecode": "^0.1.1",
         "@types/url-join": "^4.0.0",
         "@types/url-parse": "^1.4.3",
-        "algoliasearch": "^3.33.0",
+        "algoliasearch": "^4.2.0",
         "asciify-string": "^0.1.1",
         "autoprefixer": "^9.7.6",
         "bcrypt": "^3.0.6",
