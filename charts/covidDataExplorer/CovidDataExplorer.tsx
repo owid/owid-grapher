@@ -647,6 +647,11 @@ export class CovidDataExplorer extends React.Component<{
             )
             indices.push(id)
 
+            // The 7 day test smoothing is already calculated, so for now just reuse that instead of
+            // recalculating.
+            const alreadySmoothed =
+                columnName === "tests" && params.smoothing === 7
+
             if (!this.owidVariableSet.variables[id]) {
                 this.owidVariableSet.variables[id] = buildCovidVariable(
                     id,
@@ -655,7 +660,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.props.data,
                     rowFn,
                     this.perCapitaDivisorIfEnabled,
-                    this.props.params.smoothing,
+                    alreadySmoothed ? 1 : this.props.params.smoothing,
                     daily,
                     columnName === "tests" ? "" : " - " + this.lastUpdated
                 )
@@ -663,7 +668,15 @@ export class CovidDataExplorer extends React.Component<{
         }
 
         if (params.testsMetric && params.dailyFreq)
-            initVariable("tests", row => row.new_tests, true)
+            initVariable(
+                "tests",
+                row => {
+                    return params.smoothing === 7
+                        ? row.new_tests_smoothed
+                        : row.new_tests
+                },
+                true
+            )
         if (params.testsMetric && params.totalFreq)
             initVariable("tests", row => row.total_tests)
 
