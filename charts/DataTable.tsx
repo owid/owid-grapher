@@ -250,7 +250,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderHeaderRow() {
+    private get headerRow() {
         return (
             <React.Fragment>
                 <tr>
@@ -262,7 +262,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderValueCell(
+    private renderValueCell(
         key: string,
         column: DataTableColumn,
         dv: DimensionValue | undefined,
@@ -339,7 +339,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderRows() {
+    private get valueRows() {
         return this.displayRows.map(row =>
             this.renderEntityRow(row, this.displayDimensions)
         )
@@ -348,8 +348,8 @@ export class DataTable extends React.Component<DataTableProps> {
     render() {
         return (
             <table className="data-table">
-                <thead>{this.renderHeaderRow()}</thead>
-                <tbody>{this.renderRows()}</tbody>
+                <thead>{this.headerRow}</thead>
+                <tbody>{this.valueRows}</tbody>
             </table>
         )
     }
