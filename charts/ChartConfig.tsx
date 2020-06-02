@@ -36,8 +36,11 @@ import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { OwidVariable } from "./owidData/OwidVariable"
-import { OwidVariableSet, EntityMeta } from "./owidData/OwidVariableSet"
+import { OwidVariable, FilterPredicate } from "./owidData/OwidVariable"
+import {
+    OwidVariablesAndEntityKey,
+    EntityMeta
+} from "./owidData/OwidVariableSet"
 import { ChartData } from "./ChartData"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
@@ -193,7 +196,9 @@ export class ChartConfigProps {
 
     // TODO: These 2 are currently in development. Do not save to DB.
     @observable.ref externalDataUrl?: string = undefined
-    @observable.ref owidDataset?: OwidVariableSet = undefined
+    @observable.ref owidDataset?: OwidVariablesAndEntityKey = undefined
+    @observable.ref showSettingsMenu?: boolean = undefined
+    @observable.ref entitiesAreCountries?: boolean = undefined
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: TimeBound = undefined
@@ -219,6 +224,7 @@ export class ChartConfigProps {
     @observable.ref entityTypePlural?: string = undefined
     @observable.ref hideTimeline?: true = undefined
     @observable.ref zoomToSelection?: true = undefined
+    @observable.ref minPopulationFilter?: number = undefined
 
     // Always show year in labels for bar charts
     @observable.ref showYearLabels?: boolean = undefined
@@ -335,19 +341,39 @@ export class ChartConfig {
         }
     }
 
-    @action.bound receiveData(json: OwidVariableSet) {
+    @action.bound receiveData(json: OwidVariablesAndEntityKey) {
         const variablesById: { [id: string]: OwidVariable } = {}
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
+        const filters = this.filters
         for (const key in json.variables) {
             const variable = new OwidVariable(json.variables[key])
             variable.entityNames = variable.entities.map(
                 id => entityMetaById[id].name
             )
-            variablesById[key] = variable
+            variablesById[key] = filters.length
+                ? variable.getFilteredVariable((name: string) =>
+                      this.isEntityFiltered(name)
+                  )
+                : variable
         }
         each(entityMetaById, (e, id) => (e.id = +id))
         this.variablesById = variablesById
         this.entityMetaById = entityMetaById
+    }
+
+    isEntityFiltered(name: string) {
+        return this.filters.some(fn => fn(name) === false)
+    }
+
+    @computed get filters() {
+        const filters: FilterPredicate[] = []
+        if (this.props.minPopulationFilter)
+            filters.push((name: string) =>
+                populationMap[name]
+                    ? populationMap[name] >= this.props.minPopulationFilter!
+                    : true
+            )
+        return filters
     }
 
     @computed get entityMetaByKey() {
@@ -478,6 +504,8 @@ export class ChartConfig {
                 fireImmediately: true
             })
         )
+
+        this.disposers.push(reaction(() => this.filters, this.downloadData))
 
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)

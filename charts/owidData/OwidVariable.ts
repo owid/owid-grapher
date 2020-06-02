@@ -14,6 +14,8 @@ import { observable, computed } from "mobx"
 import { EPOCH_DATE } from "settings"
 import { OwidSource } from "./OwidSource"
 
+export declare type FilterPredicate = (entityName: string) => boolean
+
 export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
@@ -47,7 +49,9 @@ export class OwidVariable {
     @observable.ref entities: number[] = []
     @observable.ref values: (string | number)[] = []
 
+    private rawJson: any
     constructor(json: any) {
+        this.rawJson = json
         for (const key in this) {
             if (key === "rawYears") {
                 // If the dataset is using `yearIsDay`, we need to normalize days to a single epoch.
@@ -114,6 +118,28 @@ export class OwidVariable {
 
     @computed get entitiesUniq(): string[] {
         return uniq(this.entityNames)
+    }
+
+    getFilteredVariable(isEntityFiltered: FilterPredicate): OwidVariable {
+        const clonedJson = JSON.parse(JSON.stringify(this.rawJson))
+        const indicesToKeep: number[] = this.entityNames
+            .map((name, index) => (isEntityFiltered(name) ? null : index))
+            .filter(i => i !== null) as number[]
+        const years: number[] = []
+        const entityNames: string[] = []
+        const entities: number[] = []
+        const values: (string | number)[] = []
+        indicesToKeep.forEach(index => {
+            years.push(this.years[index])
+            entityNames.push(this.entityNames[index])
+            entities.push(this.entities[index])
+            values.push(this.values[index])
+        })
+        clonedJson.years = years
+        clonedJson.entityNames = entityNames
+        clonedJson.entities = entities
+        clonedJson.values = values
+        return new OwidVariable(clonedJson)
     }
 
     @computed get yearsUniq(): number[] {
