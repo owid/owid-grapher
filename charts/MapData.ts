@@ -225,7 +225,7 @@ export class MapData extends ChartTransform {
 
     // Get the final data incorporating the binning colors
     @computed get choroplethData(): ChoroplethData {
-        const { valuesByEntity, legendData } = this
+        const { valuesByEntity } = this
         const choroplethData: ChoroplethData = {}
 
         each(valuesByEntity, (datum, entity) => {
