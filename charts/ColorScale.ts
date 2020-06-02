@@ -16,12 +16,15 @@ import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
+const NO_DATA_LABEL = "No data"
+
 export interface ColorScaleProps {
     config: ColorScaleConfigProps
     defaultColorScheme: ColorScheme
     sortedNumericValues: number[]
     categoricalValues: string[]
     formatValue: (v: number) => string
+    hasNoDataBin: boolean
 }
 
 export class ColorScale {
@@ -78,6 +81,10 @@ export class ColorScale {
     }
 
     // Transforms
+
+    @computed get hasNoDataBin(): boolean {
+        return this.props.hasNoDataBin
+    }
 
     @computed get sortedNumericValues(): number[] {
         return this.props.sortedNumericValues
@@ -154,13 +161,13 @@ export class ColorScale {
     // Ensure there's always a custom color for "No data"
     @computed get customCategoryColors(): { [key: string]: Color } {
         return {
-            "No data": "#eee", // default 'no data' color
+            [NO_DATA_LABEL]: "#eee", // default 'no data' color
             ...this.config.customCategoryColors
         }
     }
 
     @computed get noDataColor() {
-        return this.customCategoryColors["No data"]
+        return this.customCategoryColors[NO_DATA_LABEL]
     }
 
     @computed get baseColors() {
@@ -170,7 +177,7 @@ export class ColorScale {
             bucketMaximums,
             isColorSchemeInverted
         } = this
-        const numColors = bucketMaximums.length + categoricalValues.length - 1
+        const numColors = bucketMaximums.length + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) {
@@ -232,6 +239,7 @@ export class ColorScale {
         const {
             bucketMaximums,
             baseColors,
+            hasNoDataBin,
             categoricalValues,
             customCategoryColors,
             customBucketLabels,
@@ -278,9 +286,16 @@ export class ColorScale {
             }
         }
 
+        let allCategoricalValues = categoricalValues
+
+        // Inject "No data" bin
+        if (hasNoDataBin) {
+            allCategoricalValues = [NO_DATA_LABEL, ...allCategoricalValues]
+        }
+
         // Categorical values, each assigned a color
-        for (let i = 0; i < categoricalValues.length; i++) {
-            const value = categoricalValues[i]
+        for (let i = 0; i < allCategoricalValues.length; i++) {
+            const value = allCategoricalValues[i]
             const boundingOffset = isEmpty(bucketMaximums)
                 ? 0
                 : bucketMaximums.length - 1
@@ -303,7 +318,7 @@ export class ColorScale {
     }
 
     getColor(value: number | string | undefined): string | undefined {
-        if (value === undefined) return undefined
+        if (value === undefined) return this.customCategoryColors[NO_DATA_LABEL]
         return find(this.legendData, b => b.contains(value))?.color
     }
 }

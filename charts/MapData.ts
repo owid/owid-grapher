@@ -17,7 +17,8 @@ import {
     isNumber,
     sortBy,
     entityNameForMap,
-    formatYear
+    formatYear,
+    uniq
 } from "./Util"
 import { Time, getClosestTime } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
@@ -154,17 +155,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get categoricalValues(): string[] {
-        // Ensure presence of 'No data' category
-        const valuesMap = new Map<string, boolean>()
-        valuesMap.set("No data", true)
-
-        for (const value of this.mappableData.values) {
-            if (isString(value)) {
-                valuesMap.set(value, true)
-            }
-        }
-
-        return Array.from(valuesMap.keys())
+        return uniq(this.mappableData.values.filter(isString))
     }
 
     // All available years with data for the map
@@ -199,6 +190,9 @@ export class MapData extends ChartTransform {
             },
             get categoricalValues() {
                 return that.categoricalValues
+            },
+            get hasNoDataBin() {
+                return true
             },
             get formatValue() {
                 return that.formatValueShort
