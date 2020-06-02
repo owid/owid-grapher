@@ -78,7 +78,7 @@ class ChartRow extends React.Component<{
 
         return (
             <tr>
-                <td>
+                <td style={{ minWidth: "140px", width: "12.5%" }}>
                     {chart.isPublished && (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
@@ -88,35 +88,32 @@ class ChartRow extends React.Component<{
                         </a>
                     )}
                 </td>
-                {chart.isPublished ? (
-                    <td>
+                <td style={{ minWidth: "180px" }}>
+                    {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             {highlight(chart.title)}
-                        </a>{" "}
-                        {chart.variantName ? (
-                            <span style={{ color: "#aaa" }}>
-                                ({highlight(chart.variantName)})
-                            </span>
-                        ) : (
-                            undefined
-                        )}
-                    </td>
-                ) : (
-                    <td>
-                        <span style={{ color: "red" }}>Draft: </span>{" "}
-                        {highlight(chart.title)}{" "}
-                        {chart.variantName ? (
-                            <span style={{ color: "#aaa" }}>
-                                ({highlight(chart.variantName)})
-                            </span>
-                        ) : (
-                            undefined
-                        )}
-                    </td>
-                )}
-                <td style={{ minWidth: "120px" }}>{showChartType(chart)}</td>
-                <td>{highlight(chart.internalNotes)}</td>
-                <td style={{ minWidth: "380px" }}>
+                        </a>
+                    ) : (
+                        <span>
+                            <span style={{ color: "red" }}>Draft: </span>{" "}
+                            {highlight(chart.title)}
+                        </span>
+                    )}{" "}
+                    {chart.variantName ? (
+                        <span style={{ color: "#aaa" }}>
+                            ({highlight(chart.variantName)})
+                        </span>
+                    ) : (
+                        undefined
+                    )}
+                    {chart.internalNotes && (
+                        <div className="internalNotes">
+                            {highlight(chart.internalNotes)}
+                        </div>
+                    )}
+                </td>
+                <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
+                <td style={{ minWidth: "340px" }}>
                     <EditableTags
                         tags={chart.tags}
                         suggestions={availableTags}
@@ -231,7 +228,6 @@ export class ChartList extends React.Component<{
                         <th></th>
                         <th>Chart</th>
                         <th>Type</th>
-                        <th>Notes</th>
                         <th>Tags</th>
                         <th>Published</th>
                         <th>Last Updated</th>

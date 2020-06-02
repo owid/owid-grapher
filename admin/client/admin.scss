@@ -538,8 +538,14 @@ main:not(.ChartEditorPage) {
 }
 
 .chartPreview {
-    width: 130px;
+    width: 100%;
     height: auto;
+}
+
+.internalNotes {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
 }
 
 .ChartIndexPage,
