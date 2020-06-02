@@ -1,10 +1,10 @@
-import algoliasearch from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch"
 
 import { countries, Country } from "utils/countries"
 
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
-let algolia: algoliasearch.Client | undefined
+let algolia: SearchClient | undefined
 
 function getClient() {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
@@ -94,7 +94,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
         }
     }
 
-    const json = await getClient().search([
+    const json = await getClient().multipleQueries([
         {
             indexName: "pages",
             query: query,
@@ -133,8 +133,8 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
     ])
 
     return {
-        pages: json.results[0].hits,
-        charts: json.results[1].hits,
+        pages: json.results[0].hits as PageHit[],
+        charts: (json.results[1].hits as unknown) as ChartHit[],
         countries: matchCountries
     }
 }
