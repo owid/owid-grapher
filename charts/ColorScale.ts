@@ -24,6 +24,7 @@ export interface ColorScaleProps {
     sortedNumericValues: number[]
     categoricalValues: string[]
     hasNoDataBin: boolean
+    defaultNoDataColor?: string
     defaultBaseColorScheme?: string
     formatNumericValue?: (v: number) => string
     formatCategoricalValue?: (v: string) => string
@@ -87,6 +88,10 @@ export class ColorScale {
 
     @computed get defaultColorScheme(): ColorScheme {
         return ColorSchemes["BuGn"] as ColorScheme
+    }
+
+    @computed get defaultNoDataColor(): string {
+        return defaultTo(this.props.defaultNoDataColor, "#eee")
     }
 
     @computed get formatNumericValue(): (v: number) => string {
@@ -176,7 +181,7 @@ export class ColorScale {
     // Ensure there's always a custom color for "No data"
     @computed get customCategoryColors(): { [key: string]: Color } {
         return {
-            [NO_DATA_LABEL]: "#eee", // default 'no data' color
+            [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
             ...this.config.customCategoryColors
         }
     }

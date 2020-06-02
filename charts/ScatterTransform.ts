@@ -57,6 +57,9 @@ export class ScatterTransform extends ChartTransform {
                 return false
                 // return that.allPoints.some(point => point.color === undefined)
             },
+            get defaultNoDataColor() {
+                return "#932834"
+            },
             get formatNumericValue() {
                 return that.colorDimension?.formatValueShort ?? identity
             }
