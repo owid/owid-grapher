@@ -9,7 +9,7 @@ import {
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER
 } from "serverSettings"
-import { WORDPRESS_URL, BAKED_BASE_URL } from "settings"
+import { WORDPRESS_URL, BAKED_BASE_URL, BLOG_SLUG } from "settings"
 import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
@@ -20,7 +20,10 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { JsonError } from "utils/server/serverUtil"
-import { covidLandingSlug } from "site/server/covid/CovidConstants"
+import {
+    covidLandingSlug,
+    covidCountryProfileSlug
+} from "site/server/covid/CovidConstants"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -418,7 +421,7 @@ export async function getPosts(
     limit?: number
 ): Promise<any[]> {
     const perPage = 50
-    const posts: any[] = []
+    let posts: any[] = []
     let response
 
     for (const postType of postTypes) {
@@ -442,6 +445,11 @@ export async function getPosts(
             posts.push(...postsCurrentPage)
         }
     }
+
+    // Published pages excluded from public views
+    const excludedSlugs = [BLOG_SLUG, covidCountryProfileSlug]
+    posts = posts.filter(post => !excludedSlugs.includes(post.slug))
+
     return limit ? posts.slice(0, limit) : posts
 }
 

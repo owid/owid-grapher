@@ -239,15 +239,9 @@ export class SiteBaker {
         const postSlugs = []
         for (const postApi of postsApi) {
             const post = await wpdb.getFullPost(postApi)
-            // blog: handled separately
             // isPostEmbedded: post displayed in the entry only (not on its own
             // page), skipping.
-            if (
-                post.slug === "blog" ||
-                post.slug === covidCountryProfileSlug ||
-                wpdb.isPostEmbedded(post)
-            )
-                continue
+            if (wpdb.isPostEmbedded(post)) continue
 
             postSlugs.push(post.slug)
             await this.bakePost(post)
