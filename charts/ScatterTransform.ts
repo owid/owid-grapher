@@ -22,9 +22,7 @@ import {
     last,
     formatValue,
     domainExtent,
-    isString,
-    identity,
-    sortedUniq
+    identity
 } from "./Util"
 import { computed } from "mobx"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
