@@ -59,14 +59,6 @@ async function indexToAlgolia() {
     for (const postApi of postsApi) {
         const rawPost = await wpdb.getFullPost(postApi)
 
-        // Index the content of blog posts as entry sections (BPES) within the context
-        // of the embedding entry, and not the blog post. In other words,
-        // searching for BPES content will show up in the SERP under an entry
-        // block.
-        if (wpdb.isPostEmbedded(rawPost)) {
-            continue
-        }
-
         const post = await formatPost(rawPost, { footnotes: false })
         const postText = htmlToPlaintext(post.html)
         const chunks = chunkParagraphs(postText, 1000)
