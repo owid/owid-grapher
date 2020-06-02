@@ -167,11 +167,6 @@ export class DimensionSlot {
 // under the same rendering conditions it ought to remain visually identical
 export class ChartConfigProps {
     constructor(initial?: Partial<ChartConfigProps>) {
-        this.colorScale = new ColorScaleConfigProps({
-            customCategoryColors: initial?.customColors,
-            baseColorScheme: initial?.baseColorScheme,
-            colorSchemeInvert: initial?.invertColorScheme
-        })
         if (initial) {
             for (const key in this) {
                 if (key in initial) {
