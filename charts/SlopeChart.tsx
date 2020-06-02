@@ -10,7 +10,6 @@ import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "./ScatterColorLegend"
-import { isString } from "util"
 
 @observer
 export class SlopeChart extends React.Component<{
@@ -44,9 +43,15 @@ export class SlopeChart extends React.Component<{
                 return that.chart.baseFontSize
             },
             get colorables() {
-                return that.transform.colors.colorables.filter(c =>
-                    that.colorsInUse.includes(c.color)
-                )
+                return that.transform.colorScale.legendData
+                    .filter(bin => that.colorsInUse.includes(bin.color))
+                    .map(bin => {
+                        return {
+                            key: bin.label ?? "",
+                            label: bin.label ?? "",
+                            color: bin.color
+                        }
+                    })
             }
         })
     }
@@ -186,16 +191,9 @@ export class SlopeChart extends React.Component<{
     // this is for backwards compatibility with charts that were added without legend
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
     @computed get showLegend(): boolean {
-        const { colorsInUse: legendColors } = this
-        const { colorScale } = this.transform.colors
-
-        return colorScale.domain().some(value => {
-            if (!isString(value)) {
-                return false
-            } else {
-                return legendColors.indexOf(colorScale(value)) > -1
-            }
-        })
+        const { colorsInUse } = this
+        const { legendData } = this.transform.colorScale
+        return legendData.some(bin => colorsInUse.includes(bin.color))
     }
 
     render() {
