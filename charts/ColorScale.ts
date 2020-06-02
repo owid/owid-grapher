@@ -106,7 +106,7 @@ export class ColorScale {
     }
 
     @computed get autoMinBinValue(): number {
-        const minValue = Math.min(0, this.commonValues[0])
+        const minValue = Math.min(0, this.valuesWithoutOutliers[0])
         const magnitude = Math.floor(Math.log(minValue) / Math.log(10))
         return Math.min(0, round(minValue, -magnitude))
     }
@@ -190,11 +190,13 @@ export class ColorScale {
     }
 
     @computed get binStepSizeDefault(): number {
-        const { numAutoBins, minBinValue, commonValues } = this
-        if (!commonValues.length) return 10
+        const { numAutoBins, minBinValue, valuesWithoutOutliers } = this
+        if (!valuesWithoutOutliers.length) return 10
 
         const stepSizeInitial =
-            (commonValues[commonValues.length - 1] - minBinValue) / numAutoBins
+            (valuesWithoutOutliers[valuesWithoutOutliers.length - 1] -
+                minBinValue) /
+            numAutoBins
         const stepMagnitude = Math.floor(
             Math.log(stepSizeInitial) / Math.log(10)
         )
@@ -208,7 +210,7 @@ export class ColorScale {
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed private get commonValues(): number[] {
+    @computed private get valuesWithoutOutliers(): number[] {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
