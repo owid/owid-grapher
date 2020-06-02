@@ -2235,11 +2235,6 @@
     prop-types "^15.6.2"
     tippy.js "^6.2.0"
 
-"@types/algoliasearch@^3.30.12":
-  version "3.30.12"
-  resolved "https://registry.yarnpkg.com/@types/algoliasearch/-/algoliasearch-3.30.12.tgz#3270ba642107f00cd743c29b8cae30c92a043dba"
-  integrity sha512-IiJ4/GP3NEFWZkZhF5/cPxIZNzAitLdZnMpo5KlWLcNL567LHDHG2NOZLwXzRrTuxNa1zmqZJKEDWHnw8kp3Ng==
-
 "@types/amplitude-js@^5.8.0":
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/@types/amplitude-js/-/amplitude-js-5.8.0.tgz#6e4047b0021e73246c00ae6119b47b28ac73859a"
@@ -5177,8 +5172,6 @@ clean-css@4.2.x:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/clean-css/-/clean-css-4.2.1.tgz#2d411ef76b8569b6d0c84068dabe85b0aa5e5c17"
   integrity sha512-4ZxI6dy4lrY6FHzfiy1aEOXgu4LIsW2MhwG0VBKdcoGoH/XLFgaHSdLTGr4O8Be6A8r3MOphEiI8Gc1n0ecf3g==
-  dependencies:
-    source-map "~0.6.0"
 
 clean-deep@^3.0.2:
   version "3.0.2"
