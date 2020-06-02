@@ -19,7 +19,6 @@ include 'src/AdditionalInformation/additional-information.php';
 include 'src/Help/help.php';
 include 'src/LastUpdated/last-updated.php';
 
-const READING_CONTEXT_META_FIELD = 'owid_reading_context_meta_field';
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 
 function setup()
@@ -78,17 +77,6 @@ function register()
 			)
 		)
 	);
-
-	// Uncomment to reactivate ReadingContext
-	// register_post_meta(
-	// 	'post',
-	// 	READING_CONTEXT_META_FIELD,
-	// 	array(
-	// 		'show_in_rest' => true,
-	// 		'single' => true,
-	// 		'type' => 'integer',
-	// 	)
-	// );
 
 
 	wp_register_script(
@@ -225,34 +213,6 @@ add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
  * API fields
  */
 
-/*
- * Returns either the post's standard path or the path of the embedding entry (for blog
- * posts embedded in an entry)
- */
-function getPath(array $post)
-{
-	// Compute the deep path if the blog post reading context is an
-	// entry (as opposed to its own page)
-	if (getReadingContext($post) === 'entry') {
-		// Get the entry path from the sidebar plugin
-		return get_page_uri($post['meta'][READING_CONTEXT_META_FIELD]);
-	} else {
-		// Remove the host and leading slash from the post link (not expected by the
-		// JS clients). Without hierarchical paths (parent/page-slug), the path is
-		// identical to the slug.
-		return substr(wp_make_link_relative($post['link']), 1);
-	}
-}
-
-function getReadingContext(array $post)
-{
-	if (isset($post['meta'][READING_CONTEXT_META_FIELD]) && $post['meta'][READING_CONTEXT_META_FIELD] !== 0) {
-		return 'entry';
-	} else {
-		return 'in-situ';
-	}
-}
-
 function getAuthorsName(array $post)
 {
 	$authorNames = [];
@@ -305,16 +265,6 @@ add_action(
 			'methods' => 'GET',
 			'callback' => __NAMESPACE__ . '\getPostType',
 		));
-		register_rest_field(
-			['post', 'page'],
-			'path',
-			['get_callback' => __NAMESPACE__ . '\getPath']
-		);
-		register_rest_field(
-			'post',
-			'reading_context',
-			['get_callback' => __NAMESPACE__ . '\getReadingContext']
-		);
 		register_rest_field(
 			['post', 'page'],
 			'authors_name',
