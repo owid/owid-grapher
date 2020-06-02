@@ -1,7 +1,6 @@
 import { computed, autorun, runInAction } from "mobx"
 
 import { ChartConfig } from "./ChartConfig"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
 import { ChoroplethData } from "./ChoroplethMap"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapTopology } from "./MapTopology"
@@ -9,10 +8,8 @@ import { MapTopology } from "./MapTopology"
 import {
     isString,
     findClosestYear,
-    keys,
     extend,
     each,
-    find,
     keyBy,
     isNumber,
     sortBy,
@@ -172,18 +169,11 @@ export class MapData extends ChartTransform {
         return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
     }
 
-    @computed get defaultColorScheme(): ColorScheme {
-        return ColorSchemes[keys(ColorSchemes)[0]] as ColorScheme
-    }
-
     @computed get colorScale(): ColorScale {
         const that = this
         return new ColorScale({
             get config() {
                 return that.map.props.colorScale
-            },
-            get defaultColorScheme() {
-                return that.defaultColorScheme
             },
             get sortedNumericValues() {
                 return that.sortedNumericValues
@@ -193,6 +183,9 @@ export class MapData extends ChartTransform {
             },
             get hasNoDataBin() {
                 return true
+            },
+            get defaultBaseColorScheme() {
+                return "BuGn"
             },
             get formatValue() {
                 return that.formatValueShort

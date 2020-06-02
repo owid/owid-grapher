@@ -21,10 +21,10 @@ const NO_DATA_LABEL = "No data"
 
 export interface ColorScaleProps {
     config: ColorScaleConfigProps
-    defaultColorScheme: ColorScheme
     sortedNumericValues: number[]
     categoricalValues: string[]
     hasNoDataBin: boolean
+    defaultBaseColorScheme?: string
     formatValue?: (v: number) => string
 }
 
@@ -78,7 +78,14 @@ export class ColorScale {
     }
 
     @computed get baseColorScheme() {
-        return defaultTo(this.config.baseColorScheme, "BuGn")
+        return defaultTo(
+            this.config.baseColorScheme,
+            defaultTo(this.props.defaultBaseColorScheme, "BuGn")
+        )
+    }
+
+    @computed get defaultColorScheme(): ColorScheme {
+        return ColorSchemes["BuGn"] as ColorScheme
     }
 
     @computed get formatValue() {
@@ -109,9 +116,7 @@ export class ColorScale {
 
     @computed get colorScheme(): ColorScheme {
         const colorScheme = ColorSchemes[this.baseColorScheme]
-        return colorScheme !== undefined
-            ? colorScheme
-            : this.props.defaultColorScheme
+        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
     }
 
     @computed get singleColorScale(): boolean {
