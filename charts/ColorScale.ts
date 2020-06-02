@@ -299,7 +299,11 @@ export class ColorScale {
 
         // Inject "No data" bin
         if (hasNoDataBin) {
-            allCategoricalValues = [NO_DATA_LABEL, ...allCategoricalValues]
+            // The color scheme colors get applied in order, starting from first, and we only use
+            // as many colors as there are categorical values (excluding "No data").
+            // So in order to leave it colorless, we want to append the "No data" label last.
+            // -@danielgavrilov, 2020-06-02
+            allCategoricalValues = [...allCategoricalValues, NO_DATA_LABEL]
         }
 
         // Categorical values, each assigned a color
