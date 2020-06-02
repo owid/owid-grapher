@@ -1,4 +1,4 @@
-import algoliasearch, { SearchClient } from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch/lite"
 
 import { countries, Country } from "utils/countries"
 
@@ -89,7 +89,10 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
         }
     }
 
-    const json = await getClient().multipleQueries([
+    // "HACK" use undocumented (legacy?) multi-queries capability of search()
+    // instead of multipleQueries() here to benefit from optimized algoliasearch/lite
+    // see https://github.com/owid/owid-grapher/pull/461#discussion_r433791078
+    const json = await getClient().search([
         {
             indexName: "pages",
             query: query,
