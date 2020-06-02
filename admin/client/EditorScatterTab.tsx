@@ -11,6 +11,7 @@ import { ComparisonLineConfig } from "charts/ComparisonLine"
 import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
 export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
@@ -160,6 +161,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                         </ul>
                     )}
                 </Section>
+                <EditorColorScaleSection scale={chart.scatter.colorScale} />
                 <Section name="Highlight toggle">
                     <p>
                         Allow users to toggle a particular chart selection state

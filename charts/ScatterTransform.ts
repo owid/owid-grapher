@@ -608,7 +608,7 @@ export class ScatterTransform extends ChartTransform {
                     )
                     if (color !== undefined) {
                         group.color = color
-                        group.isAutoColor = true
+                        group.isScaleColor = true
                     }
                 }
                 const sizes = group.values.map(v => v.size)

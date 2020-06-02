@@ -43,7 +43,7 @@ export interface ScatterSeries {
     label: string
     size: number
     values: ScatterValue[]
-    isAutoColor?: true
+    isScaleColor?: true
 }
 
 export interface ScatterValue {

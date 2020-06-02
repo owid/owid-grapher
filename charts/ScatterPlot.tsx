@@ -74,7 +74,7 @@ export class ScatterPlot extends React.Component<{
     @computed get colorsInUse() {
         return uniq(
             this.transform.currentData
-                .filter(g => g.isAutoColor)
+                .filter(g => g.isScaleColor)
                 .map(g => g.color)
         )
     }
