@@ -33,6 +33,7 @@ export interface ChartQueryParams {
     overlay?: string
     stackMode?: string
     zoomToSelection?: string
+    minPopulationFilter?: string
     xScale?: string
     yScale?: string
     time?: string
@@ -147,6 +148,11 @@ export class ChartUrl implements ObservableUrl {
                 : chart.props.zoomToSelection
                 ? "true"
                 : undefined
+        params.minPopulationFilter =
+            chart.props.minPopulationFilter ===
+            origChartProps.minPopulationFilter
+                ? undefined
+                : chart.props.minPopulationFilter?.toString()
         params.endpointsOnly =
             chart.props.compareEndPointsOnly ===
             origChartProps.compareEndPointsOnly
@@ -295,6 +301,13 @@ export class ChartUrl implements ObservableUrl {
         chart.props.zoomToSelection = defaultTo(
             params.zoomToSelection === "true" ? true : undefined,
             chart.props.zoomToSelection
+        )
+
+        chart.props.minPopulationFilter = defaultTo(
+            params.minPopulationFilter
+                ? parseInt(params.minPopulationFilter)
+                : undefined,
+            chart.props.minPopulationFilter
         )
 
         // Axis scale mode

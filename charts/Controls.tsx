@@ -395,6 +395,40 @@ class ZoomToggle extends React.Component<{
 }
 
 @observer
+
+@observer
+class FilterSmallCountriesToggle extends React.Component<{
+    chart: ChartConfigProps
+}> {
+    @action.bound onToggle() {
+        this.props.chart.minPopulationFilter = this.props.chart
+            .minPopulationFilter
+            ? undefined
+            : 1000000
+    }
+
+    render() {
+        const label = "Hide small countries"
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={
+                        this.props.chart.minPopulationFilter &&
+                        this.props.chart.minPopulationFilter > 0
+                            ? true
+                            : false
+                    }
+                    onChange={this.onToggle}
+                    data-track-note="chart-filter-small-countries"
+                />{" "}
+                {label}
+            </label>
+        )
+    }
+}
+
+@observer
 class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMapTargetChange({
         targetStartYear
@@ -930,7 +964,11 @@ export class ControlsFooterView extends React.Component<{
                     <AbsRelToggle chart={chart} />
                 )}
                 {chart.isScatter && chart.data.hasSelection && (
-                    <ZoomToggle chart={chart.props}></ZoomToggle>
+                    <ZoomToggle chart={chart.props} />
+                )}
+
+                {chart.isScatter && chart.props.entitiesAreCountries && (
+                    <FilterSmallCountriesToggle chart={chart.props} />
                 )}
 
                 {chart.isLineChart && chart.lineChart.canToggleRelative && (
