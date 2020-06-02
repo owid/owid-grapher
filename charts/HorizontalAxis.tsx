@@ -6,6 +6,7 @@ import { ScaleType, AxisScale } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { AxisTickMarks } from "./AxisTickMarks"
+import { ControlsOverlay } from "./Controls"
 
 interface HorizontalAxisProps {
     scale: AxisScale
@@ -190,13 +191,15 @@ export class HorizontalAxisView extends React.Component<{
                     return element
                 })}
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
-                    <ScaleSelector
-                        x={bounds.right}
-                        y={bounds.bottom - 5}
-                        scaleType={scale.scaleType}
-                        scaleTypeOptions={scale.scaleTypeOptions}
-                        onChange={onScaleTypeChange}
-                    />
+                    <ControlsOverlay id="horizontal-scale-selector">
+                        <ScaleSelector
+                            x={bounds.right}
+                            y={bounds.bottom}
+                            scaleType={scale.scaleType}
+                            scaleTypeOptions={scale.scaleTypeOptions}
+                            onChange={onScaleTypeChange}
+                        />
+                    </ControlsOverlay>
                 )}
             </g>
         )

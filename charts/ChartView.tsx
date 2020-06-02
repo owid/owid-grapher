@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
-import { Controls, ControlsFooterView } from "./Controls"
+import { Controls, ControlsFooterView, ControlsOverlay } from "./Controls"
 import { ChartTab } from "./ChartTab"
 import { DataTab } from "./DataTab"
 import { MapTab } from "./MapTab"
@@ -238,7 +238,7 @@ export class ChartView extends React.Component<ChartViewProps> {
             .padBottom(this.isExport ? 0 : this.controls.footerHeight)
     }
 
-    @observable.shallow overlays: { [id: string]: JSX.Element | undefined } = {}
+    @observable.shallow overlays: { [id: string]: ControlsOverlay } = {}
 
     @observable.ref popups: VNode[] = []
     @observable.ref isSelectingData: boolean = false

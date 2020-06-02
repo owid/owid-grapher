@@ -468,13 +468,40 @@ export class HeightedLegendComponent extends React.Component<
         this.context.chartView.isSelectingData = true
     }
 
-    render() {
+    get addEntityButton() {
+        if (!this.context.chart.showAddEntityControls) return undefined
+
         const leftOffset = this.needsLines
             ? this.props.legend.leftPadding
             : this.props.legend.width > 70
             ? 21
             : 5
+        const y = Math.max(
+            0,
+            defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0)
+        )
+        const paddingTop = AddEntityButton.calcPaddingTop(
+            y,
+            "bottom",
+            ADD_BUTTON_HEIGHT
+        )
 
+        return (
+            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
+                <AddEntityButton
+                    x={this.props.x + leftOffset}
+                    y={y}
+                    align="left"
+                    verticalAlign="bottom"
+                    height={ADD_BUTTON_HEIGHT}
+                    label={`Add ${this.context.chart.entityType}`}
+                    onClick={this.onAddClick}
+                />
+            </ControlsOverlay>
+        )
+    }
+
+    render() {
         return (
             <g
                 className="HeightedLegend"
@@ -484,29 +511,7 @@ export class HeightedLegendComponent extends React.Component<
             >
                 {this.renderBackground()}
                 {this.renderFocus()}
-                {this.context.chart.showAddEntityControls && (
-                    <ControlsOverlay id="add-country">
-                        <AddEntityButton
-                            x={this.props.x + leftOffset}
-                            y={Math.max(
-                                0,
-                                defaultTo(
-                                    min(
-                                        this.placedMarks.map(
-                                            mark => mark.bounds.top
-                                        )
-                                    ),
-                                    0
-                                )
-                            )}
-                            align="left"
-                            verticalAlign="bottom"
-                            height={ADD_BUTTON_HEIGHT}
-                            label={`Add ${this.context.chart.entityType}`}
-                            onClick={this.onAddClick}
-                        />
-                    </ControlsOverlay>
-                )}
+                {this.addEntityButton}
             </g>
         )
     }

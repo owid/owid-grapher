@@ -6,6 +6,7 @@ import { Bounds } from "./Bounds"
 import { ScaleType, AxisScale } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
+import { ControlsOverlay } from "./Controls"
 
 interface VerticalAxisProps {
     scale: AxisScale
@@ -102,13 +103,18 @@ export class VerticalAxisView extends React.Component<{
                     </text>
                 ))}
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
-                    <ScaleSelector
-                        x={bounds.left}
-                        y={bounds.top - 8}
-                        scaleType={scale.scaleType}
-                        scaleTypeOptions={scale.scaleTypeOptions}
-                        onChange={onScaleTypeChange}
-                    />
+                    <ControlsOverlay
+                        id="vertical-scale-selector"
+                        paddingTop={18}
+                    >
+                        <ScaleSelector
+                            x={bounds.left}
+                            y={bounds.top - 18}
+                            scaleType={scale.scaleType}
+                            scaleTypeOptions={scale.scaleTypeOptions}
+                            onChange={onScaleTypeChange}
+                        />
+                    </ControlsOverlay>
                 )}
             </g>
         )

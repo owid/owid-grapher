@@ -244,6 +244,32 @@ export class DiscreteBarChart extends React.Component<{
         this.context.chartView.isSelectingData = true
     }
 
+    get addEntityButton() {
+        if (!this.hasFloatingAddButton) return undefined
+        const y =
+            this.bounds.top +
+            (this.barHeight + this.barSpacing) * (this.totalBars - 1) +
+            this.barHeight / 2
+        const paddingTop = AddEntityButton.calcPaddingTop(
+            y,
+            "middle",
+            this.barHeight
+        )
+        return (
+            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
+                <AddEntityButton
+                    x={this.bounds.left + this.legendWidth}
+                    y={y}
+                    align="right"
+                    verticalAlign="middle"
+                    height={this.barHeight}
+                    label={`Add ${this.context.chart.entityType}`}
+                    onClick={this.onAddClick}
+                />
+            </ControlsOverlay>
+        )
+    }
+
     render() {
         if (this.failMessage)
             return <NoData bounds={this.bounds} message={this.failMessage} />
@@ -256,8 +282,6 @@ export class DiscreteBarChart extends React.Component<{
             innerBounds,
             barHeight,
             barSpacing,
-            legendLabelStyle,
-            valueLabelStyle,
             barValueFormat
         } = this
 
@@ -361,24 +385,7 @@ export class DiscreteBarChart extends React.Component<{
 
                     return result
                 })}
-                {this.hasFloatingAddButton && (
-                    <ControlsOverlay id="add-country">
-                        <AddEntityButton
-                            x={this.bounds.left + this.legendWidth}
-                            y={
-                                this.bounds.top +
-                                (this.barHeight + this.barSpacing) *
-                                    (this.totalBars - 1) +
-                                this.barHeight / 2
-                            }
-                            align="right"
-                            verticalAlign="middle"
-                            height={this.barHeight}
-                            label={`Add ${this.context.chart.entityType}`}
-                            onClick={this.onAddClick}
-                        />
-                    </ControlsOverlay>
-                )}
+                {this.addEntityButton}
             </g>
         )
     }
