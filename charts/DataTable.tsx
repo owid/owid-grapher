@@ -226,14 +226,14 @@ export class DataTable extends React.Component<DataTableProps> {
     private get dimensionSubheaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
-            dim.columns.map((column, index) => {
+            dim.columns.map(column => {
                 const headerText =
                     column.targetYearMode === TargetYearMode.point
                         ? dim.formatYear(column.targetYear!)
                         : columnNameByType[column.key]
                 return (
                     <ColumnHeader
-                        key={index}
+                        key={column.key}
                         sortable={column.sortable}
                         sortedCol={
                             sort.dimIndex === dimIndex &&
@@ -356,7 +356,6 @@ export class DataTable extends React.Component<DataTableProps> {
 }
 
 function ColumnHeader(props: {
-    key: string | number
     sortable: boolean
     sortedCol: boolean
     sortOrder: SortOrder
@@ -370,7 +369,6 @@ function ColumnHeader(props: {
     const { sortable, sortedCol } = props
     return (
         <th
-            key={props.key}
             className={classnames(props.colType, {
                 sortable: sortable,
                 sorted: sortedCol
