@@ -395,8 +395,6 @@ class ZoomToggle extends React.Component<{
 }
 
 @observer
-
-@observer
 class FilterSmallCountriesToggle extends React.Component<{
     chart: ChartConfigProps
 }> {
