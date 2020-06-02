@@ -2,15 +2,21 @@ import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
-import { defaultTo, isEmpty, reverse, round, toArray } from "./Util"
+import {
+    defaultTo,
+    isEmpty,
+    reverse,
+    round,
+    toArray,
+    first,
+    last
+} from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 
 export interface ColorScaleProps {
     config: ColorScaleConfigProps
-    minPossibleValue: number
-    maxPossibleValue: number
     defaultColorScheme: ColorScheme
     sortedNumericValues: number[]
     categoricalValues: string[]
@@ -74,6 +80,14 @@ export class ColorScale {
 
     @computed get sortedNumericValues(): number[] {
         return this.props.sortedNumericValues
+    }
+
+    @computed get minPossibleValue(): number | undefined {
+        return first(this.sortedNumericValues)
+    }
+
+    @computed get maxPossibleValue(): number | undefined {
+        return last(this.sortedNumericValues)
     }
 
     @computed get categoricalValues(): string[] {
@@ -209,7 +223,7 @@ export class ColorScale {
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const { minPossibleValue, maxPossibleValue, formatValue } = this.props
+        const { formatValue } = this.props
 
         const legendData = []
         const {
@@ -219,6 +233,8 @@ export class ColorScale {
             customCategoryColors,
             customBucketLabels,
             minBinValue,
+            minPossibleValue,
+            maxPossibleValue,
             customNumericColors,
             customCategoryLabels,
             customHiddenCategories
@@ -229,32 +245,34 @@ export class ColorScale {
             yUnit = find(units, { property: 'y' });*/
 
         // Numeric 'buckets' of color
-        let minValue = minBinValue
-        for (let i = 0; i < bucketMaximums.length; i++) {
-            const baseColor = baseColors[i]
-            const color = defaultTo(
-                customNumericColors.length > i
-                    ? customNumericColors[i]
-                    : undefined,
-                baseColor
-            )
-            const maxValue = +(bucketMaximums[i] as number)
-            const label = customBucketLabels[i]
-            legendData.push(
-                new NumericBin({
-                    isFirst: i === 0,
-                    isOpenLeft: i === 0 && minValue > minPossibleValue,
-                    isOpenRight:
-                        i === bucketMaximums.length - 1 &&
-                        maxValue < maxPossibleValue,
-                    min: minValue,
-                    max: maxValue,
-                    color: color,
-                    label: label,
-                    format: formatValue
-                })
-            )
-            minValue = maxValue
+        if (minPossibleValue !== undefined && maxPossibleValue !== undefined) {
+            let minValue = minBinValue
+            for (let i = 0; i < bucketMaximums.length; i++) {
+                const baseColor = baseColors[i]
+                const color = defaultTo(
+                    customNumericColors.length > i
+                        ? customNumericColors[i]
+                        : undefined,
+                    baseColor
+                )
+                const maxValue = +(bucketMaximums[i] as number)
+                const label = customBucketLabels[i]
+                legendData.push(
+                    new NumericBin({
+                        isFirst: i === 0,
+                        isOpenLeft: i === 0 && minValue > minPossibleValue,
+                        isOpenRight:
+                            i === bucketMaximums.length - 1 &&
+                            maxValue < maxPossibleValue,
+                        min: minValue,
+                        max: maxValue,
+                        color: color,
+                        label: label,
+                        format: formatValue
+                    })
+                )
+                minValue = maxValue
+            }
         }
 
         // Categorical values, each assigned a color

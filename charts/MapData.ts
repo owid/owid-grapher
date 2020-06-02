@@ -149,14 +149,6 @@ export class MapData extends ChartTransform {
         ) as number[]
     }
 
-    @computed get minPossibleValue(): number {
-        return this.sortedNumericValues[0]
-    }
-
-    @computed get maxPossibleValue(): number {
-        return this.sortedNumericValues[this.sortedNumericValues.length - 1]
-    }
-
     @computed get formatValueShort() {
         return this.dimension ? this.dimension.formatValueShort : () => ""
     }
@@ -198,12 +190,6 @@ export class MapData extends ChartTransform {
         return new ColorScale({
             get config() {
                 return that.map.props.colorScale
-            },
-            get minPossibleValue() {
-                return that.minPossibleValue
-            },
-            get maxPossibleValue() {
-                return that.maxPossibleValue
             },
             get defaultColorScheme() {
                 return that.defaultColorScheme
