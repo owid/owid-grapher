@@ -4,7 +4,7 @@ export declare interface OwidEntityKey {
     [id: string]: EntityMeta
 }
 
-export interface OwidVariableSet {
+export interface OwidVariablesAndEntityKey {
     variables: {
         [id: string]: OwidVariable
     }

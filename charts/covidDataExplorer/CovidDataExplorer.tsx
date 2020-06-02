@@ -1,4 +1,7 @@
-import { OwidVariableSet, OwidEntityKey } from "../owidData/OwidVariableSet"
+import {
+    OwidVariablesAndEntityKey,
+    OwidEntityKey
+} from "../owidData/OwidVariableSet"
 import React from "react"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
@@ -704,7 +707,7 @@ export class CovidDataExplorer extends React.Component<{
         return getTrajectoryOptions(kind, params.dailyFreq, params.perCapita)
     }
 
-    @observable.struct owidVariableSet: OwidVariableSet = {
+    @observable.struct owidVariableSet: OwidVariablesAndEntityKey = {
         variables: {
             123: continentsVariable(this.countryOptions)
         },
