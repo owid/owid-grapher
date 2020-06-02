@@ -23,6 +23,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
+import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -449,6 +450,11 @@ export class EditorCustomizeTab extends React.Component<{
                 )}
                 <TimelineSection editor={this.props.editor} />
                 <ColorsSection chart={chart} />
+                {chart.activeTransform.colorScale && (
+                    <EditorColorScaleSection
+                        scale={chart.activeTransform.colorScale}
+                    />
+                )}
                 {(features.hideLegend || features.entityType) && (
                     <Section name="Legend">
                         <FieldsRow>

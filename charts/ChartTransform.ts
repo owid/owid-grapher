@@ -11,6 +11,7 @@ import {
 import { defaultTo, first, last, sortedUniq, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 export interface IChartTransform {
     isValidConfig: boolean
@@ -24,6 +25,7 @@ export interface IChartTransform {
     startYear?: Time
     endYear?: Time
     targetYear?: Time
+    colorScale?: ColorScale
 }
 
 export abstract class ChartTransform implements IChartTransform {

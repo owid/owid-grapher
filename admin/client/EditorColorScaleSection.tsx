@@ -136,7 +136,7 @@ class ColorsSection extends React.Component<{
         const { scale } = this.props
 
         return (
-            <Section name="Colors">
+            <Section name="Color scale">
                 <FieldsRow>
                     <div className="form-group">
                         <label>Color scheme</label>
