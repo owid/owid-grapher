@@ -197,7 +197,6 @@ export class ChartConfigProps {
     // TODO: These 2 are currently in development. Do not save to DB.
     @observable.ref externalDataUrl?: string = undefined
     @observable.ref owidDataset?: OwidVariablesAndEntityKey = undefined
-    @observable.ref showSettingsMenu?: boolean = undefined
     @observable.ref entitiesAreCountries?: boolean = undefined
 
     @observable.ref selectedData: EntitySelection[] = []
