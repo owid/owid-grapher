@@ -205,7 +205,6 @@ export class DataTable extends React.Component<DataTableProps> {
             )
 
             const props = {
-                key: dim.key,
                 sortable: dim.sortable,
                 sortedCol: dim.sortable && sort.dimIndex === dimIndex,
                 sortOrder: sort.order,
@@ -219,7 +218,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 dataType: "numeric" as const
             }
 
-            return <ColumnHeader {...props} />
+            return <ColumnHeader key={dim.key} {...props} />
         })
     }
 
