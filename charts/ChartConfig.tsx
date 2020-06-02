@@ -701,6 +701,10 @@ export class ChartConfig {
             json.isAutoSlug = true
         }
 
+        // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
+        // in the Grapher Admin with an overlay tab open
+        json.overlay = undefined
+
         json.data = {
             availableEntities: this.data.availableEntities
         }
