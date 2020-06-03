@@ -90,6 +90,8 @@ module.exports = (env, argv) => {
             // Note that this means the settings become part of the client-side JS at webpack build time, not at server run time
             new Dotenv(),
 
+            // This plugin will convert any mentions of "process.env.DATA_TABLE" in the codebase into value of that
+            // environment variable at compile-time.
             new EnvironmentPlugin(["DATA_TABLE"])
         ],
         devServer: {
