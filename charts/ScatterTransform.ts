@@ -58,7 +58,7 @@ export class ScatterTransform extends ChartTransform {
                 // return that.allPoints.some(point => point.color === undefined)
             },
             get defaultNoDataColor() {
-                return "#932834"
+                return "#959595"
             },
             get formatNumericValue() {
                 return that.colorDimension?.formatValueShort ?? identity
@@ -585,7 +585,7 @@ export class ScatterTransform extends ChartTransform {
             const group = {
                 entityDimensionKey,
                 label: chart.data.getLabelForKey(entityDimensionKey),
-                color: "#932834", // Default color
+                color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
                 values: []
             } as ScatterSeries
