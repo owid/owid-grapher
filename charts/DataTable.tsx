@@ -199,7 +199,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.displayDimensions.map((dim, dimIndex) => {
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">{dim.name}</span>,
+                    <span className="name">{dim.name}</span>
                     <span className="unit">{dim.unit}</span>
                 </React.Fragment>
             )
