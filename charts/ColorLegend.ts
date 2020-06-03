@@ -204,7 +204,7 @@ export class NumericColorLegend {
     }
 
     @computed get height(): number {
-        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) as number)
+        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) ?? 0)
     }
 
     @computed get width(): number {

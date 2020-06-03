@@ -208,8 +208,6 @@ class CategoricalColorLegendView extends React.Component<
         const { marks } = props.legend
         const { focusBracket } = props.legend.props
 
-        //Bounds.debug([this.bounds])
-        //Bounds.debug(marks.map(m => m.label.bounds))
         return (
             <g className="categoricalColorLegend">
                 {marks.map((m, i) => {
@@ -223,8 +221,8 @@ class CategoricalColorLegendView extends React.Component<
                             onMouseLeave={() => this.props.onMouseLeave()}
                         >
                             <rect
-                                x={(props.x as number) + m.x}
-                                y={(props.y as number) + m.y}
+                                x={props.x + m.x}
+                                y={props.y + m.y}
                                 width={m.rectSize}
                                 height={m.rectSize}
                                 fill={m.bin.color}
@@ -233,8 +231,8 @@ class CategoricalColorLegendView extends React.Component<
                             />
                             ,
                             <text
-                                x={(props.x as number) + m.label.bounds.x}
-                                y={(props.y as number) + m.label.bounds.y}
+                                x={props.x + m.label.bounds.x}
+                                y={props.y + m.label.bounds.y}
                                 fontSize={m.label.fontSize}
                                 dominantBaseline="hanging"
                             >
