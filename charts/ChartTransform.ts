@@ -1,7 +1,6 @@
 import { computed } from "mobx"
 
 import { AxisSpec } from "./AxisSpec"
-import { Colorable } from "./Colorizer"
 import {
     Time,
     isUnboundedLeft,
@@ -18,7 +17,6 @@ export interface IChartTransform {
     yAxis?: AxisSpec
     xAxis?: AxisSpec
     selectableEntityDimensionKeys: EntityDimensionKey[]
-    colorables?: Colorable[]
     minTimelineYear: Time
     maxTimelineYear: Time
     timelineYears: Time[]

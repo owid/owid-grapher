@@ -3,12 +3,15 @@ import { sum, includes, max, defaultTo } from "./Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "./TextWrap"
-import { Colorable } from "./Colorizer"
 
 export interface ScatterColorLegendProps {
     maxWidth: number
     fontSize: number
-    colorables: Colorable[]
+    colorables: {
+        key: string
+        label: string
+        color: string
+    }[]
 }
 
 export interface LabelMark {

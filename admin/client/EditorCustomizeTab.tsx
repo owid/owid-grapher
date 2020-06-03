@@ -12,10 +12,7 @@ import {
     BindAutoString,
     BindString,
     TextField,
-    Button,
-    EditableListItem,
-    ColorBox,
-    EditableList
+    Button
 } from "./Forms"
 import { debounce } from "charts/Util"
 import { Color } from "charts/Color"
@@ -79,26 +76,6 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
 }
 
 @observer
-class ColorableItem extends React.Component<{
-    label: string
-    color: string | undefined
-    onColor: (color: string | undefined) => void
-}> {
-    @observable.ref isChoosingColor: boolean = false
-
-    render() {
-        const { label, color } = this.props
-
-        return (
-            <EditableListItem key={label} className="ColorableItem">
-                <ColorBox color={color} onColor={this.props.onColor} />
-                <div>{label}</div>
-            </EditableListItem>
-        )
-    }
-}
-
-@observer
 class ColorsSection extends React.Component<{ chart: ChartConfig }> {
     @action.bound onColorBy(value: string) {
         this.props.chart.props.colorBy = value === "default" ? undefined : value
@@ -114,28 +91,10 @@ class ColorsSection extends React.Component<{ chart: ChartConfig }> {
 
     render() {
         const { chart } = this.props
-
-        const customColors = chart.props.customColors || {}
-        const colorables = chart.activeTransform.colorables
-
         return (
             <Section name="Colors">
                 <ColorSchemeSelector chart={chart} />
                 {/*<SelectField label="Color by" value={chart.props.colorBy || "default"} onValue={this.onColorBy} options={["default", "entity", "variable"]} optionLabels={["Default", "Entity", "Variable"]} />*/}
-                {colorables && (
-                    <EditableList>
-                        {colorables.map(c => (
-                            <ColorableItem
-                                key={c.key}
-                                label={c.label}
-                                color={customColors[c.key]}
-                                onColor={(color: Color | undefined) =>
-                                    this.assignColor(c.key, color)
-                                }
-                            />
-                        ))}
-                    </EditableList>
-                )}
             </Section>
         )
     }
