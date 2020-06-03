@@ -509,7 +509,13 @@ export class Controls {
 
     @observable isShareMenuActive: boolean = false
     @observable isSettingsMenuActive: boolean = false
-    @observable paddingTop: number = 0
+
+    @computed get paddingTop() {
+        const tops = Object.values(this.props.chartView.overlays)
+            .filter(overlay => overlay.props.paddingTop !== undefined)
+            .map(overlay => overlay.props.paddingTop) as number[]
+        return tops.length ? Math.max(...tops) : 0
+    }
 
     @computed get addDataTerm() {
         const { chart } = this.props
@@ -600,12 +606,11 @@ export class AddEntityButton extends React.Component<{
         label: "Add country"
     }
 
-    @action setControlsPaddingTop(value: number) {
-        this.context.chartView.controls.paddingTop = value
-    }
-
-    calcPaddingTop(): number {
-        const { y, verticalAlign, height } = this.props
+    static calcPaddingTop(
+        y: number,
+        verticalAlign: VerticalAlign,
+        height: number
+    ): number {
         const realY =
             verticalAlign === "bottom"
                 ? y - height
@@ -613,21 +618,6 @@ export class AddEntityButton extends React.Component<{
                 ? y - height / 2
                 : y
         return Math.max(0, -realY)
-    }
-
-    // A hacky way to add padding at the top of the graph if there is no space
-    // for the "Add country" button
-
-    componentDidMount() {
-        this.setControlsPaddingTop(this.calcPaddingTop())
-    }
-
-    componentDidUpdate() {
-        this.setControlsPaddingTop(this.calcPaddingTop())
-    }
-
-    componentWillUnmount() {
-        this.setControlsPaddingTop(0)
     }
 
     render() {
@@ -734,28 +724,29 @@ export class ProjectionChooser extends React.Component<{
 export class ControlsOverlay extends React.Component<{
     id: string
     children: JSX.Element
+    paddingTop?: number
 }> {
     static contextType = ChartViewContext
     context!: ChartViewContextType
 
-    get controlOverlays() {
-        return this.context.chartView.overlays
+    @action setOverlay() {
+        this.context.chartView.overlays[this.props.id] = this
     }
 
-    @action setOverlay(children: JSX.Element | undefined) {
-        this.controlOverlays[this.props.id] = children
+    @action deleteOverlay() {
+        delete this.context.chartView.overlays[this.props.id]
     }
 
     componentDidMount() {
-        this.setOverlay(this.props.children)
+        this.setOverlay()
     }
 
     componentDidUpdate() {
-        this.setOverlay(this.props.children)
+        this.setOverlay()
     }
 
     componentWillUnmount() {
-        this.setOverlay(undefined)
+        this.deleteOverlay()
     }
 
     render() {
@@ -774,15 +765,15 @@ export class ControlsOverlayView extends React.Component<{
 
     render() {
         const wrapperStyle: React.CSSProperties = {
-            position: "relative",
-            width: "1px",
             height: `${this.props.controls.paddingTop}px`
         }
         return (
             <div className="ControlsOverlay" style={wrapperStyle}>
                 {entries(this.props.chartView.overlays).map(
-                    ([key, children]) => (
-                        <React.Fragment key={key}>{children}</React.Fragment>
+                    ([key, overlay]) => (
+                        <React.Fragment key={key}>
+                            {overlay.props.children}
+                        </React.Fragment>
                     )
                 )}
             </div>

@@ -37,6 +37,7 @@ import { TextWrap } from "./TextWrap"
 import { NoData } from "./NoData"
 import { ScaleSelector } from "./ScaleSelector"
 import { EntityDimensionKey } from "charts/EntityDimensionKey"
+import { ControlsOverlay } from "./Controls"
 
 export interface SlopeChartValue {
     x: number
@@ -759,13 +760,15 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
                 <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
                 {yScaleTypeOptions.length > 1 && (
-                    <ScaleSelector
-                        x={x1 + 5}
-                        y={y2 - 8}
-                        scaleType={yScaleType}
-                        scaleTypeOptions={yScaleTypeOptions}
-                        onChange={onScaleTypeChange}
-                    />
+                    <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
+                        <ScaleSelector
+                            x={x1 + 5}
+                            y={y2 - 20}
+                            scaleType={yScaleType}
+                            scaleTypeOptions={yScaleTypeOptions}
+                            onChange={onScaleTypeChange}
+                        />
+                    </ControlsOverlay>
                 )}
                 <Text
                     x={x1}

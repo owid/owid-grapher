@@ -68,20 +68,32 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         if (this.context.isStatic) return null
 
         const style = {
-            fontSize: "12px",
-            textTransform: "uppercase",
-            cursor: "pointer"
+            left: x - this.getLeftShiftIfNeeded(x),
+            top: y
         }
         return (
-            <text
-                x={x - this.getLeftShiftIfNeeded(x)}
-                y={y}
+            <div
                 onClick={onClick}
                 style={style as any}
-                className="clickable"
+                className="clickable toggleSwitch"
             >
-                {scaleType}
-            </text>
+                <span
+                    className={
+                        "leftToggle " +
+                        (scaleType === "linear" ? "activeToggle" : "")
+                    }
+                >
+                    Linear
+                </span>
+                <span
+                    className={
+                        "rightToggle " +
+                        (scaleType === "log" ? "activeToggle" : "")
+                    }
+                >
+                    Log
+                </span>
+            </div>
         )
     }
 }
