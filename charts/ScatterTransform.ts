@@ -52,10 +52,7 @@ export class ScatterTransform extends ChartTransform {
                 return that.colorDimension?.categoricalValues ?? []
             },
             get hasNoDataBin() {
-                // Since we haven't shown the "No data" bin in the past for scatter plots, we keep
-                // this `false` to stay consistent. At some point we may want to change this.
-                return false
-                // return that.allPoints.some(point => point.color === undefined)
+                return that.allPoints.some(point => point.color === undefined)
             },
             get defaultNoDataColor() {
                 return "#959595"
