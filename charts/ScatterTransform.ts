@@ -589,7 +589,6 @@ export class ScatterTransform extends ChartTransform {
 
             dataByYear.forEach((point, year) => {
                 if (year < startYear || year > endYear) return
-
                 group.values.push(point)
             })
 
@@ -600,15 +599,13 @@ export class ScatterTransform extends ChartTransform {
                 const keyColor = keyColors[entityDimensionKey]
                 if (keyColor !== undefined) {
                     group.color = keyColor
-                } else {
+                } else if (this.colorDimension) {
                     const colorValue = last(
                         group.values
                             .map(v => v.color)
                             .filter(s => s !== undefined)
                     )
-                    const color = this.colorDimension
-                        ? this.colorScale.getColor(colorValue)
-                        : undefined
+                    const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
                         group.isScaleColor = true
