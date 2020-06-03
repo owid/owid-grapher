@@ -308,7 +308,7 @@ export class ColorScale {
         let allCategoricalValues = categoricalValues
 
         // Inject "No data" bin
-        if (hasNoDataBin) {
+        if (hasNoDataBin && !allCategoricalValues.includes(NO_DATA_LABEL)) {
             // The color scheme colors get applied in order, starting from first, and we only use
             // as many colors as there are categorical values (excluding "No data").
             // So in order to leave it colorless, we want to append the "No data" label last.
