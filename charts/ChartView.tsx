@@ -28,6 +28,7 @@ import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
 import * as urlBinding from "charts/UrlBinding"
 import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
+import { DATA_TABLE } from "settings"
 
 declare const window: any
 
@@ -299,7 +300,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                     chartView={this}
                 />
             )
-        else if (chart.primaryTab === "data")
+        else if (DATA_TABLE && chart.primaryTab === "data")
             return <DataTab key="dataTab" bounds={tabBounds} chart={chart} />
         else return undefined
     }
@@ -308,6 +309,8 @@ export class ChartView extends React.Component<ChartViewProps> {
         const { chart } = this
         if (chart.overlayTab === "sources")
             return <SourcesTab key="sourcesTab" bounds={bounds} chart={chart} />
+        else if (!DATA_TABLE && chart.overlayTab === "data")
+            return <DataTab key="dataTab" bounds={bounds} chart={chart} />
         else if (chart.overlayTab === "download")
             return (
                 <DownloadTab key="downloadTab" bounds={bounds} chart={chart} />

@@ -6,6 +6,7 @@ const Dotenv = require("dotenv-webpack")
 
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
+const { EnvironmentPlugin } = require("webpack")
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
@@ -87,7 +88,9 @@ module.exports = (env, argv) => {
 
             // This plugin loads settings from .env so we can import them
             // Note that this means the settings become part of the client-side JS at webpack build time, not at server run time
-            new Dotenv()
+            new Dotenv(),
+
+            new EnvironmentPlugin(["DATA_TABLE"])
         ],
         devServer: {
             host: "localhost",

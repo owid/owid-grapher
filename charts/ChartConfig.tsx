@@ -12,6 +12,8 @@ import {
 } from "mobx"
 import { bind } from "decko"
 
+import { DATA_TABLE } from "settings"
+
 import {
     extend,
     map,
@@ -578,7 +580,11 @@ export class ChartConfig {
     }
 
     set tab(value) {
-        if (value === "chart" || value === "map" || value === "data") {
+        if (
+            value === "chart" ||
+            value === "map" ||
+            (DATA_TABLE && value === "data")
+        ) {
             this.props.tab = value
             this.props.overlay = undefined
         } else {
