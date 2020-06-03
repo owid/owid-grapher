@@ -52,7 +52,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         this.props.onChange(scaleTypeOptions[nextScaleTypeIndex])
     }
 
-    private componentWidth = 45
+    private componentWidth = 95
 
     private getLeftShiftIfNeeded(xPosition: number) {
         const maxWidth = this.context.chartView.tabBounds.width
