@@ -342,7 +342,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 }
             }),
             d => -d.size
-        ) as any
+        )
     }
 
     private labelPriority(l: ScatterLabel) {
