@@ -36,6 +36,7 @@ import { Triangle } from "./Marks"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 export interface ScatterSeries {
     color: string
@@ -66,6 +67,7 @@ interface PointsWithLabelsProps {
     bounds: Bounds
     xScale: AxisScale
     yScale: AxisScale
+    colorScale: ColorScale
     sizeDomain: [number, number]
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
@@ -76,6 +78,7 @@ interface PointsWithLabelsProps {
 
 interface ScatterRenderValue {
     position: Vector2
+    color: string
     size: number
     fontSize: number
     label: string
@@ -277,6 +280,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         )
     }
 
+    @computed private get colorScale() {
+        return this.props.colorScale
+    }
+
     @computed private get sizeScale() {
         const sizeScale = scaleLinear()
             .range([10, 1000])
@@ -311,10 +318,14 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             yScale,
             defaultColorScale,
             sizeScale,
-            fontScale
+            fontScale,
+            colorScale
         } = this
         return sortBy(
             data.map(d => {
+                const defaultColor =
+                    d.color || defaultColorScale(d.entityDimensionKey)
+
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
                     return {
@@ -322,6 +333,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             Math.floor(xScale.place(v.x)),
                             Math.floor(yScale.place(v.y))
                         ),
+                        color: colorScale.getColor(v.color) ?? defaultColor,
                         size: Math.sqrt(area / Math.PI),
                         fontSize: fontScale(d.size || 1),
                         time: v.time,
@@ -332,7 +344,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 return {
                     entityDimensionKey: d.entityDimensionKey,
                     displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
-                    color: d.color || defaultColorScale(d.entityDimensionKey),
+                    color: defaultColor,
                     size: (last(values) as any).size,
                     values: values,
                     text: d.label,

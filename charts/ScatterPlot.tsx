@@ -331,7 +331,7 @@ export class ScatterPlot extends React.Component<{
             comparisonLines,
             hideLines
         } = this
-        const { currentData, sizeDomain } = transform
+        const { currentData, sizeDomain, colorScale } = transform
 
         return (
             <g>
@@ -355,6 +355,7 @@ export class ScatterPlot extends React.Component<{
                     bounds={axisBox.innerBounds}
                     xScale={axisBox.xScale}
                     yScale={axisBox.yScale}
+                    colorScale={colorScale}
                     sizeDomain={sizeDomain}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
