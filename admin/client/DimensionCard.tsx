@@ -28,7 +28,8 @@ export class DimensionCard extends React.Component<{
     @computed get hasExpandedOptions(): boolean {
         return (
             this.props.dimension.property === "y" ||
-            this.props.dimension.property === "x"
+            this.props.dimension.property === "x" ||
+            this.props.dimension.property === "color"
         )
     }
 
