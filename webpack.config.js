@@ -91,8 +91,8 @@ module.exports = (env, argv) => {
             new Dotenv(),
 
             // This plugin will convert any mentions of "process.env.DATA_TABLE" in the codebase into value of that
-            // environment variable at compile-time.
-            new EnvironmentPlugin(["DATA_TABLE"])
+            // environment variable at compile-time, or null as default.
+            new EnvironmentPlugin({ DATA_TABLE: null })
         ],
         devServer: {
             host: "localhost",
