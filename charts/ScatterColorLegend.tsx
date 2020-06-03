@@ -105,7 +105,7 @@ export class ScatterColorLegendView extends React.Component<
                 className="ScatterColorLegend clickable"
                 style={{ cursor: "pointer" }}
             >
-                {labelMarks.map(mark => {
+                {labelMarks.map((mark, index) => {
                     const isActive = includes(activeColors, mark.color)
                     const isFocus = includes(focusColors, mark.color)
                     const mouseOver = onMouseOver
@@ -118,7 +118,7 @@ export class ScatterColorLegendView extends React.Component<
 
                     const result = (
                         <g
-                            key={mark.label.text}
+                            key={index}
                             className="legendMark"
                             onMouseOver={mouseOver}
                             onMouseLeave={mouseLeave}
