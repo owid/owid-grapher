@@ -84,7 +84,6 @@ export const COVID_DASHBOARD: boolean = process.env.COVID_DASHBOARD
     ? parseBool(process.env.COVID_DASHBOARD)
     : false
 
-debugger
 // Feature flag for DataTable in Chart
 export const DATA_TABLE: boolean = process.env.DATA_TABLE
     ? parseBool(process.env.DATA_TABLE)
