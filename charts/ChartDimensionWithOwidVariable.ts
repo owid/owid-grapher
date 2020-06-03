@@ -74,7 +74,7 @@ export class ChartDimensionWithOwidVariable {
                 this.props.display.tolerance,
                 this.variable.display.tolerance
             ),
-            0
+            this.property === "color" ? Infinity : 0
         )
     }
 

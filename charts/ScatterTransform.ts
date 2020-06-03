@@ -231,9 +231,7 @@ export class ScatterTransform extends ChartTransform {
 
         for (const dimension of filledDimensions) {
             const tolerance =
-                dimension.property === "color" || dimension.property === "size"
-                    ? Infinity
-                    : dimension.tolerance
+                dimension.property === "size" ? Infinity : dimension.tolerance
 
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
