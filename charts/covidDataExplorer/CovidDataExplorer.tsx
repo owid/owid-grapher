@@ -183,29 +183,43 @@ export class CovidDataExplorer extends React.Component<{
     private get frequencyPicker() {
         const options: InputOption[] = [
             {
-                label: "Total",
+                label: "Cumulative",
                 checked: this.props.params.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
                     if (value) this.setDailyFrequencyCommand(false)
+                    this.setSmoothingCommand(0)
 
                     this.updateChart()
                 }
             },
             {
-                label: "Daily new",
-                checked: this.props.params.dailyFreq,
+                label: "New per day",
+                checked:
+                    this.props.params.dailyFreq &&
+                    this.props.params.smoothing === 0,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
                     if (value) this.setTotalFrequencyCommand(false)
+                    this.setSmoothingCommand(0)
 
                     this.updateChart()
+                }
+            },
+            {
+                label: "7-day rolling average",
+                checked: this.props.params.smoothing === 7,
+                onChange: () => {
+                    this.setSmoothingCommand(7)
+                    this.updateChart()
+                    this.setDailyFrequencyCommand(true)
+                    this.setTotalFrequencyCommand(false)
                 }
             }
         ]
         return (
             <CovidInputControl
-                name="frequency"
+                name="interval"
                 options={options}
                 isCheckbox={false}
             ></CovidInputControl>
@@ -249,41 +263,6 @@ export class CovidDataExplorer extends React.Component<{
                 isCheckbox={true}
                 options={options}
                 comment={this.daysSinceOption.title}
-            ></CovidInputControl>
-        )
-    }
-
-    private get smoothingPicker() {
-        const options: InputOption[] = [
-            {
-                label: "No smoothing",
-                checked: this.props.params.smoothing === 0,
-                onChange: () => {
-                    this.setSmoothingCommand(0)
-                    this.updateChart()
-                }
-            },
-            {
-                label: "3-day rolling average",
-                checked: this.props.params.smoothing === 3,
-                onChange: () => {
-                    this.setSmoothingCommand(3)
-                    this.updateChart()
-                }
-            },
-            {
-                label: "7-day rolling average",
-                checked: this.props.params.smoothing === 7,
-                onChange: () => {
-                    this.setSmoothingCommand(7)
-                    this.updateChart()
-                }
-            }
-        ]
-        return (
-            <CovidInputControl
-                name="smoothing"
-                options={options}
             ></CovidInputControl>
         )
     }
@@ -413,7 +392,6 @@ export class CovidDataExplorer extends React.Component<{
                     {this.frequencyPicker}
                     {this.perCapitaPicker}
                     {this.alignedPicker}
-                    {this.smoothingPicker}
                     {mobileDoneButton}
                 </div>
                 <CountryPicker
