@@ -612,7 +612,7 @@ export class ChartConfig {
         if (
             value === "chart" ||
             value === "map" ||
-            (DATA_TABLE && value === "data")
+            (DATA_TABLE && value === "table")
         ) {
             this.props.tab = value
             this.props.overlay = undefined
@@ -683,7 +683,7 @@ export class ChartConfig {
         return filter([
             this.props.hasChartTab && "chart",
             this.props.hasMapTab && "map",
-            "data",
+            DATA_TABLE ? "table" : "data",
             "sources",
             "download"
         ]) as ChartTabOption[]

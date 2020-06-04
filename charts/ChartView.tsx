@@ -300,7 +300,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                     chartView={this}
                 />
             )
-        else if (DATA_TABLE && chart.primaryTab === "data")
+        else if (DATA_TABLE && chart.primaryTab === "table")
             return <DataTab key="dataTab" bounds={tabBounds} chart={chart} />
         else return undefined
     }
