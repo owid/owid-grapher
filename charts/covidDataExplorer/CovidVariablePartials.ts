@@ -7,6 +7,37 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 // which are easy with Pandas, become not as simple if we have to roll our own data transformation library.
 // We may want to revert to a Chart Builder that cannot generate variables on the fly.
 export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
+    positive_test_rate: {
+        id: 142721,
+        name: "cumulative_positivity_rate",
+        unit: "",
+        description:
+            "The total number of confirmed cases to date divided by the total number of tests to date, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
+        coverage: "",
+        display: {
+            name: "Cumulative positivity rate",
+            unit: "%",
+            shortUnit: "%",
+            yearIsDay: true,
+            conversionFactor: 100,
+            entityAnnotationsMap:
+                "Argentina: tests performed\nAustralia: tests performed\nAustria: tests performed\nBahrain: units unclear\nBangladesh: samples tested\nBelarus: tests performed\nBelgium: units unclear\nBolivia: units unclear\nBrazil: tests performed\nBulgaria: tests performed\nCanada: people tested\nChile: tests performed\nColombia: samples tested\nCosta Rica: people tested\nCroatia: people tested\nCuba: tests performed\nCzech Republic: tests performed\nDenmark: people tested\nEcuador: units unclear\nEl Salvador: tests performed\nEstonia: tests performed\nEthiopia: tests performed\nFinland: samples tested\nFrance: people tested\nGermany: tests performed\nGhana: people tested\nGreece: tests performed\nHong Kong: tests performed\nHungary: tests performed\nIceland: samples tested\nIndia: samples tested\nIndonesia: people tested\nIran: tests performed\nIreland: units unclear\nIsrael: tests performed\nItaly: tests performed\nJapan: people tested\nKazakhstan: tests performed\nKenya: units unclear\nLatvia: tests performed\nLithuania: samples tested\nLuxembourg: people tested\nMalaysia: people tested\nMaldives: samples tested\nMexico: people tested\nMorocco: people tested\nMyanmar: samples tested\nNepal: people tested\nNetherlands: people tested\nNew Zealand: tests performed\nNigeria: samples tested\nNorway: people tested\nPakistan: tests performed\nPanama: units unclear\nParaguay: samples tested\nPeru: people tested\nPhilippines: people tested\nPoland: samples tested\nPortugal: samples tested\nQatar: people tested\nRomania: tests performed\nRussia: tests performed\nRwanda: units unclear\nSaudi Arabia: units unclear\nSenegal: tests performed\nSerbia: people tested\nSingapore: people tested\nSlovakia: tests performed\nSlovenia: tests performed\nSouth Africa: units unclear\nSouth Korea: people tested\nSpain: tests performed\nSweden: people tested\nSwitzerland: tests performed\nTaiwan: tests performed\nThailand: samples tested\nTunisia: units unclear\nTurkey: tests performed\nUganda: samples tested\nUkraine: units unclear\nUnited Kingdom: tests performed\nUnited States: tests performed\nUruguay: tests performed\nVietnam: units unclear\nZimbabwe: tests performed\n"
+        },
+        datasetName: "COVID testing time series data",
+        source: {
+            id: 17805,
+            name: "Official data collated by Our World in Data",
+            dataPublishedBy:
+                "For source details see ourworldindata.org/covid-testing#source-information-country-by-country",
+            dataPublisherSource:
+                "For source details see ourworldindata.org/covid-testing#source-information-country-by-country",
+            link:
+                "ourworldindata.org/covid-testing#source-information-country-by-country",
+            retrievedDate: "",
+            additionalInfo:
+                "Data on COVID-19 testing. Comparisons between countries are compromised for several reasons.\n\nYou can download the full dataset, alongside detailed source descriptions here: https://github.com/owid/covid-19-data/tree/master/public/data/"
+        }
+    },
     tests_per_case: {
         id: 142754,
         name: "short_term_tests_per_case",

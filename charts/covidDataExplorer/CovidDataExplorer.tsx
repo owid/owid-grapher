@@ -123,6 +123,7 @@ export class CovidDataExplorer extends React.Component<{
         this.props.params.deathsMetric = false
         this.props.params.cfrMetric = false
         this.props.params.testsPerCaseMetric = false
+        this.props.params.positiveTestRate = false
     }
 
     private get metricPicker() {
@@ -170,6 +171,15 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.testsPerCaseMetric = true
+                    this.updateChart()
+                }
+            },
+            {
+                label: "Share of positive tests",
+                checked: this.props.params.positiveTestRate,
+                onChange: value => {
+                    this.clearMetricsCommand()
+                    this.props.params.positiveTestRate = true
                     this.updateChart()
                 }
             }
@@ -471,6 +481,8 @@ export class CovidDataExplorer extends React.Component<{
         if (this.props.params.cfrMetric) metrics.push("case fatality rate")
         if (this.props.params.testsPerCaseMetric)
             metrics.push("tests per confirmed case")
+        if (this.props.params.positiveTestRate)
+            metrics.push("share of positive tests")
         return metrics.length > 2
             ? `${metrics.slice(1).join(", ")} and ${metrics[0]}`
             : metrics.length === 2
@@ -719,6 +731,28 @@ export class CovidDataExplorer extends React.Component<{
             initVariable("tests_per_case", row =>
                 row.total_tests !== undefined && row.total_cases
                     ? row.total_tests / row.total_cases
+                    : undefined
+            )
+
+        if (params.positiveTestRate && params.dailyFreq)
+            initVariable(
+                "positive_test_rate",
+                row =>
+                    row.new_tests_smoothed !== undefined &&
+                    (params.smoothing === 7
+                        ? row.new_tests_smoothed
+                        : row.new_tests)
+                        ? row.new_cases /
+                          (params.smoothing === 7
+                              ? row.new_tests_smoothed
+                              : row.new_tests)
+                        : undefined,
+                true
+            )
+        if (params.positiveTestRate && params.totalFreq)
+            initVariable("positive_test_rate", row =>
+                row.total_cases !== undefined && row.total_tests
+                    ? row.total_cases / row.total_tests
                     : undefined
             )
 

@@ -146,9 +146,17 @@ export const buildCovidVariableId = (
     daily?: boolean
 ): number => {
     const arbitraryStartingPrefix = 1145
+    const names: { [key: string]: number } = {
+        tests: 0,
+        cases: 1,
+        deaths: 2,
+        positive_test_rate: 3,
+        case_fatality_rate: 4,
+        tests_per_case: 5
+    }
     const parts = [
         arbitraryStartingPrefix,
-        name === "tests" ? 0 : name === "cases" ? 1 : 2,
+        names[name],
         daily ? 1 : 0,
         perCapita,
         rollingAverage
