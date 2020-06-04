@@ -114,10 +114,7 @@ export class SiteBaker {
             "/grapher/public/* /grapher/:splat 301",
             "/grapher/view/* /grapher/:splat 301",
 
-            "/slides/* https://slides.ourworldindata.org/:splat 301",
-
-            // Coronavirus country page redirect
-            "/coronavirus country=:country /coronavirus-country-by-country?country=:country 302"
+            "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
 
         SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
