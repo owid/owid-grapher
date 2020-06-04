@@ -239,8 +239,6 @@ export class ChartConfigProps {
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
 
-    @observable colorBy?: string = undefined
-    @observable customColors?: { [key: string]: Color | undefined } = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
 

@@ -922,18 +922,17 @@ export class CovidDataExplorer extends React.Component<{
                 colorSchemeValues: [],
                 colorSchemeLabels: [],
                 customNumericColors: [],
-                customCategoryColors: {},
+                customCategoryColors: {
+                    Asia: "#2d8587",
+                    Africa: "#ef943a",
+                    Europe: "#4c5c78",
+                    Oceania: "#662c68",
+                    Antarctica: "#818282",
+                    "North America": "#e04e4b",
+                    "South America": "#932834"
+                },
                 customCategoryLabels: {},
                 customHiddenCategories: {}
-            },
-            customColors: {
-                Asia: "#2d8587",
-                Africa: "#ef943a",
-                Europe: "#4c5c78",
-                Oceania: "#662c68",
-                Antarctica: "#818282",
-                "North America": "#e04e4b",
-                "South America": "#932834"
             },
             hideRelativeToggle: true,
             hasChartTab: true,

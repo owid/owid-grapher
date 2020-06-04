@@ -15,7 +15,6 @@ import {
     Button
 } from "./Forms"
 import { debounce } from "charts/Util"
-import { Color } from "charts/Color"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -71,31 +70,6 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                     />
                 </FieldsRow>
             </React.Fragment>
-        )
-    }
-}
-
-@observer
-class ColorsSection extends React.Component<{ chart: ChartConfig }> {
-    @action.bound onColorBy(value: string) {
-        this.props.chart.props.colorBy = value === "default" ? undefined : value
-    }
-
-    @action.bound assignColor(key: string, color: Color | undefined) {
-        const { chart } = this.props
-        if (chart.props.customColors === undefined)
-            chart.props.customColors = {}
-
-        chart.props.customColors[key] = color
-    }
-
-    render() {
-        const { chart } = this.props
-        return (
-            <Section name="Colors">
-                <ColorSchemeSelector chart={chart} />
-                {/*<SelectField label="Color by" value={chart.props.colorBy || "default"} onValue={this.onColorBy} options={["default", "entity", "variable"]} optionLabels={["Default", "Entity", "Variable"]} />*/}
-            </Section>
         )
     }
 }
@@ -408,7 +382,9 @@ export class EditorCustomizeTab extends React.Component<{
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <ColorsSection chart={chart} />
+                <Section name="Color scheme">
+                    <ColorSchemeSelector chart={chart} />
+                </Section>
                 {chart.activeTransform.colorScale && (
                     <EditorColorScaleSection
                         scale={chart.activeTransform.colorScale}
