@@ -122,6 +122,7 @@ export class CovidDataExplorer extends React.Component<{
         this.props.params.testsMetric = false
         this.props.params.deathsMetric = false
         this.props.params.cfrMetric = false
+        this.props.params.testsPerCaseMetric = false
     }
 
     private get metricPicker() {
@@ -144,6 +145,16 @@ export class CovidDataExplorer extends React.Component<{
                     this.updateChart()
                 }
             },
+
+            {
+                label: "Case fatality rate",
+                checked: this.props.params.cfrMetric,
+                onChange: value => {
+                    this.clearMetricsCommand()
+                    this.props.params.cfrMetric = true
+                    this.updateChart()
+                }
+            },
             {
                 label: "Tests",
                 checked: this.props.params.testsMetric,
@@ -154,11 +165,11 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "Case fatality rate",
-                checked: this.props.params.cfrMetric,
+                label: "Tests per confirmed case",
+                checked: this.props.params.testsPerCaseMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
-                    this.props.params.cfrMetric = true
+                    this.props.params.testsPerCaseMetric = true
                     this.updateChart()
                 }
             }
@@ -458,6 +469,8 @@ export class CovidDataExplorer extends React.Component<{
         if (this.props.params.casesMetric) metrics.push("cases")
         if (this.props.params.testsMetric) metrics.push("tests")
         if (this.props.params.cfrMetric) metrics.push("case fatality rate")
+        if (this.props.params.testsPerCaseMetric)
+            metrics.push("tests per confirmed case")
         return metrics.length > 2
             ? `${metrics.slice(1).join(", ")} and ${metrics[0]}`
             : metrics.length === 2
@@ -630,7 +643,8 @@ export class CovidDataExplorer extends React.Component<{
             // The 7 day test smoothing is already calculated, so for now just reuse that instead of
             // recalculating.
             const alreadySmoothed =
-                columnName === "tests" && params.smoothing === 7
+                (columnName === "tests" || columnName === "tests_per_case") &&
+                params.smoothing === 7
 
             if (!this.owidVariableSet.variables[id]) {
                 this.owidVariableSet.variables[id] = buildCovidVariable(
@@ -688,6 +702,24 @@ export class CovidDataExplorer extends React.Component<{
                     : row.total_deaths && row.total_cases
                     ? (100 * row.total_deaths) / row.total_cases
                     : 0
+            )
+
+        if (params.testsPerCaseMetric && params.dailyFreq)
+            initVariable(
+                "tests_per_case",
+                row =>
+                    row.new_tests_smoothed !== undefined && row.new_cases
+                        ? (params.smoothing === 7
+                              ? row.new_tests_smoothed
+                              : row.new_tests) / row.new_cases
+                        : undefined,
+                true
+            )
+        if (params.testsPerCaseMetric && params.totalFreq)
+            initVariable("tests_per_case", row =>
+                row.total_tests !== undefined && row.total_cases
+                    ? row.total_tests / row.total_cases
+                    : undefined
             )
 
         return indices
