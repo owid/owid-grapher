@@ -24,8 +24,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
             this.props.editor.chart.props.hideLogo = true
         } else {
             this.props.editor.chart.props.hideLogo = undefined
-            this.props.editor.chart.props.logo = (value ||
-                undefined) as LogoOption
+            this.props.editor.chart.props.logo =
+                (value as LogoOption) || undefined
         }
     }
 
@@ -75,6 +75,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         options={[
                             { label: "OWID", value: "owid" },
                             { label: "CORE+OWID", value: "core+owid" },
+                            { label: "GV+OWID", value: "gv+owid" },
                             { label: "No logo", value: "none" }
                         ]}
                         value={

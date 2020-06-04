@@ -30,7 +30,7 @@ export class Header {
             return undefined
         } else {
             return new Logo({
-                logo: this.props.chart.props.logo as LogoOption,
+                logo: this.props.chart.props.logo,
                 isLink: !this.props.chart.isNativeEmbed,
                 fontSize: this.props.chart.baseFontSize
             })
