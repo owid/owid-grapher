@@ -9,6 +9,7 @@ export class CovidQueryParams {
     @observable testsMetric: boolean = false
     @observable deathsMetric: boolean = false
     @observable casesMetric: boolean = false
+    @observable cfrMetric: boolean = false
     @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
@@ -26,6 +27,7 @@ export class CovidQueryParams {
         if (params.testsMetric) this.testsMetric = true
         if (params.deathsMetric) this.deathsMetric = true
         if (params.casesMetric) this.casesMetric = true
+        if (params.cfrMetric) this.cfrMetric = true
         if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
         if (params.perCapita) this.perCapita = true
@@ -45,6 +47,7 @@ export class CovidQueryParams {
         this.testsMetric = false
         this.deathsMetric = false
         this.casesMetric = true
+        this.cfrMetric = false
         this.totalFreq = true
         "USA GBR CAN BRA AUS IND ESP DEU FRA"
             .split(" ")
@@ -56,6 +59,7 @@ export class CovidQueryParams {
         params.testsMetric = this.testsMetric ? true : undefined
         params.deathsMetric = this.deathsMetric ? true : undefined
         params.casesMetric = this.casesMetric ? true : undefined
+        params.cfrMetric = this.cfrMetric ? true : undefined
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
         params.aligned = this.aligned ? true : undefined
