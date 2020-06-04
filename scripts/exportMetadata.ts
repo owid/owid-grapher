@@ -33,16 +33,15 @@ async function dataExport() {
         `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions user_invitations dataset_files data_values >> ${filePath}`
     )
 
-    // Strip passwords
     if (!withPasswords) {
+        // Strip passwords
         await exec(`sed -i -e "s/bcrypt[^']*//g" ${filePath}`)
+        // Add default admin user
+        await fs.appendFile(
+            filePath,
+            "INSERT INTO users (`password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n"
+        )
     }
-
-    // Add default admin user
-    await fs.appendFile(
-        filePath,
-        "INSERT INTO users (`password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES ('bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n"
-    )
 
     await db.end()
 }
