@@ -165,7 +165,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return some(this.displayDimensions, header => header.columns.length > 1)
     }
 
-    @action.bound onSort(dimIndex: DimensionIndex, columnKey?: ColumnKey) {
+    @action.bound updateSort(dimIndex: DimensionIndex, columnKey?: ColumnKey) {
         const { sort } = this.tableState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
@@ -177,123 +177,96 @@ export class DataTable extends React.Component<DataTableProps> {
         this.storedState.sort.order = order
     }
 
-    renderSortIcon(params: { type?: "text" | "numeric"; isActive?: boolean }) {
-        const type = defaultTo(params.type, "numeric")
-        const isActive = defaultTo(params.isActive, false)
-
-        const order = isActive
-            ? this.tableState.sort.order
-            : DEFAULT_SORT_STATE.order
-
-        let faIcon: IconDefinition
-
-        if (type === "text") {
-            faIcon =
-                order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
-        } else {
-            faIcon =
-                order === SortOrder.desc ? faSortAmountUp : faSortAmountDownAlt
-        }
-
+    private get entityHeader() {
+        const { sort } = this.tableState
         return (
-            <span
-                className={classnames({ "sort-icon": true, active: isActive })}
-            >
-                <FontAwesomeIcon icon={faIcon} />
-            </span>
+            <ColumnHeader
+                key="entity"
+                sortable={true}
+                sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
+                sortOrder={sort.order}
+                onClick={() => this.updateSort(ENTITY_DIM_INDEX)}
+                rowSpan={this.hasSubheaders ? 2 : 1}
+                headerText={capitalize(this.entityType)}
+                colType="entity"
+                dataType="text"
+            />
         )
     }
 
-    renderHeaderRow() {
+    private get dimensionHeaders() {
         const { sort } = this.tableState
+        return this.displayDimensions.map((dim, dimIndex) => {
+            const dimensionHeaderText = (
+                <React.Fragment>
+                    <span className="name">{dim.name}</span>
+                    <span className="unit">{dim.unit}</span>
+                </React.Fragment>
+            )
+
+            const props = {
+                sortable: dim.sortable,
+                sortedCol: dim.sortable && sort.dimIndex === dimIndex,
+                sortOrder: sort.order,
+                onClick: () =>
+                    dim.sortable &&
+                    this.updateSort(dimIndex, SingleValueKey.single),
+                rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
+                colSpan: dim.columns.length,
+                headerText: dimensionHeaderText,
+                colType: "dimension" as const,
+                dataType: "numeric" as const
+            }
+
+            return <ColumnHeader key={dim.key} {...props} />
+        })
+    }
+
+    private get dimensionSubheaders() {
+        const { sort } = this.tableState
+        return this.displayDimensions.map((dim, dimIndex) =>
+            dim.columns.map(column => {
+                const headerText =
+                    column.targetYearMode === TargetYearMode.point
+                        ? dim.formatYear(column.targetYear!)
+                        : columnNameByType[column.key]
+                return (
+                    <ColumnHeader
+                        key={column.key}
+                        sortable={column.sortable}
+                        sortedCol={
+                            sort.dimIndex === dimIndex &&
+                            sort.columnKey === column.key
+                        }
+                        sortOrder={sort.order}
+                        onClick={() => this.updateSort(dimIndex, column.key)}
+                        headerText={headerText}
+                        colType="dimension"
+                        dataType="numeric"
+                    />
+                )
+            })
+        )
+    }
+
+    private get headerRow() {
         return (
             <React.Fragment>
                 <tr>
-                    <th
-                        key="entity"
-                        className={classnames({
-                            entity: true,
-                            sortable: true,
-                            sorted: sort.dimIndex === ENTITY_DIM_INDEX
-                        })}
-                        rowSpan={this.hasSubheaders ? 2 : 1}
-                        onClick={() => this.onSort(ENTITY_DIM_INDEX)}
-                    >
-                        {capitalize(this.entityType)}
-                        {this.renderSortIcon({
-                            type: "text",
-                            isActive: sort.dimIndex === ENTITY_DIM_INDEX
-                        })}
-                    </th>
-                    {this.displayDimensions.map((dim, dimIndex) => (
-                        <th
-                            key={dim.key}
-                            className={classnames({
-                                dimension: true,
-                                sortable: dim.sortable,
-                                sorted:
-                                    dim.sortable && sort.dimIndex === dimIndex
-                            })}
-                            rowSpan={
-                                this.hasSubheaders && dim.columns.length < 2
-                                    ? 2
-                                    : 1
-                            }
-                            colSpan={dim.columns.length}
-                            onClick={() =>
-                                dim.sortable &&
-                                this.onSort(dimIndex, SingleValueKey.single)
-                            }
-                        >
-                            <span className="name">{dim.name}</span>
-                            <span className="unit">{dim.unit}</span>
-                            {dim.sortable &&
-                                this.renderSortIcon({
-                                    isActive: sort.dimIndex === dimIndex
-                                })}
-                        </th>
-                    ))}
+                    {this.entityHeader}
+                    {this.dimensionHeaders}
                 </tr>
-                {this.hasSubheaders && (
-                    <tr>
-                        {this.displayDimensions.map((dim, dimIndex) =>
-                            dim.columns.map((column, index) => {
-                                const isSorted =
-                                    sort.dimIndex === dimIndex &&
-                                    sort.columnKey === column.key
-                                return (
-                                    <th
-                                        key={index}
-                                        className={classnames({
-                                            sortable: column.sortable,
-                                            sorted: isSorted
-                                        })}
-                                        onClick={() =>
-                                            this.onSort(dimIndex, column.key)
-                                        }
-                                    >
-                                        {column.targetYearMode ===
-                                        TargetYearMode.point
-                                            ? column.targetYear
-                                            : columnNameByType[column.key]}
-                                        {this.renderSortIcon({
-                                            isActive: isSorted
-                                        })}
-                                    </th>
-                                )
-                            })
-                        )}
-                    </tr>
-                )}
+                {this.hasSubheaders && <tr>{this.dimensionSubheaders}</tr>}
             </React.Fragment>
         )
     }
 
-    renderValueCell(
+    private renderValueCell(
         key: string,
         column: DataTableColumn,
         dv: DimensionValue | undefined,
-        sorted: boolean
+        sorted: boolean,
+        formatYear: (y: number) => string
     ) {
         let value: Value | undefined
 
@@ -323,8 +296,8 @@ export class DataTable extends React.Component<DataTableProps> {
                     column.targetYear !== undefined &&
                     column.targetYear !== value.year && (
                         <ClosestYearNotice
-                            year={value.year}
-                            targetYear={column.targetYear}
+                            closestYear={formatYear(value.year)}
+                            targetYear={formatYear(column.targetYear)}
                         />
                     )}
                 {value.formattedValue}
@@ -358,7 +331,8 @@ export class DataTable extends React.Component<DataTableProps> {
                             column,
                             dv,
                             sort.dimIndex === dimIndex &&
-                                sort.columnKey === column.key
+                                sort.columnKey === column.key,
+                            dimension.formatYear
                         )
                     })
                 })}
@@ -366,7 +340,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderRows() {
+    private get valueRows() {
         return this.displayRows.map(row =>
             this.renderEntityRow(row, this.displayDimensions)
         )
@@ -375,26 +349,91 @@ export class DataTable extends React.Component<DataTableProps> {
     render() {
         return (
             <table className="data-table">
-                <thead>{this.renderHeaderRow()}</thead>
-                <tbody>{this.renderRows()}</tbody>
+                <thead>{this.headerRow}</thead>
+                <tbody>{this.valueRows}</tbody>
             </table>
         )
     }
 }
 
+function ColumnHeader(props: {
+    sortable: boolean
+    sortedCol: boolean
+    sortOrder: SortOrder
+    onClick: () => void
+    rowSpan?: number
+    colSpan?: number
+    headerText: React.ReactFragment
+    colType: "entity" | "dimension"
+    dataType: "text" | "numeric"
+}) {
+    const { sortable, sortedCol } = props
+    return (
+        <th
+            className={classnames(props.colType, {
+                sortable: sortable,
+                sorted: sortedCol
+            })}
+            rowSpan={props.rowSpan ?? 1}
+            colSpan={props.colSpan ?? 1}
+            onClick={props.onClick}
+        >
+            {props.headerText}
+            {sortable && (
+                <SortIcon
+                    type={props.dataType}
+                    isActiveIcon={sortedCol}
+                    order={
+                        sortedCol ? props.sortOrder : DEFAULT_SORT_STATE.order
+                    }
+                />
+            )}
+        </th>
+    )
+}
+
+function SortIcon(props: {
+    type?: "text" | "numeric"
+    isActiveIcon?: boolean
+    order: SortOrder
+}) {
+    const type = defaultTo(props.type, "numeric")
+    const isActiveIcon = defaultTo(props.isActiveIcon, false)
+
+    let faIcon: IconDefinition
+
+    if (type === "text") {
+        faIcon =
+            props.order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
+    } else {
+        faIcon =
+            props.order === SortOrder.desc
+                ? faSortAmountUp
+                : faSortAmountDownAlt
+    }
+
+    return (
+        <span
+            className={classnames({ "sort-icon": true, active: isActiveIcon })}
+        >
+            <FontAwesomeIcon icon={faIcon} />
+        </span>
+    )
+}
+
 export const ClosestYearNotice = ({
     targetYear,
-    year
+    closestYear: year
 }: {
-    targetYear: number
-    year: number
+    targetYear: string
+    closestYear: string
 }) => (
     <Tippy
         content={
             <div className="closest-year-notice">
                 <strong>Data not available for {targetYear}</strong>
                 <br />
-                Showing closest available year ({year})
+                Showing closest available data point ({year})
             </div>
         }
         arrow={false}

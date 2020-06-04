@@ -7,6 +7,8 @@ import { ChartConfig } from "./ChartConfig"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { DataTable } from "./DataTable"
+import { DATA_TABLE } from "settings"
 
 // Client-side data export from chart
 @observer
@@ -112,23 +114,39 @@ export class DataTab extends React.Component<{
                 className="dataTab"
                 style={extend(bounds.toCSS(), { position: "absolute" })}
             >
-                <div style={{ maxWidth: "100%" }}>
-                    <p>
-                        Download a CSV file containing all data used in this
-                        visualization:
-                    </p>
-                    <a
-                        href={
-                            externalCsvLink ? externalCsvLink : this.csvDataUri
-                        }
-                        download={csvFilename}
-                        className="btn btn-primary"
-                        data-track-note="chart-download-csv"
-                        onClick={externalCsvLink ? undefined : this.onDownload}
+                {DATA_TABLE ? (
+                    <div
+                        style={{
+                            maxWidth: "100%",
+                            height: "100%",
+                            overflow: "auto"
+                        }}
                     >
-                        <FontAwesomeIcon icon={faDownload} /> {csvFilename}
-                    </a>
-                </div>
+                        <DataTable chart={this.props.chart} />
+                    </div>
+                ) : (
+                    <div style={{ maxWidth: "100%" }}>
+                        <p>
+                            Download a CSV file containing all data used in this
+                            visualization:
+                        </p>
+                        <a
+                            href={
+                                externalCsvLink
+                                    ? externalCsvLink
+                                    : this.csvDataUri
+                            }
+                            download={csvFilename}
+                            className="btn btn-primary"
+                            data-track-note="chart-download-csv"
+                            onClick={
+                                externalCsvLink ? undefined : this.onDownload
+                            }
+                        >
+                            <FontAwesomeIcon icon={faDownload} /> {csvFilename}
+                        </a>
+                    </div>
+                )}
             </div>
         )
     }

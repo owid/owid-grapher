@@ -1,19 +1,18 @@
 #! /usr/bin/env yarn jest
 
 import * as React from "react"
-import { shallow, ShallowWrapper } from "enzyme"
+import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 
 import { setupChart } from "test/utils"
 
 import { DataTable, ClosestYearNotice } from "../DataTable"
 
 describe(DataTable, () => {
-    let view: ShallowWrapper
-
     describe("when you render a table", () => {
+        let view: ReactWrapper
         beforeAll(() => {
             const chart = setupChart(677, [104402])
-            view = shallow(<DataTable chart={chart} />)
+            view = mount(<DataTable chart={chart} />)
         })
 
         it("renders a table", () => {
@@ -60,6 +59,7 @@ describe(DataTable, () => {
     })
 
     describe("when you select a range of years", () => {
+        let view: ReactWrapper
         beforeAll(() => {
             const chart = setupChart(677, [104402], {
                 type: "LineChart",
@@ -67,7 +67,7 @@ describe(DataTable, () => {
                 minTime: 1990,
                 maxTime: 2017
             })
-            view = shallow(<DataTable chart={chart} />)
+            view = mount(<DataTable chart={chart} />)
         })
 
         it("header is split into two rows", () => {
@@ -101,6 +101,7 @@ describe(DataTable, () => {
     })
 
     describe("when the table doesn't have data for all rows", () => {
+        let view: ShallowWrapper
         beforeAll(() => {
             const chart = setupChart(792, [3512])
             view = shallow(<DataTable chart={chart} />)
@@ -119,8 +120,8 @@ describe(DataTable, () => {
                 .find("tbody tr td.dimension")
                 .first()
                 .find(ClosestYearNotice)
-            expect(notice.prop("year")).toBe(2013)
-            expect(notice.prop("targetYear")).toBe(2016)
+            expect(notice.prop("closestYear")).toBe("2013")
+            expect(notice.prop("targetYear")).toBe("2016")
         })
     })
 })

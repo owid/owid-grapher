@@ -93,6 +93,7 @@ export interface DataTableDimension extends Sortable {
     name: string
     unit?: string
     columns: DataTableColumn[]
+    formatYear: (num: number) => string
 }
 
 export type DataTableColumn = DimensionColumn & Sortable
@@ -334,7 +335,8 @@ export class DataTableTransform {
                 // All columns are sortable for now, but in the future we will have a sparkline that
                 // is not sortable.
                 sortable: true
-            }))
+            })),
+            formatYear: d.dimension.formatYear
         }))
     }
 
