@@ -5,13 +5,13 @@ export declare type SmoothingOption = 0 | 3 | 7
 export declare type DailyFrequencyOption = boolean
 export declare type TotalFrequencyOption = boolean
 
-export declare type DeathsMetricOption = boolean
-export declare type CasesMetricOption = boolean
-export declare type TestsMetricOption = boolean
-
 export declare type countrySlug = string
 
-export declare type MetricKind = "deaths" | "cases" | "tests"
+export declare type MetricKind =
+    | "deaths"
+    | "cases"
+    | "tests"
+    | "case_fatality_rate"
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidRow {

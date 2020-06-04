@@ -33,10 +33,7 @@ import {
 import {
     SmoothingOption,
     TotalFrequencyOption,
-    CasesMetricOption,
-    TestsMetricOption,
     DailyFrequencyOption,
-    DeathsMetricOption,
     MetricKind,
     ParsedCovidRow,
     CountryOption
@@ -101,23 +98,11 @@ export class CovidDataExplorer extends React.Component<{
         HTMLDivElement
     > = React.createRef()
 
-    setDeathsMetricCommand(value: DeathsMetricOption) {
-        this.props.params.deathsMetric = value
-    }
-
     private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()
         this.updateChart()
-    }
-
-    setCasesMetricCommand(value: CasesMetricOption) {
-        this.props.params.casesMetric = value
-    }
-
-    setTestsMetricCommand(value: TestsMetricOption) {
-        this.props.params.testsMetric = value
     }
 
     setTotalFrequencyCommand(option: TotalFrequencyOption) {
@@ -132,29 +117,30 @@ export class CovidDataExplorer extends React.Component<{
         this.props.params.smoothing = option
     }
 
+    clearMetricsCommand() {
+        this.props.params.casesMetric = false
+        this.props.params.testsMetric = false
+        this.props.params.deathsMetric = false
+        this.props.params.cfrMetric = false
+    }
+
     private get metricPicker() {
         const options: InputOption[] = [
             {
-                label: "Confirmed Deaths",
+                label: "Confirmed deaths",
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
-                    this.setDeathsMetricCommand(value)
-                    if (value) {
-                        this.setCasesMetricCommand(false)
-                        this.setTestsMetricCommand(false)
-                    }
+                    this.clearMetricsCommand()
+                    this.props.params.deathsMetric = true
                     this.updateChart()
                 }
             },
             {
-                label: "Confirmed Cases",
+                label: "Confirmed cases",
                 checked: this.props.params.casesMetric,
                 onChange: value => {
-                    this.setCasesMetricCommand(value)
-                    if (value) {
-                        this.setTestsMetricCommand(false)
-                        this.setDeathsMetricCommand(false)
-                    }
+                    this.clearMetricsCommand()
+                    this.props.params.casesMetric = true
                     this.updateChart()
                 }
             },
@@ -162,11 +148,17 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Tests",
                 checked: this.props.params.testsMetric,
                 onChange: value => {
-                    this.setTestsMetricCommand(value)
-                    if (value) {
-                        this.setCasesMetricCommand(false)
-                        this.setDeathsMetricCommand(false)
-                    }
+                    this.clearMetricsCommand()
+                    this.props.params.testsMetric = true
+                    this.updateChart()
+                }
+            },
+            {
+                label: "Case fatality rate",
+                checked: this.props.params.cfrMetric,
+                onChange: value => {
+                    this.clearMetricsCommand()
+                    this.props.params.cfrMetric = true
                     this.updateChart()
                 }
             }
@@ -443,8 +435,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get perCapitaDivisor() {
         const { params } = this.props
-        if (params.testsMetric && !params.deathsMetric && !params.casesMetric)
-            return 1000
+        if (params.testsMetric) return 1000
         return 1000000
     }
 
@@ -461,12 +452,14 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get metricTitle() {
+        // Todo: if we no longer support multiple metrics, we could probably simplify this.
         const metrics = []
         if (this.props.params.deathsMetric) metrics.push("deaths")
         if (this.props.params.casesMetric) metrics.push("cases")
         if (this.props.params.testsMetric) metrics.push("tests")
-        return metrics.length === 3
-            ? "deaths, cases and tests"
+        if (this.props.params.cfrMetric) metrics.push("case fatality rate")
+        return metrics.length > 2
+            ? `${metrics.slice(1).join(", ")} and ${metrics[0]}`
             : metrics.length === 2
             ? `${metrics[0]} and ${metrics[1]}`
             : metrics[0]
@@ -479,6 +472,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get title() {
+        if (this.props.params.cfrMetric)
+            return `Case fatality rate of the ongoing COVID-19 pandemic`
         return `${this.frequencyTitle} confirmed COVID-19 ${this.metricTitle}${this.perCapitaTitle}`
     }
 
@@ -491,6 +486,10 @@ export class CovidDataExplorer extends React.Component<{
         if (this.props.params.casesMetric)
             parts.push(
                 `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
+            )
+        if (this.props.params.cfrMetric)
+            parts.push(
+                `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
             )
         return `${this.smoothingTitle}` + parts.join("\n")
     }
@@ -670,6 +669,26 @@ export class CovidDataExplorer extends React.Component<{
             initVariable("deaths", row => row.new_deaths, true)
         if (params.deathsMetric && params.totalFreq)
             initVariable("deaths", row => row.total_deaths)
+
+        if (params.cfrMetric && params.dailyFreq)
+            initVariable(
+                "case_fatality_rate",
+                row =>
+                    row.total_cases < 100
+                        ? undefined
+                        : row.new_cases && row.new_deaths
+                        ? (100 * row.new_deaths) / row.new_cases
+                        : 0,
+                true
+            )
+        if (params.cfrMetric && params.totalFreq)
+            initVariable("case_fatality_rate", row =>
+                row.total_cases < 100
+                    ? undefined
+                    : row.total_deaths && row.total_cases
+                    ? (100 * row.total_deaths) / row.total_cases
+                    : 0
+            )
 
         return indices
     }

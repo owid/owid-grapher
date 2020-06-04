@@ -7,6 +7,29 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 // which are easy with Pandas, become not as simple if we have to roll our own data transformation library.
 // We may want to revert to a Chart Builder that cannot generate variables on the fly.
 export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
+    case_fatality_rate: {
+        id: 142600,
+        name:
+            "Case fatality rate of COVID-19 (%) (Only observations with ≥100 cases)",
+        unit: "",
+        description: "",
+        coverage: "",
+        display: { unit: "%", zeroDay: "2020-01-21", yearIsDay: true },
+        datasetName: "COVID-2019 - ECDC (2020)",
+        source: {
+            id: 17801,
+            name:
+                "European CDC – Situation Update Worldwide – Last updated 3rd June, 11:00 (London time)",
+            dataPublishedBy:
+                "European Centre for Disease Prevention and Control (ECDC)",
+            dataPublisherSource: "",
+            link:
+                "https://github.com/owid/covid-19-data/tree/master/public/data",
+            retrievedDate: "",
+            additionalInfo:
+                'Raw data on confirmed cases and deaths for all countries is sourced from the <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">European Centre for Disease Prevention and Control (ECDC)</a>.  \n\nOur complete COVID-19 dataset is a collection of the COVID-19 data maintained by <em>Our World in Data</em>. <strong>It is updated daily</strong> and includes data on confirmed cases, deaths, and testing.\n\nWe have created a new description of all our data sources. You find it at our GitHub repository <strong><a href="https://github.com/owid/covid-19-data/tree/master/public/data/">here</a></strong>. There you can download all of our data.\n\n'
+        }
+    },
     cases: {
         id: 142581,
         name: "Confirmed cases of COVID-19",
