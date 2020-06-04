@@ -7,6 +7,7 @@ import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
 
 export class CovidQueryParams {
     @observable testsMetric: boolean = false
+    @observable testsPerCaseMetric: boolean = false
     @observable deathsMetric: boolean = false
     @observable casesMetric: boolean = false
     @observable cfrMetric: boolean = false
@@ -25,6 +26,7 @@ export class CovidQueryParams {
 
     private setFromQueryString(params: QueryParams) {
         if (params.testsMetric) this.testsMetric = true
+        if (params.testsPerCaseMetric) this.testsPerCaseMetric = true
         if (params.deathsMetric) this.deathsMetric = true
         if (params.casesMetric) this.casesMetric = true
         if (params.cfrMetric) this.cfrMetric = true
@@ -45,6 +47,7 @@ export class CovidQueryParams {
 
     private setDefaults() {
         this.testsMetric = false
+        this.testsPerCaseMetric = false
         this.deathsMetric = false
         this.casesMetric = true
         this.cfrMetric = false
@@ -60,6 +63,7 @@ export class CovidQueryParams {
         params.deathsMetric = this.deathsMetric ? true : undefined
         params.casesMetric = this.casesMetric ? true : undefined
         params.cfrMetric = this.cfrMetric ? true : undefined
+        params.testsPerCaseMetric = this.testsPerCaseMetric ? true : undefined
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
         params.aligned = this.aligned ? true : undefined

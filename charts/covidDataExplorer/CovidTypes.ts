@@ -12,6 +12,7 @@ export declare type MetricKind =
     | "cases"
     | "tests"
     | "case_fatality_rate"
+    | "tests_per_case"
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidRow {
