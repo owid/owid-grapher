@@ -10,7 +10,8 @@ import {
     retryPromise,
     computeRollingAverage,
     insertMissingValuePlaceholders,
-    rollingMap
+    rollingMap,
+    groupMap
 } from "../Util"
 
 describe(findClosestYear, () => {
@@ -215,5 +216,14 @@ describe(rollingMap, () => {
     })
     it("handles arrays with multiple elements", () => {
         expect(rollingMap([1, 2, 4, 8], (a, b) => b - a)).toEqual([1, 2, 4])
+    })
+})
+
+describe(groupMap, () => {
+    it("groups by key", () => {
+        const group = groupMap([0, 1, "a", 1, 1], v => v)
+        expect(group.get(0)).toEqual([0])
+        expect(group.get(1)).toEqual([1, 1, 1])
+        expect(group.get("a")).toEqual(["a"])
     })
 })
