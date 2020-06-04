@@ -93,7 +93,7 @@ export class MultiColorPolyline extends React.Component<
                 {this.segments.map((group, index) => (
                     <polyline
                         {...polylineProps}
-                        key={group.color}
+                        key={index}
                         points={toSvgPoints(group.points)}
                         stroke={group.color}
                         fill="none"
