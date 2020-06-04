@@ -265,7 +265,8 @@ export class DataTable extends React.Component<DataTableProps> {
         key: string,
         column: DataTableColumn,
         dv: DimensionValue | undefined,
-        sorted: boolean
+        sorted: boolean,
+        formatYear: (y: number) => string
     ) {
         let value: Value | undefined
 
@@ -295,8 +296,8 @@ export class DataTable extends React.Component<DataTableProps> {
                     column.targetYear !== undefined &&
                     column.targetYear !== value.year && (
                         <ClosestYearNotice
-                            year={value.year}
-                            targetYear={column.targetYear}
+                            closestYear={formatYear(value.year)}
+                            targetYear={formatYear(column.targetYear)}
                         />
                     )}
                 {value.formattedValue}
@@ -330,7 +331,8 @@ export class DataTable extends React.Component<DataTableProps> {
                             column,
                             dv,
                             sort.dimIndex === dimIndex &&
-                                sort.columnKey === column.key
+                                sort.columnKey === column.key,
+                            dimension.formatYear
                         )
                     })
                 })}
@@ -421,17 +423,17 @@ function SortIcon(props: {
 
 export const ClosestYearNotice = ({
     targetYear,
-    year
+    closestYear: year
 }: {
-    targetYear: number
-    year: number
+    targetYear: string
+    closestYear: string
 }) => (
     <Tippy
         content={
             <div className="closest-year-notice">
                 <strong>Data not available for {targetYear}</strong>
                 <br />
-                Showing closest available year ({year})
+                Showing closest available data point ({year})
             </div>
         }
         arrow={false}
