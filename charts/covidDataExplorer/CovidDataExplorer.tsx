@@ -891,6 +891,21 @@ export class CovidDataExplorer extends React.Component<{
         ]
     }
 
+    get customCategoryColors() {
+        const colors = lastOfNonEmptyArray(
+            (ColorSchemes["continents"] as ColorScheme).colorSets
+        )
+        return {
+            Africa: colors[0],
+            Antarctica: colors[1],
+            Asia: colors[2],
+            Europe: colors[3],
+            "North America": colors[4],
+            Oceania: colors[5],
+            "South America": colors[6]
+        }
+    }
+
     @observable.ref chart = new ChartConfig(
         {
             slug: covidDashboardSlug,
@@ -922,15 +937,7 @@ export class CovidDataExplorer extends React.Component<{
                 colorSchemeValues: [],
                 colorSchemeLabels: [],
                 customNumericColors: [],
-                customCategoryColors: {
-                    Asia: "#2d8587",
-                    Africa: "#ef943a",
-                    Europe: "#4c5c78",
-                    Oceania: "#662c68",
-                    Antarctica: "#818282",
-                    "North America": "#e04e4b",
-                    "South America": "#932834"
-                },
+                customCategoryColors: this.customCategoryColors,
                 customCategoryLabels: {},
                 customHiddenCategories: {}
             },
