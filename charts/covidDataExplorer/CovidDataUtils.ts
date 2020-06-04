@@ -10,7 +10,8 @@ import {
     insertMissingValuePlaceholders,
     difference,
     entries,
-    minBy
+    minBy,
+    fromPairs
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
@@ -191,6 +192,35 @@ const computeRollingAveragesForEachCountry = (
     return flatten(averages)
 }
 
+function buildEntityAnnotations(
+    data: ParsedCovidRow[],
+    metric: MetricKind
+): string | undefined {
+    if (metric === "cases") {
+        return `Spain: Note that on April 19 & May 25th the methodology has changed
+Lithuania: Note that on April 28 the methodology has changed
+Ecuador: Note that on May 8 the methodology has changed
+United Kingdom: Note that on May 20 the methodology has changed
+France: Note that on June 2 the methodology has changed`
+    } else if (metric === "deaths") {
+        return `Benin: Note that on May 19 the methodology has changed
+Spain: Note that on May 25 the methodology has changed
+United Kingdom: Note that on June 1 the methodology has changed
+Panama: Note that on June 3 the methodology has changed`
+    } else if (metric === "tests") {
+        // convert to object to extract unique country => unit mapping
+        const unitByCountry = fromPairs(
+            data
+                .filter(row => row.tests_units)
+                .map(row => [row.location, row.tests_units])
+        )
+        return Object.entries(unitByCountry)
+            .map(([location, unit]) => `${location}: ${unit}`)
+            .join("\n")
+    }
+    return undefined
+}
+
 export const buildCovidVariable = (
     newId: number,
     name: MetricKind,
@@ -263,6 +293,8 @@ export const buildCovidVariable = (
     } else {
         variable.display!.numDecimalPlaces = 0
     }
+
+    variable.display!.entityAnnotationsMap = buildEntityAnnotations(data, name)
 
     return variable as OwidVariable
 }
