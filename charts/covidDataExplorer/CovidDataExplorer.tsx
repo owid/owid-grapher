@@ -723,12 +723,15 @@ export class CovidDataExplorer extends React.Component<{
         if (params.testsPerCaseMetric && params.dailyFreq)
             initVariable(
                 "tests_per_case",
-                row =>
-                    row.new_tests_smoothed !== undefined && row.new_cases
-                        ? (params.smoothing === 7
-                              ? row.new_tests_smoothed
-                              : row.new_tests) / row.new_cases
-                        : undefined,
+                row => {
+                    const value =
+                        params.smoothing === 7
+                            ? row.new_tests_smoothed
+                            : row.new_tests
+                    return value !== undefined && row.new_cases
+                        ? value / row.new_cases
+                        : undefined
+                },
                 true
             )
         if (params.testsPerCaseMetric && params.totalFreq)
@@ -747,9 +750,7 @@ export class CovidDataExplorer extends React.Component<{
                             ? row.new_tests_smoothed
                             : row.new_tests
 
-                    return row.new_tests_smoothed !== undefined && value
-                        ? row.new_cases / value
-                        : undefined
+                    return value ? row.new_cases / value : undefined
                 },
                 true
             )

@@ -139,6 +139,10 @@ export const daysSinceVariable = (
     return variable as OwidVariable
 }
 
+type MetricKey = {
+    [K in MetricKind]: number
+}
+
 export const buildCovidVariableId = (
     name: MetricKind,
     perCapita: number,
@@ -146,7 +150,7 @@ export const buildCovidVariableId = (
     daily?: boolean
 ): number => {
     const arbitraryStartingPrefix = 1145
-    const names: { [key: string]: number } = {
+    const names: MetricKey = {
         tests: 0,
         cases: 1,
         deaths: 2,
