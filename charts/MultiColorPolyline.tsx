@@ -49,7 +49,7 @@ export function getSegmentsFromPoints(
             currentSegment.points.push(toPoint(currentPoint))
         } else {
             const midPoint = getMidpoint(
-                last(currentSegment.points) as Point,
+                last(currentSegment.points)!,
                 currentPoint
             )
             currentSegment.points.push(midPoint)

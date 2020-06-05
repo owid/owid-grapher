@@ -893,7 +893,7 @@ export class CovidDataExplorer extends React.Component<{
 
     get customCategoryColors() {
         const colors = lastOfNonEmptyArray(
-            (ColorSchemes["continents"] as ColorScheme).colorSets
+            ColorSchemes["continents"]!.colorSets
         )
         return {
             Africa: colors[0],

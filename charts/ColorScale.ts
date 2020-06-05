@@ -87,7 +87,7 @@ export class ColorScale {
     }
 
     @computed get defaultColorScheme(): ColorScheme {
-        return ColorSchemes["BuGn"] as ColorScheme
+        return ColorSchemes["BuGn"]!
     }
 
     @computed get defaultNoDataColor(): string {
