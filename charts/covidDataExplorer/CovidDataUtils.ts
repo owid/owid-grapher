@@ -215,7 +215,11 @@ France: Note that on June 2 the methodology has changed`
 Spain: Note that on May 25 the methodology has changed
 United Kingdom: Note that on June 1 the methodology has changed
 Panama: Note that on June 3 the methodology has changed`
-    } else if (metric === "tests") {
+    } else if (
+        metric === "tests" ||
+        metric === "positive_test_rate" ||
+        metric === "tests_per_case"
+    ) {
         // convert to object to extract unique country => unit mapping
         const unitByCountry = fromPairs(
             data
