@@ -5,11 +5,12 @@ import {
     formatValue,
     some,
     isString,
-    sortBy,
-    isNumber,
     formatDay,
     formatYear,
-    last
+    last,
+    sortBy,
+    isNumber,
+    sortedUniq
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -73,7 +74,7 @@ export class ChartDimensionWithOwidVariable {
                 this.props.display.tolerance,
                 this.variable.display.tolerance
             ),
-            0
+            this.property === "color" ? Infinity : 0
         )
     }
 
@@ -159,20 +160,12 @@ export class ChartDimensionWithOwidVariable {
         else return this.variable.values
     }
 
-    @computed get numericValues(): number[] {
-        return sortBy(this.values.filter(v => isNumber(v))) as number[]
+    @computed get sortedNumericValues(): number[] {
+        return sortBy(this.values.filter(isNumber))
     }
 
-    @computed get hasNumericValues(): boolean {
-        return this.numericValues.length > 0
-    }
-
-    @computed get minValue(): number {
-        return this.variable.minValue * this.unitConversionFactor
-    }
-
-    @computed get maxValue(): number {
-        return this.variable.maxValue * this.unitConversionFactor
+    @computed get categoricalValues(): string[] {
+        return sortedUniq(sortBy(this.values.filter(isString)))
     }
 
     get yearsUniq() {

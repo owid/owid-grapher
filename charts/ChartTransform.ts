@@ -1,7 +1,6 @@
 import { computed } from "mobx"
 
 import { AxisSpec } from "./AxisSpec"
-import { Colorable } from "./Colorizer"
 import {
     Time,
     isUnboundedLeft,
@@ -11,19 +10,20 @@ import {
 import { defaultTo, first, last, sortedUniq, sortBy } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 export interface IChartTransform {
     isValidConfig: boolean
     yAxis?: AxisSpec
     xAxis?: AxisSpec
     selectableEntityDimensionKeys: EntityDimensionKey[]
-    colorables?: Colorable[]
     minTimelineYear: Time
     maxTimelineYear: Time
     timelineYears: Time[]
     startYear?: Time
     endYear?: Time
     targetYear?: Time
+    colorScale?: ColorScale
 }
 
 export abstract class ChartTransform implements IChartTransform {

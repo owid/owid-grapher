@@ -9,6 +9,7 @@ export interface TextWrapProps {
     maxWidth: number
     lineHeight?: number
     fontSize: FontSize
+    fontWeight?: number
     rawHtml?: true
 }
 
@@ -37,12 +38,15 @@ export class TextWrap {
     @computed get fontSize(): FontSize {
         return defaultTo(this.props.fontSize, 1)
     }
+    @computed get fontWeight(): number | undefined {
+        return this.props.fontWeight
+    }
     @computed get text(): string {
         return this.props.text
     }
 
     @computed get lines(): WrapLine[] {
-        const { text, maxWidth, fontSize } = this
+        const { text, maxWidth, fontSize, fontWeight } = this
 
         const words = isEmpty(text)
             ? []
@@ -64,7 +68,8 @@ export class TextWrap {
                 : nextLine.join(" ")
 
             const nextBounds = Bounds.forText(text, {
-                fontSize: fontSize
+                fontSize,
+                fontWeight
             })
 
             if (
@@ -77,7 +82,7 @@ export class TextWrap {
                     height: lineBounds.height
                 })
                 line = [word]
-                lineBounds = Bounds.forText(word, { fontSize: fontSize })
+                lineBounds = Bounds.forText(word, { fontSize, fontWeight })
             } else {
                 line = nextLine
                 lineBounds = nextBounds
@@ -105,9 +110,10 @@ export class TextWrap {
     }
 
     @computed get htmlStyle(): any {
-        const { fontSize, lineHeight } = this
+        const { fontSize, fontWeight, lineHeight } = this
         return {
             fontSize: fontSize.toFixed(2) + "px",
+            fontWeight: fontWeight,
             lineHeight: lineHeight,
             overflowY: "visible"
         }
@@ -148,7 +154,7 @@ export class TextWrap {
 
     render(x: number, y: number, options?: any) {
         //React.SVGAttributes<SVGTextElement>) {
-        const { props, lines, fontSize, lineHeight } = this
+        const { props, lines, fontSize, fontWeight, lineHeight } = this
 
         if (lines.length === 0) return null
 
@@ -156,6 +162,7 @@ export class TextWrap {
         return (
             <text
                 fontSize={fontSize.toFixed(2)}
+                fontWeight={fontWeight}
                 x={x.toFixed(1)}
                 y={yOffset.toFixed(1)}
                 {...options}

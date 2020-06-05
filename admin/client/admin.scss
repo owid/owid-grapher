@@ -369,47 +369,45 @@ body {
     }
 }
 
-.EditorMapTab {
-    .ColorSchemeEditor {
-        padding-left: 0;
-        li {
-            display: flex;
-            align-items: center;
+.ColorSchemeEditor {
+    padding-left: 0;
+    li {
+        display: flex;
+        align-items: center;
 
-            i {
-                font-size: 1.2rem;
-                color: #666;
-            }
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
 
-            > * {
-                margin-right: 8px;
+        > * {
+            margin-right: 8px;
 
-                &:last-child {
-                    margin-right: 0;
-                }
-            }
-
-            .range {
-                display: flex;
-                flex: 1 0;
-                align-items: center;
-
-                span {
-                    font-size: 0.85em;
-                    margin: 0 3px;
-                }
-            }
-
-            .form-group {
-                flex: 1 1;
-                margin-bottom: 0;
+            &:last-child {
+                margin-right: 0;
             }
         }
-    }
 
-    .BinLabelView .FieldsRow {
-        margin-bottom: 0;
+        .range {
+            display: flex;
+            flex: 1 0;
+            align-items: center;
+
+            span {
+                font-size: 0.85em;
+                margin: 0 3px;
+            }
+        }
+
+        .form-group {
+            flex: 1 1;
+            margin-bottom: 0;
+        }
     }
+}
+
+.BinLabelView .FieldsRow {
+    margin-bottom: 0;
 }
 
 .EditorScatterTab {

@@ -782,3 +782,16 @@ export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
     }
     return result
 }
+
+export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
+    const result = new Map<K, T[]>()
+    array.forEach(item => {
+        const key = accessor(item)
+        if (result.has(key)) {
+            result.get(key)?.push(item)
+        } else {
+            result.set(key, [item])
+        }
+    })
+    return result
+}

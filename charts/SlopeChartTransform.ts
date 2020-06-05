@@ -1,11 +1,11 @@
 import { computed } from "mobx"
-import { some, find, isEmpty, flatten } from "./Util"
+import { some, find, isEmpty, flatten, identity, last } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
-import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -22,28 +22,28 @@ export class SlopeChartTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get colorKeys(): string[] {
-        const { colorDimension } = this
-        return colorDimension ? colorDimension.variable.categoricalValues : []
-    }
-
-    @computed get colors(): Colorizer {
+    @computed get colorScale(): ColorScale {
         const that = this
-        return new Colorizer({
-            get chart() {
-                return that.chart
+        return new ColorScale({
+            get config() {
+                return that.chart.props.colorScale
             },
-            get defaultColorScheme() {
+            get defaultBaseColorScheme() {
                 return "continents"
             },
-            get keys() {
-                return that.colorKeys
+            get sortedNumericValues() {
+                return that.colorDimension?.sortedNumericValues ?? []
+            },
+            get categoricalValues() {
+                return that.colorDimension?.categoricalValues ?? []
+            },
+            get hasNoDataBin() {
+                return false
+            },
+            get formatNumericValue() {
+                return that.colorDimension?.formatValueShort ?? identity
             }
         })
-    }
-
-    @computed get colorables(): Colorable[] {
-        return this.colors.colorables
     }
 
     @computed get availableYears(): Time[] {
@@ -80,16 +80,16 @@ export class SlopeChartTransform extends ChartTransform {
     // helper method to directly get the associated color value given an Entity
     // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
     // this returns that data in the form { Afghanistan => Asia }
-    @computed get colorByEntity(): Map<string, any> {
-        const { colorDimension, colors } = this
-        const colorByEntity = new Map<string, any>()
+    @computed get colorByEntity(): Map<string, string | undefined> {
+        const { colorDimension, colorScale } = this
+        const colorByEntity = new Map<string, string | undefined>()
 
         if (colorDimension !== undefined) {
             colorDimension.valueByEntityAndYear.forEach(
                 (yearToColorMap, entity) => {
                     const values = Array.from(yearToColorMap.values())
-                    const key = values[0].toString()
-                    colorByEntity.set(entity, colors.get(key))
+                    const key = last(values)
+                    colorByEntity.set(entity, colorScale.getColor(key))
                 }
             )
         }

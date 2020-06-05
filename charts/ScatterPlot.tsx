@@ -74,7 +74,7 @@ export class ScatterPlot extends React.Component<{
     @computed get colorsInUse() {
         return uniq(
             this.transform.currentData
-                .filter(g => g.isAutoColor)
+                .filter(g => g.isScaleColor)
                 .map(g => g.color)
         )
     }
@@ -89,9 +89,18 @@ export class ScatterPlot extends React.Component<{
                 return that.chart.baseFontSize
             },
             get colorables() {
-                return that.transform.colors.colorables.filter(c =>
-                    that.colorsInUse.includes(c.color)
-                )
+                return that.transform.colorScale.legendData
+                    .filter(bin => that.colorsInUse.includes(bin.color))
+                    .map(bin => {
+                        return {
+                            key: bin.label ?? "",
+                            label: bin.label ?? "",
+                            color: bin.color
+                        }
+                    })
+            },
+            get title() {
+                return that.transform.colorScale.legendDescription
             }
         })
     }
@@ -325,7 +334,7 @@ export class ScatterPlot extends React.Component<{
             comparisonLines,
             hideLines
         } = this
-        const { currentData, sizeDomain } = transform
+        const { currentData, sizeDomain, colorScale } = transform
 
         return (
             <g>
@@ -349,6 +358,7 @@ export class ScatterPlot extends React.Component<{
                     bounds={axisBox.innerBounds}
                     xScale={axisBox.xScale}
                     yScale={axisBox.yScale}
+                    colorScale={colorScale}
                     sizeDomain={sizeDomain}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}

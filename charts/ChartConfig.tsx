@@ -77,6 +77,7 @@ import {
 } from "site/client/global-entity/GlobalEntitySelection"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
+import { ColorScaleConfigProps } from "./ColorScaleConfig"
 
 declare const App: any
 declare const window: any
@@ -240,12 +241,12 @@ export class ChartConfigProps {
     @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
 
-    @observable colorBy?: string = undefined
-    @observable customColors?: { [key: string]: Color | undefined } = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
 
     // SCATTERPLOT-SPECIFIC OPTIONS
+
+    @observable colorScale: ColorScaleConfigProps = new ColorScaleConfigProps()
 
     @observable.ref hideLinesOutsideTolerance?: true = undefined
 

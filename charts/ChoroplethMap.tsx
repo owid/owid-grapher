@@ -10,6 +10,7 @@ import { MapProjection } from "./MapProjection"
 import { MapTopology } from "./MapTopology"
 import { Vector2 } from "./Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
+import { ColorScaleBin } from "./ColorScaleBin"
 
 export interface ChoroplethDatum {
     entity: string
@@ -24,16 +25,24 @@ export interface ChoroplethData {
 }
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
-export type MapBracket = any
-export type MapEntity = any
+export type MapBracket = ColorScaleBin
+
+export interface MapEntity {
+    id: string | number | undefined
+    datum:
+        | ChoroplethDatum
+        | {
+              value: string
+          }
+}
 
 interface ChoroplethMapProps {
     choroplethData: ChoroplethData
     bounds: Bounds
     projection: MapProjection
     defaultFill: string
-    focusBracket: MapBracket
-    focusEntity: MapEntity
+    focusBracket?: MapBracket
+    focusEntity?: MapEntity
     onClick: (d: GeoFeature) => void
     onHover: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onHoverStop: () => void
@@ -140,11 +149,11 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         }))
     }
 
-    @computed get focusBracket(): MapBracket {
+    @computed get focusBracket(): MapBracket | undefined {
         return this.props.focusBracket
     }
 
-    @computed get focusEntity(): MapEntity {
+    @computed get focusEntity(): MapEntity | undefined {
         return this.props.focusEntity
     }
 
@@ -155,7 +164,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         else if (!focusBracket) return false
 
         const datum = choroplethData[id] || null
-        if (focusBracket.contains(datum)) return true
+        if (focusBracket.contains(datum?.value)) return true
         else return false
     }
 

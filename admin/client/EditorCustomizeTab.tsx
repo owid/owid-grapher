@@ -12,17 +12,14 @@ import {
     BindAutoString,
     BindString,
     TextField,
-    Button,
-    EditableListItem,
-    ColorBox,
-    EditableList
+    Button
 } from "./Forms"
 import { debounce } from "charts/Util"
-import { Color } from "charts/Color"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
+import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
@@ -73,69 +70,6 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                     />
                 </FieldsRow>
             </React.Fragment>
-        )
-    }
-}
-
-@observer
-class ColorableItem extends React.Component<{
-    label: string
-    color: string | undefined
-    onColor: (color: string | undefined) => void
-}> {
-    @observable.ref isChoosingColor: boolean = false
-
-    render() {
-        const { label, color } = this.props
-
-        return (
-            <EditableListItem key={label} className="ColorableItem">
-                <ColorBox color={color} onColor={this.props.onColor} />
-                <div>{label}</div>
-            </EditableListItem>
-        )
-    }
-}
-
-@observer
-class ColorsSection extends React.Component<{ chart: ChartConfig }> {
-    @action.bound onColorBy(value: string) {
-        this.props.chart.props.colorBy = value === "default" ? undefined : value
-    }
-
-    @action.bound assignColor(key: string, color: Color | undefined) {
-        const { chart } = this.props
-        if (chart.props.customColors === undefined)
-            chart.props.customColors = {}
-
-        chart.props.customColors[key] = color
-    }
-
-    render() {
-        const { chart } = this.props
-
-        const customColors = chart.props.customColors || {}
-        const colorables = chart.activeTransform.colorables
-
-        return (
-            <Section name="Colors">
-                <ColorSchemeSelector chart={chart} />
-                {/*<SelectField label="Color by" value={chart.props.colorBy || "default"} onValue={this.onColorBy} options={["default", "entity", "variable"]} optionLabels={["Default", "Entity", "Variable"]} />*/}
-                {colorables && (
-                    <EditableList>
-                        {colorables.map(c => (
-                            <ColorableItem
-                                key={c.key}
-                                label={c.label}
-                                color={customColors[c.key]}
-                                onColor={(color: Color | undefined) =>
-                                    this.assignColor(c.key, color)
-                                }
-                            />
-                        ))}
-                    </EditableList>
-                )}
-            </Section>
         )
     }
 }
@@ -448,7 +382,21 @@ export class EditorCustomizeTab extends React.Component<{
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <ColorsSection chart={chart} />
+                <Section name="Color scheme">
+                    <ColorSchemeSelector chart={chart} />
+                </Section>
+                {chart.activeTransform.colorScale && (
+                    <EditorColorScaleSection
+                        scale={chart.activeTransform.colorScale}
+                        features={{
+                            visualScaling: false,
+                            legendDescription:
+                                chart.isScatter ||
+                                chart.isSlopeChart ||
+                                chart.isStackedBar
+                        }}
+                    />
+                )}
                 {(features.hideLegend || features.entityType) && (
                     <Section name="Legend">
                         <FieldsRow>

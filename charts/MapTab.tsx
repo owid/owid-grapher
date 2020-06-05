@@ -10,11 +10,11 @@ import {
     MapBracket,
     MapEntity
 } from "./ChoroplethMap"
-import { MapLegend, MapLegendView } from "./MapLegend"
+import { ColorLegend } from "./ColorLegend"
+import { ColorLegendView } from "./ColorLegendView"
 import { getRelativeMouse } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { MapConfig } from "./MapConfig"
-import { MapLegendBin } from "./MapData"
 import { MapProjection } from "./MapProjection"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -24,6 +24,7 @@ import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
 import { ControlsOverlay, ProjectionChooser } from "./Controls"
 import { MapTooltip } from "./MapTooltip"
+import { ColorScale } from "./ColorScale"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -36,8 +37,7 @@ interface MapWithLegendProps {
     years: number[]
     inputYear?: number
     formatYear: (year: number) => string
-    legendData: MapLegendBin[]
-    legendTitle: string
+    colorScale: ColorScale
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
@@ -45,10 +45,11 @@ interface MapWithLegendProps {
 
 @observer
 class MapWithLegend extends React.Component<MapWithLegendProps> {
-    @observable focusEntity?: any
     @observable.ref tooltip: React.ReactNode | null = null
-    @observable focusBracket: MapBracket
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
+
+    @observable focusEntity?: MapEntity
+    @observable focusBracket?: MapBracket
 
     static contextType = ChartViewContext
     context!: ChartViewContextType
@@ -108,7 +109,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.onLegendMouseLeave()
     }
 
-    @action.bound onLegendMouseOver(d: MapEntity) {
+    @action.bound onLegendMouseOver(d: MapBracket) {
         this.focusBracket = d
     }
 
@@ -121,33 +122,33 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onLegendMouseLeave() {
-        this.focusBracket = null
+        this.focusBracket = undefined
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
         this.context.chart.map.props.projection = value
     }
 
-    @computed get mapLegend(): MapLegend {
+    @computed get mapLegend(): ColorLegend {
         const that = this
-        return new MapLegend({
+        return new ColorLegend({
             get bounds() {
                 return that.props.bounds.padBottom(15)
             },
             get legendData() {
-                return that.props.legendData
+                return that.props.colorScale.legendData
             },
             get equalSizeBins() {
-                return that.context.chart.map.props.equalSizeBins
+                return that.props.colorScale.config.equalSizeBins
             },
             get title() {
-                return that.props.legendTitle
+                return ""
             },
             get focusBracket() {
                 return that.focusBracket
             },
-            get focusEntity() {
-                return that.focusEntity
+            get focusValue() {
+                return that.focusEntity?.datum?.value
             },
             get fontSize() {
                 return that.context.chart.baseFontSize
@@ -167,7 +168,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             .attr("data-fill", function() {
                 return (this as SVGPathElement).getAttribute("fill")
             })
-            .attr("fill", this.context.chart.map.noDataColor)
+            .attr("fill", this.props.colorScale.noDataColor)
             .transition()
             .duration(500)
             .ease(easeCubic)
@@ -220,7 +221,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     focusBracket={focusBracket}
                     focusEntity={focusEntity}
                 />
-                <MapLegendView
+                <ColorLegendView
                     legend={mapLegend}
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}
@@ -282,10 +283,9 @@ export class MapTab extends React.Component<MapTabProps> {
                         choroplethData={map.data.choroplethData}
                         years={map.data.timelineYears}
                         inputYear={map.data.targetYear}
-                        legendData={map.data.legendData}
-                        legendTitle={map.data.legendTitle}
+                        colorScale={map.data.colorScale}
                         projection={map.projection}
-                        defaultFill={map.noDataColor}
+                        defaultFill={map.data.colorScale.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
                     />

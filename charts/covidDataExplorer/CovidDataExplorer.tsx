@@ -762,7 +762,7 @@ export class CovidDataExplorer extends React.Component<{
         await this.chart.downloadData()
 
         chartProps.map.variableId = this.yVariableIndices[0]
-        chartProps.map.baseColorScheme = this.mapColorScheme
+        chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
         chartProps.selectedData = this.selectedData
 
         this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -891,6 +891,21 @@ export class CovidDataExplorer extends React.Component<{
         ]
     }
 
+    get customCategoryColors() {
+        const colors = lastOfNonEmptyArray(
+            ColorSchemes["continents"]!.colorSets
+        )
+        return {
+            Africa: colors[0],
+            Antarctica: colors[1],
+            Asia: colors[2],
+            Europe: colors[3],
+            "North America": colors[4],
+            Oceania: colors[5],
+            "South America": colors[6]
+        }
+    }
+
     @observable.ref chart = new ChartConfig(
         {
             slug: covidDashboardSlug,
@@ -917,14 +932,14 @@ export class CovidDataExplorer extends React.Component<{
             scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",
             stackMode: "absolute",
-            customColors: {
-                Asia: "#2d8587",
-                Africa: "#ef943a",
-                Europe: "#4c5c78",
-                Oceania: "#662c68",
-                Antarctica: "#818282",
-                "North America": "#e04e4b",
-                "South America": "#932834"
+            colorScale: {
+                baseColorScheme: undefined,
+                colorSchemeValues: [],
+                colorSchemeLabels: [],
+                customNumericColors: [],
+                customCategoryColors: this.customCategoryColors,
+                customCategoryLabels: {},
+                customHiddenCategories: {}
             },
             hideRelativeToggle: true,
             hasChartTab: true,
@@ -933,15 +948,17 @@ export class CovidDataExplorer extends React.Component<{
             isPublished: true,
             map: {
                 variableId: this.yVariableIndices[0],
-                baseColorScheme: this.mapColorScheme,
                 timeTolerance: 7,
-                colorSchemeValues: [],
-                colorSchemeLabels: [],
-                customNumericColors: [],
-                customCategoryColors: {},
-                customCategoryLabels: {},
-                customHiddenCategories: {},
-                projection: "World"
+                projection: "World",
+                colorScale: {
+                    baseColorScheme: this.mapColorScheme,
+                    colorSchemeValues: [],
+                    colorSchemeLabels: [],
+                    customNumericColors: [],
+                    customCategoryColors: {},
+                    customCategoryLabels: {},
+                    customHiddenCategories: {}
+                }
             },
             data: {
                 availableEntities: this.availableEntities

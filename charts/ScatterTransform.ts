@@ -21,42 +21,46 @@ import {
     first,
     last,
     formatValue,
-    domainExtent
+    domainExtent,
+    identity
 } from "./Util"
 import { computed } from "mobx"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
-import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
 export class ScatterTransform extends ChartTransform {
-    @computed get colorKeys(): string[] {
-        const { colorDimension } = this
-        return colorDimension ? colorDimension.variable.categoricalValues : []
-    }
-
-    @computed get colors(): Colorizer {
+    @computed get colorScale(): ColorScale {
         const that = this
-        return new Colorizer({
-            get chart() {
-                return that.chart
+        return new ColorScale({
+            get config() {
+                return that.chart.props.colorScale
             },
-            get defaultColorScheme() {
+            get defaultBaseColorScheme() {
                 return "continents"
             },
-            get keys() {
-                return that.colorKeys
+            get sortedNumericValues() {
+                return that.colorDimension?.sortedNumericValues ?? []
+            },
+            get categoricalValues() {
+                return that.colorDimension?.categoricalValues ?? []
+            },
+            get hasNoDataBin() {
+                return that.allPoints.some(point => point.color === undefined)
+            },
+            get defaultNoDataColor() {
+                return "#959595"
+            },
+            get formatNumericValue() {
+                return that.colorDimension?.formatValueShort ?? identity
             }
         })
-    }
-
-    @computed get colorables(): Colorable[] {
-        return this.colors.colorables
     }
 
     @computed get isValidConfig(): boolean {
@@ -216,7 +220,7 @@ export class ScatterTransform extends ChartTransform {
     private getDataByEntityAndYear(
         entitiesToShow = this.getEntitiesToShow()
     ): Map<string, Map<number, ScatterValue>> {
-        const { chart, yearsToCalculate, colors, xOverrideYear } = this
+        const { chart, yearsToCalculate, xOverrideYear } = this
         const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
@@ -224,9 +228,7 @@ export class ScatterTransform extends ChartTransform {
 
         for (const dimension of filledDimensions) {
             const tolerance =
-                dimension.property === "color" || dimension.property === "size"
-                    ? Infinity
-                    : dimension.tolerance
+                dimension.property === "size" ? Infinity : dimension.tolerance
 
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
@@ -294,11 +296,7 @@ export class ScatterTransform extends ChartTransform {
                     }
 
                     ;(point.time as any)[dimension.property] = year
-                    if (dimension.property === "color") {
-                        point.color = colors.get(value as string)
-                    } else {
-                        ;(point as any)[dimension.property] = value
-                    }
+                    ;(point as any)[dimension.property] = value
                 }
             })
         }
@@ -584,14 +582,13 @@ export class ScatterTransform extends ChartTransform {
             const group = {
                 entityDimensionKey,
                 label: chart.data.getLabelForKey(entityDimensionKey),
-                color: "#932834", // Default color
+                color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
                 values: []
             } as ScatterSeries
 
             dataByYear.forEach((point, year) => {
                 if (year < startYear || year > endYear) return
-
                 group.values.push(point)
             })
 
@@ -602,13 +599,16 @@ export class ScatterTransform extends ChartTransform {
                 const keyColor = keyColors[entityDimensionKey]
                 if (keyColor !== undefined) {
                     group.color = keyColor
-                } else {
-                    const color = last(
-                        group.values.map(v => v.color).filter(s => s)
+                } else if (this.colorDimension) {
+                    const colorValue = last(
+                        group.values
+                            .map(v => v.color)
+                            .filter(s => s !== undefined)
                     )
+                    const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
-                        group.isAutoColor = true
+                        group.isScaleColor = true
                     }
                 }
                 const sizes = group.values.map(v => v.size)

@@ -1319,7 +1319,7 @@ export const ColorSchemes = (() => {
         [
             [
                 "#98064A", // Africa
-                "#AEC7E8", // Antarctica
+                "#5887A1", // Antarctica
                 "#2D8587", // Asia
                 "#4C5C78", // Europe
                 "#E04E4B", // North America

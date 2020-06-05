@@ -9,14 +9,12 @@
  */
 
 import * as React from "react"
-import { scaleLinear, scaleOrdinal, ScaleOrdinal } from "d3-scale"
-import { schemeCategory10 } from "d3-scale-chromatic"
+import { scaleLinear } from "d3-scale"
 import {
     some,
     last,
     sortBy,
     flatten,
-    uniq,
     min,
     find,
     first,
@@ -36,6 +34,8 @@ import { Triangle } from "./Marks"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ColorScale } from "./ColorScale"
+import { MultiColorPolyline } from "./MultiColorPolyline"
 
 export interface ScatterSeries {
     color: string
@@ -43,14 +43,14 @@ export interface ScatterSeries {
     label: string
     size: number
     values: ScatterValue[]
-    isAutoColor?: true
+    isScaleColor?: true
 }
 
 export interface ScatterValue {
     x: number
     y: number
     size: number
-    color?: string
+    color?: number | string
     year: number
     time: {
         x: number
@@ -66,6 +66,7 @@ interface PointsWithLabelsProps {
     bounds: Bounds
     xScale: AxisScale
     yScale: AxisScale
+    colorScale: ColorScale
     sizeDomain: [number, number]
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
@@ -76,6 +77,7 @@ interface PointsWithLabelsProps {
 
 interface ScatterRenderValue {
     position: Vector2
+    color: string
     size: number
     fontSize: number
     label: string
@@ -106,6 +108,7 @@ interface ScatterLabel {
     text: string
     fontSize: number
     fontWeight: number
+    color: string
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean
@@ -126,7 +129,7 @@ class ScatterGroupSingle extends React.Component<{
         const value = first(group.values)
         if (value === undefined) return null
 
-        const color = group.isFocus || !isLayerMode ? group.color : "#e2e2e2"
+        const color = group.isFocus || !isLayerMode ? value.color : "#e2e2e2"
 
         const isLabelled = group.allLabels.some(label => !label.isHidden)
         const size =
@@ -181,35 +184,30 @@ class ScatterBackgroundLine extends React.Component<{
             const firstValue = first(group.values)
             const lastValue = last(group.values)
             if (firstValue === undefined || lastValue === undefined) return null
-            const color = !isLayerMode ? group.color : "#e2e2e2"
 
             let rotation = Vector2.angle(group.offsetVector, Vector2.up)
             if (group.offsetVector.x < 0) rotation = -rotation
+
+            const opacity = 0.7
 
             return (
                 <g key={group.displayKey} className={group.displayKey}>
                     <circle
                         cx={firstValue.position.x.toFixed(2)}
                         cy={firstValue.position.y.toFixed(2)}
-                        r={(1 + firstValue.size / 16).toFixed(2)}
-                        fill={!isLayerMode ? group.color : "#e2e2e2"}
-                        stroke="#ccc"
-                        opacity={0.6}
+                        r={(1 + firstValue.size / 25).toFixed(1)}
+                        fill={isLayerMode ? "#e2e2e2" : firstValue.color}
+                        stroke="none"
+                        opacity={opacity}
                     />
-                    <polyline
-                        strokeLinecap="round"
-                        stroke={isLayerMode ? "#ccc" : group.color}
-                        points={group.values
-                            .map(
-                                v =>
-                                    `${v.position.x.toFixed(
-                                        2
-                                    )},${v.position.y.toFixed(2)}`
-                            )
-                            .join(" ")}
-                        fill="none"
+                    <MultiColorPolyline
+                        points={group.values.map(v => ({
+                            x: v.position.x,
+                            y: v.position.y,
+                            color: isLayerMode ? "#ccc" : v.color
+                        }))}
                         strokeWidth={(0.3 + group.size / 16).toFixed(2)}
-                        opacity={0.6}
+                        opacity={opacity}
                     />
                     <Triangle
                         transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
@@ -217,11 +215,9 @@ class ScatterBackgroundLine extends React.Component<{
                         )}, ${lastValue.position.y.toFixed(2)})`}
                         cx={lastValue.position.x}
                         cy={lastValue.position.y}
-                        r={1 + lastValue.size / 16}
-                        fill={color}
-                        stroke="#ccc"
-                        strokeWidth={0.2}
-                        opacity={0.6}
+                        r={1.5 + lastValue.size / 16}
+                        fill={isLayerMode ? "#e2e2e2" : lastValue.color}
+                        opacity={opacity}
                     />
                 </g>
             )
@@ -277,6 +273,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         )
     }
 
+    @computed private get colorScale() {
+        return this.props.colorScale
+    }
+
     @computed private get sizeScale() {
         const sizeScale = scaleLinear()
             .range([10, 1000])
@@ -294,34 +294,27 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return "Arial, sans-serif"
     }
 
-    // Used if no color is specified for a series
-    @computed private get defaultColorScale(): ScaleOrdinal<string, string> {
-        return scaleOrdinal(schemeCategory10)
-    }
-
     @computed private get hideLines(): boolean {
         return this.props.hideLines
     }
 
     // Pre-transform data for rendering
     @computed get initialRenderData(): ScatterRenderSeries[] {
-        const {
-            data,
-            xScale,
-            yScale,
-            defaultColorScale,
-            sizeScale,
-            fontScale
-        } = this
+        const { data, xScale, yScale, sizeScale, fontScale, colorScale } = this
         return sortBy(
             data.map(d => {
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
+                    const scaleColor =
+                        v.color !== undefined
+                            ? colorScale.getColor(v.color)
+                            : undefined
                     return {
                         position: new Vector2(
                             Math.floor(xScale.place(v.x)),
                             Math.floor(yScale.place(v.y))
                         ),
+                        color: scaleColor ?? d.color,
                         size: Math.sqrt(area / Math.PI),
                         fontSize: fontScale(d.size || 1),
                         time: v.time,
@@ -332,7 +325,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 return {
                     entityDimensionKey: d.entityDimensionKey,
                     displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
-                    color: d.color || defaultColorScale(d.entityDimensionKey),
+                    color: d.color,
                     size: (last(values) as any).size,
                     values: values,
                     text: d.label,
@@ -342,7 +335,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 }
             }),
             d => -d.size
-        ) as any
+        )
     }
 
     private labelPriority(l: ScatterLabel) {
@@ -400,6 +393,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             text: firstValue.label,
             fontSize: fontSize,
             fontWeight: 400,
+            color: firstValue.color,
             bounds: bounds,
             series: series,
             isStart: true
@@ -474,6 +468,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 text: v.label,
                 fontSize: fontSize,
                 fontWeight: fontWeight,
+                color: v.color,
                 bounds: bounds,
                 series: series,
                 isMid: true
@@ -485,7 +480,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // slightly out based on the direction of the series if multiple values
     // are present
     // This is also the one label in the case of a single point
-    private makeEndLabel(series: ScatterRenderSeries) {
+    private makeEndLabel(series: ScatterRenderSeries): ScatterLabel {
         const { isSubtleForeground, labelFontFamily, hideLines } = this
 
         const lastValue = last(series.values) as ScatterRenderValue
@@ -537,6 +532,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     : series.text,
             fontSize: fontSize,
             fontWeight: fontWeight,
+            color: lastValue.color,
             bounds: labelBounds,
             series: series,
             isEnd: true
@@ -650,10 +646,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         }
     }
 
-    @computed private get allColors(): string[] {
-        return uniq(this.renderData.map(d => d.color))
-    }
-
     mouseFrame?: number
     @action.bound onMouseLeave() {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
@@ -757,7 +749,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                                     )}
                                     fontSize={l.fontSize.toFixed(2)}
                                     fontWeight={l.fontWeight}
-                                    fill={isLayerMode ? "#aaa" : l.series.color}
+                                    fill={isLayerMode ? "#aaa" : l.color}
                                 >
                                     {l.text}
                                 </text>
@@ -773,12 +765,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     private renderForegroundGroups() {
-        const {
-            foregroundGroups,
-            isSubtleForeground,
-            renderUid,
-            hideLines
-        } = this
+        const { foregroundGroups, isSubtleForeground, hideLines } = this
 
         return foregroundGroups.map(series => {
             const lastValue = last(series.values) as ScatterRenderValue
@@ -794,64 +781,56 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     />
                 )
             } else {
-                const firstValue = series.values[0]
+                const firstValue = first(series.values)
+                const opacity = isSubtleForeground ? 0.9 : 1
+                const radius = strokeWidth / 2 + 1
+                let rotation = Vector2.angle(series.offsetVector, Vector2.up)
+                if (series.offsetVector.x < 0) rotation = -rotation
                 return (
                     <g key={series.displayKey} className={series.displayKey}>
-                        <defs>
-                            <marker
-                                id={`${series.displayKey}-arrow-${renderUid}`}
-                                fill={series.color}
-                                viewBox="0 -5 10 10"
-                                refX={5}
-                                refY={0}
-                                markerWidth={4}
-                                markerHeight={4}
-                                orient="auto"
-                            >
-                                <path d="M0,-5L10,0L0,5" />
-                            </marker>
-                            <marker
-                                id={`${series.displayKey}-circle-${renderUid}`}
-                                viewBox="0 0 12 12"
-                                refX={4}
-                                refY={4}
-                                orient="auto"
-                                fill={series.color}
-                            >
-                                <circle cx={4} cy={4} r={4} />
-                            </marker>
-                        </defs>
-                        {series.isFocus && !hideLines && (
+                        <MultiColorPolyline
+                            points={series.values.map(v => ({
+                                x: v.position.x,
+                                y: v.position.y,
+                                color: hideLines ? "rgba(0,0,0,0)" : v.color
+                            }))}
+                            strokeWidth={strokeWidth}
+                            opacity={opacity}
+                        />
+                        {series.isFocus && !hideLines && firstValue && (
                             <circle
                                 cx={firstValue.position.x.toFixed(2)}
                                 cy={firstValue.position.y.toFixed(2)}
-                                r={strokeWidth + 1}
-                                fill="none"
-                                stroke={series.color}
-                                opacity={0.6}
+                                r={radius}
+                                fill={firstValue.color}
+                                opacity={opacity}
+                                stroke={firstValue.color}
+                                strokeOpacity={0.6}
                             />
                         )}
-                        <polyline
-                            strokeLinecap="round"
-                            stroke={hideLines ? "rgba(0,0,0,0)" : series.color}
-                            points={series.values
-                                .map(
-                                    v =>
-                                        `${v.position.x.toFixed(
-                                            2
-                                        )},${v.position.y.toFixed(2)}`
-                                )
-                                .join(" ")}
-                            fill="none"
-                            strokeWidth={strokeWidth}
-                            opacity={isSubtleForeground ? 0.9 : 1}
-                            markerStart={`url(#${series.displayKey}-circle-${renderUid})`}
-                            markerMid={`url(#${series.displayKey}-circle-${renderUid})`}
-                            markerEnd={
-                                hideLines
-                                    ? `url(#${series.displayKey}-circle-${renderUid})`
-                                    : `url(#${series.displayKey}-arrow-${renderUid})`
-                            }
+                        {series.isHover &&
+                            !hideLines &&
+                            series.values
+                                .slice(1, -1)
+                                .map(v => (
+                                    <circle
+                                        key={v.label}
+                                        cx={v.position.x}
+                                        cy={v.position.y}
+                                        r={radius}
+                                        fill={v.color}
+                                        stroke="none"
+                                    />
+                                ))}
+                        <Triangle
+                            transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
+                                2
+                            )}, ${lastValue.position.y.toFixed(2)})`}
+                            cx={lastValue.position.x}
+                            cy={lastValue.position.y}
+                            r={strokeWidth * 2}
+                            fill={lastValue.color}
+                            opacity={opacity}
                         />
                     </g>
                 )
@@ -873,7 +852,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             fontSize={l.fontSize}
                             fontFamily={labelFontFamily}
                             fontWeight={l.fontWeight}
-                            fill={l.series.color}
+                            fill={l.color}
                         >
                             {l.text}
                         </text>

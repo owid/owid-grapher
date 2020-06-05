@@ -17,8 +17,8 @@ import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { EntityDimensionKey } from "./EntityDimensionKey"
-import { Colorizer, Colorable } from "./Colorizer"
 import { Time } from "./TimeBounds"
+import { ColorScale } from "./ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -211,32 +211,34 @@ export class StackedBarTransform extends ChartTransform {
         return groupedData
     }
 
-    @computed private get colorEntityDimensionKeys(): string[] {
-        return uniq(this.groupedData.map(d => d.entityDimensionKey)).reverse()
-    }
-
-    @computed get colors(): Colorizer {
+    @computed get colorScale(): ColorScale {
         const that = this
-        return new Colorizer({
-            get chart() {
-                return that.chart
+        return new ColorScale({
+            get config() {
+                return that.chart.props.colorScale
             },
-            get defaultColorScheme() {
+            get defaultBaseColorScheme() {
                 return "stackedAreaDefault"
             },
-            get keys() {
-                return that.colorEntityDimensionKeys
+            get sortedNumericValues() {
+                return that.colorDimension?.sortedNumericValues ?? []
             },
-            get labelFormat() {
+            get categoricalValues() {
+                return uniq(
+                    that.groupedData.map(d => d.entityDimensionKey)
+                ).reverse()
+            },
+            get hasNoDataBin() {
+                return false
+            },
+            get formatNumericValue() {
+                return that.colorDimension?.formatValueShort ?? identity
+            },
+            get formatCategoricalValue() {
                 return (key: EntityDimensionKey) =>
                     that.chart.data.getLabelForKey(key)
-            },
-            invert: true
+            }
         })
-    }
-
-    @computed get colorables(): Colorable[] {
-        return this.colors.colorables
     }
 
     // Apply time filtering and stacking
@@ -246,7 +248,8 @@ export class StackedBarTransform extends ChartTransform {
         const stackedData = cloneDeep(groupedData)
 
         for (const series of stackedData) {
-            series.color = this.colors.get(series.entityDimensionKey)
+            series.color =
+                this.colorScale.getColor(series.entityDimensionKey) ?? "#ddd"
             series.values = series.values.filter(
                 v => v.x >= startYear && v.x <= endYear
             )
