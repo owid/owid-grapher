@@ -102,6 +102,10 @@ export class ColorScale {
         return defaultTo(this.props.formatCategoricalValue, identity)
     }
 
+    @computed get legendDescription(): string | undefined {
+        return this.config.legendDescription
+    }
+
     // Transforms
 
     @computed get hasNoDataBin(): boolean {

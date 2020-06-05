@@ -98,6 +98,9 @@ export class ScatterPlot extends React.Component<{
                             color: bin.color
                         }
                     })
+            },
+            get title() {
+                return that.transform.colorScale.legendDescription
             }
         })
     }

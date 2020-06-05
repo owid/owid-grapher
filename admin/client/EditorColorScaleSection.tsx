@@ -20,19 +20,29 @@ import {
     NumberField,
     TextField,
     ColorBox,
-    BindAutoFloat
+    BindAutoFloat,
+    BindString
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
+
+interface EditorColorScaleSectionFeatures {
+    visualScaling: boolean
+    legendDescription: boolean
+}
 
 @observer
 export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
+    features: EditorColorScaleSectionFeatures
 }> {
     render() {
         return (
             <React.Fragment>
                 <ColorsSection scale={this.props.scale} />
-                <ColorLegendSection scale={this.props.scale} />
+                <ColorLegendSection
+                    scale={this.props.scale}
+                    features={this.props.features}
+                />
             </React.Fragment>
         )
     }
@@ -41,20 +51,34 @@ export class EditorColorScaleSection extends React.Component<{
 @observer
 class ColorLegendSection extends React.Component<{
     scale: ColorScale
+    features: EditorColorScaleSectionFeatures
 }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
         this.props.scale.config.equalSizeBins = isEqual ? true : undefined
     }
 
     render() {
-        const { scale } = this.props
+        const { scale, features } = this.props
         return (
             <Section name="Legend">
-                <Toggle
-                    label="Disable visual scaling of legend bins"
-                    value={!!scale.config.equalSizeBins}
-                    onValue={this.onEqualSizeBins}
-                />
+                {features.visualScaling && (
+                    <FieldsRow>
+                        <Toggle
+                            label="Disable visual scaling of legend bins"
+                            value={!!scale.config.equalSizeBins}
+                            onValue={this.onEqualSizeBins}
+                        />
+                    </FieldsRow>
+                )}
+                {features.legendDescription && (
+                    <FieldsRow>
+                        <BindString
+                            label="Legend description"
+                            field="legendDescription"
+                            store={scale.config}
+                        />
+                    </FieldsRow>
+                )}
                 {scale.config.isManualBuckets && (
                     <EditableList>
                         {scale.legendData.map((bin, index) => (

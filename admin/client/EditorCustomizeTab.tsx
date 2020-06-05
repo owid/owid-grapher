@@ -388,6 +388,13 @@ export class EditorCustomizeTab extends React.Component<{
                 {chart.activeTransform.colorScale && (
                     <EditorColorScaleSection
                         scale={chart.activeTransform.colorScale}
+                        features={{
+                            visualScaling: false,
+                            legendDescription:
+                                chart.isScatter ||
+                                chart.isSlopeChart ||
+                                chart.isStackedBar
+                        }}
                     />
                 )}
                 {(features.hideLegend || features.entityType) && (

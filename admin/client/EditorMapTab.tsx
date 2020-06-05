@@ -161,6 +161,10 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                         <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
                             scale={mapConfig.data.colorScale}
+                            features={{
+                                visualScaling: true,
+                                legendDescription: false
+                            }}
                         />
                         <TooltipSection mapConfig={mapConfig} />
                     </React.Fragment>

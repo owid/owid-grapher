@@ -12,6 +12,7 @@ export interface ScatterColorLegendProps {
         label: string
         color: string
     }[]
+    title?: string
 }
 
 export interface LabelMark {
@@ -31,13 +32,32 @@ export class VerticalColorLegend {
         return 0.7 * this.props.fontSize
     }
     @computed get rectSize(): number {
-        return this.props.fontSize / 3
+        return Math.round(this.props.fontSize / 2)
     }
     @computed get rectPadding(): number {
         return 5
     }
     @computed get lineHeight(): number {
         return 5
+    }
+
+    @computed get title(): TextWrap | undefined {
+        if (this.props.title) {
+            return new TextWrap({
+                maxWidth: this.props.maxWidth,
+                fontSize: 0.75 * this.props.fontSize,
+                fontWeight: 700,
+                text: this.props.title
+            })
+        }
+        return
+    }
+
+    @computed get titleHeight(): number {
+        if (this.title) {
+            return this.title.height + 5
+        }
+        return 0
     }
 
     @computed get labelMarks(): LabelMark[] {
@@ -61,12 +81,14 @@ export class VerticalColorLegend {
     }
 
     @computed get width(): number {
-        if (this.labelMarks.length === 0) return 0
-        else return defaultTo(max(this.labelMarks.map(d => d.width)), 0)
+        const widths = this.labelMarks.map(d => d.width)
+        if (this.title) widths.push(this.title.width)
+        return defaultTo(max(widths), 0)
     }
 
     @computed get height() {
         return (
+            this.titleHeight +
             sum(this.labelMarks.map(d => d.height)) +
             this.lineHeight * this.labelMarks.length
         )
@@ -97,65 +119,78 @@ export class ScatterColorLegendView extends React.Component<
             onMouseLeave,
             onClick
         } = props
-        const { labelMarks, rectSize, rectPadding, lineHeight } = props.legend
-        let offset = 0
+        const {
+            title,
+            titleHeight,
+            labelMarks,
+            rectSize,
+            rectPadding,
+            lineHeight
+        } = props.legend
+
+        let markOffset = titleHeight
 
         return (
-            <g
-                className="ScatterColorLegend clickable"
-                style={{ cursor: "pointer" }}
-            >
-                {labelMarks.map((mark, index) => {
-                    const isActive = includes(activeColors, mark.color)
-                    const isFocus = includes(focusColors, mark.color)
-                    const mouseOver = onMouseOver
-                        ? () => onMouseOver(mark.color)
-                        : undefined
-                    const mouseLeave = onMouseLeave || undefined
-                    const click = onClick
-                        ? () => onClick(mark.color)
-                        : undefined
+            <>
+                {title && title.render(props.x, props.y, { fontWeight: 700 })}
+                <g
+                    className="ScatterColorLegend clickable"
+                    style={{ cursor: "pointer" }}
+                >
+                    {labelMarks.map((mark, index) => {
+                        const isActive = includes(activeColors, mark.color)
+                        const isFocus = includes(focusColors, mark.color)
+                        const mouseOver = onMouseOver
+                            ? () => onMouseOver(mark.color)
+                            : undefined
+                        const mouseLeave = onMouseLeave || undefined
+                        const click = onClick
+                            ? () => onClick(mark.color)
+                            : undefined
 
-                    const result = (
-                        <g
-                            key={index}
-                            className="legendMark"
-                            onMouseOver={mouseOver}
-                            onMouseLeave={mouseLeave}
-                            onClick={click}
-                            fill={!isActive ? "#ccc" : undefined}
-                        >
-                            <rect
-                                x={props.x}
-                                y={props.y + offset - lineHeight / 2}
-                                width={mark.width}
-                                height={mark.height + lineHeight}
-                                fill="#fff"
-                                opacity={0}
-                            />
-                            ,
-                            <rect
-                                x={props.x}
-                                y={props.y + offset + rectSize / 2}
-                                width={rectSize}
-                                height={rectSize}
-                                fill={isActive ? mark.color : undefined}
-                            />
-                            ,
-                            {mark.label.render(
-                                props.x + rectSize + rectPadding,
-                                props.y + offset,
-                                isFocus
-                                    ? { style: { fontWeight: "bold" } }
-                                    : undefined
-                            )}
-                        </g>
-                    )
+                        const result = (
+                            <g
+                                key={index}
+                                className="legendMark"
+                                onMouseOver={mouseOver}
+                                onMouseLeave={mouseLeave}
+                                onClick={click}
+                                fill={!isActive ? "#ccc" : undefined}
+                            >
+                                <rect
+                                    x={props.x}
+                                    y={props.y + markOffset - lineHeight / 2}
+                                    width={mark.width}
+                                    height={mark.height + lineHeight}
+                                    fill="#fff"
+                                    opacity={0}
+                                />
+                                <rect
+                                    x={props.x}
+                                    y={
+                                        props.y +
+                                        markOffset +
+                                        (mark.height - rectSize) / 2
+                                    }
+                                    width={rectSize}
+                                    height={rectSize}
+                                    fill={isActive ? mark.color : undefined}
+                                />
+                                {mark.label.render(
+                                    props.x + rectSize + rectPadding,
+                                    props.y + markOffset,
+                                    isFocus
+                                        ? { style: { fontWeight: "bold" } }
+                                        : undefined
+                                )}
+                            </g>
+                        )
 
-                    offset += mark.height + lineHeight
-                    return result
-                })}
-            </g>
+                        markOffset += mark.height + lineHeight
+                        return result
+                    })}
+                </g>
+            </>
         )
     }
 }
