@@ -98,21 +98,29 @@ async function transformAllCharts(
     queryRunner: QueryRunner,
     getNewConfig: (oldConfig: any) => any
 ) {
-    const charts = (await queryRunner.query(
-        "SELECT charts.id AS id, charts.config AS config FROM charts"
-    )) as { id: number; config: string }[]
-    const toUpdate: { id: number; config: string }[] = []
-    for (const chart of charts) {
-        const oldConfig = JSON.parse(chart.config)
-        const newConfig = getNewConfig(oldConfig)
-        if (JSON.stringify(oldConfig) !== JSON.stringify(newConfig)) {
-            toUpdate.push({ id: chart.id, config: chart.config })
-            await queryRunner.query(
-                "UPDATE charts SET config = ? WHERE id = ?",
-                [JSON.stringify(newConfig), chart.id]
-            )
-        }
-    }
+    await Promise.all(
+        [
+            { idField: "id", tableName: "charts" },
+            { idField: "chartId", tableName: "chart_revisions" }
+        ].map(async ({ idField, tableName }) => {
+            const charts = (await queryRunner.query(`
+                SELECT ${idField} AS id, config
+                FROM ${tableName}
+            `)) as { id: number; config: string }[]
+            const toUpdate: { id: number; config: string }[] = []
+            for (const chart of charts) {
+                const oldConfig = JSON.parse(chart.config)
+                const newConfig = getNewConfig(oldConfig)
+                if (JSON.stringify(oldConfig) !== JSON.stringify(newConfig)) {
+                    toUpdate.push({ id: chart.id, config: chart.config })
+                    await queryRunner.query(
+                        `UPDATE ${tableName} SET config = ? WHERE ${idField} = ?`,
+                        [JSON.stringify(newConfig), chart.id]
+                    )
+                }
+            }
+        })
+    )
 }
 
 export class ExtractMapColorScale1590583070171 implements MigrationInterface {
