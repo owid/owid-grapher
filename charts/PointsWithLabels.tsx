@@ -9,8 +9,7 @@
  */
 
 import * as React from "react"
-import { scaleLinear, scaleOrdinal, ScaleOrdinal } from "d3-scale"
-import { schemeCategory10 } from "d3-scale-chromatic"
+import { scaleLinear } from "d3-scale"
 import {
     some,
     last,
@@ -295,31 +294,15 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return "Arial, sans-serif"
     }
 
-    // Used if no color is specified for a series
-    @computed private get defaultColorScale(): ScaleOrdinal<string, string> {
-        return scaleOrdinal(schemeCategory10)
-    }
-
     @computed private get hideLines(): boolean {
         return this.props.hideLines
     }
 
     // Pre-transform data for rendering
     @computed get initialRenderData(): ScatterRenderSeries[] {
-        const {
-            data,
-            xScale,
-            yScale,
-            defaultColorScale,
-            sizeScale,
-            fontScale,
-            colorScale
-        } = this
+        const { data, xScale, yScale, sizeScale, fontScale, colorScale } = this
         return sortBy(
             data.map(d => {
-                const defaultColor =
-                    d.color || defaultColorScale(d.entityDimensionKey)
-
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
                     const scaleColor =
@@ -331,7 +314,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             Math.floor(xScale.place(v.x)),
                             Math.floor(yScale.place(v.y))
                         ),
-                        color: scaleColor ?? defaultColor,
+                        color: scaleColor ?? d.color,
                         size: Math.sqrt(area / Math.PI),
                         fontSize: fontScale(d.size || 1),
                         time: v.time,
@@ -342,7 +325,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 return {
                     entityDimensionKey: d.entityDimensionKey,
                     displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
-                    color: defaultColor,
+                    color: d.color,
                     size: (last(values) as any).size,
                     values: values,
                     text: d.label,
