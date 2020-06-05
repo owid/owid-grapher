@@ -72,7 +72,7 @@ class EmbedMenu extends React.Component<{
                 <p>Paste this into any HTML page:</p>
                 <textarea
                     onFocus={evt => evt.currentTarget.select()}
-                    defaultValue={`<iframe src="${embedUrl}" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
+                    defaultValue={`<iframe src="${embedUrl}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
             </div>
         )
