@@ -129,20 +129,20 @@ export class CovidDataExplorer extends React.Component<{
     private get metricPicker() {
         const options: InputOption[] = [
             {
-                label: "Confirmed deaths",
-                checked: this.props.params.deathsMetric,
-                onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.deathsMetric = true
-                    this.updateChart()
-                }
-            },
-            {
-                label: "Confirmed cases",
+                label: "Confirmed COVID-19 cases",
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.casesMetric = true
+                    this.updateChart()
+                }
+            },
+            {
+                label: "Confirmed COVID-19 deaths",
+                checked: this.props.params.deathsMetric,
+                onChange: value => {
+                    this.clearMetricsCommand()
+                    this.props.params.deathsMetric = true
                     this.updateChart()
                 }
             },
@@ -826,9 +826,54 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.map.variableId = this.yVariableIndices[0]
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
-        chartProps.selectedData = this.selectedData
 
+        if (this.props.params.testsPerCaseMetric)
+            Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
+        if (this.props.params.positiveTestRate)
+            Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
+
+        chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
+    }
+
+    private mapConfigs = {
+        // Sync with chart 4197
+        tests_per_case: {
+            timeTolerance: 10,
+            baseColorScheme: "RdYlBu",
+            colorSchemeValues: [5, 10, 20, 40, 100, 1000, 5000],
+            isManualBuckets: true,
+            equalSizeBins: true,
+            customColorsActive: true,
+            customNumericColors: [
+                "#951009",
+                "#d73027",
+                "#f97953",
+                "#fed390",
+                "#7babc8",
+                "#4575b4",
+                "#1d4579"
+            ]
+        },
+        // Sync with chart 4198
+        positive_test_rate: {
+            timeTolerance: 10,
+            baseColorScheme: "RdYlBu",
+            colorSchemeValues: [0.1, 1, 2, 5, 10, 20, 50],
+            isManualBuckets: true,
+            equalSizeBins: true,
+            colorSchemeInvert: true,
+            customColorsActive: true,
+            customNumericColors: [
+                "#24508b",
+                "#4575b4",
+                "#7fa9c3",
+                "#f1c26d",
+                "#fc8d59",
+                "#d73027",
+                "#91231e"
+            ]
+        }
     }
 
     componentDidMount() {
