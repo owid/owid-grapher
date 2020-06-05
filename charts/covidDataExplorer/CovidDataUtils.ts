@@ -312,7 +312,8 @@ export const getTrajectoryOptions = (
     daily: boolean,
     perCapita: boolean
 ) => {
-    return trajectoryOptions[metric][
+    const key = metric === "deaths" || metric === "cases" ? metric : "tests"
+    return trajectoryOptions[key][
         perCapita ? "perCapita" : daily ? "daily" : "total"
     ]
 }
