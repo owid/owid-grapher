@@ -98,10 +98,23 @@ class NumericColorLegendView extends React.Component<{
         const { legend, props, base } = this
         const { focusBracket } = legend
         const mouse = getRelativeMouse(base.current, ev)
-        if (!this.bounds.contains(mouse))
-            if (focusBracket) return this.props.onMouseLeave()
-            else return
 
+        // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
+        // specific SVG elements, in order to allow continuous transition between bins as the user
+        // moves their cursor across (even if their cursor is in the empty area above the
+        // legend, where the labels are).
+        // We could achieve the same by rendering invisible rectangles over the areas and attaching
+        // event handlers to those.
+
+        // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
+        if (!this.bounds.contains(mouse)) {
+            if (focusBracket) {
+                return this.props.onMouseLeave()
+            }
+            return
+        }
+
+        // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
         let newFocusBracket = null
         legend.positionedBins.forEach(d => {
             if (mouse.x >= props.x + d.x && mouse.x <= props.x + d.x + d.width)
