@@ -443,13 +443,6 @@ export class CovidDataExplorer extends React.Component<{
         return this.countryOptions.map(country => country.name)
     }
 
-    @computed get frequencyTitle() {
-        if (this.props.params.dailyFreq && this.props.params.totalFreq)
-            return "Total and daily new"
-        else if (this.props.params.dailyFreq) return "Daily new"
-        return "Total"
-    }
-
     @computed get perCapitaDivisorIfEnabled() {
         return this.props.params.perCapita ? this.perCapitaDivisor : 1
     }
@@ -497,9 +490,20 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get title() {
+        let title: string
         if (this.props.params.cfrMetric)
-            return `Case fatality rate of the ongoing COVID-19 pandemic`
-        return `${this.frequencyTitle} confirmed COVID-19 ${this.metricTitle}${this.perCapitaTitle}`
+            title = `Case fatality rate of the ongoing COVID-19 pandemic`
+        else if (this.props.params.positiveTestRate)
+            title = `The share of ${
+                this.props.params.dailyFreq ? "daily " : ""
+            }COVID-19 tests that are positive`
+        else if (this.props.params.testsPerCaseMetric)
+            title = `Tests conducted per new confirmed case of COVID-19`
+        else {
+            const freq = this.props.params.dailyFreq ? "Daily new" : "Total"
+            title = `${freq} confirmed COVID-19 ${this.metricTitle}`
+        }
+        return title + this.perCapitaTitle
     }
 
     @computed get subtitle() {
@@ -737,16 +741,16 @@ export class CovidDataExplorer extends React.Component<{
         if (params.positiveTestRate && params.dailyFreq)
             initVariable(
                 "positive_test_rate",
-                row =>
-                    row.new_tests_smoothed !== undefined &&
-                    (params.smoothing === 7
-                        ? row.new_tests_smoothed
-                        : row.new_tests)
-                        ? row.new_cases /
-                          (params.smoothing === 7
-                              ? row.new_tests_smoothed
-                              : row.new_tests)
-                        : undefined,
+                row => {
+                    const value =
+                        params.smoothing === 7
+                            ? row.new_tests_smoothed
+                            : row.new_tests
+
+                    return row.new_tests_smoothed !== undefined && value
+                        ? row.new_cases / value
+                        : undefined
+                },
                 true
             )
         if (params.positiveTestRate && params.totalFreq)
