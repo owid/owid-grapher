@@ -804,7 +804,6 @@ export class CovidDataExplorer extends React.Component<{
                 this.daysSinceOption.title
             )
         }
-        debugger
         return id
     }
 

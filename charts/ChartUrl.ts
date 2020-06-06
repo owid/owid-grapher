@@ -28,7 +28,7 @@ import {
 } from "./TimeBounds"
 import { Analytics } from "site/client/Analytics"
 
-export interface ChartQueryParams {
+export interface ChartQueryParams extends QueryParams {
     tab?: string
     overlay?: string
     stackMode?: string
@@ -123,7 +123,7 @@ export class ChartUrl implements ObservableUrl {
 
     // Autocomputed url params to reflect difference between current chart state
     // and original config state
-    @computed.struct get params(): QueryParams {
+    @computed.struct get params(): ChartQueryParams {
         const params: ChartQueryParams = {}
         const { chart, origChartProps } = this
 
@@ -171,7 +171,7 @@ export class ChartUrl implements ObservableUrl {
         )
             params.region = chart.props.map.projection
 
-        return params as QueryParams
+        return params
     }
 
     @computed get queryStr(): string {
