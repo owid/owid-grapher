@@ -956,14 +956,7 @@ export class CovidDataExplorer extends React.Component<{
                     added.forEach(code =>
                         this.toggleSelectedCountry(code, true)
                     )
-                    // If a country is selected and then is filtered, do not deselect it.
-                    const removedButNotFiltered = removed.filter(
-                        code =>
-                            !this.chart.isEntityFiltered(
-                                this.countryCodeToNameMap.get(code)!
-                            )
-                    )
-                    removedButNotFiltered.forEach(code =>
+                    removed.forEach(code =>
                         this.toggleSelectedCountry(code, false)
                     )
                     // Trigger an update in order to apply color changes
