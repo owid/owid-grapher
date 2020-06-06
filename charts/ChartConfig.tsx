@@ -46,7 +46,7 @@ import {
 import { ChartData } from "./ChartData"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
-import { ChartUrl } from "./ChartUrl"
+import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
 import { StackedBarTransform } from "./StackedBarTransform"
 import { DiscreteBarTransform } from "./DiscreteBarTransform"
 import { StackedAreaTransform } from "./StackedAreaTransform"
@@ -78,6 +78,7 @@ import {
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
+import { countries } from "utils/countries"
 
 declare const App: any
 declare const window: any
@@ -367,12 +368,29 @@ export class ChartConfig {
         return this.filters.some(fn => fn(name) === false)
     }
 
+    isEntitySelected(name: string) {
+        return this.selectedCountryNames.has(name)
+    }
+
+    @computed get selectedCountryNames() {
+        const countryCodes = EntityUrlBuilder.queryParamToEntities(
+            this.url.params.country || ""
+        )
+        return new Set<string>(
+            countryCodes
+                .map(code => countries.find(country => country.code === code))
+                .filter(i => i)
+                .map(c => c!.name)
+        )
+    }
+
     @computed get filters() {
         const filters: FilterPredicate[] = []
         if (this.props.minPopulationFilter)
             filters.push((name: string) =>
                 populationMap[name]
-                    ? populationMap[name] >= this.props.minPopulationFilter!
+                    ? populationMap[name] >= this.props.minPopulationFilter! ||
+                      this.isEntitySelected(name)
                     : true
             )
         return filters
