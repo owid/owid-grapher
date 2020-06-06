@@ -165,4 +165,15 @@ export class OwidVariable {
     @computed get isNumeric(): boolean {
         return this.hasNumericValues && !this.hasCategoricalValues
     }
+
+    toCsv(): string {
+        const header = `entity,year,value\n`
+        const { entities, values, years } = this
+        const body = values
+            .map((_, index) =>
+                [entities[index], years[index], values[index]].join(",")
+            )
+            .join("\n")
+        return header + body
+    }
 }
