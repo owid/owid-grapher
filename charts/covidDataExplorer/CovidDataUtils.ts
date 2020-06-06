@@ -320,7 +320,7 @@ export const getTrajectoryOptions = (
     daily: boolean,
     perCapita: boolean
 ) => {
-    const key = metric === "deaths" || metric === "cases" ? metric : "tests"
+    const key = metric === "cases" ? metric : "deaths"
     return trajectoryOptions[key][
         perCapita ? "perCapita" : daily ? "daily" : "total"
     ]
@@ -354,20 +354,6 @@ const trajectoryOptions = {
             title:
                 "Days since the total confirmed cases per million people reached 1",
             threshold: 1
-        }
-    },
-    tests: {
-        total: {
-            title: "Days since the 5th total confirmed death",
-            threshold: 5
-        },
-        daily: {
-            title: "Days since 5 daily new deaths first reported",
-            threshold: 5
-        },
-        perCapita: {
-            title: "Days since total confirmed deaths reached 0.1 per million",
-            threshold: 0.1
         }
     }
 }

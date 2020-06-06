@@ -635,50 +635,51 @@ export class CovidDataExplorer extends React.Component<{
             .range([0, 1])
     }
 
+    private initVariableAndGetId(
+        columnName: MetricKind,
+        rowFn: RowAccessor,
+        daily: boolean = false,
+        perCapita = this.perCapitaDivisorIfEnabled
+    ) {
+        const params = this.props.params
+        const id = buildCovidVariableId(
+            columnName,
+            perCapita,
+            this.props.params.smoothing,
+            daily
+        )
+
+        // The 7 day test smoothing is already calculated, so for now just reuse that instead of
+        // recalculating.
+        const alreadySmoothed =
+            (columnName === "tests" || columnName === "tests_per_case") &&
+            params.smoothing === 7
+
+        if (!this.owidVariableSet.variables[id]) {
+            this.owidVariableSet.variables[id] = buildCovidVariable(
+                id,
+                columnName,
+                this.countryMap,
+                this.props.data,
+                rowFn,
+                perCapita,
+                alreadySmoothed ? 1 : this.props.params.smoothing,
+                daily,
+                columnName === "tests" ? "" : " - " + this.lastUpdated
+            )
+        }
+        return id
+    }
+
     // We are computing variables clientside so they don't have a variable index. The variable index is used by Chart
     // in a number of places, so we still need a unique one per variable. The way our system works, changing things like
     // frequency or per capita would be in effect creating a new variable. So we need to generate unique variable ids
     // for all of these combinations.
-    @computed get yVariableIndices(): number[] {
+    @computed get yVariableId() {
         const params = this.props.params
-        const indices: number[] = []
-
-        const initVariable = (
-            columnName: MetricKind,
-            rowFn: RowAccessor,
-            daily: boolean = false
-        ) => {
-            const id = buildCovidVariableId(
-                columnName,
-                this.perCapitaDivisorIfEnabled,
-                this.props.params.smoothing,
-                daily
-            )
-            indices.push(id)
-
-            // The 7 day test smoothing is already calculated, so for now just reuse that instead of
-            // recalculating.
-            const alreadySmoothed =
-                (columnName === "tests" || columnName === "tests_per_case") &&
-                params.smoothing === 7
-
-            if (!this.owidVariableSet.variables[id]) {
-                this.owidVariableSet.variables[id] = buildCovidVariable(
-                    id,
-                    columnName,
-                    this.countryMap,
-                    this.props.data,
-                    rowFn,
-                    this.perCapitaDivisorIfEnabled,
-                    alreadySmoothed ? 1 : this.props.params.smoothing,
-                    daily,
-                    columnName === "tests" ? "" : " - " + this.lastUpdated
-                )
-            }
-        }
 
         if (params.testsMetric && params.dailyFreq)
-            initVariable(
+            return this.initVariableAndGetId(
                 "tests",
                 row => {
                     return params.smoothing === 7
@@ -688,20 +689,28 @@ export class CovidDataExplorer extends React.Component<{
                 true
             )
         if (params.testsMetric && params.totalFreq)
-            initVariable("tests", row => row.total_tests)
+            return this.initVariableAndGetId("tests", row => row.total_tests)
 
         if (params.casesMetric && params.dailyFreq)
-            initVariable("cases", row => row.new_cases, true)
+            return this.initVariableAndGetId(
+                "cases",
+                row => row.new_cases,
+                true
+            )
         if (params.casesMetric && params.totalFreq)
-            initVariable("cases", row => row.total_cases)
+            return this.initVariableAndGetId("cases", row => row.total_cases)
 
         if (params.deathsMetric && params.dailyFreq)
-            initVariable("deaths", row => row.new_deaths, true)
+            return this.initVariableAndGetId(
+                "deaths",
+                row => row.new_deaths,
+                true
+            )
         if (params.deathsMetric && params.totalFreq)
-            initVariable("deaths", row => row.total_deaths)
+            return this.initVariableAndGetId("deaths", row => row.total_deaths)
 
         if (params.cfrMetric && params.dailyFreq)
-            initVariable(
+            return this.initVariableAndGetId(
                 "case_fatality_rate",
                 row =>
                     row.total_cases < 100
@@ -712,7 +721,7 @@ export class CovidDataExplorer extends React.Component<{
                 true
             )
         if (params.cfrMetric && params.totalFreq)
-            initVariable("case_fatality_rate", row =>
+            return this.initVariableAndGetId("case_fatality_rate", row =>
                 row.total_cases < 100
                     ? undefined
                     : row.total_deaths && row.total_cases
@@ -721,7 +730,7 @@ export class CovidDataExplorer extends React.Component<{
             )
 
         if (params.testsPerCaseMetric && params.dailyFreq)
-            initVariable(
+            return this.initVariableAndGetId(
                 "tests_per_case",
                 row => {
                     const value =
@@ -735,14 +744,14 @@ export class CovidDataExplorer extends React.Component<{
                 true
             )
         if (params.testsPerCaseMetric && params.totalFreq)
-            initVariable("tests_per_case", row =>
+            return this.initVariableAndGetId("tests_per_case", row =>
                 row.total_tests !== undefined && row.total_cases
                     ? row.total_tests / row.total_cases
                     : undefined
             )
 
         if (params.positiveTestRate && params.dailyFreq)
-            initVariable(
+            return this.initVariableAndGetId(
                 "positive_test_rate",
                 row => {
                     const value =
@@ -755,17 +764,37 @@ export class CovidDataExplorer extends React.Component<{
                 true
             )
         if (params.positiveTestRate && params.totalFreq)
-            initVariable("positive_test_rate", row =>
+            return this.initVariableAndGetId("positive_test_rate", row =>
                 row.total_cases !== undefined && row.total_tests
                     ? row.total_cases / row.total_tests
                     : undefined
             )
 
-        return indices
+        console.log(`Error: no variable id generated.`)
+        return 0
     }
 
     @computed get daysSinceVariableId() {
-        const sourceId = this.yVariableIndices[0]
+        const params = this.props.params
+        let sourceId = this.yVariableId
+        // If we are using the cases metric, we use that for days since, else we use a formula
+        // that uses the deaths metric.
+        if (!params.casesMetric) {
+            sourceId = params.dailyFreq
+                ? this.initVariableAndGetId(
+                      "deaths",
+                      row => row.new_deaths,
+                      true,
+                      params.perCapita ? 1000000 : 1
+                  )
+                : this.initVariableAndGetId(
+                      "deaths",
+                      row => row.total_deaths,
+                      false,
+                      params.perCapita ? 1000000 : 1
+                  )
+        }
+
         const idParts = [456, sourceId]
         const id = parseInt(idParts.join(""))
         if (!this.owidVariableSet.variables[id]) {
@@ -775,16 +804,13 @@ export class CovidDataExplorer extends React.Component<{
                 this.daysSinceOption.title
             )
         }
+        debugger
         return id
     }
 
     @computed get daysSinceOption() {
         const params = this.props.params
-        const kind = params.deathsMetric
-            ? "deaths"
-            : params.casesMetric
-            ? "cases"
-            : "tests"
+        const kind = params.casesMetric ? "cases" : "deaths"
         return getTrajectoryOptions(kind, params.dailyFreq, params.perCapita)
     }
 
@@ -829,7 +855,7 @@ export class CovidDataExplorer extends React.Component<{
         // We manually call this first, before doing the selection thing, because we cannot select data that is not there.
         await this.chart.downloadData()
 
-        chartProps.map.variableId = this.yVariableIndices[0]
+        chartProps.map.variableId = this.yVariableId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
         if (this.props.params.testsPerCaseMetric)
@@ -969,22 +995,22 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get dimensions(): ChartDimension[] {
         if (this.chartType === "LineChart")
-            return this.yVariableIndices.map(id => {
-                return {
+            return [
+                {
                     property: "y",
-                    variableId: id,
+                    variableId: this.yVariableId,
                     display: {
                         // Allow ± 1 day difference in data plotted on bar charts
                         // This is what we use for charts on the Grapher too
                         tolerance: 1
                     }
                 }
-            })
+            ]
 
         return [
             {
                 property: "y",
-                variableId: this.yVariableIndices[0],
+                variableId: this.yVariableId,
                 display: {
                     name: ""
                 }
@@ -1060,7 +1086,7 @@ export class CovidDataExplorer extends React.Component<{
             tab: "chart",
             isPublished: true,
             map: {
-                variableId: this.yVariableIndices[0],
+                variableId: this.yVariableId,
                 timeTolerance: 7,
                 projection: "World",
                 colorScale: {
