@@ -155,7 +155,10 @@ export class CovidDataExplorer extends React.Component<{
                     this.props.params.cfrMetric = true
                     this.updateChart()
                 }
-            },
+            }
+        ]
+
+        const options2 = [
             {
                 label: "Tests",
                 checked: this.props.params.testsMetric,
@@ -185,11 +188,18 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <CovidInputControl
-                name="metric"
-                options={options}
-                isCheckbox={false}
-            ></CovidInputControl>
+            <>
+                <CovidInputControl
+                    name="metric"
+                    options={options}
+                    isCheckbox={false}
+                ></CovidInputControl>
+                <CovidInputControl
+                    name="&nbsp;"
+                    options={options2}
+                    isCheckbox={false}
+                ></CovidInputControl>
+            </>
         )
     }
 
