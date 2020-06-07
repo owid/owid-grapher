@@ -158,7 +158,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
 
-        const options2 = [
+        const optionsColumn2: InputOption[] = [
             {
                 label: "Tests",
                 checked: this.props.params.testsMetric,
@@ -195,8 +195,9 @@ export class CovidDataExplorer extends React.Component<{
                     isCheckbox={false}
                 ></CovidInputControl>
                 <CovidInputControl
-                    name="&nbsp;"
-                    options={options2}
+                    label="&nbsp;"
+                    name="metric2"
+                    options={optionsColumn2}
                     isCheckbox={false}
                 ></CovidInputControl>
             </>

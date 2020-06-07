@@ -15,6 +15,7 @@ export class CovidRadioControl extends React.Component<{
     isCheckbox?: boolean
     options: RadioOption[]
     comment?: string
+    label?: string
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
         this.props.options[parseInt(ev.currentTarget.value)].onChange(
@@ -23,7 +24,7 @@ export class CovidRadioControl extends React.Component<{
     }
 
     render() {
-        const { name, comment } = this.props
+        const { name, comment, label } = this.props
         return (
             <div
                 className={classNames(
@@ -31,7 +32,7 @@ export class CovidRadioControl extends React.Component<{
                     this.props.name
                 )}
             >
-                <div className="ControlHeader">{this.props.name}</div>
+                <div className="ControlHeader">{label || name}</div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
                         <label
