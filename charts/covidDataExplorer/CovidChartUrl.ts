@@ -1,7 +1,11 @@
 import { computed, observable } from "mobx"
 import { ObservableUrl } from "../UrlBinding"
 import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
-import { QueryParams, strToQueryParams } from "utils/client/url"
+import {
+    QueryParams,
+    strToQueryParams,
+    queryParamsToStr
+} from "utils/client/url"
 import { omit } from "../Util"
 import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
 
@@ -41,7 +45,7 @@ export class CovidQueryParams {
         if (params.country) this.setCountrySelectionFromChartUrl(params.country)
     }
 
-    setCountrySelectionFromChartUrl(chartCountries: string) {
+    private setCountrySelectionFromChartUrl(chartCountries: string) {
         EntityUrlBuilder.queryParamToEntities(chartCountries).forEach(code =>
             this.selectedCountryCodes.add(code)
         )
@@ -77,6 +81,56 @@ export class CovidQueryParams {
             Array.from(this.selectedCountryCodes)
         )
         return params as QueryParams
+    }
+
+    @computed get constrainedParams() {
+        return new CovidConstrainedQueryParams(queryParamsToStr(this.toParams))
+    }
+}
+
+class CovidConstrainedQueryParams extends CovidQueryParams {
+    constructor(queryString: string) {
+        super(queryString)
+        if (this.allowEverything) return this
+        const available = this.available
+        const isDaily = this.dailyFreq
+        Object.keys(available).forEach(key => {
+            const typedKey = key as keyof typeof available
+            if (!available[typedKey] && (<any>this)[key])
+                (<any>this)[key] = false
+        })
+
+        // If daily is not available, we need to set totalFreq to true
+        if (!available.dailyFreq && !available.smoothing) this.totalFreq = true
+        // If it was daily, but only so that smoothing could happen, we need to set daily to true
+        else if (isDaily && available.smoothing) this.dailyFreq = true
+    }
+
+    @computed get allowEverything() {
+        return false
+    }
+
+    @computed get available() {
+        const constraints = {
+            perCapita: !this.isRate,
+            aligned: !this.isRate,
+            dailyFreq: !this.isRate,
+            smoothing: !this.cfrMetric
+        }
+
+        if (this.allowEverything) {
+            Object.keys(constraints).forEach(key => {
+                constraints[key as keyof typeof constraints] = true
+            })
+        }
+
+        return constraints
+    }
+
+    @computed private get isRate() {
+        return (
+            this.cfrMetric || this.testsPerCaseMetric || this.positiveTestRate
+        )
     }
 }
 
