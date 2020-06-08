@@ -13,7 +13,7 @@ import {
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, first } from "./Util"
+import { extend, keys, entries, first, max } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -542,11 +542,21 @@ export class Controls {
     @observable isShareMenuActive: boolean = false
     @observable isSettingsMenuActive: boolean = false
 
-    @computed get paddingTop() {
-        const tops = Object.values(this.props.chartView.overlays)
-            .filter(overlay => overlay.props.paddingTop !== undefined)
-            .map(overlay => overlay.props.paddingTop) as number[]
-        return tops.length ? Math.max(...tops) : 0
+    @computed.struct get overlayPadding(): {
+        top: number
+        right: number
+        bottom: number
+        left: number
+    } {
+        const overlays = Object.values(this.props.chartView.overlays)
+        return {
+            top: max(overlays.map(overlay => overlay.props.paddingTop)) ?? 0,
+            right:
+                max(overlays.map(overlay => overlay.props.paddingRight)) ?? 0,
+            bottom:
+                max(overlays.map(overlay => overlay.props.paddingBottom)) ?? 0,
+            left: max(overlays.map(overlay => overlay.props.paddingLeft)) ?? 0
+        }
     }
 
     @computed get addDataTerm() {
@@ -671,7 +681,7 @@ export class AddEntityButton extends React.Component<{
         if (verticalAlign === "top") {
             buttonStyle.top = `${y}px`
         } else if (verticalAlign === "bottom") {
-            buttonStyle.bottom = `${-y}px`
+            buttonStyle.top = `${y - height}px`
         } else {
             buttonStyle.top = `${y - height / 2}px`
         }
@@ -757,28 +767,19 @@ export class ControlsOverlay extends React.Component<{
     id: string
     children: JSX.Element
     paddingTop?: number
+    paddingRight?: number
+    paddingBottom?: number
+    paddingLeft?: number
 }> {
     static contextType = ChartViewContext
     context!: ChartViewContextType
 
-    @action setOverlay() {
+    componentDidMount() {
         this.context.chartView.overlays[this.props.id] = this
     }
 
-    @action deleteOverlay() {
-        delete this.context.chartView.overlays[this.props.id]
-    }
-
-    componentDidMount() {
-        this.setOverlay()
-    }
-
-    componentDidUpdate() {
-        this.setOverlay()
-    }
-
     componentWillUnmount() {
-        this.deleteOverlay()
+        delete this.context.chartView.overlays[this.props.id]
     }
 
     render() {
@@ -790,24 +791,41 @@ export class ControlsOverlay extends React.Component<{
 export class ControlsOverlayView extends React.Component<{
     chartView: ChartView
     controls: Controls
+    children: JSX.Element
 }> {
     @action.bound onDataSelect() {
         this.props.controls.props.chartView.isSelectingData = true
     }
 
     render() {
-        const wrapperStyle: React.CSSProperties = {
-            height: `${this.props.controls.paddingTop}px`
+        const { overlayPadding } = this.props.controls
+        const containerStyle: React.CSSProperties = {
+            position: "relative",
+            clear: "both",
+            marginTop: `${overlayPadding.top}px`,
+            marginRight: `${overlayPadding.right}px`,
+            marginBottom: `${overlayPadding.bottom}px`,
+            marginLeft: `${overlayPadding.left}px`
+        }
+        const overlayStyle: React.CSSProperties = {
+            position: "absolute",
+            top: "0px",
+            left: "0px",
+            width: "1px",
+            height: "1px"
         }
         return (
-            <div className="ControlsOverlay" style={wrapperStyle}>
-                {entries(this.props.chartView.overlays).map(
-                    ([key, overlay]) => (
-                        <React.Fragment key={key}>
-                            {overlay.props.children}
-                        </React.Fragment>
-                    )
-                )}
+            <div style={containerStyle}>
+                {this.props.children}
+                <div className="ControlsOverlay" style={overlayStyle}>
+                    {entries(this.props.chartView.overlays).map(
+                        ([key, overlay]) => (
+                            <React.Fragment key={key}>
+                                {overlay.props.children}
+                            </React.Fragment>
+                        )
+                    )}
+                </div>
             </div>
         )
     }

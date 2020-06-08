@@ -53,24 +53,39 @@ export class ChartLayout {
     }
 
     @computed get svgWidth() {
+        if (this.isHTML) {
+            const { overlayPadding } = this.props.chartView.controls
+            return (
+                this.props.bounds.width -
+                overlayPadding.left -
+                overlayPadding.right
+            )
+        }
         return this.props.bounds.width
     }
 
     @computed get svgHeight() {
-        return this.isHTML
-            ? this.props.bounds.height -
-                  this.header.height -
-                  this.footer.height -
-                  30
-            : this.props.bounds.height
+        if (this.isHTML) {
+            const { overlayPadding } = this.props.chartView.controls
+            return (
+                this.props.bounds.height -
+                this.header.height -
+                this.footer.height -
+                overlayPadding.top -
+                overlayPadding.bottom -
+                30
+            )
+        }
+        return this.props.bounds.height
     }
 
     @computed get innerBounds() {
-        return this.isHTML
-            ? new Bounds(0, 2, this.svgWidth, this.svgHeight).padWidth(15)
-            : this.paddedBounds
-                  .padTop(this.header.height)
-                  .padBottom(this.footer.height)
+        if (this.isHTML) {
+            return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
+        }
+        return this.paddedBounds
+            .padTop(this.header.height)
+            .padBottom(this.footer.height)
     }
 }
 
@@ -126,17 +141,18 @@ export class ChartLayoutView extends React.Component<{
                     <ControlsOverlayView
                         chartView={this.context.chartView}
                         controls={this.context.chartView.controls}
-                    />
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        version="1.1"
-                        style={this.svgStyle as any}
-                        width={layout.svgWidth}
-                        height={layout.svgHeight}
-                        viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
                     >
-                        {this.props.children}
-                    </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            version="1.1"
+                            style={this.svgStyle as any}
+                            width={layout.svgWidth}
+                            height={layout.svgHeight}
+                            viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
+                        >
+                            {this.props.children}
+                        </svg>
+                    </ControlsOverlayView>
                 </div>
                 <SourcesFooterHTML
                     chart={layout.props.chart}
