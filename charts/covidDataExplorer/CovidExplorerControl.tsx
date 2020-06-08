@@ -3,17 +3,18 @@ import { observer } from "mobx-react"
 import { action } from "mobx"
 import classNames from "classnames"
 
-export interface RadioOption {
+export interface ControlOption {
     label: string
     checked: boolean
     onChange: (checked: boolean) => void
+    available: boolean
 }
 
 @observer
-export class CovidRadioControl extends React.Component<{
+export class ExplorerControl extends React.Component<{
     name: string
     isCheckbox?: boolean
-    options: RadioOption[]
+    options: ControlOption[]
     comment?: string
     label?: string
 }> {
@@ -36,18 +37,24 @@ export class CovidRadioControl extends React.Component<{
                 {this.props.options.map((option, index) => (
                     <div key={index}>
                         <label
-                            className={
-                                option.checked ? "SelectedOption" : "Option"
-                            }
+                            className={[
+                                option.checked ? "SelectedOption" : "Option",
+                                option.available
+                                    ? "AvailableOption"
+                                    : "UnavailableOption"
+                            ].join(" ")}
                             data-track-note={`covid-click-${name}`}
                         >
                             <input
-                                onChange={this.onChange}
+                                onChange={
+                                    option.available ? this.onChange : undefined
+                                }
                                 type={
                                     this.props.isCheckbox ? "checkbox" : "radio"
                                 }
+                                disabled={!option.available}
                                 name={name}
-                                checked={option.checked}
+                                checked={option.available && option.checked}
                                 value={index}
                             />{" "}
                             {option.label}

@@ -38,10 +38,7 @@ import {
     ParsedCovidRow,
     CountryOption
 } from "./CovidTypes"
-import {
-    RadioOption as InputOption,
-    CovidRadioControl as CovidInputControl
-} from "./CovidRadioControl"
+import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
@@ -127,10 +124,11 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private get metricPicker() {
-        const options: InputOption[] = [
+        const options: ControlOption[] = [
             {
+                available: true,
                 label: "Confirmed cases",
-                checked: this.props.params.casesMetric,
+                checked: this.constrainedParams.casesMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.casesMetric = true
@@ -138,8 +136,9 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
+                available: true,
                 label: "Confirmed deaths",
-                checked: this.props.params.deathsMetric,
+                checked: this.constrainedParams.deathsMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.deathsMetric = true
@@ -148,8 +147,9 @@ export class CovidDataExplorer extends React.Component<{
             },
 
             {
+                available: true,
                 label: "Case fatality rate",
-                checked: this.props.params.cfrMetric,
+                checked: this.constrainedParams.cfrMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.cfrMetric = true
@@ -158,10 +158,11 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
 
-        const optionsColumn2: InputOption[] = [
+        const optionsColumn2: ControlOption[] = [
             {
+                available: true,
                 label: "Tests",
-                checked: this.props.params.testsMetric,
+                checked: this.constrainedParams.testsMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.testsMetric = true
@@ -169,8 +170,9 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
+                available: true,
                 label: "Tests per confirmed case",
-                checked: this.props.params.testsPerCaseMetric,
+                checked: this.constrainedParams.testsPerCaseMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.testsPerCaseMetric = true
@@ -178,8 +180,9 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
+                available: true,
                 label: "Share of positive tests",
-                checked: this.props.params.positiveTestRate,
+                checked: this.constrainedParams.positiveTestRate,
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.positiveTestRate = true
@@ -189,50 +192,53 @@ export class CovidDataExplorer extends React.Component<{
         ]
         return (
             <>
-                <CovidInputControl
+                <ExplorerControl
                     name="metric"
                     options={options}
                     isCheckbox={false}
-                ></CovidInputControl>
-                <CovidInputControl
+                ></ExplorerControl>
+                <ExplorerControl
                     label="&nbsp;"
                     name="metric2"
                     options={optionsColumn2}
                     isCheckbox={false}
-                ></CovidInputControl>
+                ></ExplorerControl>
             </>
         )
     }
 
     private get frequencyPicker() {
-        const options: InputOption[] = [
+        const options: ControlOption[] = [
             {
+                available: true,
                 label: "Cumulative",
-                checked: this.props.params.totalFreq,
+                checked: this.constrainedParams.totalFreq,
                 onChange: value => {
                     this.setTotalFrequencyCommand(value)
-                    if (value) this.setDailyFrequencyCommand(false)
+                    this.setDailyFrequencyCommand(false)
                     this.setSmoothingCommand(0)
 
                     this.updateChart()
                 }
             },
             {
+                available: this.constrainedParams.available.dailyFreq,
                 label: "New per day",
                 checked:
-                    this.props.params.dailyFreq &&
+                    this.constrainedParams.dailyFreq &&
                     this.props.params.smoothing === 0,
                 onChange: value => {
                     this.setDailyFrequencyCommand(value)
-                    if (value) this.setTotalFrequencyCommand(false)
+                    this.setTotalFrequencyCommand(false)
                     this.setSmoothingCommand(0)
 
                     this.updateChart()
                 }
             },
             {
+                available: this.constrainedParams.available.smoothing,
                 label: "7-day rolling average",
-                checked: this.props.params.smoothing === 7,
+                checked: this.constrainedParams.smoothing === 7,
                 onChange: () => {
                     this.setSmoothingCommand(7)
                     this.updateChart()
@@ -242,19 +248,24 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <CovidInputControl
+            <ExplorerControl
                 name="interval"
                 options={options}
                 isCheckbox={false}
-            ></CovidInputControl>
+            ></ExplorerControl>
         )
     }
 
+    @computed private get constrainedParams() {
+        return this.props.params.constrainedParams
+    }
+
     @computed private get perCapitaPicker() {
-        const options: InputOption[] = [
+        const options: ControlOption[] = [
             {
+                available: this.constrainedParams.available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
-                checked: this.props.params.perCapita,
+                checked: this.constrainedParams.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
                     this.updateChart()
@@ -262,19 +273,20 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <CovidInputControl
+            <ExplorerControl
                 name="count"
                 isCheckbox={true}
                 options={options}
-            ></CovidInputControl>
+            ></ExplorerControl>
         )
     }
 
     private get alignedPicker() {
-        const options: InputOption[] = [
+        const options: ControlOption[] = [
             {
+                available: this.constrainedParams.available.aligned,
                 label: "Align outbreaks",
-                checked: this.props.params.aligned,
+                checked: this.constrainedParams.aligned,
                 onChange: value => {
                     this.props.params.aligned = value
                     this.updateChart()
@@ -282,17 +294,13 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <CovidInputControl
+            <ExplorerControl
                 name="timeline"
                 isCheckbox={true}
                 options={options}
                 comment={this.daysSinceOption.title}
-            ></CovidInputControl>
+            ></ExplorerControl>
         )
-    }
-
-    @computed get areMultipleCountriesSelected() {
-        return Array.from(this.props.params.selectedCountryCodes).length > 1
     }
 
     toggleSelectedCountry(code: string, value?: boolean) {
@@ -454,17 +462,12 @@ export class CovidDataExplorer extends React.Component<{
         return this.countryOptions.map(country => country.name)
     }
 
-    @computed get perCapitaDivisorIfEnabled() {
-        return this.props.params.perCapita ? this.perCapitaDivisor : 1
-    }
-
     @computed get perCapitaDivisor() {
-        const { params } = this.props
-        if (params.testsMetric) return 1000
+        if (this.constrainedParams.testsMetric) return 1000
         return 1000000
     }
 
-    @computed get perCapitaOptions() {
+    @computed private get perCapitaOptions() {
         return {
             1: "",
             1000: "per thousand people",
@@ -472,21 +475,25 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @computed get perCapitaTitle() {
-        return " " + this.perCapitaOptions[this.perCapitaDivisorIfEnabled]
+    @computed private get perCapitaTitle() {
+        return (
+            " " +
+            this.perCapitaOptions[
+                this.constrainedParams.perCapita ? this.perCapitaDivisor : 1
+            ]
+        )
     }
 
     @computed get metricTitle() {
+        const params = this.constrainedParams
         // Todo: if we no longer support multiple metrics, we could probably simplify this.
         const metrics = []
-        if (this.props.params.deathsMetric) metrics.push("deaths")
-        if (this.props.params.casesMetric) metrics.push("cases")
-        if (this.props.params.testsMetric) metrics.push("tests")
-        if (this.props.params.cfrMetric) metrics.push("case fatality rate")
-        if (this.props.params.testsPerCaseMetric)
-            metrics.push("tests per confirmed case")
-        if (this.props.params.positiveTestRate)
-            metrics.push("share of positive tests")
+        if (params.deathsMetric) metrics.push("deaths")
+        if (params.casesMetric) metrics.push("cases")
+        if (params.testsMetric) metrics.push("tests")
+        if (params.cfrMetric) metrics.push("case fatality rate")
+        if (params.testsPerCaseMetric) metrics.push("tests per confirmed case")
+        if (params.positiveTestRate) metrics.push("share of positive tests")
         return metrics.length > 2
             ? `${metrics.slice(1).join(", ")} and ${metrics[0]}`
             : metrics.length === 2
@@ -495,23 +502,25 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get smoothingTitle() {
-        if (this.props.params.smoothing > 0)
-            return `Shown is the rolling ${this.props.params.smoothing}-day average. `
+        const smoothing = this.constrainedParams.smoothing
+        if (smoothing > 0)
+            return `Shown is the rolling ${smoothing}-day average. `
         return ""
     }
 
     @computed get title() {
         let title: string
-        if (this.props.params.cfrMetric)
+        const params = this.constrainedParams
+        if (params.cfrMetric)
             title = `Case fatality rate of the ongoing COVID-19 pandemic`
-        else if (this.props.params.positiveTestRate)
+        else if (params.positiveTestRate)
             title = `The share of ${
-                this.props.params.dailyFreq ? "daily " : ""
+                params.dailyFreq ? "daily " : ""
             }COVID-19 tests that are positive`
-        else if (this.props.params.testsPerCaseMetric)
+        else if (params.testsPerCaseMetric)
             title = `Tests conducted per new confirmed case of COVID-19`
         else {
-            const freq = this.props.params.dailyFreq ? "Daily new" : "Total"
+            const freq = params.dailyFreq ? "Daily new" : "Total"
             title = `${freq} confirmed COVID-19 ${this.metricTitle}`
         }
         return title + this.perCapitaTitle
@@ -519,15 +528,16 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed get subtitle() {
         const parts: string[] = []
-        if (this.props.params.deathsMetric)
+        const params = this.constrainedParams
+        if (params.deathsMetric)
             parts.push(
                 `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
             )
-        if (this.props.params.casesMetric)
+        if (params.casesMetric)
             parts.push(
                 `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
             )
-        if (this.props.params.cfrMetric)
+        if (params.cfrMetric)
             parts.push(
                 `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
             )
@@ -535,7 +545,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get note() {
-        if (this.props.params.testsMetric)
+        const params = this.constrainedParams
+        if (params.testsMetric)
             return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on ourworldindata.org/covid-testing."
         return ""
     }
@@ -632,7 +643,7 @@ export class CovidDataExplorer extends React.Component<{
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
-        return this.props.params.aligned ? "ScatterPlot" : "LineChart"
+        return this.constrainedParams.aligned ? "ScatterPlot" : "LineChart"
     }
 
     // Keep the barScale here for perf reasons
@@ -650,13 +661,13 @@ export class CovidDataExplorer extends React.Component<{
         columnName: MetricKind,
         rowFn: RowAccessor,
         daily: boolean = false,
-        perCapita = this.perCapitaDivisorIfEnabled
+        perCapita = this.constrainedParams.perCapita ? this.perCapitaDivisor : 1
     ) {
-        const params = this.props.params
+        const params = this.constrainedParams
         const id = buildCovidVariableId(
             columnName,
             perCapita,
-            this.props.params.smoothing,
+            params.smoothing,
             daily
         )
 
@@ -674,7 +685,7 @@ export class CovidDataExplorer extends React.Component<{
                 this.props.data,
                 rowFn,
                 perCapita,
-                alreadySmoothed ? 1 : this.props.params.smoothing,
+                alreadySmoothed ? 1 : params.smoothing,
                 daily,
                 columnName === "tests" ? "" : " - " + this.lastUpdated
             )
@@ -687,7 +698,7 @@ export class CovidDataExplorer extends React.Component<{
     // frequency or per capita would be in effect creating a new variable. So we need to generate unique variable ids
     // for all of these combinations.
     @computed get yVariableId() {
-        const params = this.props.params
+        const params = this.constrainedParams
 
         if (params.testsMetric && params.dailyFreq)
             return this.initVariableAndGetId(
@@ -786,7 +797,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get daysSinceVariableId() {
-        const params = this.props.params
+        const params = this.constrainedParams
         let sourceId = this.yVariableId
         // If we are using the cases metric, we use that for days since, else we use a formula
         // that uses the deaths metric.
@@ -819,7 +830,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get daysSinceOption() {
-        const params = this.props.params
+        const params = this.constrainedParams
         const kind = params.casesMetric ? "cases" : "deaths"
         return getTrajectoryOptions(kind, params.dailyFreq, params.perCapita)
     }
@@ -868,9 +879,9 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.map.variableId = this.yVariableId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
-        if (this.props.params.testsPerCaseMetric)
+        if (this.constrainedParams.testsPerCaseMetric)
             Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
-        if (this.props.params.positiveTestRate)
+        if (this.constrainedParams.positiveTestRate)
             Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
 
         chartProps.selectedData = this.selectedData
@@ -983,9 +994,9 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get mapColorScheme() {
-        return this.props.params.testsMetric
+        return this.constrainedParams.testsMetric
             ? undefined
-            : this.props.params.casesMetric
+            : this.constrainedParams.casesMetric
             ? "YlOrBr"
             : "OrRd"
     }

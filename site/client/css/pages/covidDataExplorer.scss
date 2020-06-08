@@ -147,8 +147,8 @@ html.iframe {
                 text-transform: uppercase;
             }
 
-            .SelectedOption {
-                color: $selected-option-color;
+            .UnavailableOption {
+                opacity: 0.5;
             }
 
             .comment {
