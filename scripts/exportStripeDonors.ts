@@ -72,15 +72,15 @@ async function getCustomersWithPaymentIntents(): Promise<
 async function getDonors() {
     const customers = await getCustomersWithPaymentIntents()
     return customers.map(customer => {
-        const metadata =
-            (customer.paymentIntents[0] &&
-                customer.paymentIntents[0].metadata) ||
-            (customer.subscriptions?.data[0] &&
-                customer.subscriptions.data[0].metadata)
+        const metadata: Stripe.Metadata = {
+            ...customer.metadata,
+            ...customer.paymentIntents[0]?.metadata,
+            ...customer.subscriptions?.data[0]?.metadata
+        }
         return {
             email: customer.email,
-            name: metadata && metadata.name,
-            showOnList: metadata && metadata.showOnList,
+            name: metadata?.name,
+            showOnList: metadata?.showOnList,
             isMonthly: !!customer.subscriptions?.data.length,
             created: new Date(customer.created * 1000).toISOString(),
             total: sum(customer.paymentIntents.map(pi => pi.amount)) / 100
