@@ -129,7 +129,7 @@ export class CovidDataExplorer extends React.Component<{
     private get metricPicker() {
         const options: InputOption[] = [
             {
-                label: "Confirmed COVID-19 cases",
+                label: "Confirmed cases",
                 checked: this.props.params.casesMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
@@ -138,7 +138,7 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
-                label: "Confirmed COVID-19 deaths",
+                label: "Confirmed deaths",
                 checked: this.props.params.deathsMetric,
                 onChange: value => {
                     this.clearMetricsCommand()
