@@ -16,7 +16,7 @@ export class ExplorerControl extends React.Component<{
     isCheckbox?: boolean
     options: ControlOption[]
     comment?: string
-    label?: string
+    hideLabel?: boolean
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
         this.props.options[parseInt(ev.currentTarget.value)].onChange(
@@ -25,7 +25,7 @@ export class ExplorerControl extends React.Component<{
     }
 
     render() {
-        const { name, comment, label } = this.props
+        const { name, comment, hideLabel } = this.props
         return (
             <div
                 className={classNames(
@@ -33,7 +33,14 @@ export class ExplorerControl extends React.Component<{
                     this.props.name
                 )}
             >
-                <div className="ControlHeader">{label || name}</div>
+                <div
+                    className={
+                        "ControlHeader" +
+                        (hideLabel === true ? " HiddenControlHeader" : "")
+                    }
+                >
+                    {name}
+                </div>
                 {this.props.options.map((option, index) => (
                     <div key={index}>
                         <label

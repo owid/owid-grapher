@@ -198,7 +198,7 @@ export class CovidDataExplorer extends React.Component<{
                     isCheckbox={false}
                 ></ExplorerControl>
                 <ExplorerControl
-                    label="&nbsp;"
+                    hideLabel={true}
                     name="metric2"
                     options={optionsColumn2}
                     isCheckbox={false}

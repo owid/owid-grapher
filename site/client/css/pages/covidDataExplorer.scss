@@ -138,6 +138,11 @@ html.iframe {
             line-height: 26px;
             max-width: 22%;
 
+            .HiddenControlHeader {
+                // Don't show hidden label in desktop but preserve space for it so options are aligned.
+                opacity: 0;
+            }
+
             input {
                 margin-right: 5px;
             }
@@ -202,6 +207,11 @@ html.iframe {
             right: 0;
             z-index: 100;
             border-radius: 0;
+
+            .HiddenControlHeader {
+                // Remove hidden labels on mobile entirely
+                display: none;
+            }
 
             &.show-controls-popup {
                 bottom: 0;
