@@ -271,21 +271,43 @@ export const buildCovidVariable = (
             rollingAverage
         )
 
-    const clone = cloneDeep(variablePartials[name])
+    // This should never throw but keep it here in case something goes wrong in our building of the runtime variables
+    // so we will fail and can spot it.
+    if (years.length !== values.length && values.length !== entities.length) {
+        throw new Error(`Length mismatch when building variables.`)
+    }
+
+    const partial = buildVariableMetadata(
+        newId,
+        data,
+        name,
+        perCapita,
+        daily,
+        rollingAverage,
+        updatedTime
+    )
 
     const variable: Partial<OwidVariable> = {
-        ...clone,
+        ...partial,
         years,
         entities,
         entityNames,
         values
     }
 
-    // This should never throw but keep it here in case something goes wrong in our building of the runtime variables
-    // so we will fail and can spot it.
-    if (years.length !== values.length && values.length !== entities.length) {
-        throw new Error(`Length mismatch when building variables.`)
-    }
+    return variable as OwidVariable
+}
+
+const buildVariableMetadata = (
+    newId: number,
+    rows: ParsedCovidRow[],
+    name: MetricKind,
+    perCapita: number,
+    daily?: boolean,
+    rollingAverage?: number,
+    updatedTime?: string
+) => {
+    const variable = cloneDeep(variablePartials[name])
 
     variable.source!.name = `${variable.source!.name}${updatedTime}`
 
@@ -310,9 +332,9 @@ export const buildCovidVariable = (
         variable.display!.numDecimalPlaces = 0
     }
 
-    variable.display!.entityAnnotationsMap = buildEntityAnnotations(data, name)
+    variable.display!.entityAnnotationsMap = buildEntityAnnotations(rows, name)
 
-    return variable as OwidVariable
+    return variable
 }
 
 export const getTrajectoryOptions = (
