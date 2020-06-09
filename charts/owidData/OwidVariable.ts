@@ -167,11 +167,16 @@ export class OwidVariable {
     }
 
     toCsv(): string {
-        const header = `entity,year,value\n`
-        const { entities, values, years } = this
+        const header = `entityName,entity,year,value\n`
+        const { entityNames, entities, values, years } = this
         const body = values
             .map((_, index) =>
-                [entities[index], years[index], values[index]].join(",")
+                [
+                    entityNames[index],
+                    entities[index],
+                    years[index],
+                    values[index]
+                ].join(",")
             )
             .join("\n")
         return header + body
