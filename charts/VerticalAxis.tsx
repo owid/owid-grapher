@@ -105,11 +105,11 @@ export class VerticalAxisView extends React.Component<{
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
                     <ControlsOverlay
                         id="vertical-scale-selector"
-                        paddingTop={10}
+                        paddingTop={18}
                     >
                         <ScaleSelector
                             x={bounds.left}
-                            y={bounds.top - 25}
+                            y={bounds.top - 34}
                             scaleType={scale.scaleType}
                             scaleTypeOptions={scale.scaleTypeOptions}
                             onChange={onScaleTypeChange}

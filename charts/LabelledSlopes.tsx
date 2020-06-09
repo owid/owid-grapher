@@ -762,8 +762,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 {yScaleTypeOptions.length > 1 && (
                     <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
                         <ScaleSelector
-                            x={x1 + 5}
-                            y={y2 - 20}
+                            x={bounds.x}
+                            y={bounds.y - 35}
                             scaleType={yScaleType}
                             scaleTypeOptions={yScaleTypeOptions}
                             onChange={onScaleTypeChange}
