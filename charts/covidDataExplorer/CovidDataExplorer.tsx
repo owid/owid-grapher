@@ -779,25 +779,26 @@ export class CovidDataExplorer extends React.Component<{
                     : undefined
             )
 
-        if (params.positiveTestRate && params.dailyFreq)
+        if (params.positiveTestRate && params.dailyFreq) {
             this.addNewCasesSmoothed()
-        return this.initVariableAndGetId(
-            "positive_test_rate",
-            row => {
-                const value =
-                    params.smoothing === 7
-                        ? row.new_tests_smoothed
-                        : row.new_tests
+            return this.initVariableAndGetId(
+                "positive_test_rate",
+                row => {
+                    const value =
+                        params.smoothing === 7
+                            ? row.new_tests_smoothed
+                            : row.new_tests
 
-                const cases =
-                    params.smoothing === 7
-                        ? (row as any).new_cases_smoothed
-                        : row.new_cases
+                    const cases =
+                        params.smoothing === 7
+                            ? (row as any).new_cases_smoothed
+                            : row.new_cases
 
-                return value ? cases / value : undefined
-            },
-            true
-        )
+                    return value ? cases / value : undefined
+                },
+                true
+            )
+        }
         if (params.positiveTestRate && params.totalFreq)
             return this.initVariableAndGetId("positive_test_rate", row =>
                 row.total_cases !== undefined && row.total_tests
