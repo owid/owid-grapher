@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DataTab data downloads one day-based variable, one year-based variable 1`] = `
+exports[`CSV data downloads one day-based variable, one year-based variable 1`] = `
 "Entity,Code,Date,Confirmed COVID-19 cases per million people (cases per million),Year,GDP per capita (international-$)
 Afghanistan,AFG,\\"Mar 21, 2020\\",0.6165174107984719,2017,1803.98748708124
 Afghanistan,AFG,\\"Mar 22, 2020\\",0.6165174107984719,2017,1803.98748708124
@@ -766,7 +766,7 @@ Zimbabwe,ZWE,\\"Mar 22, 2020\\",0.13456299691171192,2017,1899.77497716634
 Zimbabwe,ZWE,\\"Mar 23, 2020\\",0.13456299691171192,2017,1899.77497716634"
 `;
 
-exports[`DataTab data downloads one year-based variable 1`] = `
+exports[`CSV data downloads one year-based variable 1`] = `
 "Entity,Code,Year, (% of children under 5)
 Afghanistan,AFG,1997,18.2
 Afghanistan,AFG,2004,8.6
@@ -792,7 +792,7 @@ Armenia,ARM,1998,3.3
 Arme"
 `;
 
-exports[`DataTab data downloads two day-based variables 1`] = `
+exports[`CSV data downloads two day-based variables 1`] = `
 "Entity,Code,Date,Total confirmed cases of COVID-19 per million (cases per million),Total confirmed deaths due to COVID-19 per million (deaths per million)
 Afghanistan,AFG,\\"Mar 22, 2020\\",0.6165174107984719,0
 Afghanistan,AFG,\\"Mar 23, 2020\\",0.8733996652978353,0
