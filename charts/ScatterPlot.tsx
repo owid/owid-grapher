@@ -358,7 +358,9 @@ export class ScatterPlot extends React.Component<{
                     bounds={axisBox.innerBounds}
                     xScale={axisBox.xScale}
                     yScale={axisBox.yScale}
-                    colorScale={colorScale}
+                    colorScale={
+                        this.transform.colorDimension ? colorScale : undefined
+                    }
                     sizeDomain={sizeDomain}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}

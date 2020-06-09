@@ -66,7 +66,7 @@ interface PointsWithLabelsProps {
     bounds: Bounds
     xScale: AxisScale
     yScale: AxisScale
-    colorScale: ColorScale
+    colorScale?: ColorScale
     sizeDomain: [number, number]
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
@@ -306,7 +306,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
                     const scaleColor =
-                        v.color !== undefined
+                        colorScale !== undefined
                             ? colorScale.getColor(v.color)
                             : undefined
                     return {

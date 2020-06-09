@@ -96,9 +96,7 @@ export class ScatterTransform extends ChartTransform {
         | undefined {
         return this.chart.data.filledDimensions.find(d => d.property === "x")
     }
-    @computed private get colorDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
         return this.chart.data.filledDimensions.find(
             d => d.property === "color"
         )
