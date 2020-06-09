@@ -109,7 +109,7 @@ export class VerticalAxisView extends React.Component<{
                     >
                         <ScaleSelector
                             x={bounds.left}
-                            y={bounds.top - 18}
+                            y={bounds.top - 34}
                             scaleType={scale.scaleType}
                             scaleTypeOptions={scale.scaleTypeOptions}
                             onChange={onScaleTypeChange}

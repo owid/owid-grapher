@@ -53,24 +53,39 @@ export class ChartLayout {
     }
 
     @computed get svgWidth() {
+        if (this.isHTML) {
+            const { overlayPadding } = this.props.chartView.controls
+            return (
+                this.props.bounds.width -
+                overlayPadding.left -
+                overlayPadding.right
+            )
+        }
         return this.props.bounds.width
     }
 
     @computed get svgHeight() {
-        return this.isHTML
-            ? this.props.bounds.height -
-                  this.header.height -
-                  this.footer.height -
-                  30
-            : this.props.bounds.height
+        if (this.isHTML) {
+            const { overlayPadding } = this.props.chartView.controls
+            return (
+                this.props.bounds.height -
+                this.header.height -
+                this.footer.height -
+                overlayPadding.top -
+                overlayPadding.bottom -
+                30
+            )
+        }
+        return this.props.bounds.height
     }
 
     @computed get innerBounds() {
-        return this.isHTML
-            ? new Bounds(0, 2, this.svgWidth, this.svgHeight).padWidth(15)
-            : this.paddedBounds
-                  .padTop(this.header.height)
-                  .padBottom(this.footer.height)
+        if (this.isHTML) {
+            return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
+        }
+        return this.paddedBounds
+            .padTop(this.header.height)
+            .padBottom(this.footer.height)
     }
 }
 
@@ -120,13 +135,10 @@ export class ChartLayoutView extends React.Component<{
         return (
             <React.Fragment>
                 <HeaderHTML chart={layout.props.chart} header={layout.header} />
-                {/* The "chart plot area" div helps highlight the overlay controls on hover,
-                as we don't want to show them when the cursor is over the tabs */}
-                <div className="ChartPlotArea">
-                    <ControlsOverlayView
-                        chartView={this.context.chartView}
-                        controls={this.context.chartView.controls}
-                    />
+                <ControlsOverlayView
+                    chartView={this.context.chartView}
+                    controls={this.context.chartView.controls}
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         version="1.1"
@@ -137,7 +149,7 @@ export class ChartLayoutView extends React.Component<{
                     >
                         {this.props.children}
                     </svg>
-                </div>
+                </ControlsOverlayView>
                 <SourcesFooterHTML
                     chart={layout.props.chart}
                     footer={layout.footer}

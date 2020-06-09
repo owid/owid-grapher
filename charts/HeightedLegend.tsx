@@ -471,18 +471,22 @@ export class HeightedLegendComponent extends React.Component<
     get addEntityButton() {
         if (!this.context.chart.showAddEntityControls) return undefined
 
+        const verticalAlign = "bottom"
+
         const leftOffset = this.needsLines
             ? this.props.legend.leftPadding
             : this.props.legend.width > 70
             ? 21
             : 5
-        const y = Math.max(
-            0,
-            defaultTo(min(this.placedMarks.map(mark => mark.bounds.top)), 0)
+
+        const topMarkY = defaultTo(
+            min(this.placedMarks.map(mark => mark.bounds.top)),
+            0
         )
+
         const paddingTop = AddEntityButton.calcPaddingTop(
-            y,
-            "bottom",
+            topMarkY,
+            verticalAlign,
             ADD_BUTTON_HEIGHT
         )
 
@@ -490,9 +494,9 @@ export class HeightedLegendComponent extends React.Component<
             <ControlsOverlay id="add-country" paddingTop={paddingTop}>
                 <AddEntityButton
                     x={this.props.x + leftOffset}
-                    y={y}
+                    y={topMarkY}
                     align="left"
-                    verticalAlign="bottom"
+                    verticalAlign={verticalAlign}
                     height={ADD_BUTTON_HEIGHT}
                     label={`Add ${this.context.chart.entityType}`}
                     onClick={this.onAddClick}

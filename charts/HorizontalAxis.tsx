@@ -191,7 +191,10 @@ export class HorizontalAxisView extends React.Component<{
                     return element
                 })}
                 {scale.scaleTypeOptions.length > 1 && onScaleTypeChange && (
-                    <ControlsOverlay id="horizontal-scale-selector">
+                    <ControlsOverlay
+                        id="horizontal-scale-selector"
+                        paddingBottom={10}
+                    >
                         <ScaleSelector
                             x={bounds.right}
                             y={bounds.bottom}

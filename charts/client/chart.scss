@@ -785,12 +785,6 @@ $zindex-IndicatorDropdown: 50;
     padding: 0 !important;
 }
 
-.ControlsOverlay {
-    position: relative;
-    clear: both;
-    width: 1px; /* This affects layout calculations for add entity button */
-}
-
 @keyframes appear {
     0% {
         opacity: 0;
