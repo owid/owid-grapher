@@ -464,10 +464,10 @@ export class ScatterTransform extends ChartTransform {
 
         const props: Partial<AxisSpec> = {}
         props.scaleType = yScaleType
+        const label = chart.yAxis.label ?? yAxisLabelBase
         if (isRelativeMode) {
             props.domain = yDomainDefault
             props.scaleTypeOptions = ["linear"]
-            const label = chart.yAxis.label || yAxisLabelBase
             if (label && label.length > 1) {
                 props.label =
                     "Average annual change in " +
@@ -477,7 +477,7 @@ export class ScatterTransform extends ChartTransform {
             }
             props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
-            props.label = chart.yAxis.label || yAxisLabelBase
+            props.label = label
             props.tickFormat = yDimension && yDimension.formatValueShort
         }
 
