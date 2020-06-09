@@ -670,7 +670,9 @@ export class CovidDataExplorer extends React.Component<{
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of
         // recalculating.
         const alreadySmoothed =
-            (columnName === "tests" || columnName === "tests_per_case") &&
+            (columnName === "tests" ||
+                columnName === "tests_per_case" ||
+                columnName === "positive_test_rate") &&
             smoothing === 7
 
         if (!this.owidVariableSet.variables[id]) {
@@ -753,38 +755,45 @@ export class CovidDataExplorer extends React.Component<{
                 return this.initVariableAndGetId(
                     "tests_per_case",
                     row => {
-                        return row.new_tests_smoothed !== undefined &&
+                        if (
+                            row.new_tests_smoothed === undefined ||
+                            !(row as any).new_cases_smoothed
+                        )
+                            return undefined
+                        const tpc =
+                            row.new_tests_smoothed /
                             (row as any).new_cases_smoothed
-                            ? row.new_tests_smoothed /
-                                  (row as any).new_cases_smoothed
-                            : undefined
+                        return tpc >= 1 ? tpc : undefined
                     },
                     true
                 )
             } else {
                 return this.initVariableAndGetId(
                     "tests_per_case",
-                    row =>
-                        row.new_tests !== undefined && row.new_cases
-                            ? row.new_tests / row.new_cases
-                            : undefined,
+                    row => {
+                        if (row.new_tests === undefined || row.new_cases)
+                            return undefined
+                        const tpc = row.new_tests / row.new_cases
+                        return tpc >= 1 ? tpc : undefined
+                    },
                     true
                 )
             }
         }
         if (params.testsPerCaseMetric && params.totalFreq)
-            return this.initVariableAndGetId("tests_per_case", row =>
-                row.total_tests !== undefined && row.total_cases
-                    ? row.total_tests / row.total_cases
-                    : undefined
-            )
+            return this.initVariableAndGetId("tests_per_case", row => {
+                if (row.total_tests === undefined || !row.total_cases)
+                    return undefined
+                const tpc = row.total_tests / row.total_cases
+                return tpc >= 1 ? tpc : undefined
+            })
 
         if (params.positiveTestRate && params.dailyFreq) {
             this.addNewCasesSmoothed()
             return this.initVariableAndGetId(
                 "positive_test_rate",
                 row => {
-                    const value =
+                    const testCount =
                         params.smoothing === 7
                             ? row.new_tests_smoothed
                             : row.new_tests
@@ -794,17 +803,21 @@ export class CovidDataExplorer extends React.Component<{
                             ? (row as any).new_cases_smoothed
                             : row.new_cases
 
-                    return value ? cases / value : undefined
+                    if (!testCount) return undefined
+
+                    const rate = cases / testCount
+                    return rate >= 0 && rate <= 1 ? rate : undefined
                 },
                 true
             )
         }
         if (params.positiveTestRate && params.totalFreq)
-            return this.initVariableAndGetId("positive_test_rate", row =>
-                row.total_cases !== undefined && row.total_tests
-                    ? row.total_cases / row.total_tests
-                    : undefined
-            )
+            return this.initVariableAndGetId("positive_test_rate", row => {
+                if (row.total_cases === undefined || !row.total_tests)
+                    return undefined
+                const rate = row.total_cases / row.total_tests
+                return rate >= 0 && rate <= 1 ? rate : undefined
+            })
 
         console.log(`Error: no variable id generated.`)
         return 0
