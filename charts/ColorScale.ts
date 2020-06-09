@@ -1,5 +1,6 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
+import { bind } from "decko"
 
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import {
@@ -346,7 +347,7 @@ export class ColorScale {
         return legendData
     }
 
-    getColor(value: number | string | undefined): string | undefined {
+    @bind getColor(value: number | string | undefined): string | undefined {
         if (value === undefined) return this.customCategoryColors[NO_DATA_LABEL]
         return find(this.legendData, b => b.contains(value))?.color
     }

@@ -10,7 +10,16 @@
 
 import * as React from "react"
 import { observable, computed, action } from "mobx"
-import { intersection, without, compact, uniq, first, last } from "./Util"
+import {
+    intersection,
+    without,
+    compact,
+    uniq,
+    first,
+    last,
+    excludeUndefined,
+    flatten
+} from "./Util"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
@@ -71,11 +80,13 @@ export class ScatterPlot extends React.Component<{
     }
 
     // Only want to show colors on legend that are actually on the chart right now
-    @computed get colorsInUse() {
-        return uniq(
-            this.transform.currentData
-                .filter(g => g.isScaleColor)
-                .map(g => g.color)
+    @computed get colorsInUse(): string[] {
+        return excludeUndefined(
+            uniq(
+                this.transform.allPoints.map(point =>
+                    this.transform.colorScale.getColor(point.color)
+                )
+            )
         )
     }
 
@@ -279,17 +290,18 @@ export class ScatterPlot extends React.Component<{
         const { hoverKeys, focusKeys, transform } = this
         const activeKeys = hoverKeys.concat(focusKeys)
 
-        if (activeKeys.length === 0)
-            // No hover or focus means they're all active by default
-            return uniq(transform.currentData.map(g => g.color))
-        else
-            return uniq(
-                transform.currentData
-                    .filter(
-                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
-                    )
-                    .map(g => g.color)
+        let series = transform.currentData
+
+        if (activeKeys.length) {
+            series = series.filter(g =>
+                activeKeys.includes(g.entityDimensionKey)
             )
+        }
+
+        const colorValues = uniq(
+            flatten(series.map(s => s.values.map(p => p.color)))
+        )
+        return excludeUndefined(colorValues.map(transform.colorScale.getColor))
     }
 
     @computed get hideLines(): boolean {

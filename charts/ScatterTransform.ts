@@ -333,7 +333,7 @@ export class ScatterTransform extends ChartTransform {
         return dataByEntityAndYear
     }
 
-    @computed private get allPoints(): ScatterValue[] {
+    @computed get allPoints(): ScatterValue[] {
         const allPoints: ScatterValue[] = []
         this.getDataByEntityAndYear().forEach(dataByYear => {
             dataByYear.forEach(point => {
@@ -598,11 +598,7 @@ export class ScatterTransform extends ChartTransform {
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else if (this.colorDimension) {
-                    const colorValue = last(
-                        group.values
-                            .map(v => v.color)
-                            .filter(s => s !== undefined)
-                    )
+                    const colorValue = last(group.values.map(v => v.color))
                     const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
