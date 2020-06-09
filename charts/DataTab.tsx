@@ -118,6 +118,7 @@ export class DataTab extends React.Component<{
                     <div
                         style={{
                             maxWidth: "100%",
+                            minWidth: "100%",
                             height: "100%",
                             overflow: "auto"
                         }}
