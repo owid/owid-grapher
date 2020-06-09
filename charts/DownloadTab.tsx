@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
 import { CSVGenerator } from "./CSVGenerator"
+import { DATA_TABLE } from "settings"
 
 interface DownloadTabProps {
     bounds: Bounds
@@ -150,6 +151,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
+    @computed get csvGenerator(): CSVGenerator {
+        return new CSVGenerator({ chart: this.props.chart })
+    }
+
     renderReady() {
         const {
             props,
@@ -189,7 +194,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
 
         const externalCsvLink = this.props.chart.externalCsvLink
-        const csvGenerator = new CSVGenerator({ chart: props.chart })
+        const csvGenerator = this.csvGenerator
         const csv_download = (
             <React.Fragment>
                 <div className="download-csv" style={{ maxWidth: "100%" }}>
@@ -261,7 +266,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     </a>
                 </div>
-                {csv_download}
+                {DATA_TABLE && csv_download}
             </React.Fragment>
         )
     }

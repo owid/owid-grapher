@@ -20,9 +20,13 @@ export class DataTab extends React.Component<{
         return this.props.bounds
     }
 
+    @computed get csvGenerator(): CSVGenerator {
+        return new CSVGenerator({ chart: this.props.chart })
+    }
+
     render() {
         const { bounds } = this
-        const csvGenerator = new CSVGenerator({ chart: this.props.chart })
+        const csvGenerator = this.csvGenerator
 
         const externalCsvLink = this.props.chart.externalCsvLink
 
