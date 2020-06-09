@@ -153,7 +153,11 @@ html.iframe {
             }
 
             .UnavailableOption {
-                opacity: 0.5;
+                opacity: 0.4;
+            }
+
+            .SelectedOption {
+                color: $selected-option-color;
             }
 
             .comment {

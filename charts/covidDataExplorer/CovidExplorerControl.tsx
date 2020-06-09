@@ -66,7 +66,16 @@ export class ExplorerControl extends React.Component<{
                             />{" "}
                             {option.label}
                             {comment && (
-                                <div className="comment">{comment}</div>
+                                <div
+                                    className={[
+                                        "comment",
+                                        option.available
+                                            ? "AvailableOption"
+                                            : "UnavailableOption"
+                                    ].join(" ")}
+                                >
+                                    {comment}
+                                </div>
                             )}
                         </label>
                     </div>

@@ -52,7 +52,8 @@ import {
     covidDataPath,
     covidLastUpdatedPath,
     getTrajectoryOptions,
-    getLeastUsedColor
+    getLeastUsedColor,
+    computeCovidColumn
 } from "./CovidDataUtils"
 import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
@@ -663,19 +664,14 @@ export class CovidDataExplorer extends React.Component<{
         daily: boolean = false,
         perCapita = this.constrainedParams.perCapita ? this.perCapitaDivisor : 1
     ) {
-        const params = this.constrainedParams
-        const id = buildCovidVariableId(
-            columnName,
-            perCapita,
-            params.smoothing,
-            daily
-        )
+        const smoothing = this.constrainedParams.smoothing
+        const id = buildCovidVariableId(columnName, perCapita, smoothing, daily)
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of
         // recalculating.
         const alreadySmoothed =
             (columnName === "tests" || columnName === "tests_per_case") &&
-            params.smoothing === 7
+            smoothing === 7
 
         if (!this.owidVariableSet.variables[id]) {
             this.owidVariableSet.variables[id] = buildCovidVariable(
@@ -685,7 +681,7 @@ export class CovidDataExplorer extends React.Component<{
                 this.props.data,
                 rowFn,
                 perCapita,
-                alreadySmoothed ? 1 : params.smoothing,
+                alreadySmoothed ? 1 : smoothing,
                 daily,
                 columnName === "tests" ? "" : " - " + this.lastUpdated
             )
@@ -751,20 +747,31 @@ export class CovidDataExplorer extends React.Component<{
                     : 0
             )
 
-        if (params.testsPerCaseMetric && params.dailyFreq)
-            return this.initVariableAndGetId(
-                "tests_per_case",
-                row => {
-                    const value =
-                        params.smoothing === 7
-                            ? row.new_tests_smoothed
-                            : row.new_tests
-                    return value !== undefined && row.new_cases
-                        ? value / row.new_cases
-                        : undefined
-                },
-                true
-            )
+        if (params.testsPerCaseMetric && params.dailyFreq) {
+            if (params.smoothing) {
+                this.addNewCasesSmoothed()
+                return this.initVariableAndGetId(
+                    "tests_per_case",
+                    row => {
+                        return row.new_tests_smoothed !== undefined &&
+                            (row as any).new_cases_smoothed
+                            ? row.new_tests_smoothed /
+                                  (row as any).new_cases_smoothed
+                            : undefined
+                    },
+                    true
+                )
+            } else {
+                return this.initVariableAndGetId(
+                    "tests_per_case",
+                    row =>
+                        row.new_tests !== undefined && row.new_cases
+                            ? row.new_tests / row.new_cases
+                            : undefined,
+                    true
+                )
+            }
+        }
         if (params.testsPerCaseMetric && params.totalFreq)
             return this.initVariableAndGetId("tests_per_case", row =>
                 row.total_tests !== undefined && row.total_cases
@@ -773,18 +780,24 @@ export class CovidDataExplorer extends React.Component<{
             )
 
         if (params.positiveTestRate && params.dailyFreq)
-            return this.initVariableAndGetId(
-                "positive_test_rate",
-                row => {
-                    const value =
-                        params.smoothing === 7
-                            ? row.new_tests_smoothed
-                            : row.new_tests
+            this.addNewCasesSmoothed()
+        return this.initVariableAndGetId(
+            "positive_test_rate",
+            row => {
+                const value =
+                    params.smoothing === 7
+                        ? row.new_tests_smoothed
+                        : row.new_tests
 
-                    return value ? row.new_cases / value : undefined
-                },
-                true
-            )
+                const cases =
+                    params.smoothing === 7
+                        ? (row as any).new_cases_smoothed
+                        : row.new_cases
+
+                return value ? cases / value : undefined
+            },
+            true
+        )
         if (params.positiveTestRate && params.totalFreq)
             return this.initVariableAndGetId("positive_test_rate", row =>
                 row.total_cases !== undefined && row.total_tests
@@ -794,6 +807,26 @@ export class CovidDataExplorer extends React.Component<{
 
         console.log(`Error: no variable id generated.`)
         return 0
+    }
+
+    private _smoothedAdded = false
+    private addNewCasesSmoothed() {
+        if (this._smoothedAdded) return undefined
+        const newCasesSmoothed = computeCovidColumn(
+            this.props.data,
+            row =>
+                row.new_tests_smoothed !== undefined && row.new_cases
+                    ? row.new_cases
+                    : undefined,
+            1,
+            this.constrainedParams.smoothing
+        )
+        newCasesSmoothed.rows.forEach((row, index) => {
+            ;(row as any).new_cases_smoothed = newCasesSmoothed.values[index]
+        })
+
+        this._smoothedAdded = true
+        return undefined
     }
 
     @computed get daysSinceVariableId() {

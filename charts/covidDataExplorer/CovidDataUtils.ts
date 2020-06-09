@@ -170,7 +170,7 @@ export const buildCovidVariableId = (
 
 const computeRollingAveragesForEachCountry = (
     values: number[],
-    entities: number[],
+    entities: string[],
     years: number[],
     rollingAverage: number
 ) => {
@@ -237,49 +237,78 @@ Panama: Note that on June 3 the methodology has changed`
     return undefined
 }
 
-export const buildCovidVariable = (
-    newId: number,
-    name: MetricKind,
-    countryMap: Map<string, number>,
-    data: ParsedCovidRow[],
+export const computeCovidColumn = (
+    rows: ParsedCovidRow[],
     rowFn: RowAccessor,
     perCapita: number,
-    rollingAverage?: number,
-    daily?: boolean,
-    updatedTime?: string
-): OwidVariable => {
-    const filtered = data.filter(d => rowFn(d) !== undefined)
-    const years = filtered.map(row => dateToYear(row.date))
-    const entityNames = filtered.map(row => row.location)
-    const entities = filtered.map(row => countryMap.get(row.location)!)
-    // force to number[] as undefined were filtered above
-    let values = filtered.map(rowFn) as number[]
-    if (perCapita > 1)
-        values = filtered.map((row, index) => {
-            const pop = populationMap[row.location]
-            if (!populationMap[row.location])
-                throw new Error(`Missing population for ${row.location}`)
-            const value = rowFn(row) as number
-            return perCapita * (value / pop)
+    rollingAverage?: number
+) => {
+    const mappedRows = rows
+        .map(row => {
+            let value = rowFn(row)
+            const year = dateToYear(row.date)
+            const entityName = row.location
+            if (value === undefined) return undefined
+
+            if (perCapita > 1) {
+                const pop = populationMap[row.location]
+                if (!populationMap[row.location])
+                    throw new Error(`Missing population for ${row.location}`)
+                value = perCapita * (value / pop)
+            }
+
+            return {
+                value,
+                year,
+                entityName,
+                row
+            }
         })
+        .filter(i => i)
+    const years = mappedRows.map(row => row!.year)
+    const entityNames = mappedRows.map(row => row!.entityName)
+    const rowPointers = mappedRows.map(row => row!.row)
+    let values = mappedRows.map(row => row!.value)
 
     if (rollingAverage)
         values = computeRollingAveragesForEachCountry(
             values,
-            entities,
+            entityNames,
             years,
             rollingAverage
         )
 
     // This should never throw but keep it here in case something goes wrong in our building of the runtime variables
     // so we will fail and can spot it.
-    if (years.length !== values.length && values.length !== entities.length) {
+    if (
+        years.length !== values.length &&
+        values.length !== entityNames.length
+    ) {
         throw new Error(`Length mismatch when building variables.`)
     }
 
+    return {
+        years,
+        entityNames,
+        values,
+        rows: rowPointers
+    }
+}
+
+export const buildCovidVariable = (
+    newId: number,
+    name: MetricKind,
+    countryMap: Map<string, number>,
+    rows: ParsedCovidRow[],
+    rowFn: RowAccessor,
+    perCapita: number,
+    rollingAverage?: number,
+    daily?: boolean,
+    updatedTime?: string
+): OwidVariable => {
     const partial = buildVariableMetadata(
         newId,
-        data,
+        rows,
         name,
         perCapita,
         daily,
@@ -287,12 +316,16 @@ export const buildCovidVariable = (
         updatedTime
     )
 
+    const column = computeCovidColumn(rows, rowFn, perCapita, rollingAverage)
+
+    const entities = column.entityNames.map(name =>
+        countryMap.get(name)
+    ) as number[]
+
     const variable: Partial<OwidVariable> = {
         ...partial,
-        years,
-        entities,
-        entityNames,
-        values
+        ...column,
+        entities
     }
 
     return variable as OwidVariable
