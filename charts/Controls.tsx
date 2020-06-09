@@ -802,17 +802,22 @@ export class ControlsOverlayView extends React.Component<{
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
-            marginTop: `${overlayPadding.top}px`,
-            marginRight: `${overlayPadding.right}px`,
-            marginBottom: `${overlayPadding.bottom}px`,
-            marginLeft: `${overlayPadding.left}px`
+            paddingTop: `${overlayPadding.top}px`,
+            paddingRight: `${overlayPadding.right}px`,
+            paddingBottom: `${overlayPadding.bottom}px`,
+            paddingLeft: `${overlayPadding.left}px`
         }
         const overlayStyle: React.CSSProperties = {
             position: "absolute",
-            top: "0px",
-            left: "0px",
-            width: "1px",
-            height: "1px"
+            // Overlays should be positioned relative to the same origin
+            // as the <svg>
+            top: `${overlayPadding.top}px`,
+            left: `${overlayPadding.left}px`,
+            // Create 0px element to avoid capturing events.
+            // Can achieve the same with `pointer-events: none`, but then control
+            // has to override `pointer-events` to capture events.
+            width: "0px",
+            height: "0px"
         }
         return (
             <div style={containerStyle}>
