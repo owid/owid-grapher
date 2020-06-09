@@ -93,17 +93,24 @@ class CovidConstrainedQueryParams extends CovidQueryParams {
         super(queryString)
         if (this.allowEverything) return this
         const available = this.available
-        const isDaily = this.dailyFreq
+        const wasDaily = this.dailyFreq
         Object.keys(available).forEach(key => {
             const typedKey = key as keyof typeof available
             if (!available[typedKey] && (<any>this)[key])
                 (<any>this)[key] = false
         })
 
-        // If daily is not available, we need to set totalFreq to true
-        if (!available.dailyFreq && !available.smoothing) this.totalFreq = true
-        // If it was daily, but only so that smoothing could happen, we need to set daily to true
-        else if (isDaily && available.smoothing) this.dailyFreq = true
+        // We always need either total or daily freq
+        if (!this.totalFreq && !this.dailyFreq) {
+            // If daily is not available, we need to set totalFreq to true
+            if (!available.dailyFreq && !available.smoothing)
+                this.totalFreq = true
+            // If it was daily, but only so that smoothing could happen, we need to set daily to true
+            else if (wasDaily && available.smoothing) {
+                this.dailyFreq = true
+                this.smoothing = 7
+            }
+        }
     }
 
     @computed get allowEverything() {
