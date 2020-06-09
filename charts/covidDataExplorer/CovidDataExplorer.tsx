@@ -223,6 +223,17 @@ export class CovidDataExplorer extends React.Component<{
                 }
             },
             {
+                available: this.constrainedParams.available.smoothing,
+                label: "7-day rolling average",
+                checked: this.constrainedParams.smoothing === 7,
+                onChange: () => {
+                    this.setSmoothingCommand(7)
+                    this.updateChart()
+                    this.setDailyFrequencyCommand(true)
+                    this.setTotalFrequencyCommand(false)
+                }
+            },
+            {
                 available: this.constrainedParams.available.dailyFreq,
                 label: "New per day",
                 checked:
@@ -234,17 +245,6 @@ export class CovidDataExplorer extends React.Component<{
                     this.setSmoothingCommand(0)
 
                     this.updateChart()
-                }
-            },
-            {
-                available: this.constrainedParams.available.smoothing,
-                label: "7-day rolling average",
-                checked: this.constrainedParams.smoothing === 7,
-                onChange: () => {
-                    this.setSmoothingCommand(7)
-                    this.updateChart()
-                    this.setDailyFrequencyCommand(true)
-                    this.setTotalFrequencyCommand(false)
                 }
             }
         ]
@@ -471,7 +471,7 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get perCapitaOptions() {
         return {
             1: "",
-            1000: "per thousand people",
+            1000: "per 1,000 people",
             1000000: "per million people"
         }
     }
