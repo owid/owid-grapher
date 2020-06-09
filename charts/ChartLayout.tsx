@@ -135,25 +135,21 @@ export class ChartLayoutView extends React.Component<{
         return (
             <React.Fragment>
                 <HeaderHTML chart={layout.props.chart} header={layout.header} />
-                {/* The "chart plot area" div helps highlight the overlay controls on hover,
-                as we don't want to show them when the cursor is over the tabs */}
-                <div className="ChartPlotArea">
-                    <ControlsOverlayView
-                        chartView={this.context.chartView}
-                        controls={this.context.chartView.controls}
+                <ControlsOverlayView
+                    chartView={this.context.chartView}
+                    controls={this.context.chartView.controls}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        version="1.1"
+                        style={this.svgStyle as any}
+                        width={layout.svgWidth}
+                        height={layout.svgHeight}
+                        viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            version="1.1"
-                            style={this.svgStyle as any}
-                            width={layout.svgWidth}
-                            height={layout.svgHeight}
-                            viewBox={`0 0 ${layout.svgWidth} ${layout.svgHeight}`}
-                        >
-                            {this.props.children}
-                        </svg>
-                    </ControlsOverlayView>
-                </div>
+                        {this.props.children}
+                    </svg>
+                </ControlsOverlayView>
                 <SourcesFooterHTML
                     chart={layout.props.chart}
                     footer={layout.footer}
