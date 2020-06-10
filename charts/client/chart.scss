@@ -1009,9 +1009,13 @@ $zindex-IndicatorDropdown: 50;
         cursor: pointer;
     }
 
+    th {
+        background-color: white;
+    }
+
     th.sorted,
     th.sortable:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: rgb(245, 245, 245);
     }
 
     th,
@@ -1035,17 +1039,21 @@ $zindex-IndicatorDropdown: 50;
     tbody tr {
         padding-top: 20px;
         padding-bottom: 20px;
+
+        td {
+            background-color: white;
+        }
     }
 
     tbody tr:nth-child(2n) td {
-        background-color: rgba(0, 0, 0, 0.017);
+        background-color: rgb(250, 250, 250);
     }
     tbody tr:nth-child(2n) td.sorted {
-        background-color: rgba(0, 0, 0, 0.037);
+        background-color: rgb(246, 246, 246);
     }
 
     td.sorted {
-        background-color: rgba(0, 0, 0, 0.02);
+        background-color: rgb(250, 250, 250);
     }
 
     tbody tr:hover {

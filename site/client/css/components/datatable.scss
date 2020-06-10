@@ -1,0 +1,25 @@
+.dataTab .data-table {
+    th {
+        position: sticky;
+        z-index: 10;
+
+        &.dimension,
+        &.entity {
+            top: 0;
+        }
+
+        &.entity {
+            z-index: 11;
+        }
+
+        &.subdimension {
+            top: 51px;
+        }
+    }
+
+    .entity {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+    }
+}

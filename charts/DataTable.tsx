@@ -241,7 +241,7 @@ export class DataTable extends React.Component<DataTableProps> {
                         sortOrder={sort.order}
                         onClick={() => this.updateSort(dimIndex, column.key)}
                         headerText={headerText}
-                        colType="dimension"
+                        colType="subdimension"
                         dataType="numeric"
                     />
                 )
@@ -364,7 +364,7 @@ function ColumnHeader(props: {
     rowSpan?: number
     colSpan?: number
     headerText: React.ReactFragment
-    colType: "entity" | "dimension"
+    colType: "entity" | "dimension" | "subdimension"
     dataType: "text" | "numeric"
 }) {
     const { sortable, sortedCol } = props
