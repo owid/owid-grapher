@@ -126,15 +126,16 @@ export class DataTable extends React.Component<DataTableProps> {
             const dv = row.dimensionValues[dimIndex] as DimensionValue
 
             let value: number | string | undefined
-
-            if (isSingleValue(dv)) {
-                value = dv.single?.value
-            } else if (
-                isRangeValue(dv) &&
-                columnKey !== undefined &&
-                columnKey in RangeValueKey
-            ) {
-                value = dv[columnKey as RangeValueKey]?.value
+            if (dv) {
+                if (isSingleValue(dv)) {
+                    value = dv.single?.value
+                } else if (
+                    isRangeValue(dv) &&
+                    columnKey !== undefined &&
+                    columnKey in RangeValueKey
+                ) {
+                    value = dv[columnKey as RangeValueKey]?.value
+                }
             }
 
             // We always want undefined values to be last
