@@ -59,5 +59,4 @@ export interface CountryOption {
     continent: string
     population: number
     rows: ParsedCovidRow[]
-    latestTotalTestsPerCase: number | undefined
 }
