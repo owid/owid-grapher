@@ -6,8 +6,10 @@ import {
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { omit } from "../Util"
+import { SortOrder } from "charts/SortOrder"
+import { omit, oneOf } from "../Util"
 import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
+import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 
 export class CovidQueryParams {
     @observable testsMetric: boolean = false
@@ -22,7 +24,12 @@ export class CovidQueryParams {
     @observable aligned: AlignedOption = false
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
+
+    // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
+    @observable countryPickerMetric: CountryPickerMetric =
+        CountryPickerMetric.location
+    @observable countryPickerSort: SortOrder = SortOrder.asc
 
     constructor(queryString: string) {
         const params = strToQueryParams(queryString)
@@ -45,6 +52,22 @@ export class CovidQueryParams {
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
         if (params.country) this.setCountrySelectionFromChartUrl(params.country)
+        if (params.pickerMetric) {
+            const metric = oneOf<CountryPickerMetric | undefined>(
+                params.pickerMetric,
+                Object.values(CountryPickerMetric),
+                undefined
+            )
+            if (metric) this.countryPickerMetric = metric
+        }
+        if (params.pickerSort) {
+            const sort = oneOf<SortOrder | undefined>(
+                params.pickerSort,
+                Object.values(SortOrder),
+                undefined
+            )
+            if (sort) this.countryPickerSort = sort
+        }
     }
 
     private setCountrySelectionFromChartUrl(chartCountries: string) {
@@ -84,6 +107,8 @@ export class CovidQueryParams {
         params.country = EntityUrlBuilder.entitiesToQueryParams(
             Array.from(this.selectedCountryCodes)
         )
+        params.pickerMetric = this.countryPickerMetric
+        params.pickerSort = this.countryPickerSort
         return params as QueryParams
     }
 

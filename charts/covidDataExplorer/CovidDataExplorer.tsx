@@ -687,17 +687,6 @@ export class CovidDataExplorer extends React.Component<{
         return this.constrainedParams.aligned ? "ScatterPlot" : "LineChart"
     }
 
-    // Keep the barScale here for perf reasons
-    @computed get barScale() {
-        const allTestsPerCase = this.countryOptions
-            .map(opt => opt.latestTotalTestsPerCase)
-            .filter(d => d) as number[]
-        const maxTestsPerCase = max(allTestsPerCase) ?? 1
-        return scaleLinear()
-            .domain([0, maxTestsPerCase])
-            .range([0, 1])
-    }
-
     private initVariableAndGetId(
         columnName: MetricKind,
         rowFn: RowAccessor,

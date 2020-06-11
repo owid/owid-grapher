@@ -277,6 +277,33 @@ html.iframe {
     flex-direction: column;
 }
 
+.MetricSettings {
+    display: flex;
+    align-items: center;
+    margin: 10px 0 0;
+
+    .mainLabel {
+        flex: 0;
+        white-space: nowrap;
+        font-size: 14px;
+        color: $primary-color-700;
+        margin-right: 8px;
+    }
+
+    .metricDropdown {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 700;
+        color: $primary-color;
+    }
+
+    .sort {
+        margin-left: 8px;
+        flex: 0;
+        cursor: pointer;
+    }
+}
+
 .CountryOption {
     display: flex;
     align-items: center;
@@ -315,6 +342,7 @@ html.iframe {
     .labels-container {
         flex: 1;
         display: flex;
+        align-items: center;
     }
 
     .name {
@@ -329,15 +357,15 @@ html.iframe {
 
     .color-marker-container {
         position: absolute;
-        top: 6px;
-        right: 0;
-        bottom: 6px;
+        top: 10px;
+        left: 0;
+        bottom: 11px;
         display: flex;
         align-items: center;
     }
 
     .color-marker {
-        width: 3px;
+        width: 5px;
         height: 100%;
     }
 
@@ -346,18 +374,28 @@ html.iframe {
         font-size: 14px;
         font-weight: 400;
         color: $primary-color-500;
+        text-align: right;
     }
 
     .plot {
         position: absolute;
         left: 0;
-        right: 10px;
+        right: 5px;
+        top: 0;
         bottom: 0;
+        pointer-events: none;
+        z-index: 0;
     }
 
     .bar {
-        height: 3px;
-        background-color: $primary-color-300;
+        height: 100%;
+        background-color: rgba($primary-color, 0.03);
+        border-right: 1px solid rgba($primary-color, 0.05);
+    }
+
+    &.selected .bar {
+        background-color: rgba($primary-color, 0.05);
+        border-right: 1px solid rgba($primary-color, 0.07);
     }
 }
 

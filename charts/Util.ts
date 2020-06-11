@@ -132,6 +132,7 @@ import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
+import { SortOrder } from "./SortOrder"
 
 export type SVGElement = any
 export type VNode = any
@@ -808,4 +809,19 @@ export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
         if (value === option) return option
     }
     return defaultOption
+}
+
+export function sortByUndefinedLast<T>(
+    array: T[],
+    accessor: (t: T) => string | number | undefined,
+    order: SortOrder = SortOrder.asc
+) {
+    const sorted = sortBy(array, value => {
+        const mapped = accessor(value)
+        if (mapped === undefined) {
+            return order === SortOrder.asc ? Infinity : -Infinity
+        }
+        return mapped
+    })
+    return order === SortOrder.asc ? sorted : sorted.reverse()
 }
