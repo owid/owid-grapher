@@ -1,4 +1,4 @@
-import { isEmpty, reduce, max, stripHTML, defaultTo } from "./Util"
+import { isEmpty, reduce, max, stripHTML, defaultTo, linkify } from "./Util"
 import { computed } from "mobx"
 import { FontSize } from "./FontSize"
 import { Bounds } from "./Bounds"
@@ -11,6 +11,8 @@ export interface TextWrapProps {
     fontSize: FontSize
     fontWeight?: number
     rawHtml?: true
+    /** Wrap URL-like text in <a> tag. Only works when rendering HTML. */
+    linkifyText?: boolean
 }
 
 interface WrapLine {
@@ -136,6 +138,12 @@ export class TextWrap {
                         <span
                             dangerouslySetInnerHTML={{
                                 __html: line.text
+                            }}
+                        />
+                    ) : props.linkifyText ? (
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: linkify(line.text)
                             }}
                         />
                     ) : (

@@ -98,7 +98,8 @@ export class SourcesFooter {
         return new TextWrap({
             maxWidth: maxWidth,
             fontSize: fontSize,
-            text: sourcesText
+            text: sourcesText,
+            linkifyText: true
         })
     }
 
@@ -107,7 +108,8 @@ export class SourcesFooter {
         return new TextWrap({
             maxWidth: maxWidth,
             fontSize: fontSize,
-            text: noteText
+            text: noteText,
+            linkifyText: true
         })
     }
 

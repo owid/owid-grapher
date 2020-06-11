@@ -95,6 +95,9 @@ export class Header {
             },
             get lineHeight() {
                 return 1.2
+            },
+            get linkifyText() {
+                return true
             }
         })
     }

@@ -124,6 +124,7 @@ import { format } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
+import linkifyHtml from "linkifyjs/html"
 
 import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
@@ -794,4 +795,8 @@ export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
         }
     })
     return result
+}
+
+export function linkify(s: string) {
+    return linkifyHtml(s)
 }

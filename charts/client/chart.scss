@@ -126,6 +126,7 @@ $zindex-IndicatorDropdown: 50;
 
         a {
             text-decoration: none;
+            color: inherit;
 
             &:hover {
                 text-decoration: underline;

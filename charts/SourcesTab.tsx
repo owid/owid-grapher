@@ -1,4 +1,4 @@
-import { extend, min, max } from "./Util"
+import { extend, min, max, linkify } from "./Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -10,10 +10,10 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SourceWithDimension } from "./ChartData"
 
-import linkifyHtml from "linkifyjs/html"
-function linkify(s: string) {
-    return linkifyHtml(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+function formatText(s: string) {
+    return linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 }
+
 @observer
 export class SourcesTab extends React.Component<{
     bounds: Bounds
@@ -61,7 +61,7 @@ export class SourcesTab extends React.Component<{
                                 <td>Variable description</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: linkify(variable.description)
+                                        __html: formatText(variable.description)
                                     }}
                                 />
                             </tr>
@@ -89,7 +89,9 @@ export class SourcesTab extends React.Component<{
                                 <td>Data published by</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: linkify(source.dataPublishedBy)
+                                        __html: formatText(
+                                            source.dataPublishedBy
+                                        )
                                     }}
                                 />
                             </tr>
@@ -99,7 +101,7 @@ export class SourcesTab extends React.Component<{
                                 <td>Data publisher's source</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: linkify(
+                                        __html: formatText(
                                             source.dataPublisherSource
                                         )
                                     }}
@@ -111,7 +113,7 @@ export class SourcesTab extends React.Component<{
                                 <td>Link</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: linkify(source.link)
+                                        __html: formatText(source.link)
                                     }}
                                 />
                             </tr>
@@ -127,7 +129,7 @@ export class SourcesTab extends React.Component<{
                 {source.additionalInfo && (
                     <p
                         dangerouslySetInnerHTML={{
-                            __html: linkify(source.additionalInfo)
+                            __html: formatText(source.additionalInfo)
                         }}
                     />
                 )}
