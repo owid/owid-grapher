@@ -802,3 +802,10 @@ export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
 export function linkify(s: string) {
     return linkifyHtml(s)
 }
+
+export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
+    for (const option of options) {
+        if (value === option) return option
+    }
+    return defaultOption
+}
