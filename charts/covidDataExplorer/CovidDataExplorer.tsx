@@ -486,8 +486,9 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get chartTitle() {
-        let title: string
+        let title = ""
         const params = this.constrainedParams
+        const freq = params.dailyFreq ? "Daily new" : "Cumulative"
         if (params.cfrMetric)
             title = `Case fatality rate of the ongoing COVID-19 pandemic`
         else if (params.positiveTestRate)
@@ -495,16 +496,14 @@ export class CovidDataExplorer extends React.Component<{
                 params.dailyFreq ? "daily " : ""
             }COVID-19 tests that are positive`
         else if (params.testsPerCaseMetric)
-            title = `Tests conducted per confirmed case of COVID-19`
-        else {
-            const freq = params.dailyFreq ? "Daily new" : "Cumulative"
-            const metricName = params.deathsMetric
-                ? "deaths"
-                : params.casesMetric
-                ? "cases"
-                : "tests"
-            title = `${freq} confirmed COVID-19 ${metricName}`
-        }
+            title = `${
+                params.totalFreq ? `Cumulative tests` : `Tests`
+            } conducted per confirmed case of COVID-19`
+        else if (params.testsMetric) title = `${freq} COVID-19 tests`
+        else if (params.deathsMetric)
+            title = `${freq} confirmed COVID-19 deaths`
+        else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
+
         return title + this.perCapitaTitle
     }
 
