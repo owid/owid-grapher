@@ -57,6 +57,7 @@ import fromPairs from "lodash/fromPairs"
 import mapKeys from "lodash/mapKeys"
 import memoize from "lodash/memoize"
 import takeWhile from "lodash/takeWhile"
+import upperFirst from "lodash/upperFirst"
 
 export {
     isEqual,
@@ -116,7 +117,8 @@ export {
     fromPairs,
     mapKeys,
     memoize,
-    takeWhile
+    takeWhile,
+    upperFirst
 }
 
 import moment from "moment"
