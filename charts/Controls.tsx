@@ -570,6 +570,7 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
+        if (chart.tab === "table") return !chart.props.hideTimeline
         if (chart.tab === "map") {
             return chart.map.data.hasTimeline
         } else if (chart.tab === "chart") {

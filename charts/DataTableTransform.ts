@@ -196,7 +196,7 @@ export class DataTableTransform {
                 const targetYears =
                     // If a targetYear override is specified on the dimension (scatter plots
                     // can do this) then use that target year and ignore the timeline.
-                    dim.targetYear !== undefined
+                    dim.targetYear !== undefined && this.chart.isScatter
                         ? [dim.targetYear]
                         : this.targetYears
 
@@ -337,7 +337,7 @@ export class DataTableTransform {
     @computed get displayDimensions(): DataTableDimension[] {
         return this.dimensionsWithValues.map(d => ({
             key: d.dimension.variableId,
-            name: d.dimension.displayName,
+            name: d.dimension.displayName || d.dimension.variable.name || "",
             unit: getHeaderUnit(d.dimension.unit),
             // A top-level header is only sortable if it has a single nested column, because
             // in that case the nested column is not rendered.
