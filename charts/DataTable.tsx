@@ -3,17 +3,13 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { faSortAmountDownAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountDownAlt"
-import { faSortAmountUp } from "@fortawesome/free-solid-svg-icons/faSortAmountUp"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 import { ChartConfig } from "./ChartConfig"
 import { SortOrder } from "./SortOrder"
-import { capitalize, some, defaultTo, orderBy, upperFirst } from "./Util"
+import { capitalize, some, orderBy, upperFirst } from "./Util"
+import { SortIcon } from "./SortIcon"
 import { Tippy } from "./Tippy"
 import {
     DataTableRow,
@@ -389,35 +385,6 @@ function ColumnHeader(props: {
                 />
             )}
         </th>
-    )
-}
-
-function SortIcon(props: {
-    type?: "text" | "numeric"
-    isActiveIcon?: boolean
-    order: SortOrder
-}) {
-    const type = defaultTo(props.type, "numeric")
-    const isActiveIcon = defaultTo(props.isActiveIcon, false)
-
-    let faIcon: IconDefinition
-
-    if (type === "text") {
-        faIcon =
-            props.order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
-    } else {
-        faIcon =
-            props.order === SortOrder.desc
-                ? faSortAmountUp
-                : faSortAmountDownAlt
-    }
-
-    return (
-        <span
-            className={classnames({ "sort-icon": true, active: isActiveIcon })}
-        >
-            <FontAwesomeIcon icon={faIcon} />
-        </span>
     )
 }
 
