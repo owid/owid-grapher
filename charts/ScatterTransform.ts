@@ -358,7 +358,9 @@ export class ScatterTransform extends ChartTransform {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.x),
                 this.xScaleType,
-                this.chart.props.zoomToSelection ? 1.1 : 1
+                this.chart.props.zoomToSelection && this.selectedPoints.length
+                    ? 1.1
+                    : 1
             )
         }
 
@@ -393,7 +395,9 @@ export class ScatterTransform extends ChartTransform {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.y),
                 this.yScaleType,
-                this.chart.props.zoomToSelection ? 1.1 : 1
+                this.chart.props.zoomToSelection && this.selectedPoints.length
+                    ? 1.1
+                    : 1
             )
         }
 
@@ -423,18 +427,25 @@ export class ScatterTransform extends ChartTransform {
         }
     }
 
-    @computed private get pointsForAxisDomains() {
-        if (!this.chart.data.hasSelection || !this.chart.props.zoomToSelection)
-            return this.currentValues
-        const allPoints: ScatterValue[] = []
+    @computed private get selectedPoints() {
+        const selectedPoints: ScatterValue[] = []
         this.getDataByEntityAndYear(this.getEntitiesToShow(true)).forEach(
             dataByYear => {
                 dataByYear.forEach(point => {
-                    allPoints.push(point)
+                    selectedPoints.push(point)
                 })
             }
         )
-        return allPoints
+        return selectedPoints
+    }
+
+    @computed private get pointsForAxisDomains() {
+        if (!this.chart.data.hasSelection || !this.chart.props.zoomToSelection)
+            return this.currentValues
+
+        return this.selectedPoints.length
+            ? this.selectedPoints
+            : this.currentValues
     }
 
     @computed get sizeDomain(): [number, number] {
