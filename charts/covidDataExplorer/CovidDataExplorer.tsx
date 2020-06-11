@@ -485,31 +485,7 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    @computed get metricTitle() {
-        const params = this.constrainedParams
-        // Todo: if we no longer support multiple metrics, we could probably simplify this.
-        const metrics = []
-        if (params.deathsMetric) metrics.push("deaths")
-        if (params.casesMetric) metrics.push("cases")
-        if (params.testsMetric) metrics.push("tests")
-        if (params.cfrMetric) metrics.push("case fatality rate")
-        if (params.testsPerCaseMetric) metrics.push("tests per confirmed case")
-        if (params.positiveTestRate) metrics.push("share of positive tests")
-        return metrics.length > 2
-            ? `${metrics.slice(1).join(", ")} and ${metrics[0]}`
-            : metrics.length === 2
-            ? `${metrics[0]} and ${metrics[1]}`
-            : metrics[0]
-    }
-
-    @computed private get smoothingSubtitle() {
-        const smoothing = this.constrainedParams.smoothing
-        return smoothing > 0
-            ? `Shown is the rolling ${smoothing}-day average. `
-            : ""
-    }
-
-    @computed get title() {
+    @computed private get chartTitle() {
         let title: string
         const params = this.constrainedParams
         if (params.cfrMetric)
@@ -522,13 +498,21 @@ export class CovidDataExplorer extends React.Component<{
             title = `Tests conducted per confirmed case of COVID-19`
         else {
             const freq = params.dailyFreq ? "Daily new" : "Cumulative"
-            title = `${freq} confirmed COVID-19 ${this.metricTitle}`
+            const metricName = params.deathsMetric
+                ? "deaths"
+                : params.casesMetric
+                ? "cases"
+                : "tests"
+            title = `${freq} confirmed COVID-19 ${metricName}`
         }
         return title + this.perCapitaTitle
     }
 
     @computed private get subtitle() {
-        return `${this.smoothingSubtitle}` + this.yVariable.description
+        const smoothing = this.constrainedParams.smoothing
+            ? `Shown is the rolling ${this.constrainedParams.smoothing}-day average. `
+            : ""
+        return `${smoothing}` + this.yVariable.description
     }
 
     @computed get note() {
@@ -892,7 +876,7 @@ export class CovidDataExplorer extends React.Component<{
         // manually update the chart when the chart builderselections change.
         // todo: cleanup
         const chartProps = this.chart.props
-        chartProps.title = this.title
+        chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
 
@@ -1103,7 +1087,7 @@ export class CovidDataExplorer extends React.Component<{
             isExplorable: false,
             id: 4128,
             version: 9,
-            title: this.title,
+            title: this.chartTitle,
             subtitle: this.subtitle,
             note: this.note,
             hideTitleAnnotation: true,
