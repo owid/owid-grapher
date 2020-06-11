@@ -12,7 +12,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         name: "cumulative_positivity_rate",
         unit: "",
         description:
-            "The total number of confirmed cases to date divided by the total number of tests to date, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
+            "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
         coverage: "",
         display: {
             name: "Cumulative positivity rate",
@@ -41,7 +41,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         name: "short_term_tests_per_case",
         unit: "",
         description:
-            "The number of tests each day divided by the number of confirmed cases each day.\n\nThe series is smoothed by averaging daily figures over a rolling 7-day window.\n\nNot all countries report testing data on a daily basis. To generate this series we assume that testing changed equally on a daily basis over any periods in which no data was reported.",
+            "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
         coverage: "",
         display: {
             name: "Tests per confirmed case – daily",
@@ -68,7 +68,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         name:
             "Case fatality rate of COVID-19 (%) (Only observations with ≥100 cases)",
         unit: "",
-        description: "",
+        description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
         coverage: "",
         display: { unit: "%", zeroDay: "2020-01-21", yearIsDay: true },
         datasetName: "COVID-2019 - ECDC (2020)",
@@ -90,7 +90,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         id: 142581,
         name: "Confirmed cases of COVID-19",
         unit: "",
-        description: "",
+        description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
         coverage: "",
         display: {
             name: "confirmed cases",
@@ -116,7 +116,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         id: 142583,
         name: "Confirmed deaths due to COVID-19",
         unit: "",
-        description: "",
+        description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
         coverage: "",
         display: {
             name: "confirmed deaths",
