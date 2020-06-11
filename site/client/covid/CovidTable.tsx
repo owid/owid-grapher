@@ -22,6 +22,7 @@ import {
     fromPairs,
     uniq
 } from "charts/Util"
+import { SortOrder } from "charts/SortOrder"
 
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 
@@ -30,7 +31,6 @@ import {
     CovidSeries,
     CovidCountrySeries,
     DateRange,
-    SortOrder,
     CovidCountryDatum
 } from "./CovidTypes"
 

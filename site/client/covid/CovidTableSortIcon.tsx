@@ -2,8 +2,7 @@ import * as React from "react"
 import classnames from "classnames"
 
 import { defaultTo } from "charts/Util"
-
-import { SortOrder } from "./CovidTypes"
+import { SortOrder } from "charts/SortOrder"
 
 export interface CovidTableSortIconProps {
     sortOrder: SortOrder

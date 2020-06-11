@@ -8,11 +8,12 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 
 import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
-import { SortOrder, CovidSortKey } from "./CovidTypes"
+import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "charts/Tippy"
 import { runCovidSearchCountry } from "./CovidSearchCountry"
+import { SortOrder } from "charts/SortOrder"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 

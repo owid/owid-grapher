@@ -2,6 +2,7 @@ import { maxBy, dateDiffInDays, formatValue } from "charts/Util"
 import { utcFormat } from "d3-time-format"
 
 import { TickFormattingOptions } from "charts/TickFormattingOptions"
+import { SortOrder } from "charts/SortOrder"
 
 import {
     CovidSeries,
@@ -9,7 +10,6 @@ import {
     CovidDoublingRange,
     CovidSortKey,
     CovidCountryDatum,
-    SortOrder,
     CovidSortAccessor
 } from "./CovidTypes"
 
