@@ -352,7 +352,7 @@ const buildVariableMetadata = (
         1000000: " per million people"
     }
 
-    variable.display!.name = `${daily ? "Daily " : "Total "}${
+    variable.display!.name = `${daily ? "Daily " : "Cumulative "}${
         variable.display!.name
     }${messages[perCapita]}`
 

@@ -502,11 +502,11 @@ export class CovidDataExplorer extends React.Component<{
             : metrics[0]
     }
 
-    @computed get smoothingTitle() {
+    @computed private get smoothingSubtitle() {
         const smoothing = this.constrainedParams.smoothing
-        if (smoothing > 0)
-            return `Shown is the rolling ${smoothing}-day average. `
-        return ""
+        return smoothing > 0
+            ? `Shown is the rolling ${smoothing}-day average. `
+            : ""
     }
 
     @computed get title() {
@@ -519,30 +519,16 @@ export class CovidDataExplorer extends React.Component<{
                 params.dailyFreq ? "daily " : ""
             }COVID-19 tests that are positive`
         else if (params.testsPerCaseMetric)
-            title = `Tests conducted per new confirmed case of COVID-19`
+            title = `Tests conducted per confirmed case of COVID-19`
         else {
-            const freq = params.dailyFreq ? "Daily new" : "Total"
+            const freq = params.dailyFreq ? "Daily new" : "Cumulative"
             title = `${freq} confirmed COVID-19 ${this.metricTitle}`
         }
         return title + this.perCapitaTitle
     }
 
-    @computed get subtitle() {
-        const parts: string[] = []
-        const params = this.constrainedParams
-        if (params.deathsMetric)
-            parts.push(
-                `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
-            )
-        if (params.casesMetric)
-            parts.push(
-                `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
-            )
-        if (params.cfrMetric)
-            parts.push(
-                `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
-            )
-        return `${this.smoothingTitle}` + parts.join("\n")
+    @computed private get subtitle() {
+        return `${this.smoothingSubtitle}` + this.yVariable.description
     }
 
     @computed get note() {
@@ -1052,6 +1038,10 @@ export class CovidDataExplorer extends React.Component<{
 
     @bind dispose() {
         this.disposers.forEach(dispose => dispose())
+    }
+
+    @computed get yVariable() {
+        return this.owidVariableSet.variables[this.yVariableId]
     }
 
     @computed get dimensions(): ChartDimension[] {
