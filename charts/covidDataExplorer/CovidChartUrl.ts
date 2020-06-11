@@ -100,8 +100,8 @@ class CovidConstrainedQueryParams extends CovidQueryParams {
         const wasDaily = this.dailyFreq
         Object.keys(available).forEach(key => {
             const typedKey = key as keyof typeof available
-            if (!available[typedKey] && (<any>this)[key])
-                (<any>this)[key] = false
+            if (!available[typedKey] && (this as any)[key])
+                (this as any)[key] = false
         })
 
         // We always need either total or daily freq
