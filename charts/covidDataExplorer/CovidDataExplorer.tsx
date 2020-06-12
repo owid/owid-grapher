@@ -548,6 +548,20 @@ export class CovidDataExplorer extends React.Component<{
         return map
     }
 
+    private availableCountriesCache: Map<number, Set<string>> = new Map()
+
+    @computed get availableCountriesForMetric() {
+        const variableId = this.xVariableId ?? this.yVariableId
+        if (!this.availableCountriesCache.get(variableId)) {
+            const variable = this.xVariableId ? this.xVariable : this.yVariable
+            this.availableCountriesCache.set(
+                variableId,
+                new Set(variable.entityNames)
+            )
+        }
+        return this.availableCountriesCache.get(variableId)!
+    }
+
     @computed get countryCodeToNameMap() {
         const map = new Map<string, string>()
         this.countryOptions.forEach((country, index) => {
@@ -1027,6 +1041,10 @@ export class CovidDataExplorer extends React.Component<{
         return this.owidVariableSet.variables[this.yVariableId]
     }
 
+    @computed get xVariable() {
+        return this.owidVariableSet.variables[this.xVariableId!]
+    }
+
     @computed get dimensions(): ChartDimension[] {
         if (this.chartType === "LineChart")
             return [
@@ -1051,7 +1069,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 property: "x",
-                variableId: this.daysSinceVariableId,
+                variableId: this.xVariableId!,
                 display: {
                     name: this.daysSinceOption.title
                 }
@@ -1062,6 +1080,12 @@ export class CovidDataExplorer extends React.Component<{
                 display: {}
             }
         ]
+    }
+
+    @computed private get xVariableId() {
+        return this.chartType === "LineChart"
+            ? undefined
+            : this.daysSinceVariableId
     }
 
     get customCategoryColors() {
