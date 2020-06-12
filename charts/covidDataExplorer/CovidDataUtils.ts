@@ -84,7 +84,7 @@ export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
             population: populationMap[location],
             continent: labelsByRegion[worldRegionByMapEntity[location]],
             latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
-            rows: rows
+            rows
         }
     })
 }
@@ -110,6 +110,7 @@ export const daysSinceVariable = (
     const dataWeNeed = owidVariable.values
         .map((value, index) => {
             const entity = owidVariable.entities[index]
+            const entityName = owidVariable.entityNames[index]
             const year = owidVariable.years[index]
             if (entity !== currentCountry) {
                 if (value < threshold) return undefined
@@ -119,6 +120,7 @@ export const daysSinceVariable = (
             return {
                 year,
                 entity,
+                entityName,
                 // Not all countries have a row for each day, so we need to compute the difference between the current row and the first threshold
                 // row for that country.
                 value: year - firstCountryDate
@@ -133,6 +135,7 @@ export const daysSinceVariable = (
         ...partial,
         years: dataWeNeed.map(row => row!.year),
         entities: dataWeNeed.map(row => row!.entity),
+        entityNames: dataWeNeed.map(row => row!.entityName),
         values: dataWeNeed.map(row => row!.value)
     }
 

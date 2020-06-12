@@ -287,6 +287,8 @@ export class CountryPicker extends React.Component<{
     render() {
         const countries = this.searchResults
         const selectedCountries = this.selectedOptions
+        const availableCountries = this.props.covidDataExplorer
+            .availableCountriesForMetric
 
         return (
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
@@ -347,6 +349,9 @@ export class CountryPicker extends React.Component<{
                                     {countries.map((option, index) => (
                                         <CovidCountryOption
                                             key={index}
+                                            hasDataForActiveMetric={availableCountries.has(
+                                                option.name
+                                            )}
                                             option={option}
                                             highlight={this.highlightLabel}
                                             barScale={
@@ -404,6 +409,7 @@ interface CovidCountryOptionProps {
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
     color?: string
+    hasDataForActiveMetric: boolean
 }
 
 class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
@@ -419,16 +425,21 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             innerRef,
             isSelected,
             isFocused,
+            hasDataForActiveMetric,
             highlight,
             color
         } = this.props
         return (
             <Flipped flipId={option.name} translate opacity>
                 <label
-                    className={classnames("CountryOption", {
-                        selected: isSelected,
-                        focused: isFocused
-                    })}
+                    className={classnames(
+                        "CountryOption",
+                        {
+                            selected: isSelected,
+                            focused: isFocused
+                        },
+                        hasDataForActiveMetric ? undefined : "MissingData"
+                    )}
                     onMouseMove={this.props.onHover}
                     onMouseOver={this.props.onHover}
                     onClick={this.onClick}
