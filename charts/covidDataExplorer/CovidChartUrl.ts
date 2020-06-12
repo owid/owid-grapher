@@ -20,6 +20,7 @@ export class CovidQueryParams {
     @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
+    @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
     @observable selectedCountryCodes: Set<string> = new Set()
 
@@ -39,6 +40,7 @@ export class CovidQueryParams {
         if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
         if (params.perCapita) this.perCapita = true
+        if (params.hideControls) this.hideControls = true
         if (params.aligned) this.aligned = true
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
@@ -58,6 +60,7 @@ export class CovidQueryParams {
         this.deathsMetric = false
         this.casesMetric = true
         this.cfrMetric = false
+        this.hideControls = false
         this.totalFreq = true
         "USA GBR CAN BRA AUS IND ESP DEU FRA"
             .split(" ")
@@ -75,6 +78,7 @@ export class CovidQueryParams {
         params.dailyFreq = this.dailyFreq ? true : undefined
         params.totalFreq = this.totalFreq ? true : undefined
         params.aligned = this.aligned ? true : undefined
+        params.hideControls = this.hideControls ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
         params.country = EntityUrlBuilder.entitiesToQueryParams(
