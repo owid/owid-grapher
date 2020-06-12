@@ -176,9 +176,10 @@ export class ChartUrl implements ObservableUrl {
 
     @computed get queryStr(): string {
         const queryParams = {
-            ...this.params,
-            ...this.externallyProvidedParams
+            ...this.params
         }
+        if (this.externallyProvidedParams)
+            Object.assign(queryParams, this.externallyProvidedParams)
         return queryParamsToStr(queryParams)
     }
 
@@ -190,7 +191,7 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @observable externalBaseUrl: string = ""
-    @observable externallyProvidedParams: QueryParams = {}
+    @observable.shallow externallyProvidedParams?: QueryParams
 
     // Get the full url representing the canonical location of this chart state
     @computed get canonicalUrl(): string | undefined {

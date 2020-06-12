@@ -445,31 +445,42 @@ export class CovidDataExplorer extends React.Component<{
     render() {
         const showControls = !this.props.params.hideControls
         return (
-            <div
-                className={classnames([
-                    `CovidDataExplorer`,
-                    this.isMobile ? "mobile-explorer" : undefined,
-                    showControls ? "" : "HideControls"
-                ])}
-            >
-                {showControls && this.header}
-                {showControls && this.controlBar}
-                {showControls && this.countryPicker}
-                {showControls && this.customizeChartMobileButton}
+            <>
                 <div
-                    className="CovidDataExplorerFigure"
-                    ref={this.chartContainerRef}
+                    className={classnames([
+                        `CovidDataExplorer`,
+                        this.isMobile ? "mobile-explorer" : undefined,
+                        showControls ? "" : "HideControls"
+                    ])}
                 >
-                    {this.chartBounds && (
-                        <ChartView
-                            bounds={this.chartBounds}
-                            chart={this.chart}
-                            isEmbed={true}
-                        ></ChartView>
-                    )}
+                    {showControls && this.header}
+                    {showControls && this.controlBar}
+                    {showControls && this.countryPicker}
+                    {showControls && this.customizeChartMobileButton}
+                    <div
+                        className="CovidDataExplorerFigure"
+                        ref={this.chartContainerRef}
+                    >
+                        {this.chartBounds && (
+                            <ChartView
+                                bounds={this.chartBounds}
+                                chart={this.chart}
+                                isEmbed={true}
+                            ></ChartView>
+                        )}
+                    </div>
                 </div>
-            </div>
+                <div className="ControlsToggle" onClick={this.toggleControls}>
+                    Toggle controls
+                </div>
+            </>
         )
+    }
+
+    @action.bound toggleControls() {
+        this.props.params.hideControls = !this.props.params.hideControls
+        this._updateChart()
+        requestAnimationFrame(() => this.onResize())
     }
 
     @computed get countryOptions(): CountryOption[] {
