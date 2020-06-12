@@ -39,6 +39,11 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
             href: "/coronavirus#coronavirus-country-profiles",
             id: "by-country"
         },
+        {
+            label: "Data explorer",
+            href: "/coronavirus-data-explorer",
+            id: "data-explorer"
+        },
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
         { label: "Cases", href: "/covid-cases", id: "cases" },
         { label: "Tests", href: "/coronavirus-testing", id: "testing" },
@@ -51,11 +56,6 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
             label: "Policy responses",
             href: "/policy-responses-covid",
             id: "policy-responses"
-        },
-        {
-            label: "Data explorer",
-            href: "/coronavirus-data-explorer",
-            id: "data-explorer"
         },
         { label: "All charts", href: "/coronavirus-data", id: "data" }
     ]
