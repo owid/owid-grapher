@@ -36,9 +36,6 @@ html.iframe {
 }
 
 .CovidDataExplorer {
-    display: grid;
-    grid-template-columns: 1fr 4fr;
-    grid-template-rows: 1fr 9fr;
     margin: 0 auto;
     padding-top: $grid-gap;
     width: 100%;
@@ -46,8 +43,19 @@ html.iframe {
     height: 90vh;
     max-height: 900px;
     min-height: 480px;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-template-rows: 1fr 9fr;
     grid-row-gap: $grid-gap;
     grid-column-gap: $grid-gap;
+
+    &.HideControls {
+        display: block;
+
+        .CovidDataExplorerFigure {
+            height: 100%;
+        }
+    }
 
     .mobile-button {
         color: #fff;

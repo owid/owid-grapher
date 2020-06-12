@@ -3,6 +3,7 @@ import {
     OwidEntityKey
 } from "../owidData/OwidVariableSet"
 import React from "react"
+import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
@@ -364,22 +365,37 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    render() {
-        // A/B Test.
-        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
-        const mobile = this.isMobile
-        const customizeChartMobileButton = mobile ? (
-            <a
-                className="btn btn-primary mobile-button"
-                onClick={this.mobileToggleCustomizePopup}
-                data-track-note="covid-customize-chart"
-            >
-                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
-            </a>
-        ) : (
-            undefined
+    get header() {
+        return (
+            <div className="CovidHeaderBox">
+                <div>Coronavirus Pandemic</div>
+                <div className="CovidTitle">Data Explorer</div>
+                <div className="CovidLastUpdated" title={this.howLongAgo}>
+                    Download the complete <em>Our World in Data</em>{" "}
+                    <a
+                        href="https://github.com/owid/covid-19-data/tree/master/public/data"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        COVID-19 dataset.
+                    </a>
+                </div>
+            </div>
         )
-        const mobileDoneButton = mobile ? (
+    }
+
+    get countryPicker() {
+        return (
+            <CountryPicker
+                covidDataExplorer={this}
+                toggleCountryCommand={this.toggleSelectedCountryCommand}
+                isDropdownMenu={this.isMobile}
+            ></CountryPicker>
+        )
+    }
+
+    get controlBar() {
+        const mobileDoneButton = this.isMobile ? (
             <a
                 className="btn btn-primary mobile-button"
                 onClick={this.mobileToggleCustomizePopup}
@@ -390,49 +406,56 @@ export class CovidDataExplorer extends React.Component<{
             undefined
         )
 
-        const showMobileControls = mobile && this.showControlsPopup
-
+        const showMobileControls = this.isMobile && this.showControlsPopup
         return (
             <div
-                className={
-                    `CovidDataExplorer` + (mobile ? " mobile-explorer" : "")
-                }
+                className={`CovidDataExplorerControlBar${
+                    showMobileControls
+                        ? ` show-controls-popup`
+                        : this.isMobile
+                        ? ` hide-controls-popup`
+                        : ""
+                }`}
             >
-                <div className="CovidHeaderBox">
-                    <div>Coronavirus Pandemic</div>
-                    <div className="CovidTitle">Data Explorer</div>
-                    <div className="CovidLastUpdated" title={this.howLongAgo}>
-                        Download the complete <em>Our World in Data</em>{" "}
-                        <a
-                            href="https://github.com/owid/covid-19-data/tree/master/public/data"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            COVID-19 dataset.
-                        </a>
-                    </div>
-                </div>
-                <div
-                    className={`CovidDataExplorerControlBar${
-                        showMobileControls
-                            ? ` show-controls-popup`
-                            : mobile
-                            ? ` hide-controls-popup`
-                            : ""
-                    }`}
-                >
-                    {this.metricPicker}
-                    {this.frequencyPicker}
-                    {this.perCapitaPicker}
-                    {this.alignedPicker}
-                    {mobileDoneButton}
-                </div>
-                <CountryPicker
-                    covidDataExplorer={this}
-                    toggleCountryCommand={this.toggleSelectedCountryCommand}
-                    isDropdownMenu={mobile}
-                ></CountryPicker>
-                {customizeChartMobileButton}
+                {this.metricPicker}
+                {this.frequencyPicker}
+                {this.perCapitaPicker}
+                {this.alignedPicker}
+                {mobileDoneButton}
+            </div>
+        )
+    }
+
+    get customizeChartMobileButton() {
+        // A/B Test.
+        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
+        return this.isMobile ? (
+            <a
+                className="btn btn-primary mobile-button"
+                onClick={this.mobileToggleCustomizePopup}
+                data-track-note="covid-customize-chart"
+            >
+                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
+            </a>
+        ) : (
+            undefined
+        )
+    }
+
+    render() {
+        const showControls = !this.props.params.hideControls
+        return (
+            <div
+                className={classnames([
+                    `CovidDataExplorer`,
+                    this.isMobile ? "mobile-explorer" : undefined,
+                    showControls ? "" : "HideControls"
+                ])}
+            >
+                {showControls && this.header}
+                {showControls && this.controlBar}
+                {showControls && this.countryPicker}
+                {showControls && this.customizeChartMobileButton}
                 <div
                     className="CovidDataExplorerFigure"
                     ref={this.chartContainerRef}
