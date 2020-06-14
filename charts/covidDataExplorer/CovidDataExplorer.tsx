@@ -29,7 +29,8 @@ import {
     pick,
     lastOfNonEmptyArray,
     throttle,
-    capitalize
+    capitalize,
+    intersection
 } from "charts/Util"
 import {
     SmoothingOption,
@@ -585,18 +586,29 @@ export class CovidDataExplorer extends React.Component<{
         return map
     }
 
-    private availableCountriesCache: Map<number, Set<string>> = new Map()
+    private availableCountriesCache: Map<string, Set<string>> = new Map()
 
     @computed get availableCountriesForMetric() {
-        const variableId = this.xVariableId ?? this.yVariableId
-        if (!this.availableCountriesCache.get(variableId)) {
-            const variable = this.xVariableId ? this.xVariable : this.yVariable
-            this.availableCountriesCache.set(
-                variableId,
-                new Set(variable.entityNames)
-            )
+        let key: string
+        if (this.xVariableId) {
+            key = this.xVariableId + "-" + this.yVariableId
+            if (!this.availableCountriesCache.get(key)) {
+                const data = intersection(
+                    this.xVariable.entityNames,
+                    this.yVariable.entityNames
+                )
+                this.availableCountriesCache.set(key, new Set(data))
+            }
+        } else {
+            key = this.yVariableId + ""
+            if (!this.availableCountriesCache.get(key)) {
+                this.availableCountriesCache.set(
+                    key,
+                    new Set(this.yVariable.entityNames)
+                )
+            }
         }
-        return this.availableCountriesCache.get(variableId)!
+        return this.availableCountriesCache.get(key)!
     }
 
     @computed get countryCodeToNameMap() {
