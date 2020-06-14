@@ -468,10 +468,13 @@ export class CovidDataExplorer extends React.Component<{
                                 isEmbed={true}
                             ></ChartView>
                         )}
+                        <div
+                            className="ControlsToggle"
+                            onClick={this.toggleControls}
+                        >
+                            Toggle controls
+                        </div>
                     </div>
-                </div>
-                <div className="ControlsToggle" onClick={this.toggleControls}>
-                    Toggle controls
                 </div>
             </>
         )

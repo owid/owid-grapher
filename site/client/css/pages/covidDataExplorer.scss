@@ -36,12 +36,13 @@ html.iframe {
 }
 
 .ControlsToggle {
-    margin: 0 auto;
     text-align: right;
     font-size: 10px;
     color: #ccc;
     cursor: pointer;
-    max-width: 75rem;
+    position: absolute;
+    right: 0;
+    bottom: -15px;
 }
 
 .CovidDataExplorer {
