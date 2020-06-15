@@ -282,7 +282,7 @@ $zindex-IndicatorDropdown: 50;
             border-top: 1px solid #e1e1e1;
 
             &.active {
-                border-top: none;
+                border-top-color: transparent;
             }
         }
     }
