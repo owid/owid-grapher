@@ -27,6 +27,7 @@ export class OwidVariableDisplaySettings {
     @observable yearIsDay?: boolean = undefined
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
+    @observable includeInTable?: boolean = true
 }
 
 export class OwidVariable {

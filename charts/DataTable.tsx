@@ -12,7 +12,7 @@ import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDo
 import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 import { ChartConfig } from "./ChartConfig"
-import { capitalize, some, defaultTo, orderBy } from "./Util"
+import { capitalize, some, defaultTo, orderBy, upperFirst } from "./Util"
 import { Tippy } from "./Tippy"
 import {
     DataTableTransform,
@@ -126,15 +126,16 @@ export class DataTable extends React.Component<DataTableProps> {
             const dv = row.dimensionValues[dimIndex] as DimensionValue
 
             let value: number | string | undefined
-
-            if (isSingleValue(dv)) {
-                value = dv.single?.value
-            } else if (
-                isRangeValue(dv) &&
-                columnKey !== undefined &&
-                columnKey in RangeValueKey
-            ) {
-                value = dv[columnKey as RangeValueKey]?.value
+            if (dv) {
+                if (isSingleValue(dv)) {
+                    value = dv.single?.value
+                } else if (
+                    isRangeValue(dv) &&
+                    columnKey !== undefined &&
+                    columnKey in RangeValueKey
+                ) {
+                    value = dv[columnKey as RangeValueKey]?.value
+                }
             }
 
             // We always want undefined values to be last
@@ -199,7 +200,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.displayDimensions.map((dim, dimIndex) => {
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">{dim.name}</span>
+                    <span className="name">{upperFirst(dim.name)}</span>
                     <span className="unit">{dim.unit}</span>
                 </React.Fragment>
             )
@@ -241,7 +242,7 @@ export class DataTable extends React.Component<DataTableProps> {
                         sortOrder={sort.order}
                         onClick={() => this.updateSort(dimIndex, column.key)}
                         headerText={headerText}
-                        colType="dimension"
+                        colType="subdimension"
                         dataType="numeric"
                     />
                 )
@@ -364,7 +365,7 @@ function ColumnHeader(props: {
     rowSpan?: number
     colSpan?: number
     headerText: React.ReactFragment
-    colType: "entity" | "dimension"
+    colType: "entity" | "dimension" | "subdimension"
     dataType: "text" | "numeric"
 }) {
     const { sortable, sortedCol } = props

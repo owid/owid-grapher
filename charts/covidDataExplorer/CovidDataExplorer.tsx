@@ -1103,7 +1103,8 @@ export class CovidDataExplorer extends React.Component<{
                     display: {
                         // Allow ± 1 day difference in data plotted on bar charts
                         // This is what we use for charts on the Grapher too
-                        tolerance: 1
+                        tolerance: 1,
+                        name: this.chartTitle
                     }
                 }
             ]
@@ -1113,14 +1114,15 @@ export class CovidDataExplorer extends React.Component<{
                 property: "y",
                 variableId: this.yVariableId,
                 display: {
-                    name: ""
+                    name: this.chartTitle
                 }
             },
             {
                 property: "x",
                 variableId: this.xVariableId!,
                 display: {
-                    name: this.daysSinceOption.title
+                    name: this.daysSinceOption.title,
+                    includeInTable: false
                 }
             },
             {
@@ -1169,7 +1171,8 @@ export class CovidDataExplorer extends React.Component<{
             yAxis: {
                 min: 0,
                 scaleType: "linear",
-                canChangeScaleType: true
+                canChangeScaleType: true,
+                label: ""
             },
             owidDataset: this.owidVariableSet,
             selectedData: [],
