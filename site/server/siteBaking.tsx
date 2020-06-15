@@ -242,19 +242,27 @@ export async function makeAtomFeed() {
 <link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts
-    .map(
-        post => `<entry>
-    <title><![CDATA[${post.title}]]></title>
-    <id>${BAKED_BASE_URL}/${post.path}</id>
-    <link rel="alternate" href="${BAKED_BASE_URL}/${post.path}"/>
-    <published>${post.date.toISOString()}</published>
-    <updated>${post.modifiedDate.toISOString()}</updated>
-    ${post.authors
-        .map((author: string) => `<author><name>${author}</name></author>`)
-        .join("")}
-    <summary><![CDATA[${post.excerpt}]]></summary>
-</entry>`
-    )
+    .map(post => {
+        const postUrl = `${BAKED_BASE_URL}/${post.path}`
+        const image = post.imageUrl
+            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${post.imageUrl}"/></a>`
+            : ""
+
+        return `<entry>
+            <title><![CDATA[${post.title}]]></title>
+            <id>${postUrl}</id>
+            <link rel="alternate" href="${postUrl}"/>
+            <published>${post.date.toISOString()}</published>
+            <updated>${post.modifiedDate.toISOString()}</updated>
+            ${post.authors
+                .map(
+                    (author: string) =>
+                        `<author><name>${author}</name></author>`
+                )
+                .join("")}
+            <summary><![CDATA[${post.excerpt}${image}]]></summary>
+            </entry>`
+    })
     .join("\n")}
 </feed>
 `
