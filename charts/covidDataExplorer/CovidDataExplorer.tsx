@@ -490,7 +490,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @action.bound toggleControls() {
         this.props.params.hideControls = !this.props.params.hideControls
-        this.chart.embedPlugins = this.controlsToggleElement
+        this.chart.embedExplorerCheckbox = this.controlsToggleElement
         this._updateChart()
         requestAnimationFrame(() => this.onResize())
     }
@@ -1033,7 +1033,7 @@ export class CovidDataExplorer extends React.Component<{
 
         // call resize for the first time to initialize chart
         this.onResize()
-        this.chart.embedPlugins = this.controlsToggleElement
+        this.chart.embedExplorerCheckbox = this.controlsToggleElement
     }
 
     componentWillUnmount() {

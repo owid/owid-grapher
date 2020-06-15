@@ -73,7 +73,7 @@ class EmbedMenu extends React.Component<{
                     onFocus={evt => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
-                {this.props.chartView.chart.embedPlugins}
+                {this.props.chartView.chart.embedExplorerCheckbox}
             </div>
         )
     }
