@@ -175,11 +175,11 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get queryStr(): string {
+        const externalParams = this.externallyProvidedParams || {}
         const queryParams = {
-            ...this.params
+            ...this.params,
+            ...externalParams
         }
-        if (this.externallyProvidedParams)
-            Object.assign(queryParams, this.externallyProvidedParams)
         return queryParamsToStr(queryParams)
     }
 

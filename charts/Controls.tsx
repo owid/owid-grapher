@@ -39,7 +39,6 @@ import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 @observer
 class EmbedMenu extends React.Component<{
     chartView: ChartView
-    embedUrl: string
 }> {
     dismissable = true
 
@@ -64,16 +63,17 @@ class EmbedMenu extends React.Component<{
     }
 
     render() {
-        const { embedUrl } = this.props
-
+        const url = this.props.chartView.chart.url.canonicalUrl
         return (
             <div className="embedMenu" onClick={this.onClick}>
                 <h2>Embed</h2>
                 <p>Paste this into any HTML page:</p>
                 <textarea
+                    readOnly={true}
                     onFocus={evt => evt.currentTarget.select()}
-                    defaultValue={`<iframe src="${embedUrl}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
+                    value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
+                {this.props.chartView.chart.embedPlugins}
             </div>
         )
     }
@@ -142,11 +142,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     @action.bound onEmbed() {
         if (this.canonicalUrl) {
             this.props.chartView.addPopup(
-                <EmbedMenu
-                    key="EmbedMenu"
-                    chartView={this.props.chartView}
-                    embedUrl={this.canonicalUrl}
-                />
+                <EmbedMenu key="EmbedMenu" chartView={this.props.chartView} />
             )
             this.dismiss()
         }

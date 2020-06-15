@@ -469,20 +469,28 @@ export class CovidDataExplorer extends React.Component<{
                                 isEmbed={true}
                             ></ChartView>
                         )}
-                        <div
-                            className="ControlsToggle"
-                            onClick={this.toggleControls}
-                        >
-                            Toggle controls
-                        </div>
                     </div>
                 </div>
             </>
         )
     }
 
+    get controlsToggleElement() {
+        return (
+            <label>
+                <input
+                    type="checkbox"
+                    checked={this.props.params.hideControls}
+                    onChange={this.toggleControls}
+                />{" "}
+                Hide controls
+            </label>
+        )
+    }
+
     @action.bound toggleControls() {
         this.props.params.hideControls = !this.props.params.hideControls
+        this.chart.embedPlugins = this.controlsToggleElement
         this._updateChart()
         requestAnimationFrame(() => this.onResize())
     }
@@ -1025,6 +1033,7 @@ export class CovidDataExplorer extends React.Component<{
 
         // call resize for the first time to initialize chart
         this.onResize()
+        this.chart.embedPlugins = this.controlsToggleElement
     }
 
     componentWillUnmount() {

@@ -344,6 +344,12 @@ export class ChartConfig {
         }
     }
 
+    // Provide a way to insert an arbitrary element into the embed popup.
+    // The "hideControls" property is a param on the explorer, so to maintain
+    // modularity between the explorer and chart I am injecting the checkbox this way.
+    // In the future if we merge the two we could shift to a cleaner approach.
+    @observable.ref embedExplorerCheckbox?: JSX.Element
+
     @action.bound receiveData(json: OwidVariablesAndEntityKey) {
         const variablesById: { [id: string]: OwidVariable } = {}
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
