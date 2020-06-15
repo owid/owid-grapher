@@ -1024,7 +1024,7 @@ export class ControlsFooterView extends React.Component<{
 
         const tabsElement = hasSpace ? (
             <div className="footerRowMulti">
-                <div>
+                <div className="inline-controls">
                     {hasInlineControls && this._getInlineControlsElement()}
                 </div>
                 {this._getTabsElement()}

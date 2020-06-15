@@ -192,7 +192,6 @@ $zindex-IndicatorDropdown: 50;
 
         .footerRowSingle,
         .footerRowMulti {
-            border-top: 1px solid #e1e1e1;
             box-sizing: content-box;
             width: 100%;
             height: $footerRowHeight - 1px;
@@ -276,6 +275,15 @@ $zindex-IndicatorDropdown: 50;
 
         nav.tabs li.active > a {
             border-bottom-color: rgba(0, 33, 71, 0.9);
+        }
+
+        .inline-controls,
+        nav li {
+            border-top: 1px solid #e1e1e1;
+
+            &.active {
+                border-top: none;
+            }
         }
     }
 
