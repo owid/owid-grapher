@@ -11,14 +11,14 @@ import {
     difference,
     entries,
     minBy,
-    fromPairs
+    fromPairs,
+    sortBy
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3-fetch"
-import { sortBy } from "lodash"
 
 const keepStrings = new Set(
     `iso_code location date tests_units continent`.split(" ")
