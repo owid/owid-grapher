@@ -10,6 +10,7 @@ import { ParsedCovidRow, CountryOption } from "./CovidTypes"
 export enum CountryPickerMetric {
     location = "location",
     population = "population",
+    population_density = "population_density",
     median_age = "median_age",
     aged_65_older = "aged_65_older",
     aged_70_older = "aged_70_older",
@@ -51,6 +52,19 @@ export const metricSpecs: Record<
                   })
                 : undefined
     },
+    population_density: {
+        label: "Population density (people per km²)",
+        accessor: option =>
+            getLatestFromRows(option.rows, row => row.population_density),
+        formatValue: value =>
+            isNumber(value)
+                ? formatValue(value, {
+                      numDecimalPlaces: 0,
+                      noTrailingZeroes: false,
+                      numberPrefixes: false
+                  })
+                : undefined
+    },
     median_age: {
         label: "Median age",
         accessor: option =>
@@ -65,7 +79,7 @@ export const metricSpecs: Record<
                 : undefined
     },
     aged_65_older: {
-        label: "Aged 65+",
+        label: "Share aged 65+",
         accessor: option =>
             getLatestFromRows(option.rows, row => row.aged_65_older),
         formatValue: value =>
@@ -79,7 +93,7 @@ export const metricSpecs: Record<
                 : undefined
     },
     aged_70_older: {
-        label: "Aged 70+",
+        label: "Share aged 70+",
         accessor: option =>
             getLatestFromRows(option.rows, row => row.aged_70_older),
         formatValue: value =>
@@ -93,7 +107,7 @@ export const metricSpecs: Record<
                 : undefined
     },
     gdp_per_capita: {
-        label: "GDP per capita",
+        label: "GDP per capita (int.-$)",
         accessor: option =>
             getLatestFromRows(option.rows, row => row.gdp_per_capita),
         formatValue: value =>
@@ -101,7 +115,8 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      numberPrefixes: false
+                      numberPrefixes: false,
+                      unit: "$"
                   })
                 : undefined
     },
