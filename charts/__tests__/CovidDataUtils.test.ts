@@ -6,7 +6,8 @@ import {
     parseCovidRow,
     makeCountryOptions,
     getLeastUsedColor,
-    buildCovidVariable
+    buildCovidVariable,
+    computeRegionRows
 } from "../covidDataExplorer/CovidDataUtils"
 import uniq from "lodash/uniq"
 import { csvParse } from "d3-dsv"
@@ -43,6 +44,17 @@ describe(makeCountryOptions, () => {
         expect(world.code).toEqual("OWID_WRL")
         const usa = options[1]
         expect(usa.latestTotalTestsPerCase).toEqual(7544328.0 / 1180634)
+    })
+})
+
+describe(computeRegionRows, () => {
+    const testRows = csvParse(testData)
+    const parsedRows = testRows.map(parseCovidRow)
+
+    it("correctly groups continents and adds rows for each", () => {
+        const regionRows = computeRegionRows(parsedRows)
+        expect(regionRows.length).toEqual(6)
+        expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
     })
 })
 
