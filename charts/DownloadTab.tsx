@@ -1,10 +1,15 @@
-import { extend } from "./Util"
+import { extend, isMobile } from "./Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import classNames from "classnames"
+import { CSVGenerator } from "./CSVGenerator"
+import { DATA_TABLE } from "settings"
 
 interface DownloadTabProps {
     bounds: Bounds
@@ -146,6 +151,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
+    @computed get csvGenerator(): CSVGenerator {
+        return new CSVGenerator({ chart: this.props.chart })
+    }
+
     renderReady() {
         const {
             props,
@@ -160,14 +169,15 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
         let previewWidth: number
         let previewHeight: number
+        const boundScalar = 0.4
         if (
             props.bounds.width / props.bounds.height >
             targetWidth / targetHeight
         ) {
-            previewHeight = props.bounds.height * 0.4
+            previewHeight = props.bounds.height * boundScalar
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = props.bounds.width * 0.4
+            previewWidth = props.bounds.width * boundScalar
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
@@ -176,48 +186,89 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             minHeight: previewHeight,
             maxWidth: previewWidth,
             maxHeight: previewHeight,
-            border: "1px solid #ccc",
-            margin: "1em"
+            border: "1px solid #ccc"
         }
 
-        return [
-            <a
-                key="png"
-                href={pngDownloadUrl}
-                download={baseFilename + ".png"}
-                data-track-note="chart-download-png"
-                onClick={this.onPNGDownload}
-            >
-                <div>
-                    <img src={pngPreviewUrl} style={imgStyle} />
-                    <aside>
-                        <h2>Save as .png</h2>
-                        <p>
-                            A standard image of the visualization that can be
-                            used in presentations or other documents.
-                        </p>
-                    </aside>
+        const asideStyle = {
+            maxWidth: previewWidth
+        }
+
+        const externalCsvLink = this.props.chart.externalCsvLink
+        const csvGenerator = this.csvGenerator
+        const csv_download = (
+            <React.Fragment>
+                <div className="download-csv" style={{ maxWidth: "100%" }}>
+                    <p>
+                        Download a CSV file containing all data used in this
+                        visualization:
+                    </p>
+                    <a
+                        href={
+                            externalCsvLink
+                                ? externalCsvLink
+                                : csvGenerator.csvDataUri
+                        }
+                        download={csvGenerator.csvFilename}
+                        className="btn btn-primary"
+                        data-track-note="chart-download-csv"
+                        onClick={
+                            externalCsvLink
+                                ? undefined
+                                : csvGenerator.onDownload
+                        }
+                    >
+                        <FontAwesomeIcon icon={faDownload} />{" "}
+                        {csvGenerator.csvFilename}
+                    </a>
                 </div>
-            </a>,
-            <a
-                key="svg"
-                href={svgDownloadUrl}
-                download={baseFilename + ".svg"}
-                data-track-note="chart-download-svg"
-                onClick={this.onSVGDownload}
-            >
-                <div>
-                    <img src={svgPreviewUrl} style={imgStyle} />
-                    <aside>
-                        <h2>Save as .svg</h2>
-                        <p>
-                            A vector format image useful for further redesigning
-                            the visualization with vector graphic software.
-                        </p>
-                    </aside>
+            </React.Fragment>
+        )
+
+        return (
+            <React.Fragment>
+                <div className="img-downloads">
+                    <a
+                        key="png"
+                        href={pngDownloadUrl}
+                        download={baseFilename + ".png"}
+                        data-track-note="chart-download-png"
+                        onClick={this.onPNGDownload}
+                    >
+                        <div>
+                            <img src={pngPreviewUrl} style={imgStyle} />
+                            <aside style={asideStyle}>
+                                <h2>Save as .png</h2>
+                                <p>
+                                    A standard image of the visualization that
+                                    can be used in presentations or other
+                                    documents.
+                                </p>
+                            </aside>
+                        </div>
+                    </a>
+                    <a
+                        key="svg"
+                        href={svgDownloadUrl}
+                        download={baseFilename + ".svg"}
+                        data-track-note="chart-download-svg"
+                        onClick={this.onSVGDownload}
+                    >
+                        <div>
+                            <img src={svgPreviewUrl} style={imgStyle} />
+                            <aside style={asideStyle}>
+                                <h2>Save as .svg</h2>
+                                <p>
+                                    A vector format image useful for further
+                                    redesigning the visualization with vector
+                                    graphic software.
+                                </p>
+                            </aside>
+                        </div>
+                    </a>
                 </div>
-            </a>
-        ]
+                {DATA_TABLE && csv_download}
+            </React.Fragment>
+        )
     }
 
     componentDidMount() {
@@ -232,7 +283,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     render() {
         return (
             <div
-                className="DownloadTab"
+                className={classNames("DownloadTab", {
+                    mobile: isMobile()
+                })}
                 style={extend(this.props.bounds.toCSS(), {
                     position: "absolute"
                 })}

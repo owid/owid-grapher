@@ -641,6 +641,14 @@ export class ChartConfig {
             this.props.tab = value
             this.props.overlay = undefined
         } else {
+            // table tab cannot be downloaded, so revert to default tab
+            if (
+                value === "download" &&
+                DATA_TABLE &&
+                this.props.tab === "table"
+            ) {
+                this.props.tab = this.origProps.tab
+            }
             this.props.overlay = value
         }
     }
