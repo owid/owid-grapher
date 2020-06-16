@@ -35,7 +35,7 @@ jobs:
                       ${{ runner.os }}-yarn-
 
             - name: Install dependencies
-              run: yarn
+              run: yarn --frozen-lockfile
 
             - name: Run bundlewatch
               run: yarn bundlewatch
