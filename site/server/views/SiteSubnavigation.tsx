@@ -6,6 +6,7 @@ interface SubnavItem {
     label: string
     href: string
     id: string
+    highlight?: boolean
 }
 
 const subnavs: { [subnavId: string]: SubnavItem[] } = {
@@ -37,12 +38,14 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         {
             label: "By country",
             href: "/coronavirus#coronavirus-country-profiles",
-            id: "by-country"
+            id: "by-country",
+            highlight: true
         },
         {
             label: "Data explorer",
             href: "/coronavirus-data-explorer",
-            id: "data-explorer"
+            id: "data-explorer",
+            highlight: true
         },
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
         { label: "Cases", href: "/covid-cases", id: "cases" },
@@ -79,18 +82,26 @@ export class SiteSubnavigation extends React.Component<{
                             </a>
                         </div>
                         <ul className="site-subnavigation-links">
-                            {subnavLinks.slice(1).map(({ href, label, id }) => (
-                                <li
-                                    className={
-                                        id === subnavCurrentId
-                                            ? "current"
-                                            : undefined
-                                    }
-                                    key={href}
-                                >
-                                    <a href={href}>{label}</a>
-                                </li>
-                            ))}
+                            {subnavLinks
+                                .slice(1)
+                                .map(({ href, label, id, highlight }) => {
+                                    const classes: string[] = []
+                                    if (id === subnavCurrentId)
+                                        classes.push("current")
+                                    if (highlight) classes.push("highlight")
+                                    return (
+                                        <li
+                                            className={
+                                                (classes.length &&
+                                                    classes.join(" ")) ||
+                                                ""
+                                            }
+                                            key={href}
+                                        >
+                                            <a href={href}>{label}</a>
+                                        </li>
+                                    )
+                                })}
                         </ul>
                     </div>
                 </div>

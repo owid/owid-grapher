@@ -278,7 +278,13 @@
 
         &:hover {
             color: $primary-color;
+            padding-bottom: 9px;
+            border-bottom: 3px solid $secondary-color;
         }
+    }
+
+    .highlight a {
+        color: $primary-color;
     }
 
     .current a {
