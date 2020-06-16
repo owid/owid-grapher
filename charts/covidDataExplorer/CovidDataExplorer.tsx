@@ -23,7 +23,6 @@ import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
-    max,
     fetchText,
     difference,
     pick,
@@ -57,7 +56,6 @@ import {
     getLeastUsedColor,
     computeCovidColumn
 } from "./CovidDataUtils"
-import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
