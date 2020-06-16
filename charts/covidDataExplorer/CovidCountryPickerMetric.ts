@@ -47,7 +47,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      autoPrefix: false
+                      numberPrefixes: false
                   })
                 : undefined
     },
@@ -60,7 +60,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 1,
                       noTrailingZeroes: false,
-                      autoPrefix: false
+                      numberPrefixes: false
                   })
                 : undefined
     },
@@ -73,7 +73,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      autoPrefix: false,
+                      numberPrefixes: false,
                       unit: "%"
                   })
                 : undefined
@@ -87,7 +87,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      autoPrefix: false,
+                      numberPrefixes: false,
                       unit: "%"
                   })
                 : undefined
@@ -101,7 +101,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      autoPrefix: false
+                      numberPrefixes: false
                   })
                 : undefined
     },
@@ -114,7 +114,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      autoPrefix: false,
+                      numberPrefixes: false,
                       unit: "%"
                   })
                 : undefined
@@ -131,7 +131,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 1,
                       noTrailingZeroes: false,
-                      autoPrefix: false
+                      numberPrefixes: false
                   })
                 : undefined
     },
@@ -151,7 +151,7 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 1,
                       noTrailingZeroes: false,
-                      autoPrefix: false
+                      numberPrefixes: false
                   })
                 : undefined
     }

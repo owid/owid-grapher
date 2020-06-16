@@ -252,7 +252,7 @@ export function formatValue(
     options: TickFormattingOptions
 ): string {
     const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
-    const autoPrefix = defaultTo(options.autoPrefix, true)
+    const numberPrefixes = defaultTo(options.numberPrefixes, true)
     const showPlus = defaultTo(options.showPlus, false)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
@@ -261,7 +261,7 @@ export function formatValue(
     let output: string = value.toString()
 
     const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && autoPrefix && absValue >= 1e6) {
+    if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
             output = formatValue(

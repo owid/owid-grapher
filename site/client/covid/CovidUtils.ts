@@ -24,7 +24,7 @@ export function formatInt(
 ): string {
     return n === undefined || isNaN(n)
         ? defaultValue
-        : formatValue(n, { autoPrefix: false, ...options })
+        : formatValue(n, { numberPrefixes: false, ...options })
 }
 
 export const defaultTimeFormat = utcFormat("%B %e")

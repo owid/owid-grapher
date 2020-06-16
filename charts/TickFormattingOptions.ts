@@ -2,7 +2,7 @@ export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string
     noTrailingZeroes?: boolean
-    autoPrefix?: boolean
+    numberPrefixes?: boolean
     showPlus?: boolean
     isFirstOrLastTick?: boolean
 }
