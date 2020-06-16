@@ -16,12 +16,13 @@ import {
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
 import { OwidVariable } from "charts/owidData/OwidVariable"
-import { populationMap } from "../PopulationMap"
 import { variablePartials } from "./CovidVariablePartials"
 import { csv } from "d3-fetch"
-import { labelsByRegion, worldRegionByMapEntity } from "charts/WorldRegions"
+import { sortBy } from "lodash"
 
-const keepStrings = new Set(`iso_code location date tests_units`.split(" "))
+const keepStrings = new Set(
+    `iso_code location date tests_units continent`.split(" ")
+)
 
 export const parseCovidRow = (row: any) => {
     Object.keys(row).forEach(key => {
@@ -66,23 +67,70 @@ export const covidLastUpdatedPath =
 
 export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const rawData = await csv(covidDataPath)
-    return rawData
+    const filtered = rawData
         .map(parseCovidRow)
         .filter(
             row => row.location !== "World" && row.location !== "International"
         )
+
+    const regionRows = computeRegionRows(filtered)
+    return filtered.concat(regionRows)
+}
+
+export const computeRegionRows = (rows: ParsedCovidRow[]) => {
+    let newRows: ParsedCovidRow[] = []
+    const grouped = groupBy(rows, "continent")
+    Object.keys(grouped)
+        .filter(cont => cont)
+        .forEach(continentName => {
+            const groupRows = new Map<string, ParsedCovidRow>()
+            const rows = sortBy(grouped[continentName], row =>
+                moment(row.date).unix()
+            )
+            rows.forEach(row => {
+                const day = row.date
+                if (!groupRows.has(day)) {
+                    const newRow: any = {}
+                    Object.keys(row).forEach(key => (newRow[key] = undefined))
+                    groupRows.set(day, {
+                        location: row.continent,
+                        iso_code: row.continent.replace(" ", ""),
+                        date: day,
+                        new_cases: 0,
+                        new_deaths: 0,
+                        population: 0
+                    } as ParsedCovidRow)
+                }
+                const newRow = groupRows.get(day)!
+                newRow.population += row.population
+                newRow.new_cases += row.new_cases || 0
+                newRow.new_deaths += row.new_deaths || 0
+            })
+            const continentRows = Array.from(groupRows.values())
+            let total_cases = 0
+            let total_deaths = 0
+            // We need to compute cumulatives again because sometimes data will stop for a country.
+            continentRows.forEach(row => {
+                total_cases += row.new_cases
+                total_deaths += row.new_deaths
+                row.total_cases = total_cases
+                row.total_deaths = total_deaths
+            })
+            newRows = newRows.concat(continentRows)
+        })
+    return newRows
 }
 
 export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
     const rowsByCountry = groupBy(data, "iso_code")
     return map(rowsByCountry, rows => {
-        const { location, iso_code } = rows[0]
+        const { location, iso_code, population, continent } = rows[0]
         return {
             name: location,
             slug: location,
             code: iso_code,
-            population: populationMap[location],
-            continent: labelsByRegion[worldRegionByMapEntity[location]],
+            population,
+            continent,
             latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
             rows
         }
@@ -254,8 +302,8 @@ export const computeCovidColumn = (
             if (value === undefined) return undefined
 
             if (perCapita > 1) {
-                const pop = populationMap[row.location]
-                if (!populationMap[row.location])
+                const pop = row.population
+                if (!pop)
                     throw new Error(`Missing population for ${row.location}`)
                 value = perCapita * (value / pop)
             }

@@ -19,6 +19,7 @@ export declare type MetricKind =
 export interface ParsedCovidRow {
     iso_code: string
     location: string
+    continent: string
     date: string
     total_cases: number
     new_cases: number
