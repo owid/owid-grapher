@@ -7,7 +7,7 @@ import {
     makeCountryOptions,
     getLeastUsedColor,
     buildCovidVariable,
-    computeRegionRows
+    generateContinentRows
 } from "../covidDataExplorer/CovidDataUtils"
 import uniq from "lodash/uniq"
 import { csvParse } from "d3-dsv"
@@ -47,12 +47,12 @@ describe(makeCountryOptions, () => {
     })
 })
 
-describe(computeRegionRows, () => {
+describe(generateContinentRows, () => {
     const testRows = csvParse(testData)
     const parsedRows = testRows.map(parseCovidRow)
 
     it("correctly groups continents and adds rows for each", () => {
-        const regionRows = computeRegionRows(parsedRows)
+        const regionRows = generateContinentRows(parsedRows)
         expect(regionRows.length).toEqual(6)
         expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
     })
