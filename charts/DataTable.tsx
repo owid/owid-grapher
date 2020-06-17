@@ -440,7 +440,7 @@ export const ClosestYearNotice = ({
         arrow={false}
     >
         <span className="notice">
-            in {year}{" "}
+            {year}{" "}
             <span className="icon">
                 <FontAwesomeIcon icon={faInfoCircle} />
             </span>
