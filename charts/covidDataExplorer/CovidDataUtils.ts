@@ -73,52 +73,92 @@ export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
             row => row.location !== "World" && row.location !== "International"
         )
 
-    const regionRows = computeRegionRows(filtered)
-    return filtered.concat(regionRows)
+    const continentRows = generateContinentRows(filtered)
+    const euRows = calculateRowsForGroup(getEuRows(filtered), "European Union")
+    return filtered.concat(continentRows, euRows)
 }
 
-export const computeRegionRows = (rows: ParsedCovidRow[]) => {
-    let newRows: ParsedCovidRow[] = []
-    const grouped = groupBy(rows, "continent")
-    Object.keys(grouped)
-        .filter(cont => cont)
-        .forEach(continentName => {
-            const groupRows = new Map<string, ParsedCovidRow>()
-            const rows = sortBy(grouped[continentName], row =>
-                moment(row.date).unix()
-            )
-            rows.forEach(row => {
-                const day = row.date
-                if (!groupRows.has(day)) {
-                    const newRow: any = {}
-                    Object.keys(row).forEach(key => (newRow[key] = undefined))
-                    groupRows.set(day, {
-                        location: row.continent,
-                        iso_code: row.continent.replace(" ", ""),
-                        date: day,
-                        new_cases: 0,
-                        new_deaths: 0,
-                        population: 0
-                    } as ParsedCovidRow)
-                }
-                const newRow = groupRows.get(day)!
-                newRow.population += row.population
-                newRow.new_cases += row.new_cases || 0
-                newRow.new_deaths += row.new_deaths || 0
-            })
-            const continentRows = Array.from(groupRows.values())
-            let total_cases = 0
-            let total_deaths = 0
-            // We need to compute cumulatives again because sometimes data will stop for a country.
-            continentRows.forEach(row => {
-                total_cases += row.new_cases
-                total_deaths += row.new_deaths
-                row.total_cases = total_cases
-                row.total_deaths = total_deaths
-            })
-            newRows = newRows.concat(continentRows)
-        })
+const getEuRows = (rows: ParsedCovidRow[]) =>
+    rows.filter(row => euCountries.has(row.location))
+
+const euCountries = new Set([
+    "Austria",
+    "Belgium",
+    "Bulgaria",
+    "Croatia",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "Estonia",
+    "Finland",
+    "France",
+    "Germany",
+    "Greece",
+    "Hungary",
+    "Ireland",
+    "Italy",
+    "Latvia",
+    "Lithuania",
+    "Luxembourg",
+    "Malta",
+    "Netherlands",
+    "Poland",
+    "Portugal",
+    "Romania",
+    "Slovakia",
+    "Slovenia",
+    "Spain",
+    "Sweden"
+])
+
+export const calculateRowsForGroup = (
+    group: ParsedCovidRow[],
+    groupName: string
+) => {
+    const groupRows = new Map<string, ParsedCovidRow>()
+    const rows = sortBy(group, row => moment(row.date).unix())
+    rows.forEach(row => {
+        const day = row.date
+        if (!groupRows.has(day)) {
+            const newRow: any = {}
+            Object.keys(row).forEach(key => (newRow[key] = undefined))
+            groupRows.set(day, {
+                location: groupName,
+                iso_code: groupName.replace(" ", ""),
+                date: day,
+                new_cases: 0,
+                new_deaths: 0,
+                population: 0
+            } as ParsedCovidRow)
+        }
+        const newRow = groupRows.get(day)!
+        newRow.population += row.population
+        newRow.new_cases += row.new_cases || 0
+        newRow.new_deaths += row.new_deaths || 0
+    })
+    const newRows = Array.from(groupRows.values())
+    let total_cases = 0
+    let total_deaths = 0
+    // We need to compute cumulatives again because sometimes data will stop for a country.
+    newRows.forEach(row => {
+        total_cases += row.new_cases
+        total_deaths += row.new_deaths
+        row.total_cases = total_cases
+        row.total_deaths = total_deaths
+    })
     return newRows
+}
+
+// Generates rows for each region.
+export const generateContinentRows = (rows: ParsedCovidRow[]) => {
+    const grouped = groupBy(rows, "continent")
+    return flatten(
+        Object.keys(grouped)
+            .filter(cont => cont)
+            .map(continentName =>
+                calculateRowsForGroup(grouped[continentName], continentName)
+            )
+    )
 }
 
 export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
